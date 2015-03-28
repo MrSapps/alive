@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 2.6)
 
 project(ALIVE)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}")
+find_package(SDL2 REQUIRED)
+
 enable_testing()
 
 #set( CMAKE_VERBOSE_MAKEFILE on )
@@ -27,6 +30,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
 endif ()
 
 include_directories(
+    ${SDL2_INCLUDE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/include
 	${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest/include
@@ -49,6 +53,7 @@ add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(Alive
 	src/main.cpp
 )
+TARGET_LINK_LIBRARIES(Alive ${SDL2_LIBRARY})
 
 if (MSVC)
 	# Build cpp files on all cores
