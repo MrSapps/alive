@@ -62,7 +62,7 @@ after_success:
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then lcov --directory . --capture --output-file coverage.info; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then lcov --remove coverage.info '*/3rdParty/*' '/usr/*' --output-file coverage.info; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then lcov --list coverage.info; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then coveralls-lcov --repo-token $TOKEN coverage.info; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then coveralls-lcov coverage.info; fi
   
 language: cpp
 
