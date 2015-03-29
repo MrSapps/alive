@@ -1,5 +1,3 @@
-language: cpp
-
 os:
  - linux
  - osx
@@ -7,13 +5,13 @@ os:
 matrix:
  exclude:
 # Don't build using gcc on mac
-  - os: osx
-    compiler: gcc
+#  - os: osx
+#    compiler: gcc
 # Don't try to do Coverity or coverage builds on mac
-  - os: osx
-    env: COVERITY=1
-    env: COVERAGE=1
-# Only do coverity or coverage build on Linux when the compiler is gcc
+#  - os: osx
+#    env: COVERITY=1
+#    env: COVERAGE=1
+# Don't do cov or coverage on clang
   - os: linux
     compiler: clang
     env: COVERITY=1
@@ -24,6 +22,7 @@ matrix:
 compiler: 
 - gcc
 - clang
+language: cpp
 
 
 before_script: 
