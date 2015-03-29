@@ -3,27 +3,28 @@ language: cpp
 os:
  - linux
  - osx
-env: 
-  matrix:
-  - COVERAGE=1
-  - COVERAGE=0
+
 matrix:
  exclude:
 # Don't build using gcc on mac
   - os: osx
     compiler: gcc
-# Don't try to do Coverity builds on mac
+# Don't try to do Coverity or coverage builds on mac
   - os: osx
     env: COVERITY=1
     env: COVERAGE=1
-# Only do coverity build on Linux when the compiler is gcc
+# Only do coverity or coverage build on Linux when the compiler is gcc
   - os: linux
     compiler: clang
     env: COVERITY=1
     env: COVERAGE=1
+# Don't build with clang on Linux
+#  - os: linux
+#    compiler: clang
 compiler: 
 - gcc
 - clang
+
 
 before_script: 
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y; fi
