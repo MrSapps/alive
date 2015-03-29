@@ -1,7 +1,12 @@
 os:
  - linux
  - osx
-
+ 
+env: 
+  matrix:
+  - COVERAGE=1
+  - COVERAGE=0
+  
 matrix:
  exclude:
 # Don't build using gcc on mac
