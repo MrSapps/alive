@@ -1,10 +1,6 @@
 #include "SDL.h"
 #include <iostream>
-
-class LvlArchive
-{
-public:
-};
+#include "oddlib/lvlarchive.hpp"
 
 int main(int argc, char** argv)
 {
@@ -26,9 +22,9 @@ int main(int argc, char** argv)
         return -1;
 
     // Play effect at 50% strength for 2 seconds
-    // if (SDL_HapticRumblePlay(haptic, 1.0, 2000) != 0)
-    //    return -1;
-    //SDL_Delay(2000);
+     if (SDL_HapticRumblePlay(haptic, 1.0, 2000) != 0)
+        return -1;
+    SDL_Delay(2000);
 
     // Clean up
     SDL_HapticClose(haptic);

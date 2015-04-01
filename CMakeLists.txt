@@ -30,6 +30,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
 endif ()
 
 include_directories(
+	include
     ${SDL2_INCLUDE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/include
@@ -44,20 +45,26 @@ SET(gmock_src
 
 add_library(gmock STATIC ${gmock_src})
 
+add_library(oddlib STATIC
+	include/oddlib/lvlarchive.hpp
+	src/oddlib/lvlarchive.cpp
+)
+
 add_executable(Tests
 	test/main.cpp
 )
-target_link_libraries(Tests gmock ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Tests oddlib gmock ${CMAKE_THREAD_LIBS_INIT})
 add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(Alive
 	src/main.cpp
+
 )
-TARGET_LINK_LIBRARIES(Alive ${SDL2_LIBRARY})
+TARGET_LINK_LIBRARIES(Alive oddlib ${SDL2_LIBRARY})
 
 if (MSVC)
 	# Build cpp files on all cores
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4 /wd4351")
 else()
 	if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 		# C++11 by default
