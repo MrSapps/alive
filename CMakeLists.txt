@@ -67,11 +67,11 @@ if (MSVC)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4 /wd4351")
 else()
 	if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-		# C++11 by default
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
+		# C++14 by default
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fPIC")
 	else()
-		# Enable C++11, you may need to use -std=c++0x if using an older gcc compiler
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -Wall -Weffc++ -pedantic -Wmissing-field-initializers")
+		# Enable C++14, you may need to use -std=c++0x if using an older gcc compiler
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fPIC -Wall -Weffc++ -pedantic -Wmissing-field-initializers")
 		
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0") # debug, no optimisation
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage") # enabling coverage
