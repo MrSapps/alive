@@ -12,7 +12,7 @@ TEST(LvlArchive, FileNotFound)
     ASSERT_THROW(Oddlib::LvlArchive("not_found.lvl"), Oddlib::Exception);
 }
 
-TEST(LvlArchive, Integration)
+TEST(LvlArchive, DISABLED_Integration)
 {
     // Load AE lvl
     Oddlib::LvlArchive lvl("MI.LVL");
