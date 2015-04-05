@@ -1,5 +1,5 @@
 #include "oddlib/lvlarchive.hpp"
-#include "logger.h"
+#include "logger.hpp"
 
 namespace Oddlib
 {

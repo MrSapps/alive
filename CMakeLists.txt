@@ -46,7 +46,11 @@ SET(gmock_src
 add_library(gmock STATIC ${gmock_src})
 
 add_library(oddlib STATIC
+    include/logger.hpp
+	include/string_util.hpp
+	include/oddlib/anim.hpp
 	include/oddlib/lvlarchive.hpp
+	src/oddlib/anim.cpp
 	src/oddlib/lvlarchive.cpp
 )
 
