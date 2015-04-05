@@ -15,12 +15,26 @@ namespace Oddlib
 
     void Stream::ReadUInt32(Uint32& output)
     {
-        mStream.read(reinterpret_cast<char*>(&output), sizeof(output));
+        if (!mStream.read(reinterpret_cast<char*>(&output), sizeof(output)))
+        {
+            throw Exception("ReadUInt32 failure");
+        }
     }
 
     void Stream::ReadBytes(Sint8* pDest, size_t destSize)
     {
-        mStream.read(reinterpret_cast<char*>(pDest), destSize);
+        if (!mStream.read(reinterpret_cast<char*>(pDest), destSize))
+        {
+            throw Exception("ReadBytes failure");
+        }
+    }
+
+    void Stream::ReadBytes(Uint8* pDest, size_t destSize)
+    {
+        if (!mStream.read(reinterpret_cast<char*>(pDest), destSize))
+        {
+            throw Exception("ReadBytes failure");
+        }
     }
 
     void Stream::Seek(size_t pos)
@@ -31,6 +45,11 @@ namespace Oddlib
         }
     }
 
+    size_t Stream::Pos() const
+    {
+        return static_cast<size_t>(mStream.tellg());
+    }
+
     // ===================================================================
 
     Uint32 LvlArchive::FileChunk::Id() const
@@ -38,10 +57,19 @@ namespace Oddlib
         return mId;
     }
 
+    Uint32 LvlArchive::FileChunk::Type() const
+    {
+        return mType;
+    }
+
     std::vector<Uint8> LvlArchive::FileChunk::ReadData() const
     {
-        std::vector<Uint8> r;
-        // TODO: Read the data
+        std::vector<Uint8> r(mDataSize);
+        if (mDataSize > 0)
+        {
+            mStream.Seek(mFilePos);
+            mStream.ReadBytes(r.data(), r.size());
+        }
         return r;
     }
 
@@ -52,15 +80,23 @@ namespace Oddlib
 
     // ===================================================================
 
-    LvlArchive::File::File(LvlArchive& parent, const LvlArchive::FileRecord& rec)
-        : mParent(parent)
+    LvlArchive::File::File(Stream& stream, const LvlArchive::FileRecord& rec)
     {
         mFileName = std::string(
             reinterpret_cast<const char*>(rec.iFileNameBytes), 
             strnlen(reinterpret_cast<const char*>(rec.iFileNameBytes), sizeof(rec.iFileNameBytes)));
 
-        parent.mStream.Seek(rec.iStartSector * kSectorSize);
-        LoadChunks();
+        stream.Seek(rec.iStartSector * kSectorSize);
+
+        // Sound files are the only ones which are not chunk based
+        if (string_util::ends_with(mFileName, ".VH") || string_util::ends_with(mFileName, ".VB"))
+        {
+            // Handle loading as a "blob" by inserting a dummy chunk
+            mChunks.emplace_back(std::make_unique<FileChunk>(stream, 0, 0, rec.iFileSize));
+            return;
+        }
+
+        LoadChunks(stream, rec.iFileSize);
     }
 
     LvlArchive::FileChunk* LvlArchive::File::ChunkById(Uint32 id)
@@ -73,11 +109,36 @@ namespace Oddlib
         return it == std::end(mChunks) ? nullptr : it->get();
     }
 
-    void LvlArchive::File::LoadChunks()
+    void LvlArchive::File::LoadChunks(Stream& stream, Uint32 fileSize)
     {
-        // TODO: Load chunks with out data
-        Uint32 id = 0;
-        mChunks.emplace_back(std::make_unique<FileChunk>(*this, id));
+        while (stream.Pos() < stream.Pos() + fileSize)
+        {
+            ChunkHeader header;
+            stream.ReadUInt32(header.iSize);
+            stream.ReadUInt32(header.iRefCount);
+            stream.ReadUInt32(header.iType);
+            stream.ReadUInt32(header.iId);
+
+            const bool isEnd = header.iType == MakeType('E', 'n', 'd', '!');
+            const Uint32 kChunkHeaderSize = sizeof(Uint32) * 4;
+
+            if (!isEnd)
+            {
+                mChunks.emplace_back(std::make_unique<FileChunk>(stream, header.iType, header.iId, header.iSize - kChunkHeaderSize));
+            }
+
+            // Only move to next if the block isn't empty
+            if (header.iSize)
+            {
+                stream.Seek((stream.Pos() + header.iSize) - kChunkHeaderSize);
+            }
+
+            // End! block, stop reading any more blocks
+            if (isEnd)
+            {
+                break;
+            }
+        }
     }
 
     // ===================================================================
@@ -88,7 +149,7 @@ namespace Oddlib
         TRACE_ENTRYEXIT;
 
         // Read and validate the header
-        Header header;
+        LvlHeader header;
         ReadHeader(header);
         if (header.iNull1 != 0 && header.iNull2 != 0 && header.iMagic != MakeType('I', 'n', 'd', 'x'))
         {
@@ -111,7 +172,7 @@ namespace Oddlib
 
         for (const auto& rec : recs)
         {
-            mFiles.emplace_back(std::make_unique<File>(*this, rec));
+            mFiles.emplace_back(std::make_unique<File>(mStream, rec));
         }
 
         LOG_INFO("Loaded LVL '%s' with %d files", fileName.c_str(), header.iNumFiles);
@@ -127,7 +188,7 @@ namespace Oddlib
         return it == std::end(mFiles) ? nullptr : it->get();
     }
 
-    void LvlArchive::ReadHeader(Header& header)
+    void LvlArchive::ReadHeader(LvlHeader& header)
     {
         mStream.ReadUInt32(header.iFirstFileOffset);
         mStream.ReadUInt32(header.iNull1);

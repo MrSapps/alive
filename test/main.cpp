@@ -20,10 +20,10 @@ TEST(LvlArchive, DISABLED_Integration)
     const auto file = lvl.FileByName("FLYSLIG.BND");
     ASSERT_NE(nullptr, file);
 
-    const auto chunk = file->ChunkById(0);
+    const auto chunk = file->ChunkById(450);
     ASSERT_NE(nullptr, chunk);
 
-    ASSERT_EQ(0, chunk->Id());
+    ASSERT_EQ(450, chunk->Id());
 
     const auto data = chunk->ReadData();
     ASSERT_EQ(false, data.empty());

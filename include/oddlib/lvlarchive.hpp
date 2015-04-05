@@ -7,6 +7,18 @@
 #include <fstream>
 #include "SDL_types.h"
 
+namespace string_util
+{
+    inline bool ends_with(std::string const& value, std::string const& ending)
+    {
+        if (ending.size() > value.size())
+        {
+            return false;
+        }
+        return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+    }
+}
+
 namespace Oddlib
 {
     inline Uint32 MakeType(Uint8 b4, Uint8 b3, Uint8 b2, Uint8 b1)
@@ -44,30 +56,40 @@ namespace Oddlib
         Stream(const std::string& fileName);
         void ReadUInt32(Uint32& output);
         void ReadBytes(Sint8* pDest, size_t destSize);
+        void ReadBytes(Uint8* pDest, size_t destSize);
         void Seek(size_t pos);
+        size_t Pos() const;
     private:
-        std::ifstream mStream;
+        mutable std::ifstream mStream;
     };
 
     class LvlArchive
     {
     public:
-        class File;
         class FileChunk
         {
         public:
-            FileChunk& operator = (const FileChunk&) const = delete;
-            FileChunk(const FileChunk&) = delete;
-            FileChunk(File& parent, Uint32 id) 
-                : mParent(parent), mId(id) 
+            enum eTypes
             {
 
+            };
+
+            FileChunk& operator = (const FileChunk&) const = delete;
+            FileChunk(const FileChunk&) = delete;
+            FileChunk(Stream& stream, Uint32 type, Uint32 id, Uint32 dataSize)
+                : mStream(stream), mType(type), mId(id), mDataSize(dataSize)
+            {
+                mFilePos = static_cast<Uint32>(stream.Pos());
             }
             Uint32 Id() const;
+            Uint32 Type() const;
             std::vector<Uint8> ReadData() const;
         private:
             Uint32 mId = 0;
-            File& mParent;
+            Uint32 mType = 0;
+            Uint32 mFilePos = 0;
+            Uint32 mDataSize = 0;
+            Stream& mStream;
         };
 
         struct FileRecord;
@@ -76,14 +98,13 @@ namespace Oddlib
         public:
             File(const File&) = delete;
             File& operator = (const File&) = delete;
-            File(LvlArchive& parent, const FileRecord& rec);
+            File(Stream& stream, const FileRecord& rec);
             const std::string& FileName() const;
             FileChunk* ChunkById(Uint32 id);
         private:
-            void LoadChunks();
+            void LoadChunks(Stream& stream, Uint32 fileSize);
             std::string mFileName;
             std::vector<std::unique_ptr<FileChunk>> mChunks;
-            LvlArchive& mParent;
         };
 
         explicit LvlArchive(const std::string& fileName);
@@ -99,7 +120,7 @@ namespace Oddlib
         };
 
     private:
-        struct Header
+        struct LvlHeader
         {
             Uint32 iFirstFileOffset = 0;
             Uint32 iNull1 = 0;
@@ -111,7 +132,15 @@ namespace Oddlib
             Uint32 iUnknown3 = 0;
         };
 
-        void ReadHeader(Header& header);
+        struct ChunkHeader
+        {
+            Uint32 iSize = 0;          // Size inc header
+            Uint32 iRefCount = 0;      // Ref count, should be zero when loaded
+            Uint32 iType = 0;
+            Uint32 iId = 0;            // Id
+        };
+
+        void ReadHeader(LvlHeader& header);
 
         Stream mStream;
         std::vector<std::unique_ptr<File>> mFiles;
