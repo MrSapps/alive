@@ -39,8 +39,8 @@ before_script:
 - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 20
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 20
 - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
-- sudo update-alternatives --config gcc; fi
-- sudo update-alternatives --config g++; fi
+- sudo update-alternatives --config gcc
+- sudo update-alternatives --config g++
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo apt-get install ruby1.9.1 ruby1.9.1-dev; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo apt-get install rubygems1.9.1 irb1.9.1 ri1.9.1; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then rvmsudo  gem install coveralls-lcov; fi
