@@ -17,7 +17,14 @@ TEST(LvlArchive, DISABLED_Integration)
     // Load AE lvl
     Oddlib::LvlArchive lvl("MI.LVL");
 
-    auto file = lvl.FileByName("FLYSLIG.BND");
+    const auto file = lvl.FileByName("FLYSLIG.BND");
     ASSERT_NE(nullptr, file);
 
+    const auto chunk = file->ChunkById(0);
+    ASSERT_NE(nullptr, chunk);
+
+    ASSERT_EQ(0, chunk->Id());
+
+    const auto data = chunk->ReadData();
+    ASSERT_EQ(false, data.empty());
 }

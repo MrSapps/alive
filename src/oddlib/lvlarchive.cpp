@@ -25,8 +25,10 @@ namespace Oddlib
 
     void Stream::Seek(size_t pos)
     {
-        // TODO: Throw if fail
-        mStream.seekg(pos);
+        if (!mStream.seekg(pos))
+        {
+            throw Exception("Seek failure");
+        }
     }
 
     // ===================================================================
@@ -34,6 +36,13 @@ namespace Oddlib
     Uint32 LvlArchive::FileChunk::Id() const
     {
         return mId;
+    }
+
+    std::vector<Uint8> LvlArchive::FileChunk::ReadData() const
+    {
+        std::vector<Uint8> r;
+        // TODO: Read the data
+        return r;
     }
 
     const std::string& LvlArchive::File::FileName() const
@@ -46,8 +55,12 @@ namespace Oddlib
     LvlArchive::File::File(LvlArchive& parent, const LvlArchive::FileRecord& rec)
         : mParent(parent)
     {
-        //mFileName = std::string(&rec.iFileNameBytes[0], strnlen(rec.iFileNameBytes, sizeof(rec.iFileNameBytes)));
-        //parent.mStream.Seek(rec.iStartSector * kSectorSize);
+        mFileName = std::string(
+            reinterpret_cast<const char*>(rec.iFileNameBytes), 
+            strnlen(reinterpret_cast<const char*>(rec.iFileNameBytes), sizeof(rec.iFileNameBytes)));
+
+        parent.mStream.Seek(rec.iStartSector * kSectorSize);
+        LoadChunks();
     }
 
     LvlArchive::FileChunk* LvlArchive::File::ChunkById(Uint32 id)
@@ -58,6 +71,13 @@ namespace Oddlib
             return chunk->Id() == id;
         });
         return it == std::end(mChunks) ? nullptr : it->get();
+    }
+
+    void LvlArchive::File::LoadChunks()
+    {
+        // TODO: Load chunks with out data
+        Uint32 id = 0;
+        mChunks.emplace_back(std::make_unique<FileChunk>(*this, id));
     }
 
     // ===================================================================

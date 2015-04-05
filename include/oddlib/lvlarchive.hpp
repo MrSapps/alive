@@ -56,7 +56,15 @@ namespace Oddlib
         class FileChunk
         {
         public:
+            FileChunk& operator = (const FileChunk&) const = delete;
+            FileChunk(const FileChunk&) = delete;
+            FileChunk(File& parent, Uint32 id) 
+                : mParent(parent), mId(id) 
+            {
+
+            }
             Uint32 Id() const;
+            std::vector<Uint8> ReadData() const;
         private:
             Uint32 mId = 0;
             File& mParent;
@@ -72,6 +80,7 @@ namespace Oddlib
             const std::string& FileName() const;
             FileChunk* ChunkById(Uint32 id);
         private:
+            void LoadChunks();
             std::string mFileName;
             std::vector<std::unique_ptr<FileChunk>> mChunks;
             LvlArchive& mParent;
