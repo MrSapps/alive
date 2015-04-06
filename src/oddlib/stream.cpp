@@ -1,6 +1,7 @@
 #include <sstream>
 #include <algorithm>
 #include <fstream>
+#include <iterator>
 #include "logger.hpp"
 #include "oddlib/stream.hpp"
 #include "oddlib/exceptions.hpp"
