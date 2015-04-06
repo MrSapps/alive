@@ -35,7 +35,7 @@ namespace Oddlib
             FileChunk& operator = (const FileChunk&) const = delete;
             FileChunk(const FileChunk&) = delete;
             FileChunk(Stream& stream, Uint32 type, Uint32 id, Uint32 dataSize)
-                : mStream(stream), mType(type), mId(id), mDataSize(dataSize)
+                : mStream(stream), mId(id), mType(type), mDataSize(dataSize)
             {
                 mFilePos = static_cast<Uint32>(stream.Pos());
             }
@@ -43,11 +43,11 @@ namespace Oddlib
             Uint32 Type() const;
             std::vector<Uint8> ReadData() const;
         private:
+            Stream& mStream;
             Uint32 mId = 0;
             Uint32 mType = 0;
             Uint32 mFilePos = 0;
-            Uint32 mDataSize = 0;
-            Stream& mStream;
+            Uint32 mDataSize = 0; 
         };
 
         struct FileRecord;
