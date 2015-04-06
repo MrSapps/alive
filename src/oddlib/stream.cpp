@@ -44,6 +44,14 @@ namespace Oddlib
         }
     }
 
+    void Stream::ReadSInt16(Sint16& output)
+    {
+        if (!mStream->read(reinterpret_cast<char*>(&output), sizeof(output)))
+        {
+            throw Exception("ReadSInt16 failure");
+        }
+    }
+
     void Stream::ReadBytes(Sint8* pDest, size_t destSize)
     {
         if (!mStream->read(reinterpret_cast<char*>(pDest), destSize))
@@ -66,6 +74,12 @@ namespace Oddlib
         {
             throw Exception("Seek failure");
         }
+    }
+
+    bool Stream::AtEnd() const
+    {
+        const int c = mStream->peek();
+        return (c == EOF);
     }
 
     size_t Stream::Pos() const
