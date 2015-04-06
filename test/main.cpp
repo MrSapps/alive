@@ -1,5 +1,7 @@
 #include <gmock/gmock.h>
 #include "oddlib/lvlarchive.hpp"
+#include "oddlib/anim.hpp"
+#include "oddlib/exceptions.hpp"
 
 int main(int argc, char** argv)
 {
@@ -27,4 +29,8 @@ TEST(LvlArchive, DISABLED_Integration)
 
     const auto data = chunk->ReadData();
     ASSERT_EQ(false, data.empty());
+
+
+    std::vector<std::unique_ptr<Oddlib::Animation>> animations = Oddlib::AnimationFactory::Create(lvl, "FLYSLIG.BND", 450);
+
 }

@@ -3,10 +3,9 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <algorithm>
-#include <fstream>
 #include "SDL_types.h"
 #include "string_util.hpp"
+#include "oddlib/stream.hpp"
 
 namespace Oddlib
 {
@@ -21,36 +20,6 @@ namespace Oddlib
     const static Uint32 KMaxLvlArchiveFileNameLength = 12;
     const static Uint32 kSectorSize = 2048;
 
-    class Exception : public std::exception
-    {
-    public:
-        explicit Exception(const char* msg)
-            : mMsg(msg)
-        {
-
-        }
-
-        const char* what() const throw () override
-        {
-            return mMsg;
-        }
-
-    private:
-        const char* mMsg;
-    };
-
-    class Stream
-    {
-    public:
-        Stream(const std::string& fileName);
-        void ReadUInt32(Uint32& output);
-        void ReadBytes(Sint8* pDest, size_t destSize);
-        void ReadBytes(Uint8* pDest, size_t destSize);
-        void Seek(size_t pos);
-        size_t Pos() const;
-    private:
-        mutable std::ifstream mStream;
-    };
 
     class LvlArchive
     {

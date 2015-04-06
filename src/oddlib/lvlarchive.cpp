@@ -1,57 +1,10 @@
+#include <algorithm>
 #include "oddlib/lvlarchive.hpp"
+#include "oddlib/exceptions.hpp"
 #include "logger.hpp"
 
 namespace Oddlib
 {
-    Stream::Stream(const std::string& fileName)
-    {
-        mStream.open(fileName, std::ios::binary);
-        if (!mStream.is_open())
-        {
-            LOG_ERROR("Lvl file not found %s", fileName.c_str());
-            throw Exception("File not found");
-        }
-    }
-
-    void Stream::ReadUInt32(Uint32& output)
-    {
-        if (!mStream.read(reinterpret_cast<char*>(&output), sizeof(output)))
-        {
-            throw Exception("ReadUInt32 failure");
-        }
-    }
-
-    void Stream::ReadBytes(Sint8* pDest, size_t destSize)
-    {
-        if (!mStream.read(reinterpret_cast<char*>(pDest), destSize))
-        {
-            throw Exception("ReadBytes failure");
-        }
-    }
-
-    void Stream::ReadBytes(Uint8* pDest, size_t destSize)
-    {
-        if (!mStream.read(reinterpret_cast<char*>(pDest), destSize))
-        {
-            throw Exception("ReadBytes failure");
-        }
-    }
-
-    void Stream::Seek(size_t pos)
-    {
-        if (!mStream.seekg(pos))
-        {
-            throw Exception("Seek failure");
-        }
-    }
-
-    size_t Stream::Pos() const
-    {
-        return static_cast<size_t>(mStream.tellg());
-    }
-
-    // ===================================================================
-
     Uint32 LvlArchive::FileChunk::Id() const
     {
         return mId;
