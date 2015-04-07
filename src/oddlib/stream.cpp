@@ -84,7 +84,8 @@ namespace Oddlib
 
     size_t Stream::Pos() const
     {
-        return static_cast<size_t>(mStream->tellg());
+        const size_t pos = static_cast<size_t>(mStream->tellg());
+        return pos;
     }
 
 }
