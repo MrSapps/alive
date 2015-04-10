@@ -10,6 +10,7 @@ namespace Oddlib
 {
     Stream::Stream(std::vector<Uint8>&& data)
     {
+        mSize = data.size();
         auto s = std::make_unique<std::stringstream>();
         std::copy(data.begin(), data.end(), std::ostream_iterator<unsigned char>(*s));
         mStream.reset(s.release());
@@ -19,12 +20,16 @@ namespace Oddlib
     Stream::Stream(const std::string& fileName)
     {
         auto s = std::make_unique<std::ifstream>();
-        s->open(fileName, std::ios::binary);
+        s->open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
         if (!*s)
         {
             LOG_ERROR("Lvl file not found %s", fileName.c_str());
             throw Exception("File not found");
         }
+
+        mSize = static_cast<size_t>(s->tellg());
+        s->seekg(std::ios::beg);
+
         mStream.reset(s.release());
     }
 
@@ -88,4 +93,8 @@ namespace Oddlib
         return pos;
     }
 
+    size_t Stream::Size() const
+    {
+        return mSize;
+    }
 }

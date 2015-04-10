@@ -60,7 +60,8 @@ namespace Oddlib
             {
                 // Handle a very strange case seen in AO ROPES.BAN, we have a set header that says there are
                 // zero frames, then we have a single frame offset *before* the start of the animation!
-                stream.Seek(stream.Pos() - 0x14); // FIX ME throws
+                stream.Seek(0);
+                stream.Seek(stream.Size() - 0x14);
                 ParseAnimationSets(stream);
             }
             else

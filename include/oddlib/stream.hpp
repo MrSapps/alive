@@ -19,8 +19,10 @@ namespace Oddlib
         void ReadBytes(Uint8* pDest, size_t destSize);
         void Seek(size_t pos);
         size_t Pos() const;
+        size_t Size() const;
         bool AtEnd() const;
     private:
         mutable std::unique_ptr<std::istream> mStream;
+        size_t mSize = 0;
     };
 }
