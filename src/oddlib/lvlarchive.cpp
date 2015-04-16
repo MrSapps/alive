@@ -2,6 +2,7 @@
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/exceptions.hpp"
 #include "logger.hpp"
+#include <fstream>
 
 namespace Oddlib
 {
@@ -60,6 +61,19 @@ namespace Oddlib
             return chunk->Id() == id;
         });
         return it == std::end(mChunks) ? nullptr : it->get();
+    }
+
+    void LvlArchive::File::SaveChunks()
+    {
+        for (const auto& chunk : mChunks)
+        {
+            std::ofstream o("chunk_" + std::to_string(chunk->Id()) + ".dat", std::ios::binary);
+            if (o.is_open())
+            {
+                const auto data = chunk->ReadData();
+                o.write(reinterpret_cast<const char*>(data.data()), data.size());
+            }
+        }
     }
 
     void LvlArchive::File::LoadChunks(Stream& stream, Uint32 fileSize)

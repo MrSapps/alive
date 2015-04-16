@@ -33,6 +33,14 @@ namespace Oddlib
         mStream.reset(s.release());
     }
 
+    void Stream::ReadUInt8(Uint8& output)
+    {
+        if (!mStream->read(reinterpret_cast<char*>(&output), sizeof(output)))
+        {
+            throw Exception("ReadUInt8 failure");
+        }
+    }
+
     void Stream::ReadUInt32(Uint32& output)
     {
         if (!mStream->read(reinterpret_cast<char*>(&output), sizeof(output)))

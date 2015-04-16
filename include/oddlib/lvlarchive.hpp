@@ -59,6 +59,9 @@ namespace Oddlib
             File(Stream& stream, const FileRecord& rec);
             const std::string& FileName() const;
             FileChunk* ChunkById(Uint32 id);
+
+            // Deugging feature
+            void SaveChunks();
         private:
             void LoadChunks(Stream& stream, Uint32 fileSize);
             std::string mFileName;

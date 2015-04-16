@@ -9,7 +9,7 @@ int main(int argc, char** argv)
     return RUN_ALL_TESTS();
 }
 
-TEST(LvlArchive, FileNotFound)
+TEST(LvlArchive, DISABLED_FileNotFound)
 {
     ASSERT_THROW(Oddlib::LvlArchive("not_found.lvl"), Oddlib::Exception);
 }
@@ -24,47 +24,34 @@ struct SeqHeader
 
 };
 
-/*
-70 51 45 53 magic
-00 00 00 01 version
-01 E0 
-0E 15 C4  tempo
-04 02 rhythm
-00 - maybe padding?
-
-C Program Change [F] to 16
-
-26 55 9F 
-3C 7F 2D 
-3C 00 00 
-
-FF 2F 00 end of track
-00 00 00 probably an error - or padding
-
-*/
-
 struct SeqInfo
 {
     Uint32 iLastTime = 0;
     Sint32 iNumTimesToLoop = 0;
-    unsigned char running_status_q = 0;
+    Uint8 running_status = 0;
 };
 
-static Uint32 GetTheTime() { return 0;  }
-
-int getVarLen_q(Oddlib::Stream& stream)
-{
-    // TODO
-    abort();
-
-    return 0;
-}
 
 void snd_midi_skip_length(Oddlib::Stream& stream, int skip)
 {
     stream.Seek(stream.Pos() + skip);
 }
 
+static Uint32 midi_read_var_len(Oddlib::Stream& stream)
+{
+    Uint32 ret = 0;
+    Uint8 byte = 0;
+    for (int i = 0; i < 4; ++i)
+    {
+        stream.ReadUInt8(byte);
+        ret = (ret << 7) | (byte & 0x7f);
+        if (!(byte & 0x80))
+        {
+            break;
+        }
+    }
+    return ret;
+}
 
 static int SND_seq_play_q(Oddlib::Stream& stream)
 {
@@ -76,382 +63,282 @@ static int SND_seq_play_q(Oddlib::Stream& stream)
     stream.ReadBytes(header.mTempo, sizeof(header.mTempo));
     stream.ReadUInt16(header.mRhythm);
 
-    unsigned char padding = 0; // might be wrong
-    stream.ReadUInt8(padding);
-
     const size_t midiDataStart = stream.Pos();
-
 
     // Context state
     SeqInfo gSeqInfo = {};
 
-    // compare saved vs current time?
-    if (gSeqInfo.iLastTime > GetTheTime()) 
+    for (;;)
     {
-        return 1;
-    }
+        // Read event delta time
+        /*const Uint32 deltaTime =*/ midi_read_var_len(stream);
 
-    
-    //while (1)
-    {
-        unsigned char prevSndPtr = 0;
-        stream.ReadUInt8(prevSndPtr);
-
-        unsigned char midi_byte = prevSndPtr;
-
-        if (prevSndPtr >= 0xF0u) // Is this a Sysex or meta event?
+        // Obtain the event/status byte
+        Uint8 eventByte = 0;
+        stream.ReadUInt8(eventByte);
+        if (eventByte < 0x80)
         {
-            if (prevSndPtr == 0xF0 || prevSndPtr == 0xF7)
-            {
-                // System Exclusive (Sysex) Events (skip them)
-                int sysExEventLength = getVarLen_q(stream);
-                snd_midi_skip_length(stream, sysExEventLength);
-            }
-            else if (prevSndPtr == 0xFF)// Is it a meta event?
-            {
-                unsigned char meta_event_type = 0;
-                stream.ReadUInt8(meta_event_type);
-
-                if (meta_event_type == 0x2F)        // End of track?
-                {
-                    int loopCount = gSeqInfo.iNumTimesToLoop;// v1 some hard coded data?? or just a local static?
-                    if (loopCount) // If zero then loop forever
-                    {
-                        --loopCount;
-
-                        //char buf[256];
-                        //sprintf(buf, "EOT: %d loops left\n", loopCount);
-                       // OutputDebugString(buf);
-
-                        gSeqInfo.iNumTimesToLoop = loopCount; //v1
-                        if (loopCount <= 0)
-                        {
-                            //getNext_q(aSeqIndex); // Done playing? Ptr not reset to start
-                            return 1;
-                        }
-                    }
-
-                    //OutputDebugString("EOT: Loop forever\n");
-                    // Must be a loop back to the start?
-                    stream.Seek(midiDataStart);
-                }
-                else
-                {
-                    // Some other meta event
-                    /*
-                    int meta_event_length = getVarLen_q(gSeqInfo->iSeqPtr);
-                    if (meta_event_length)
-                    {
-                        if (meta_event_type == 0x51)    // Tempo in microseconds per quarter note (24-bit value)
-                        {
-                            incPtr(gSeqInfo->iSeqPtr);
-                            incPtr(gSeqInfo->iSeqPtr);
-                            unsigned short int tempo = (unsigned char)incPtr(gSeqInfo->iSeqPtr);
-                            snd_midi_set_tempo(aSeqIndex, 0, tempo & 0x7FFF);
-                        }
-                        else
-                        {
-                            // unknown meta event? skip it
-                            snd_midi_skip_length(gSeqInfo->iSeqPtr, meta_event_length);
-                        }
-                    }*/
-                }
-            }
-            //goto end_of_func;
-        }
-
-     
-        char param_1 = 0;
-        if (prevSndPtr >= 0x80u) // note on or off/valid running  status
-        {
-            stream.ReadUInt8((Uint8 &)param_1);
-            gSeqInfo.running_status_q = midi_byte; // v1 save running status?
-
-        }
-        else
-        {
-            if (!gSeqInfo.running_status_q) // v1
+            // Use running status
+            if (!gSeqInfo.running_status) // v1
             {
                 return 0; // error if no running status?
             }
-
-            param_1 = midi_byte; // 1st param is normally the note number?
-
-
-
-            midi_byte = gSeqInfo.running_status_q; //v1
+            eventByte = gSeqInfo.running_status;
+        }
+        else
+        {
+            // Update running status
+            gSeqInfo.running_status = eventByte;
         }
 
-
-
-        int shifted_param_1 = 0;
-        shifted_param_1 |= (Uint16)(param_1 << 8); // param 1, such as the new prog num
-
-        int param_1_and_2 = midi_byte | shifted_param_1; // param + first byte (normally the command/channel byte)
-        int status_byte = midi_byte & 0xF0; // is it note on, prog change etc.
-        unsigned int key_velocity = param_1_and_2;
-
-        int param_1_and_3_and_maybe_3 = param_1_and_2; // command/running status & param1
-
-        if (status_byte != 0xC0)                  // not Program/Instrument Change
+        if (eventByte == 0xff)
         {
-            if (status_byte != 0xD0)                // not Channel Key Pressure
+            // Meta event
+            Uint8 metaCommand = 0;
+            stream.ReadUInt8(metaCommand);
+
+            Uint8 metaCommandLength = 0;
+            stream.ReadUInt8(metaCommandLength);
+
+            switch (metaCommand)
             {
-                // must be key on/off??
-                // TODO FIX ME
-                //param_1_and_3_and_maybe_3 = ((unsigned char)incPtr(gSeqInfo->iSeqPtr) << 16) | param_1_and_2;
-                key_velocity = param_1_and_3_and_maybe_3; // command/running status & param1 + key pressure
+            case 0x2f:
+            {
+                std::cout << "end of track" << std::endl;
+
+                int loopCount = gSeqInfo.iNumTimesToLoop;// v1 some hard coded data?? or just a local static?
+                if (loopCount) // If zero then loop forever
+                {
+                    --loopCount;
+
+                    //char buf[256];
+                    //sprintf(buf, "EOT: %d loops left\n", loopCount);
+                    // OutputDebugString(buf);
+
+                    gSeqInfo.iNumTimesToLoop = loopCount; //v1
+                    if (loopCount <= 0)
+                    {
+                        //getNext_q(aSeqIndex); // Done playing? Ptr not reset to start
+                        return 1;
+                    }
+                }
+
+                //OutputDebugString("EOT: Loop forever\n");
+                // Must be a loop back to the start?
+                stream.Seek(midiDataStart);
+
+            }
+                return 0;
+
+            case 0x51:    // Tempo in microseconds per quarter note (24-bit value)
+            {
+                std::cout << "Temp change" << std::endl;
+                // TODO: Not sure if this is correct
+                Uint8 tempoByte = 0;
+                for (int i = 0; i < 3; i++)
+                {
+                    stream.ReadUInt8(tempoByte);
+                }
+            }
+                break;
+
+            default:
+            {
+                std::cout << "Unknown meta event " << Uint32(metaCommand) << std::endl;
+                // Skip unknown events
+                // TODO Might be wrong
+                snd_midi_skip_length(stream, metaCommandLength);
+            }
+
             }
         }
-
-        status_byte = status_byte & 0xF0;
-
-        
-        switch (status_byte)
+        else if (eventByte < 0x80)
         {
-            // Note on, key & vol are params
-        case 0x90:
+            // Error
+            throw std::runtime_error("Unknown midi event");
+        }
+        else
         {
-            /*
-            int channel = key_velocity & 0xF; // Nibble 1 is the channel
-            seq_data* v16 = get_data(channel);
-
-            unsigned char program_number_copy = v16->program_number;
-
-
-            unsigned int base_volume = v16->base_volume;
-
-            // base volume?
-            int adjusted_volume = (signed __int16)(base_volume * (DWORD)gSeqInfo->volume_adjust_q >> 7); //v1
-
-            if (key_velocity >> 16) // do we have a key pressure?
+            const Uint8 channel = eventByte & 0xf;
+            switch (eventByte >> 4)
             {
-                //OutputDebugString("Note on [on]\n");
-                signed int current_ref_count = 0;
-                psx_sound_channel* sPtr = unk_C1409C;
+            case 0x8:
+            {
+                Uint8 note = 0;
+                stream.ReadUInt8(note);
 
-                // Get the ref count for this channel(?), if any
-                signed int num_keys = 24;
-                do
+                Uint8 velocity = 0;
+                stream.ReadUInt8(velocity);
+
+                std::cout << Uint32(channel) << " NOTE ON " << Uint32(note) << " vel " << Uint32(velocity) << std::endl;
+            }
+                break;
+            case 0x9:
+            {
+                Uint8 note = 0;
+                stream.ReadUInt8(note);
+
+                Uint8 velocity = 0;
+                stream.ReadUInt8(velocity);
+
+                std::cout << Uint32(channel) << " NOTE OFF " << Uint32(note) << " vel " << Uint32(velocity) << std::endl;
+            }
+                break;
+            case 0xa:
+            {
+                Uint8 note = 0;
+                Uint8 pressure = 0;
+
+                stream.ReadUInt8(note);
+                stream.ReadUInt8(pressure);
+                std::cout << Uint32(channel) << " polyphonic key pressure (after touch)" << Uint32(note) << " " << Uint32(pressure) << std::endl;
+            }
+                break;
+            case 0xb:
+            {
+                Uint8 controller = 0;
+                Uint8 value = 0;
+                stream.ReadUInt8(controller);
+                stream.ReadUInt8(value);
+                std::cout << Uint32(channel) << " controller change " << Uint32(controller) << " value " << Uint32(value);
+
+                /* addditonal special logic that only applies to oddworld seq music
+                OutputDebugString("Controller change\n");
+                int controller_number = ((unsigned int)status_byte >> 8) & 0x7F;
+                if (controller_number != 6 && controller_number != 0x26)
                 {
-                    if (sPtr->field_3)
+                    if (controller_number == 0x63)
                     {
-                        if (sPtr->field_0 == gSeqInfo->w28) // v1
+                        //*static_byte_BD1CFC = (unsigned int)status_byte >> 16;
+                    }
+                    break;
+                }
+
+                switch (*static_byte_BD1CFC)
+                {
+                case 20:                              // set loop point
+                    OutputDebugString("Set loop\n");
+                    gSeqInfo->iLoopPtr = gSeqInfo->iSeqPtr; // v1
+                    gSeqInfo->num_loops_to_play = (unsigned int)status_byte >> 16; // v1
+                    break;
+                case 30:								// go to loop point
+                {
+                    OutputDebugString("Do loop\n");
+                    if (gSeqInfo->iLoopPtr)
+                    {
+                        if (gSeqInfo->num_loops_to_play > 0) // v1
                         {
-                            if (sPtr->program_number == v16->program_number)
+                            gSeqInfo->iSeqPtr = gSeqInfo->iLoopPtr; // Load saved loop point into the seq data
+                            if (gSeqInfo->num_loops_to_play < 0x7f) // 127
                             {
-                                if (sPtr->tone_id == channel + (16 * aSeqIndex))
-                                {
-                                    v16->program_number = program_number_copy;
-                                    unsigned char curKey = ((key_velocity & 0xFF00) >> 8);
-                                    if (sPtr->key_number == curKey) // param 1 & 2 key number & key pressure
-                                    {
-                                        if (sPtr->m_ref_count_q > current_ref_count)
-                                        {
-                                            current_ref_count = sPtr->m_ref_count_q;
-                                        }
-                                    }
-                                }
+                                *static_byte_BD1CFC = 0;
+                                --gSeqInfo->num_loops_to_play; // v1
+                                goto end_of_func;
                             }
                         }
                     }
-                    ++sPtr;
-                } while (num_keys-- != 1);
-
-                // Update the ref count
-                int updated_ref_count = current_ref_count + 1;
-
-
-                int note_to_play = key_velocity & 0xFF00;
-                int volR = key_velocity >> 16;
-
-                unsigned char note8Bits = (unsigned char)((int)(note_to_play >> 8));
-
-                // note8Bits++;
-                // note8Bits--;
-                // note8Bits--;
-
-
-                note_to_play = note_to_play & 0xFF;
-
-
-
-                note_to_play = note_to_play | (((unsigned short int)note8Bits) << 8);
-
-
-
-                // Play the tone - returns which channels it is playing on?
-                unsigned int play_ret = 0;  (unsigned int)calls_play_snd_seq(
-                                           gSeqInfo->w28,			// must be zero? OK v1
-                                           v16->program_number,	// program number (can be set by seq byte)
-                                           note_to_play,	// sample to play  (from seq byte)
-                                           adjusted_volume,		// vol left?
-                                           v16->centre_vol_q,		// centre vol? // 3rd byte = max data??
-                                           volR);	// vol right? aka key pressure byte? (from seq byte)
-
-                std::string h = "NOTE:" + std::to_string(note_to_play) + "\n";
-                OutputDebugString(h.c_str());
-
-
-                // unk_C140 9C = 156
-                // unk_C140 AA = 170 9c is 14 bytes before here, or rather +14 bytes on 9c
-                unsigned int key_item_counter = 0;
-                unsigned char* itemPtr = (unsigned char *)unk_C140AA;
-                unsigned int cntr = 24;
-                do
-                {
-                    if ((1 << key_item_counter) & play_ret)
+                }
+                    break;
+                case 40:
+                    OutputDebugString("FuncPtr\n");
+                    if (gSeqInfo->iFuncPtr)
                     {
-                        // ptr - 1 means take offset 14 - 2, thus offset is 12
-                        // member at off 12 is volume_adjust_q ??
-                        *((WORD *)itemPtr - 1) = channel + (16 * aSeqIndex);
-                        *itemPtr = updated_ref_count;
+                        BYTE arg3 = (status_byte << 8) & 0xFF;
+                        gSeqInfo->iFuncPtr(aSeqIndex, 0, arg3);
+                        *static_byte_BD1CFC = 0;
+                        goto end_of_func;
                     }
-                    ++key_item_counter;
-                    itemPtr += 44;                      // move to next item?
-                    --cntr;
-                } while (cntr);
-
-            }
-            else
-            {
-                //OutputDebugString("Note on [off]\n");
-                midi_note_off(channel, v16, param_1_and_3_and_maybe_3, key_velocity, aSeqIndex);
-            }*/
-        }
-            break;
-            // Note off, key & vol are params
-        case 0x80:
-        {
-            /*
-            //OutputDebugString("Note off\n");
-            int note_off_channel = key_velocity & 0xF;
-
-            seq_data* v28 = get_data(note_off_channel);
-
-            midi_note_off(note_off_channel, v28, param_1_and_3_and_maybe_3, key_velocity, aSeqIndex);*/
-        }
-            break;
-            // Controller Change
-        case 0xB0:
-        {
-            /*
-            OutputDebugString("Controller change\n");
-            int controller_number = ((unsigned int)status_byte >> 8) & 0x7F;
-            if (controller_number != 6 && controller_number != 0x26)
-            {
-                if (controller_number == 0x63)
-                {
-                    //*static_byte_BD1CFC = (unsigned int)status_byte >> 16;
+                    break;
                 }
-                break;
+                *static_byte_BD1CFC = 0;
+                */
             }
-            */
-
-            /*
-            switch (*static_byte_BD1CFC)
+                break;
+            case 0xc:
             {
-            case 20:                              // set loop point
-                OutputDebugString("Set loop\n");
-                gSeqInfo->iLoopPtr = gSeqInfo->iSeqPtr; // v1
-                gSeqInfo->num_loops_to_play = (unsigned int)status_byte >> 16; // v1
+                Uint8 prog = 0;
+                stream.ReadUInt8(prog);
+                std::cout << Uint32(channel) << " program change " << Uint32(prog) << std::endl;
+            }
                 break;
-            case 30:								// go to loop point
+            case 0xd:
             {
-                OutputDebugString("Do loop\n");
-                if (gSeqInfo->iLoopPtr)
-                {
-                    if (gSeqInfo->num_loops_to_play > 0) // v1
-                    {
-                        gSeqInfo->iSeqPtr = gSeqInfo->iLoopPtr; // Load saved loop point into the seq data
-                        if (gSeqInfo->num_loops_to_play < 0x7f) // 127
-                        {
-                            *static_byte_BD1CFC = 0;
-                            --gSeqInfo->num_loops_to_play; // v1
-                            goto end_of_func;
-                        }
-                    }
-                }
+                Uint8 value = 0;
+                stream.ReadUInt8(value);
+                std::cout << Uint32(channel) << " after touch " << Uint32(value) << std::endl;
             }
                 break;
-            case 40:
-                OutputDebugString("FuncPtr\n");
-                if (gSeqInfo->iFuncPtr)
-                {
-                    BYTE arg3 = (status_byte << 8) & 0xFF;
-                    gSeqInfo->iFuncPtr(aSeqIndex, 0, arg3);
-                    *static_byte_BD1CFC = 0;
-                    goto end_of_func;
-                }
-                break;
-            }
-            *static_byte_BD1CFC = 0;*/
-        }
-            break;
-            // Program change aka channel number change
-        case 0xC0:
-        {
-            /*
-            BYTE param = (key_velocity >> 8) & 0xFF;
-            const BYTE channel = key_velocity & 0xF;
-            seq_data* data = get_data(channel);
-            data->program_number = param;
-
-            std::stringstream s;
-            s << "Prog change to : " << (int)param << "\n";
-            OutputDebugString(s.str().c_str());*/
-        }
-            break;
-            // Pitch Bend - crashes?
-        case 0xE0:
-        {
-            /*
-            OutputDebugString("Pitch bend\n");
-            int bend_by = ((key_velocity >> 8) - 16384) >> 4;
-            snd_midi_pitch_bend(
-                get_data(key_velocity & 0xF)->program_number, // v1
-                bend_by);*/
-        }
-            break;
-        default:
-            break;
-        }
-    
-   // end_of_func:
-
-        /*
-        int time_stamp = getVarLen_q(gSeqInfo->iSeqPtr);
-        if (time_stamp)
-        {
-            // Convert next event ticks to milliseconds?
-            // (60 * clocks) / (tempo * division) = seconds
-
-            // d14, iLastTime = v1
-            unsigned int next_event_time = (time_stamp * gSeqInfo->d14 / 1000) + gSeqInfo->iLastTime;
-            gSeqInfo->iLastTime = next_event_time; // v1
-            if (next_event_time > *g_time_dword_BD1CEC)
+            case 0xe:
             {
-                //goto start;
-                return 1;
+                Uint16 bend = 0;
+                stream.ReadUInt16(bend);
+                std::cout << Uint32(channel) << " pitch bend " << Uint32(bend) << std::endl;
             }
-        }*/
-
+                break;
+            case 0xf:
+            {
+                const Uint32 length = midi_read_var_len(stream);
+                snd_midi_skip_length(stream, length);
+                std::cout << Uint32(channel) << " sysex len: " << length << std::endl;
+            }
+                break;
+            default:
+                throw std::runtime_error("Unknown MIDI command");
+            }
+        }
     }
-    
-
-    return 0;
 }
 
-TEST(Seq, DISABLED_Integration)
+TEST(Seq, midi_read_var_len_1_byte)
 {
-    Oddlib::LvlArchive lvl("MI.LVL");
+    std::vector<Uint8> data = { 0x7F };
+    Oddlib::Stream stream(std::move(data));
+    ASSERT_EQ(127, midi_read_var_len(stream));
+}
 
-    const auto seq = lvl.FileByName("MISEQ.BSQ");
-    auto seqChunk = seq->ChunkById(0x0000009e);
-    Oddlib::Stream seqStream(seqChunk->ReadData());
+TEST(Seq, midi_read_var_len_2_byte)
+{
+    std::vector<Uint8> data = { 0x81, 0x00 };
+    Oddlib::Stream stream(std::move(data));
+    ASSERT_EQ(128, midi_read_var_len(stream));
+}
+
+TEST(Seq, midi_read_var_len_3_byte)
+{
+    std::vector<Uint8> data = { 0x81, 0x7f, 0x00 };
+    Oddlib::Stream stream(std::move(data));
+    ASSERT_EQ(255, midi_read_var_len(stream));
+}
+
+TEST(Seq, midi_read_var_len_4_byte)
+{
+    std::vector<Uint8> data = { 0xFF, 0xFF, 0xFF, 0x7F };
+    Oddlib::Stream stream(std::move(data));
+    ASSERT_EQ(268435455, midi_read_var_len(stream));
+}
+
+TEST(Seq, ParseSeq)
+{
+    std::vector<Uint8> seqData = { 
+        0x70, 0x51, 0x45, 0x53, 0x00, 0x00, 0x00, 0x01, 0x01, 0xE0, 0x04, 0x11, 
+        0xAA, 0x04, 0x02, 0x00, 0xC6, 0x11, 0x00, 0xC7, 0x1A, 0x02, 0x96, 0x3C,
+        0x70, 0x04, 0x97, 0x3D, 0x79, 0x06, 0x3C, 0x73, 0x68, 0x3D, 0x00, 0x06, 
+        0x3C, 0x00, 0x81, 0x34, 0x96, 0x3C, 0x00, 0x76, 0x97, 0x36, 0x79, 0x0A, 
+        0x35, 0x76, 0x0E, 0x96, 0x30, 0x73, 0x56, 0x97, 0x36, 0x00, 0x0A, 0x35, 
+        0x00, 0x81, 0x4C, 0x96, 0x30, 0x00, 0x2E, 0x97, 0x48, 0x67, 0x00, 0x30,
+        0x67, 0x00, 0x24, 0x67, 0x42, 0x96, 0x24, 0x76, 0x36, 0x97, 0x48, 0x00, 
+        0x00, 0x30, 0x00, 0x00, 0x24, 0x00, 0x81, 0x76, 0x96, 0x24, 0x00, 0x84,
+        0x0A, 0xC6, 0x11, 0x00, 0xC7, 0x1A, 0x04, 0x96, 0x30, 0x54, 0x04, 0x97,
+        0x31, 0x5A, 0x06, 0x30, 0x56, 0x68, 0x31, 0x00, 0x06, 0x30, 0x00, 0x84,
+        0x58, 0x96, 0x30, 0x00, 0x44, 0x97, 0x18, 0x33, 0x78, 0x18, 0x00, 0x0E,
+        0x96, 0x24, 0x56, 0x24, 0x97, 0x2A, 0x5A, 0x02, 0x29, 0x58, 0x6C, 0x2A, 
+        0x00, 0x02, 0x29, 0x00, 0x0C, 0x24, 0x67, 0x78, 0x24, 0x00, 0x83, 0x38, 
+        0x96, 0x24, 0x00, 0x81, 0x2C, 0x18, 0x58, 0x68, 0x97, 0x24, 0x4D, 0x02,
+        0x2B, 0x4D, 0x7C, 0x24, 0x00, 0x02, 0x2B, 0x00, 0x83, 0x68, 0x96, 0x18,
+        0x00, 0x00, 0xFF, 0x2F, 0x00, 0x00, 0x00, 0x00 };
+
+    Oddlib::Stream seqStream(std::move(seqData));
     SND_seq_play_q(seqStream);
-
-    //seq->SaveChunks();
 }
 
 
