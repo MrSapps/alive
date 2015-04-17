@@ -30,17 +30,17 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
 endif ()
 
 include_directories(
-	include
+    include
     ${SDL2_INCLUDE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/include
-	${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest/include
-	${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest
 )
 
 SET(gmock_src
-	${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/src/gmock-all.cc
-	${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest/src/gtest-all.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/src/gmock-all.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest/src/gtest-all.cc
 )
 
 add_library(gmock STATIC ${gmock_src})
@@ -60,7 +60,7 @@ add_library(oddlib STATIC
 add_executable(Tests
 	test/main.cpp
 )
-target_link_libraries(Tests oddlib gmock ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Tests oddlib fluidsynth gmock ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(Alive

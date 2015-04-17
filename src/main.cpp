@@ -11,7 +11,7 @@ int main(int argc, char** argv)
     }
 
     SDL_Haptic *haptic;
-
+/*
     // Open the device
     haptic = SDL_HapticOpen(0);
     if (haptic == NULL)
@@ -28,6 +28,7 @@ int main(int argc, char** argv)
 
     // Clean up
     SDL_HapticClose(haptic);
+*/
 
     SDL_Window *win = SDL_CreateWindow("A.L.I.V.E", 100, 100, 640, 480, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (win == nullptr)
@@ -57,6 +58,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    //SDL_FillRect(bmp, NULL, SDL_MapRGB(bmp->format, 255, 0, 255));
+
     SDL_Texture *tex = SDL_CreateTextureFromSurface(ren, bmp);
     SDL_FreeSurface(bmp);
     if (tex == nullptr)
@@ -68,9 +71,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    SDL_RenderClear(ren);
-    SDL_RenderCopy(ren, tex, NULL, &bmp->clip_rect);
-    SDL_RenderPresent(ren);
+
 
     const Uint32 fps = 60;
     const Uint32 minframetime = 1000 / fps;
@@ -94,11 +95,17 @@ int main(int argc, char** argv)
                     running = false;
                 }
                 break;
+
             }
         }
 
         if (SDL_GetTicks() - frametime < minframetime)
             SDL_Delay(minframetime - (SDL_GetTicks() - frametime));
+
+        //SDL_RenderClear(ren);
+        SDL_RenderCopy(ren, tex, NULL, &bmp->clip_rect);
+
+        SDL_RenderPresent(ren);
 
     }
 

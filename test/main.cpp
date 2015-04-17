@@ -2,6 +2,8 @@
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/anim.hpp"
 #include "oddlib/exceptions.hpp"
+#include <fluidsynth.h>
+#include "SDL.h"
 
 int main(int argc, char** argv)
 {
@@ -53,7 +55,10 @@ static Uint32 midi_read_var_len(Oddlib::Stream& stream)
     return ret;
 }
 
-static int SND_seq_play_q(Oddlib::Stream& stream)
+void sendnoteon(int chan, short key, short vel, unsigned int date);
+static unsigned int deltaTime = 0;
+
+static int SND_seq_play_q(fluid_synth_t* synth, Oddlib::Stream& stream)
 {
     // Read the header
     SeqHeader header;
@@ -71,7 +76,9 @@ static int SND_seq_play_q(Oddlib::Stream& stream)
     for (;;)
     {
         // Read event delta time
-        /*const Uint32 deltaTime =*/ midi_read_var_len(stream);
+        Uint32 delta = midi_read_var_len(stream);
+        deltaTime += delta;
+        std::cout << "Delta: " << delta << " over all " << deltaTime << std::endl;
 
         // Obtain the event/status byte
         Uint8 eventByte = 0;
@@ -84,6 +91,9 @@ static int SND_seq_play_q(Oddlib::Stream& stream)
                 return 0; // error if no running status?
             }
             eventByte = gSeqInfo.running_status;
+
+            // Go back one byte as the status byte isn't a status
+            stream.Seek(stream.Pos() -1);
         }
         else
         {
@@ -162,17 +172,6 @@ static int SND_seq_play_q(Oddlib::Stream& stream)
             const Uint8 channel = eventByte & 0xf;
             switch (eventByte >> 4)
             {
-            case 0x8:
-            {
-                Uint8 note = 0;
-                stream.ReadUInt8(note);
-
-                Uint8 velocity = 0;
-                stream.ReadUInt8(velocity);
-
-                std::cout << Uint32(channel) << " NOTE ON " << Uint32(note) << " vel " << Uint32(velocity) << std::endl;
-            }
-                break;
             case 0x9:
             {
                 Uint8 note = 0;
@@ -181,9 +180,41 @@ static int SND_seq_play_q(Oddlib::Stream& stream)
                 Uint8 velocity = 0;
                 stream.ReadUInt8(velocity);
 
-                std::cout << Uint32(channel) << " NOTE OFF " << Uint32(note) << " vel " << Uint32(velocity) << std::endl;
+                std::cout << Uint32(channel) << " NOTE ON " << Uint32(note) << " vel " << Uint32(velocity) << std::endl;
+
+                if (velocity ==0)
+                {
+
+                    //fluid_synth_noteoff(synth, channel, note);
+                }
+                else
+                {
+                    sendnoteon(channel, note, velocity, deltaTime);
+                    //fluid_synth_noteon(synth, channel, note, velocity);
+                }
             }
-                break;
+            break;
+            case 0x8:
+            {
+                Uint8 note = 0;
+                stream.ReadUInt8(note);
+
+                Uint8 velocity = 0;
+                stream.ReadUInt8(velocity);
+
+                std::cout << Uint32(channel) << " NOTE OFF " << Uint32(note) << " vel " << Uint32(velocity) << std::endl;
+
+                //fluid_synth_noteoff(synth, channel, note);
+            }
+            break;
+            case 0xc:
+            {
+                Uint8 prog = 0;
+                stream.ReadUInt8(prog);
+                std::cout << Uint32(channel) << " program change " << Uint32(prog) << std::endl;
+                fluid_synth_program_change(synth, channel, prog);
+            }
+            break;
             case 0xa:
             {
                 Uint8 note = 0;
@@ -209,7 +240,7 @@ static int SND_seq_play_q(Oddlib::Stream& stream)
                 {
                     if (controller_number == 0x63)
                     {
-                        //*static_byte_BD1CFC = (unsigned int)status_byte >> 16;
+                        // *static_byte_BD1CFC = (unsigned int)status_byte >> 16;
                     }
                     break;
                 }
@@ -254,13 +285,6 @@ static int SND_seq_play_q(Oddlib::Stream& stream)
                 */
             }
                 break;
-            case 0xc:
-            {
-                Uint8 prog = 0;
-                stream.ReadUInt8(prog);
-                std::cout << Uint32(channel) << " program change " << Uint32(prog) << std::endl;
-            }
-                break;
             case 0xd:
             {
                 Uint8 value = 0;
@@ -286,6 +310,7 @@ static int SND_seq_play_q(Oddlib::Stream& stream)
                 throw std::runtime_error("Unknown MIDI command");
             }
         }
+       // SDL_Delay(100);
     }
 }
 
@@ -293,28 +318,88 @@ TEST(Seq, midi_read_var_len_1_byte)
 {
     std::vector<Uint8> data = { 0x7F };
     Oddlib::Stream stream(std::move(data));
-    ASSERT_EQ(127, midi_read_var_len(stream));
+    ASSERT_EQ(127u, midi_read_var_len(stream));
 }
 
 TEST(Seq, midi_read_var_len_2_byte)
 {
     std::vector<Uint8> data = { 0x81, 0x00 };
     Oddlib::Stream stream(std::move(data));
-    ASSERT_EQ(128, midi_read_var_len(stream));
+    ASSERT_EQ(128u, midi_read_var_len(stream));
 }
 
 TEST(Seq, midi_read_var_len_3_byte)
 {
     std::vector<Uint8> data = { 0x81, 0x7f, 0x00 };
     Oddlib::Stream stream(std::move(data));
-    ASSERT_EQ(255, midi_read_var_len(stream));
+    ASSERT_EQ(255u, midi_read_var_len(stream));
 }
 
 TEST(Seq, midi_read_var_len_4_byte)
 {
     std::vector<Uint8> data = { 0xFF, 0xFF, 0xFF, 0x7F };
     Oddlib::Stream stream(std::move(data));
-    ASSERT_EQ(268435455, midi_read_var_len(stream));
+    ASSERT_EQ(268435455u, midi_read_var_len(stream));
+}
+
+short synthSeqID = 0;
+short mySeqID = 0;
+fluid_sequencer_t* sequencer = nullptr;
+unsigned int now = 0;
+unsigned int seqduration = 0;
+
+void sendnoteon(int chan, short key, short vel, unsigned int date)
+{
+
+   // key = 60;
+   // vel = 127;
+
+    int fluid_res;
+    fluid_event_t *evt = new_fluid_event();
+    fluid_event_set_source(evt, -1);
+    fluid_event_set_dest(evt, synthSeqID);
+    fluid_event_noteon(evt, chan, key, vel);
+    fluid_res = fluid_sequencer_send_at(sequencer, evt, date/2, 1);
+    delete_fluid_event(evt);
+}
+
+void schedule_next_callback()
+{
+    int fluid_res;
+    // I want to be called back before the end of the next sequence
+    unsigned int callbackdate = now + seqduration/2;
+    fluid_event_t *evt = new_fluid_event();
+    fluid_event_set_source(evt, -1);
+    fluid_event_set_dest(evt, mySeqID);
+    fluid_event_timer(evt, NULL);
+    fluid_res = fluid_sequencer_send_at(sequencer, evt, callbackdate, 1);
+    delete_fluid_event(evt);
+}
+
+void schedule_next_sequence() {
+    // Called more or less before each sequence start
+    // the next sequence start date
+    now = now + seqduration;
+
+    // the sequence to play
+
+    // the beat : 2 beats per sequence
+    sendnoteon(0, 60, 127, now + seqduration/2);
+    sendnoteon(0, 60, 127, now + seqduration);
+
+    // melody
+    sendnoteon(1, 45, 127, now + seqduration/10);
+    sendnoteon(1, 50, 127, now + 4*seqduration/10);
+    sendnoteon(1, 55, 127, now + 8*seqduration/10);
+
+    // so that we are called back early enough to schedule the next sequence
+    schedule_next_callback();
+}
+
+/* sequencer callback */
+void seq_callback(unsigned int time, fluid_event_t* event, fluid_sequencer_t* seq, void* data)
+{
+    schedule_next_sequence();
 }
 
 TEST(Seq, ParseSeq)
@@ -338,7 +423,60 @@ TEST(Seq, ParseSeq)
         0x00, 0x00, 0xFF, 0x2F, 0x00, 0x00, 0x00, 0x00 };
 
     Oddlib::Stream seqStream(std::move(seqData));
-    SND_seq_play_q(seqStream);
+
+
+    fluid_settings_t* settings = new_fluid_settings();
+
+    // audio.driver alsa, oss, pulseaudio
+    fluid_settings_setstr(settings, "audio.driver", "alsa");
+    //fluid_settings_setnum(settings, "synth.polyphony", 64);
+    //fluid_settings_setnum(settings, "audio.period-size", 1649);
+
+    fluid_synth_t* synth = new_fluid_synth(settings);
+
+   // sequencer = new_fluid_sequencer2(0);
+    sequencer = new_fluid_sequencer();
+
+    synthSeqID = fluid_sequencer_register_fluidsynth(sequencer, synth);
+    mySeqID = fluid_sequencer_register_client(sequencer, "me", seq_callback, NULL);
+
+    // the sequence duration, in ms
+    seqduration = 100;
+
+    if (fluid_is_soundfont("/home/paul/Desktop/Abe2MidiPlayer/Oddworld.sf2"))
+    {
+        fluid_synth_sfload(synth, "/home/paul/Desktop/Abe2MidiPlayer/Oddworld.sf2", 1);
+    }
+    else
+    {
+        abort();
+    }
+
+
+    fluid_player_t* player = new_fluid_player(synth);
+
+    fluid_audio_driver_t* adriver = new_fluid_audio_driver(settings, synth);
+
+   // fluid_synth_program_change(synth, 0, 17); // 17 or 26
+   // fluid_synth_program_change(synth, 1, 26); // 17 or 26
+
+
+    //schedule_next_sequence();
+
+    SND_seq_play_q(synth, seqStream);
+
+    //fluid_player_play(player);
+    //fluid_player_join(player);
+
+    SDL_Delay(3000);
+
+    delete_fluid_sequencer(sequencer);
+
+    delete_fluid_audio_driver(adriver);
+    delete_fluid_player(player);
+    delete_fluid_synth(synth);
+    delete_fluid_settings(settings);
+
 }
 
 
@@ -354,10 +492,10 @@ TEST(LvlArchive, DISABLED_Integration)
     const auto chunk = file->ChunkById(450);
     ASSERT_NE(nullptr, chunk);
 
-    ASSERT_EQ(450, chunk->Id());
+    ASSERT_EQ(450u, chunk->Id());
 
     const auto data = chunk->ReadData();
-    ASSERT_EQ(false, data.empty());
+    ASSERT_FALSE(data.empty());
 
     Oddlib::LvlArchive lvl2("R1.LVL");
 
