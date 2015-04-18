@@ -4,6 +4,7 @@
 #include "oddlib/exceptions.hpp"
 #include <fluidsynth.h>
 #include "SDL.h"
+#include "vab.hpp"
 
 int main(int argc, char** argv)
 {
@@ -402,9 +403,63 @@ void seq_callback(unsigned int time, fluid_event_t* event, fluid_sequencer_t* se
     schedule_next_sequence();
 }
 
+class SoundFontPreset
+{
+public:
+    SoundFontPreset() = default;
+    fluid_preset_t* Preset()
+    {
+        return nullptr;
+    }
+private:
+
+};
+
+class SoundFontDriver
+{
+public:
+    SoundFontDriver(std::string fileName)
+    {
+
+    }
+
+    fluid_preset_t* GetPreset(unsigned int bank, unsigned int prenum)
+    {
+        return nullptr;
+    }
+
+    void GotoFirstPreset()
+    {
+        mIterator = 0;
+    }
+
+    int NextPreset(fluid_preset_t* preset)
+    {
+        if (mIterator >= mPresets.size())
+        {
+            return 0;
+        }
+        preset = mPresets[mIterator]->Preset();
+        mIterator++;
+        return 1;
+    }
+
+    char* Name()
+    {
+        return const_cast<char*>(mFileName.c_str());
+    }
+
+private:
+    std::string mFileName;
+    std::vector<SoundFontPreset*> mPresets;
+    size_t mIterator = 0;
+};
+
+
 TEST(Seq, ParseSeq)
 {
-    std::vector<Uint8> seqData = { 
+    std::vector<Uint8> seqData =
+    {
         0x70, 0x51, 0x45, 0x53, 0x00, 0x00, 0x00, 0x01, 0x01, 0xE0, 0x04, 0x11, 
         0xAA, 0x04, 0x02, 0x00, 0xC6, 0x11, 0x00, 0xC7, 0x1A, 0x02, 0x96, 0x3C,
         0x70, 0x04, 0x97, 0x3D, 0x79, 0x06, 0x3C, 0x73, 0x68, 0x3D, 0x00, 0x06, 
@@ -420,7 +475,8 @@ TEST(Seq, ParseSeq)
         0x00, 0x02, 0x29, 0x00, 0x0C, 0x24, 0x67, 0x78, 0x24, 0x00, 0x83, 0x38, 
         0x96, 0x24, 0x00, 0x81, 0x2C, 0x18, 0x58, 0x68, 0x97, 0x24, 0x4D, 0x02,
         0x2B, 0x4D, 0x7C, 0x24, 0x00, 0x02, 0x2B, 0x00, 0x83, 0x68, 0x96, 0x18,
-        0x00, 0x00, 0xFF, 0x2F, 0x00, 0x00, 0x00, 0x00 };
+        0x00, 0x00, 0xFF, 0x2F, 0x00, 0x00, 0x00, 0x00
+    };
 
     Oddlib::Stream seqStream(std::move(seqData));
 
@@ -442,6 +498,79 @@ TEST(Seq, ParseSeq)
 
     // the sequence duration, in ms
     seqduration = 100;
+
+    Vab* vab = new Vab();
+    vab->LoadVhFile("MINES.VH");
+    vab->LoadVbFile("MINES.VB");
+
+    // TODO: Dynamically allocate loader
+    fluid_sfloader_t loader =
+    {
+        // User defined data pointer.
+        vab,
+
+        // The free method should free the memory allocated for the loader in addition to any private data.
+        [](fluid_sfloader_t *loader) -> int
+        {
+            if (loader)
+            {
+                delete reinterpret_cast<Vab*>(loader->data);
+            }
+            // loader is on stack atm, so don't delete!
+            //delete loader;
+            return 0;
+        },
+
+        // Method to load an instrument file (does not actually need to be a real file name,
+        // could be another type of string identifier that the loader understands).
+        [](fluid_sfloader_t* loader, const char *filename) -> fluid_sfont_t*
+        {
+            fluid_sfont_t* font = new fluid_sfont_t();
+
+            // User defined data.
+            font->data = new SoundFontDriver(filename);
+
+            // SoundFont ID.
+            font->id = 1;
+
+            // Method to free a virtual SoundFont bank.
+            font->free = [](fluid_sfont_t *sfont) -> int
+            {
+                // TODO: return non zero if samples are still in use
+                delete reinterpret_cast<SoundFontDriver*>(sfont->data);
+                delete sfont;
+                return 0;
+            };
+
+            // Method to return the name of a virtual SoundFont.
+            font->get_name = [](fluid_sfont_t *sfont) -> char*
+            {
+                return reinterpret_cast<SoundFontDriver*>(sfont->data)->Name();
+            };
+
+            // Get a virtual SoundFont preset by bank and program numbers.
+            font->get_preset = [](fluid_sfont_t *sfont, unsigned int bank, unsigned int prenum) -> fluid_preset_t*
+            {
+                return reinterpret_cast<SoundFontDriver*>(sfont->data)->GetPreset(bank, prenum);
+            };
+
+            // Start virtual SoundFont preset iteration method.
+            font->iteration_start = [](fluid_sfont_t *sfont) -> void
+            {
+                reinterpret_cast<SoundFontDriver*>(sfont->data)->GotoFirstPreset();
+            };
+
+            // Virtual SoundFont preset iteration function.
+            font->iteration_next = [](fluid_sfont_t *sfont, fluid_preset_t *preset) -> int
+            {
+                return reinterpret_cast<SoundFontDriver*>(sfont->data)->NextPreset(preset);
+            };
+
+            return font;
+        }
+    };
+
+    fluid_synth_add_sfloader(synth, &loader);
 
     if (fluid_is_soundfont("/home/paul/Desktop/Abe2MidiPlayer/Oddworld.sf2"))
     {
@@ -470,13 +599,30 @@ TEST(Seq, ParseSeq)
 
     SDL_Delay(3000);
 
-    delete_fluid_sequencer(sequencer);
+    if (sequencer)
+    {
+        delete_fluid_sequencer(sequencer);
+    }
 
-    delete_fluid_audio_driver(adriver);
-    delete_fluid_player(player);
-    delete_fluid_synth(synth);
-    delete_fluid_settings(settings);
+    if (adriver)
+    {
+        delete_fluid_audio_driver(adriver);
+    }
 
+    if (player)
+    {
+        delete_fluid_player(player);
+    }
+
+    if (synth)
+    {
+        delete_fluid_synth(synth);
+    }
+
+    if (settings)
+    {
+        delete_fluid_settings(settings);
+    }
 }
 
 

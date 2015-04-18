@@ -58,7 +58,9 @@ add_library(oddlib STATIC
 )
 
 add_executable(Tests
-	test/main.cpp
+    test/main.cpp
+    test/vab.cpp
+    test/vab.hpp
 )
 target_link_libraries(Tests oddlib fluidsynth gmock ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
