@@ -3,8 +3,10 @@
 #include "oddlib/anim.hpp"
 #include "oddlib/exceptions.hpp"
 #include <fluidsynth.h>
+#include <fluidsynth/synth.h>
 #include "SDL.h"
 #include "vab.hpp"
+
 
 int main(int argc, char** argv)
 {
@@ -403,29 +405,222 @@ void seq_callback(unsigned int time, fluid_event_t* event, fluid_sequencer_t* se
     schedule_next_sequence();
 }
 
+int gSampleDebugNumber = 0;
+
+
+// Note: Preset is also called "program", "patch" or "sound"
 class SoundFontPreset
 {
 public:
-    SoundFontPreset() = default;
+    SoundFontPreset(Vab& vab, fluid_sfont_t* soundFont, fluid_synth_t* synth, ProgAtr* prog, int number)
+     : mVab(vab), mSynth(synth), mProg(prog), mNumber(number)
+    {
+        mPreset.data = this;
+
+        mPreset.sfont = soundFont;
+
+        mPreset.free = [](fluid_preset_t* preset) -> int
+        {
+            // auto mem of the class, nothing to free
+            return 0;
+        };
+
+        //Method to get a virtual SoundFont preset name.
+        mPreset.get_name = [](fluid_preset_t* preset) -> char*
+        {
+            return reinterpret_cast<SoundFontPreset*>(preset->data)->Name();
+        };
+
+        // Method to get a virtual SoundFont preset MIDI bank number.
+        mPreset.get_banknum = [](fluid_preset_t* preset) -> int
+        {
+            return reinterpret_cast<SoundFontPreset*>(preset->data)->BankNumber();
+        };
+
+        // Method to get a virtual SoundFont preset MIDI program number.
+        mPreset.get_num = [](fluid_preset_t* preset) -> int
+        {
+            return reinterpret_cast<SoundFontPreset*>(preset->data)->ProgramNumber();
+        };
+
+        mPreset.noteon = [](fluid_preset_t* preset, fluid_synth_t* synth, int chan, int key, int vel) -> int
+        {
+            return reinterpret_cast<SoundFontPreset*>(preset->data)->NoteOn(synth, chan, key, vel);
+        };
+
+        mPreset.notify = [](fluid_preset_t* preset, int reason, int chan) -> int
+        {
+            return reinterpret_cast<SoundFontPreset*>(preset->data)->Notify(reason, chan);
+        };
+        AllocTones();
+    }
+
     fluid_preset_t* Preset()
     {
-        return nullptr;
+         std::cout << "Preset ptr" << std::endl;
+        return &mPreset;
     }
+
+    char* Name()
+    {
+        std::cout << "Name" << std::endl;
+        return "todo, set a name";
+    }
+
+    int BankNumber()
+    {
+        // Always 0, VB/VH only supports 1 bank
+        std::cout << "BankNumber" << std::endl;
+        return 0;
+    }
+
+    int ProgramNumber()
+    {
+        std::cout << "ProgramNumber:" << mNumber << std::endl;
+        return mNumber;
+    }
+
+    int NoteOn(fluid_synth_t* synth, int chan, int key, int vel)
+    {
+        std::cout << "NoteOn channel:" << chan << " key:" << key << " vel:" << vel << std::endl;
+
+        int sampleIndex = 0;//key;
+        if (sampleIndex <0 || sampleIndex >= mSamples.size())
+        {
+            std::cout << "SAMPLE OUT OF RANGE!" << std::endl;
+            return FLUID_FAILED;
+        }
+
+        fluid_sample_t* sample = &mSamples[sampleIndex]->mSample;
+        sample->refcount++;
+        fluid_voice_t* voice = fluid_synth_alloc_voice(synth, sample, chan, key, vel);
+        fluid_synth_start_voice(synth, voice);
+
+
+        return FLUID_OK;
+    }
+
+    int Notify(int reason, int chan)
+    {
+        std::cout << "Notify reason: " << reason << " channel:" << chan << std::endl;
+        return FLUID_OK;
+    }
+
 private:
+    class SampleWrapper
+    {
+    public:
+        SampleWrapper(unsigned int sampleRate, std::vector<unsigned char>& sampleData)
+         : mData(sampleData)
+        {
+            memset(&mSample, 0, sizeof(mSample));
+
+            unsigned char* ptr = mData.data();
+            mSample.data = (short int*)ptr;
+            mSample.samplerate = sampleRate;
+            mSample.userdata = this;
+            mSample.origpitch = 60;
+            mSample.sampletype = FLUID_SAMPLETYPE_MONO;
+            mSample.valid = 1;
+
+            /*
+            1 to 5 = bullet bounce
+            6 = another ping bullet sound
+            7 = flatline beep sound!?
+            8 = Same as 1 to 5
+            9 = like 7
+            10 = tap sound
+            11 = something really strange..
+            12 = Same as1 to 5
+            13 = sort of low humming sound?
+            14 = Slig snooring or walking sound?
+            15 = really long explosion sound
+            16 - 18 sounds like its used in the AO intro?
+            19 = part of the music?
+            20 = drum hit
+            */
+
+            /*
+            std::ofstream debug("Sample_" + std::to_string(++gSampleDebugNumber) + ".dat", std::ios::binary);
+            if (!debug.is_open())
+            {
+                abort();
+            }
+            debug.write((char*)mSample.data, mData.size());
+            */
+        }
+
+        fluid_sample_t mSample;
+        std::vector<unsigned char> mData;
+    };
+
+    void AllocTones()
+    {
+        std::cout << "Number of tones is :" << Uint32(mProg->iNumTones) << std::endl;
+
+        // Not sure how tone is used in keyon, perhaps key is the tone index?
+        for (int i=0; i<mProg->iNumTones; i++)
+        {
+            VagAtr* vag = mProg->iTones[i];
+            AEVh* sampOffset = mVab.iOffs.at(vag->iVag);
+
+            fluid_sample_t* sample = nullptr;
+
+            mVab.iSoundsDat.seekg(sampOffset->iFileOffset);
+
+            std::vector<unsigned char> buffer(sampOffset->iLengthOrDuration);
+            mVab.iSoundsDat.read((char*)buffer.data(), buffer.size());
+            mSamples.emplace_back(new SampleWrapper(sampOffset->iUnusedByEngine, buffer));
+        }
+    }
+
+    Vab& mVab;
+    fluid_synth_t* mSynth = nullptr;
+    fluid_preset_t mPreset;
+    ProgAtr* mProg = nullptr;
+    int mNumber = 0;
+    // TODO: Do not leak
+    std::vector<SampleWrapper*> mSamples;
 
 };
 
 class SoundFontDriver
 {
 public:
-    SoundFontDriver(std::string fileName)
+    SoundFontDriver(fluid_sfont_t* soundFont, fluid_synth_t* synth, std::string fileName)
+      : mSoundFont(soundFont), mSynth(synth)
     {
-
+        mVab.LoadVhFile(fileName + ".VH");
+        mVab.LoadVbFile(fileName + ".VB");
     }
 
+    // Get a virtual SoundFont preset by bank and program numbers.
     fluid_preset_t* GetPreset(unsigned int bank, unsigned int prenum)
     {
-        return nullptr;
+        // bank MIDI bank number (0-16384)
+        // we only ever use bank 0 as we have a max of 127 programs in the VAB format
+        // prenum MIDI preset/program number (0-127)
+        if (bank != 0)
+        {
+            return nullptr;
+        }
+
+        ProgAtr* prog = mVab.iProgs[prenum];
+        if (prog->iNumTones == 0)
+        {
+            return nullptr;
+        }
+
+        auto it = mPresets.find(prenum);
+        if (it == std::end(mPresets))
+        {
+            std::cout << "Allocate program: " << prenum << std::endl;
+            mPresets[prenum] = std::make_unique<SoundFontPreset>(mVab, mSoundFont, mSynth, prog, prenum);
+            it = mPresets.find(prenum);
+        }
+
+        std::cout << "Return program: " << prenum << std::endl;
+        return (it->second)->Preset();
     }
 
     void GotoFirstPreset()
@@ -435,13 +630,16 @@ public:
 
     int NextPreset(fluid_preset_t* preset)
     {
+        /*
         if (mIterator >= mPresets.size())
         {
             return 0;
         }
         preset = mPresets[mIterator]->Preset();
         mIterator++;
-        return 1;
+        return 1;*/
+        std::cout << "TODO NextPreset" << std::endl;
+        return 0;
     }
 
     char* Name()
@@ -451,8 +649,11 @@ public:
 
 private:
     std::string mFileName;
-    std::vector<SoundFontPreset*> mPresets;
+    std::map<unsigned int, std::unique_ptr<SoundFontPreset>> mPresets;
     size_t mIterator = 0;
+    Vab mVab;
+    fluid_sfont_t* mSoundFont = nullptr;
+    fluid_synth_t* mSynth = nullptr;
 };
 
 
@@ -499,22 +700,18 @@ TEST(Seq, ParseSeq)
     // the sequence duration, in ms
     seqduration = 100;
 
-    Vab* vab = new Vab();
-    vab->LoadVhFile("MINES.VH");
-    vab->LoadVbFile("MINES.VB");
-
     // TODO: Dynamically allocate loader
     fluid_sfloader_t loader =
     {
         // User defined data pointer.
-        vab,
+        synth,
 
         // The free method should free the memory allocated for the loader in addition to any private data.
         [](fluid_sfloader_t *loader) -> int
         {
             if (loader)
             {
-                delete reinterpret_cast<Vab*>(loader->data);
+                //delete reinterpret_cast<Vab*>(loader->data);
             }
             // loader is on stack atm, so don't delete!
             //delete loader;
@@ -528,7 +725,7 @@ TEST(Seq, ParseSeq)
             fluid_sfont_t* font = new fluid_sfont_t();
 
             // User defined data.
-            font->data = new SoundFontDriver(filename);
+            font->data = new SoundFontDriver(font, reinterpret_cast<fluid_synth_t*>(loader->data),filename);
 
             // SoundFont ID.
             font->id = 1;
@@ -572,6 +769,9 @@ TEST(Seq, ParseSeq)
 
     fluid_synth_add_sfloader(synth, &loader);
 
+    fluid_synth_sfload(synth, "MINES", 1);
+
+    /*
     if (fluid_is_soundfont("/home/paul/Desktop/Abe2MidiPlayer/Oddworld.sf2"))
     {
         fluid_synth_sfload(synth, "/home/paul/Desktop/Abe2MidiPlayer/Oddworld.sf2", 1);
@@ -580,6 +780,7 @@ TEST(Seq, ParseSeq)
     {
         abort();
     }
+    */
 
 
     fluid_player_t* player = new_fluid_player(synth);
