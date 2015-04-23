@@ -113,23 +113,50 @@ struct VagAtr
     }
 
     unsigned char iPriority;
+
+    // 0 = normal, 4 = reverb
     unsigned char iMode;
+
+    // volume 0-127
     unsigned char iVol;
+
+    // panning 0-127
     unsigned char iPan;
+
+    // "Default" note
     unsigned char iCenter;
     unsigned char iShift;
+    
+    // Key range which this waveform maps to
     unsigned char iMin;
     unsigned char iMax;
+    
+    // Maybe these are not used?
     unsigned char iVibW;
     unsigned char iVibT;
     unsigned char iPorW;
     unsigned char iPorT;
+    
+    // Min/max pitch values
     unsigned char iPitchBendMin;
     unsigned char iPitchBendMax;
+    
+    // Not used
     unsigned char iReserved1;
     unsigned char iReserved2;
+    
+    // adsr1
+    // 0-127 attack rate (byte)
+    // 0-15 decay rate (nibble)
+    // 0-127 sustain rate (byte)
+
+    // adsr2
+    // 0-31 release rate (6bits)
+    // 0-15 sustain rate (nibble)
+    // 1+0.5+1+0.6+0.5=3.6 bytes
     unsigned short int iAdsr1;
     unsigned short int iAdsr2;
+    
     short int iProg; // Which progAttr we live in?
     short int iVag;  // Sound index in the VB
     short int iReserved[4];
