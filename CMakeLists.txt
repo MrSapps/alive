@@ -19,7 +19,7 @@ SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # On Linux gtest needs pthreads
 if (UNIX)
-	find_package (Threads)
+    find_package (Threads)
 endif()
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -47,47 +47,45 @@ add_library(gmock STATIC ${gmock_src})
 
 add_library(oddlib STATIC
     include/logger.hpp
-	include/string_util.hpp
-	include/oddlib/exceptions.hpp
-	include/oddlib/stream.hpp
-	include/oddlib/anim.hpp
-	include/oddlib/lvlarchive.hpp
-	src/oddlib/stream.cpp
-	src/oddlib/anim.cpp
-	src/oddlib/lvlarchive.cpp
+    include/string_util.hpp
+    include/oddlib/exceptions.hpp
+    include/oddlib/stream.hpp
+    include/oddlib/anim.hpp
+    include/oddlib/lvlarchive.hpp
+    src/oddlib/stream.cpp
+    src/oddlib/anim.cpp
+    src/oddlib/lvlarchive.cpp
 )
 
 add_executable(Tests
     test/main.cpp
-    test/vab.cpp
-    test/vab.hpp
 )
-target_link_libraries(Tests oddlib fluidsynth gmock ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Tests oddlib gmock ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(Alive
-	src/main.cpp
+    src/main.cpp
 
 )
 TARGET_LINK_LIBRARIES(Alive oddlib ${SDL2_LIBRARY})
 
 if (MSVC)
-	# Build cpp files on all cores
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /W4 /wd4351")
+    # Build cpp files on all cores
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826")
 else()
-	if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-		# C++14 by default
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -fPIC")
-	else()
-		# Enable C++14, you may need to use -std=c++0x if using an older gcc compiler
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fPIC -Wall -pedantic -Wmissing-field-initializers")
-		
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0") # debug, no optimisation
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage") # enabling coverage
-		
-		# we dont want high warning levels on 3rd party things since we won't be fixing those warnings
-		set_source_files_properties(${gmock_src} PROPERTIES COMPILE_FLAGS "-Wno-effc++ -Wno-missing-field-initializers")
-	endif()
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        # C++14 by default
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -fPIC")
+    else()
+        # Enable C++14, you may need to use -std=c++0x if using an older gcc compiler
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fPIC -Wall -pedantic -Wmissing-field-initializers")
+        
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0") # debug, no optimisation
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage") # enabling coverage
+        
+        # we dont want high warning levels on 3rd party things since we won't be fixing those warnings
+        set_source_files_properties(${gmock_src} PROPERTIES COMPILE_FLAGS "-Wno-effc++ -Wno-missing-field-initializers")
+    endif()
 endif()
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -98,7 +96,7 @@ if(WIN32)
     SET(CPACK_GENERATOR "WIX")
     
     set(CPACK_WIX_TEMPLATE "${CMAKE_CURRENT_SOURCE_DIR}/packaging/wix.template.in")
-    SET(CPACK_WIX_UPGRADE_GUID 8fbb293f-5622-4f6d-a7f6-c221f7be5d52)
+    SET(CPACK_WIX_UPGRADE_GUID 07c96c63-d705-4d6b-9cd1-869ec27e325b)
 
     # If empty assume release
     if ("${CMAKE_BUILD_TYPE}" STREQUAL "" OR "${CMAKE_BUILD_TYPE}" STREQUAL "release")
@@ -112,8 +110,6 @@ elseif(APPLE)
 elseif(UNIX)
     # On Linux generate TAR.GZ,DEB and RPM packages
     #Find out what architecture are we running on and set the package architecture 
-    
-
 endif()
 
 INCLUDE(CPack)
