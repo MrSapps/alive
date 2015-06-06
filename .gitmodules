@@ -1,6 +1,4 @@
 [submodule "3rdParty/gmock-1.7.0"]
 	path = 3rdParty/gmock-1.7.0
 	url = https://github.com/paulsapps/gmock-1.7.0.git
-[submodule "3rdParty/fluidsynth"]
-	path = 3rdParty/fluidsynth
-	url = https://github.com/paulsapps/fluidsynth
+	
