@@ -70,6 +70,8 @@ script:
 - mkdir build
 - cd build
 
+-echo ${COVERITY_SCAN_BRANCH}
+
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cmake -G"Unix Makefiles" ..; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then make -j2; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cpack -C Release; fi
@@ -89,6 +91,6 @@ addons:
     name: "paulsapps/alive"
     description: "Open source ALIVE engine"
     notification_email: github@paulsapps.com
-    build_command_prepend: "mkdir build && cd build && cmake -G&quotUnix Makefiles&quot .."
+    build_command_prepend: "cmake -G&quotUnix Makefiles&quot .."
     build_command: "make -j2"
     branch_pattern: coverity_scan
