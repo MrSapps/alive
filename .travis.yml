@@ -17,9 +17,9 @@ matrix:
 #  - os: osx
 #    compiler: gcc
 # Don't try to do Coverity or coverage builds on mac
-#  - os: osx
-#    env: COVERITY=1
-#    env: COVERAGE=1
+  - os: osx
+    env: COVERITY=1
+    env: COVERAGE=1
 # Don't do cov or coverage on clang
   - os: linux
     compiler: clang
