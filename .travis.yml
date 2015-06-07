@@ -86,11 +86,11 @@ after_success:
 language: cpp
 
 addons:
- coverity_scan:
-   project:
-     name: "paulsapps/alive"
-    description: "Open source ALIVE engine"
+  coverity_scan:
+    project:
+      name: "paulsapps/alive"
+      description: "Build submitted via Travis CI"
     notification_email: github@paulsapps.com
-    build_command_prepend: "cmake -G&quotUnix Makefiles&quot .."
-    build_command: "make -j2"
+    build_command_prepend: "cmake .."
+    build_command:   "make -j 2"
     branch_pattern: coverity_scan
