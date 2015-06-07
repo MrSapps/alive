@@ -2,3 +2,6 @@
 	path = 3rdParty/gmock-1.7.0
 	url = https://github.com/paulsapps/gmock-1.7.0.git
 	
+[submodule "3rdParty/imgui"]
+	path = 3rdParty/imgui
+	url = https://github.com/ocornut/imgui
