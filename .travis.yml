@@ -3,11 +3,11 @@ os:
  - osx
 
 env: 
-  global:
+ global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
-   - secure: "d8/9ELIMrdr9hB2ZB5U33hWlFGUMTjK1Ncj7nOLb1hsHS6/U7XyAh5RNl3v90K0iOCvFXokIc1EFmiTZiw/dP15S+MONRs9MgzwHkMlXfdkHtaPswNRYfXavWuhaGXNSSNAlwKxRCobymyVX5goKxsADaAouSY/vQwKVdIVYd1s="
-  matrix:
+  - secure: "d8/9ELIMrdr9hB2ZB5U33hWlFGUMTjK1Ncj7nOLb1hsHS6/U7XyAh5RNl3v90K0iOCvFXokIc1EFmiTZiw/dP15S+MONRs9MgzwHkMlXfdkHtaPswNRYfXavWuhaGXNSSNAlwKxRCobymyVX5goKxsADaAouSY/vQwKVdIVYd1s="
+ matrix:
   - COVERAGE=1
   - COVERAGE=0
   
@@ -67,19 +67,18 @@ install:
 before_install: 
 script: 
 
-- mkdir build
-- cd build
-
+- if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then mkdir build; fi
+- if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cd build; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cmake -G"Unix Makefiles" ..; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then make -j2; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cpack -C Release; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then ctest --output-on-failure; fi
 
 after_success:
-- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then lcov --directory . --capture --output-file coverage.info; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then lcov --remove coverage.info '*/3rdParty/*' '/usr/*' --output-file coverage.info; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then lcov --list coverage.info; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then coveralls-lcov coverage.info; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then lcov --directory . --capture --output-file coverage.info; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then lcov --remove coverage.info '*/3rdParty/*' '/usr/*' --output-file coverage.info; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then lcov --list coverage.info; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then coveralls-lcov coverage.info; fi
   
 language: cpp
 
@@ -87,8 +86,8 @@ addons:
   coverity_scan:
     project:
       name: "paulsapps/alive"
-      description: "Open source ALIVE engine"
+      description: "Build submitted via Travis CI"
     notification_email: github@paulsapps.com
-    build_command_prepend: "mkdir build && cd build && cmake -G"Unix Makefiles" .."
-    build_command:   "make -j2"
+    build_command_prepend: "mkdir build; cd build; cmake .."
+    build_command:   "make -j 2"
     branch_pattern: coverity_scan
