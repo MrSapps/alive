@@ -38,6 +38,17 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest
 )
 
+SET(imgui_src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_rect_pack.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_textedit.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_truetype.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imconfig.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imgui.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imgui.cpp
+)
+
+add_library(imgui STATIC ${imgui_src})
+
 SET(gmock_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/src/gmock-all.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest/src/gtest-all.cc
@@ -67,7 +78,7 @@ add_executable(Alive
     src/main.cpp
 
 )
-TARGET_LINK_LIBRARIES(Alive oddlib ${SDL2_LIBRARY})
+TARGET_LINK_LIBRARIES(Alive imgui oddlib ${SDL2_LIBRARY})
 
 if (MSVC)
     # Build cpp files on all cores
