@@ -36,8 +36,9 @@ language: cpp
 install:
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo apt-get install gcc-4.9; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo apt-get install g++-4.9; fi
+# new gcc pulls in new libstdcpp for make_unique in clang
+- if [[ "$TRAVIS_OS_NAME" == "linux"]]; then sudo apt-get install gcc-4.9; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install g++-4.9; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 20; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 20; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90; fi
