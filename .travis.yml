@@ -67,11 +67,8 @@ install:
 before_install: 
 script: 
 
-- mkdir build
-- cd build
-
-- echo ${COVERITY_SCAN_BRANCH}
-
+- if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then mkdir build; fi
+- if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cd build; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cmake -G"Unix Makefiles" ..; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then make -j2; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cpack -C Release; fi
