@@ -3,9 +3,14 @@
 #include "oddlib/lvlarchive.hpp"
 #include "imgui/imgui.h"
 #include "imgui/stb_rect_pack.h"
+#include "jsonxx/jsonxx.h"
+#include <fstream>
 
 //#include <GL/glew.h>
+#ifdef _WIN32
 #include <windows.h>
+#endif
+
 #include <GL/GL.h>
 
 #pragma comment(lib, "Opengl32.lib")
@@ -179,7 +184,40 @@ int main(int argc, char** argv)
     InitGL();
     InitImGui();
 
+    jsonxx::Object rootJsonObject;
+    std::ifstream tmpStream("./data/videos.json");
+    if (!tmpStream)
+    {
+        return 1;
+    }
+    std::string jsonFileContents((std::istreambuf_iterator<char>(tmpStream)),std::istreambuf_iterator<char>());
+
+    std::vector<std::string> allFmvs;
+
+    rootJsonObject.parse(jsonFileContents);
+    if (rootJsonObject.has<jsonxx::Object>("FMVS"))
+    {
+        jsonxx::Object& fmvObj = rootJsonObject.get<jsonxx::Object>("FMVS");
+        for (auto& v : fmvObj.kv_map())
+        {
+            jsonxx::Array& ar = fmvObj.get<jsonxx::Array>(v.first);
+            for (size_t i = 0; i < ar.size(); i++)
+            {
+                jsonxx::String s = ar.get<jsonxx::String>(i);
+                allFmvs.emplace_back(s);
+
+            }
+        }
+
+      //  for (auto& value : fmvsArray.values())
+        {
+           // jsonxx::Array& a = value->get<jsonxx::Array>();
+
+        }
+    }
+
     bool running = true;
+    bool selected = false;
     while (running) {
         ImGuiIO& io = ImGui::GetIO();
         mousePressed[0] = mousePressed[1] = false;
@@ -194,15 +232,42 @@ int main(int argc, char** argv)
 
         UpdateImGui();
 
-        ImGui::Begin("Debug");
-        ImGui::Text("Hello, world %d", 123);
-        if (ImGui::Button("OK")) {
+        if (ImGui::BeginMainMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
+            {
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Edit"))
+            {
+                if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+                if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+                ImGui::Separator();
+                if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+                if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+                if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+
+        ImGui::Begin("Video player");
+        for (auto& v : allFmvs)
+        {
+            if (ImGui::Button(v.c_str()))
+            {
+                std::cout << "Play " << v.c_str() << std::endl;
+            }
+        }
+
+        if (ImGui::Button("OK")) 
+        {
             std::cout << "Button clicked!\n";
         }
         ImGui::End();
 
         // Rendering
-        glClearColor(0.8f, 0.6f, 0.6f, 1.0f);
+        glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         ImGui::Render();

@@ -57,6 +57,12 @@ SET(gmock_src
 
 add_library(gmock STATIC ${gmock_src})
 
+SET(jsonxx_src
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/jsonxx/jsonxx.cc
+)
+add_library(jsonxx STATIC ${jsonxx_src})
+
+
 add_library(oddlib STATIC
     include/logger.hpp
     include/string_util.hpp
@@ -79,11 +85,11 @@ add_executable(Alive
     src/main.cpp
 
 )
-TARGET_LINK_LIBRARIES(Alive imgui oddlib ${SDL2_LIBRARY})
+TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${SDL2_LIBRARY})
 
 if (MSVC)
     # Build cpp files on all cores
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826 /wd4127")
 else()
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # C++14 by default
