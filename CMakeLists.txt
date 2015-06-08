@@ -91,7 +91,7 @@ TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRA
 
 if (MSVC)
     # Build cpp files on all cores
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826 /wd4127")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826 /wd4127 /wd4711")
 else()
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # C++14 by default
