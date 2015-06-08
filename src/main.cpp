@@ -10,8 +10,11 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-
-#include <GL/GL.h>
+#ifdef __APPLE__
+#  include <OpenGL/gl.h>
+#else
+#  include <GL/gl.h>
+#endif/*__APPLE__*/
 
 static SDL_Window* window;
 static SDL_GLContext context;
