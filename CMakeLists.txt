@@ -4,6 +4,7 @@ project(ALIVE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}")
 find_package(SDL2 REQUIRED)
+find_package(OpenGL REQUIRED)
 
 enable_testing()
 
@@ -32,6 +33,7 @@ endif ()
 include_directories(
     include
     ${SDL2_INCLUDE_DIR}
+    ${OPENGL_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/include
@@ -85,7 +87,7 @@ add_executable(Alive
     src/main.cpp
 
 )
-TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${SDL2_LIBRARY})
+TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY})
 
 if (MSVC)
     # Build cpp files on all cores

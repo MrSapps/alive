@@ -13,8 +13,6 @@
 
 #include <GL/GL.h>
 
-#pragma comment(lib, "Opengl32.lib")
-
 static SDL_Window* window;
 static SDL_GLContext context;
 static GLuint fontTex;
