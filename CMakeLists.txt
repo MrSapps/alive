@@ -32,6 +32,7 @@ endif ()
 include_directories(
     include
     ${SDL2_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest/include
