@@ -119,11 +119,11 @@ if(WIN32)
     SET(CPACK_WIX_UPGRADE_GUID 07c96c63-d705-4d6b-9cd1-869ec27e325b)
 
     # If empty assume release
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "" OR "${CMAKE_BUILD_TYPE}" STREQUAL "release")
-        message("RELEASE installer build")
-    else()
-        message("DEBUG installer build")
-    endif()
+    #if ("${CMAKE_BUILD_TYPE}" STREQUAL "" OR "${CMAKE_BUILD_TYPE}" STREQUAL "release")
+    #    message("RELEASE installer build")
+    #else()
+    #    message("DEBUG installer build")
+    #endif()
 elseif(APPLE)
     # APPLE is also UNIX, so must check for APPLE before UNIX
     SET(CPACK_GENERATOR "DragNDrop")
