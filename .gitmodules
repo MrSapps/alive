@@ -5,3 +5,6 @@
 [submodule "3rdParty/imgui"]
 	path = 3rdParty/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "3rdParty/jsonxx"]
+	path = 3rdParty/jsonxx
+	url = https://github.com/hjiang/jsonxx
