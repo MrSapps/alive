@@ -6,6 +6,13 @@
 #include "jsonxx/jsonxx.h"
 #include <fstream>
 
+extern "C"
+{
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+}
+
 //#include <GL/glew.h>
 #ifdef _WIN32
 #include <windows.h>
@@ -113,7 +120,7 @@ void InitGL()
 
     window = SDL_CreateWindow("SDL IMGui Example.",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,
-        SDL_WINDOW_OPENGL);
+        SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP);
     context = SDL_GL_CreateContext(window);
 
 //    glewExperimental = GL_TRUE;
@@ -182,6 +189,10 @@ void UpdateImGui()
 // Application code
 int main(int argc, char** argv)
 {
+
+    lua_State *L = lua_open();
+    lua_close(L);
+
     InitGL();
     InitImGui();
 
@@ -205,6 +216,10 @@ int main(int argc, char** argv)
             for (size_t i = 0; i < ar.size(); i++)
             {
                 jsonxx::String s = ar.get<jsonxx::String>(i);
+                if (s.length() < 12)
+                {
+                    s.append(12 - s.length(), ' ');
+                }
                 allFmvs.emplace_back(s);
 
             }
@@ -237,6 +252,7 @@ int main(int argc, char** argv)
         {
             if (ImGui::BeginMenu("File"))
             {
+                if (ImGui::MenuItem("Exit", "CTRL+Q")) { running = false; }
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Edit"))
@@ -259,13 +275,27 @@ int main(int argc, char** argv)
             {
                 std::cout << "Play " << v.c_str() << std::endl;
             }
+            ImGui::Separator();
         }
+
+       
 
         if (ImGui::Button("OK")) 
         {
             std::cout << "Button clicked!\n";
         }
         ImGui::End();
+
+        ImGui::Begin("Video player2");
+        for (auto& v : allFmvs)
+        {
+            if (ImGui::Button(v.c_str()))
+            {
+                std::cout << "Play " << v.c_str() << std::endl;
+            }
+        }
+        ImGui::End();
+
 
         // Rendering
         glClearColor(0.6f, 0.6f, 0.6f, 1.0f);

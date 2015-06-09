@@ -34,11 +34,14 @@ include_directories(
     include
     ${SDL2_INCLUDE_DIR}
     ${OPENGL_INCLUDE_DIRS}
+   
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest
+    ${CMAKE_BINARY_DIR}/3rdParty/luajit
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/luajit/src
 )
 
 SET(imgui_src 
@@ -51,6 +54,7 @@ SET(imgui_src
 )
 
 add_library(imgui STATIC ${imgui_src})
+SET_PROPERTY(TARGET imgui PROPERTY FOLDER "3rdparty")
 
 SET(gmock_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/src/gmock-all.cc
@@ -58,12 +62,19 @@ SET(gmock_src
 )
 
 add_library(gmock STATIC ${gmock_src})
+SET_PROPERTY(TARGET gmock PROPERTY FOLDER "3rdparty")
 
 SET(jsonxx_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/jsonxx/jsonxx.cc
 )
 add_library(jsonxx STATIC ${jsonxx_src})
+SET_PROPERTY(TARGET jsonxx PROPERTY FOLDER "3rdparty")
 
+add_subdirectory(3rdParty/luajit)
+SET_PROPERTY(TARGET buildvm PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET liblua PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET luajit PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET minilua PROPERTY FOLDER "3rdparty")
 
 add_library(oddlib STATIC
     include/logger.hpp
@@ -87,7 +98,7 @@ add_executable(Alive
     src/main.cpp
 
 )
-TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY})
+TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
 
 if (MSVC)
     # Build cpp files on all cores
@@ -95,7 +106,7 @@ if (MSVC)
 else()
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # C++14 by default
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -fPIC")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -fPIC -Wall")
     else()
         # Enable C++14, you may need to use -std=c++0x if using an older gcc compiler
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fPIC -Wall -pedantic -Wmissing-field-initializers")
