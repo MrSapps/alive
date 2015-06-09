@@ -13,7 +13,7 @@ namespace Oddlib
         mSize = data.size();
         auto s = std::make_unique<std::stringstream>();
         std::copy(data.begin(), data.end(), std::ostream_iterator<unsigned char>(*s));
-        mStream.reset(s.release());
+        mStream = std::move(s);
         Seek(0);
     }
 
@@ -30,7 +30,7 @@ namespace Oddlib
         mSize = static_cast<size_t>(s->tellg());
         s->seekg(std::ios::beg);
 
-        mStream.reset(s.release());
+        mStream = std::move(s);
     }
 
     void Stream::ReadUInt8(Uint8& output)
