@@ -126,8 +126,8 @@ if(WIN32)
     # On Windows generate MSI packages
     SET(CPACK_GENERATOR "WIX")
     
-    set(CPACK_WIX_TEMPLATE "${CMAKE_CURRENT_SOURCE_DIR}/packaging/wix.template.in")
-    SET(CPACK_WIX_UPGRADE_GUID 07c96c63-d705-4d6b-9cd1-869ec27e325b)
+    #set(CPACK_WIX_TEMPLATE "${CMAKE_CURRENT_SOURCE_DIR}/packaging/wix.template.in")
+    SET(CPACK_WIX_UPGRADE_GUID 2a54667a-a192-4b78-a34d-b3282dfa7f3f)
 
     # If empty assume release
     #if ("${CMAKE_BUILD_TYPE}" STREQUAL "" OR "${CMAKE_BUILD_TYPE}" STREQUAL "release")
