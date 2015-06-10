@@ -6,8 +6,8 @@ env:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
   - secure: "d8/9ELIMrdr9hB2ZB5U33hWlFGUMTjK1Ncj7nOLb1hsHS6/U7XyAh5RNl3v90K0iOCvFXokIc1EFmiTZiw/dP15S+MONRs9MgzwHkMlXfdkHtaPswNRYfXavWuhaGXNSSNAlwKxRCobymyVX5goKxsADaAouSY/vQwKVdIVYd1s="
-  - "FTP_USER=test"
-  - "FTP_PASSWORD=test"
+  - FTP_USER=test
+  - FTP_PASSWORD=test
  matrix:
   - COVERAGE=1
   - COVERAGE=0
