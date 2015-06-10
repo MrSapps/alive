@@ -73,7 +73,7 @@ after_success:
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then lcov --list coverage.info; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then coveralls-lcov coverage.info; fi
 # Upload OSX output via FTP
-- if [[ "$TRAVIS_OS_NAME" == "osx" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" == 0 && "${COVERAGE}" == 0 ]]; then curl --ftp-create-dirs -T uploadfilename -u $FTP_USER:$FTP_PASSWORD ftp://mlgthatsme.com/myfile; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" == 0 && "${COVERAGE}" == 0 ]]; then curl --ftp-create-dirs -T build/ALIVE-0.1.1-Darwin.dmg -u $FTP_USER:$FTP_PASSWORD ftp://mlgthatsme.com/myfile; fi
   
 language: cpp
 
