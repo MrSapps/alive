@@ -6,8 +6,8 @@ env:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
   - secure: "d8/9ELIMrdr9hB2ZB5U33hWlFGUMTjK1Ncj7nOLb1hsHS6/U7XyAh5RNl3v90K0iOCvFXokIc1EFmiTZiw/dP15S+MONRs9MgzwHkMlXfdkHtaPswNRYfXavWuhaGXNSSNAlwKxRCobymyVX5goKxsADaAouSY/vQwKVdIVYd1s="
-  - FTP_USER=test
-  - FTP_PASSWORD=test
+  - secure: "Gv879EwhQyTnFmClRfD+YrEF5GuH6gl/EORkUaW27gjcKvjGhW4K6yHNjJ4kiuYybvVVaJ5AY1K8WUnH6AhfECfKJBl5Eb7EZA47o4Z8UkmiyEs296OWyPHIwIWrLWQsXIQ2nb1fwKnd0nzpiyy5DzSxm5pgotv3eU/ipdZUp20="
+  - secure: "dlvyRvnk4+6XP/b1atadJhvL7QjdV74/3Q48joUmT6EPlBhG7YSKZsbQir+vZInufXJ9dgqm7k4sbLt4pPM4BpspnP7QERzvL5e5qQjJ/9g+aDedtNDOhJXqH9iU+Rf9GHoScsP5XfUgSYSn+GtJomC9FI9BSBLOkJVSnc3ljZc="
  matrix:
   - COVERAGE=1
   - COVERAGE=0
@@ -73,7 +73,7 @@ after_success:
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then lcov --list coverage.info; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then coveralls-lcov coverage.info; fi
 # Upload OSX output via FTP
-- if [[ "$TRAVIS_OS_NAME" == "osx" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" == 0 && "${COVERAGE}" == 0 ]]; then curl --ftp-create-dirs -T build/ALIVE-0.1.1-Darwin.dmg -u $FTP_USER:$FTP_PASSWORD ftp://mlgthatsme.com/myfile; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" == 0 && "${COVERAGE}" == 0 ]]; then curl --ftp-create-dirs -T alive/build/ALIVE-0.1.1-Darwin.dmg -u $FTP_USER:$FTP_PASSWORD ftp://mlgthatsme.com/myfile; fi
   
 language: cpp
 
