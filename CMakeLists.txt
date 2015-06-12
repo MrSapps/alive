@@ -96,9 +96,18 @@ add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(Alive
     src/main.cpp
-
 )
 TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
+install(TARGETS Alive RUNTIME DESTINATION .)
+
+
+if (WIN32)
+get_property(AliveOutputDir TARGET Alive PROPERTY RUNTIME_OUTPUT_DIRECTORY)
+#ADD_CUSTOM_COMMAND( TARGET Alive POST_BUILD
+#                COMMAND copy "${SDL2_INCLUDE_DIR}/../lib/SDL2.dll"  "${AliveOutputDir}"
+#                COMMENT "copying SDL2.dll..."
+#                )
+endif()
 
 if (MSVC)
     # Build cpp files on all cores
