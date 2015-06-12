@@ -91,3 +91,4 @@ addons:
     build_command_prepend: "mkdir build; cd build; cmake .."
     build_command:   "make -j 2"
     branch_pattern: coverity_scan
+
