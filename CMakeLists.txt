@@ -9,6 +9,9 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/sola
 #include(cotire)
 include(Solar)
 
+# the RPATH to be used when installing
+SET(CMAKE_INSTALL_RPATH "")
+
 target_architecture(arch)
 message("arch is ${arch}")
 
