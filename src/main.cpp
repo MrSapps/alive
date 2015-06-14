@@ -5,6 +5,7 @@
 #include "imgui/stb_rect_pack.h"
 #include "jsonxx/jsonxx.h"
 #include <fstream>
+#include "alive_version.h"
 
 extern "C"
 {
@@ -118,9 +119,9 @@ void InitGL()
 
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    window = SDL_CreateWindow("SDL IMGui Example.",
+    window = SDL_CreateWindow(ALIVE_VERSION_NAME_STR,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP);
+        SDL_WINDOW_OPENGL);
     context = SDL_GL_CreateContext(window);
 
 //    glewExperimental = GL_TRUE;
