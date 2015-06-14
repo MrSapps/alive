@@ -139,10 +139,7 @@ if (WIN32 AND MSVC)
 endif()
 
 if (APPLE)
-    add_custom_command(TARGET Alive POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "/Library/Frameworks/SDL2.framework" "$(OutDir)/SDL2.framework")
-    
-    INSTALL(FILES "/Library/Frameworks/SDL2.framework" DESTINATION ".")
+    INSTALL(FILES "/usr/local/lib/libSDL2.dylib" DESTINATION ".")
 endif()
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/videos.json" DESTINATION "./data")
