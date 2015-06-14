@@ -49,6 +49,7 @@ endif ()
 include_directories(
     include
     ${SDL2_INCLUDE_DIR}
+	${CMAKE_CURRENT_BINARY_DIR}
     ${OPENGL_INCLUDE_DIRS}
    
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
