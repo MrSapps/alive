@@ -104,10 +104,12 @@ add_library(oddlib STATIC
     src/oddlib/anim.cpp
     src/oddlib/lvlarchive.cpp
 )
+cotire(oddlib)
 
 add_executable(Tests
     test/main.cpp
 )
+cotire(Tests)
 target_link_libraries(Tests oddlib gmock ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -133,7 +135,7 @@ add_executable(Alive
     src/main.cpp
 )
 add_dependencies(Alive configure_alive_version)
-
+cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
 install(TARGETS Alive RUNTIME DESTINATION .)
 
