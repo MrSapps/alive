@@ -52,7 +52,7 @@ endif ()
 include_directories(
     include
     ${SDL2_INCLUDE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/packaging
     ${OPENGL_INCLUDE_DIRS}
    
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
@@ -119,25 +119,11 @@ add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 # Generate header containing window title/version information
 git_shorttag(GIT_SHORT_REV)
 set(ALIVE_VERSION "ALIVE v${ALIVE_VERSION_MAJOR}.${ALIVE_VERSION_MINOR}.${ALIVE_VERSION_PATCH} rev(${GIT_SHORT_REV})")
-configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/packaging/configure_version_file.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/configure_version_file.cmake @ONLY)
-
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/alive_version.h
-  COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/configure_version_file.cmake
-  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-  DEPENDS
-    ${CMAKE_CURRENT_SOURCE_DIR}/packaging/configure_version_file.cmake
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/alive_version.h.in
-  COMMENT "Configuring alive_version.h"
-  VERBATIM)
-add_custom_target(configure_alive_version ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/alive_version.h)
-
-set(GENERATED_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/alive_version.h)
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/packaging/alive_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/packaging/alive_version.h)
 
 add_executable(Alive
-    ${GENERATED_HEADERS}
     src/main.cpp
 )
-add_dependencies(Alive configure_alive_version)
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
 install(TARGETS Alive RUNTIME DESTINATION .)
@@ -187,7 +173,7 @@ if(WIN32)
     # On Windows generate MSI packages
     SET(CPACK_GENERATOR "WIX")
     
-    #set(CPACK_WIX_TEMPLATE "${CMAKE_CURRENT_SOURCE_DIR}/packaging/wix.template.in")
+    set(CPACK_WIX_TEMPLATE "${CMAKE_CURRENT_SOURCE_DIR}/packaging/wix.template.in")
     SET(CPACK_WIX_UPGRADE_GUID 2a54667a-a192-4b78-a34d-b3282dfa7f3f)
 
     # If empty assume release

@@ -1,4 +1,0 @@
-set(SRC_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
-set(BIN_DIR "@CMAKE_CURRENT_BINARY_DIR@")
-set(ALIVE_VERSION "@ALIVE_VERSION@")
-configure_file(${SRC_DIR}/include/alive_version.h.in ${BIN_DIR}/alive_version.h @ONLY)
