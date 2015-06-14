@@ -2,7 +2,23 @@ cmake_minimum_required(VERSION 2.6)
 
 project(ALIVE)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}")
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}")
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/cotire/CMake")
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/solar-cmake")
+
+include(cotire)
+include(Solar)
+
+target_architecture(arch)
+message("arch is ${arch}")
+
+# i386 for 32bit and x86_64 for 64bit
+if ("${arch}" STREQUAL "i386")
+	set (arch "x86")
+elseif("${arch}" STREQUAL "x86_64")
+	set (arch "x64")
+endif()
+
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 
@@ -101,13 +117,22 @@ TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRA
 install(TARGETS Alive RUNTIME DESTINATION .)
 
 
-if (WIN32)
-get_property(AliveOutputDir TARGET Alive PROPERTY RUNTIME_OUTPUT_DIRECTORY)
-#ADD_CUSTOM_COMMAND( TARGET Alive POST_BUILD
-#                COMMAND copy "${SDL2_INCLUDE_DIR}/../lib/SDL2.dll"  "${AliveOutputDir}"
-#                COMMENT "copying SDL2.dll..."
-#                )
+if (WIN32 AND MSVC)
+   add_custom_command(TARGET Alive POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy "${SDL2_INCLUDE_DIR}/../lib/${arch}/SDL2.dll" "$(OutDir)/SDL2.dll")
+   add_custom_command(TARGET Alive POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/3rdParty/luajit/Debug/lua.dll" "$(OutDir)lua.dll")
+   INSTALL(FILES "${SDL2_INCLUDE_DIR}/../lib/${arch}/SDL2.dll" DESTINATION ".")
 endif()
+
+if (APPLE)
+    add_custom_command(TARGET Alive POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy "/Library/Frameworks/SDL2.framework" "$(OutDir)/SDL2.framework")
+	
+    INSTALL(FILES "/Library/Frameworks/SDL2.framework" DESTINATION ".")
+endif()
+
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/videos.json" DESTINATION "./data")
 
 if (MSVC)
     # Build cpp files on all cores

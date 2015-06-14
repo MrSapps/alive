@@ -70,9 +70,12 @@
 # (To distribute this file outside of CMake, substitute the full
 #  License text for the above reference.)
 
+message("arch is ${arch}")
+
 FIND_PATH(SDL2_INCLUDE_DIR SDL.h
   HINTS
   $ENV{SDL2DIR}
+  $ENV{SDL2DIR}/${arch}
   PATH_SUFFIXES include/SDL2 include
   PATHS
   ~/Library/Frameworks
@@ -90,6 +93,7 @@ FIND_LIBRARY(SDL2_LIBRARY_TEMP
   NAMES SDL2
   HINTS
   $ENV{SDL2DIR}
+  $ENV{SDL2DIR}/lib/${arch}
   PATH_SUFFIXES lib64 lib
   PATHS
   /sw
@@ -110,6 +114,7 @@ IF(NOT SDL2_BUILDING_LIBRARY)
       NAMES SDL2main
       HINTS
       $ENV{SDL2DIR}
+	  $ENV{SDL2DIR}/lib/${arch}
       PATH_SUFFIXES lib64 lib
       PATHS
       /sw

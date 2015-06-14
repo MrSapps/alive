@@ -200,6 +200,10 @@ int main(int argc, char** argv)
     std::ifstream tmpStream("./data/videos.json");
     if (!tmpStream)
     {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+            "Missing file",
+            "./data/videos.json is missing.",
+            NULL);
         return 1;
     }
     std::string jsonFileContents((std::istreambuf_iterator<char>(tmpStream)),std::istreambuf_iterator<char>());

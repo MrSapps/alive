@@ -36,3 +36,19 @@ bin/*
 *.exe
 *.out
 *.app
+
+# Data files and MSVC generated files via CMake
+*.vcxproj
+*.vcproj.filters
+*.rule
+*.BAN
+*.FNT
+*.BND
+*.CAM
+*.SAV
+*.VB
+*.VH
+*.JOY
+*.BSQ
+
+

@@ -11,3 +11,9 @@
 [submodule "3rdParty/luajit"]
 	path = 3rdParty/luajit
 	url = https://github.com/q-gears/luajit
+[submodule "3rdParty/solar-cmake"]
+	path = 3rdParty/solar-cmake
+	url = https://github.com/petroules/solar-cmake
+[submodule "3rdParty/cotire"]
+	path = 3rdParty/cotire
+	url = https://github.com/sakra/cotire
