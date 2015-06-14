@@ -129,7 +129,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/alive_version.h
   COMMENT "Configuring alive_version.h"
   VERBATIM)
 add_custom_target(configure_alive_version ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/alive_version.h)
-
+add_dependencies(Alive configure_alive_version)
 
 if (WIN32 AND MSVC)
    add_custom_command(TARGET Alive POST_BUILD
