@@ -14,9 +14,9 @@ message("arch is ${arch}")
 
 # i386 for 32bit and x86_64 for 64bit
 if ("${arch}" STREQUAL "i386")
-	set (arch "x86")
+    set (arch "x86")
 elseif("${arch}" STREQUAL "x86_64")
-	set (arch "x64")
+    set (arch "x64")
 endif()
 
 find_package(SDL2 REQUIRED)
@@ -49,7 +49,7 @@ endif ()
 include_directories(
     include
     ${SDL2_INCLUDE_DIR}
-	${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
     ${OPENGL_INCLUDE_DIRS}
    
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
@@ -116,7 +116,7 @@ add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 # Generate header containing window title/version information
 git_shorttag(GIT_SHORT_REV)
 set(ALIVE_VERSION "ALIVE v${ALIVE_VERSION_MAJOR}.${ALIVE_VERSION_MINOR}.${ALIVE_VERSION_PATCH} rev(${GIT_SHORT_REV})")
-configure_file(packaging/configure_version_file.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/configure_version_file.cmake @ONLY)
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/packaging/configure_version_file.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/configure_version_file.cmake @ONLY)
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/alive_version.h
   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/configure_version_file.cmake
@@ -143,7 +143,7 @@ install(TARGETS Alive RUNTIME DESTINATION .)
 
 if (WIN32 AND MSVC)
    add_custom_command(TARGET Alive POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "${SDL2_INCLUDE_DIR}/../lib/${arch}/SDL2.dll" "$(OutDir)/SDL2.dll")
+      COMMAND ${CMAKE_COMMAND} -E copy "${SDL2_INCLUDE_DIR}/../lib/${arch}/SDL2.dll" "$(OutDir)SDL2.dll")
    add_custom_command(TARGET Alive POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/3rdParty/luajit/Debug/lua.dll" "$(OutDir)lua.dll")
    INSTALL(FILES "${SDL2_INCLUDE_DIR}/../lib/${arch}/SDL2.dll" DESTINATION ".")
@@ -152,7 +152,7 @@ endif()
 if (APPLE)
     add_custom_command(TARGET Alive POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy "/Library/Frameworks/SDL2.framework" "$(OutDir)/SDL2.framework")
-	
+    
     INSTALL(FILES "/Library/Frameworks/SDL2.framework" DESTINATION ".")
 endif()
 
