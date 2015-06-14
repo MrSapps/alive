@@ -110,12 +110,6 @@ add_executable(Tests
 target_link_libraries(Tests oddlib gmock ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(Alive
-    src/main.cpp
-)
-TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
-install(TARGETS Alive RUNTIME DESTINATION .)
-
 # Generate header containing window title/version information
 git_shorttag(GIT_SHORT_REV)
 set(ALIVE_VERSION "ALIVE v${ALIVE_VERSION_MAJOR}.${ALIVE_VERSION_MINOR}.${ALIVE_VERSION_PATCH} rev(${GIT_SHORT_REV})")
@@ -123,13 +117,26 @@ configure_file(packaging/configure_version_file.cmake.in ${CMAKE_CURRENT_BINARY_
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/alive_version.h
   COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/configure_version_file.cmake
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   DEPENDS
-    ${CMAKE_CURRENT_BINARY_DIR}/configure_version_file.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/packaging/configure_version_file.cmake
     ${CMAKE_CURRENT_SOURCE_DIR}/include/alive_version.h.in
   COMMENT "Configuring alive_version.h"
   VERBATIM)
 add_custom_target(configure_alive_version ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/alive_version.h)
+
+set(GENERATED_HEADERS ${CMAKE_CURRENT_BINARY_DIR}/alive_version.h)
+
+add_executable(Alive
+    ${GENERATED_HEADERS}
+    src/main.cpp
+)
 add_dependencies(Alive configure_alive_version)
+
+TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
+install(TARGETS Alive RUNTIME DESTINATION .)
+
+
 
 if (WIN32 AND MSVC)
    add_custom_command(TARGET Alive POST_BUILD
