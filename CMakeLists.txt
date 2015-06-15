@@ -134,7 +134,7 @@ if (WIN32 AND MSVC)
    add_custom_command(TARGET Alive POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy "${SDL2_INCLUDE_DIR}/../lib/${arch}/SDL2.dll" "$(OutDir)SDL2.dll")
    add_custom_command(TARGET Alive POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/3rdParty/luajit/Debug/lua.dll" "$(OutDir)lua.dll")
+      COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/3rdParty/luajit/$(Configuration)/lua.dll" "$(OutDir)lua.dll")
    INSTALL(FILES "${SDL2_INCLUDE_DIR}/../lib/${arch}/SDL2.dll" DESTINATION ".")
 endif()
 
