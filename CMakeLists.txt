@@ -103,9 +103,11 @@ add_library(oddlib STATIC
     include/oddlib/stream.hpp
     include/oddlib/anim.hpp
     include/oddlib/lvlarchive.hpp
+    include/oddlib/masher.hpp
     src/oddlib/stream.cpp
     src/oddlib/anim.cpp
     src/oddlib/lvlarchive.cpp
+    src/oddlib/masher.cpp
 )
 #cotire(oddlib)
 

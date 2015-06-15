@@ -1,6 +1,8 @@
 #include "SDL.h"
 #include <iostream>
 #include "oddlib/lvlarchive.hpp"
+#include "oddlib/masher.hpp"
+#include "oddlib/exceptions.hpp"
 #include "imgui/imgui.h"
 #include "imgui/stb_rect_pack.h"
 #include "jsonxx/jsonxx.h"
@@ -279,6 +281,14 @@ int main(int argc, char** argv)
             if (ImGui::Button(v.c_str()))
             {
                 std::cout << "Play " << v.c_str() << std::endl;
+                try
+                {
+                    Oddlib::Masher masher(v);
+                }
+                catch (const Oddlib::Exception& ex)
+                {
+                    ImGui::Text(ex.what());
+                }
             }
             ImGui::Separator();
         }
