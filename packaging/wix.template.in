@@ -7,7 +7,7 @@
     RequiredVersion="3.6.3303.0">
 
     <Product Id="$(var.CPACK_WIX_PRODUCT_GUID)"
-        Name="QGears"
+        Name="ALIVE"
         Language="1033"
         Version="$(var.CPACK_PACKAGE_VERSION)"
         Manufacturer="$(var.CPACK_PACKAGE_VENDOR)"
