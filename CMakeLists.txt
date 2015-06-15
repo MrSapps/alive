@@ -136,12 +136,12 @@ if (WIN32 AND MSVC)
    add_custom_command(TARGET Alive POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy "${SDL2_INCLUDE_DIR}/../lib/${arch}/SDL2.dll" "$(OutDir)SDL2.dll")
    add_custom_command(TARGET Alive POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/3rdParty/luajit/Debug/lua.dll" "$(OutDir)lua.dll")
+      COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/3rdParty/luajit/$(Configuration)/lua.dll" "$(OutDir)lua.dll")
    INSTALL(FILES "${SDL2_INCLUDE_DIR}/../lib/${arch}/SDL2.dll" DESTINATION ".")
 endif()
 
 if (APPLE)
-    INSTALL(FILES "/usr/local/lib/libSDL2.dylib" DESTINATION ".")
+    INSTALL(FILES "/usr/local/lib/libSDL2-2.0.0.dylib" DESTINATION ".")
 endif()
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/videos.json" DESTINATION "./data")
