@@ -139,7 +139,7 @@ if (WIN32 AND MSVC)
 endif()
 
 if (APPLE)
-    INSTALL(FILES "/usr/local/lib/libSDL2-2.0.0.dylib" DESTINATION "libSDL2.dylib")
+    INSTALL(FILES "/usr/local/lib/libSDL2-2.0.0.dylib" DESTINATION ".")
 endif()
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/videos.json" DESTINATION "./data")
