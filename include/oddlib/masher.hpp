@@ -4,7 +4,7 @@
 
 namespace Oddlib
 {
-    // Implements Digital Dialect Video (DDV) version 2. This is designed to work only
+    // Implements Digital Dialect Video (DDV) version 1. This is designed to work only
     // with existing DDV video files, creating new videos with the "Masher" tool may
     // result in a file that this code can't handle.
     class Masher

@@ -168,6 +168,27 @@ void InitImGui()
     io.Fonts->ClearInputData();
     io.Fonts->ClearTexData();
 
+    //
+    // setup SDL2 keymapping
+    //
+    io.KeyMap[ImGuiKey_Tab] = SDL_GetScancodeFromKey(SDLK_TAB);
+    io.KeyMap[ImGuiKey_LeftArrow] = SDL_GetScancodeFromKey(SDLK_LEFT);
+    io.KeyMap[ImGuiKey_RightArrow] = SDL_GetScancodeFromKey(SDLK_RIGHT);
+    io.KeyMap[ImGuiKey_UpArrow] = SDL_GetScancodeFromKey(SDLK_UP);
+    io.KeyMap[ImGuiKey_DownArrow] = SDL_GetScancodeFromKey(SDLK_DOWN);
+    io.KeyMap[ImGuiKey_Home] = SDL_GetScancodeFromKey(SDLK_HOME);
+    io.KeyMap[ImGuiKey_End] = SDL_GetScancodeFromKey(SDLK_END);
+    io.KeyMap[ImGuiKey_Delete] = SDL_GetScancodeFromKey(SDLK_DELETE);
+    io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
+    io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
+    io.KeyMap[ImGuiKey_Escape] = SDL_GetScancodeFromKey(SDLK_ESCAPE);
+    io.KeyMap[ImGuiKey_A] = SDLK_a;
+    io.KeyMap[ImGuiKey_C] = SDLK_c;
+    io.KeyMap[ImGuiKey_V] = SDLK_v;
+    io.KeyMap[ImGuiKey_X] = SDLK_x;
+    io.KeyMap[ImGuiKey_Y] = SDLK_y;
+    io.KeyMap[ImGuiKey_Z] = SDLK_z;
+
 }
 
 void UpdateImGui()
@@ -240,21 +261,79 @@ int main(int argc, char** argv)
     }
 
     bool running = true;
-    bool selected = false;
-    while (running) {
+    while (running) 
+    {
         ImGuiIO& io = ImGui::GetIO();
         mousePressed[0] = mousePressed[1] = false;
         io.MouseWheel = 0;
 
+        int w, h;
+        int fb_w, fb_h;
+        SDL_GetWindowSize(window, &w, &h);
+        SDL_GetWindowSize(window, &fb_w, &fb_h); // Needs to be corrected for SDL Framebuffer
+        mousePosScale.x = (float)fb_w / w;
+        mousePosScale.y = (float)fb_h / h;
+
+
+        io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);
+
         SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
+            case SDL_QUIT:
                 running = false;
+                break;
+
+            case SDL_TEXTINPUT:
+            {
+                size_t len = strlen(event.text.text);
+                for (size_t i = 0; i < len; i++)
+                {
+                    uint32_t keycode = event.text.text[i];
+                    if (keycode >= 32 && keycode <= 255)
+                    {
+                        //printable ASCII characters
+                        ImGui::GetIO().AddInputCharacter((char)keycode);
+                    }
+                }
+            }
+                break;
+
+            case SDL_KEYDOWN:
+            case SDL_KEYUP:
+            {
+                if (event.type == SDL_KEYDOWN)
+                {
+                    if (event.key.keysym.sym == 13)
+                    {
+                        const Uint32 windowFlags = SDL_GetWindowFlags(window);
+                        bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
+                        SDL_SetWindowFullscreen(window, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    }
+                }
+
+                SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
+                if (key >= 0 && key < 512)
+                {
+                    SDL_Keymod modstate = SDL_GetModState();
+
+                    ImGuiIO& io = ImGui::GetIO();
+                    io.KeysDown[key] = event.type == SDL_KEYDOWN;
+                    io.KeyCtrl = (modstate & KMOD_CTRL) != 0;
+                    io.KeyShift = (modstate & KMOD_SHIFT) != 0;
+                }
+            }
+                break;
             }
         }
 
+
+
         UpdateImGui();
 
+        static bool showAbout = false;
         if (ImGui::BeginMainMenuBar())
         {
             if (ImGui::BeginMenu("File"))
@@ -272,42 +351,75 @@ int main(int argc, char** argv)
                 if (ImGui::MenuItem("Paste", "CTRL+V")) {}
                 ImGui::EndMenu();
             }
+            if (ImGui::BeginMenu("Help"))
+            {
+                if (ImGui::MenuItem("About", "CTRL+H")) 
+                { 
+                    showAbout = !showAbout;
+                }
+                ImGui::EndMenu();
+            }
             ImGui::EndMainMenuBar();
         }
 
+        if (showAbout)
+        {
+            static bool firstShow = true;
+            if (firstShow)
+            {
+                ImGui::SetNextWindowSize(ImVec2{ 400, 100 });
+                firstShow = false;
+            }
+            ImGui::Begin(ALIVE_VERSION_NAME_STR);
+            ImGui::Text("Open source ALIVE engine PaulsApps.com 2015");
+            ImGui::End();
+        }
+
+        static bool firstCall = true;
+        if (firstCall)
+        {
+            ImGui::SetNextWindowSize(ImVec2{ 1130, 680 });
+            firstCall = false;
+        }
+
         ImGui::Begin("Video player");
+        static char buf[4096] = "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus\\";
+
+        ImGui::InputText("Video path", buf, sizeof(buf));
+
+        ImGui::BeginGroup();
+        int i = 0;
         for (auto& v : allFmvs)
         {
             if (ImGui::Button(v.c_str()))
             {
-                std::cout << "Play " << v.c_str() << std::endl;
+                std::string fullPath = std::string(buf) + v;
+                std::cout << "Play " << fullPath.c_str() << std::endl;
                 try
                 {
-                    Oddlib::Masher masher(v);
+                    Oddlib::Masher masher(fullPath);
                 }
                 catch (const Oddlib::Exception& ex)
                 {
-                    ImGui::Text(ex.what());
+                   // ImGui::Text(ex.what());
                 }
             }
-            ImGui::Separator();
+            i++;
+            if (i < 10)
+            {
+                ImGui::SameLine();
+            }
+            else
+            {
+                i = 0;
+            }
         }
-
+        ImGui::EndGroup();
        
 
         if (ImGui::Button("OK")) 
         {
             std::cout << "Button clicked!\n";
-        }
-        ImGui::End();
-
-        ImGui::Begin("Video player2");
-        for (auto& v : allFmvs)
-        {
-            if (ImGui::Button(v.c_str()))
-            {
-                std::cout << "Play " << v.c_str() << std::endl;
-            }
         }
         ImGui::End();
 

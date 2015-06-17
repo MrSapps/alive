@@ -8,14 +8,14 @@ namespace Oddlib
     void Masher::Read()
     {
         mStream.ReadUInt32(mFileHeader.mDdvTag);
-        if (mFileHeader.mDdvTag != MakeType('D', 'D', 'V', ' '))
+        if (mFileHeader.mDdvTag != MakeType('D', 'D', 'V', 0))
         {
             LOG_ERROR("Invalid DDV magic tag %X", mFileHeader.mDdvTag);
             throw Exception("Invalid DDV tag");
         }
 
         mStream.ReadUInt32(mFileHeader.mDdvVersion);
-        if (mFileHeader.mDdvVersion != 2)
+        if (mFileHeader.mDdvVersion != 1)
         {
             // This is the only version seen in all of the known data
             LOG_ERROR("Expected DDV version to be 2 but got %d", mFileHeader.mDdvVersion);
