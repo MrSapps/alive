@@ -260,6 +260,8 @@ int main(int argc, char** argv)
         }
     }
 
+    std::unique_ptr<Oddlib::Masher> video;
+
     bool running = true;
     while (running) 
     {
@@ -267,6 +269,7 @@ int main(int argc, char** argv)
         mousePressed[0] = mousePressed[1] = false;
         io.MouseWheel = 0;
 
+        /*
         int w, h;
         int fb_w, fb_h;
         SDL_GetWindowSize(window, &w, &h);
@@ -276,6 +279,7 @@ int main(int argc, char** argv)
 
 
         io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);
+        */
 
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -382,45 +386,65 @@ int main(int argc, char** argv)
             firstCall = false;
         }
 
-        ImGui::Begin("Video player");
-        static char buf[4096] = "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus\\";
-
-        ImGui::InputText("Video path", buf, sizeof(buf));
-
-        ImGui::BeginGroup();
-        int i = 0;
-        for (auto& v : allFmvs)
+        if (!video)
         {
-            if (ImGui::Button(v.c_str()))
-            {
-                std::string fullPath = std::string(buf) + v;
-                std::cout << "Play " << fullPath.c_str() << std::endl;
-                try
-                {
-                    Oddlib::Masher masher(fullPath);
-                }
-                catch (const Oddlib::Exception& ex)
-                {
-                   // ImGui::Text(ex.what());
-                }
-            }
-            i++;
-            if (i < 10)
-            {
-                ImGui::SameLine();
-            }
-            else
-            {
-                i = 0;
-            }
-        }
-        ImGui::EndGroup();
-       
+            ImGui::Begin("Video player");
+            static char buf[4096] = "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus\\";
 
-        if (ImGui::Button("OK")) 
-        {
-            std::cout << "Button clicked!\n";
+            ImGui::InputText("Video path", buf, sizeof(buf));
+
+            ImGui::BeginGroup();
+            int i = 0;
+            for (auto& v : allFmvs)
+            {
+                if (ImGui::Button(v.c_str()))
+                {
+                    std::string fullPath = std::string(buf) + v;
+                    std::cout << "Play " << fullPath.c_str() << std::endl;
+                    try
+                    {
+                        video = std::make_unique<Oddlib::Masher>(fullPath);
+                    }
+                    catch (const Oddlib::Exception& ex)
+                    {
+                        // ImGui::Text(ex.what());
+                    }
+                }
+                i++;
+                if (i < 10)
+                {
+                    ImGui::SameLine();
+                }
+                else
+                {
+                    i = 0;
+                }
+            }
+            ImGui::EndGroup();
+
+
+            if (ImGui::Button("OK"))
+            {
+                std::cout << "Button clicked!\n";
+            }
+            ImGui::End();
         }
+        else
+        {
+            if (!video->Update())
+            {
+                video = nullptr;
+            }
+
+        }
+        ImGui::SetNextWindowPos(ImVec2(975, 28));
+        if (!ImGui::Begin("Example: Fixed Overlay", 0, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings))
+        {
+
+        }
+        ImGui::Text("Simple overlay\non the top-left side of the screen.");
+        ImGui::Separator();
+        ImGui::Text("Mouse Position: (%.1f,%.1f)", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
         ImGui::End();
 
 

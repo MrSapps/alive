@@ -17,6 +17,9 @@ namespace Oddlib
         {
             Read();
         }
+
+        bool Update();
+
     private:
         void Read();
 
@@ -57,5 +60,12 @@ namespace Oddlib
         bool mbHasAudio;
         bool mbHasVideo;
 
+        uint32_t mNumMacroblocksX = 0;
+        uint32_t mNumMacroblocksY = 0;
+
+        std::vector<uint32_t> mAudioFrameSizes;
+        std::vector<uint32_t> mVideoFrameSizes;
+
+        uint32_t mCurrentFrame = 0;
     };
 }
