@@ -67,5 +67,8 @@ namespace Oddlib
         std::vector<uint32_t> mVideoFrameSizes;
 
         uint32_t mCurrentFrame = 0;
+
+        std::vector<uint8_t> mVideoFrameData;
+        std::vector<uint8_t> mAudioFrameData;
     };
 }

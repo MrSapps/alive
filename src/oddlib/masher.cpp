@@ -2,6 +2,7 @@
 #include "oddlib/exceptions.hpp"
 #include "oddlib/lvlarchive.hpp"
 #include "logger.hpp"
+#include <assert.h>
 
 namespace Oddlib
 {
@@ -75,12 +76,35 @@ namespace Oddlib
             mVideoFrameSizes.emplace_back(tmp);
         }
         
+        // TODO: Read/skip mAudioHeader.mNumberOfFramesInterleave frame datas
+
+
+        mVideoFrameData.resize(mVideoHeader.mMaxVideoFrameSize);
+        mAudioFrameData.resize(mVideoHeader.mMaxAudioFrameSize);
     }
 
     bool Masher::Update()
     {
         if (mCurrentFrame < mFileHeader.mNumberOfFrames)
         {
+            // If there is audio then the first dword is
+            // the size of the video data, and the audio data is
+            // the remaining data after this.
+            uint32_t videoDataSize = 0;
+            mStream.ReadUInt32(videoDataSize);
+            
+            uint32_t totalSize = mVideoFrameSizes[mCurrentFrame] + sizeof(uint32_t);
+            uint32_t audioDataSize = totalSize - videoDataSize;
+
+            //assert(videoDataSize < mVideoFrameData.size());
+            //assert(audioDataSize < mAudioFrameData.size());
+
+            mVideoFrameData.resize(videoDataSize);
+            mStream.ReadBytes(mVideoFrameData.data(), videoDataSize);
+
+            mAudioFrameData.resize(audioDataSize);
+            mStream.ReadBytes(mAudioFrameData.data(), audioDataSize);
+
             mCurrentFrame++;
             return false;
         }
