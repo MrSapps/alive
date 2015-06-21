@@ -12,8 +12,13 @@ namespace Oddlib
     public:
         Masher(const Masher&) = delete;
         Masher& operator = (const Masher&) = delete;
-        explicit Masher(std::string fileName) :
-            mStream(fileName)
+
+        explicit Masher(std::string fileName) : mStream(fileName)
+        {
+            Read();
+        }
+
+        explicit Masher(std::vector<Uint8>&& data) : mStream(std::move(data))
         {
             Read();
         }

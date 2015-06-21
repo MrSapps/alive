@@ -1,5 +1,6 @@
 #include <gmock/gmock.h>
 #include "oddlib/lvlarchive.hpp"
+#include "oddlib/masher.hpp"
 #include "oddlib/anim.hpp"
 #include "oddlib/exceptions.hpp"
 #include "SDL.h"
@@ -11,13 +12,12 @@ int main(int argc, char** argv)
     return RUN_ALL_TESTS();
 }
 
-
 TEST(LvlArchive, FileNotFound)
 {
     ASSERT_THROW(Oddlib::LvlArchive("not_found.lvl"), Oddlib::Exception);
 }
 
-std::string FileChunkToString(Oddlib::LvlArchive::FileChunk& chunk)
+static std::string FileChunkToString(Oddlib::LvlArchive::FileChunk& chunk)
 {
     auto fileData = chunk.ReadData();
     char* fileDataCharPtr = reinterpret_cast<char*>(fileData.data());
@@ -61,7 +61,14 @@ TEST(LvlArchive, ReadFiles)
     ASSERT_EQ(Oddlib::MakeType('A', 'n', 'i', 'm'), fileChunk->Type());
 }
 
+TEST(Masher, DISABLED_parse_video_only_30fps_keyframe15_all_colours)
+{
+    std::vector<Uint8> data;
+    Oddlib::Masher masher(std::move(data));
 
+    masher.Update();
+
+}
 
 TEST(LvlArchive, DISABLED_Integration)
 {
