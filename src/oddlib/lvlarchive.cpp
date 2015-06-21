@@ -114,7 +114,18 @@ namespace Oddlib
         : mStream(fileName)
     {
         TRACE_ENTRYEXIT;
+        Load();
+    }
 
+    LvlArchive::LvlArchive(std::vector<Uint8>&& data)
+        : mStream(std::move(data))
+    {
+        TRACE_ENTRYEXIT;
+        Load();
+    }
+
+    void LvlArchive::Load()
+    {
         // Read and validate the header
         LvlHeader header;
         ReadHeader(header);

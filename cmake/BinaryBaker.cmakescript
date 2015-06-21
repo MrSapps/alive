@@ -1,0 +1,45 @@
+# This script was taken from: https://sheredom.wordpress.com/2015/01/20/baking-a-binary-in-a-header-with-cmake-part-2/
+
+# This file is distributed under the University of Illinois Open Source
+# License. See LICENSE.TXT for details.
+
+# Takes a file and embeds it in a C header with a given variable name
+
+if(NOT DEFINED BINARYBAKER_INPUT_FILE)
+  message(FATAL_ERROR
+    "Required cmake variable BINARYBAKER_INPUT_FILE not set!"
+  )
+endif()
+
+if(NOT DEFINED BINARYBAKER_OUTPUT_FILE)
+  message(FATAL_ERROR
+    "Required cmake variable BINARYBAKER_OUTPUT_FILE not set!"
+  )
+endif()
+
+if(NOT DEFINED BINARYBAKER_VARIABLE_NAME)
+  message(FATAL_ERROR
+    "Required cmake variable BINARYBAKER_VARIABLE_NAME not set!"
+  )
+endif()
+
+if(NOT EXISTS ${BINARYBAKER_INPUT_FILE})
+  message(FATAL_ERROR "File '${BINARYBAKER_INPUT_FILE}' does not exist!")
+endif()
+
+file(READ "${BINARYBAKER_INPUT_FILE}" contents HEX)
+
+
+
+file(WRITE "${BINARYBAKER_OUTPUT_FILE}" "#pragma once\n\n")
+
+file(APPEND "${BINARYBAKER_OUTPUT_FILE}" "// Generated from file ${BINARYBAKER_INPUT_FILE}\n\n")
+
+file(APPEND "${BINARYBAKER_OUTPUT_FILE}" "const unsigned char "  "${BINARYBAKER_VARIABLE_NAME}[] =\n{\n")
+
+string(REGEX MATCHALL ".." output "${contents}")
+string(REGEX REPLACE ";" ",\n  0x" output "${output}")
+
+file(APPEND "${BINARYBAKER_OUTPUT_FILE}" "  0x${output}\n")
+
+file(APPEND "${BINARYBAKER_OUTPUT_FILE}" "};\n")

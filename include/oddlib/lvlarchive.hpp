@@ -69,8 +69,9 @@ namespace Oddlib
         };
 
         explicit LvlArchive(const std::string& fileName);
+        explicit LvlArchive(std::vector<Uint8>&& data);
         File* FileByName(const std::string& fileName);
-
+        Uint32 FileCount() const { return static_cast<Uint32>(mFiles.size()); }
         struct FileRecord
         {
             Uint32 iStartSector = 0;
@@ -81,6 +82,8 @@ namespace Oddlib
         };
 
     private:
+        void Load();
+
         struct LvlHeader
         {
             Uint32 iFirstFileOffset = 0;

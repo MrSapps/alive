@@ -53,6 +53,7 @@ endif ()
 
 include_directories(
     include
+	${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers
     ${SDL2_INCLUDE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/packaging
     ${OPENGL_INCLUDE_DIRS}
@@ -113,7 +114,12 @@ add_library(oddlib STATIC
 )
 #cotire(oddlib)
 
+# Bake binary test files in C array/header files
+EXEC_PROGRAM(${CMAKE_COMMAND}
+    ARGS -DBINARYBAKER_INPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/sample.lvl -DBINARYBAKER_OUTPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers/sample.lvl.g.h -DBINARYBAKER_VARIABLE_NAME=sample_lvl -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/BinaryBaker.cmakescript)
+
 add_executable(Tests
+	test/sample_files/generated_headers/sample.lvl.g.h
     test/main.cpp
 )
 #cotire(Tests)

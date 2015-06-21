@@ -10,8 +10,8 @@ namespace Oddlib
     class Stream
     {
     public:
-        Stream(const std::string& fileName);
-        Stream(std::vector<Uint8>&& data);
+        explicit Stream(const std::string& fileName);
+        explicit Stream(std::vector<Uint8>&& data);
         void ReadUInt8(Uint8& output);
         void ReadUInt32(Uint32& output);
         void ReadUInt16(Uint16& output);
