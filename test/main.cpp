@@ -26,8 +26,7 @@ static std::string FileChunkToString(Oddlib::LvlArchive::FileChunk& chunk)
 
 TEST(LvlArchive, ReadFiles)
 {
-    std::vector<Uint8> data(std::begin(sample_lvl), std::end(sample_lvl));
-    Oddlib::LvlArchive lvl(std::move(data));
+    Oddlib::LvlArchive lvl(get_sample_lvl());
 
     // Check number of read files is correct
     ASSERT_EQ(3, lvl.FileCount());
@@ -61,15 +60,87 @@ TEST(LvlArchive, ReadFiles)
     ASSERT_EQ(Oddlib::MakeType('A', 'n', 'i', 'm'), fileChunk->Type());
 }
 
-TEST(Masher, DISABLED_parse_video_only_30fps_keyframe15_all_colours)
+TEST(Masher, all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave)
 {
+    /*
     std::vector<Uint8> data;
     Oddlib::Masher masher(std::move(data));
 
     masher.Update();
+    */
+
 
 }
 
+// Audio and video test
+TEST(Masher, all_colours_high_compression_30_fps)
+{
+
+}
+
+// All video compression tests
+TEST(Masher, all_colours_low_compression_30_fps)
+{
+
+}
+
+TEST(Masher, all_colours_max_compression_30_fps)
+{
+
+}
+
+TEST(Masher, all_colours_medium_compression_30_fps)
+{
+
+}
+
+TEST(Masher, all_colours_min_compression_30_fps)
+{
+
+}
+
+// All audio compression and formats tests
+TEST(Masher, mono_8_high_compression_all_samples)
+{
+
+}
+
+TEST(Masher, mono_8_low_compression_all_samples)
+{
+
+}
+
+TEST(Masher, mono_16_high_compression_all_samples)
+{
+
+}
+
+TEST(Masher, mono_16_low_compression_all_samples)
+{
+
+}
+
+TEST(Masher, stereo_8_high_compression_all_samples)
+{
+
+}
+
+TEST(Masher, stereo_8_low_compression_all_samples)
+{
+
+}
+
+TEST(Masher, stereo_16_high_compression_all_samples)
+{
+
+}
+
+TEST(Masher, stereo_16_low_compression_all_samples)
+{
+
+}
+
+/*
 TEST(LvlArchive, DISABLED_Integration)
 {
     // Load AE lvl
@@ -92,3 +163,4 @@ TEST(LvlArchive, DISABLED_Integration)
     std::vector<std::unique_ptr<Oddlib::Animation>> animations = Oddlib::AnimationFactory::Create(lvl2, "ROPES.BAN", 1000);
 
 }
+*/
