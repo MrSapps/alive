@@ -134,6 +134,8 @@ configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/packaging/alive_version.h.in ${CMAKE
 add_executable(Alive
     src/main.cpp
 )
+
+
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
 install(TARGETS Alive RUNTIME DESTINATION .)
@@ -149,9 +151,11 @@ if (WIN32 AND MSVC)
 endif()
 
 if (APPLE)
+    get_property(alive_location TARGET Alive PROPERTY LOCATION)
+
     # Fix link path to look in the bundle
     EXEC_PROGRAM(${CMAKE_INSTALL_NAME_TOOL}
-        ARGS -change /usr/local/lib/libSDL2-2.0.0.dylib @executable_path/libSDL2-2.0.0.dylib $<TARGET_FILE:Alive>)
+        ARGS -change /usr/local/lib/libSDL2-2.0.0.dylib @executable_path/libSDL2-2.0.0.dylib ${alive_location})
 
     INSTALL(FILES "/usr/local/Cellar/sdl2/2.0.3/lib/libSDL2-2.0.0.dylib" DESTINATION ".")
 endif()
