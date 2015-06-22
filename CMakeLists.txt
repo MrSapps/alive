@@ -149,6 +149,10 @@ if (WIN32 AND MSVC)
 endif()
 
 if (APPLE)
+    # Fix link path to look in the bundle
+    EXEC_PROGRAM(${CMAKE_INSTALL_NAME_TOOL}
+        ARGS -change /usr/local/lib/libSDL2-2.0.0.dylib @executable_path/libSDL2-2.0.0.dylib $<TARGET_FILE:Alive>)
+
     INSTALL(FILES "/usr/local/Cellar/sdl2/2.0.3/lib/libSDL2-2.0.0.dylib" DESTINATION ".")
 endif()
 
