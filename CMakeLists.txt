@@ -151,12 +151,11 @@ if (WIN32 AND MSVC)
 endif()
 
 if (APPLE)
+    # Fix link path to look in the bundle
     add_custom_command(TARGET Alive POST_BUILD
                    COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change /usr/local/lib/libSDL2-2.0.0.dylib @executable_path/libSDL2-2.0.0.dylib $<TARGET_FILE:Alive>)
 
-    # Fix link path to look in the bundle
-    EXEC_PROGRAM(b ${alive_location})
-
+   
     INSTALL(FILES "/usr/local/Cellar/sdl2/2.0.3/lib/libSDL2-2.0.0.dylib" DESTINATION ".")
 endif()
 
