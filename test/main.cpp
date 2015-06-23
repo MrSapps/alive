@@ -5,6 +5,20 @@
 #include "oddlib/exceptions.hpp"
 #include "SDL.h"
 #include "sample.lvl.g.h"
+#include "all_colours_high_compression_30_fps.ddv.g.h"
+#include "all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave.ddv.g.h"
+#include "all_colours_low_compression_30_fps.ddv.g.h"
+#include "all_colours_max_compression_30_fps.ddv.g.h"
+#include "all_colours_medium_compression_30_fps.ddv.g.h"
+#include "all_colours_min_compression_30_fps.ddv.g.h"
+#include "mono_16_high_compression_all_samples.ddv.g.h"
+#include "mono_16_low_compression_all_samples.ddv.g.h"
+#include "mono_8_high_compression_all_samples.ddv.g.h"
+#include "mono_8_low_compression_all_samples.ddv.g.h"
+#include "stereo_16_high_compression_all_samples.ddv.g.h"
+#include "stereo_16_low_compression_all_samples.ddv.g.h"
+#include "stereo_8_high_compression_all_samples.ddv.g.h"
+#include "stereo_8_low_compression_all_samples.ddv.g.h"
 
 int main(int argc, char** argv)
 {
