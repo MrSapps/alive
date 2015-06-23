@@ -155,7 +155,7 @@ to_vec(${samples_dir}/ae_ddv/video_only/all_colours_min_compression_30_fps.ddv)
 EXEC_PROGRAM(${CMAKE_COMMAND}
     ARGS -DBINARYBAKER_INPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/sample.lvl -DBINARYBAKER_OUTPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers/sample.lvl.g.h -DBINARYBAKER_VARIABLE_NAME=sample_lvl -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/BinaryBaker.cmakescript)
 
-add_executable(Tests
+add_executable(Tests MACOSX_BUNDLE
 	test/sample_files/generated_headers/sample.lvl.g.h
     test/main.cpp
 )
