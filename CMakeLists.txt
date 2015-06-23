@@ -115,6 +115,52 @@ add_library(oddlib STATIC
 #cotire(oddlib)
 
 # Bake binary test files in C array/header files
+function(make_header src dst varname)
+  foreach(f ${ARGN})
+    EXEC_PROGRAM(${CMAKE_COMMAND}
+    ARGS -DBINARYBAKER_INPUT_FILE='${src}' -DBINARYBAKER_OUTPUT_FILE='${dst}' -DBINARYBAKER_VARIABLE_NAME='${varname}' -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/BinaryBaker.cmakescript)
+  endforeach()
+endfunction()
+
+SET(samples_dir, ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files)
+SET(generated_headers_dir, ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers)
+
+make_header(${samples_dir}/sample.lvl, 
+            ${generated_headers_dir}/sample.lvl.g.h 
+            sample_lvl)
+
+make_header(${samples_dir}/ae_ddv/audio_only/mono_8_high_compression_all_samples.ddv,
+            ${generated_headers_dir}/mono_8_high_compression_all_samples.lvl.g.h 
+            mono_8_high_compression_all_samples)
+
+make_header(${samples_dir}/ae_ddv/audio_only/mono_8_low_compression_all_samples.ddv,
+            ${generated_headers_dir}/mono_8_low_compression_all_samples.lvl.g.h 
+            mono_8_low_compression_all_samples)
+
+make_header(${samples_dir}/ae_ddv/audio_only/mono_16_high_compression_all_samples.ddv,
+            ${generated_headers_dir}/mono_16_high_compression_all_samples.lvl.g.h 
+            mono_16_high_compression_all_samples)
+
+make_header(${samples_dir}/ae_ddv/audio_only/mono_16_low_compression_all_samples.ddv,
+            ${generated_headers_dir}/mono_16_low_compression_all_samples.lvl.g.h 
+            mono_16_low_compression_all_samples)
+
+make_header(${samples_dir}/ae_ddv/audio_only/stereo_8_high_compression_all_samples.ddv,
+            ${generated_headers_dir}/stereo_8_high_compression_all_samples.lvl.g.h 
+            stereo_8_high_compression_all_samples)
+ 
+make_header(${samples_dir}/ae_ddv/audio_only/stereo_8_low_compression_all_samples.ddv,
+            ${generated_headers_dir}/stereo_8_low_compression_all_samples.lvl.g.h 
+            stereo_8_low_compression_all_samples)
+
+make_header(${samples_dir}/ae_ddv/audio_only/stereo_16_high_compression_all_samples.ddv,
+            ${generated_headers_dir}/stereo_16_high_compression_all_samples.lvl.g.h 
+            stereo_16_high_compression_all_samples)
+
+make_header(${samples_dir}/ae_ddv/audio_only/stereo_16_low_compression_all_samples.ddv,
+            ${generated_headers_dir}/stereo_16_low_compression_all_samples.lvl.g.h 
+            stereo_16_low_compression_all_samples)
+
 EXEC_PROGRAM(${CMAKE_COMMAND}
     ARGS -DBINARYBAKER_INPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/sample.lvl -DBINARYBAKER_OUTPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers/sample.lvl.g.h -DBINARYBAKER_VARIABLE_NAME=sample_lvl -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/BinaryBaker.cmakescript)
 
