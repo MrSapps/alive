@@ -155,8 +155,8 @@ to_vec(${samples_dir}/ae_ddv/video_only/all_colours_min_compression_30_fps.ddv)
 EXEC_PROGRAM(${CMAKE_COMMAND}
     ARGS -DBINARYBAKER_INPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/sample.lvl -DBINARYBAKER_OUTPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers/sample.lvl.g.h -DBINARYBAKER_VARIABLE_NAME=sample_lvl -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/BinaryBaker.cmakescript)
 
-add_executable(Tests MACOSX_BUNDLE
-	test/sample_files/generated_headers/sample.lvl.g.h
+add_executable(Tests 
+    test/sample_files/generated_headers/sample.lvl.g.h
     test/main.cpp
 )
 #cotire(Tests)
@@ -168,7 +168,7 @@ git_shorttag(GIT_SHORT_REV)
 set(ALIVE_VERSION "ALIVE v${ALIVE_VERSION_MAJOR}.${ALIVE_VERSION_MINOR}.${ALIVE_VERSION_PATCH} rev(${GIT_SHORT_REV})")
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/packaging/alive_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/packaging/alive_version.h)
 
-add_executable(Alive
+add_executable(Alive MACOSX_BUNDLE
     src/main.cpp
 )
 
