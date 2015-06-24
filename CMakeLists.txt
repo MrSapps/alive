@@ -175,7 +175,10 @@ add_executable(Alive MACOSX_BUNDLE
 
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
-install(TARGETS Alive RUNTIME DESTINATION .)
+install(
+    TARGETS Alive 
+    BUNDLE DESTINATION .
+    RUNTIME DESTINATION .)
 
 
 
