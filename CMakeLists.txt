@@ -201,7 +201,10 @@ if (APPLE)
                    COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change /usr/local/lib/libSDL2-2.0.0.dylib @executable_path/libSDL2-2.0.0.dylib $<TARGET_FILE:Alive>
                    COMMENT "Fixing up libSDL2-2.0.0.dylib rpath")
 
-   
+    add_custom_command(TARGET Alive POST_BUILD
+                   COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change ${CMAKE_CURRENT_SOURCE_DIR}/build/3rdParty/luajit/liblua.dylib @executable_path/liblua.dylib $<TARGET_FILE:Alive>
+                   COMMENT "Fixing up liblua.dylib rpath")
+
     INSTALL(FILES "/usr/local/Cellar/sdl2/2.0.3/lib/libSDL2-2.0.0.dylib" DESTINATION ".")
 endif()
 
