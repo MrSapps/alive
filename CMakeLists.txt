@@ -15,7 +15,7 @@ include(Solar)
 SET(CMAKE_INSTALL_RPATH "")
 
 target_architecture(arch)
-message("arch is ${arch}")
+message(STATUS "arch is ${arch}")
 
 # i386 for 32bit and x86_64 for 64bit
 if ("${arch}" STREQUAL "i386")
