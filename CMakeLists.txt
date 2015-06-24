@@ -44,6 +44,11 @@ if (UNIX)
     find_package (Threads)
 endif()
 
+if ( APPLE )
+# Required to prevent runtime crash on 64bit OSX - however this breaks 32bit compile
+  set ( CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000 -image_base 7fff04c4a000" )
+endif()
+
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
   # CMake defaults to leaving CMAKE_BUILD_TYPE empty. This screws up
   # differentiation between debug and release builds.
