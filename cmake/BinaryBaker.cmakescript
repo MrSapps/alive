@@ -35,7 +35,7 @@ file(WRITE "${BINARYBAKER_OUTPUT_FILE}" "#pragma once\n\n")
 
 file(APPEND "${BINARYBAKER_OUTPUT_FILE}" "// Generated from file ${BINARYBAKER_INPUT_FILE}\n\n")
 
-file(APPEND "${BINARYBAKER_OUTPUT_FILE}" "#include <vector>\n\nstd::vector<unsigned char> get_"  "${BINARYBAKER_VARIABLE_NAME}()\n{\n  static unsigned char temp[] = \n{\n")
+file(APPEND "${BINARYBAKER_OUTPUT_FILE}" "#include <vector>\n\nstd::vector<unsigned char> get_"  "${BINARYBAKER_VARIABLE_NAME}()\n{\n  static const unsigned char temp[] = \n{\n")
 
 
 string(REGEX MATCHALL ".." output "${contents}")
