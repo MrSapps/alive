@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.6)
 
 project(ALIVE)
 
+option(UseValgrind "UseValgrind" OFF)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}")
 #set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/cotire/CMake")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/solar-cmake")
@@ -164,9 +166,17 @@ add_executable(Tests
     test/sample_files/generated_headers/sample.lvl.g.h
     test/main.cpp
 )
+
+
 #cotire(Tests)
 target_link_libraries(Tests oddlib gmock ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
-add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+if (UseValgrind)
+    add_test(NAME Tests COMMAND valgrind Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+else()
+    add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
+
 
 # Generate header containing window title/version information
 git_shorttag(GIT_SHORT_REV)

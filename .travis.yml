@@ -39,6 +39,7 @@ install:
 # new gcc pulls in new libstdcpp for make_unique in clang
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install gcc-4.9; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install g++-4.9; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1  && "${COVERAGE}" == 0 ]]; then sudo apt-get install valgrind; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 20; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 20; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90; fi
@@ -62,7 +63,10 @@ script:
 
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then mkdir build; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cd build; fi
-- if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cmake -G"Unix Makefiles" ..; fi
+
+UseValgrind=OFF
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1  && "${COVERAGE}" == 0 ]]; then UseValgrind=ON ..; fi
+- if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cmake -G"Unix Makefiles" .. -DUseValgrind=$UseValgrind; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then make -j2; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cpack -C Release; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then ctest --output-on-failure; fi
