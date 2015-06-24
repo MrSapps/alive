@@ -211,9 +211,9 @@ if (APPLE)
 endif()
 
 IF (APPLE)
-    SET(DATA_DIR ./data)
-ELSE()
     SET(DATA_DIR Alive.app/Contents/Resources/data)
+ELSE()
+    SET(DATA_DIR ./data)
 ENDIF()
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/videos.json" DESTINATION "${DATA_DIR}")
