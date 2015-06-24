@@ -213,6 +213,21 @@ void UpdateImGui()
 // Application code
 int main(int argc, char** argv)
 {
+    std::string basePath;
+    char* pBasePath = SDL_GetBasePath();
+    if (pBasePath)
+    {
+        basePath = std::string(pBasePath);
+
+        // TODO: If windows and debug build then try to setup the correct path
+        // to save setting the working directory in the debugger
+
+        SDL_free(pBasePath);
+    }
+    else
+    {
+        basePath = "./";
+    }
 
     lua_State *L = lua_open();
     lua_close(L);
@@ -221,12 +236,12 @@ int main(int argc, char** argv)
     InitImGui();
 
     jsonxx::Object rootJsonObject;
-    std::ifstream tmpStream("./data/videos.json");
+    std::ifstream tmpStream(basePath + "data/videos.json");
     if (!tmpStream)
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
             "Missing file",
-            "./data/videos.json is missing.",
+            (basePath + "videos.json is missing.").c_str(),
             NULL);
         return 1;
     }

@@ -210,7 +210,13 @@ if (APPLE)
 
 endif()
 
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/videos.json" DESTINATION "./data")
+IF (APPLE)
+    SET(DATA_DIR ./data)
+ELSE()
+    SET(DATA_DIR Alive.app/Contents/Resources/data)
+ENDIF()
+
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/videos.json" DESTINATION "${DATA_DIR}")
 
 if (MSVC)
     # Build cpp files on all cores
