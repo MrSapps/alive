@@ -3,6 +3,7 @@
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/masher.hpp"
 #include "oddlib/exceptions.hpp"
+#include "logger.hpp"
 #include "imgui/imgui.h"
 #include "imgui/stb_rect_pack.h"
 #include "jsonxx/jsonxx.h"
@@ -213,35 +214,38 @@ void UpdateImGui()
 // Application code
 int main(int argc, char** argv)
 {
+    TRACE_ENTRYEXIT;
+
     std::string basePath;
     char* pBasePath = SDL_GetBasePath();
     if (pBasePath)
     {
         basePath = std::string(pBasePath);
-
-        // TODO: If windows and debug build then try to setup the correct path
-        // to save setting the working directory in the debugger
-
         SDL_free(pBasePath);
+
+        // If it looks like we're running from the IDE/dev build then attempt to fix up the path to the correct location to save
+        // manually setting the correct working directory.
+        const bool bIsDebugPath = string_util::contains(basePath, "/alive/bin/") || string_util::contains(basePath, "\\alive\\bin\\");
+        if (bIsDebugPath)
+        {
+            LOG_WARNING("We appear to be running from the IDE - fixing up basePath to be ../");
+            basePath += "../../";
+        }
     }
     else
     {
         basePath = "./";
+        LOG_ERROR("SDL_GetBasePath failed, falling back to ./");
     }
-
-    lua_State *L = lua_open();
-    lua_close(L);
-
-    InitGL();
-    InitImGui();
+    LOG_INFO("basePath is %s", basePath.c_str());
 
     jsonxx::Object rootJsonObject;
     std::ifstream tmpStream(basePath + "data/videos.json");
     if (!tmpStream)
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-            "Missing file",
-            (basePath + "videos.json is missing.").c_str(),
+            ALIVE_VERSION_NAME_STR  " Missing file",
+            (basePath + "data/videos.json is missing.").c_str(),
             NULL);
         return 1;
     }
@@ -274,6 +278,12 @@ int main(int argc, char** argv)
 
         }
     }
+
+    lua_State *L = lua_open();
+    lua_close(L);
+
+    InitGL();
+    InitImGui();
 
     std::unique_ptr<Oddlib::Masher> video;
 

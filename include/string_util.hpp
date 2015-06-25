@@ -12,4 +12,9 @@ namespace string_util
         }
         return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
     }
+
+    inline bool contains(const std::string& haystack, const std::string& needle)
+    {
+        return (haystack.find(needle) != std::string::npos);
+    }
 }
