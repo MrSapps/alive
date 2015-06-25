@@ -171,11 +171,11 @@ add_executable(Tests
 #cotire(Tests)
 target_link_libraries(Tests oddlib gmock ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 
-#if (UseValgrind)
+if (UseValgrind)
     add_test(NAME Tests COMMAND valgrind -v --leak-check=full --tool=memcheck --show-leak-kinds=all --error-exitcode=1 $<TARGET_FILE:Tests> WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-#else()
-#    add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-#endif()
+else()
+    add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
 
 
 # Generate header containing window title/version information
