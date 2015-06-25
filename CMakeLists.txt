@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 project(ALIVE)
 
@@ -171,11 +171,11 @@ add_executable(Tests
 #cotire(Tests)
 target_link_libraries(Tests oddlib gmock ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
 
-if (UseValgrind)
-    add_test(NAME Tests COMMAND valgrind Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-else()
-    add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-endif()
+#if (UseValgrind)
+    add_test(NAME Tests COMMAND valgrind -v --leak-check=full --tool=memcheck --show-leak-kinds=all --error-exitcode=1 $<TARGET_FILE:Tests> WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+#else()
+#    add_test(NAME Tests COMMAND Tests WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+#endif()
 
 
 # Generate header containing window title/version information
@@ -237,7 +237,7 @@ else()
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -fPIC -Wall")
     else()
         # Enable C++14, you may need to use -std=c++0x if using an older gcc compiler
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fPIC -Wall -pedantic -Wmissing-field-initializers")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fPIC -Wall -pedantic")
         
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0") # debug, no optimisation
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage") # enabling coverage

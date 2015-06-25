@@ -34,8 +34,10 @@ compiler:
 language: cpp
 
 install:
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository --yes ppa:kalakris/cmake; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install cmake; fi
 # new gcc pulls in new libstdcpp for make_unique in clang
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install gcc-4.9; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install g++-4.9; fi
@@ -69,7 +71,7 @@ script:
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cmake -G"Unix Makefiles" .. -DUseValgrind=$UseValgrind; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then make -j2; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cpack -C Release; fi
-- if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then ctest --output-on-failure; fi
+- if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then ctest -VV; fi
 
 after_success:
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then lcov --directory . --capture --output-file coverage.info; fi
