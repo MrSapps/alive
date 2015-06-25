@@ -3,6 +3,7 @@
 #include "oddlib/masher.hpp"
 #include "oddlib/anim.hpp"
 #include "oddlib/exceptions.hpp"
+#include "logger.hpp"
 #include "SDL.h"
 #include "sample.lvl.g.h"
 #include "all_colours_high_compression_30_fps.ddv.g.h"
@@ -152,6 +153,29 @@ TEST(Masher, stereo_16_high_compression_all_samples)
 TEST(Masher, stereo_16_low_compression_all_samples)
 {
 
+}
+
+
+static void IndentTest(int level)
+{
+    TRACE_ENTRYEXIT;
+    if (level < 5)
+    {
+        LOG_INFO("At level %d", level);
+        IndentTest(level + 1);
+    }
+}
+
+TEST(Logger, Indentation)
+{
+    // TODO: Test with more than one thread
+    TRACE_ENTRYEXIT;
+    IndentTest(0);
+
+    LOG_INFO("Info test");
+    LOG_TRACE("Trace test");
+    LOG_WARNING("Warning test");
+    LOG_ERROR("Error test");
 }
 
 /*

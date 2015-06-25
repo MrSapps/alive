@@ -118,6 +118,7 @@ add_library(oddlib STATIC
     src/oddlib/anim.cpp
     src/oddlib/lvlarchive.cpp
     src/oddlib/masher.cpp
+    src/logger.cpp
 )
 #cotire(oddlib)
 

@@ -153,7 +153,7 @@ namespace Oddlib
             mFiles.emplace_back(std::make_unique<File>(mStream, rec));
         }
 
-        LOG_INFO("Loaded LVL '%s' with %d files", fileName.c_str(), header.iNumFiles);
+        LOG_INFO("Loaded LVL '%s' with %d files", mStream.Name().c_str(), header.iNumFiles);
     }
 
     LvlArchive::File* LvlArchive::FileByName(const std::string& fileName)

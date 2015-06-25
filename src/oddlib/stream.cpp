@@ -15,9 +15,11 @@ namespace Oddlib
         std::copy(data.begin(), data.end(), std::ostream_iterator<unsigned char>(*s));
         mStream = std::move(s);
         Seek(0);
+        mName = "Memory buffer (" + std::to_string(mSize) + ") bytes";
     }
 
     Stream::Stream(const std::string& fileName)
+        : mName(fileName)
     {
         auto s = std::make_unique<std::ifstream>();
         s->open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
