@@ -463,11 +463,11 @@ int main(int argc, char** argv)
 
         }
         ImGui::SetNextWindowPos(ImVec2(975, 28));
-        if (!ImGui::Begin("Example: Fixed Overlay", 0, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings))
+        if (!ImGui::Begin("Example: Fixed Overlay", 0, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
         {
 
         }
-        ImGui::Text("Simple overlay\non the top-left side of the screen.");
+        ImGui::Text("Simple overlay\non the top-right side of the screen.");
         ImGui::Separator();
         ImGui::Text("Mouse Position: (%.1f,%.1f)", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
         ImGui::End();
