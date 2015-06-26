@@ -3,11 +3,16 @@
 #include <exception>
 #include <iostream>
 
-#ifdef _MSVC_VER
-#define FNAME __FUNCSIG__
+#ifdef _MSC_VER
+#define FNAME __FUNCTION__
+#define CONSTXPR 
+#define NOEXEPT 
 #else
 #define FNAME __PRETTY_FUNCTION__
+#define CONSTXPR constexpr
+#define NOEXEPT noexcept
 #endif
+
 
 struct None
 {
@@ -36,15 +41,15 @@ void Log(LogData<List>&& data)
 }
 
 template<typename Begin, typename Value>
-constexpr LogData<std::pair<Begin&&, Value&&>> operator<<(LogData<Begin>&& begin,
-                                                          Value&& value) noexcept
+CONSTXPR LogData<std::pair<Begin&&, Value&&>> operator<<(LogData<Begin>&& begin,
+    Value&& value) NOEXEPT
 {
     return {{ std::forward<Begin>(begin.list), std::forward<Value>(value) }};
 }
 
 template<typename Begin, size_t n>
-constexpr LogData<std::pair<Begin&&, const char*>> operator<<(LogData<Begin>&& begin,
-                                                              const char (&value)[n]) noexcept
+CONSTXPR LogData<std::pair<Begin&&, const char*>> operator<<(LogData<Begin>&& begin,
+    const char(&value)[n]) NOEXEPT
 {
     return {{ std::forward<Begin>(begin.list), value }};
 }
@@ -52,8 +57,8 @@ constexpr LogData<std::pair<Begin&&, const char*>> operator<<(LogData<Begin>&& b
 typedef std::ostream& (*PfnManipulator)(std::ostream&);
 
 template<typename Begin>
-constexpr LogData<std::pair<Begin&&, PfnManipulator>> operator<<(LogData<Begin>&& begin,
-                                                                 PfnManipulator value) noexcept
+CONSTXPR LogData<std::pair<Begin&&, PfnManipulator>> operator<<(LogData<Begin>&& begin,
+    PfnManipulator value) NOEXEPT
 {
     return {{ std::forward<Begin>(begin.list), value }};
 }
