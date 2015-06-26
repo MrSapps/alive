@@ -44,7 +44,7 @@ TEST(LvlArchive, ReadFiles)
     Oddlib::LvlArchive lvl(get_sample_lvl());
 
     // Check number of read files is correct
-    ASSERT_EQ(3, lvl.FileCount());
+    ASSERT_EQ(3u, lvl.FileCount());
 
     // Check looking for non existing file returns nullptr
     ASSERT_EQ(nullptr, lvl.FileByName("not_found"));
@@ -161,7 +161,7 @@ static void IndentTest(int level)
     TRACE_ENTRYEXIT;
     if (level < 5)
     {
-        LOG_INFO("At level %d", level);
+        LOG_INFO("At level " << level);
         IndentTest(level + 1);
     }
 }

@@ -25,7 +25,7 @@ namespace Oddlib
         s->open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
         if (!*s)
         {
-            LOG_ERROR("Lvl file not found %s", fileName.c_str());
+            LOG_ERROR("Lvl file not found " << fileName);
             throw Exception("File not found");
         }
 

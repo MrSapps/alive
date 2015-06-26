@@ -55,7 +55,7 @@ namespace Oddlib
 
     LvlArchive::FileChunk* LvlArchive::File::ChunkById(Uint32 id)
     {
-        LOG_INFO("Find chunk with id %d", id);
+        LOG_INFO("Find chunk with id " << id);
         auto it = std::find_if(std::begin(mChunks), std::end(mChunks), [&] (std::unique_ptr<FileChunk>& chunk)
         {
             return chunk->Id() == id;
@@ -153,12 +153,12 @@ namespace Oddlib
             mFiles.emplace_back(std::make_unique<File>(mStream, rec));
         }
 
-        LOG_INFO("Loaded LVL '%s' with %d files", mStream.Name().c_str(), header.iNumFiles);
+        LOG_INFO("Loaded LVL '" << mStream.Name() << "' with " << header.iNumFiles << " files");
     }
 
     LvlArchive::File* LvlArchive::FileByName(const std::string& fileName)
     {
-        LOG_INFO("Find file '%s'", fileName.c_str());
+        LOG_INFO("Find file '" << fileName << "'");
         auto it = std::find_if(std::begin(mFiles), std::end(mFiles), [&](std::unique_ptr<File>& file)
         {
             return file->FileName() == fileName;
