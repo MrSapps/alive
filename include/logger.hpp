@@ -1,62 +1,108 @@
 #pragma once
 
 #include <exception>
+#include <iostream>
 
-#define TRACE_ENTRYEXIT Logging::AutoLog __funcTrace("[ENTER] " __FUNCTION__, "[EXIT] " __FUNCTION__, "[EXIT_EXCEPTION] " __FUNCTION__)
+#ifdef _MSVC_VER
+#define FNAME __FUNCSIG__
+#else
+#define FNAME __PRETTY_FUNCTION__
+#endif
 
-#define LOG(level, levelStr, formatString, ...) LogLine(level, levelStr "[" __FUNCTION__ "]" " " ## formatString "\r\n", ##__VA_ARGS__)
-#define LOG_NO_FUNC(level, levelStr, formatString, ...) LogLine(level, levelStr "" ## formatString "\r\n", ##__VA_ARGS__)
+struct None
+{
 
-#define LOG_TRACE(formatString, ...) LOG(Logging::eTrace, "[T] ", formatString, __VA_ARGS__)
-#define LOG_INFO(formatString, ...) LOG(Logging::eInfo, "[I] ", formatString, __VA_ARGS__)
-#define LOG_WARNING(formatString, ...) LOG(Logging::eWarning, "[W] ", formatString, __VA_ARGS__)
-#define LOG_ERROR(formatString, ...) LOG(Logging::eError, "[E] ", formatString, __VA_ARGS__)
+};
 
-inline void LogLine(int level, const char* formatStr, ...);
+template<typename List>
+struct LogData
+{
+    List list;
+};
+
+template<typename List>
+void Log(const char* function, LogData<List>&& data)
+{
+    std::cout << function;
+    output(std::cout, std::move(data.list));
+    std::cout << std::endl;
+}
+
+template<typename List>
+void Log(LogData<List>&& data)
+{
+    output(std::cout, std::move(data.list));
+    std::cout << std::endl;
+}
+
+template<typename Begin, typename Value>
+constexpr LogData<std::pair<Begin&&, Value&&>> operator<<(LogData<Begin>&& begin,
+                                                          Value&& value) noexcept
+{
+    return {{ std::forward<Begin>(begin.list), std::forward<Value>(value) }};
+}
+
+template<typename Begin, size_t n>
+constexpr LogData<std::pair<Begin&&, const char*>> operator<<(LogData<Begin>&& begin,
+                                                              const char (&value)[n]) noexcept
+{
+    return {{ std::forward<Begin>(begin.list), value }};
+}
+
+typedef std::ostream& (*PfnManipulator)(std::ostream&);
+
+template<typename Begin>
+constexpr LogData<std::pair<Begin&&, PfnManipulator>> operator<<(LogData<Begin>&& begin,
+                                                                 PfnManipulator value) noexcept
+{
+    return {{ std::forward<Begin>(begin.list), value }};
+}
+
+template <typename Begin, typename Last>
+void output(std::ostream& os, std::pair<Begin, Last>&& data)
+{
+    output(os, std::move(data.first));
+    os << data.second;
+}
+
+inline void output(std::ostream& /*os*/, None)
+{
+
+}
+
+#define TRACE_ENTRYEXIT Logging::AutoLog __funcTrace(FNAME)
+#define LOG_TRACE(msg) (Log(FNAME, LogData<None>() << " [T] " << msg))
+#define LOG_INFO(msg) (Log(FNAME, LogData<None>() << " [I] " << msg))
+#define LOG_WARNING(msg) (Log(FNAME, LogData<None>() << " [W] " << msg))
+#define LOG_ERROR(msg) (Log(FNAME, LogData<None>() << " [E] " << msg))
+#define LOG(msg) (Log(LogData<None>() << msg))
 
 namespace Logging
 {
-    enum eLogLevels
-    {
-        eEnter,
-        eExit,
-        eTrace,
-        eInfo,
-        eWarning,
-        eError
-    };
-
-    void LogLine(eLogLevels level, const char* formatStr, ...);
-
     class AutoLog
     {
     public:
         AutoLog(const AutoLog&) = delete;
         AutoLog& operator = (const AutoLog&) = delete;
-        AutoLog(const char* enterStr, const char* exitStr, const char* exceptionExitStr)
-          : mExitStr(exitStr),
-            mExceptionExitStr(exceptionExitStr)
+        AutoLog(const char* funcName)
+          : mFuncName(funcName)
         {
-            LOG_NO_FUNC(Logging::eEnter, "", "%s", enterStr);
+            LOG("[ENTER] " << mFuncName);
         }
 
         ~AutoLog()
         {
             if (std::uncaught_exception())
             {
-                LOG_NO_FUNC(Logging::eExit, "", "%s", mExceptionExitStr);
+                LOG("[EXIT_EXCEPTION] " << mFuncName);
             }
             else
             {
-                LOG_NO_FUNC(Logging::eExit, "", "%s", mExitStr);
+                LOG("[EXIT]  " << mFuncName);
             }
         }
 
     private:
-        const char* mExitStr;
-        const char* mExceptionExitStr;
+        const char* mFuncName;
     };
 }
-
-
-

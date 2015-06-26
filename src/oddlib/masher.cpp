@@ -11,7 +11,7 @@ namespace Oddlib
         mStream.ReadUInt32(mFileHeader.mDdvTag);
         if (mFileHeader.mDdvTag != MakeType('D', 'D', 'V', 0))
         {
-            LOG_ERROR("Invalid DDV magic tag %X", mFileHeader.mDdvTag);
+            LOG_ERROR("Invalid DDV magic tag " << mFileHeader.mDdvTag);
             throw Exception("Invalid DDV tag");
         }
 
@@ -19,7 +19,7 @@ namespace Oddlib
         if (mFileHeader.mDdvVersion != 1)
         {
             // This is the only version seen in all of the known data
-            LOG_ERROR("Expected DDV version to be 2 but got %d", mFileHeader.mDdvVersion);
+            LOG_ERROR("Expected DDV version to be 2 but got " << mFileHeader.mDdvVersion);
             throw Exception("Wrong DDV version");
         }
 

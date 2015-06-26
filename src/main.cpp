@@ -237,7 +237,7 @@ int main(int argc, char** argv)
         basePath = "./";
         LOG_ERROR("SDL_GetBasePath failed, falling back to ./");
     }
-    LOG_INFO("basePath is %s", basePath.c_str());
+    LOG_INFO("basePath is " << basePath);
 
     jsonxx::Object rootJsonObject;
     std::ifstream tmpStream(basePath + "data/videos.json");
