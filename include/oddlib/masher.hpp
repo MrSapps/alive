@@ -25,8 +25,12 @@ namespace Oddlib
 
         bool Update();
 
+
     private:
         void Read();
+        void ParseVideoFrame();
+
+        void ParseAudioFrame();
 
         struct DDVHeader
         {
@@ -42,8 +46,8 @@ namespace Oddlib
             uint32_t mUnknown; // Probably a reserved field, it has no effect and isn't read by masher lib
             uint32_t mWidth;
             uint32_t mHeight;
+            uint32_t mMaxAudioFrameSize;
             uint32_t mMaxVideoFrameSize;
-            uint32_t mMaxAudioFrameSize; // size of a buffer that contains shorts, i.e read mSingleAudioFrameSize * 2
             uint32_t mKeyFrameRate;
         };
 
@@ -75,5 +79,8 @@ namespace Oddlib
 
         std::vector<uint8_t> mVideoFrameData;
         std::vector<uint8_t> mAudioFrameData;
+
+    protected:
+        std::vector<Uint16> mDecodedVideoFrameData;
     };
 }

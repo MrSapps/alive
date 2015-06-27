@@ -114,6 +114,7 @@ add_library(oddlib STATIC
     include/oddlib/anim.hpp
     include/oddlib/lvlarchive.hpp
     include/oddlib/masher.hpp
+    include/oddlib/masher_tables.hpp
     src/oddlib/stream.cpp
     src/oddlib/anim.cpp
     src/oddlib/lvlarchive.cpp
