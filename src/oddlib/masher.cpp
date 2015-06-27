@@ -384,7 +384,7 @@ namespace Oddlib
     Uint32 g_252_buffer_unk_63580C[64] = {};
 
     // Return val becomes param 1
-    int16_t* __cdecl ddv_func7_DecodeMacroBlock_impl(int16_t* bitstreamPtr, int16_t* outputBlockPtr, bool isYBlock)
+    int16_t* ddv_func7_DecodeMacroBlock_impl(int16_t* bitstreamPtr, int16_t* outputBlockPtr, bool isYBlock)
     {
         int v1; // ebx@1
         Uint32 *v2; // esi@1
