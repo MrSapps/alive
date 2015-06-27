@@ -80,6 +80,8 @@ namespace Oddlib
         std::vector<uint8_t> mVideoFrameData;
         std::vector<uint8_t> mAudioFrameData;
 
+        std::vector<Uint16> mMacroBlockBuffer;
+
     protected:
         std::vector<Uint16> mDecodedVideoFrameData;
     };

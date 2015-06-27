@@ -1714,7 +1714,6 @@ public:
 // Audio and video test
 TEST(Masher, all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave)
 {
-    // kLowCompression16BitExpected
     TestMasher masher(get_all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave());
     ASSERT_EQ(true, masher.Update());
     ASSERT_EQ(false, masher.Update());
