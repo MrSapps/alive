@@ -73,7 +73,7 @@ namespace Oddlib
         {
             uint32_t tmp = 0;
             mStream.ReadUInt32(tmp);
-            mVideoFrameSizes.emplace_back(tmp);
+            mFrameSizes.emplace_back(tmp);
         }
         
         // TODO: Read/skip mAudioHeader.mNumberOfFramesInterleave frame datas
@@ -87,24 +87,38 @@ namespace Oddlib
     {
         if (mCurrentFrame < mFileHeader.mNumberOfFrames)
         {
-            // If there is audio then the first dword is
-            // the size of the video data, and the audio data is
-            // the remaining data after this.
-            uint32_t videoDataSize = 0;
-            mStream.ReadUInt32(videoDataSize);
-            
-            uint32_t totalSize = mVideoFrameSizes[mCurrentFrame] + sizeof(uint32_t);
-            uint32_t audioDataSize = totalSize - videoDataSize;
+            if (mbHasVideo && mbHasAudio)
+            {
+                // If there is video and audio then the first dword is
+                // the size of the video data, and the audio data is
+                // the remaining data after this.
+                uint32_t videoDataSize = 0;
+                mStream.ReadUInt32(videoDataSize);
 
-            //assert(videoDataSize < mVideoFrameData.size());
-            //assert(audioDataSize < mAudioFrameData.size());
+                // Video data
+                mVideoFrameData.resize(videoDataSize);
+                mStream.ReadBytes(mVideoFrameData.data(), videoDataSize);
 
-            mVideoFrameData.resize(videoDataSize);
-            mStream.ReadBytes(mVideoFrameData.data(), videoDataSize);
+                // Calc size of audio data
+                const uint32_t totalSize = mFrameSizes[mCurrentFrame];
+                const uint32_t audioDataSize = totalSize - videoDataSize;
 
-            mAudioFrameData.resize(audioDataSize);
-            mStream.ReadBytes(mAudioFrameData.data(), audioDataSize);
-
+                // Audio data
+                mAudioFrameData.resize(audioDataSize);
+                mStream.ReadBytes(mAudioFrameData.data(), audioDataSize);
+            }
+            else if (mbHasAudio)
+            {
+                const uint32_t totalSize = mFrameSizes[mCurrentFrame];
+                mAudioFrameData.resize(totalSize);
+                mStream.ReadBytes(mAudioFrameData.data(), totalSize);
+            }
+            else if (mbHasVideo)
+            {
+                const uint32_t totalSize = mFrameSizes[mCurrentFrame];
+                mVideoFrameData.resize(totalSize);
+                mStream.ReadBytes(mVideoFrameData.data(), totalSize);
+            }
             mCurrentFrame++;
             return false;
         }

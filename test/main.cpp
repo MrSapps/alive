@@ -75,86 +75,92 @@ TEST(LvlArchive, ReadFiles)
     ASSERT_EQ(Oddlib::MakeType('A', 'n', 'i', 'm'), fileChunk->Type());
 }
 
+// Audio and video test
 TEST(Masher, all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave)
 {
-    /*
-    std::vector<Uint8> data;
-    Oddlib::Masher masher(std::move(data));
-
-    masher.Update();
-    */
-
-
-}
-
-// Audio and video test
-TEST(Masher, all_colours_high_compression_30_fps)
-{
-
+    Oddlib::Masher masher(get_all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave());
+    while (masher.Update());
 }
 
 // All video compression tests
+TEST(Masher, all_colours_high_compression_30_fps)
+{
+    Oddlib::Masher masher(get_all_colours_high_compression_30_fps());
+    while (masher.Update());
+}
+
 TEST(Masher, all_colours_low_compression_30_fps)
 {
-
+    Oddlib::Masher masher(get_all_colours_low_compression_30_fps());
+    while (masher.Update());
 }
 
 TEST(Masher, all_colours_max_compression_30_fps)
 {
-
+    Oddlib::Masher masher(get_all_colours_max_compression_30_fps());
+    while (masher.Update());
 }
 
 TEST(Masher, all_colours_medium_compression_30_fps)
 {
-
+    Oddlib::Masher masher(get_all_colours_medium_compression_30_fps());
+    while (masher.Update());
 }
 
 TEST(Masher, all_colours_min_compression_30_fps)
 {
-
+    Oddlib::Masher masher(get_all_colours_min_compression_30_fps());
+    while (masher.Update());
 }
 
 // All audio compression and formats tests
 TEST(Masher, mono_8_high_compression_all_samples)
 {
-
+    Oddlib::Masher masher(get_mono_8_high_compression_all_samples());
+    while (masher.Update());
 }
 
 TEST(Masher, mono_8_low_compression_all_samples)
 {
-
+    Oddlib::Masher masher(get_mono_8_low_compression_all_samples());
+    while (masher.Update());
 }
 
 TEST(Masher, mono_16_high_compression_all_samples)
 {
-
+    Oddlib::Masher masher(get_mono_16_high_compression_all_samples());
+    while (masher.Update());
 }
 
 TEST(Masher, mono_16_low_compression_all_samples)
 {
-
+    Oddlib::Masher masher(get_mono_16_low_compression_all_samples());
+    while (masher.Update());
 }
 
 TEST(Masher, stereo_8_high_compression_all_samples)
 {
-
+    Oddlib::Masher masher(get_stereo_8_high_compression_all_samples());
+    while (masher.Update());
 }
 
 TEST(Masher, stereo_8_low_compression_all_samples)
 {
-
+    Oddlib::Masher masher(get_stereo_8_low_compression_all_samples());
+    while (masher.Update());
 }
 
 TEST(Masher, stereo_16_high_compression_all_samples)
 {
-
+    Oddlib::Masher masher(get_stereo_16_high_compression_all_samples());
+    while (masher.Update());
 }
 
 TEST(Masher, stereo_16_low_compression_all_samples)
 {
-
+    Oddlib::Masher masher(get_stereo_16_low_compression_all_samples());
+    while (masher.Update());
 }
-
 
 static void IndentTest(int level)
 {

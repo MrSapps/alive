@@ -69,7 +69,7 @@ namespace Oddlib
         uint32_t mNumMacroblocksY = 0;
 
         std::vector<uint32_t> mAudioFrameSizes;
-        std::vector<uint32_t> mVideoFrameSizes;
+        std::vector<uint32_t> mFrameSizes;
 
         uint32_t mCurrentFrame = 0;
 
