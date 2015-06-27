@@ -88,6 +88,10 @@ after_success:
 
 language: cpp
 
+notifications:
+  irc:
+    - "irc.esper.net#oddworld"
+
 addons:
   coverity_scan:
     project:
