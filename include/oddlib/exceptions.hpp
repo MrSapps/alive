@@ -8,9 +8,18 @@ namespace Oddlib
     {
     public:
         explicit Exception(const char* msg)
-            : std::exception(msg)
+            : mMsg(msg)
+
         {
 
         }
+
+        const char* what() const throw () override
+        {
+            return mMsg;
+        }
+
+    private:
+        const char* mMsg;
     };
 }
