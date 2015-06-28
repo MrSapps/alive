@@ -32,6 +32,19 @@ TEST(LvlArchive, FileNotFound)
     ASSERT_THROW(Oddlib::LvlArchive("not_found.lvl"), Oddlib::Exception);
 }
 
+TEST(LvlArchive, Corrupted)
+{
+    std::vector<unsigned char> invalidLvl = 
+    {
+        0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
+        0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+        0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
+        0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
+        0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
+    };
+    ASSERT_THROW(Oddlib::LvlArchive(std::move(invalidLvl)), Oddlib::InvalidLvl);
+}
+
 static std::string FileChunkToString(Oddlib::LvlArchive::FileChunk& chunk)
 {
     auto fileData = chunk.ReadData();
@@ -73,6 +86,9 @@ TEST(LvlArchive, ReadFiles)
     ASSERT_NE(nullptr, fileChunk);
 
     ASSERT_EQ(Oddlib::MakeType('A', 'n', 'i', 'm'), fileChunk->Type());
+
+    file->SaveChunks();
+
 }
 
 const Uint16 kLowCompression16BitExpected[0x3281] =

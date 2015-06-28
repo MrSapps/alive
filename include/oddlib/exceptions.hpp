@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdexcept>
 
 namespace Oddlib
@@ -6,17 +8,9 @@ namespace Oddlib
     {
     public:
         explicit Exception(const char* msg)
-            : mMsg(msg)
+            : std::exception(msg)
         {
 
         }
-
-        const char* what() const throw () override
-        {
-            return mMsg;
-        }
-
-    private:
-        const char* mMsg;
     };
 }

@@ -129,10 +129,10 @@ namespace Oddlib
         // Read and validate the header
         LvlHeader header;
         ReadHeader(header);
-        if (header.iNull1 != 0 && header.iNull2 != 0 && header.iMagic != MakeType('I', 'n', 'd', 'x'))
+        if (header.iNull1 != 0 || header.iNull2 != 0 || header.iMagic != MakeType('I', 'n', 'd', 'x'))
         {
             LOG_ERROR("Invalid LVL header");
-            throw Exception("Invalid header");
+            throw InvalidLvl("Invalid header");
         }
 
         // Read the file records

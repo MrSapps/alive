@@ -35,36 +35,33 @@ namespace Oddlib
         mStream = std::move(s);
     }
 
+    template<typename T>
+    void DoRead(std::unique_ptr<std::istream>& stream, T& output)
+    {
+        if (!stream->read(reinterpret_cast<char*>(&output), sizeof(output)))
+        {
+            throw Exception("Read failure");
+        }
+    }
+
     void Stream::ReadUInt8(Uint8& output)
     {
-        if (!mStream->read(reinterpret_cast<char*>(&output), sizeof(output)))
-        {
-            throw Exception("ReadUInt8 failure");
-        }
+        DoRead<decltype(output)>(mStream, output);
     }
 
     void Stream::ReadUInt32(Uint32& output)
     {
-        if (!mStream->read(reinterpret_cast<char*>(&output), sizeof(output)))
-        {
-            throw Exception("ReadUInt32 failure");
-        }
+        DoRead<decltype(output)>(mStream, output);
     }
 
     void Stream::ReadUInt16(Uint16& output)
     {
-        if (!mStream->read(reinterpret_cast<char*>(&output), sizeof(output)))
-        {
-            throw Exception("ReadUInt32 failure");
-        }
+        DoRead<decltype(output)>(mStream, output);
     }
 
     void Stream::ReadSInt16(Sint16& output)
     {
-        if (!mStream->read(reinterpret_cast<char*>(&output), sizeof(output)))
-        {
-            throw Exception("ReadSInt16 failure");
-        }
+        DoRead<decltype(output)>(mStream, output);
     }
 
     void Stream::ReadBytes(Sint8* pDest, size_t destSize)

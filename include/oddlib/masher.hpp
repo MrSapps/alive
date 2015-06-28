@@ -1,9 +1,16 @@
 #pragma once
 
 #include "stream.hpp"
+#include "oddlib/exceptions.hpp"
 
 namespace Oddlib
 {
+    class InvalidDdv : public Exception
+    {
+    public:
+        explicit InvalidDdv(const char* msg) : Exception(msg) { }
+    };
+
     // Implements Digital Dialect Video (DDV) version 1. This is designed to work only
     // with existing DDV video files, creating new videos with the "Masher" tool may
     // result in a file that this code can't handle.

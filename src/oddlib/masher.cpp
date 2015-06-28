@@ -1,5 +1,4 @@
 #include "oddlib/masher.hpp"
-#include "oddlib/exceptions.hpp"
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/masher_tables.hpp"
 #include "logger.hpp"
@@ -14,7 +13,7 @@ namespace Oddlib
         if (mFileHeader.mDdvTag != MakeType('D', 'D', 'V', 0))
         {
             LOG_ERROR("Invalid DDV magic tag " << mFileHeader.mDdvTag);
-            throw Exception("Invalid DDV tag");
+            throw InvalidDdv("Invalid DDV tag");
         }
 
         mStream.ReadUInt32(mFileHeader.mDdvVersion);
@@ -22,7 +21,7 @@ namespace Oddlib
         {
             // This is the only version seen in all of the known data
             LOG_ERROR("Expected DDV version to be 2 but got " << mFileHeader.mDdvVersion);
-            throw Exception("Wrong DDV version");
+            throw InvalidDdv("Wrong DDV version");
         }
 
         mStream.ReadUInt32(mFileHeader.mContains);

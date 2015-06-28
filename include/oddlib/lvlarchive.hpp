@@ -6,7 +6,7 @@
 #include "SDL_types.h"
 #include "string_util.hpp"
 #include "oddlib/stream.hpp"
-
+#include "oddlib/exceptions.hpp"
 namespace Oddlib
 {
     inline Uint32 MakeType(Uint8 b4, Uint8 b3, Uint8 b2, Uint8 b1)
@@ -20,6 +20,11 @@ namespace Oddlib
     const static Uint32 KMaxLvlArchiveFileNameLength = 12;
     const static Uint32 kSectorSize = 2048;
 
+    class InvalidLvl : public Exception
+    {
+    public:
+        explicit InvalidLvl(const char* msg) : Exception(msg) { }
+    };
 
     class LvlArchive
     {
