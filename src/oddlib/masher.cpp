@@ -78,8 +78,13 @@ namespace Oddlib
         }
         
         // TODO: Read/skip mAudioHeader.mNumberOfFramesInterleave frame datas
+        for (auto i = 0u; i < mAudioHeader.mNumberOfFramesInterleave; i++)
+        {
+            const uint32_t totalSize = mAudioFrameSizes[i];
+            mStream.Seek(mStream.Pos() + totalSize);
+        }
 
-        mMacroBlockBuffer.resize(mNumMacroblocksX * mNumMacroblocksY * mVideoHeader.mMaxVideoFrameSize);
+        mMacroBlockBuffer.resize(mNumMacroblocksX * mNumMacroblocksY * 16 * 16 * 6);
 
         mDecodedVideoFrameData.resize(mVideoHeader.mMaxVideoFrameSize);
 
@@ -87,22 +92,31 @@ namespace Oddlib
         mAudioFrameData.resize(mVideoHeader.mMaxAudioFrameSize);
     }
 
-    static void SetLoWord(Uint32& v, Uint16 lo)
-    {
-        Uint16 hiWord = v & 0xFFFF;
-        v = (lo & 0xFFFF) | (hiWord << 16);
-    }
-
     static Uint16 GetHiWord(Uint32 v)
     {
         return static_cast<Uint16>((v >> 16) & 0xFFFF);
     }
 
+#define MAKELONG(a, b)      ((((Uint16)(((a)) & 0xffff)) | ((Uint32)((Uint16)(((b)) & 0xffff))) << 16))
+
+    static void SetLoWord(Uint32& v, Uint16 lo)
+    {
+        Uint16 hiWord = GetHiWord(v);
+        v = MAKELONG(lo, hiWord);
+    }
+
+    static void SetLoInt(int& v, Uint16 lo)
+    {
+        Uint16 hiWord = GetHiWord(v);
+        v = MAKELONG(lo, hiWord);
+    }
+
     static void SetHiWord(Uint32& v, Uint16 hi)
     {
-        Uint16 tmp = v & 0xffff;
-        v = (tmp) | ((hi & 0xffff) << 16);
+        Uint16 loWord = v & 0xFFFF;
+        v = MAKELONG(loWord, hi);
     }
+
 
     static inline void CheckForEscapeCode(char& bitsToShiftBy, int& rawWord1, Uint16*& rawBitStreamPtr, Uint32& rawWord4, Uint32& v25)
     {
@@ -594,8 +608,123 @@ namespace Oddlib
         half_idct(pTemp, pDestination, 1, 8, 18);
     }
 
+    static int To1d(int x, int y)
+    {
+        // 8x8 index to x64 index
+        return y * 8 + x;
+    }
 
-    void Masher::ParseVideoFrame()
+    unsigned char Clamp(float v)
+    {
+        if (v < 0.0f) v = 0.0f;
+        if (v > 255.0f) v = 255.0f;
+        return (unsigned char)v;
+    };
+
+    void SetElement(int x, int y, int width, Uint32* ptr, Uint32 value)
+    {
+        ptr[(width * y) + x] = value;
+    }
+
+    static void ConvertYuvToRgbAndBlit(Uint32* pixelBuffer, int xoff, int yoff, int width, int height)
+    {
+        // convert the Y1 Y2 Y3 Y4 and Cb and Cr blocks into a 16x16 array of (Y, Cb, Cr) pixels
+        struct Macroblock_YCbCr_Struct
+        {
+            float Y;
+            float Cb;
+            float Cr;
+        };
+
+        std::array< std::array<Macroblock_YCbCr_Struct, 16>, 16> Macroblock_YCbCr = {};
+
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                Macroblock_YCbCr[x][y].Y = static_cast<float>(Y1_block[To1d(x, y)]);
+                Macroblock_YCbCr[x + 8][y].Y = static_cast<float>(Y2_block[To1d(x, y)]);
+                Macroblock_YCbCr[x][y + 8].Y = static_cast<float>(Y3_block[To1d(x, y)]);
+                Macroblock_YCbCr[x + 8][y + 8].Y = static_cast<float>(Y4_block[To1d(x, y)]);
+
+                Macroblock_YCbCr[x * 2][y * 2].Cb = static_cast<float>(Cb_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2 + 1][y * 2].Cb = static_cast<float>(Cb_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2][y * 2 + 1].Cb = static_cast<float>(Cb_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2 + 1][y * 2 + 1].Cb = static_cast<float>(Cb_block[To1d(x, y)]);
+
+                Macroblock_YCbCr[x * 2][y * 2].Cr = static_cast<float>(Cr_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2 + 1][y * 2].Cr = static_cast<float>(Cr_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2][y * 2 + 1].Cr = static_cast<float>(Cr_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2 + 1][y * 2 + 1].Cr = static_cast<float>(Cr_block[To1d(x, y)]);
+            }
+        }
+
+        // Convert the (Y, Cb, Cr) pixels into RGB pixels
+        struct Macroblock_RGB_Struct
+        {
+            unsigned char Red;
+            unsigned char Green;
+            unsigned char Blue;
+            unsigned char A;
+        };
+
+        std::array< std::array<Macroblock_RGB_Struct, 16>, 16> Macroblock_RGB = {};
+
+        for (int x = 0; x < 16; x++)
+        {
+            for (int y = 0; y < 16; y++)
+            {
+                const float r = (Macroblock_YCbCr[x][y].Y) + 1.402f *  Macroblock_YCbCr[x][y].Cb;
+                const float g = (Macroblock_YCbCr[x][y].Y) - 0.3437f * Macroblock_YCbCr[x][y].Cr - 0.7143f * Macroblock_YCbCr[x][y].Cb;
+                const float b = (Macroblock_YCbCr[x][y].Y) + 1.772f *  Macroblock_YCbCr[x][y].Cr;
+
+                Macroblock_RGB[x][y].Red =   Clamp(r);
+                Macroblock_RGB[x][y].Green = Clamp(g);
+                Macroblock_RGB[x][y].Blue =  Clamp(b);
+
+                // Due to macro block padding this can be out of bounds
+                int xpos = x + xoff;
+                int ypos = y + yoff;
+                if (xpos < width && ypos < height)
+                {
+                    SetElement(xpos, ypos, width, pixelBuffer, *(Uint32*)&Macroblock_RGB[x][y].Red);
+                }
+            }
+        }
+    }
+
+    static void after_block_decode_no_effect_q_impl(int quantScale)
+    {
+        g_252_buffer_unk_63580C[0] = 16;
+        g_252_buffer_unk_635A0C[0] = 16;
+        if (quantScale > 0)
+        {
+            signed int result = 0;
+            do
+            {
+                auto val = gQuant1_dword_42AEC8[result];
+                result++;
+                g_252_buffer_unk_63580C[result] = quantScale * val;
+                g_252_buffer_unk_635A0C[result] = quantScale * gQaunt2_dword_42AFC4[result];
+
+
+            } while (result < 63);                   // 252/4=63
+        }
+        else
+        {
+            // These are simply null buffers to start with
+            for (int i = 0; i < 64; i++)
+            {
+                g_252_buffer_unk_635A0C[i] = 16;
+                g_252_buffer_unk_63580C[i] = 16;
+            }
+            // memset(&g_252_buffer_unk_635A0C[1], 16, 252  /*sizeof(g_252_buffer_unk_635A0C)*/); // DWORD[63]
+            // memset(&g_252_buffer_unk_63580C[1], 16, 252 /*sizeof(g_252_buffer_unk_63580C)*/);
+        }
+
+    }
+
+    void Masher::ParseVideoFrame(Uint32* pixelBuffer)
     {
         if (mNumMacroblocksX <= 0 || mNumMacroblocksY <= 0)
         {
@@ -603,6 +732,10 @@ namespace Oddlib
         }
 
         const int quantScale = decode_bitstream((Uint16*)mVideoFrameData.data(), mDecodedVideoFrameData.data());
+
+        after_block_decode_no_effect_q_impl(quantScale);
+
+
         int16_t* bitstreamCurPos = (int16_t*)mDecodedVideoFrameData.data();
         int16_t* block1Output = (int16_t*)mMacroBlockBuffer.data();
 
@@ -638,7 +771,7 @@ namespace Oddlib
                 idct(block6Output, Y4_block);
                 block1Output = dataSizeBytes + block6Output;
 
-                //ConvertYuvToRgbAndBlit(buf, xoff, yoff);
+                ConvertYuvToRgbAndBlit(pixelBuffer, xoff, yoff, mVideoHeader.mWidth, mVideoHeader.mHeight);
 
                 yoff += 16;
             }
@@ -652,7 +785,7 @@ namespace Oddlib
 
     }
 
-    bool Masher::Update()
+    bool Masher::Update(Uint32* pixelBuffer)
     {
         if (mCurrentFrame < mFileHeader.mNumberOfFrames)
         {
@@ -675,7 +808,7 @@ namespace Oddlib
                 // Audio data
                 mAudioFrameData.resize(audioDataSize);
                 mStream.ReadBytes(mAudioFrameData.data(), audioDataSize);
-                ParseVideoFrame();
+                ParseVideoFrame(pixelBuffer);
                 ParseAudioFrame();
             }
             else if (mbHasAudio)
@@ -690,7 +823,7 @@ namespace Oddlib
                 const uint32_t totalSize = mFrameSizes[mCurrentFrame];
                 mVideoFrameData.resize(totalSize);
                 mStream.ReadBytes(mVideoFrameData.data(), totalSize);
-                ParseVideoFrame();
+                ParseVideoFrame(pixelBuffer);
             }
             mCurrentFrame++;
             return true;

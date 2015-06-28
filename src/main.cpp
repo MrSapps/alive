@@ -109,6 +109,9 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
     glPopAttrib();
 }
 
+SDL_Renderer* ren = nullptr;
+SDL_Texture *sdlTexture = nullptr;
+
 void InitGL()
 {
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -126,6 +129,14 @@ void InitGL()
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,
         SDL_WINDOW_OPENGL);
     context = SDL_GL_CreateContext(window);
+    ren = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (ren == nullptr)
+    {
+        SDL_DestroyWindow(window);
+        std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
+        SDL_Quit();
+        return ;
+    }
 
 //    glewExperimental = GL_TRUE;
    // GLenum status = glewInit();
@@ -287,6 +298,9 @@ int main(int argc, char** argv)
 
     std::unique_ptr<Oddlib::Masher> video;
 
+    SDL_Surface* videoFrame = NULL;
+    
+
     bool running = true;
     while (running) 
     {
@@ -429,6 +443,23 @@ int main(int argc, char** argv)
                     try
                     {
                         video = std::make_unique<Oddlib::Masher>(fullPath);
+                        if (videoFrame)
+                        {
+                            SDL_FreeSurface(videoFrame);
+                        }
+
+                        videoFrame = SDL_CreateRGBSurface(0, video->Width(), video->Height(), 32, 0, 0, 0, 0);
+
+                        if (sdlTexture)
+                        {
+                            SDL_DestroyTexture(sdlTexture);
+                        }
+
+                        sdlTexture = SDL_CreateTexture(ren,
+                            SDL_PIXELFORMAT_ABGR8888,
+                            SDL_TEXTUREACCESS_STREAMING,
+                            video->Width(), video->Height());
+
                     }
                     catch (const Oddlib::Exception& ex)
                     {
@@ -456,7 +487,7 @@ int main(int argc, char** argv)
         }
         else
         {
-            if (!video->Update())
+            if (!video->Update((Uint32*)videoFrame->pixels))
             {
                 video = nullptr;
             }
@@ -484,7 +515,22 @@ int main(int argc, char** argv)
 //            std::cout << gluErrorString(error) << std::endl;
         }
 
-        SDL_GL_SwapWindow(window);
+      
+        
+        if (videoFrame && sdlTexture && video)
+        {
+            SDL_RenderClear(ren);
+            SDL_UpdateTexture(sdlTexture, NULL, videoFrame->pixels, video->Width() * sizeof(Uint32));
+            SDL_RenderCopy(ren, sdlTexture, NULL, NULL);
+            SDL_RenderPresent(ren);
+            SDL_Delay(5);
+        }
+        else
+        {
+            SDL_GL_SwapWindow(window);
+        }
+       
+     
     }
 
     if (g_FontTexture)

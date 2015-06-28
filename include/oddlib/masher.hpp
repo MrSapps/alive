@@ -30,12 +30,14 @@ namespace Oddlib
             Read();
         }
 
-        bool Update();
+        bool Update(Uint32* pixelBuffer);
 
+        Uint32 Width() const { return mVideoHeader.mWidth; }
+        Uint32 Height() const { return mVideoHeader.mHeight; }
 
     private:
         void Read();
-        void ParseVideoFrame();
+        void ParseVideoFrame(Uint32* pixelBuffer);
 
         void ParseAudioFrame();
 
