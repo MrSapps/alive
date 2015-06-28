@@ -14,3 +14,5 @@ www.mlgthatsme.com/alive_builds
 
 You can become a patreon here (donations to support development):
 https://www.patreon.com/alive
+
+IRC channel is #oddworld on irc.esper.net
