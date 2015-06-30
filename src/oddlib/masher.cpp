@@ -718,7 +718,7 @@ namespace Oddlib
                 g_252_buffer_unk_635A0C[i] = 16;
                 g_252_buffer_unk_63580C[i] = 16;
             }
-            // memset(&g_252_buffer_unk_635A0C[1], 16, 252  /*sizeof(g_252_buffer_unk_635A0C)*/); // DWORD[63]
+            // memset(&g_252_buffer_unk_635A0C[1], 16, 252  /*sizeof(g_252_buffer_unk_635A0C)*/); // Uint32[63]
             // memset(&g_252_buffer_unk_63580C[1], 16, 252 /*sizeof(g_252_buffer_unk_63580C)*/);
         }
 
@@ -780,12 +780,11 @@ namespace Oddlib
 
     }
 
-#include <windows.h>
     int gBitCounter = 0;
-    DWORD gFirstAudioFrameDWORD = 0;
+    Uint32 gFirstAudioFrameDWORD = 0;
     int gAudioFrameSizeBytes = 0;
-    WORD* gTemp = nullptr;
-    WORD** gAudioFrameDataPtr = &gTemp;
+    Uint16* gTemp = nullptr;
+    Uint16** gAudioFrameDataPtr = &gTemp;
     unsigned char gSndTbl_byte_62EEB0[256] = {};
 
     static int ReadNextAudioWord(int value)
@@ -801,7 +800,7 @@ namespace Oddlib
     }
 
 
-    int __cdecl GetSoundTableValue(__int16 tblIndex)
+    int GetSoundTableValue(__int16 tblIndex)
     {
         __int16 oldIdx = tblIndex;
 
@@ -823,7 +822,7 @@ namespace Oddlib
     }
 
 
-    int __cdecl sub_408F50(__int16 a1)
+    int sub_408F50(__int16 a1)
     {
         __int16 v2 = abs(a1);
         int result = (unsigned __int16)((v2 & 0x7F) << (v2 >> 7)) | (unsigned __int16)(1 << ((v2 >> 7) - 2));
@@ -845,7 +844,7 @@ namespace Oddlib
         return gBitCounter;
     }
 
-    int __cdecl decode_16bit_audio_frame(WORD *outPtr, int numSamplesPerFrame)
+    int decode_16bit_audio_frame(Uint16 *outPtr, int numSamplesPerFrame)
     {
 
         unsigned int secondWord; // edx@1
@@ -866,11 +865,11 @@ namespace Oddlib
 
         unsigned int fithHiWord; // edx@10
         int fourthWordCopyCopy; // ebp@10
-        WORD fithWordCopy; // di@10
+        Uint16 fithWordCopy; // di@10
 
-        WORD outputTmp; // dx@12
+        Uint16 outputTmp; // dx@12
 
-        WORD outputTmp1; // dx@14
+        Uint16 outputTmp1; // dx@14
 
         int loopOutput; // ebx@16
         int secondWordCopyCopyCopyCopy; // ecx@17
@@ -1044,7 +1043,7 @@ namespace Oddlib
                 }
                 else
                 {
-                    loopOutput = (signed __int16)(v58 + (WORD)v45);
+                    loopOutput = (signed __int16)(v58 + (Uint16)v45);
                 }
                 *outPtr = loopOutput; // int to word
                 bCountIsOne = counter == 1;
@@ -1069,13 +1068,13 @@ namespace Oddlib
 
 
 
-    WORD *__cdecl SetupAudioDecodePtrs(WORD *rawFrameBuffer)
+    Uint16* SetupAudioDecodePtrs(Uint16 *rawFrameBuffer)
     {
-        WORD *result; // eax@1
+        Uint16 *result; // eax@1
 
         *gAudioFrameDataPtr = rawFrameBuffer;
         result = rawFrameBuffer + 2;
-        gFirstAudioFrameDWORD = *(DWORD *)rawFrameBuffer;
+        gFirstAudioFrameDWORD = *(Uint32 *)rawFrameBuffer;
         *gAudioFrameDataPtr = rawFrameBuffer + 2;
         gBitCounter = 32;
         return result;
@@ -1134,7 +1133,7 @@ namespace Oddlib
 //            SetAudioFrameSizeBytesAndBits(mAudioFrameSizeBytes, mAudioFrameSizeBits);
             SetAudioFrameSizeBytesAndBits(2, 16);
 
-            decode_audio_frame((Uint16 *)mAudioFrameData.data(), (WORD *)audioBuffer, mAudioHeader.mSingleAudioFrameSize);
+            decode_audio_frame((Uint16 *)mAudioFrameData.data(), (Uint16 *)audioBuffer, mAudioHeader.mSingleAudioFrameSize);
             //++thisPtr->mAudioFrameNumber;
         }
         else
