@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <mutex>
+#include <atomic>
 
 // Hacky audio class to play data from masher.
 class AudioBuffer
@@ -19,7 +20,7 @@ public:
     static void SendSamples(char * sampleData, int size);
 
     // Internal use
-    static unsigned __int64 volatile mPlayedSamples; // This will overflow when playing roughly 10000 years worth of video.
+    static std::atomic<Uint64> mPlayedSamples; // This will overflow when playing roughly 10000 years worth of video.
     static std::vector<char> mBuffer;
     static std::mutex mBufferMutex;
 };

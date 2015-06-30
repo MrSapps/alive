@@ -1,12 +1,13 @@
 #include "core/audiobuffer.hpp"
 
+
 int gAudioBufferSize = 512;
 #define AUDIO_BUFFER_CHANNELS 2
 #define AUDIO_BUFFER_FORMAT AUDIO_S16
 #define AUDIO_BUFFER_FORMAT_SIZE (SDL_AUDIO_BITSIZE(AUDIO_BUFFER_FORMAT) / 8)
 #define AUDIO_BUFFER_SAMPLE_SIZE (AUDIO_BUFFER_FORMAT_SIZE * AUDIO_BUFFER_CHANNELS)
 
-unsigned volatile __int64 AudioBuffer::mPlayedSamples = 0;
+std::atomic<Uint64> AudioBuffer::mPlayedSamples = 0;
 std::vector<char> AudioBuffer::mBuffer;
 std::mutex AudioBuffer::mBufferMutex;
 
