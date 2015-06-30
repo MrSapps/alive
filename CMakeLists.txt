@@ -185,6 +185,8 @@ set(ALIVE_VERSION "ALIVE v${ALIVE_VERSION_MAJOR}.${ALIVE_VERSION_MINOR}.${ALIVE_
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/packaging/alive_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/packaging/alive_version.h)
 
 add_executable(Alive MACOSX_BUNDLE
+    include/core/audiobuffer.hpp
+    src/core/audiobuffer.cpp
     src/main.cpp
 )
 

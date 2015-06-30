@@ -9,6 +9,7 @@
 #include "jsonxx/jsonxx.h"
 #include <fstream>
 #include "alive_version.h"
+#include "core/audiobuffer.hpp"
 
 extern "C"
 {
@@ -487,6 +488,17 @@ int main(int argc, char** argv)
         }
         else
         {
+            /*
+            do_decode_audio_frame(&ddv);
+
+            AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
+            audioFrameIndex++;
+
+            while (AudioBuffer::mPlayedSamples < audioFrameIndex * (11760 / 4))
+            {
+            }
+            */
+
             if (!video->Update((Uint32*)videoFrame->pixels))
             {
                 video = nullptr;
