@@ -30,16 +30,23 @@ namespace Oddlib
             Read();
         }
 
-        bool Update(Uint32* pixelBuffer);
+        bool Update(Uint32* pixelBuffer, Uint8* audioBuffer);
 
-        Uint32 Width() const { return mVideoHeader.mWidth; }
+        Uint32 Width() const  { return mVideoHeader.mWidth;  }
         Uint32 Height() const { return mVideoHeader.mHeight; }
+        bool HasVideo() const { return mbHasVideo; }
+        bool HasAudio() const { return mbHasAudio; }
+        Uint32 SingleAudioFrameSizeBytes() const { return mAudioHeader.mSingleAudioFrameSize; }
+        Uint32 AudioSampleRate() const { return mAudioHeader.mSampleRate; }
+        Uint32 FrameNumber() const { return mCurrentFrame; }
 
     private:
         void Read();
         void ParseVideoFrame(Uint32* pixelBuffer);
 
-        void ParseAudioFrame();
+        void ParseAudioFrame(Uint8* audioBuffer);
+        int decode_audio_frame(Uint16 *rawFrameBuffer, Uint16 *outPtr, signed int numSamplesPerFrame);
+        void do_decode_audio_frame(Uint8* audioBuffer);
 
         struct DDVHeader
         {

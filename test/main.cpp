@@ -1734,8 +1734,8 @@ TEST(Masher, all_colours_low_compression_15fps_8bit_mono_high_compression_5_fram
     ASSERT_EQ(258, masher.Width());
     ASSERT_EQ(200, masher.Height());
     std::vector<Uint32> pixelBuffer(masher.Width() * masher.Height());
-    ASSERT_EQ(true, masher.Update(pixelBuffer.data()));
-    ASSERT_EQ(false, masher.Update(pixelBuffer.data()));
+    ASSERT_EQ(true, masher.Update(pixelBuffer.data(), nullptr));
+    ASSERT_EQ(false, masher.Update(pixelBuffer.data(), nullptr));
     const std::vector<Uint16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
     ASSERT_EQ(true, masher.CompareDecodedFrameData(expected));
 }

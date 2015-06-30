@@ -1081,88 +1081,29 @@ namespace Oddlib
         return result;
     }
 
-    int __cdecl decode_audio_frame(WORD *rawFrameBuffer, WORD *outPtr, signed int numSamplesPerFrame)
+    int Masher::decode_audio_frame(Uint16 *rawFrameBuffer, Uint16 *outPtr, signed int numSamplesPerFrame)
     {
         int result; // eax@2
 
         SetupAudioDecodePtrs(rawFrameBuffer);
-        if (false /*gAudioFrameSizeBits == 8*/)               // if mono
+        if (false /*gAudioFrameSizeBits == 8*/)               // if 8 bit
         {
             abort();
             /*
             Sound8BitRelated_sub_409200(outPtr, numSamplesPerFrame);
             result = gAudioFrameSizeBytes;
             if (gAudioFrameSizeBytes == 2)
-            result = Sound8BitRelated_sub_409200((_BYTE *)outPtr + 1, numSamplesPerFrame);
+            {
+                result = Sound8BitRelated_sub_409200((_BYTE *)outPtr + 1, numSamplesPerFrame);
+            }
             */
         }
         else
         {
-            // Call real
-            /*
-            SetupAudioDecodePtrs(rawFrameBuffer);
-            memset(outPtr, 0, numSamplesPerFrame * 4);
-            sound16bitRelated_sub_4096B0_ptr(outPtr, numSamplesPerFrame);
-            std::ofstream r("real.dat", std::ios::binary);
-            r.write((char*)outPtr, numSamplesPerFrame * 4);
-            r.close();
-            */
 
-            /* reward.ddv
-            00 00 00 00 00 00 00 00   00 00 00 00   FF FF 00 00
-            00 00 00 00 FF FF 00 00   00 00 00 00   FF FF 00 00
-            FE FF 00 00 FF FF 00 00   FE FF 00 00   FE FF 00 00
-
-            Actual:
-            00 00 00 00 00 00 00 00   00 00 00 00   ff ff 00 00
-            00 00 00 00 ff ff 00 00   00 00 00 00   ff ff 00 00
-            fe ff 00 00 ff ff 00 00  [01 00 00 00] [03 00 00 00]
-
-            */
-
-            // Call hook
             SetupAudioDecodePtrs(rawFrameBuffer);
             memset(outPtr, 0, numSamplesPerFrame * 4);
             decode_16bit_audio_frame(outPtr, numSamplesPerFrame);
-            // std::ofstream h("hook.dat", std::ios::binary);
-            // h.write((char*)outPtr, numSamplesPerFrame * 4);
-            // h.close();
-
-
-
-            /*
-            std::vector<BYTE> expected(numSamplesPerFrame * 4);
-            std::vector<BYTE> actual(numSamplesPerFrame * 4);
-
-            SetupAudioDecodePtrs(rawFrameBuffer);
-            memset(outPtr, 0, numSamplesPerFrame * 4);
-            sound16bitRelated_sub_4096B0_ptr(outPtr, numSamplesPerFrame);
-            memcpy(expected.data(), outPtr, numSamplesPerFrame * 4);
-
-            SetupAudioDecodePtrs(rawFrameBuffer);
-            memset(outPtr, 0, numSamplesPerFrame * 4);
-            sound16bitRelated_sub_4096B0(outPtr, numSamplesPerFrame);
-            memcpy(actual.data(), outPtr, numSamplesPerFrame * 4);
-
-            if (actual != expected)
-            {
-            BYTE* a = actual.data();
-            BYTE* e = expected.data();
-            abort();
-            }
-            */
-
-            /*
-            SetupAudioDecodePtrs(rawFrameBuffer);
-            memset(outPtr, 0, numSamplesPerFrame * 4);
-            sound16bitRelated_sub_4096B0_ptr(outPtr, numSamplesPerFrame);
-            */
-
-            /*
-
-            */
-
-            // sound16bitRelated_sub_4096B0_ptr(outPtr, numSamplesPerFrame);
 
             result = gAudioFrameSizeBytes;
             if (gAudioFrameSizeBytes == 2)
@@ -1174,7 +1115,7 @@ namespace Oddlib
         return result;
     }
 
-    int __cdecl SetAudioFrameSizeBytesAndBits(int audioFrameSizeBytes, int audioFrameSizeBits)
+    int SetAudioFrameSizeBytesAndBits(int audioFrameSizeBytes, int audioFrameSizeBits)
     {
         int result; // eax@1
 
@@ -1186,25 +1127,21 @@ namespace Oddlib
 
 
     // 0040DBB0
-    BYTE *__cdecl do_decode_audio_frame(void* /*ddv_class*/ thisPtr)
+    void Masher::do_decode_audio_frame(Uint8* audioBuffer)
     {
-
-        BYTE *result; // eax@3
-        /*
-        if (thisPtr->mHasAudio && thisPtr->mAudioFrameNumber < thisPtr->mNumberOfFrames)
+        if (mbHasAudio)
         {
-            SetAudioFrameSizeBytesAndBits(thisPtr->mAudioFrameSizeBytesQ, thisPtr->mAudioFrameSizeBitsQ);
-            decode_audio_frame(thisPtr->mAudioFrameBuffer, (WORD *)thisPtr->mDecodedSoundBuffer, thisPtr->mSingleAudioFrameSize);
-            ++thisPtr->mAudioFrameNumber;
-            result = (BYTE*)thisPtr->mDecodedSoundBuffer;
+//            SetAudioFrameSizeBytesAndBits(mAudioFrameSizeBytes, mAudioFrameSizeBits);
+            SetAudioFrameSizeBytesAndBits(2, 16);
+
+            decode_audio_frame((Uint16 *)mAudioFrameData.data(), (WORD *)audioBuffer, mAudioHeader.mSingleAudioFrameSize);
+            //++thisPtr->mAudioFrameNumber;
         }
         else
         {
-            ++thisPtr->mAudioFrameNumber;
-            result = 0;
-        }*/
-        return result;
-
+            //++thisPtr->mAudioFrameNumber;
+           // result = 0;
+        }
     }
 
     void init_Snd_tbl()
@@ -1222,12 +1159,15 @@ namespace Oddlib
     }
 
 
-    void Masher::ParseAudioFrame()
+    void Masher::ParseAudioFrame(Uint8* audioBuffer)
     {
-
+        if (audioBuffer)
+        {
+            do_decode_audio_frame(audioBuffer);
+        }
     }
 
-    bool Masher::Update(Uint32* pixelBuffer)
+    bool Masher::Update(Uint32* pixelBuffer, Uint8* audioBuffer)
     {
         if (mCurrentFrame == 0)
         {
@@ -1257,14 +1197,14 @@ namespace Oddlib
                 mAudioFrameData.resize(audioDataSize);
                 mStream.ReadBytes(mAudioFrameData.data(), audioDataSize);
                 ParseVideoFrame(pixelBuffer);
-                ParseAudioFrame();
+                ParseAudioFrame(audioBuffer);
             }
             else if (mbHasAudio)
             {
                 const uint32_t totalSize = mFrameSizes[mCurrentFrame];
                 mAudioFrameData.resize(totalSize);
                 mStream.ReadBytes(mAudioFrameData.data(), totalSize);
-                ParseAudioFrame();
+                ParseAudioFrame(audioBuffer);
             }
             else if (mbHasVideo)
             {

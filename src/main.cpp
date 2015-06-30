@@ -449,7 +449,15 @@ int main(int argc, char** argv)
                             SDL_FreeSurface(videoFrame);
                         }
 
-                        videoFrame = SDL_CreateRGBSurface(0, video->Width(), video->Height(), 32, 0, 0, 0, 0);
+                        if (video->HasAudio())
+                        {
+                            AudioBuffer::ChangeAudioSpec(video->SingleAudioFrameSizeBytes(), video->AudioSampleRate());
+                        }
+
+                        if (video->HasVideo())
+                        {
+                            videoFrame = SDL_CreateRGBSurface(0, video->Width(), video->Height(), 32, 0, 0, 0, 0);
+                        }
 
                         if (sdlTexture)
                         {
@@ -488,22 +496,20 @@ int main(int argc, char** argv)
         }
         else
         {
-            /*
-            do_decode_audio_frame(&ddv);
+            std::vector<Uint16> decodedFrame(video->SingleAudioFrameSizeBytes()*2); // *2 if stereo
 
-            AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
-            audioFrameIndex++;
-
-            while (AudioBuffer::mPlayedSamples < audioFrameIndex * (11760 / 4))
-            {
-            }
-            */
-
-            if (!video->Update((Uint32*)videoFrame->pixels))
+            if (!video->Update((Uint32*)videoFrame->pixels, (Uint8*)decodedFrame.data()))
             {
                 video = nullptr;
             }
+            else
+            {
+                AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
+                while (AudioBuffer::mPlayedSamples < video->FrameNumber() * video->SingleAudioFrameSizeBytes())
+                {
 
+                }
+            }
         }
         ImGui::SetNextWindowPos(ImVec2(975, 28));
         if (!ImGui::Begin("Example: Fixed Overlay", 0, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
@@ -529,10 +535,13 @@ int main(int argc, char** argv)
 
       
         
-        if (videoFrame && sdlTexture && video)
+        if (sdlTexture && video)
         {
             SDL_RenderClear(ren);
-            SDL_UpdateTexture(sdlTexture, NULL, videoFrame->pixels, video->Width() * sizeof(Uint32));
+            if (videoFrame)
+            {
+                SDL_UpdateTexture(sdlTexture, NULL, videoFrame->pixels, video->Width() * sizeof(Uint32));
+            }
             SDL_RenderCopy(ren, sdlTexture, NULL, NULL);
             SDL_RenderPresent(ren);
             SDL_Delay(5);
