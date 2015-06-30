@@ -7,7 +7,7 @@ int gAudioBufferSize = 512;
 #define AUDIO_BUFFER_FORMAT_SIZE (SDL_AUDIO_BITSIZE(AUDIO_BUFFER_FORMAT) / 8)
 #define AUDIO_BUFFER_SAMPLE_SIZE (AUDIO_BUFFER_FORMAT_SIZE * AUDIO_BUFFER_CHANNELS)
 
-std::atomic<Uint64> AudioBuffer::mPlayedSamples = 0;
+std::atomic<Uint64> AudioBuffer::mPlayedSamples;
 std::vector<char> AudioBuffer::mBuffer;
 std::mutex AudioBuffer::mBufferMutex;
 
@@ -50,7 +50,8 @@ void AudioBuffer::Open(int frameSize, int freq)
     audioSpec.format = AUDIO_BUFFER_FORMAT;
 
     /* Open the audio device */
-    if (SDL_OpenAudio(&audioSpec, NULL) < 0){
+    if (SDL_OpenAudio(&audioSpec, NULL) < 0)
+{
         fprintf(stderr, "Failed to initialize audio: %s\n", SDL_GetError());
         exit(-1);
     }
