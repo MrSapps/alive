@@ -190,6 +190,9 @@ add_executable(Alive MACOSX_BUNDLE
     src/main.cpp
 )
 
+set(CPACK_PACKAGE_EXECUTABLES Alive "A.L.I.V.E")
+set(CPACK_WIX_PROGRAM_MENU_FOLDER "Alive")
+
 
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
