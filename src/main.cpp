@@ -114,7 +114,7 @@ SDL_Renderer* ren = nullptr;
 SDL_Texture *sdlTexture = nullptr;
 
 
-#if defined(_WIN32) && defined(GCL_HICON)
+#ifdef _WIN32
 #include <windows.h>
 #include "../rsc/resource.h"
 #include "SDL_syswm.h"
@@ -165,7 +165,7 @@ void InitGL()
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,
         SDL_WINDOW_OPENGL);
 
-#if defined(_WIN32)
+#ifdef _WIN32
     // I'd like my icon back thanks
     setWindowsIcon(window);
 #endif
