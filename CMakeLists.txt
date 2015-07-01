@@ -184,7 +184,15 @@ git_shorttag(GIT_SHORT_REV)
 set(ALIVE_VERSION "ALIVE v${ALIVE_VERSION_MAJOR}.${ALIVE_VERSION_MINOR}.${ALIVE_VERSION_PATCH} rev(${GIT_SHORT_REV})")
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/packaging/alive_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/packaging/alive_version.h)
 
+if(WIN32)
+SET(WIN32_ONLY_SRC
+    rsc/Resource.rc
+    rsc/resource.h
+    rsc/app.ico)
+endif()
+
 add_executable(Alive MACOSX_BUNDLE
+    ${WIN32_ONLY_SRC}
     include/core/audiobuffer.hpp
     src/core/audiobuffer.cpp
     src/main.cpp
@@ -192,7 +200,7 @@ add_executable(Alive MACOSX_BUNDLE
 
 set(CPACK_PACKAGE_EXECUTABLES Alive "A.L.I.V.E")
 set(CPACK_WIX_PROGRAM_MENU_FOLDER "Alive")
-
+set(CPACK_PACKAGE_VENDOR "PaulsApps.com")
 
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)

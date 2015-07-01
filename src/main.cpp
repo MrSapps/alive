@@ -113,6 +113,41 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
 SDL_Renderer* ren = nullptr;
 SDL_Texture *sdlTexture = nullptr;
 
+
+#if defined(_WIN32) && defined(GCL_HICON)
+#include <windows.h>
+#include "../rsc/resource.h"
+#include "SDL_syswm.h"
+#include <functional>
+
+void setWindowsIcon(SDL_Window *sdlWindow) 
+{
+    HINSTANCE handle = ::GetModuleHandle(nullptr);
+    HICON icon = ::LoadIcon(handle, MAKEINTRESOURCE(IDI_MAIN_ICON));
+    if (icon != nullptr)
+    {
+        SDL_SysWMinfo wminfo;
+        SDL_VERSION(&wminfo.version);
+        if (SDL_GetWindowWMInfo(sdlWindow, &wminfo) == 1)
+        {
+            HWND hwnd = wminfo.info.win.window;
+            ::SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(icon));
+        }
+
+        HMODULE hKernel32 = ::GetModuleHandle("Kernel32.dll");
+        if (hKernel32)
+        {
+            typedef BOOL(WINAPI *pSetConsoleIcon)(HICON icon);
+            pSetConsoleIcon setConsoleIcon = (pSetConsoleIcon)::GetProcAddress(hKernel32, "SetConsoleIcon");
+            if (setConsoleIcon)
+            {
+                setConsoleIcon(icon);
+            }
+        }
+    }
+}
+#endif
+
 void InitGL()
 {
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -129,6 +164,12 @@ void InitGL()
     window = SDL_CreateWindow(ALIVE_VERSION_NAME_STR,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,
         SDL_WINDOW_OPENGL);
+
+#if defined(_WIN32)
+    // I'd like my icon back thanks
+    setWindowsIcon(window);
+#endif
+
     context = SDL_GL_CreateContext(window);
     ren = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (ren == nullptr)
@@ -223,6 +264,7 @@ void UpdateImGui()
     // Start the frame
     ImGui::NewFrame();
 }
+
 // Application code
 int main(int argc, char** argv)
 {
