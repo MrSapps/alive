@@ -1810,8 +1810,16 @@ TEST(Masher, stereo_8_low_compression_all_samples)
 
 TEST(Masher, stereo_16_high_compression_all_samples)
 {
-   // Oddlib::Masher masher(get_stereo_16_high_compression_all_samples());
-   // while (masher.Update());
+    TestMasher masher(get_stereo_16_high_compression_all_samples());
+    ASSERT_EQ(false, masher.HasVideo());
+    ASSERT_EQ(true,  masher.HasAudio());
+
+    std::vector<Uint8> audioBuffer(masher.SingleAudioFrameSizeBytes() * 4);
+
+    // TODO: Verify the content of each decoded audio frame / VS \ on each channel
+    while(masher.Update(nullptr, audioBuffer.data()));
+ 
+
 }
 
 TEST(Masher, stereo_16_low_compression_all_samples)
