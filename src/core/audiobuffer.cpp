@@ -15,25 +15,35 @@ void AudioBuffer::AudioCallback(void *udata, Uint8 *stream, int len)
 {
     memset(stream, 0, len);
 
+
     mBufferMutex.lock();
 
     int currentBufferSampleSize = mBuffer.size() / AUDIO_BUFFER_SAMPLE_SIZE;
 
     if (currentBufferSampleSize >= gAudioBufferSize)
     {
-        memcpy(stream, mBuffer.data(), gAudioBufferSize * AUDIO_BUFFER_SAMPLE_SIZE);
-        mBuffer.erase(mBuffer.begin(), mBuffer.begin() + (gAudioBufferSize * AUDIO_BUFFER_SAMPLE_SIZE));
+        int size = gAudioBufferSize * AUDIO_BUFFER_SAMPLE_SIZE;
+        if (size > len)
+        {
+            size = len;
+        }
+        memmove(stream, mBuffer.data(), len);
+        mBuffer.erase(mBuffer.begin(), mBuffer.begin() + len);
         mPlayedSamples += currentBufferSampleSize;
     }
+
 
     mBufferMutex.unlock();
 }
 
 void AudioBuffer::ChangeAudioSpec(int frameSize, int freq)
 {
+    SDL_LockAudio();
+
     Close();
     mPlayedSamples = 0;
     Open(frameSize, freq);
+    SDL_UnlockAudio();
 }
 
 void AudioBuffer::Open(int frameSize, int freq)
@@ -69,6 +79,8 @@ void AudioBuffer::Close()
 
 void AudioBuffer::SendSamples(char * sampleData, int size)
 {
+    SDL_LockAudio();
+
     mBufferMutex.lock();
 
     int lastSize = mBuffer.size();
@@ -76,4 +88,6 @@ void AudioBuffer::SendSamples(char * sampleData, int size)
     memcpy(mBuffer.data() + lastSize, sampleData, size);
 
     mBufferMutex.unlock();
+
+    SDL_UnlockAudio();
 }

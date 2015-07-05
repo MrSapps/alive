@@ -563,8 +563,8 @@ int main(int argc, char** argv)
             }
             else
             {
-                //AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
-                //while (AudioBuffer::mPlayedSamples < video->FrameNumber() * video->SingleAudioFrameSizeBytes())
+                AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
+                while (AudioBuffer::mPlayedSamples < video->FrameNumber() * video->SingleAudioFrameSizeBytes())
                 {
 
                 }
