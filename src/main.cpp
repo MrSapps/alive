@@ -62,7 +62,7 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
     const float width = ImGui::GetIO().DisplaySize.x;
     const float height = ImGui::GetIO().DisplaySize.y;
 
-    std::cout << "ON RENDER " << width << " " << height << std::endl;
+    //std::cout << "ON RENDER " << width << " " << height << std::endl;
 
     glViewport(0, 0, width, height);
 
@@ -285,8 +285,16 @@ int main(int argc, char** argv)
         const bool bIsDebugPath = string_util::contains(basePath, "/alive/bin/") || string_util::contains(basePath, "\\alive\\bin\\");
         if (bIsDebugPath)
         {
-            LOG_WARNING("We appear to be running from the IDE - fixing up basePath to be ../");
-            basePath += "../../";
+            if (string_util::contains(basePath, "/alive/bin/"))
+            {
+                LOG_WARNING("We appear to be running from the IDE (Linux) - fixing up basePath to be ../");
+                basePath += "../";
+            }
+            else
+            {
+                LOG_WARNING("We appear to be running from the IDE (Win32) - fixing up basePath to be ../");
+                basePath += "../../";
+            }
         }
     }
     else
@@ -320,10 +328,6 @@ int main(int argc, char** argv)
             for (size_t i = 0; i < ar.size(); i++)
             {
                 jsonxx::String s = ar.get<jsonxx::String>(i);
-                if (s.length() < 12)
-                {
-                    s.append(12 - s.length(), ' ');
-                }
                 allFmvs.emplace_back(s);
 
             }
@@ -487,7 +491,7 @@ int main(int argc, char** argv)
         if (!video)
         {
             ImGui::Begin("Video player");
-            static char buf[4096] = "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus\\";
+            static char buf[4096] = "/home/paul/ae_test/";
 
             ImGui::InputText("Video path", buf, sizeof(buf));
 
@@ -559,8 +563,8 @@ int main(int argc, char** argv)
             }
             else
             {
-                AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
-                while (AudioBuffer::mPlayedSamples < video->FrameNumber() * video->SingleAudioFrameSizeBytes())
+                //AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
+                //while (AudioBuffer::mPlayedSamples < video->FrameNumber() * video->SingleAudioFrameSizeBytes())
                 {
 
                 }
