@@ -1835,7 +1835,7 @@ TEST(Masher, stereo_16_high_compression_all_samples)
     ASSERT_EQ(true,  masher.HasAudio());
 
     // Valgrind reported we read/write 2 bytes out of bounds, so must be off by one error?
-    std::vector<Uint8> audioBuffer((masher.SingleAudioFrameSizeBytes() * 4)+2);
+    std::vector<Uint8> audioBuffer((masher.SingleAudioFrameSizeBytes() * 4));
 
     // TODO: Verify the content of each decoded audio frame / VS \ on each channel
     while(masher.Update(nullptr, audioBuffer.data()));

@@ -1201,7 +1201,7 @@ namespace Oddlib
             else if (mbHasAudio)
             {
                 const uint32_t totalSize = mFrameSizes[mCurrentFrame];
-                mAudioFrameData.resize(totalSize);
+                mAudioFrameData.resize(totalSize+4); // TODO: Figure out if this is required or is just a bug
                 mStream.ReadBytes(mAudioFrameData.data(), totalSize);
                 ParseAudioFrame(audioBuffer);
             }
