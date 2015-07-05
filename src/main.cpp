@@ -61,6 +61,9 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
     // Setup orthographic projection matrix
     const float width = ImGui::GetIO().DisplaySize.x;
     const float height = ImGui::GetIO().DisplaySize.y;
+
+    std::cout << "ON RENDER " << width << " " << height << std::endl;
+
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -109,10 +112,6 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
     glPopMatrix();
     glPopAttrib();
 }
-
-SDL_Renderer* ren = nullptr;
-SDL_Texture *sdlTexture = nullptr;
-
 
 #if defined(_WIN32) && defined(GCL_HICON)
 #include <windows.h>
@@ -163,7 +162,7 @@ void InitGL()
 
     window = SDL_CreateWindow(ALIVE_VERSION_NAME_STR,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,
-        SDL_WINDOW_OPENGL);
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
 #if defined(_WIN32)
     // I'd like my icon back thanks
@@ -171,15 +170,7 @@ void InitGL()
 #endif
 
     context = SDL_GL_CreateContext(window);
-    ren = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (ren == nullptr)
-    {
-        SDL_DestroyWindow(window);
-        std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return ;
-    }
-
+    
 //    glewExperimental = GL_TRUE;
    // GLenum status = glewInit();
    // if (status != GLEW_OK) {
@@ -188,7 +179,7 @@ void InitGL()
 }
 static GLuint       g_FontTexture = 0;
 
-void InitImGui()
+static void ImGui_WindowResize()
 {
     int w, h;
     int fb_w, fb_h;
@@ -199,9 +190,19 @@ void InitImGui()
 
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);  // Display size, in pixels. For clamping windows positions.
-//    io.PixelCenterOffset = 0.0f;                        // Align OpenGL texels
-    io.RenderDrawListsFn = ImImpl_RenderDrawLists;
+    
+    std::cout << "ON RESIZE " << io.DisplaySize.x << " " << io.DisplaySize.y << std::endl;
 
+
+    //    io.PixelCenterOffset = 0.0f;                        // Align OpenGL texels
+
+}
+
+void InitImGui()
+{
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui_WindowResize();
+    io.RenderDrawListsFn = ImImpl_RenderDrawLists;
 
     // Build texture
     unsigned char* pixels;
@@ -345,7 +346,7 @@ int main(int argc, char** argv)
     
 
     bool running = true;
-    while (running) 
+    while (running)
     {
         ImGuiIO& io = ImGui::GetIO();
         mousePressed[0] = mousePressed[1] = false;
@@ -387,6 +388,16 @@ int main(int argc, char** argv)
             }
                 break;
 
+            case SDL_WINDOWEVENT:
+                switch (event.window.event) 
+                {
+                case SDL_WINDOWEVENT_RESIZED:
+                case SDL_WINDOWEVENT_MAXIMIZED:
+                case SDL_WINDOWEVENT_RESTORED:
+                    ImGui_WindowResize();
+                }
+                break;
+
             case SDL_KEYDOWN:
             case SDL_KEYUP:
             {
@@ -397,6 +408,7 @@ int main(int argc, char** argv)
                         const Uint32 windowFlags = SDL_GetWindowFlags(window);
                         bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
                         SDL_SetWindowFullscreen(window, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                        ImGui_WindowResize();
                     }
                 }
 
@@ -439,8 +451,8 @@ int main(int argc, char** argv)
             }
             if (ImGui::BeginMenu("Help"))
             {
-                if (ImGui::MenuItem("About", "CTRL+H")) 
-                { 
+                if (ImGui::MenuItem("About", "CTRL+H"))
+                {
                     showAbout = !showAbout;
                 }
                 ImGui::EndMenu();
@@ -489,6 +501,7 @@ int main(int argc, char** argv)
                         if (videoFrame)
                         {
                             SDL_FreeSurface(videoFrame);
+                            videoFrame = nullptr;
                         }
 
                         if (video->HasAudio())
@@ -500,17 +513,6 @@ int main(int argc, char** argv)
                         {
                             videoFrame = SDL_CreateRGBSurface(0, video->Width(), video->Height(), 32, 0, 0, 0, 0);
                         }
-
-                        if (sdlTexture)
-                        {
-                            SDL_DestroyTexture(sdlTexture);
-                        }
-
-                        sdlTexture = SDL_CreateTexture(ren,
-                            SDL_PIXELFORMAT_ABGR8888,
-                            SDL_TEXTUREACCESS_STREAMING,
-                            video->Width(), video->Height());
-
                     }
                     catch (const Oddlib::Exception& ex)
                     {
@@ -538,11 +540,16 @@ int main(int argc, char** argv)
         }
         else
         {
-            std::vector<Uint16> decodedFrame(video->SingleAudioFrameSizeBytes()*2); // *2 if stereo
+            std::vector<Uint16> decodedFrame(video->SingleAudioFrameSizeBytes() * 2); // *2 if stereo
 
             if (!video->Update((Uint32*)videoFrame->pixels, (Uint8*)decodedFrame.data()))
             {
                 video = nullptr;
+                if (videoFrame)
+                {
+                    SDL_FreeSurface(videoFrame);
+                    videoFrame = nullptr;
+                }
             }
             else
             {
@@ -571,29 +578,50 @@ int main(int argc, char** argv)
         ImGui::Render();
 
         GLenum error = glGetError();
-        if (error != GL_NO_ERROR) {
-//            std::cout << gluErrorString(error) << std::endl;
+        if (error != GL_NO_ERROR)
+        {
+            //            std::cout << gluErrorString(error) << std::endl;
         }
 
-      
-        
-        if (sdlTexture && video)
+        glEnable(GL_TEXTURE_2D);
+
+        if (videoFrame)
         {
-            SDL_RenderClear(ren);
-            if (videoFrame)
-            {
-                SDL_UpdateTexture(sdlTexture, NULL, videoFrame->pixels, video->Width() * sizeof(Uint32));
+            // TODO: Optimize - should use VBO's & update 1 texture rather than creating per frame
+            GLuint TextureID = 0;
+
+            glGenTextures(1, &TextureID);
+            glBindTexture(GL_TEXTURE_2D, TextureID);
+
+            int Mode = GL_RGB;
+
+            if (videoFrame->format->BytesPerPixel == 4) {
+                Mode = GL_RGBA;
             }
-            SDL_RenderCopy(ren, sdlTexture, NULL, NULL);
-            SDL_RenderPresent(ren);
-            SDL_Delay(5);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, Mode, videoFrame->w, videoFrame->h, 0, Mode, GL_UNSIGNED_BYTE, videoFrame->pixels);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+            // For Ortho mode, of course
+            int X = -1;
+            int Y = -1;
+            int Width = 2;
+            int Height = 2;
+
+            glBegin(GL_QUADS);
+            glTexCoord2f(0, 0); glVertex3f(X, Y, 0);
+            glTexCoord2f(1, 0); glVertex3f(X + Width, Y, 0);
+            glTexCoord2f(1, -1); glVertex3f(X + Width, Y + Height, 0);
+            glTexCoord2f(0, -1); glVertex3f(X, Y + Height, 0);
+            glEnd();
+
+            glDeleteTextures(1, &TextureID);
         }
-        else
-        {
-            SDL_GL_SwapWindow(window);
-        }
-       
-     
+
+        SDL_GL_SwapWindow(window);
     }
 
     if (g_FontTexture)
