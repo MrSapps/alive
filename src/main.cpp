@@ -64,6 +64,8 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
 
     std::cout << "ON RENDER " << width << " " << height << std::endl;
 
+    glViewport(0, 0, width, height);
+
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -395,6 +397,8 @@ int main(int argc, char** argv)
                 case SDL_WINDOWEVENT_MAXIMIZED:
                 case SDL_WINDOWEVENT_RESTORED:
                     ImGui_WindowResize();
+
+                    break;
                 }
                 break;
 
@@ -513,6 +517,7 @@ int main(int argc, char** argv)
                         {
                             videoFrame = SDL_CreateRGBSurface(0, video->Width(), video->Height(), 32, 0, 0, 0, 0);
                         }
+                        SDL_ShowCursor(0);
                     }
                     catch (const Oddlib::Exception& ex)
                     {
@@ -544,6 +549,7 @@ int main(int argc, char** argv)
 
             if (!video->Update((Uint32*)videoFrame->pixels, (Uint8*)decodedFrame.data()))
             {
+                SDL_ShowCursor(1);
                 video = nullptr;
                 if (videoFrame)
                 {
@@ -560,16 +566,18 @@ int main(int argc, char** argv)
                 }
             }
         }
+        /*
         ImGui::SetNextWindowPos(ImVec2(975, 28));
         if (!ImGui::Begin("Example: Fixed Overlay", 0, ImVec2(0, 0), 0.3f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
         {
 
         }
+        
         ImGui::Text("Simple overlay\non the top-right side of the screen.");
         ImGui::Separator();
         ImGui::Text("Mouse Position: (%.1f,%.1f)", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
         ImGui::End();
-
+        */
 
         // Rendering
         glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
