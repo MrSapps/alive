@@ -1731,6 +1731,8 @@ public:
 TEST(Masher, all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave)
 {
     TestMasher masher(get_all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave());
+    ASSERT_EQ(true, masher.HasVideo());
+    ASSERT_EQ(true, masher.HasAudio());
     ASSERT_EQ(258, masher.Width());
     ASSERT_EQ(200, masher.Height());
     std::vector<Uint32> pixelBuffer(masher.Width() * masher.Height());
@@ -1743,14 +1745,32 @@ TEST(Masher, all_colours_low_compression_15fps_8bit_mono_high_compression_5_fram
 // All video compression tests
 TEST(Masher, all_colours_high_compression_30_fps)
 {
-    //Oddlib::Masher masher(get_all_colours_high_compression_30_fps());
-    //while (masher.Update());
+    /*
+    TestMasher masher(get_all_colours_high_compression_30_fps());
+    ASSERT_EQ(true, masher.HasVideo());
+    ASSERT_EQ(false, masher.HasAudio());
+    ASSERT_EQ(258, masher.Width());
+    ASSERT_EQ(200, masher.Height());
+    std::vector<Uint32> pixelBuffer(masher.Width() * masher.Height());
+    ASSERT_EQ(true, masher.Update(pixelBuffer.data(), nullptr));
+    ASSERT_EQ(false, masher.Update(pixelBuffer.data(), nullptr));
+    const std::vector<Uint16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
+    ASSERT_EQ(true, masher.CompareDecodedFrameData(expected));
+    */
 }
 
 TEST(Masher, all_colours_low_compression_30_fps)
 {
-    //Oddlib::Masher masher(get_all_colours_low_compression_30_fps());
-    //while (masher.Update());
+    TestMasher masher(get_all_colours_low_compression_30_fps());
+    ASSERT_EQ(true, masher.HasVideo());
+    ASSERT_EQ(false, masher.HasAudio());
+    ASSERT_EQ(258, masher.Width());
+    ASSERT_EQ(200, masher.Height());
+    std::vector<Uint32> pixelBuffer(masher.Width() * masher.Height());
+    ASSERT_EQ(true, masher.Update(pixelBuffer.data(), nullptr));
+    ASSERT_EQ(false, masher.Update(pixelBuffer.data(), nullptr));
+    const std::vector<Uint16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
+    ASSERT_EQ(true, masher.CompareDecodedFrameData(expected));
 }
 
 TEST(Masher, all_colours_max_compression_30_fps)
@@ -1810,8 +1830,17 @@ TEST(Masher, stereo_8_low_compression_all_samples)
 
 TEST(Masher, stereo_16_high_compression_all_samples)
 {
-   // Oddlib::Masher masher(get_stereo_16_high_compression_all_samples());
-   // while (masher.Update());
+    TestMasher masher(get_stereo_16_high_compression_all_samples());
+    ASSERT_EQ(false, masher.HasVideo());
+    ASSERT_EQ(true,  masher.HasAudio());
+
+    // Valgrind reported we read/write 2 bytes out of bounds, so must be off by one error?
+    std::vector<Uint8> audioBuffer((masher.SingleAudioFrameSizeBytes() * 4)+2);
+
+    // TODO: Verify the content of each decoded audio frame / VS \ on each channel
+    while(masher.Update(nullptr, audioBuffer.data()));
+ 
+
 }
 
 TEST(Masher, stereo_16_low_compression_all_samples)
