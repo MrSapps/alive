@@ -268,6 +268,132 @@ void UpdateImGui()
     ImGui::NewFrame();
 }
 
+
+//The timer
+class Timer
+{
+    private:
+    //The clock time when the timer started
+    int startTicks;
+
+    //The ticks stored when the timer was paused
+    int pausedTicks;
+
+    //The timer status
+    bool paused;
+    bool started;
+
+    public:
+    //Initializes variables
+    Timer();
+
+    //The various clock actions
+    void start();
+    void stop();
+    void pause();
+    void unpause();
+
+    //Gets the timer's time
+    int get_ticks();
+
+    //Checks the status of the timer
+    bool is_started();
+    bool is_paused();
+};
+
+
+Timer::Timer()
+{
+    //Initialize the variables
+    startTicks = 0;
+    pausedTicks = 0;
+    paused = false;
+    started = false;
+}
+
+void Timer::start()
+{
+    //Start the timer
+    started = true;
+
+    //Unpause the timer
+    paused = false;
+
+    //Get the current clock time
+    startTicks = SDL_GetTicks();
+}
+
+void Timer::stop()
+{
+    //Stop the timer
+    started = false;
+
+    //Unpause the timer
+    paused = false;
+}
+
+void Timer::pause()
+{
+    //If the timer is running and isn't already paused
+    if( ( started == true ) && ( paused == false ) )
+    {
+        //Pause the timer
+        paused = true;
+
+        //Calculate the paused ticks
+        pausedTicks = SDL_GetTicks() - startTicks;
+    }
+}
+
+void Timer::unpause()
+{
+    //If the timer is paused
+    if( paused == true )
+    {
+        //Unpause the timer
+        paused = false;
+
+        //Reset the starting ticks
+        startTicks = SDL_GetTicks() - pausedTicks;
+
+        //Reset the paused ticks
+        pausedTicks = 0;
+    }
+}
+
+int Timer::get_ticks()
+{
+    //If the timer is running
+    if( started == true )
+    {
+        //If the timer is paused
+        if( paused == true )
+        {
+            //Return the number of ticks when the timer was paused
+            return pausedTicks;
+        }
+        else
+        {
+            //Return the current time minus the start time
+            return SDL_GetTicks() - startTicks;
+        }
+    }
+
+    //If the timer isn't running
+    return 0;
+}
+
+bool Timer::is_started()
+{
+    return started;
+}
+
+bool Timer::is_paused()
+{
+    return paused;
+}
+
+
 // Application code
 int main(int argc, char** argv)
 {
@@ -350,10 +476,19 @@ int main(int argc, char** argv)
 
     SDL_Surface* videoFrame = NULL;
     
+    //Keep track of the current frame
+    int frame = 0;
+
+    //The frame rate regulator
+    Timer fps;
+
+    int targetFps = 60;
 
     bool running = true;
     while (running)
     {
+        fps.start();
+
         ImGuiIO& io = ImGui::GetIO();
         mousePressed[0] = mousePressed[1] = false;
         io.MouseWheel = 0;
@@ -520,6 +655,7 @@ int main(int argc, char** argv)
                         if (video->HasVideo())
                         {
                             videoFrame = SDL_CreateRGBSurface(0, video->Width(), video->Height(), 32, 0, 0, 0, 0);
+                            targetFps = video->FrameRate();
                         }
                         SDL_ShowCursor(0);
                     }
@@ -560,14 +696,16 @@ int main(int argc, char** argv)
                     SDL_FreeSurface(videoFrame);
                     videoFrame = nullptr;
                 }
+                targetFps = 60;
             }
             else
             {
                 AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
-                while (AudioBuffer::mPlayedSamples < video->FrameNumber() * video->SingleAudioFrameSizeBytes())
+                //while (AudioBuffer::mPlayedSamples < video->FrameNumber() * video->SingleAudioFrameSizeBytes())
                 {
 
                 }
+
             }
         }
         /*
@@ -634,6 +772,16 @@ int main(int argc, char** argv)
         }
 
         SDL_GL_SwapWindow(window);
+
+        //Increment the frame counter
+        frame++;
+
+        //If we want to cap the frame rate
+        if( fps.get_ticks() < 1000 / targetFps )
+        {
+            //Sleep the remaining frame time
+            SDL_Delay( ( 1000 / targetFps ) - fps.get_ticks() );
+        }
     }
 
     if (g_FontTexture)
