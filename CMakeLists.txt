@@ -265,6 +265,9 @@ if(WIN32)
     
     set(CPACK_WIX_TEMPLATE "${CMAKE_CURRENT_SOURCE_DIR}/packaging/wix.template.in")
     SET(CPACK_WIX_UPGRADE_GUID 2a54667a-a192-4b78-a34d-b3282dfa7f3f)
+    SET(CPACK_WIX_PRODUCT_ICON ../rsc/app.ico)
+    SET(CPACK_WIX_UI_BANNER  ../packaging/Wix_Ui_Banner_493x58.bmp)
+    SET(CPACK_WIX_UI_DIALOG  ../packaging/Wix_Ui_Dialog_493x312.bmp)
 
     # If empty assume release
     #if ("${CMAKE_BUILD_TYPE}" STREQUAL "" OR "${CMAKE_BUILD_TYPE}" STREQUAL "release")
