@@ -510,6 +510,17 @@ int main(int argc, char** argv)
         {
             switch (event.type)
             {
+            case SDL_MOUSEWHEEL:
+                if (event.wheel.y < 0)
+                {
+                    ImGui::GetIO().MouseWheel = -1.0f;
+                }
+                else
+                {
+                    ImGui::GetIO().MouseWheel = 1.0f;
+                }
+                break;
+
             case SDL_QUIT:
                 running = false;
                 break;
@@ -553,9 +564,22 @@ int main(int argc, char** argv)
                         SDL_SetWindowFullscreen(window, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
                         ImGui_WindowResize();
                     }
+
                 }
 
-                SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
+                const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
+                if (key == SDL_SCANCODE_ESCAPE)
+                {
+                    SDL_ShowCursor(1);
+                    video = nullptr;
+                    if (videoFrame)
+                    {
+                        SDL_FreeSurface(videoFrame);
+                        videoFrame = nullptr;
+                    }
+                    targetFps = 60;
+                }
+
                 if (key >= 0 && key < 512)
                 {
                     SDL_Keymod modstate = SDL_GetModState();
@@ -603,45 +627,51 @@ int main(int argc, char** argv)
             ImGui::EndMainMenuBar();
         }
 
+        //ImGui::ShowTestWindow();
+
         if (showAbout)
         {
-            static bool firstShow = true;
-            if (firstShow)
-            {
-                ImGui::SetNextWindowSize(ImVec2{ 400, 100 });
-                firstShow = false;
-            }
-            ImGui::Begin(ALIVE_VERSION_NAME_STR);
+            ImGui::Begin(ALIVE_VERSION_NAME_STR, nullptr, ImVec2( 400, 100 ));
             ImGui::Text("Open source ALIVE engine PaulsApps.com 2015");
             ImGui::End();
         }
 
-        static bool firstCall = true;
-        if (firstCall)
-        {
-            ImGui::SetNextWindowSize(ImVec2{ 1130, 680 });
-            firstCall = false;
-        }
-
         if (!video)
         {
-            ImGui::Begin("Video player");
+            ImGui::Begin("Video player", nullptr, ImVec2(550, 480), 1.0f, ImGuiWindowFlags_NoCollapse);
 #ifdef _WIN32
             static char buf[4096] = "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus\\";
 #else
             static char buf[4096] = "/home/paul/ae_test/";
 #endif
 
-            ImGui::InputText("Video path", buf, sizeof(buf));
-
-            ImGui::BeginGroup();
-            int i = 0;
-            for (auto& v : allFmvs)
+            if (ImGui::CollapsingHeader("Set 1"))
             {
-                if (ImGui::Button(v.c_str()))
+                ImGui::InputText("Video path", buf, sizeof(buf));
+
+                static ImGuiTextFilter filter;
+                filter.Draw();
+
+                static int listbox_item_current = 1;
+                static std::vector<const char*> listbox_items;
+                listbox_items.resize(allFmvs.size());
+
+                int matchingFilter = 0;
+                for (size_t i = 0; i < allFmvs.size(); i++)
                 {
-                    std::string fullPath = std::string(buf) + v;
-                    std::cout << "Play " << fullPath.c_str() << std::endl;
+                    if (filter.PassFilter(allFmvs[i].c_str()))
+                    {
+                        listbox_items[matchingFilter] = allFmvs[i].c_str();
+                        matchingFilter++;
+                    }
+                }
+                ImGui::PushItemWidth(-1);
+                ImGui::ListBox("##", &listbox_item_current, listbox_items.data(), matchingFilter, 27);
+
+                if (ImGui::Button("Play", ImVec2(ImGui::GetWindowWidth(), 20)))
+                {
+                    std::string fullPath = std::string(buf) + listbox_items[listbox_item_current];
+                    std::cout << "Play " << listbox_items[listbox_item_current] << std::endl;
                     try
                     {
                         video = std::make_unique<Oddlib::Masher>(fullPath);
@@ -659,7 +689,7 @@ int main(int argc, char** argv)
                         if (video->HasVideo())
                         {
                             videoFrame = SDL_CreateRGBSurface(0, video->Width(), video->Height(), 32, 0, 0, 0, 0);
-                            targetFps = video->FrameRate();
+                            targetFps = video->FrameRate() * 2;
                         }
                         SDL_ShowCursor(0);
                     }
@@ -668,24 +698,14 @@ int main(int argc, char** argv)
                         // ImGui::Text(ex.what());
                     }
                 }
-                i++;
-                if (i < 10)
-                {
-                    ImGui::SameLine();
-                }
-                else
-                {
-                    i = 0;
-                }
-            }
-            ImGui::EndGroup();
-
-
-            if (ImGui::Button("OK"))
-            {
-                std::cout << "Button clicked!\n";
             }
             ImGui::End();
+
+            /*
+            ImGui::Begin("Property editor", nullptr, ImVec2(550, 480), 1.0f, ImGuiWindowFlags_NoCollapse);
+            ImGui::Text("TODO: Example editor UI");
+            ImGui::End();
+            */
         }
         else
         {
@@ -784,7 +804,7 @@ int main(int argc, char** argv)
         if( fps.get_ticks() < 1000 / targetFps )
         {
             //Sleep the remaining frame time
-            SDL_Delay( ( 1000 / targetFps ) - fps.get_ticks() );
+         //   SDL_Delay( ( 1000 / targetFps ) - fps.get_ticks() );
         }
     }
 
