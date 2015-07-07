@@ -115,7 +115,7 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
     glPopAttrib();
 }
 
-#if defined(_WIN32) && defined(GCL_HICON)
+#ifdef _WIN32
 #include <windows.h>
 #include "../rsc/resource.h"
 #include "SDL_syswm.h"
@@ -132,7 +132,11 @@ void setWindowsIcon(SDL_Window *sdlWindow)
         if (SDL_GetWindowWMInfo(sdlWindow, &wminfo) == 1)
         {
             HWND hwnd = wminfo.info.win.window;
+#ifdef _WIN64
+            ::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(icon));
+#else
             ::SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(icon));
+#endif
         }
 
         HMODULE hKernel32 = ::GetModuleHandle("Kernel32.dll");
