@@ -626,7 +626,11 @@ int main(int argc, char** argv)
         if (!video)
         {
             ImGui::Begin("Video player");
+#ifdef _WIN32
+            static char buf[4096] = "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus\\";
+#else
             static char buf[4096] = "/home/paul/ae_test/";
+#endif
 
             ImGui::InputText("Video path", buf, sizeof(buf));
 
@@ -701,7 +705,7 @@ int main(int argc, char** argv)
             else
             {
                 AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
-                //while (AudioBuffer::mPlayedSamples < video->FrameNumber() * video->SingleAudioFrameSizeBytes())
+                while (AudioBuffer::mPlayedSamples < video->FrameNumber() * video->SingleAudioFrameSizeBytes())
                 {
 
                 }
