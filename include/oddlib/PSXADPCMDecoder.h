@@ -55,8 +55,8 @@ private:
         uint8_t edc[4];
     };
 #pragma pack(pop)
-    static const int32_t K0[4];
-    static const int32_t K1[4];
+    static const uint32_t K0[4]; // TODO: Was signed, not sure which is correct though
+    static const uint32_t K1[4];
 
     int32_t t1, t2;
     int32_t t1_x, t2_x;

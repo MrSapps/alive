@@ -25,11 +25,11 @@
 
 
 
-const int32_t PSXADPCMDecoder::K0[4] =
+const uint32_t PSXADPCMDecoder::K0[4] =
 { 0x00000000, 0x0000F000, 0x0001CC00, 0x00018800 };
 
 
-const int32_t PSXADPCMDecoder::K1[4] =
+const uint32_t PSXADPCMDecoder::K1[4] =
 { 0x00000000, 0x00000000, 0xFFFF3000, 0xFFFF2400 };
 
 
