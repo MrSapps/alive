@@ -33,7 +33,7 @@ private:
     void RenderVideoUi();
     void ImGui_WindowResize();
 private:
-    std::string mBasePath;
+
     bool mRunning = true;
     FileSystem mFileSystem;
     GameData mGameData;
