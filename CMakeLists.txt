@@ -225,6 +225,7 @@ install(
 if (WIN32 AND MSVC)
    add_custom_command(TARGET Alive POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy "${SDL2_INCLUDE_DIR}/../lib/${arch}/SDL2.dll" "$(OutDir)SDL2.dll")
+   INSTALL(FILES "${SDL2_INCLUDE_DIR}/../lib/${arch}/SDL2.dll" DESTINATION ".")
 endif()
 
 if (APPLE)
