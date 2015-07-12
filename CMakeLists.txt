@@ -196,6 +196,14 @@ add_executable(Alive MACOSX_BUNDLE
     include/core/audiobuffer.hpp
     src/core/audiobuffer.cpp
     src/main.cpp
+    include/fmv.hpp
+    src/fmv.cpp
+    include/engine.hpp
+    src/engine.cpp
+    include/gamedata.hpp
+    src/gamedata.cpp
+    include/filesystem.hpp
+    src/filesystem.cpp
 )
 
 SET(CPACK_PACKAGE_EXECUTABLES Alive "A.L.I.V.E")
