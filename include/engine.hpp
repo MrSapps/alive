@@ -33,7 +33,6 @@ private:
     void RenderVideoUi();
     void ImGui_WindowResize();
 private:
-    void DrawVideoSelectionUi(const std::string& name, const std::vector<std::string>& allFmvs);
 
     bool mRunning = true;
     FileSystem mFileSystem;
@@ -42,6 +41,7 @@ private:
 
     // temp
     std::unique_ptr<Oddlib::Masher> video;
+    std::vector<std::unique_ptr<class FmvUi>> mFmvUis;
     SDL_Surface* videoFrame = NULL;
     SDL_Window* window;
     SDL_GLContext context;

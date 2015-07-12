@@ -342,83 +342,110 @@ void Engine::Update()
     UpdateImGui();
 }
 
-void Engine::DrawVideoSelectionUi(const std::string& setName, const std::vector<std::string>& allFmvs)
+class FmvUi
 {
-    std::string name = "Video player (" + setName + ")";
-    ImGui::Begin(name.c_str(), nullptr, ImVec2(550, 580), 1.0f, ImGuiWindowFlags_NoCollapse);
+private:
+    char buf[4096];
+    ImGuiTextFilter mFilter;
+    int listbox_item_current = 1;
+    std::vector<const char*> listbox_items;
+public:
+    FmvUi()
+    {
 #ifdef _WIN32
-    static char buf[4096] = "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus\\";
+        strcpy(buf,"C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus\\");
 #else
-    static char buf[4096] = "/home/paul/ae_test/";
+       strcpy(buf,"/home/paul/ae_test/");
 #endif
-
-    ImGui::InputText("Video path", buf, sizeof(buf));
-
-    static ImGuiTextFilter filter;
-    filter.Draw();
-
-
-    static int listbox_item_current = 1;
-    static std::vector<const char*> listbox_items;
-    listbox_items.resize(allFmvs.size());
-
-    int matchingFilter = 0;
-    for (size_t i = 0; i < allFmvs.size(); i++)
-    {
-        if (filter.PassFilter(allFmvs[i].c_str()))
-        {
-            listbox_items[matchingFilter] = allFmvs[i].c_str();
-            matchingFilter++;
-        }
-    }
-    ImGui::PushItemWidth(-1);
-    ImGui::ListBox("##", &listbox_item_current, listbox_items.data(), matchingFilter, 27);
-
-    if (ImGui::Button("Play", ImVec2(ImGui::GetWindowWidth(), 20)))
-    {
-        std::string fullPath = std::string(buf) + listbox_items[listbox_item_current];
-        std::cout << "Play " << listbox_items[listbox_item_current] << std::endl;
-        try
-        {
-
-            video = std::make_unique<Oddlib::Masher>(fullPath);
-            if (videoFrame)
-            {
-                SDL_FreeSurface(videoFrame);
-                videoFrame = nullptr;
-            }
-
-            if (video->HasAudio())
-            {
-                AudioBuffer::ChangeAudioSpec(video->SingleAudioFrameSizeBytes(), video->AudioSampleRate());
-            }
-
-            if (video->HasVideo())
-            {
-                videoFrame = SDL_CreateRGBSurface(0, video->Width(), video->Height(), 32, 0, 0, 0, 0);
-                //                    targetFps = video->FrameRate() * 2;
-            }
-            SDL_ShowCursor(0);
-        }
-        catch (const Oddlib::Exception& ex)
-        {
-            // ImGui::Text(ex.what());
-        }
     }
 
-    ImGui::End();
-}
+    void DrawVideoSelectionUi(std::unique_ptr<Oddlib::Masher>& video, SDL_Surface*& videoFrame, const std::string& setName, const std::vector<std::string>& allFmvs)
+    {
+        std::string name = "Video player (" + setName + ")";
+        ImGui::Begin(name.c_str(), nullptr, ImVec2(550, 580), 1.0f, ImGuiWindowFlags_NoCollapse);
+
+
+        ImGui::InputText("Video path", buf, sizeof(buf));
+
+        mFilter.Draw();
+
+
+      
+        listbox_items.resize(allFmvs.size());
+
+        int matchingFilter = 0;
+        for (size_t i = 0; i < allFmvs.size(); i++)
+        {
+            if (mFilter.PassFilter(allFmvs[i].c_str()))
+            {
+                listbox_items[matchingFilter] = allFmvs[i].c_str();
+                matchingFilter++;
+            }
+        }
+        ImGui::PushItemWidth(-1);
+        ImGui::ListBox("##", &listbox_item_current, listbox_items.data(), matchingFilter, 27);
+
+        if (ImGui::Button("Play", ImVec2(ImGui::GetWindowWidth(), 20)))
+        {
+            std::string fullPath = std::string(buf) + listbox_items[listbox_item_current];
+            std::cout << "Play " << listbox_items[listbox_item_current] << std::endl;
+            try
+            {
+
+                video = std::make_unique<Oddlib::Masher>(fullPath);
+                if (videoFrame)
+                {
+                    SDL_FreeSurface(videoFrame);
+                    videoFrame = nullptr;
+                }
+
+                if (video->HasAudio())
+                {
+                    AudioBuffer::ChangeAudioSpec(video->SingleAudioFrameSizeBytes(), video->AudioSampleRate());
+                }
+
+                if (video->HasVideo())
+                {
+                    videoFrame = SDL_CreateRGBSurface(0, video->Width(), video->Height(), 32, 0, 0, 0, 0);
+                    //                    targetFps = video->FrameRate() * 2;
+                }
+                SDL_ShowCursor(0);
+            }
+            catch (const Oddlib::Exception& ex)
+            {
+                // ImGui::Text(ex.what());
+            }
+        }
+
+        ImGui::End();
+    }
+};
 
 void Engine::RenderVideoUi()
 {
     
     if (!video)
     {
-        auto fmvs = mGameData.Fmvs();
-        for (auto fmvSet : fmvs)
+        if (mFmvUis.empty())
         {
-            DrawVideoSelectionUi(fmvSet.first, fmvSet.second);
+            auto fmvs = mGameData.Fmvs();
+            for (auto fmvSet : fmvs)
+            {
+                mFmvUis.emplace_back(std::make_unique<FmvUi>());
+            }
         }
+
+        if (!mFmvUis.empty())
+        {
+            int i = 0;
+            auto fmvs = mGameData.Fmvs();
+            for (auto fmvSet : fmvs)
+            {
+                mFmvUis[i]->DrawVideoSelectionUi(video, videoFrame, fmvSet.first, fmvSet.second);
+                i++;
+            }
+        }
+
     }
     else
     {
