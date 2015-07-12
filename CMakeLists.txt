@@ -119,6 +119,10 @@ add_library(oddlib STATIC
     src/oddlib/anim.cpp
     src/oddlib/lvlarchive.cpp
     src/oddlib/masher.cpp
+    include/oddlib/PSXMDECDecoder.h
+    include/oddlib/PSXADPCMDecoder.h
+    src/oddlib/PSXADPCMDecoder.cpp
+    src/oddlib/PSXMDECDecoder.cpp
 )
 #cotire(oddlib)
 
