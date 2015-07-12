@@ -27,6 +27,38 @@ extern "C"
 #include <functional>
 
 
+void setWindowsIcon(SDL_Window *sdlWindow)
+{
+    HINSTANCE handle = ::GetModuleHandle(nullptr);
+    HICON icon = ::LoadIcon(handle, MAKEINTRESOURCE(IDI_MAIN_ICON));
+    if (icon != nullptr)
+    {
+        SDL_SysWMinfo wminfo;
+        SDL_VERSION(&wminfo.version);
+        if (SDL_GetWindowWMInfo(sdlWindow, &wminfo) == 1)
+        {
+            HWND hwnd = wminfo.info.win.window;
+#ifdef _WIN64
+            ::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(icon));
+#else
+            ::SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(icon));
+#endif
+        }
+
+        HMODULE hKernel32 = ::GetModuleHandle("Kernel32.dll");
+        if (hKernel32)
+        {
+            typedef BOOL(WINAPI *pSetConsoleIcon)(HICON icon);
+            pSetConsoleIcon setConsoleIcon = (pSetConsoleIcon)::GetProcAddress(hKernel32, "SetConsoleIcon");
+            if (setConsoleIcon)
+            {
+                setConsoleIcon(icon);
+            }
+        }
+    }
+}
+#endif
+
 static GLuint fontTex;
 static bool mousePressed[4] = { false, false };
 static ImVec2 mousePosScale(1.0f, 1.0f);
@@ -553,37 +585,6 @@ void Engine::InitImGui()
     io.KeyMap[ImGuiKey_Z] = SDLK_z;
 
 }
-void setWindowsIcon(SDL_Window *sdlWindow)
-{
-    HINSTANCE handle = ::GetModuleHandle(nullptr);
-    HICON icon = ::LoadIcon(handle, MAKEINTRESOURCE(IDI_MAIN_ICON));
-    if (icon != nullptr)
-    {
-        SDL_SysWMinfo wminfo;
-        SDL_VERSION(&wminfo.version);
-        if (SDL_GetWindowWMInfo(sdlWindow, &wminfo) == 1)
-        {
-            HWND hwnd = wminfo.info.win.window;
-#ifdef _WIN64
-            ::SetClassLongPtr(hwnd, GCLP_HICON, reinterpret_cast<LONG_PTR>(icon));
-#else
-            ::SetClassLong(hwnd, GCL_HICON, reinterpret_cast<LONG>(icon));
-#endif
-        }
-
-        HMODULE hKernel32 = ::GetModuleHandle("Kernel32.dll");
-        if (hKernel32)
-        {
-            typedef BOOL(WINAPI *pSetConsoleIcon)(HICON icon);
-            pSetConsoleIcon setConsoleIcon = (pSetConsoleIcon)::GetProcAddress(hKernel32, "SetConsoleIcon");
-            if (setConsoleIcon)
-            {
-                setConsoleIcon(icon);
-            }
-        }
-    }
-}
-#endif
 
 void Engine::InitGL()
 {
