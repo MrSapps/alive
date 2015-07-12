@@ -33,6 +33,7 @@ private:
     void RenderVideoUi();
     void ImGui_WindowResize();
 private:
+    void DrawVideoSelectionUi(const std::string& name, const std::vector<std::string>& allFmvs);
 
     bool mRunning = true;
     FileSystem mFileSystem;

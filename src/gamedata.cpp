@@ -14,9 +14,8 @@ GameData::~GameData()
 
 }
 
-bool GameData::Init(std::string basePath)
+bool GameData::LoadFmvData(std::string basePath)
 {
-
     jsonxx::Object rootJsonObject;
     std::ifstream tmpStream(basePath + "data/videos.json");
     if (!tmpStream)
@@ -36,21 +35,27 @@ bool GameData::Init(std::string basePath)
         jsonxx::Object& fmvObj = rootJsonObject.get<jsonxx::Object>("FMVS");
         for (auto& v : fmvObj.kv_map())
         {
+            std::string arrayName = v.first;
+
+            std::vector<std::string> fmvs;
             jsonxx::Array& ar = fmvObj.get<jsonxx::Array>(v.first);
             for (size_t i = 0; i < ar.size(); i++)
             {
                 jsonxx::String s = ar.get<jsonxx::String>(i);
-                allFmvs.emplace_back(s);
-
+                fmvs.emplace_back(s);
             }
-        }
-
-        //  for (auto& value : fmvsArray.values())
-        {
-            // jsonxx::Array& a = value->get<jsonxx::Array>();
-
+            mFmvData[v.first] = std::move(fmvs);
         }
     }
 
+    return true;
+}
+
+bool GameData::Init(std::string basePath)
+{
+    if (!LoadFmvData(basePath))
+    {
+        return false;
+    }
     return true;
 }

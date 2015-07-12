@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include <vector>
 
 class GameData
@@ -9,10 +10,14 @@ public:
     GameData();
     ~GameData();
     bool Init(std::string basePath);
-    const std::vector<std::string>& Fmvs() const
+    const std::map<std::string, std::vector<std::string>>& Fmvs() const
     {
-        return allFmvs;
+        return mFmvData;
     }
+
 private:
-    std::vector<std::string> allFmvs;
+    bool LoadFmvData(std::string basePath);
+
+private:
+    std::map<std::string, std::vector<std::string>> mFmvData;
 };
