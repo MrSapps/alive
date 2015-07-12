@@ -33,16 +33,22 @@ private:
     void RenderVideoUi();
     void ImGui_WindowResize();
 private:
+    enum eStates
+    {
+        eStarting,
+        eRunning,
+        ePlayingFmv,
+        eShuttingDown,
+    };
+    eStates mPreviousState = eStarting;
+    eStates mState = eStarting;
+    
+    void ToState(eStates newState);
 
-    bool mRunning = true;
     FileSystem mFileSystem;
     GameData mGameData;
     Fmv mFmv;
 
-    // temp
-    std::unique_ptr<Oddlib::Masher> video;
-    std::vector<std::unique_ptr<class FmvUi>> mFmvUis;
-    SDL_Surface* videoFrame = NULL;
-    SDL_Window* window;
-    SDL_GLContext context;
+    SDL_Window* mWindow = nullptr;
+    SDL_GLContext mContext = nullptr;
 };

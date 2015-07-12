@@ -11,6 +11,7 @@
 #include "alive_version.h"
 #include "core/audiobuffer.hpp"
 
+
 extern "C"
 {
 #include "lua.h"
@@ -150,8 +151,8 @@ void Engine::ImGui_WindowResize()
 {
     int w, h;
     int fb_w, fb_h;
-    SDL_GetWindowSize(window, &w, &h);
-    SDL_GetWindowSize(window, &fb_w, &fb_h); // Needs to be corrected for SDL Framebuffer
+    SDL_GetWindowSize(mWindow, &w, &h);
+    SDL_GetWindowSize(mWindow, &fb_w, &fb_h); // Needs to be corrected for SDL Framebuffer
     mousePosScale.x = (float)fb_w / w;
     mousePosScale.y = (float)fb_h / h;
 
@@ -186,6 +187,7 @@ void UpdateImGui()
 }
 
 Engine::Engine()
+    : mFmv(mGameData)
 {
 
 }
@@ -201,8 +203,8 @@ Engine::~Engine()
     }
 
     ImGui::Shutdown();
-    SDL_GL_DeleteContext(context);
-    SDL_DestroyWindow(window);
+    SDL_GL_DeleteContext(mContext);
+    SDL_DestroyWindow(mWindow);
     SDL_Quit();
 }
 
@@ -229,12 +231,14 @@ bool Engine::Init()
     InitGL();
     InitImGui();
 
+    ToState(eRunning);
+
     return true;
 }
 
 int Engine::Run()
 {
-    while (mRunning)
+    while (mState != eShuttingDown)
     {
         Update();
         Render();
@@ -265,7 +269,7 @@ void Engine::Update()
             break;
 
         case SDL_QUIT:
-            mRunning = false;
+            ToState(eShuttingDown);
             break;
 
         case SDL_TEXTINPUT:
@@ -302,9 +306,9 @@ void Engine::Update()
             {
                 if (event.key.keysym.sym == 13)
                 {
-                    const Uint32 windowFlags = SDL_GetWindowFlags(window);
+                    const Uint32 windowFlags = SDL_GetWindowFlags(mWindow);
                     bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
-                    SDL_SetWindowFullscreen(window, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    SDL_SetWindowFullscreen(mWindow, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
                     ImGui_WindowResize();
                 }
 
@@ -313,14 +317,8 @@ void Engine::Update()
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
             if (key == SDL_SCANCODE_ESCAPE)
             {
+                mFmv.Stop();
 
-                SDL_ShowCursor(1);
-                video = nullptr;
-                if (videoFrame)
-                {
-                    SDL_FreeSurface(videoFrame);
-                    videoFrame = nullptr;
-                }
                 //targetFps = 60;
 
             }
@@ -340,139 +338,9 @@ void Engine::Update()
     }
 
     UpdateImGui();
+    mFmv.Update();
 }
 
-class FmvUi
-{
-private:
-    char buf[4096];
-    ImGuiTextFilter mFilter;
-    int listbox_item_current = 1;
-    std::vector<const char*> listbox_items;
-public:
-    FmvUi()
-    {
-#ifdef _WIN32
-        strcpy(buf,"C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus\\");
-#else
-       strcpy(buf,"/home/paul/ae_test/");
-#endif
-    }
-
-    void DrawVideoSelectionUi(std::unique_ptr<Oddlib::Masher>& video, SDL_Surface*& videoFrame, const std::string& setName, const std::vector<std::string>& allFmvs)
-    {
-        std::string name = "Video player (" + setName + ")";
-        ImGui::Begin(name.c_str(), nullptr, ImVec2(550, 580), 1.0f, ImGuiWindowFlags_NoCollapse);
-
-
-        ImGui::InputText("Video path", buf, sizeof(buf));
-
-        mFilter.Draw();
-
-
-      
-        listbox_items.resize(allFmvs.size());
-
-        int matchingFilter = 0;
-        for (size_t i = 0; i < allFmvs.size(); i++)
-        {
-            if (mFilter.PassFilter(allFmvs[i].c_str()))
-            {
-                listbox_items[matchingFilter] = allFmvs[i].c_str();
-                matchingFilter++;
-            }
-        }
-        ImGui::PushItemWidth(-1);
-        ImGui::ListBox("##", &listbox_item_current, listbox_items.data(), matchingFilter, 27);
-
-        if (ImGui::Button("Play", ImVec2(ImGui::GetWindowWidth(), 20)))
-        {
-            std::string fullPath = std::string(buf) + listbox_items[listbox_item_current];
-            std::cout << "Play " << listbox_items[listbox_item_current] << std::endl;
-            try
-            {
-
-                video = std::make_unique<Oddlib::Masher>(fullPath);
-                if (videoFrame)
-                {
-                    SDL_FreeSurface(videoFrame);
-                    videoFrame = nullptr;
-                }
-
-                if (video->HasAudio())
-                {
-                    AudioBuffer::ChangeAudioSpec(video->SingleAudioFrameSizeBytes(), video->AudioSampleRate());
-                }
-
-                if (video->HasVideo())
-                {
-                    videoFrame = SDL_CreateRGBSurface(0, video->Width(), video->Height(), 32, 0, 0, 0, 0);
-                    //                    targetFps = video->FrameRate() * 2;
-                }
-                SDL_ShowCursor(0);
-            }
-            catch (const Oddlib::Exception& ex)
-            {
-                // ImGui::Text(ex.what());
-            }
-        }
-
-        ImGui::End();
-    }
-};
-
-void Engine::RenderVideoUi()
-{
-    
-    if (!video)
-    {
-        if (mFmvUis.empty())
-        {
-            auto fmvs = mGameData.Fmvs();
-            for (auto fmvSet : fmvs)
-            {
-                mFmvUis.emplace_back(std::make_unique<FmvUi>());
-            }
-        }
-
-        if (!mFmvUis.empty())
-        {
-            int i = 0;
-            auto fmvs = mGameData.Fmvs();
-            for (auto fmvSet : fmvs)
-            {
-                mFmvUis[i]->DrawVideoSelectionUi(video, videoFrame, fmvSet.first, fmvSet.second);
-                i++;
-            }
-        }
-
-    }
-    else
-    {
-        std::vector<Uint16> decodedFrame(video->SingleAudioFrameSizeBytes() * 2); // *2 if stereo
-
-        if (!video->Update((Uint32*)videoFrame->pixels, (Uint8*)decodedFrame.data()))
-        {
-            SDL_ShowCursor(1);
-            video = nullptr;
-            if (videoFrame)
-            {
-                SDL_FreeSurface(videoFrame);
-                videoFrame = nullptr;
-            }
-            //targetFps = 60;
-        }
-        else
-        {
-            AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
-            while (AudioBuffer::mPlayedSamples < video->FrameNumber() * video->SingleAudioFrameSizeBytes())
-            {
-
-            }
-
-        }
-    }
-}
 
 void Engine::Render()
 {
@@ -482,7 +350,7 @@ void Engine::Render()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Exit", "CTRL+Q")) { mRunning = false; }
+            if (ImGui::MenuItem("Exit", "CTRL+Q")) { ToState(eShuttingDown); }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Edit"))
@@ -516,11 +384,11 @@ void Engine::Render()
         ImGui::End();
     }
 
-    RenderVideoUi();
-
     // Clear screen
     glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    mFmv.Render();
 
     // Draw UI buffers
     ImGui::Render();
@@ -531,61 +399,22 @@ void Engine::Render()
         //            std::cout << gluErrorString(error) << std::endl;
     }
 
-    glEnable(GL_TEXTURE_2D);
-
-    
-    if (videoFrame)
-    {
-        // TODO: Optimize - should use VBO's & update 1 texture rather than creating per frame
-        GLuint TextureID = 0;
-
-        glGenTextures(1, &TextureID);
-        glBindTexture(GL_TEXTURE_2D, TextureID);
-
-        int Mode = GL_RGB;
-
-        if (videoFrame->format->BytesPerPixel == 4) {
-            Mode = GL_RGBA;
-        }
-
-        glTexImage2D(GL_TEXTURE_2D, 0, Mode, videoFrame->w, videoFrame->h, 0, Mode, GL_UNSIGNED_BYTE, videoFrame->pixels);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-        // For Ortho mode, of course
-        int X = -1;
-        int Y = -1;
-        int Width = 2;
-        int Height = 2;
-
-        glBegin(GL_QUADS);
-        glTexCoord2f(0, 0); glVertex3f(X, Y, 0);
-        glTexCoord2f(1, 0); glVertex3f(X + Width, Y, 0);
-        glTexCoord2f(1, -1); glVertex3f(X + Width, Y + Height, 0);
-        glTexCoord2f(0, -1); glVertex3f(X, Y + Height, 0);
-        glEnd();
-
-        glDeleteTextures(1, &TextureID);
-    }
-    
-
+   
     // Flip the buffers
-    SDL_GL_SwapWindow(window);
+    SDL_GL_SwapWindow(mWindow);
 }
 
 bool Engine::InitSDL()
 {
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    window = SDL_CreateWindow(ALIVE_VERSION_NAME_STR,
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720,
+    mWindow = SDL_CreateWindow(ALIVE_VERSION_NAME_STR,
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640*2, 480*2,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
 #if defined(_WIN32)
     // I'd like my icon back thanks
-    setWindowsIcon(window);
+    setWindowsIcon(mWindow);
 #endif
 
     return true;
@@ -647,16 +476,22 @@ void Engine::InitGL()
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
-        SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-
-
-    context = SDL_GL_CreateContext(window);
+    mContext = SDL_GL_CreateContext(mWindow);
 
     //    glewExperimental = GL_TRUE;
     // GLenum status = glewInit();
     // if (status != GLEW_OK) {
     //     printf("Could not initialize GLEW!\n");
     //  }
+}
+
+void Engine::ToState(Engine::eStates newState)
+{
+    if (newState != mState)
+    {
+        mPreviousState = mState;
+        mState = newState;
+    }
 }
