@@ -18,15 +18,6 @@ extern "C"
 #include "lauxlib.h"
 }
 
-//#include <GL/glew.h>
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif/*__APPLE__*/
 
 
 #ifdef _WIN32
@@ -35,8 +26,7 @@ extern "C"
 #include "SDL_syswm.h"
 #include <functional>
 
-static SDL_Window* window;
-static SDL_GLContext context;
+
 static GLuint fontTex;
 static bool mousePressed[4] = { false, false };
 static ImVec2 mousePosScale(1.0f, 1.0f);
@@ -124,7 +114,7 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
 
 static GLuint       g_FontTexture = 0;
 
-static void ImGui_WindowResize()
+void Engine::ImGui_WindowResize()
 {
     int w, h;
     int fb_w, fb_h;
