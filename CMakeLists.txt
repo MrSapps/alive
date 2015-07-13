@@ -208,6 +208,10 @@ add_executable(Alive MACOSX_BUNDLE
     src/gamedata.cpp
     include/filesystem.hpp
     src/filesystem.cpp
+    include/gridmap.hpp
+    src/gridmap.cpp
+    include/gridobject.hpp
+    src/gridobject.cpp
 )
 
 SET(CPACK_PACKAGE_EXECUTABLES Alive "A.L.I.V.E")
