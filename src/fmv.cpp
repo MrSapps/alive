@@ -2,8 +2,7 @@
 #include "imgui/imgui.h"
 #include "core/audiobuffer.hpp"
 #include "gamedata.hpp"
-#include "oddlib/PSXADPCMDecoder.h"
-#include "oddlib/PSXMDECDecoder.h"
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -30,7 +29,7 @@ public:
 #endif
     }
 
-    void DrawVideoSelectionUi(std::unique_ptr<Oddlib::Masher>& video, SDL_Surface*& videoFrame, const std::string& setName, const std::vector<std::string>& allFmvs)
+    void DrawVideoSelectionUi(std::unique_ptr<Oddlib::Masher>& video, FILE*& fp, SDL_Surface*& videoFrame, const std::string& setName, const std::vector<std::string>& allFmvs)
     {
         std::string name = "Video player (" + setName + ")";
         ImGui::Begin(name.c_str(), nullptr, ImVec2(550, 580), 1.0f, ImGuiWindowFlags_NoCollapse);
@@ -85,6 +84,10 @@ public:
             catch (const Oddlib::Exception& ex)
             {
                 // ImGui::Text(ex.what());
+
+                fp = fopen(fullPath.c_str(), "rb");
+                AudioBuffer::ChangeAudioSpec(512*4, 37800);
+
             }
         }
 
@@ -173,7 +176,7 @@ struct MasherVideoHeaderWrapper
 
 std::vector<Uint32> pixels;
 
-std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, PSXADPCMDecoder& adpcm, bool firstFrame)
+std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, PSXADPCMDecoder& adpcm, bool firstFrame, int& frameW, int& frameH)
 {
     std::vector<unsigned char> r(32768);
     std::vector<unsigned char> outPtr(32678);
@@ -181,12 +184,12 @@ std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, 
     unsigned int numSectorsToRead = 0;
     unsigned int sectorNumber = 0;
     const int kDataSize = 2016;
-    int width = 0;
-    int h = 0;
+;
+
     for (;;)
     {
-
         MasherVideoHeaderWrapper w;
+       
         if (fread(&w, 1, sizeof(w), fp) != sizeof(w))
         {
             end = true;
@@ -208,6 +211,9 @@ std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, 
         }
         else
         {
+            frameW = w.mWidth;
+            frameH = w.mHeight;
+
             //std::cout << "sector: " << w.mSectorNumber << std::endl;
             //std::cout << "data len: " << w.mFrameDataLen << std::endl;
             //std::cout << "frame number: " << w.mFrameNum << std::endl;
@@ -217,9 +223,8 @@ std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, 
 
 
             uint32_t bytes_to_copy = w.mFrameDataLen - w.mSectorNumberInFrame *kDataSize;
-            width = w.mWidth;
-            h = w.mHeight;
 
+            
             if (bytes_to_copy > 0)
             {
                 if (bytes_to_copy > kDataSize)
@@ -237,8 +242,13 @@ std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, 
         }
     }
 
+    if (pixels.empty())
+    {
+        pixels.resize(frameW * frameH);
 
-    mdec.DecodeFrameToABGR32((uint16_t*)pixels.data(), (uint16_t*)r.data(), width, h, false);
+    }
+
+    mdec.DecodeFrameToABGR32((uint16_t*)pixels.data(), (uint16_t*)r.data(), frameW, frameH, false);
 
     SDL_Delay(50);
     return r;
@@ -247,7 +257,7 @@ std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, 
 void Fmv::RenderVideoUi()
 {
 
-    if (!video)
+    if (!video && !mFp)
     {
         if (mFmvUis.empty())
         {
@@ -264,7 +274,7 @@ void Fmv::RenderVideoUi()
             auto fmvs = mGameData.Fmvs();
             for (auto fmvSet : fmvs)
             {
-                mFmvUis[i]->DrawVideoSelectionUi(video, videoFrame, fmvSet.first, fmvSet.second);
+                mFmvUis[i]->DrawVideoSelectionUi(video, mFp, videoFrame, fmvSet.first, fmvSet.second);
                 i++;
             }
         }
@@ -272,40 +282,43 @@ void Fmv::RenderVideoUi()
     }
     else
     {
-        /*
-        bool firstFrame;
-        bool end = false;
-        std::vector<unsigned char> frameData = ReadFrame(fp, end, mdec, adpcm, firstFrame);
-        firstFrame = false;
-        if (end)
+        if (mFp)
         {
-        break;
-        }*/
-
-
-        std::vector<Uint16> decodedFrame(video->SingleAudioFrameSizeBytes() * 2); // *2 if stereo
-
-        if (!video->Update((Uint32*)videoFrame->pixels, (Uint8*)decodedFrame.data()))
-        {
-            SDL_ShowCursor(1);
-            video = nullptr;
-            if (videoFrame)
+            bool firstFrame = true;
+            bool end = false;
+            std::vector<unsigned char> frameData = ReadFrame(mFp, end, mMdec, mAdpcm, firstFrame, frameW, frameH);
+            firstFrame = false;
+            if (end)
             {
-                SDL_FreeSurface(videoFrame);
-                videoFrame = nullptr;
+                fclose(mFp);
+                mFp = nullptr;
             }
-            //targetFps = 60;
         }
-        else
+        else if (video)
         {
-            AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
-            while (AudioBuffer::mPlayedSamples < video->FrameNumber() * video->SingleAudioFrameSizeBytes())
+            std::vector<Uint16> decodedFrame(video->SingleAudioFrameSizeBytes() * 2); // *2 if stereo
+
+            if (!video->Update((Uint32*)videoFrame->pixels, (Uint8*)decodedFrame.data()))
             {
+                SDL_ShowCursor(1);
+                video = nullptr;
+                if (videoFrame)
+                {
+                    SDL_FreeSurface(videoFrame);
+                    videoFrame = nullptr;
+                }
+                //targetFps = 60;
+            }
+            else
+            {
+                AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
+                while (AudioBuffer::mPlayedSamples < video->FrameNumber() * video->SingleAudioFrameSizeBytes())
+                {
+
+                }
 
             }
-
         }
-
     }
 }
 
@@ -347,7 +360,7 @@ void Fmv::Render()
 
     RenderVideoUi();
 
-    if (videoFrame)
+    if (videoFrame || mFp)
     {
         // TODO: Optimize - should use VBO's & update 1 texture rather than creating per frame
         GLuint TextureID = 0;
@@ -356,12 +369,21 @@ void Fmv::Render()
         glBindTexture(GL_TEXTURE_2D, TextureID);
 
         int Mode = GL_RGB;
-
-        if (videoFrame->format->BytesPerPixel == 4) {
+        /*
+        if (videoFrame->format->BytesPerPixel == 4) 
+        {
             Mode = GL_RGBA;
         }
+        */
 
-        glTexImage2D(GL_TEXTURE_2D, 0, Mode, videoFrame->w, videoFrame->h, 0, Mode, GL_UNSIGNED_BYTE, videoFrame->pixels);
+        if (videoFrame)
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, videoFrame->w, videoFrame->h, 0, GL_RGB, GL_UNSIGNED_BYTE, videoFrame->pixels);
+        }
+        else if (mFp)
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, frameW, frameH, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+        }
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
