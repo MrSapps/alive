@@ -23,7 +23,7 @@ public:
     FmvUi()
     {
 #ifdef _WIN32
-        strcpy(buf, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus\\");
+        strcpy(buf, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee\\");
 #else
         strcpy(buf, "/home/paul/ae_test/");
 #endif
@@ -176,6 +176,8 @@ struct MasherVideoHeaderWrapper
 
 std::vector<Uint32> pixels;
 
+#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
+
 std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, PSXADPCMDecoder& adpcm, bool firstFrame, int& frameW, int& frameH)
 {
     std::vector<unsigned char> r(32768);
@@ -201,10 +203,18 @@ std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, 
             // There is probably no way this is correct
             CDXASector* xa = (CDXASector*)&w;
 
+            std::cout <<
+                (CHECK_BIT(xa->subheader.coding_info, 0) ? "Mono " : "Stereo ") <<
+                (CHECK_BIT(xa->subheader.coding_info, 2) ? "37800Hz " : "18900Hz ") <<
+                (CHECK_BIT(xa->subheader.coding_info, 4) ? "4bit " : "8bit ")
 
-            auto numBytes = adpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), xa->header, true);
+                << std::endl;
+           // if (xa->subheader.coding_info & 0xA)
+            {
+                auto numBytes = adpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), xa->header, xa->subheader.coding_info & 0x20);
 
-            AudioBuffer::SendSamples((char*)outPtr.data(), numBytes);
+                AudioBuffer::SendSamples((char*)outPtr.data(), numBytes);
+            }
 
             // Must be VALE
             continue;
@@ -346,6 +356,11 @@ void Fmv::Stop()
     {
         SDL_FreeSurface(videoFrame);
         videoFrame = nullptr;
+    }
+    if (mFp)
+    {
+        fclose(mFp);
+        mFp = nullptr;
     }
 }
 
