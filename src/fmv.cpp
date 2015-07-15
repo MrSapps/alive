@@ -86,7 +86,7 @@ public:
                 // ImGui::Text(ex.what());
 
                 fp = fopen(fullPath.c_str(), "rb");
-                AudioBuffer::ChangeAudioSpec(512*4, 37800);
+                AudioBuffer::ChangeAudioSpec(8064/4, 37800);
 
             }
         }
@@ -99,6 +99,7 @@ public:
 
 struct CDXASector
 {
+    /*
     uint8_t sync[12];
     uint8_t header[4];
 
@@ -114,7 +115,14 @@ struct CDXASector
         uint8_t coding_info_copy;
     } subheader;
     uint8_t data[2328];
+    */
+
+    uint8_t data[2328 + 12 + 4 + 8];
 };
+
+// expected 2352
+// 2328 + 12 + 4 + 8
+// 2352-2304, so + 48
 
 static const uint8_t m_CDXA_STEREO = 3;
 
@@ -203,17 +211,37 @@ std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, 
             // There is probably no way this is correct
             CDXASector* xa = (CDXASector*)&w;
 
+            /*
             std::cout <<
                 (CHECK_BIT(xa->subheader.coding_info, 0) ? "Mono " : "Stereo ") <<
                 (CHECK_BIT(xa->subheader.coding_info, 2) ? "37800Hz " : "18900Hz ") <<
                 (CHECK_BIT(xa->subheader.coding_info, 4) ? "4bit " : "8bit ")
+                */
 
-                << std::endl;
+//                << std::endl;
            // if (xa->subheader.coding_info & 0xA)
             {
-                auto numBytes = adpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), xa->header, xa->subheader.coding_info & 0x20);
 
-                AudioBuffer::SendSamples((char*)outPtr.data(), numBytes);
+                auto numBytes = adpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), &xa->data[0], true);
+                //if (CHECK_BIT(xa->subheader.coding_info, 2) && (CHECK_BIT(xa->subheader.coding_info, 0)))
+                {
+                    AudioBuffer::mPlayedSamples = 0;
+                    AudioBuffer::SendSamples((char*)outPtr.data(), numBytes);
+
+                    // 8064
+                    while (AudioBuffer::mPlayedSamples < numBytes/4)
+                    {
+
+                    }
+
+
+                }
+                //else
+                {
+               //     std::vector<unsigned char> silence;
+                //    silence.resize(numBytes);
+                //    AudioBuffer::SendSamples((char*)silence.data(), numBytes);
+                }
             }
 
             // Must be VALE
@@ -260,7 +288,6 @@ std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, 
 
     mdec.DecodeFrameToABGR32((uint16_t*)pixels.data(), (uint16_t*)r.data(), frameW, frameH, false);
 
-    SDL_Delay(50);
     return r;
 }
 
@@ -393,7 +420,7 @@ void Fmv::Render()
 
         if (videoFrame)
         {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, videoFrame->w, videoFrame->h, 0, GL_RGB, GL_UNSIGNED_BYTE, videoFrame->pixels);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, videoFrame->w, videoFrame->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, videoFrame->pixels);
         }
         else if (mFp)
         {

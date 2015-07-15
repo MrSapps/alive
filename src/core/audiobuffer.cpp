@@ -19,17 +19,17 @@ void AudioBuffer::AudioCallback(void *udata, Uint8 *stream, int len)
     mBufferMutex.lock();
 
     int currentBufferSampleSize = mBuffer.size() / AUDIO_BUFFER_SAMPLE_SIZE;
-
-    if (currentBufferSampleSize >= gAudioBufferSize)
+    if (!mBuffer.empty())
+//    if (currentBufferSampleSize >= gAudioBufferSize)
     {
-        int size = gAudioBufferSize * AUDIO_BUFFER_SAMPLE_SIZE;
+        int size = mBuffer.size();// *AUDIO_BUFFER_SAMPLE_SIZE;
         if (size > len)
         {
             size = len;
         }
-        memmove(stream, mBuffer.data(), len);
-        mBuffer.erase(mBuffer.begin(), mBuffer.begin() + len);
-        mPlayedSamples += currentBufferSampleSize;
+        memmove(stream, mBuffer.data(), size);
+        mBuffer.erase(mBuffer.begin(), mBuffer.begin() + size);
+        mPlayedSamples += size / AUDIO_BUFFER_SAMPLE_SIZE;
     }
 
 

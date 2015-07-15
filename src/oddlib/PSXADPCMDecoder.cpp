@@ -23,6 +23,8 @@
 
 #include "oddlib/PSXADPCMDecoder.h"
 
+#include <algorithm>
+
 
 
 const uint32_t PSXADPCMDecoder::K0[4] =
@@ -46,78 +48,114 @@ PSXADPCMDecoder::~PSXADPCMDecoder()
     ;
 }
 
+#define AUDIO_DATA_CHUNK_SIZE   2304
+#define AUDIO_DATA_SAMPLE_COUNT 4032
 
-uint16_t PSXADPCMDecoder::DecodeFrameToPCM(int8_t *arg_decoded_stream,
-    uint8_t *arg_adpcm_frame,
-    bool arg_stereo)
+static const int s_xaTable[5][2] = {
+        { 0, 0 },
+        { 60, 0 },
+        { 115, -52 },
+        { 98, -55 },
+        { 122, -60 }
+};
+struct ADPCMStatus {
+    int16_t sample[2];
+} _adpcmStatus[2] = {};
+template <typename T>
+
+T CLIP(const T& n, const T& lower, const T& upper) {
+    return std::max(lower, std::min(n, upper));
+}
+
+uint16_t PSXADPCMDecoder::DecodeFrameToPCM(int8_t *arg_decoded_stream, uint8_t *arg_adpcm_frame, bool arg_stereo)
 {
-    SoundFrame *sf = (SoundFrame *)arg_adpcm_frame;
-    uint16_t count;
-    uint16_t output_bytes = 0;
-    int8_t unit_data, unit_filter, unit_range;
-    int16_t decoded;
-    int32_t tmp2, tmp3, tmp4, tmp5;
+   // sector->seek(24);
+    arg_adpcm_frame += 8;
 
-    for (uint8_t sound_group = 0; sound_group < 18; sound_group++)
+    // This XA audio is different (yet similar) from normal XA audio! Watch out!
+    // TODO: It's probably similar enough to normal XA that we can merge it somehow...
+    // TODO: RTZ PSX needs the same audio code in a regular AudioStream class. Probably
+    // will do something similar to QuickTime and creating a base class 'ISOMode2Parser'
+    // or something similar.
+    uint8_t *buf = arg_adpcm_frame;
+
+    int channels = true ? 2 : 1;
+    int16_t *dst = (int16_t*)arg_decoded_stream;
+    int16_t *leftChannel = dst;
+    int16_t *rightChannel = dst + 1;
+
+    for (uint8_t *src = buf; src < buf + AUDIO_DATA_CHUNK_SIZE; src += 128)
     {
-        count = 0;
-
-        for (uint32_t sound_unit = 0; sound_unit < 8;
-            sound_unit += arg_stereo + 1)
+        for (int i = 0; i < 4; i++)
         {
-            unit_range = GetRange(sf->sound_groups[sound_group], sound_unit);
-            unit_filter = GetFilter(sf->sound_groups[sound_group], sound_unit);
+            int shift = 12 - (src[4 + i * 2] & 0xf);
+            int filter = src[4 + i * 2] >> 4;
+            int f0 = s_xaTable[filter][0];
+            int f1 = s_xaTable[filter][1];
+            int16_t s_1 = _adpcmStatus[0].sample[0];
+            int16_t s_2 = _adpcmStatus[0].sample[1];
 
-            for (uint8_t sound_sample = 0; sound_sample < 28; sound_sample++)
+            for (int j = 0; j < 28; j++) 
             {
-                // channel 1
-                unit_data = GetSoundData(sf->sound_groups[sound_group],
-                    sound_unit, sound_sample);
-                tmp2 = (int32_t)(unit_data) << (12 - unit_range);
-                tmp3 = (int32_t)tmp2 * 2;
-                tmp4 = FixedMultiply(K0[unit_filter], t1);
-                tmp5 = FixedMultiply(K1[unit_filter], t2);
-                t2 = t1;
-                t1 = tmp3 + tmp4 + tmp5;
-                decoded = MaxMin(t1 / 2);
+                uint8_t d = src[16 + i + j * 4];
+                int t = (int8_t)(d << 4) >> 4;
+                int s = (t << shift) + ((s_1 * f0 + s_2 * f1 + 32) >> 6);
+                s_2 = s_1;
+                s_1 = CLIP<int>(s, -32768, 32767);
 
-                arg_decoded_stream[output_bytes + count++] =
-                    (int8_t)(decoded & 0x0000ffff);
-                arg_decoded_stream[output_bytes + count++] =
-                    (int8_t)(decoded >> 8);
+                *leftChannel = s_1;
+                leftChannel += channels;
+            }
+
+            if (channels == 2) 
+            {
+                _adpcmStatus[0].sample[0] = s_1;
+                _adpcmStatus[0].sample[1] = s_2;
+                s_1 = _adpcmStatus[1].sample[0];
+                s_2 = _adpcmStatus[1].sample[1];
+            }
+
+            shift = 12 - (src[5 + i * 2] & 0xf);
+            filter = src[5 + i * 2] >> 4;
+            f0 = s_xaTable[filter][0];
+            f1 = s_xaTable[filter][1];
+
+            for (int j = 0; j < 28; j++)
+            {
+                uint8_t d = src[16 + i + j * 4];
+                int t = (int8_t)d >> 4;
+                int s = (t << shift) + ((s_1 * f0 + s_2 * f1 + 32) >> 6);
+                s_2 = s_1;
+                s_1 = CLIP<int>(s, -32768, 32767);
 
 
-                if (arg_stereo)
+                if (channels == 2)
                 {
-                    // channel 2
-                    unit_data = GetSoundData(sf->sound_groups[sound_group],
-                        sound_unit + 1, sound_sample);
-                    int8_t unit_range1 = GetRange(sf->sound_groups[sound_group],
-                        sound_unit + 1);
-                    tmp2 = (int32_t)(unit_data) << (12 - unit_range1);
-                    tmp3 = (int32_t)tmp2 * 2;
-                    int8_t unit_filter1 =
-                        GetFilter(sf->sound_groups[sound_group],
-                        sound_unit + 1);
-                    tmp4 = FixedMultiply(K0[unit_filter1], t1_x);
-                    tmp5 = FixedMultiply(K1[unit_filter1], t2_x);
-                    t2_x = t1_x;
-                    t1_x = tmp3 + tmp4 + tmp5;
-                    decoded = MaxMin(t1_x / 2);
-
-                    arg_decoded_stream[output_bytes + count++] =
-                        (int8_t)(decoded & 0x0000ffff);
-                    arg_decoded_stream[output_bytes + count++] =
-                        (int8_t)(decoded >> 8);
+                    *rightChannel = s_1;
+                    rightChannel += 2;
                 }
+                else 
+                {
+                    *leftChannel++ = s_1;
+                }
+            }
 
+            if (channels == 2)
+            {
+                _adpcmStatus[1].sample[0] = s_1;
+                _adpcmStatus[1].sample[1] = s_2;
+            }
+            else 
+            {
+                _adpcmStatus[0].sample[0] = s_1;
+                _adpcmStatus[0].sample[1] = s_2;
             }
         }
-
-        output_bytes += count;
     }
 
-    return output_bytes;
+   // _audStream->queueBuffer((byte *)dst, AUDIO_DATA_SAMPLE_COUNT * 2, DisposeAfterUse::YES, flags);
+
+    return AUDIO_DATA_SAMPLE_COUNT * 2;
 }
 
 
