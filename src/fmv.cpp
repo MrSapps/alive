@@ -12,6 +12,8 @@
 #  include <GL/gl.h>
 #endif/*__APPLE__*/
 
+std::vector<Uint32> pixels;
+
 class FmvUi
 {
 private:
@@ -25,7 +27,7 @@ public:
 #ifdef _WIN32
         strcpy(buf, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee\\");
 #else
-        strcpy(buf, "/home/paul/ae_test/");
+        strcpy(buf, "/media/paul/FF7DISC3/Program Files (x86)/Steam/SteamApps/common/Oddworld Abes Oddysee/");
 #endif
     }
 
@@ -57,6 +59,7 @@ public:
 
         if (ImGui::Button("Play", ImVec2(ImGui::GetWindowWidth(), 20)))
         {
+            pixels.clear(); // In case next FMV has a diff resolution
             std::string fullPath = std::string(buf) + listbox_items[listbox_item_current];
             std::cout << "Play " << listbox_items[listbox_item_current] << std::endl;
             try
@@ -182,7 +185,6 @@ struct MasherVideoHeaderWrapper
 
 };
 
-std::vector<Uint32> pixels;
 
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 
