@@ -21,7 +21,8 @@ public:
 
     // Internal use
     static std::atomic<Uint64> mPlayedSamples; // This will overflow when playing roughly 10000 years worth of video.
+
+    // Protected by SDL audio lock
     static std::vector<char> mBuffer;
-    static std::mutex mBufferMutex;
 };
 

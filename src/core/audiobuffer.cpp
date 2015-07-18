@@ -9,14 +9,11 @@ int gAudioBufferSize = 512;
 
 std::atomic<Uint64> AudioBuffer::mPlayedSamples;
 std::vector<char> AudioBuffer::mBuffer;
-std::mutex AudioBuffer::mBufferMutex;
 
 void AudioBuffer::AudioCallback(void *udata, Uint8 *stream, int len)
 {
     memset(stream, 0, len);
 
-
-    mBufferMutex.lock();
 
     int currentBufferSampleSize = mBuffer.size() / AUDIO_BUFFER_SAMPLE_SIZE;
     if (!mBuffer.empty())
@@ -32,8 +29,6 @@ void AudioBuffer::AudioCallback(void *udata, Uint8 *stream, int len)
         mPlayedSamples += size / AUDIO_BUFFER_SAMPLE_SIZE;
     }
 
-
-    mBufferMutex.unlock();
 }
 
 void AudioBuffer::ChangeAudioSpec(int frameSize, int freq)
@@ -71,23 +66,23 @@ void AudioBuffer::Open(int frameSize, int freq)
 
 void AudioBuffer::Close()
 {
-    mBufferMutex.lock();
+    SDL_LockAudio();
+
     mBuffer.clear();
     SDL_CloseAudio();
-    mBufferMutex.unlock();
+    SDL_UnlockAudio();
+
 }
 
 void AudioBuffer::SendSamples(char * sampleData, int size)
 {
     SDL_LockAudio();
 
-    mBufferMutex.lock();
 
     int lastSize = mBuffer.size();
     mBuffer.resize(lastSize + size);
     memcpy(mBuffer.data() + lastSize, sampleData, size);
 
-    mBufferMutex.unlock();
 
     SDL_UnlockAudio();
 }
