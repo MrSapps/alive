@@ -1,6 +1,6 @@
 #pragma once
 
-static class AliveAudioHelper
+class AliveAudioHelper
 {
 public:
 

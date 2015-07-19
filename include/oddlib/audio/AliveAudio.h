@@ -26,7 +26,7 @@ void AliveAudioSDLCallback(void *udata, Uint8 *stream, int len);
 
 const int AliveAudioSampleRate = 44100;
 
-static class AliveAudio
+class AliveAudio
 {
 public:
 	static std::vector<unsigned char> m_SoundsDat;
