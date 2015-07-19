@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <memory>
-#include "SDL_types.h"
+#include "SDL.h"
 
 namespace Oddlib
 {

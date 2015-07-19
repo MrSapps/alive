@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include "SDL_Types.h"
+#include "SDL.h"
 
 // All of the ADSR calculations herein (except where inaccurate) are derived from Neill Corlett's work in
 // reverse-engineering the Playstation 1/2 SPU unit.
