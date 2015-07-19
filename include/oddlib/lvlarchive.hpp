@@ -64,7 +64,8 @@ namespace Oddlib
             File(Stream& stream, const FileRecord& rec);
             const std::string& FileName() const;
             FileChunk* ChunkById(Uint32 id);
-
+            FileChunk* ChunkByIndex(Uint32 index) { return mChunks[index].get(); }
+            size_t ChunkCount() const { return mChunks.size(); }
             // Deugging feature
             void SaveChunks();
         private:

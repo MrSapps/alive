@@ -19,9 +19,10 @@ public:
     // Sample data must be 16 bit pcm.
     static void SendSamples(char * sampleData, int size);
 
+
     // Internal use
     static std::atomic<Uint64> mPlayedSamples; // This will overflow when playing roughly 10000 years worth of video.
-
+private:
     // Protected by SDL audio lock
     static std::vector<char> mBuffer;
 };

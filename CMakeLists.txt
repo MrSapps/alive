@@ -123,7 +123,33 @@ add_library(oddlib STATIC
     include/oddlib/PSXADPCMDecoder.h
     src/oddlib/PSXADPCMDecoder.cpp
     src/oddlib/PSXMDECDecoder.cpp
+    src/oddlib/audio/ADSR.cpp
+    src/oddlib/audio/AliveAudio.cpp
+    src/oddlib/audio/biquad.cpp
+    src/oddlib/audio/Helper.cpp
+    src/oddlib/audio/Program.cpp
+    src/oddlib/audio/Sample.cpp
+    src/oddlib/audio/SequencePlayer.cpp
+    src/oddlib/audio/Soundbank.cpp
+    src/oddlib/audio/Tone.cpp
+    src/oddlib/audio/vab.cpp
+    src/oddlib/audio/Voice.cpp
+    include/oddlib/audio/ADSR.h
+    include/oddlib/audio/AliveAudio.h
+    include/oddlib/audio/biquad.h
+    include/oddlib/audio/EQ.h
+    include/oddlib/audio/Helper.h
+    include/oddlib/audio/Program.h
+    include/oddlib/audio/Sample.h
+    include/oddlib/audio/SequencePlayer.h
+    include/oddlib/audio/Soundbank.h
+    include/oddlib/audio/Tone.h
+    include/oddlib/audio/vab.hpp
+    include/oddlib/audio/Voice.h
+    include/oddlib/audio/FileManager.h
+    src/oddlib/audio/FileManager.cpp
 )
+
 #cotire(oddlib)
 
 # Bake binary test files in C array/header files
