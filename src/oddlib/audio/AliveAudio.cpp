@@ -43,11 +43,11 @@ void AliveInitAudio()
 		exit(-1);
 	}
 
-	LoadJsonConfig("config/themes.json");
-	LoadJsonConfig("config/sfx_list.json");
+	LoadJsonConfig("C:\\Users\\paul\\Desktop\\alive\\alive\\data\\themes.json");
+	LoadJsonConfig("C:\\Users\\paul\\Desktop\\alive\\alive\\data\\sfx_list.json");
 
 	std::ifstream soundDatFile;
-	soundDatFile.open("sounds.dat", std::ios::binary);
+	soundDatFile.open("C:\\Users\\paul\\Desktop\\alive\\alive\\data\\sounds.dat", std::ios::binary);
 	if (!soundDatFile.is_open())
 	{
 		abort();

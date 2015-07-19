@@ -8,7 +8,7 @@
 
 Vab::Vab()
 {
-    iSoundsDat.open("sounds.dat", std::ios::binary);
+    iSoundsDat.open("C:\\Users\\paul\\Desktop\\alive\\alive\\data\\sounds.dat", std::ios::binary);
     if (!iSoundsDat.is_open())
     {
         abort();
