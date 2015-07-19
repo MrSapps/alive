@@ -9,8 +9,8 @@
 #include <algorithm>
 
 #include "vab.hpp"
-#include "oddlib\lvlarchive.hpp"
-#include "jsonxx\jsonxx.h"
+#include "oddlib/lvlarchive.hpp"
+#include "jsonxx/jsonxx.h"
 
 #include "Soundbank.h"
 #include "Helper.h"

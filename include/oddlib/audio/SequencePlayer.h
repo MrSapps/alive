@@ -4,8 +4,8 @@
 #include <string>
 #include <thread>
 #include <vector>
-#include "oddlib\stream.hpp"
-#include "oddlib\audio\AliveAudio.h"
+#include "oddlib/stream.hpp"
+#include "oddlib/audio/AliveAudio.h"
 //#include "PreciseTimer.h"
 
 struct SeqHeader

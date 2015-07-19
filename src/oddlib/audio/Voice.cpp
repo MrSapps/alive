@@ -1,5 +1,5 @@
-#include "oddlib\audio\Voice.h"
-#include "oddlib\audio\AliveAudio.h"
+#include "oddlib/audio/Voice.h"
+#include "oddlib/audio/AliveAudio.h"
 
 float AliveAudioVoice::GetSample()
 {

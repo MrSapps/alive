@@ -7,6 +7,7 @@
 #include "string_util.hpp"
 #include "oddlib/stream.hpp"
 #include "oddlib/exceptions.hpp"
+
 namespace Oddlib
 {
     inline Uint32 MakeType(Uint8 b4, Uint8 b3, Uint8 b2, Uint8 b1)
