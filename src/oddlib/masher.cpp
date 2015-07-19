@@ -619,7 +619,7 @@ namespace Oddlib
         if (v < 0.0f) v = 0.0f;
         if (v > 255.0f) v = 255.0f;
         return (unsigned char)v;
-    };
+    }
 
     void SetElement(int x, int y, int width, Uint32* ptr, Uint32 value)
     {

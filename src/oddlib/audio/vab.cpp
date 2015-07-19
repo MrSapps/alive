@@ -43,7 +43,7 @@ void Vab::ReadVb( std::istream& aStream )
     
 	if (streamSize > 5120) // No exoddus vb is greater than 5kb
 	{
-		for (_Uint32t i = 0; i < iHeader->iNumVags; ++i)
+        for (auto i = 0; i < iHeader->iNumVags; ++i)
 		{
 			AoVag* vag = new AoVag();
 			aStream.read((char*)&vag->iSize, sizeof(vag->iSize));

@@ -51,7 +51,7 @@ AliveAudioSoundbank::AliveAudioSoundbank(Oddlib::LvlArchive& archive, std::strin
 	vbStream.write((const char *)vbData.data(), vbData.size());
 	vbStream.seekg(0, std::ios_base::beg);
 
-	Vab vab = Vab();
+    Vab vab;
 	vab.ReadVh(vhStream);
 	vab.ReadVb(vbStream);
 
@@ -75,7 +75,7 @@ AliveAudioSoundbank::AliveAudioSoundbank(std::string lvlPath, std::string vabID)
 	vbStream.write((const char *)vbData.data(), vbData.size());
 	vbStream.seekg(0, std::ios_base::beg);
 
-	Vab vab = Vab();
+    Vab vab;
 	vab.ReadVh(vhStream);
 	vab.ReadVb(vbStream);
 

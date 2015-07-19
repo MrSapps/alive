@@ -1733,8 +1733,8 @@ TEST(Masher, all_colours_low_compression_15fps_8bit_mono_high_compression_5_fram
     TestMasher masher(get_all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave());
     ASSERT_EQ(true, masher.HasVideo());
     ASSERT_EQ(true, masher.HasAudio());
-    ASSERT_EQ(258, masher.Width());
-    ASSERT_EQ(200, masher.Height());
+    ASSERT_EQ(258u, masher.Width());
+    ASSERT_EQ(200u, masher.Height());
     std::vector<Uint32> pixelBuffer(masher.Width() * masher.Height());
     ASSERT_EQ(true, masher.Update(pixelBuffer.data(), nullptr));
     ASSERT_EQ(false, masher.Update(pixelBuffer.data(), nullptr));
@@ -1764,8 +1764,8 @@ TEST(Masher, all_colours_low_compression_30_fps)
     TestMasher masher(get_all_colours_low_compression_30_fps());
     ASSERT_EQ(true, masher.HasVideo());
     ASSERT_EQ(false, masher.HasAudio());
-    ASSERT_EQ(258, masher.Width());
-    ASSERT_EQ(200, masher.Height());
+    ASSERT_EQ(258u, masher.Width());
+    ASSERT_EQ(200u, masher.Height());
     std::vector<Uint32> pixelBuffer(masher.Width() * masher.Height());
     ASSERT_EQ(true, masher.Update(pixelBuffer.data(), nullptr));
     ASSERT_EQ(false, masher.Update(pixelBuffer.data(), nullptr));

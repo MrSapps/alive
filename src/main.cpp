@@ -14,8 +14,10 @@ int main(int argc, char** argv)
     TRACE_ENTRYEXIT;
 
     lua_State *L = lua_open();
-    lua_close(L);
-
+    if (L)
+    {
+        lua_close(L);
+    }
 
     Engine e;
     if (!e.Init())
