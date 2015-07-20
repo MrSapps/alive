@@ -211,7 +211,5 @@ public:
 
     std::vector< AoVag* > iAoVags;
 
-    std::ifstream iSoundsDat;
-
     // What about AO? Seems the same as sounds.dat but in each VB file
 };

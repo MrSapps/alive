@@ -8,11 +8,7 @@
 
 Vab::Vab()
 {
-    iSoundsDat.open("C:\\Users\\paul\\Desktop\\alive\\alive\\data\\sounds.dat", std::ios::binary);
-    if (!iSoundsDat.is_open())
-    {
-        abort();
-    }
+
 }
 
 Vab::Vab( std::string aVhFile, std::string aVbFile )
@@ -38,10 +34,10 @@ void Vab::ReadVb( std::istream& aStream )
 
     //    aStream.setByteOrder( QDataStream::LittleEndian );
 	aStream.seekg(0, aStream.end);
-	int streamSize = aStream.tellg();
+	auto streamSize = aStream.tellg();
 	aStream.seekg(0, aStream.beg);
     
-	if (streamSize > 5120) // No exoddus vb is greater than 5kb
+	if (streamSize > 5120) // HACK: No exoddus vb is greater than 5kb
 	{
         for (auto i = 0; i < iHeader->iNumVags; ++i)
 		{
