@@ -1895,3 +1895,79 @@ TEST(LvlArchive, DISABLED_Integration)
 
 }
 */
+
+// Each sector is 2352 bytes
+struct RawSectorHeader
+{
+    Uint8 mSync[12]; // Sync bytes of 0xFF
+    Uint8 mMin;
+    Uint8 mSecond;
+    Uint8 mFrame; // aka sector number
+    Uint8 mMode;
+    Uint8 mData[2336];
+};
+
+class RawCdImage
+{
+public:
+    RawCdImage(const RawCdImage&) = delete;
+    RawCdImage& operator = (const RawCdImage&) = delete;
+    RawCdImage(Oddlib::Stream& stream)
+        : mStream(stream)
+    {
+        ReadFileSystem();
+    }
+private:
+    void ReadFileSystem()
+    {
+
+        RawSectorHeader sector = {};
+
+        if (sector.mMode == 0)
+        {
+            // There is a Mode 0, which contains nothing but 0s (no Synch or min, sec, frame).
+        }
+        else if (sector.mMode == 1)
+        {
+            // Mode 1
+            // User Data	2048 Bytes
+            // EDC	4 Bytes	Error Detection Code
+            // Blank	8 Bytes	0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+            // ECC	276 Bytes
+        }
+        else if (sector.mMode == 2)
+        {
+            // To tell the different Mode 2s apart you have to examine bytes 16 - 23 of the sector
+            // (the first 8 bytes of Mode Data).If bytes 16 - 19 are not the same as 20 - 23, 
+            // then it is Mode 2. If they are equal and bit 5 is on(0x20), then it is Mode 2 Form 2. 
+            // Otherwise it is Mode 2 Form 1.
+
+            // Mode 2
+            // There is no structure for this mode. The Mode Data IS the User Data. There is no checksums, sh, or os.
+
+            // Mode 2 Form 1
+            // Mode Data 2336 Bytes
+            // SH 8 Bytes Shell
+            // User Data 2048 Bytes
+            // EDC 4 Bytes Error Detection Code
+            // ECC 276 Bytes
+
+            // Mode 2 Form 2
+            // Mode Data 2336 Bytes
+            // SH 8 Bytes Shell
+            // User Data 2324 Bytes
+            // EDC 4 Bytes
+
+            // Sector 16
+        }
+
+    }
+
+    Oddlib::Stream& mStream;
+};
+
+TEST(CdFs, Read)
+{
+    Oddlib::Stream stream("img.bin");
+    RawCdImage img(stream);
+}
