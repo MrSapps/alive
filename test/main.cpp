@@ -1966,7 +1966,7 @@ private:
     Oddlib::Stream& mStream;
 };
 
-TEST(CdFs, Read)
+TEST(CdFs, DISABLED_Read)
 {
     Oddlib::Stream stream("img.bin");
     RawCdImage img(stream);
