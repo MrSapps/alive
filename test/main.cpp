@@ -34,12 +34,12 @@ TEST(LvlArchive, FileNotFound)
 
 TEST(LvlArchive, Corrupted)
 {
-    std::vector<unsigned char> invalidLvl = 
+    std::vector<unsigned char> invalidLvl =
     {
-        0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
         0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-        0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
-        0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 
+        0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+        0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+        0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
         0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
     };
     ASSERT_THROW(Oddlib::LvlArchive(std::move(invalidLvl)), Oddlib::InvalidLvl);
@@ -49,7 +49,7 @@ static std::string FileChunkToString(Oddlib::LvlArchive::FileChunk& chunk)
 {
     auto fileData = chunk.ReadData();
     char* fileDataCharPtr = reinterpret_cast<char*>(fileData.data());
-    return std::string(fileDataCharPtr, fileDataCharPtr + fileData.size()); 
+    return std::string(fileDataCharPtr, fileDataCharPtr + fileData.size());
 }
 
 TEST(LvlArchive, ReadFiles)
@@ -1716,7 +1716,7 @@ class TestMasher : public Oddlib::Masher
 {
 public:
     TestMasher(std::vector<Uint8>&& data)
-        : Oddlib::Masher(std::move(data)) 
+        : Oddlib::Masher(std::move(data))
     {
 
     }
@@ -1812,41 +1812,41 @@ TEST(Masher, mono_16_high_compression_all_samples)
 
 TEST(Masher, mono_16_low_compression_all_samples)
 {
-   // Oddlib::Masher masher(get_mono_16_low_compression_all_samples());
+    // Oddlib::Masher masher(get_mono_16_low_compression_all_samples());
     //while (masher.Update());
 }
 
 TEST(Masher, stereo_8_high_compression_all_samples)
 {
-   // Oddlib::Masher masher(get_stereo_8_high_compression_all_samples());
-   // while (masher.Update());
+    // Oddlib::Masher masher(get_stereo_8_high_compression_all_samples());
+    // while (masher.Update());
 }
 
 TEST(Masher, stereo_8_low_compression_all_samples)
 {
-   // Oddlib::Masher masher(get_stereo_8_low_compression_all_samples());
-   // while (masher.Update());
+    // Oddlib::Masher masher(get_stereo_8_low_compression_all_samples());
+    // while (masher.Update());
 }
 
 TEST(Masher, stereo_16_high_compression_all_samples)
 {
     TestMasher masher(get_stereo_16_high_compression_all_samples());
     ASSERT_EQ(false, masher.HasVideo());
-    ASSERT_EQ(true,  masher.HasAudio());
+    ASSERT_EQ(true, masher.HasAudio());
 
     // Valgrind reported we read/write 2 bytes out of bounds, so must be off by one error?
     std::vector<Uint8> audioBuffer((masher.SingleAudioFrameSizeBytes() * 4));
 
     // TODO: Verify the content of each decoded audio frame / VS \ on each channel
-    while(masher.Update(nullptr, audioBuffer.data()));
- 
+    while (masher.Update(nullptr, audioBuffer.data()));
+
 
 }
 
 TEST(Masher, stereo_16_low_compression_all_samples)
 {
-   // Oddlib::Masher masher(get_stereo_16_low_compression_all_samples());
-   // while (masher.Update());
+    // Oddlib::Masher masher(get_stereo_16_low_compression_all_samples());
+    // while (masher.Update());
 }
 
 static void IndentTest(int level)
@@ -1874,29 +1874,34 @@ TEST(Logger, Indentation)
 /*
 TEST(LvlArchive, DISABLED_Integration)
 {
-    // Load AE lvl
-    Oddlib::LvlArchive lvl("MI.LVL");
+// Load AE lvl
+Oddlib::LvlArchive lvl("MI.LVL");
 
-    const auto file = lvl.FileByName("FLYSLIG.BND");
-    ASSERT_NE(nullptr, file);
+const auto file = lvl.FileByName("FLYSLIG.BND");
+ASSERT_NE(nullptr, file);
 
 
-    const auto chunk = file->ChunkById(450);
-    ASSERT_NE(nullptr, chunk);
+const auto chunk = file->ChunkById(450);
+ASSERT_NE(nullptr, chunk);
 
-    ASSERT_EQ(450u, chunk->Id());
+ASSERT_EQ(450u, chunk->Id());
 
-    const auto data = chunk->ReadData();
-    ASSERT_FALSE(data.empty());
+const auto data = chunk->ReadData();
+ASSERT_FALSE(data.empty());
 
-    Oddlib::LvlArchive lvl2("R1.LVL");
+Oddlib::LvlArchive lvl2("R1.LVL");
 
-    std::vector<std::unique_ptr<Oddlib::Animation>> animations = Oddlib::AnimationFactory::Create(lvl2, "ROPES.BAN", 1000);
+std::vector<std::unique_ptr<Oddlib::Animation>> animations = Oddlib::AnimationFactory::Create(lvl2, "ROPES.BAN", 1000);
 
 }
 */
 
+const Uint32 kRawSectorSize = 2352;
+const Uint32 kFileSystemStartSector = 16;
+
 // Each sector is 2352 bytes
+#pragma pack(push)
+#pragma pack(1)
 struct RawSectorHeader
 {
     Uint8 mSync[12]; // Sync bytes of 0xFF
@@ -1906,6 +1911,102 @@ struct RawSectorHeader
     Uint8 mMode;
     Uint8 mData[2336];
 };
+
+struct both_endian_32
+{
+    Uint32 little;
+    Uint32 big;
+};
+
+struct both_endian_16
+{
+    Uint16 little;
+    Uint16 big;
+};
+
+struct date_time
+{
+    Uint8 year[4];
+    Uint8 month[2];
+    Uint8 day[2];
+    Uint8 hour[2];
+    Uint8 minute[2];
+    Uint8 second[2];
+    Uint8 mil[2];
+    Uint8 gmt;
+};
+
+struct volume_descriptor
+{
+    Uint8 mType;
+    Uint8 mMagic[5];
+    Uint8 mVersion;
+    Uint8 mUnused;
+    Uint8 mSys_id[32];
+    Uint8 mVol_id[32];
+    Uint8 mUnused2[8];
+    both_endian_32 vol_size;
+    Uint8 mUnused3[32];
+
+    both_endian_16 vol_count;
+    both_endian_16 vol_index;
+    both_endian_16 logical_block_size;
+    both_endian_32 path_table_size;
+
+    Uint32 path_table_location_LSB;
+    Uint32 path_table_optional_location_LSB;
+    Uint32 path_table_location_MSB;
+    Uint32 path_table_optional_location_MSB;
+
+    Uint8 root_entry[34];
+
+    Uint8 vol_set_id[128];
+    Uint8 publisher_id[128];
+    Uint8 data_preparer_id[128];
+    Uint8 app_id[128];
+    Uint8 copyright_file[38];
+    Uint8 abstract_file[36];
+    Uint8 biblio_file[37];
+
+    date_time vol_creation;
+    date_time vol_modif;
+    date_time vol_expiration;
+    date_time vol_effective;
+
+    Uint8 file_structure_version;
+    Uint8 unused4;
+
+    Uint8 extra_data[512];
+    Uint8 reserved[653];
+};
+
+
+struct path_entry
+{
+    Uint8 name_length;
+    Uint8 extended_length;
+    Uint32 location;
+    Uint16 parent;
+};
+
+struct directory_record
+{
+    Uint8 length;
+    Uint8 extended_length;
+    both_endian_32 location;
+    both_endian_32 data_length;
+    Uint8 date[7]; //irregular
+    Uint8 flags;
+    Uint8 unit_size;
+    Uint8 gap_size;
+    both_endian_16 sequence_number;
+    Uint8 length_file_id; //files end with ;1
+    //file id
+    //padding
+    //system use
+};
+#pragma pack(pop)
+//static_assert(sizeof(directory_record) == 33, "Wrong directory record size");
 
 class RawCdImage
 {
@@ -1918,10 +2019,55 @@ public:
         ReadFileSystem();
     }
 private:
+    void Read(path_entry* entry)
+    {
+        mStream.Seek((kRawSectorSize*entry->location));
+
+        RawSectorHeader sector = {};
+        mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
+
+        directory_record* dr = (directory_record*)&sector.mData[8];
+        while (dr->length)
+        {
+            char* name = ((char*)(&dr->length)) + 1;
+
+            char* ptr = (char*)&dr;
+            dr = (directory_record*)(ptr + dr->length);
+
+
+            directory_record*
+                directory_record*
+                directory_record*
+                directory_record*
+        }
+
+    }
+
     void ReadFileSystem()
     {
 
         RawSectorHeader sector = {};
+
+        volume_descriptor* volDesc = nullptr;
+        auto secNum = kFileSystemStartSector - 1;
+        do
+        {
+            secNum++;
+            mStream.Seek(kRawSectorSize*secNum);
+            mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
+
+            volDesc = (volume_descriptor*)&sector.mData[8];
+        } while (volDesc->mType != 1);
+
+
+
+        secNum = volDesc->path_table_location_LSB;
+        mStream.Seek(kRawSectorSize*secNum);
+        mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
+        path_entry * entry = (path_entry *)&sector.mData[8]; // 0x1a is where dir name starts?
+        Read(entry);
+
+        entry = entry;
 
         if (sector.mMode == 0)
         {
@@ -1947,12 +2093,14 @@ private:
 
             // Mode 2 Form 1
             // Mode Data 2336 Bytes
+
             // SH 8 Bytes Shell
             // User Data 2048 Bytes
             // EDC 4 Bytes Error Detection Code
             // ECC 276 Bytes
 
             // Mode 2 Form 2
+
             // Mode Data 2336 Bytes
             // SH 8 Bytes Shell
             // User Data 2324 Bytes
@@ -1966,8 +2114,8 @@ private:
     Oddlib::Stream& mStream;
 };
 
-TEST(CdFs, DISABLED_Read)
+TEST(CdFs, Read)
 {
-    Oddlib::Stream stream("img.bin");
+    Oddlib::Stream stream("C:\\Users\\paul\\Downloads\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725]\\ao.bin");
     RawCdImage img(stream);
 }
