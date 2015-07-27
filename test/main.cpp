@@ -2007,6 +2007,17 @@ struct directory_record
 };
 #pragma pack(pop)
 //static_assert(sizeof(directory_record) == 33, "Wrong directory record size");
+enum e_directory_record_flags
+{
+    FLAG_HIDDEN = 1,
+    FLAG_DIRECTORY = 2,
+    FLAG_ASSOCIATED = 4,
+    FLAG_EXTENDED = 8,
+    FLAG_OWNER = 16,
+    FLAG_RESERVED1 = 32,
+    FLAG_RESERVED2 = 64,
+    FLAG_NOT_FINAL = 128
+};
 
 class RawCdImage
 {
@@ -2019,9 +2030,9 @@ public:
         ReadFileSystem();
     }
 private:
-    void Read(path_entry* entry)
+    void Read(Uint32 loc)
     {
-        mStream.Seek((kRawSectorSize*entry->location));
+        mStream.Seek((kRawSectorSize*loc));
 
         RawSectorHeader sector = {};
         mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
@@ -2029,16 +2040,41 @@ private:
         directory_record* dr = (directory_record*)&sector.mData[8];
         while (dr->length)
         {
-            char* name = ((char*)(&dr->length)) + 1;
+            if (dr->length_file_id)
+            {
+                char* name = ((char*)(&dr->length_file_id)) + 1;
+                if (dr->length_file_id == 1)
+                {
+                    if (*name == 0x0)
+                    {
+                        std::cout << "." << std::endl;
+                    }
+                    else if (*name == 0x1)
+                    {
+                        std::cout << ".." << std::endl;
+                    }
+                    else
+                    {
+                        std::cout << name << std::endl;
+                    }
+                }
+                else
+                {
+                    std::cout << name << std::endl;
+                    if ((dr->flags & FLAG_DIRECTORY) && loc != dr->location.little)
+                    {
+                        Read(dr->location.little);
+                    }
+                }
+            }
 
-            char* ptr = (char*)&dr;
+            if (dr->flags & FLAG_NOT_FINAL)
+            {
+                std::cout << "to next sector" << std::endl;
+            }
+
+            char* ptr = (char*)dr;
             dr = (directory_record*)(ptr + dr->length);
-
-
-            directory_record*
-                directory_record*
-                directory_record*
-                directory_record*
         }
 
     }
@@ -2060,12 +2096,14 @@ private:
         } while (volDesc->mType != 1);
 
 
+        //directory_record* dr = (directory_record*)&volDesc->root_entry[0];
+
 
         secNum = volDesc->path_table_location_LSB;
         mStream.Seek(kRawSectorSize*secNum);
         mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
         path_entry * entry = (path_entry *)&sector.mData[8]; // 0x1a is where dir name starts?
-        Read(entry);
+        Read(entry->location);
 
         entry = entry;
 
@@ -2116,6 +2154,6 @@ private:
 
 TEST(CdFs, Read)
 {
-    Oddlib::Stream stream("C:\\Users\\paul\\Downloads\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725]\\ao.bin");
+    Oddlib::Stream stream("C:\\Users\\paul\\Downloads\\Demo One (Version 1) (E) [SCES-00048]\\Demo One (Version 1) (E) [SCES-00048]\\Demo One (Version 1) (E) (Track 1) [SCES-00048].bin");
     RawCdImage img(stream);
 }
