@@ -2065,6 +2065,16 @@ private:
                     {
                         Read(dr->location.little);
                     }
+                    else
+                    {
+                        std::cout << "File size is " << dr->data_length.little << " starting at sector " << dr->location.little << std::endl;
+                        /*
+                        mStream.Seek((kRawSectorSize*dr->location.little));
+
+                        mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
+                        dr = (directory_record*)&sector.mData[8];
+                        */
+                    }
                 }
             }
 
@@ -2154,6 +2164,6 @@ private:
 
 TEST(CdFs, Read)
 {
-    Oddlib::Stream stream("C:\\Users\\paul\\Downloads\\Demo One (Version 1) (E) [SCES-00048]\\Demo One (Version 1) (E) [SCES-00048]\\Demo One (Version 1) (E) (Track 1) [SCES-00048].bin");
+    Oddlib::Stream stream("C:\\Users\\pmoran\\Downloads\\AO_D\\img.bin");
     RawCdImage img(stream);
 }
