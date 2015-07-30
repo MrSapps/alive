@@ -2032,65 +2032,73 @@ public:
         ReadFileSystem();
     }
 private:
-    void Read(Uint32 loc)
+    void Read(directory_record* rec)
     {
-        mStream.Seek((kRawSectorSize*loc));
+        auto sector = rec->location.little;
+        auto dataSize = rec->data_length.little;
+        auto numSectors = dataSize / 2048;
 
-        RawSectorHeader sector = {};
-        mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
-
-        directory_record* dr = (directory_record*)&sector.mData[8];
-        while (dr->length)
+        for (int i = sector; i < sector + numSectors; i++)
         {
-            if (dr->length_file_id)
+            RawSectorHeader sector = {};
+            mStream.Seek((kRawSectorSize*i));
+            mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
+
+            directory_record* dr = (directory_record*)&sector.mData[8];
+            while (dr->length)
             {
-                char* name = ((char*)(&dr->length_file_id)) + 1;
-                if (dr->length_file_id == 1)
+                if (dr->length_file_id)
                 {
-                    if (*name == 0x0)
+                    std::string name(((char*)(&dr->length_file_id)) + 1, dr->length_file_id);
+                    if (dr->length_file_id == 1)
                     {
-                        std::cout << "." << std::endl;
-                    }
-                    else if (*name == 0x1)
-                    {
-                        std::cout << ".." << std::endl;
+                        if (name.length() == 1)
+                        {
+                            if (name[0] == 0x0)
+                            {
+                                std::cout << "." << std::endl;
+                            }
+                            else if (name[0] == 0x1)
+                            {
+                                std::cout << ".." << std::endl;
+                            }
+                            else
+                            {
+                                std::cout << name.c_str() << std::endl;
+                            }
+                        }
+                        else
+                        {
+                            std::cout << name.c_str() << std::endl;
+                        }
                     }
                     else
                     {
-                        std::cout << name << std::endl;
+                        std::cout << name.c_str() << std::endl;
+                        if ((dr->flags & FLAG_DIRECTORY) && dr->location.little != rec->location.little)
+                        {
+                            Read(dr);
+                        }
+                        else
+                        {
+                            auto dataSize = dr->data_length.little;
+                            std::cout << "File size is " << dataSize << " starting at sector " << dr->location.little << std::endl;
+                            auto dataSector = dr->location.little;
+                            auto numSectors = dataSize / kRawSectorSize;
+
+                            /*
+                            mStream.Seek((kRawSectorSize*dr->location.little));
+
+                            mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
+                            dr = (directory_record*)&sector.mData[8];
+                            */
+                        }
                     }
                 }
-                else
-                {
-                    std::cout << name << std::endl;
-                    if ((dr->flags & FLAG_DIRECTORY) && loc != dr->location.little)
-                    {
-                        Read(dr->location.little);
-                    }
-                    else
-                    {
-                        auto dataSize = dr->data_length.little;
-                        std::cout << "File size is " << dataSize << " starting at sector " << dr->location.little << std::endl;
-                        auto dataSector = dr->location.little;
-                        auto numSectors = dataSize / kRawSectorSize;
 
-                        /*
-                        mStream.Seek((kRawSectorSize*dr->location.little));
-
-                        mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
-                        dr = (directory_record*)&sector.mData[8];
-                        */
-                    }
-                }
+                char* ptr = (char*)dr;
+                dr = (directory_record*)(ptr + dr->length);
             }
-
-            if (dr->flags & FLAG_NOT_FINAL)
-            {
-                std::cout << "to next sector" << std::endl;
-            }
-
-            char* ptr = (char*)dr;
-            dr = (directory_record*)(ptr + dr->length);
         }
 
     }
@@ -2112,16 +2120,16 @@ private:
         } while (volDesc->mType != 1);
 
 
-        //directory_record* dr = (directory_record*)&volDesc->root_entry[0];
+        directory_record* dr = (directory_record*)&volDesc->root_entry[0];
 
-
+        /*
         secNum = volDesc->path_table_location_LSB;
         mStream.Seek(kRawSectorSize*secNum);
         mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
-        path_entry * entry = (path_entry *)&sector.mData[8]; // 0x1a is where dir name starts?
-        Read(entry->location);
+        path_entry * entry = (path_entry *)&sector.mData[8]; // 0x1a is where dir name starts?*/
+        Read(dr);
 
-        entry = entry;
+    //    entry = entry;
 
         if (sector.mMode == 0)
         {
