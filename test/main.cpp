@@ -20,6 +20,8 @@
 #include "stereo_16_low_compression_all_samples.ddv.g.h"
 #include "stereo_8_high_compression_all_samples.ddv.g.h"
 #include "stereo_8_low_compression_all_samples.ddv.g.h"
+#include "test.bin.g.h"
+#include "xa.bin.g.h"
 
 int main(int argc, char** argv)
 {
@@ -91,7 +93,7 @@ TEST(LvlArchive, ReadFiles)
 
 }
 
-const Uint16 kLowCompression16BitExpected[0x3281] =
+const static Uint16 kLowCompression16BitExpected[0x3281] =
 {
     0x07FC, 0x0001, 0xFE00, 0x0002, 0x03FF, 0x0001, 0x03FF, 0x03FF,
     0xFE00, 0x0400, 0xFE00, 0x040C, 0x03FE, 0x03FE, 0x03FE, 0x07FF,
@@ -2067,7 +2069,11 @@ private:
                     }
                     else
                     {
-                        std::cout << "File size is " << dr->data_length.little << " starting at sector " << dr->location.little << std::endl;
+                        auto dataSize = dr->data_length.little;
+                        std::cout << "File size is " << dataSize << " starting at sector " << dr->location.little << std::endl;
+                        auto dataSector = dr->location.little;
+                        auto numSectors = dataSize / kRawSectorSize;
+
                         /*
                         mStream.Seek((kRawSectorSize*dr->location.little));
 
@@ -2162,8 +2168,14 @@ private:
     Oddlib::Stream& mStream;
 };
 
-TEST(CdFs, Read)
+TEST(CdFs, Read_FileSystemLimits)
 {
-    Oddlib::Stream stream("C:\\Users\\pmoran\\Downloads\\AO_D\\img.bin");
+    Oddlib::Stream stream(get_test());
+    RawCdImage img(stream);
+}
+
+TEST(CdFs, Read_XaSectors)
+{
+    Oddlib::Stream stream(get_xa());
     RawCdImage img(stream);
 }

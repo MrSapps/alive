@@ -173,6 +173,8 @@ endfunction()
 
 SET(samples_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files)
 
+to_vec(${samples_dir}/test.bin)
+to_vec(${samples_dir}/xa.bin)
 to_vec(${samples_dir}/sample.lvl)
 to_vec(${samples_dir}/ae_ddv/audio_only/mono_8_high_compression_all_samples.ddv)
 to_vec(${samples_dir}/ae_ddv/audio_only/mono_8_low_compression_all_samples.ddv)
