@@ -2042,6 +2042,12 @@ public:
     {
         ReadFileSystem();
     }
+
+    void LogTree()
+    {
+        mRoot.Log(1);
+    }
+
 private:
 #pragma pack(push)
 #pragma pack(1)
@@ -2168,8 +2174,10 @@ private:
         std::string str(reinterpret_cast<char*>(data.data()), data.size());
         std::cout << "Data is: " << str.c_str() << std::endl;
     }
+    
+    struct Directory;
 
-    void ReadDirectory(directory_record* rec)
+    void ReadDirectory(directory_record* rec, Directory* d)
     {
         const auto dataSize = rec->data_length.little;
         auto sector = rec->location.little;
@@ -2184,20 +2192,25 @@ private:
             {
                 if (!IsDots(dr))
                 {
-                    std::string name(NamePointer(dr), dr->length_file_id);
-                    std::cout << name.c_str() << std::endl;
+                    const std::string name(NamePointer(dr), dr->length_file_id);
+                    //std::cout << name.c_str() << std::endl;
                     if ((dr->flags & FLAG_DIRECTORY) && dr->location.little != rec->location.little)
                     {
-                        ReadDirectory(dr);
+                        auto dir = std::make_unique<Directory>();
+                        dir->mDir.mDr = *dr;
+                        dir->mDir.mName = name;
+                        d->mChildren.push_back(std::move(dir));
+                        ReadDirectory(dr, d->mChildren.back().get());
                     }
                     else
                     {
-                        ReadFile(dr);
+                        d->mFiles.emplace_back( DrWrapper { *dr, name});
+                       // ReadFile(dr);
                     }
                 }
 
                 char* ptr = reinterpret_cast<char*>(dr);
-                dr = (directory_record*)(ptr + dr->length);
+                dr = reinterpret_cast<directory_record*>(ptr + dr->length);
             }
         }
 
@@ -2215,23 +2228,62 @@ private:
             if (volDesc->mType == 1)
             {
                 directory_record* dr = (directory_record*)&volDesc->root_entry[0];
-                ReadDirectory(dr);
+                mRoot.mDir = DrWrapper { *dr, "" };
+                ReadDirectory(dr, &mRoot);
                 break;
             }
         } while (volDesc->mType != 1);
     }
 
     Oddlib::Stream& mStream;
+
+    struct DrWrapper
+    {
+        directory_record mDr;
+        std::string mName;
+    };
+
+    struct Directory
+    {
+        DrWrapper mDir;
+        std::vector<DrWrapper> mFiles;
+        std::vector<std::unique_ptr<Directory>> mChildren;
+        void Log(int level)
+        {
+            {
+                std::string indent(level, '-');
+                std::cout << indent.c_str() << "[dir] " << mDir.mName.c_str() << std::endl;
+            }
+
+            {
+                std::string indent(level+1, '-');
+                for (auto& file : mFiles)
+                {
+                    std::cout << indent.c_str() << "[file] " << file.mName.c_str() << std::endl;
+                }
+            }
+
+            for (auto& child : mChildren)
+            {
+                child->Log(level + 1);
+            }
+
+        }
+    };
+
+    Directory mRoot;
 };
 
 TEST(CdFs, Read_FileSystemLimits)
 {
     Oddlib::Stream stream(get_test());
     RawCdImage img(stream);
+    img.LogTree();
 }
 
 TEST(CdFs, Read_XaSectors)
 {
-    Oddlib::Stream stream("C:\\Users\\paul\\Downloads\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725]\\ao.bin" /*get_xa()*/);
+    Oddlib::Stream stream(get_xa());
     RawCdImage img(stream);
+    img.LogTree();
 }
