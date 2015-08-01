@@ -1,4 +1,5 @@
 #include <gmock/gmock.h>
+#include <array>
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/masher.hpp"
 #include "oddlib/anim.hpp"
@@ -2032,13 +2033,63 @@ public:
         ReadFileSystem();
     }
 private:
+    const char* NamePointer(directory_record* dr)
+    {
+        return ((const char*)&dr->length_file_id) + 1;
+    }
+
+    bool IsDots(directory_record* dr)
+    {
+        return (dr->length_file_id == 1 && (NamePointer(dr)[0] == 0x0 || NamePointer(dr)[0] == 0x1));
+    }
+
+    void ReadFile(directory_record* dr)
+    {
+        auto dataSize = dr->data_length.little;
+        auto dataSector = dr->location.little;
+
+        RawSectorHeader sector = {};
+
+        std::vector<Uint8> data;
+        do
+        {
+            auto sizeToRead = dataSize;
+
+            mStream.Seek((kRawSectorSize*dataSector));
+            mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
+            if (sizeToRead > 2048)
+            {
+                sizeToRead = 2048;
+                dataSize -= 2048;
+                dataSector++;
+            }
+            else
+            {
+                sizeToRead = dataSize;
+                dataSize -= sizeToRead;
+            }
+
+            const Uint8* ptr = &sector.mData[8];
+            for (size_t i = 0; i < sizeToRead; i++)
+            {
+                data.emplace_back(*ptr);
+                ptr++;
+            }
+        } while (dataSize > 0);
+
+        std::cout << "Data size is " << data.size() << std::endl;
+
+        std::string str(reinterpret_cast<char*>(data.data()), data.size());
+        std::cout << "Data is: " << str.c_str() << std::endl;
+    }
+
     void Read(directory_record* rec)
     {
         auto sector = rec->location.little;
         auto dataSize = rec->data_length.little;
         auto numSectors = dataSize / 2048;
 
-        for (int i = sector; i < sector + numSectors; i++)
+        for (size_t i = sector; i < sector + numSectors; i++)
         {
             RawSectorHeader sector = {};
             mStream.Seek((kRawSectorSize*i));
@@ -2047,52 +2098,17 @@ private:
             directory_record* dr = (directory_record*)&sector.mData[8];
             while (dr->length)
             {
-                if (dr->length_file_id)
+                if (!IsDots(dr))
                 {
-                    std::string name(((char*)(&dr->length_file_id)) + 1, dr->length_file_id);
-                    if (dr->length_file_id == 1)
+                    std::string name(NamePointer(dr), dr->length_file_id);
+                    std::cout << name.c_str() << std::endl;
+                    if ((dr->flags & FLAG_DIRECTORY) && dr->location.little != rec->location.little)
                     {
-                        if (name.length() == 1)
-                        {
-                            if (name[0] == 0x0)
-                            {
-                                std::cout << "." << std::endl;
-                            }
-                            else if (name[0] == 0x1)
-                            {
-                                std::cout << ".." << std::endl;
-                            }
-                            else
-                            {
-                                std::cout << name.c_str() << std::endl;
-                            }
-                        }
-                        else
-                        {
-                            std::cout << name.c_str() << std::endl;
-                        }
+                        Read(dr);
                     }
                     else
                     {
-                        std::cout << name.c_str() << std::endl;
-                        if ((dr->flags & FLAG_DIRECTORY) && dr->location.little != rec->location.little)
-                        {
-                            Read(dr);
-                        }
-                        else
-                        {
-                            auto dataSize = dr->data_length.little;
-                            std::cout << "File size is " << dataSize << " starting at sector " << dr->location.little << std::endl;
-                            auto dataSector = dr->location.little;
-                            auto numSectors = dataSize / kRawSectorSize;
-
-                            /*
-                            mStream.Seek((kRawSectorSize*dr->location.little));
-
-                            mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
-                            dr = (directory_record*)&sector.mData[8];
-                            */
-                        }
+                        ReadFile(dr);
                     }
                 }
 
