@@ -1944,6 +1944,7 @@ TEST(CdFs, Read_FileSystemLimits)
     Oddlib::Stream stream(get_test());
     RawCdImage img(stream);
     img.LogTree();
+
     ASSERT_EQ(true, img.FileExists("ROOT.TXT"));
     ASSERT_EQ(true, img.FileExists("LEN_TEST\\1.TXT"));
     ASSERT_EQ(true, img.FileExists("LEN_TEST\\12.TXT"));
@@ -1961,6 +1962,7 @@ TEST(CdFs, Read_FileSystemLimits)
     ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LVL5.TXT"));
     ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LVL6.TXT"));
     ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL7.TXT"));
+    ASSERT_EQ(false, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL77.TXT"));
 
     ASSERT_EQ(true, img.FileExists("TEST\\SECTORS1\\EXAMPLE.TXT"));
     ASSERT_EQ(true, img.FileExists("TEST\\SECTORS2\\BIG.TXT"));
@@ -1975,12 +1977,12 @@ TEST(CdFs, Read_XaSectors)
     img.LogTree();
 
     ASSERT_EQ(false, img.FileExists(""));
-    ASSERT_EQ(true, img.FileExists("NOT_XA\\SMALL.TXT;1"));
-    ASSERT_EQ(true, img.FileExists("\\NOT_XA\\SMALL.TXT;1"));
-    ASSERT_EQ(true, img.FileExists("NOT_XA\\BIG.TXT;1"));
-    ASSERT_EQ(true, img.FileExists("XA1\\XBIG.TXT;1"));
-    ASSERT_EQ(true, img.FileExists("XA1\\XSMALL;1"));
-    ASSERT_EQ(false, img.FileExists("XA2\\XSMALL;1"));
-    ASSERT_EQ(false, img.FileExists("XA2\\ASDFG;1"));
+    ASSERT_EQ(true, img.FileExists("NOT_XA\\SMALL.TXT"));
+    ASSERT_EQ(true, img.FileExists("\\NOT_XA\\SMALL.TXT"));
+    ASSERT_EQ(true, img.FileExists("NOT_XA\\BIG.TXT"));
+    ASSERT_EQ(true, img.FileExists("XA1\\XBIG.TXT"));
+    ASSERT_EQ(true, img.FileExists("XA1\\XSMALL"));
+    ASSERT_EQ(false, img.FileExists("XA2\\XSMALL"));
+    ASSERT_EQ(false, img.FileExists("XA2\\ASDFG"));
 
 }

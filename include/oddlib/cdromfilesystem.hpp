@@ -297,7 +297,7 @@ private:
             {
                 if (!IsDots(dr))
                 {
-                    const std::string name(NamePointer(dr), dr->length_file_id);
+                    std::string name(NamePointer(dr), dr->length_file_id);
                     //std::cout << name.c_str() << std::endl;
                     if ((dr->flags & 2) && dr->location.little != rec->location.little)
                     {
@@ -309,6 +309,10 @@ private:
                     }
                     else
                     {
+                        if (string_util::ends_with(name, ";1"))
+                        {
+                            name = name.substr(0, name.length() - 2);
+                        }
                         d->mFiles.emplace_back(DrWrapper{ *dr, name });
                         // ReadFile(dr);
                     }
