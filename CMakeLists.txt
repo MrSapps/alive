@@ -147,6 +147,7 @@ add_library(oddlib STATIC
     include/oddlib/audio/vab.hpp
     include/oddlib/audio/Voice.h
     include/oddlib/audio/FileManager.h
+    include/oddlib/cdromfilesystem.hpp
     src/oddlib/audio/FileManager.cpp
 )
 
