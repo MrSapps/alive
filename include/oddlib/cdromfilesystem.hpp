@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include "string_util.hpp"
+
 class InvalidCdImageException : public Oddlib::Exception
 {
 public:
@@ -27,6 +30,21 @@ public:
     void LogTree()
     {
         mRoot.Log(1);
+    }
+
+    bool FileExists(std::string fileName)
+    {
+        if (fileName.empty())
+        {
+            return false;
+        }
+
+        if (fileName[0] != '\\')
+        {
+            fileName = "\\" + fileName;
+        }
+        auto parts = string_util::split(fileName, '\\');
+        return mRoot.Find(parts);
     }
 
 private:
@@ -354,6 +372,50 @@ private:
             {
                 child->Log(level + 1);
             }
+
+        }
+
+        bool Find(std::deque<std::string>& parts)
+        {
+            if (parts.empty())
+            {
+                return false;
+            }
+
+            auto find = parts.front();
+            if (mDir.mName == find)
+            {
+                parts.pop_front();
+                if (parts.size() > 1)
+                {
+                    for (auto& child : mChildren)
+                    {
+                        if (child->Find(parts))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                else
+                {
+                    find = parts.front();
+                    for (auto& file : mFiles)
+                    {
+                        if (file.mName == find)
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
+            else
+            {
+                // Dir name not matching
+                return false;
+            }
+
 
         }
     };

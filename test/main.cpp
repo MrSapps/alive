@@ -1900,12 +1900,72 @@ std::vector<std::unique_ptr<Oddlib::Animation>> animations = Oddlib::AnimationFa
 }
 */
 
+TEST(string_util, endsWith)
+{
+    std::string t1 = "LOLrofl";
+    std::string t2 = "roflLOL";
+    std::string t3 = "LroflL";
+    ASSERT_EQ(false, string_util::ends_with(t1, "LOL"));
+    ASSERT_EQ(true, string_util::ends_with(t1, "rofl"));
+    ASSERT_EQ(true, string_util::ends_with(t2, "LOL"));
+    ASSERT_EQ(false, string_util::ends_with(t2, "rofl"));
+    ASSERT_EQ(false, string_util::ends_with(t3, "Lr"));
+    ASSERT_EQ(true, string_util::ends_with(t3, ""));
+    ASSERT_EQ(true, string_util::ends_with(t3, "lL"));
+}
+
+TEST(string_util, contains)
+{
+    std::string t1 = "LOLrofl";
+    std::string t2 = "roflLOL";
+    std::string t3 = "LroflL";
+    ASSERT_EQ(false, string_util::contains(t1, "zzz"));
+    ASSERT_EQ(true, string_util::contains(t1, "LOL"));
+    ASSERT_EQ(true, string_util::contains(t1, "rofl"));
+    ASSERT_EQ(true, string_util::contains(t2, "LOL"));
+    ASSERT_EQ(true, string_util::contains(t2, "rofl"));
+    ASSERT_EQ(true, string_util::contains(t3, "Lr"));
+    ASSERT_EQ(true, string_util::contains(t3, ""));
+    ASSERT_EQ(true, string_util::contains(t3, "lL"));
+}
+
+TEST(string_util, split)
+{
+    std::string splitMe = "Horse,battery,staple";
+    auto parts = string_util::split(splitMe, ',');
+    ASSERT_EQ(3, parts.size());
+    ASSERT_EQ("Horse", parts[0]);
+    ASSERT_EQ("battery", parts[1]);
+    ASSERT_EQ("staple", parts[2]);
+}
 
 TEST(CdFs, Read_FileSystemLimits)
 {
     Oddlib::Stream stream(get_test());
     RawCdImage img(stream);
     img.LogTree();
+    ASSERT_EQ(true, img.FileExists("ROOT.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEN_TEST\\1.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEN_TEST\\12.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEN_TEST\\123.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEN_TEST\\1234.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEN_TEST\\12345.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEN_TEST\\123456.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEN_TEST\\1234567.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEN_TEST\\12345678.TXT"));
+
+    ASSERT_EQ(true, img.FileExists("LEVEL1\\LVL1.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LVL2.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LVL3.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LVL4.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LVL5.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LVL6.TXT"));
+    ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL7.TXT"));
+
+    ASSERT_EQ(true, img.FileExists("TEST\\SECTORS1\\EXAMPLE.TXT"));
+    ASSERT_EQ(true, img.FileExists("TEST\\SECTORS2\\BIG.TXT"));
+    ASSERT_EQ(true, img.FileExists("TEST\\XA1\\SMALL.TXT"));
+    ASSERT_EQ(true, img.FileExists("TEST\\XA1\\BIG.TXT"));
 }
 
 TEST(CdFs, Read_XaSectors)
@@ -1913,4 +1973,14 @@ TEST(CdFs, Read_XaSectors)
     Oddlib::Stream stream(get_xa());
     RawCdImage img(stream);
     img.LogTree();
+
+    ASSERT_EQ(false, img.FileExists(""));
+    ASSERT_EQ(true, img.FileExists("NOT_XA\\SMALL.TXT;1"));
+    ASSERT_EQ(true, img.FileExists("\\NOT_XA\\SMALL.TXT;1"));
+    ASSERT_EQ(true, img.FileExists("NOT_XA\\BIG.TXT;1"));
+    ASSERT_EQ(true, img.FileExists("XA1\\XBIG.TXT;1"));
+    ASSERT_EQ(true, img.FileExists("XA1\\XSMALL;1"));
+    ASSERT_EQ(false, img.FileExists("XA2\\XSMALL;1"));
+    ASSERT_EQ(false, img.FileExists("XA2\\ASDFG;1"));
+
 }
