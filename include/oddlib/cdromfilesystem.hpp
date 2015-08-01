@@ -34,6 +34,25 @@ public:
 
     bool FileExists(std::string fileName)
     {
+        return DoFind(fileName) != nullptr;
+    }
+
+    // TODO: Needs wrapping with a steam else loading huge files into memory
+    std::vector<Uint8> ReadFile(std::string fileName)
+    {
+        DrWrapper* record = DoFind(fileName);
+        if (!record)
+        {
+            throw Oddlib::Exception("File not found on CD-ROM");
+        }
+        return ReadFile(&record->mDr);
+    }
+
+private:
+    struct DrWrapper;
+
+    DrWrapper* DoFind(std::string fileName)
+    {
         if (fileName.empty())
         {
             return false;
@@ -46,8 +65,6 @@ public:
         auto parts = string_util::split(fileName, '\\');
         return mRoot.Find(parts);
     }
-
-private:
 
     // Each sector is 2352 bytes
 #pragma pack(push)
@@ -155,7 +172,7 @@ private:
         //padding
         //system use
     };
-
+    public:
     struct CDXASector
     {
         uint8_t sync[12];
@@ -174,6 +191,8 @@ private:
         uint8_t data[2328];
     };
 #pragma pack(pop)
+
+    private:
 
     class Sector
     {
@@ -243,7 +262,7 @@ private:
         return (dr->length_file_id == 1 && (NamePointer(dr)[0] == 0x0 || NamePointer(dr)[0] == 0x1));
     }
 
-    void ReadFile(directory_record* dr)
+    std::vector<Uint8> ReadFile(directory_record* dr)
     {
         auto dataSize = dr->data_length.little;
         auto dataSector = dr->location.little;
@@ -274,10 +293,7 @@ private:
             }
         } while (dataSize > 0);
 
-        std::cout << "Data size is " << data.size() << std::endl;
-
-        std::string str(reinterpret_cast<char*>(data.data()), data.size());
-        std::cout << "Data is: " << str.c_str() << std::endl;
+        return data;
     }
 
     struct Directory;
@@ -379,11 +395,11 @@ private:
 
         }
 
-        bool Find(std::deque<std::string>& parts)
+        DrWrapper* Find(std::deque<std::string>& parts)
         {
             if (parts.empty())
             {
-                return false;
+                return nullptr;
             }
 
             auto find = parts.front();
@@ -394,12 +410,13 @@ private:
                 {
                     for (auto& child : mChildren)
                     {
-                        if (child->Find(parts))
+                        auto ret = child->Find(parts);
+                        if (ret)
                         {
-                            return true;
+                            return ret;
                         }
                     }
-                    return false;
+                    return nullptr;
                 }
                 else
                 {
@@ -408,16 +425,16 @@ private:
                     {
                         if (file.mName == find)
                         {
-                            return true;
+                            return &file;
                         }
                     }
-                    return false;
+                    return nullptr;
                 }
             }
             else
             {
                 // Dir name not matching
-                return false;
+                return nullptr;
             }
 
 

@@ -1,6 +1,7 @@
 #include "fmv.hpp"
 #include "imgui/imgui.h"
 #include "core/audiobuffer.hpp"
+#include "oddlib/cdromfilesystem.hpp"
 #include "gamedata.hpp"
 
 #ifdef _WIN32
@@ -16,6 +17,10 @@
 
 std::vector<Uint32> pixels;
 std::unique_ptr<SequencePlayer> player;
+
+std::unique_ptr<Oddlib::Stream> gStream;
+std::unique_ptr<Oddlib::Stream> gMovStream;
+std::unique_ptr<RawCdImage> gCd;
 
 bool firstChange = true;
 int targetSong = -1;
@@ -169,7 +174,17 @@ public:
             {
                 // ImGui::Text(ex.what());
 
-                fp = fopen(fullPath.c_str(), "rb");
+                //fp = fopen(fullPath.c_str(), "rb");
+                fp = (FILE*)1;
+                gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Downloads\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725]\\ao.bin");
+                gCd = std::make_unique<RawCdImage>(*gStream);
+                gCd->LogTree();
+                bool exists = gCd->FileExists("ABESODSE\\R1.MOV");
+                if (exists)
+                {
+                    std::cout << "found" << std::endl;
+                }
+                gMovStream = std::make_unique<Oddlib::Stream>(gCd->ReadFile("ABESODSE\\R1.MOV"));
                 AudioBuffer::ChangeAudioSpec(8064/4, 37800);
 
             }
@@ -181,25 +196,9 @@ public:
 
 
 
-struct CDXASector
+struct RawCDXASector
 {
-    /*
-    uint8_t sync[12];
-    uint8_t header[4];
 
-    struct CDXASubHeader
-    {
-        uint8_t file_number;
-        uint8_t channel;
-        uint8_t submode;
-        uint8_t coding_info;
-        uint8_t file_number_copy;
-        uint8_t channel_number_copy;
-        uint8_t submode_copy;
-        uint8_t coding_info_copy;
-    } subheader;
-    uint8_t data[2328];
-    */
 
     uint8_t data[2328 + 12 + 4 + 8];
 };
@@ -210,7 +209,8 @@ struct CDXASector
 
 static const uint8_t m_CDXA_STEREO = 3;
 
-
+#pragma pack(push)
+#pragma pack(1)
 struct PsxVideoFrameHeader
 {
     unsigned short int mNumMdecCodes;
@@ -222,6 +222,9 @@ struct PsxVideoFrameHeader
 
 struct MasherVideoHeaderWrapper
 {
+    uint8_t sync[12];
+    uint8_t header[4];
+
     unsigned int mSectorType; // AKIK
     unsigned int mSectorNumber;
 
@@ -238,7 +241,7 @@ struct MasherVideoHeaderWrapper
     PsxVideoFrameHeader mVideoFrameHeader;
     unsigned int mNulls;
 
-    unsigned char frame[2016 + 240 + 4 + 4 + 4 + 2 + 2 + 4 + 4 + 2 + 2 + 2 + 2 + 2 + 2 + 4];
+    unsigned char frame[2296];
 
     // PsxVideoFrameHeader mVideoFrameHeader2;
 
@@ -265,7 +268,7 @@ struct MasherVideoHeaderWrapper
     //demultiplexing is joining all of the frame data into one buffer without the headers
 
 };
-
+#pragma pack(pop)
 
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 
@@ -283,16 +286,24 @@ std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, 
     {
         MasherVideoHeaderWrapper w;
        
+        gStream->ReadBytes(reinterpret_cast<Uint8*>(&w), sizeof(w));
+/*
         if (fread(&w, 1, sizeof(w), fp) != sizeof(w))
         {
             end = true;
             return r;
         }
+        */
 
-        if (w.mSectorType != 0x52494f4d)
+        // AKIK is 0x80010160 in PSX
+
+        if (w.mAkikMagic != 0x80010160)
+       // if (w.mSectorType != 0x52494f4d)
         {
             // There is probably no way this is correct
-            CDXASector* xa = (CDXASector*)&w;
+            RawCdImage::CDXASector* rawXa = (RawCdImage::CDXASector*)&w;
+
+           // RawCDXASector* xa = (RawCDXASector*)&w;
 
             /*
             std::cout <<
@@ -305,9 +316,11 @@ std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, 
            // if (xa->subheader.coding_info & 0xA)
             {
 
-                auto numBytes = adpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), &xa->data[0], true);
+                auto numBytes = adpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), rawXa->data, true);
+              //  auto numBytes = adpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), &xa->data[0], true);
                 //if (CHECK_BIT(xa->subheader.coding_info, 2) && (CHECK_BIT(xa->subheader.coding_info, 0)))
                 {
+                    
                     AudioBuffer::mPlayedSamples = 0;
                     AudioBuffer::SendSamples((char*)outPtr.data(), numBytes);
 

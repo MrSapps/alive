@@ -1968,6 +1968,10 @@ TEST(CdFs, Read_FileSystemLimits)
     ASSERT_EQ(true, img.FileExists("TEST\\SECTORS2\\BIG.TXT"));
     ASSERT_EQ(true, img.FileExists("TEST\\XA1\\SMALL.TXT"));
     ASSERT_EQ(true, img.FileExists("TEST\\XA1\\BIG.TXT"));
+
+    auto data = img.ReadFile("TEST\\SECTORS1\\EXAMPLE.TXT");
+    std::string strData(reinterpret_cast<char*>(data.data()), data.size());
+    ASSERT_EQ("dir entries go over 1 sector size", strData);
 }
 
 TEST(CdFs, Read_XaSectors)
