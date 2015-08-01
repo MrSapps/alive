@@ -2022,6 +2022,16 @@ enum e_directory_record_flags
     FLAG_NOT_FINAL = 128
 };
 
+class InvalidCdImageException : public Oddlib::Exception
+{
+public:
+    explicit InvalidCdImageException(const char* msg)
+        : Exception(msg)
+    {
+
+    }
+};
+
 class RawCdImage
 {
 public:
@@ -2033,6 +2043,85 @@ public:
         ReadFileSystem();
     }
 private:
+#pragma pack(push)
+#pragma pack(1)
+    struct CDXASector
+    {
+        uint8_t sync[12];
+        uint8_t header[4];
+        struct CDXASubHeader
+        {
+            uint8_t file_number;
+            uint8_t channel;
+            uint8_t submode;
+            uint8_t coding_info;
+            uint8_t file_number_copy;
+            uint8_t channel_number_copy;
+            uint8_t submode_copy;
+            uint8_t coding_info_copy;
+        } subheader;
+        uint8_t data[2328];
+    };
+#pragma pack(pop)
+
+    class Sector
+    {
+    public:
+        Sector(int sectorNumber, Oddlib::Stream& stream)
+        {
+            stream.Seek((kRawSectorSize*sectorNumber));
+            stream.ReadBytes(reinterpret_cast<Uint8*>(&mData), kRawSectorSize);
+
+            RawSectorHeader* rawHeader = reinterpret_cast<RawSectorHeader*>(&mData);
+            if (rawHeader->mMode != 2)
+            {
+                throw InvalidCdImageException(("Only mode 2 sectors supported got (" + std::to_string(rawHeader->mMode) + ")").c_str());
+            }
+
+            // To tell the different Mode 2s apart you have to examine bytes 16 - 23 of the sector
+            // (the first 8 bytes of Mode Data).If bytes 16 - 19 are not the same as 20 - 23, 
+            // then it is Mode 2. If they are equal and bit 5 is on(0x20), then it is Mode 2 Form 2. 
+            // Otherwise it is Mode 2 Form 1.
+            CDXASector* xaHeader = reinterpret_cast<CDXASector*>(&mData);
+            if (xaHeader->subheader.file_number == xaHeader->subheader.file_number_copy &&
+                xaHeader->subheader.channel == xaHeader->subheader.channel_number_copy &&
+                xaHeader->subheader.submode == xaHeader->subheader.submode_copy &&
+                xaHeader->subheader.coding_info == xaHeader->subheader.coding_info_copy &&
+                xaHeader->subheader.submode & 0x20
+                )
+            {
+                //  Mode 2 Form 2
+                mMode2Form1 = false;
+            }
+            else
+            {
+                //  Mode 2 Form 1
+                mMode2Form1 = true;
+            }
+        }
+
+        Uint8* DataPtr()
+        {
+            if (mMode2Form1)
+            {
+                return &mData.mData[8];
+            }
+            else
+            {
+                return &mData.mData[0];
+            }
+        }
+
+        Uint32 DataLength()
+        {
+            return mMode2Form1 ? 2048 : 2336;
+        }
+
+    private:
+        RawSectorHeader mData;
+        bool mMode2Form1 = false;
+    };
+
     const char* NamePointer(directory_record* dr)
     {
         return ((const char*)&dr->length_file_id) + 1;
@@ -2048,19 +2137,16 @@ private:
         auto dataSize = dr->data_length.little;
         auto dataSector = dr->location.little;
 
-        RawSectorHeader sector = {};
-
         std::vector<Uint8> data;
+        data.reserve(dataSize);
         do
         {
             auto sizeToRead = dataSize;
-
-            mStream.Seek((kRawSectorSize*dataSector));
-            mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
-            if (sizeToRead > 2048)
+            Sector sector(dataSector, mStream);
+            if (sizeToRead > sector.DataLength())
             {
-                sizeToRead = 2048;
-                dataSize -= 2048;
+                sizeToRead = sector.DataLength();
+                dataSize -= sector.DataLength();
                 dataSector++;
             }
             else
@@ -2069,7 +2155,7 @@ private:
                 dataSize -= sizeToRead;
             }
 
-            const Uint8* ptr = &sector.mData[8];
+            const Uint8* ptr = sector.DataPtr();
             for (size_t i = 0; i < sizeToRead; i++)
             {
                 data.emplace_back(*ptr);
@@ -2083,19 +2169,17 @@ private:
         std::cout << "Data is: " << str.c_str() << std::endl;
     }
 
-    void Read(directory_record* rec)
+    void ReadDirectory(directory_record* rec)
     {
+        const auto dataSize = rec->data_length.little;
         auto sector = rec->location.little;
-        auto dataSize = rec->data_length.little;
-        auto numSectors = dataSize / 2048;
+        size_t totalDataRead = 0;
 
-        for (size_t i = sector; i < sector + numSectors; i++)
+        while (totalDataRead != dataSize)
         {
-            RawSectorHeader sector = {};
-            mStream.Seek((kRawSectorSize*i));
-            mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
-
-            directory_record* dr = (directory_record*)&sector.mData[8];
+            Sector sector(sector++, mStream);
+            totalDataRead += sector.DataLength();
+            directory_record* dr = (directory_record*)sector.DataPtr();
             while (dr->length)
             {
                 if (!IsDots(dr))
@@ -2104,7 +2188,7 @@ private:
                     std::cout << name.c_str() << std::endl;
                     if ((dr->flags & FLAG_DIRECTORY) && dr->location.little != rec->location.little)
                     {
-                        Read(dr);
+                        ReadDirectory(dr);
                     }
                     else
                     {
@@ -2112,7 +2196,7 @@ private:
                     }
                 }
 
-                char* ptr = (char*)dr;
+                char* ptr = reinterpret_cast<char*>(dr);
                 dr = (directory_record*)(ptr + dr->length);
             }
         }
@@ -2121,72 +2205,20 @@ private:
 
     void ReadFileSystem()
     {
-
-        RawSectorHeader sector = {};
-
         volume_descriptor* volDesc = nullptr;
         auto secNum = kFileSystemStartSector - 1;
         do
         {
             secNum++;
-            mStream.Seek(kRawSectorSize*secNum);
-            mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
-
-            volDesc = (volume_descriptor*)&sector.mData[8];
+            Sector sector(secNum, mStream);
+            volDesc = (volume_descriptor*)sector.DataPtr();
+            if (volDesc->mType == 1)
+            {
+                directory_record* dr = (directory_record*)&volDesc->root_entry[0];
+                ReadDirectory(dr);
+                break;
+            }
         } while (volDesc->mType != 1);
-
-
-        directory_record* dr = (directory_record*)&volDesc->root_entry[0];
-
-        /*
-        secNum = volDesc->path_table_location_LSB;
-        mStream.Seek(kRawSectorSize*secNum);
-        mStream.ReadBytes((Uint8*)&sector, kRawSectorSize);
-        path_entry * entry = (path_entry *)&sector.mData[8]; // 0x1a is where dir name starts?*/
-        Read(dr);
-
-    //    entry = entry;
-
-        if (sector.mMode == 0)
-        {
-            // There is a Mode 0, which contains nothing but 0s (no Synch or min, sec, frame).
-        }
-        else if (sector.mMode == 1)
-        {
-            // Mode 1
-            // User Data	2048 Bytes
-            // EDC	4 Bytes	Error Detection Code
-            // Blank	8 Bytes	0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
-            // ECC	276 Bytes
-        }
-        else if (sector.mMode == 2)
-        {
-            // To tell the different Mode 2s apart you have to examine bytes 16 - 23 of the sector
-            // (the first 8 bytes of Mode Data).If bytes 16 - 19 are not the same as 20 - 23, 
-            // then it is Mode 2. If they are equal and bit 5 is on(0x20), then it is Mode 2 Form 2. 
-            // Otherwise it is Mode 2 Form 1.
-
-            // Mode 2
-            // There is no structure for this mode. The Mode Data IS the User Data. There is no checksums, sh, or os.
-
-            // Mode 2 Form 1
-            // Mode Data 2336 Bytes
-
-            // SH 8 Bytes Shell
-            // User Data 2048 Bytes
-            // EDC 4 Bytes Error Detection Code
-            // ECC 276 Bytes
-
-            // Mode 2 Form 2
-
-            // Mode Data 2336 Bytes
-            // SH 8 Bytes Shell
-            // User Data 2324 Bytes
-            // EDC 4 Bytes
-
-            // Sector 16
-        }
-
     }
 
     Oddlib::Stream& mStream;
@@ -2200,6 +2232,6 @@ TEST(CdFs, Read_FileSystemLimits)
 
 TEST(CdFs, Read_XaSectors)
 {
-    Oddlib::Stream stream(get_xa());
+    Oddlib::Stream stream("C:\\Users\\paul\\Downloads\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725]\\ao.bin" /*get_xa()*/);
     RawCdImage img(stream);
 }
