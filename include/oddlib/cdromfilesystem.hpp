@@ -197,9 +197,10 @@ private:
     class Sector
     {
     public:
-        Sector(int sectorNumber, Oddlib::Stream& stream)
+        Sector(unsigned int sectorNumber, Oddlib::Stream& stream)
         {
-            stream.Seek((kRawSectorSize*sectorNumber));
+            const auto pos = kRawSectorSize*sectorNumber;
+            stream.Seek(pos);
             stream.ReadBytes(reinterpret_cast<Uint8*>(&mData), kRawSectorSize);
 
             RawSectorHeader* rawHeader = reinterpret_cast<RawSectorHeader*>(&mData);
@@ -242,6 +243,11 @@ private:
             }
         }
 
+        Uint8* RawPtr()
+        {
+            return reinterpret_cast<Uint8*>(&mData);
+        }
+
         Uint32 DataLength()
         {
             return mMode2Form1 ? 2048 : 2336;
@@ -264,35 +270,30 @@ private:
 
     std::vector<Uint8> ReadFile(directory_record* dr)
     {
-        auto dataSize = dr->data_length.little;
+        int dataSize = dr->data_length.little;
         auto dataSector = dr->location.little;
 
         std::vector<Uint8> data;
         data.reserve(dataSize);
+
         do
         {
             auto sizeToRead = dataSize;
-            Sector sector(dataSector, mStream);
-            if (sizeToRead > sector.DataLength())
+            Sector sector(dataSector++, mStream);
+            //if (sizeToRead > sector.DataLength())
             {
                 sizeToRead = sector.DataLength();
                 dataSize -= sector.DataLength();
-                dataSector++;
-            }
-            else
-            {
-                sizeToRead = dataSize;
-                dataSize -= sizeToRead;
             }
 
-            const Uint8* ptr = sector.DataPtr();
-            for (size_t i = 0; i < sizeToRead; i++)
+            const Uint8* ptr = sector.RawPtr();
+            for (size_t i = 0; i < kRawSectorSize; i++)
             {
                 data.emplace_back(*ptr);
                 ptr++;
             }
         } while (dataSize > 0);
-
+        
         return data;
     }
 

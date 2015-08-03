@@ -176,15 +176,15 @@ public:
 
                 //fp = fopen(fullPath.c_str(), "rb");
                 fp = (FILE*)1;
-                gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Downloads\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725]\\ao.bin");
+                gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin");
                 gCd = std::make_unique<RawCdImage>(*gStream);
                 gCd->LogTree();
-                bool exists = gCd->FileExists("ABESODSE\\R1.MOV");
+                bool exists = gCd->FileExists("S1.MOV");
                 if (exists)
                 {
                     std::cout << "found" << std::endl;
                 }
-                gMovStream = std::make_unique<Oddlib::Stream>(gCd->ReadFile("ABESODSE\\R1.MOV"));
+                gMovStream = std::make_unique<Oddlib::Stream>(gCd->ReadFile("NE\\NE.MOV"));
                 AudioBuffer::ChangeAudioSpec(8064/4, 37800);
 
             }
@@ -286,7 +286,7 @@ std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, 
     {
         MasherVideoHeaderWrapper w;
        
-        gStream->ReadBytes(reinterpret_cast<Uint8*>(&w), sizeof(w));
+        gMovStream->ReadBytes(reinterpret_cast<Uint8*>(&w), sizeof(w));
 /*
         if (fread(&w, 1, sizeof(w), fp) != sizeof(w))
         {
@@ -313,10 +313,10 @@ std::vector<unsigned char> ReadFrame(FILE* fp, bool& end, PSXMDECDecoder& mdec, 
                 */
 
 //                << std::endl;
-           // if (xa->subheader.coding_info & 0xA)
+         //   if (rawXa->subheader.coding_info & 0xA)
             {
 
-                auto numBytes = adpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), rawXa->data, true);
+                auto numBytes = adpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), &rawXa->data[0], true);
               //  auto numBytes = adpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), &xa->data[0], true);
                 //if (CHECK_BIT(xa->subheader.coding_info, 2) && (CHECK_BIT(xa->subheader.coding_info, 0)))
                 {

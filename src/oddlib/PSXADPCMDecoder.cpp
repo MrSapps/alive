@@ -70,7 +70,7 @@ T CLIP(const T& n, const T& lower, const T& upper) {
 uint16_t PSXADPCMDecoder::DecodeFrameToPCM(int8_t *arg_decoded_stream, uint8_t *arg_adpcm_frame, bool arg_stereo)
 {
    // sector->seek(24);
-    arg_adpcm_frame += 8;
+   // arg_adpcm_frame += 8;
 
     // This XA audio is different (yet similar) from normal XA audio! Watch out!
     // TODO: It's probably similar enough to normal XA that we can merge it somehow...
@@ -79,7 +79,7 @@ uint16_t PSXADPCMDecoder::DecodeFrameToPCM(int8_t *arg_decoded_stream, uint8_t *
     // or something similar.
     uint8_t *buf = arg_adpcm_frame;
 
-    int channels = true ? 2 : 1;
+    int channels = arg_stereo ? 2 : 1;
     int16_t *dst = (int16_t*)arg_decoded_stream;
     int16_t *leftChannel = dst;
     int16_t *rightChannel = dst + 1;
