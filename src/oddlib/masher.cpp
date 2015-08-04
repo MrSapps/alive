@@ -158,21 +158,21 @@ namespace Oddlib
 
     int decode_bitstream(Uint16 *pFrameData, unsigned short int *pOutput)
     {
+        // First word is the scale
+        const Uint16 quantScale = pFrameData[0];
 
-        unsigned int table_index_2 = 0;
-        int ret = *pFrameData;
-        Uint32 v8 = *(Uint32*)(pFrameData + 1);
-        Uint16* rawBitStreamPtr = (pFrameData + 3);
+        // Second two words are bit stream data
+        Uint32 bitstreamValue = MAKELONG(pFrameData[2], pFrameData[1]);
 
-        v8 = (v8 << 16) | (v8 >> 16); // Swap words
+        // After this is the work ptr
+        Uint16* rawBitStreamPtr = &pFrameData[3];
 
-        Uint32 rawWord4 = GetBits(v8, 11);
+        // Output 11 bits
+        Uint32 rawWord4 = GetBits(bitstreamValue, 11);
+        *pOutput++ = rawWord4;
 
-        char bitsShiftedCounter = 0;
-        SkipBits(v8, 11, bitsShiftedCounter);
-        Uint32 v3 = v8;
-
-        *pOutput++ = rawWord4; // store in output
+        char bitPos = 0;
+        SkipBits(bitstreamValue, 11, bitPos);
 
         while (1)
         {
@@ -180,6 +180,7 @@ namespace Oddlib
             {
                 while (1)
                 {
+                    unsigned int table_index_2 = 0;
                     do
                     {
                         while (1)
@@ -190,27 +191,31 @@ namespace Oddlib
                                 {
                                     while (1)
                                     {
-                                        table_index_2 = GetBits(v3, 13); // 0x1FFF / 8191 table size? 8192/8=1024 entries?
+                                        // 0x1FFF / 8191 is the table size
+                                        table_index_2 = GetBits(bitstreamValue, 13); 
                                         if (table_index_2 >= 32)
                                         {
                                             break;
                                         }
-                                        const int table_index_1 = GetBits(v3, 17); // 0x1FFFF / 131072, 131072/4=32768 entries?
+                                        // 0x1FFFF / 131072, 131072/4=32768 entries?
+                                        // table size is 4268 (4096?)
+                                        const int table_index_1 = GetBits(bitstreamValue, 17); 
 
-                                        SkipBits(v3, 8, bitsShiftedCounter);
+                                        SkipBits(bitstreamValue, 8, bitPos);
 
                                         int rawWord1;
-                                        CheckForEscapeCode(bitsShiftedCounter, rawWord1, rawBitStreamPtr, rawWord4, v3);
+                                        CheckForEscapeCode(bitPos, rawWord1, rawBitStreamPtr, rawWord4, bitstreamValue);
 
 
                                         const char bitsToShiftFromTbl = gTbl1[table_index_1].mBitsToShift;
 
-                                        SkipBits(v3, bitsToShiftFromTbl, bitsShiftedCounter);
+                                        SkipBits(bitstreamValue, bitsToShiftFromTbl, bitPos);
 
                                         int rawWord2;
-                                        CheckForEscapeCode(bitsShiftedCounter, rawWord2, rawBitStreamPtr, rawWord4, v3);
+                                        CheckForEscapeCode(bitPos, rawWord2, rawBitStreamPtr, rawWord4, bitstreamValue);
 
-                                        // Everything in the table is 0's after 4266 bytes 4266/2=2133 to perhaps 2048/4096 is max?
+                                        // Everything in the table is 0's after
+                                        // 4266 bytes 4266/2=2133 to perhaps 2048/4096 is max?
                                         *pOutput++ = gTbl1[table_index_1].mOutputWord;
 
                                     } // End while
@@ -218,10 +223,10 @@ namespace Oddlib
 
                                     const char tblValueBits = gTbl2[table_index_2].mBitsToShift;
 
-                                    SkipBits(v3, tblValueBits, bitsShiftedCounter);
+                                    SkipBits(bitstreamValue, tblValueBits, bitPos);
 
                                     int rawWord3;
-                                    CheckForEscapeCode(bitsShiftedCounter, rawWord3, rawBitStreamPtr, rawWord4, v3);
+                                    CheckForEscapeCode(bitPos, rawWord3, rawBitStreamPtr, rawWord4, bitstreamValue);
 
                                     SetLoWord(rawWord4, gTbl2[table_index_2].mOutputWord1);
 
@@ -230,26 +235,26 @@ namespace Oddlib
                                         break;
                                     }
 
-                                    OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, bitsShiftedCounter, v3);
+                                    OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, bitPos, bitstreamValue);
                                 } // End while
 
                                 *pOutput++ = rawWord4;
 
                                 if ((Uint16)rawWord4 == MDEC_END)
                                 {
-                                    const int v15 = GetBits(v3, 11);
-                                    SkipBits(v3, 11, bitsShiftedCounter);
+                                    const int v15 = GetBits(bitstreamValue, 11);
+                                    SkipBits(bitstreamValue, 11, bitPos);
 
                                     if (v15 == MASK_10_BITS)
                                     {
-                                        return ret;
+                                        return quantScale;
                                     }
 
                                     rawWord4 = v15 & MASK_11_BITS;
                                     *pOutput++ = rawWord4;
 
                                     int rawWord5;
-                                    CheckForEscapeCode(bitsShiftedCounter, rawWord5, rawBitStreamPtr, rawWord4, v3);
+                                    CheckForEscapeCode(bitPos, rawWord5, rawBitStreamPtr, rawWord4, bitstreamValue);
 
                                 }
 
@@ -262,26 +267,26 @@ namespace Oddlib
                                 break;
                             }
 
-                            OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, bitsShiftedCounter, v3);
+                            OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, bitPos, bitstreamValue);
                         } // End while
 
                         *pOutput++ = rawWord4;
 
                         if ((Uint16)rawWord4 == MDEC_END)
                         {
-                            const int t11Bits = GetBits(v3, 11);
-                            SkipBits(v3, 11, bitsShiftedCounter);
+                            const int t11Bits = GetBits(bitstreamValue, 11);
+                            SkipBits(bitstreamValue, 11, bitPos);
 
                             if (t11Bits == MASK_10_BITS)
                             {
-                                return ret;
+                                return quantScale;
                             }
 
                             rawWord4 = t11Bits & MASK_11_BITS;
                             *pOutput++ = rawWord4;
 
                             int rawWord7;
-                            CheckForEscapeCode(bitsShiftedCounter, rawWord7, rawBitStreamPtr, rawWord4, v3);
+                            CheckForEscapeCode(bitPos, rawWord7, rawBitStreamPtr, rawWord4, bitstreamValue);
                         }
 
                         SetLoWord(rawWord4, gTbl2[table_index_2].mOutputWord3);
@@ -295,30 +300,30 @@ namespace Oddlib
                     }
 
 
-                    OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, bitsShiftedCounter, v3);
+                    OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, bitPos, bitstreamValue);
                 } // End while
 
                 *pOutput++ = rawWord4;
 
             } while ((Uint16)rawWord4 != MDEC_END);
 
-            const int tmp11Bits2 = GetBits(v3, 11);
-            SkipBits(v3, 11, bitsShiftedCounter);
+            const int tmp11Bits2 = GetBits(bitstreamValue, 11);
+            SkipBits(bitstreamValue, 11, bitPos);
 
             if (tmp11Bits2 == MASK_10_BITS)
             {
-                return ret;
+                return quantScale;
             }
 
             rawWord4 = tmp11Bits2;
             *pOutput++ = rawWord4;
 
             int rawWord9;
-            CheckForEscapeCode(bitsShiftedCounter, rawWord9, rawBitStreamPtr, rawWord4, v3);
+            CheckForEscapeCode(bitPos, rawWord9, rawBitStreamPtr, rawWord4, bitstreamValue);
 
         }
 
-        return ret;
+        return quantScale;
     }
     
     const Uint32 gQuant1_dword_42AEC8[64] =
