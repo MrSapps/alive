@@ -393,18 +393,18 @@ namespace Oddlib
         0x00000036, 0x0000002F, 0x00000037, 0x0000003E, 0x0000003F, 0x0000098E, 0x0000098E, 0x0000F384
     };
 
-    Uint32 g_252_buffer_unk_635A0C[64] = {};
-    Uint32 g_252_buffer_unk_63580C[64] = {};
+    Uint32 gUVBuffer[64] = {};
+    Uint32 gYBlockBuffer[64] = {};
 
     // Return val becomes param 1
     int16_t* ddv_func7_DecodeMacroBlock_impl(int16_t* bitstreamPtr, int16_t* outputBlockPtr, bool isYBlock)
     {
-        int v1; // ebx@1
-        Uint32 *v2; // esi@1
+        int bIsY; // ebx@1
+        Uint32 *yOrUVBuffer; // esi@1
         Uint16* endPtr; // edx@3
         Uint32 *output_q; // ebp@3
         unsigned int counter; // edi@3
-        Uint32* v6; // esi@3
+
         Uint16* outptr; // edx@3
         Uint16* dataPtr; // edx@5
         unsigned int macroBlockWord; // eax@6
@@ -418,23 +418,21 @@ namespace Oddlib
         // int v17; // esi@15
         int idx; // ebx@16
         Uint32 outVal; // ecx@18
-        unsigned int macroBlockWord1; // eax@20
-        //  int v21; // esi@21
-        unsigned int v22; // edi@21
+
         int v23; // ebx@21
         //   signed int v24; // eax@21
         Uint32 v25; // ecx@21
         // DecodeMacroBlock_Struct *thisPtr; // [sp-4h] [bp-10h]@3
 
-        v1 = isYBlock /*this->ZeroOrOneConstant*/;                 // off 14
-        v2 = &g_252_buffer_unk_63580C[1];
+        bIsY = isYBlock /*this->ZeroOrOneConstant*/;                 // off 14
+        yOrUVBuffer = &gYBlockBuffer[1];
 
         if (!isYBlock /*this->ZeroOrOneConstant*/)
         {
-            v2 = &g_252_buffer_unk_635A0C[1];
+            yOrUVBuffer = &gUVBuffer[1];
         }
 
-        v6 = v2;
+        Uint32* v6 = yOrUVBuffer;
         counter = 0;
         outptr = (Uint16*)bitstreamPtr /*this->mOutput >> 1*/;
         //thisPtr = this;
@@ -446,7 +444,7 @@ namespace Oddlib
             ++endPtr;
         } while (*endPtr == 0xFE00u);  // 0xFE00 == END_OF_BLOCK, hence this loop moves past the EOB
 
-        *output_q = (v1 << 10) + 2 * (*endPtr << 21 >> 22);
+        *output_q = (bIsY << 10) + 2 * (*endPtr << 21 >> 22);
         dataPtr = endPtr + 1; // last use of endPtr
 
 
@@ -455,13 +453,13 @@ namespace Oddlib
 
             do
             {
-                macroBlockWord1 = *dataPtr++;// bail if end
+                unsigned int macroBlockWord1 = *dataPtr++;// bail if end
                 if (macroBlockWord1 == 0xFE00)
                 {
                     break;
                 }
                 Uint32* v21 = (macroBlockWord1 >> 10) + v6;
-                v22 = (macroBlockWord1 >> 10) + counter;
+                const unsigned int v22 = (macroBlockWord1 >> 10) + counter;
                 v23 = g_block_related_1_dword_42B0C8[v22];
                 signed int v24 = output_q[v23] + (macroBlockWord1 << 22);
                 SetHiWord(v25, GetHiWord(v24));
@@ -700,13 +698,13 @@ namespace Oddlib
             if (quantScale > 0)
             {
                 auto val = gQuant1_dword_42AEC8[i];
-                g_252_buffer_unk_63580C[i] = quantScale * val;
-                g_252_buffer_unk_635A0C[i] = quantScale * gQaunt2_dword_42AFC4[i];
+                gYBlockBuffer[i] = quantScale * val;
+                gUVBuffer[i] = quantScale * gQaunt2_dword_42AFC4[i];
             }
             else
             {
-                g_252_buffer_unk_635A0C[i] = 16;
-                g_252_buffer_unk_63580C[i] = 16;
+                gUVBuffer[i] = 16;
+                gYBlockBuffer[i] = 16;
             }
         }
     }
@@ -718,6 +716,7 @@ namespace Oddlib
             return;
         }
 
+        // DecodeDCTVLC ??
         const int quantScale = decode_bitstream((Uint16*)mVideoFrameData.data(), mDecodedVideoFrameData.data());
 
         after_block_decode_no_effect_q_impl(quantScale);
@@ -726,12 +725,15 @@ namespace Oddlib
         int16_t* bitstreamCurPos = (int16_t*)mDecodedVideoFrameData.data();
         int16_t* block1Output = (int16_t*)mMacroBlockBuffer.data();
 
+        // Loop is equal to PSXMDECDecoder::DecodeFrameToABGR32?
         int xoff = 0;
         for (unsigned int xBlock = 0; xBlock < mNumMacroblocksX; xBlock++)
         {
             int yoff = 0;
             for (unsigned int yBlock = 0; yBlock < mNumMacroblocksY; yBlock++)
             {
+                // The 6 blocks are equal to PSXMDECDecoder::RL2BLK?
+
                 const int dataSizeBytes = 64 * 4;// thisPtr->mBlockDataSize_q * 4; // Convert to byte count 64*4=256
 
                 int16_t* afterBlock1Ptr = ddv_func7_DecodeMacroBlock_impl(bitstreamCurPos, block1Output, 0);
