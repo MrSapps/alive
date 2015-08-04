@@ -695,33 +695,20 @@ namespace Oddlib
 
     static void after_block_decode_no_effect_q_impl(int quantScale)
     {
-        g_252_buffer_unk_63580C[0] = 16;
-        g_252_buffer_unk_635A0C[0] = 16;
-        if (quantScale > 0)
+        for (int i = 0; i < 64; i++)
         {
-            signed int result = 0;
-            do
+            if (quantScale > 0)
             {
-                auto val = gQuant1_dword_42AEC8[result];
-                result++;
-                g_252_buffer_unk_63580C[result] = quantScale * val;
-                g_252_buffer_unk_635A0C[result] = quantScale * gQaunt2_dword_42AFC4[result];
-
-
-            } while (result < 63);                   // 252/4=63
-        }
-        else
-        {
-            // These are simply null buffers to start with
-            for (int i = 0; i < 64; i++)
+                auto val = gQuant1_dword_42AEC8[i];
+                g_252_buffer_unk_63580C[i] = quantScale * val;
+                g_252_buffer_unk_635A0C[i] = quantScale * gQaunt2_dword_42AFC4[i];
+            }
+            else
             {
                 g_252_buffer_unk_635A0C[i] = 16;
                 g_252_buffer_unk_63580C[i] = 16;
             }
-            // memset(&g_252_buffer_unk_635A0C[1], 16, 252  /*sizeof(g_252_buffer_unk_635A0C)*/); // Uint32[63]
-            // memset(&g_252_buffer_unk_63580C[1], 16, 252 /*sizeof(g_252_buffer_unk_63580C)*/);
         }
-
     }
 
     void Masher::ParseVideoFrame(Uint32* pixelBuffer)
