@@ -20,7 +20,7 @@ namespace Oddlib
         Masher(const Masher&) = delete;
         Masher& operator = (const Masher&) = delete;
 
-        explicit Masher(std::string fileName) : mStream(fileName)
+        explicit Masher(const std::string& fileName) : mStream(fileName)
         {
             Read();
         }

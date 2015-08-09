@@ -175,8 +175,8 @@ private:
     public:
     struct CDXASector
     {
-        uint8_t sync[12];
-        uint8_t header[4];
+        //uint8_t sync[12];
+       // uint8_t header[4];
         struct CDXASubHeader
         {
             uint8_t file_number;
