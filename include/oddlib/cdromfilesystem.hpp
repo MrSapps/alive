@@ -37,18 +37,17 @@ public:
         return DoFind(fileName) != nullptr;
     }
 
-    // TODO: Needs wrapping with a steam else loading huge files into memory
-    std::vector<Uint8> ReadFile(std::string fileName)
+    std::unique_ptr<Oddlib::IStream> ReadFile(std::string fileName)
     {
         DrWrapper* record = DoFind(fileName);
         if (!record)
         {
             throw Oddlib::Exception("File not found on CD-ROM");
         }
-        return ReadFile(&record->mDr);
+        return std::make_unique<Stream>(record->mDr);
     }
 
-private:
+public:
     struct DrWrapper;
 
     DrWrapper* DoFind(std::string fileName)
@@ -296,6 +295,74 @@ private:
         
         return data;
     }
+
+    class Stream : public Oddlib::IStream
+    {
+    public:
+        Stream(directory_record& dr, std::string name)
+            : mName(name)
+        {
+
+        }
+
+        virtual void ReadUInt8(Uint8& output) override
+        {
+
+        }
+
+        virtual void ReadUInt32(Uint32& output) override
+        {
+
+        }
+
+        virtual void ReadUInt16(Uint16& output) override
+        {
+
+        }
+
+        virtual void ReadSInt16(Sint16& output) override
+        {
+
+        }
+
+        virtual void ReadBytes(Sint8* pDest, size_t destSize) override
+        {
+
+        }
+
+        virtual void ReadBytes(Uint8* pDest, size_t destSize) override
+        {
+
+        }
+
+        virtual void Seek(size_t pos) override
+        {
+
+        }
+
+        virtual size_t Pos() const override
+        {
+            return 0;
+        }
+
+        virtual size_t Size() const override
+        {
+            return 0;
+        }
+
+        virtual bool AtEnd() const override
+        {
+            return false;
+        }
+
+        virtual const std::string& Name() const override
+        {
+            return mName;
+        }
+    private:
+        std::string mName;
+    };
+
 
     struct Directory;
 

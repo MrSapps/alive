@@ -7,22 +7,39 @@
 
 namespace Oddlib
 {
-    class Stream
+    class IStream
+    {
+    public:
+        virtual ~IStream() = default;
+        virtual void ReadUInt8(Uint8& output) = 0;
+        virtual void ReadUInt32(Uint32& output) = 0;
+        virtual void ReadUInt16(Uint16& output) = 0;
+        virtual void ReadSInt16(Sint16& output) = 0;
+        virtual void ReadBytes(Sint8* pDest, size_t destSize) = 0;
+        virtual void ReadBytes(Uint8* pDest, size_t destSize) = 0;
+        virtual void Seek(size_t pos) = 0;
+        virtual size_t Pos() const = 0;
+        virtual size_t Size() const = 0;
+        virtual bool AtEnd() const = 0;
+        virtual const std::string& Name() const = 0;
+    };
+
+    class Stream : public IStream
     {
     public:
         explicit Stream(const std::string& fileName);
         explicit Stream(std::vector<Uint8>&& data);
-        void ReadUInt8(Uint8& output);
-        void ReadUInt32(Uint32& output);
-        void ReadUInt16(Uint16& output);
-        void ReadSInt16(Sint16& output);
-        void ReadBytes(Sint8* pDest, size_t destSize);
-        void ReadBytes(Uint8* pDest, size_t destSize);
-        void Seek(size_t pos);
-        size_t Pos() const;
-        size_t Size() const;
-        bool AtEnd() const;
-        std::string Name() const { return mName; }
+        virtual void ReadUInt8(Uint8& output) override;
+        virtual void ReadUInt32(Uint32& output) override;
+        virtual void ReadUInt16(Uint16& output) override;
+        virtual void ReadSInt16(Sint16& output) override;
+        virtual void ReadBytes(Sint8* pDest, size_t destSize) override;
+        virtual void ReadBytes(Uint8* pDest, size_t destSize) override;
+        virtual void Seek(size_t pos) override;
+        virtual size_t Pos() const override;
+        virtual size_t Size() const override;
+        virtual bool AtEnd() const override;
+        virtual const std::string& Name() const override { return mName; }
     private:
         mutable std::unique_ptr<std::istream> mStream;
         size_t mSize = 0;

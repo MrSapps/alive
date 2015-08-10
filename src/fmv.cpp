@@ -7,12 +7,6 @@
 #include "SDL_opengl.h"
 #include "oddlib/audio/SequencePlayer.h"
 
-
-std::unique_ptr<SequencePlayer> player;
-bool firstChange = true;
-int targetSong = -1;
-bool loopSong = false;
-
 class AutoMouseCursorHide
 {
 public:
@@ -70,21 +64,21 @@ private:
     AutoMouseCursorHide mHideMouseCursor;
 };
 
-// Same as MOV/STR format but with modified magic in the video frames
-// and XA audio raw cd sector information stripped. Only used in AO PC.
-class DDVMovie : public IMovie
+
+// PSX MOV/STR format, all PSX game versions use this.
+class MovMovie : public IMovie
 {
 private:
     std::unique_ptr<Oddlib::Stream> gStream;
     std::unique_ptr<RawCdImage> gCd;
     std::vector<Uint32> pixels;
 protected:
-    std::unique_ptr<Oddlib::Stream> mFmvStream;
+    std::unique_ptr<Oddlib::IStream> mFmvStream;
 
     bool mPsx = false;
-    DDVMovie() = default;
+    MovMovie() = default;
 public:
-    DDVMovie(const std::string& fullPath)
+    MovMovie(const std::string& fullPath)
     {
         gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin");
         gCd = std::make_unique<RawCdImage>(*gStream);
@@ -94,7 +88,7 @@ public:
         {
             std::cout << "found" << std::endl;
         }
-        mFmvStream = std::make_unique<Oddlib::Stream>(gCd->ReadFile("P2\\R2.MOV"));
+        mFmvStream = gCd->ReadFile("P2\\R2.MOV");
         AudioBuffer::ChangeAudioSpec(8064 / 4, 37800);
         mPsx = true;
     }
@@ -260,11 +254,12 @@ private:
     PSXADPCMDecoder mAdpcm;
 };
 
-// PSX MOV/STR format, all PSX game versions use this.
-class MovMovie : public DDVMovie
+// Same as MOV/STR format but with modified magic in the video frames
+// and XA audio raw cd sector information stripped. Only used in AO PC.
+class DDVMovie : public MovMovie
 {
 public:
-    MovMovie(const std::string& fullPath)
+    DDVMovie(const std::string& fullPath)
     {
         mPsx = false;
         mFmvStream = std::make_unique<Oddlib::Stream>(fullPath);
@@ -334,6 +329,11 @@ private:
     std::unique_ptr<Oddlib::Masher> mMasher;
     std::vector<Uint32> mFramePixels;
 };
+
+std::unique_ptr<SequencePlayer> player;
+bool firstChange = true;
+int targetSong = -1;
+bool loopSong = false;
 
 void BarLoop()
 {
@@ -459,9 +459,9 @@ public:
             std::cout << "Play " << listbox_items[listbox_item_current] << std::endl;
             try
             {
-                mFmv = std::make_unique<MasherMovie>(fullPath);
+                //mFmv = std::make_unique<MasherMovie>(fullPath);
                 //mFmv = std::make_unique<DDVMovie>(fullPath);
-                //mFmv = std::make_unique<MovMovie>(fullPath); 
+                mFmv = std::make_unique<MovMovie>(fullPath); 
             }
             catch (const Oddlib::Exception& ex)
             {
