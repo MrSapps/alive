@@ -51,4 +51,5 @@ bin/*
 *.JOY
 *.BSQ
 
-
+# Generated headers
+test/sample_files/generated_headers/*.h
