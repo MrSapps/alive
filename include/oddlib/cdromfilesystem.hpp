@@ -44,7 +44,7 @@ public:
         {
             throw Oddlib::Exception("File not found on CD-ROM");
         }
-        return std::make_unique<Stream>(record->mDr);
+        return std::make_unique<Stream>(record->mDr, record->mName, mStream);
     }
 
 public:
@@ -196,7 +196,7 @@ public:
     class Sector
     {
     public:
-        Sector(unsigned int sectorNumber, Oddlib::Stream& stream)
+        Sector(unsigned int sectorNumber, Oddlib::IStream& stream)
         {
             const auto pos = kRawSectorSize*sectorNumber;
             stream.Seek(pos);
@@ -299,55 +299,62 @@ public:
     class Stream : public Oddlib::IStream
     {
     public:
-        Stream(directory_record& dr, std::string name)
-            : mName(name)
+        Stream(const Stream&) = delete;
+        Stream& operator = (const Stream&) = delete;
+
+        Stream(directory_record& dr, std::string name, Oddlib::IStream& stream)
+            : mDr(dr), mName(name), mStream(stream)
         {
 
         }
 
         virtual void ReadUInt8(Uint8& output) override
         {
-
+            ReadBytes(reinterpret_cast<Uint8*>(&output), sizeof(Uint8));
         }
 
         virtual void ReadUInt32(Uint32& output) override
         {
-
+            ReadBytes(reinterpret_cast<Uint8*>(&output), sizeof(Uint32));
         }
 
         virtual void ReadUInt16(Uint16& output) override
         {
-
+            ReadBytes(reinterpret_cast<Uint8*>(&output), sizeof(Uint16));
         }
 
         virtual void ReadSInt16(Sint16& output) override
         {
-
+            ReadBytes(reinterpret_cast<Uint8*>(&output), sizeof(Sint16));
         }
 
         virtual void ReadBytes(Sint8* pDest, size_t destSize) override
         {
-
+            ReadBytes(reinterpret_cast<Uint8*>(pDest), destSize);
         }
 
         virtual void ReadBytes(Uint8* pDest, size_t destSize) override
         {
+            mStream.Seek(mDr.location.little * kRawSectorSize);
+            mStream.Seek(mStream.Pos() + 24);
+            mStream.ReadBytes(pDest, destSize);
 
+            Sector s(mDr.location.little, mStream);
         }
 
         virtual void Seek(size_t pos) override
         {
-
+            throw std::runtime_error("Seek() not implemented");
         }
 
         virtual size_t Pos() const override
         {
-            return 0;
+            throw std::runtime_error("Pos() not implemented");
         }
 
         virtual size_t Size() const override
         {
-            return 0;
+            return mDr.data_length.little;
         }
 
         virtual bool AtEnd() const override
@@ -359,8 +366,11 @@ public:
         {
             return mName;
         }
+
     private:
+        directory_record mDr;
         std::string mName;
+        Oddlib::IStream& mStream;
     };
 
 
