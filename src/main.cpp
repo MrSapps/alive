@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 {
     TRACE_ENTRYEXIT;
 
-    AliveInitAudio();
+   // AliveInitAudio();
 
     lua_State *L = lua_open();
     if (L)

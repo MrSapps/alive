@@ -305,7 +305,7 @@ public:
         Stream(directory_record& dr, std::string name, Oddlib::IStream& stream)
             : mDr(dr), mName(name), mStream(stream)
         {
-
+            mSector = mDr.location.little;
         }
 
         virtual void ReadUInt8(Uint8& output) override
@@ -335,8 +335,9 @@ public:
 
         virtual void ReadBytes(Uint8* pDest, size_t destSize) override
         {
-            mStream.Seek(mDr.location.little * kRawSectorSize);
-            mStream.Seek(mStream.Pos() + 24);
+            mStream.Seek(mSector * kRawSectorSize);
+            mSector++;
+            mStream.Seek(mStream.Pos() + 14+2);
             mStream.ReadBytes(pDest, destSize);
 
             Sector s(mDr.location.little, mStream);
@@ -368,6 +369,7 @@ public:
         }
 
     private:
+        unsigned int mSector = 0;
         directory_record mDr;
         std::string mName;
         Oddlib::IStream& mStream;
@@ -439,13 +441,14 @@ public:
     }
 
     Oddlib::Stream& mStream;
-
+public:
     struct DrWrapper
     {
         directory_record mDr;
         std::string mName;
     };
 
+private:
     struct Directory
     {
         DrWrapper mDir;

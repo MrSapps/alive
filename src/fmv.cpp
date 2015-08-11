@@ -153,6 +153,7 @@ public:
         {
             MasherVideoHeaderWrapper w;
 
+            /*
             if (mPsx)
             {
                 uint8_t sync[12];
@@ -160,7 +161,7 @@ public:
 
                 uint8_t header[4];
                 mFmvStream->ReadBytes(reinterpret_cast<Uint8*>(&header), sizeof(header));
-            }
+            }*/
 
             mFmvStream->ReadBytes(reinterpret_cast<Uint8*>(&w), sizeof(w));
 
