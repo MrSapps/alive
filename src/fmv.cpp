@@ -83,12 +83,12 @@ public:
         gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin");
         gCd = std::make_unique<RawCdImage>(*gStream);
         gCd->LogTree();
-        bool exists = gCd->FileExists("S1.MOV");
+        bool exists = gCd->FileExists("E1.MOV");
         if (exists)
         {
             std::cout << "found" << std::endl;
         }
-        mFmvStream = gCd->ReadFile("P2\\R2.MOV");
+        mFmvStream = gCd->ReadFile("F2.MOV", true);
         AudioBuffer::ChangeAudioSpec(8064 / 4, 37800);
         mPsx = true;
     }
@@ -112,6 +112,7 @@ public:
 
     struct MasherVideoHeaderWrapper
     {
+        // these 2 make up the 8 byte subheader?
         unsigned int mSectorType; // AKIK
         unsigned int mSectorNumber;
 
@@ -247,7 +248,7 @@ public:
 
     virtual bool IsEnd() override
     {
-        return false;
+        return mFmvStream->AtEnd();
     }
 
 private:

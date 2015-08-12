@@ -37,14 +37,14 @@ public:
         return DoFind(fileName) != nullptr;
     }
 
-    std::unique_ptr<Oddlib::IStream> ReadFile(std::string fileName)
+    std::unique_ptr<Oddlib::IStream> ReadFile(std::string fileName, bool includeSubheaders)
     {
         DrWrapper* record = DoFind(fileName);
         if (!record)
         {
             throw Oddlib::Exception("File not found on CD-ROM");
         }
-        return std::make_unique<Stream>(record->mDr, record->mName, mStream);
+        return std::make_unique<Stream>(record->mDr, record->mName, mStream, includeSubheaders);
     }
 
 public:
@@ -193,6 +193,30 @@ public:
 
     private:
 
+    static bool IsMode2Form2(void* data)
+    {
+        // To tell the different Mode 2s apart you have to examine bytes 16 - 23 of the sector
+        // (the first 8 bytes of Mode Data).If bytes 16 - 19 are not the same as 20 - 23, 
+        // then it is Mode 2. If they are equal and bit 5 is on(0x20), then it is Mode 2 Form 2. 
+        // Otherwise it is Mode 2 Form 1.
+        CDXASector* xaHeader = reinterpret_cast<CDXASector*>(data);
+        if (xaHeader->subheader.file_number == xaHeader->subheader.file_number_copy &&
+            xaHeader->subheader.channel == xaHeader->subheader.channel_number_copy &&
+            xaHeader->subheader.submode == xaHeader->subheader.submode_copy &&
+            xaHeader->subheader.coding_info == xaHeader->subheader.coding_info_copy &&
+            xaHeader->subheader.submode & 0x20
+            )
+        {
+            //  Mode 2 Form 2
+            return true;
+        }
+        else
+        {
+            //  Mode 2 Form 1
+            return false;
+        }
+    }
+
     class Sector
     {
     public:
@@ -208,26 +232,7 @@ public:
                 throw InvalidCdImageException(("Only mode 2 sectors supported got (" + std::to_string(rawHeader->mMode) + ")").c_str());
             }
 
-            // To tell the different Mode 2s apart you have to examine bytes 16 - 23 of the sector
-            // (the first 8 bytes of Mode Data).If bytes 16 - 19 are not the same as 20 - 23, 
-            // then it is Mode 2. If they are equal and bit 5 is on(0x20), then it is Mode 2 Form 2. 
-            // Otherwise it is Mode 2 Form 1.
-            CDXASector* xaHeader = reinterpret_cast<CDXASector*>(&mData);
-            if (xaHeader->subheader.file_number == xaHeader->subheader.file_number_copy &&
-                xaHeader->subheader.channel == xaHeader->subheader.channel_number_copy &&
-                xaHeader->subheader.submode == xaHeader->subheader.submode_copy &&
-                xaHeader->subheader.coding_info == xaHeader->subheader.coding_info_copy &&
-                xaHeader->subheader.submode & 0x20
-                )
-            {
-                //  Mode 2 Form 2
-                mMode2Form1 = false;
-            }
-            else
-            {
-                //  Mode 2 Form 1
-                mMode2Form1 = true;
-            }
+            mMode2Form1 = !IsMode2Form2(&mData.mData);
         }
 
         Uint8* DataPtr()
@@ -302,8 +307,8 @@ public:
         Stream(const Stream&) = delete;
         Stream& operator = (const Stream&) = delete;
 
-        Stream(directory_record& dr, std::string name, Oddlib::IStream& stream)
-            : mDr(dr), mName(name), mStream(stream)
+        Stream(directory_record& dr, std::string name, Oddlib::IStream& stream, bool includeSubHeaders)
+            : mDr(dr), mName(name), mStream(stream), mIncludeSubHeader(includeSubHeaders)
         {
             mSector = mDr.location.little;
         }
@@ -335,12 +340,21 @@ public:
 
         virtual void ReadBytes(Uint8* pDest, size_t destSize) override
         {
-            mStream.Seek(mSector * kRawSectorSize);
+            mStream.Seek((mSector * kRawSectorSize) + 16);
             mSector++;
-            mStream.Seek(mStream.Pos() + 14+2);
-            mStream.ReadBytes(pDest, destSize);
 
-            Sector s(mDr.location.little, mStream);
+            char subHeader[8] = {};
+            mStream.ReadBytes(reinterpret_cast<Sint8*>(subHeader), sizeof(subHeader));
+            const int sectorDataSize = (IsMode2Form2(subHeader)) ? 2336 : 2048;
+
+            mPos += 2048;
+
+            if (mIncludeSubHeader)
+            {
+                mStream.Seek(mStream.Pos() - sizeof(subHeader));
+            }
+
+            mStream.ReadBytes(pDest, destSize);
         }
 
         virtual void Seek(size_t pos) override
@@ -360,7 +374,8 @@ public:
 
         virtual bool AtEnd() const override
         {
-            return false;
+            std::cout << "Pos " << mPos << " VS " << mDr.data_length.little << " SECTOR " << mSector - mDr.location.little << std::endl;
+            return mPos == mDr.data_length.little;
         }
 
         virtual const std::string& Name() const override
@@ -369,6 +384,8 @@ public:
         }
 
     private:
+        size_t mPos = 0;
+        bool mIncludeSubHeader = false;
         unsigned int mSector = 0;
         directory_record mDr;
         std::string mName;
