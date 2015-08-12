@@ -381,12 +381,12 @@ public:
     void ReadDirectory(directory_record* rec, Directory* d)
     {
         const auto dataSize = rec->data_length.little;
-        auto sector = rec->location.little;
+        auto sectorNum = rec->location.little;
         size_t totalDataRead = 0;
 
         while (totalDataRead != dataSize)
         {
-            Sector sector(sector++, mStream);
+            Sector sector(sectorNum++, mStream);
             totalDataRead += sector.DataLength();
             directory_record* dr = (directory_record*)sector.DataPtr();
             while (dr->length)
