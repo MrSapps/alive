@@ -164,8 +164,12 @@ public:
                 mFmvStream->ReadBytes(reinterpret_cast<Uint8*>(&header), sizeof(header));
             }*/
 
+            if (mFmvStream->AtEnd())
+            {
+                return;
+            }
             mFmvStream->ReadBytes(reinterpret_cast<Uint8*>(&w), sizeof(w));
-
+   
             // PC sector must start with "MOIR" if video, else starts with "VALE"
             if (!mPsx && w.mSectorType != 0x52494f4d)
             {
