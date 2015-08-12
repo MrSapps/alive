@@ -54,7 +54,7 @@ public:
     {
         if (fileName.empty())
         {
-            return false;
+            return nullptr;
         }
 
         if (fileName[0] != '\\')
