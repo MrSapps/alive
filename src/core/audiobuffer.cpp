@@ -28,6 +28,10 @@ void AudioBuffer::AudioCallback(void *udata, Uint8 *stream, int len)
         mBuffer.erase(mBuffer.begin(), mBuffer.begin() + size);
         mPlayedSamples += size / AUDIO_BUFFER_SAMPLE_SIZE;
     }
+    else
+    {
+        std::cout << "Nothing to play" << std::endl;
+    }
 
 }
 

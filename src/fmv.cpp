@@ -80,15 +80,10 @@ protected:
 public:
     MovMovie(const std::string& fullPath)
     {
-        gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin");
+        gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin");
         gCd = std::make_unique<RawCdImage>(*gStream);
         gCd->LogTree();
-        bool exists = gCd->FileExists("E1.MOV");
-        if (exists)
-        {
-            std::cout << "found" << std::endl;
-        }
-        mFmvStream = gCd->ReadFile("F2.MOV", true);
+        mFmvStream = gCd->ReadFile("ABE2\\MI.MOV", true);
         AudioBuffer::ChangeAudioSpec(8064 / 4, 37800);
         mPsx = true;
     }
@@ -240,11 +235,9 @@ public:
             }
         }
 
-        
-        if (pixels.empty())
-        {
-            pixels.resize(frameW * frameH);
-        }
+        // Always resize as its possible for a stream to change its frame size to be smaller or larger
+        // this happens in the AE PSX MI.MOV streams
+        pixels.resize(frameW * frameH);
 
         mMdec.DecodeFrameToABGR32((uint16_t*)pixels.data(), (uint16_t*)r.data(), frameW, frameH, false);
         RenderFrame(frameW, frameH, pixels.data());

@@ -76,6 +76,7 @@ namespace Oddlib
     {
         if (!mStream->read(reinterpret_cast<char*>(pDest), destSize))
         {
+            auto pos = this->Pos();
             throw Exception("ReadBytes failure");
         }
     }
