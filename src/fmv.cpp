@@ -80,10 +80,10 @@ protected:
 public:
     MovMovie(const std::string& fullPath)
     {
-        gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin");
+        gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin");
         gCd = std::make_unique<RawCdImage>(*gStream);
         gCd->LogTree();
-        mFmvStream = gCd->ReadFile("ABE2\\MI.MOV", true);
+        mFmvStream = gCd->ReadFile("ABESODSE\\R1.MOV", true);
         AudioBuffer::ChangeAudioSpec(8064 / 4, 37800);
         mPsx = true;
     }
@@ -136,7 +136,7 @@ public:
     virtual void OnRenderFrame() override
     {
         std::vector<unsigned char> r(32768);
-        std::vector<unsigned char> outPtr(32678);
+        std::vector<int8_t> outPtr(32678);
 
         unsigned int numSectorsToRead = 0;
         unsigned int sectorNumber = 0;
@@ -178,15 +178,27 @@ public:
                 uint16_t numBytes = 0;
                 if (mPsx)
                 {
+
+                    RawCdImage::CDXASector* rawXa = (RawCdImage::CDXASector*)&w;
+
+                    // Seems to be the way to "split" streams - apart from AO PSX demo level transition
+                    // has this for many frames?
+                    if (rawXa->subheader.coding_info == 0)
+                    {
+                        numBytes = 2016 * 4;
+                    }
+                    else
+                    {
+                        std::cout << "coding info: " << std::hex << (int)rawXa->subheader.coding_info << std::endl;
+                        numBytes = mAdpcm.DecodeFrameToPCM(outPtr.data(), &rawXa->data[0], true);
+                    }
+
                     /*
                     std::cout <<
                     (CHECK_BIT(xa->subheader.coding_info, 0) ? "Mono " : "Stereo ") <<
                     (CHECK_BIT(xa->subheader.coding_info, 2) ? "37800Hz " : "18900Hz ") <<
                     (CHECK_BIT(xa->subheader.coding_info, 4) ? "4bit " : "8bit ")
                     */
-
-                    RawCdImage::CDXASector* rawXa = (RawCdImage::CDXASector*)&w;
-                    numBytes = mAdpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), &rawXa->data[0], true);
                 }
                 else
                 {
