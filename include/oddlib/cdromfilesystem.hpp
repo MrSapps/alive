@@ -374,7 +374,7 @@ public:
 
         virtual bool AtEnd() const override
         {
-            std::cout << "Pos " << mPos << " VS " << mDr.data_length.little << " SECTOR " << mSector - mDr.location.little << std::endl;
+           // std::cout << "Pos " << mPos << " VS " << mDr.data_length.little << " SECTOR " << mSector - mDr.location.little << std::endl;
             return mPos == mDr.data_length.little;
         }
 
