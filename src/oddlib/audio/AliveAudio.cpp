@@ -62,7 +62,7 @@ void AliveInitAudio()
 		// Tada!
 	}
 
-	SDL_PauseAudio(0);
+	//SDL_PauseAudio(0);
 }
 
 void CleanVoices()

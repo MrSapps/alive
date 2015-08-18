@@ -21,13 +21,16 @@ public:
     }
 };
 
-void SdlAudioWrapper::Open(Uint16 frameSize, int freq)
+SdlAudioWrapper::SdlAudioWrapper()
 {
     if (SDL_Init(SDL_INIT_AUDIO) != 0)
     {
         throw Oddlib::Exception((std::string("SDL_Init for SDL_INIT_AUDIO failed: ") + SDL_GetError()).c_str());
     }
+}
 
+void SdlAudioWrapper::Open(Uint16 frameSize, int freq)
+{
     SDL_AudioSpec audioSpec = {};
     audioSpec.userdata = this;
     audioSpec.callback = StaticAudioCallback;
@@ -37,13 +40,14 @@ void SdlAudioWrapper::Open(Uint16 frameSize, int freq)
     audioSpec.format = AUDIO_BUFFER_FORMAT;
 
     // Open the audio device
-    if (SDL_OpenAudio(&audioSpec, NULL) < 0)
+    mDevice = SDL_OpenAudioDevice(NULL, 0, &audioSpec, NULL, 0);
+    if (mDevice == 0)
     {
         throw Oddlib::Exception((std::string("SDL_OpenAudio failed: ") + SDL_GetError()).c_str());
     }
 
     // Start the call back
-    SDL_PauseAudio(0);
+    SDL_PauseAudioDevice(mDevice, 0);
 }
 
 void SdlAudioWrapper::AddPlayer(IAudioPlayer* player)
@@ -60,7 +64,7 @@ void SdlAudioWrapper::RemovePlayer(IAudioPlayer* player)
     mAudioPlayers.erase(player);
 }
 
-void SdlAudioWrapper::ChangeAudioSpec(Uint16 frameSize, int freq)
+void SdlAudioWrapper::SetAudioSpec(Uint16 frameSize, int freq)
 {
     SdlAudioLocker audioLocker;
     Close();
@@ -70,14 +74,23 @@ void SdlAudioWrapper::ChangeAudioSpec(Uint16 frameSize, int freq)
 
 SdlAudioWrapper::~SdlAudioWrapper()
 {
+    SdlAudioLocker audioLocker;
+
+    mAudioPlayers.clear();
+
     // Ensure call back won't be called with invalid this ptr
     Close();
+
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 void SdlAudioWrapper::Close()
 {
     SdlAudioLocker audioLocker;
-    SDL_CloseAudio();
+    if (mDevice != 0)
+    {
+        SDL_CloseAudioDevice(mDevice);
+    }
 }
 
 // Called in the context of the audio thread

@@ -46,11 +46,16 @@ private:
     
     void ToState(eStates newState);
 
+    // Audio must init early
+    SdlAudioWrapper mAudioHandler;
+
     FileSystem mFileSystem;
     GameData mGameData;
-    Fmv mFmv;
-
+ 
     SDL_Window* mWindow = nullptr;
     SDL_GLContext mContext = nullptr;
-    SdlAudioWrapper mAudioHandler;
+
+
+    Fmv mFmv;
+
 };

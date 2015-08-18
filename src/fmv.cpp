@@ -93,17 +93,21 @@ public:
         gCd->LogTree();
         mFmvStream = gCd->ReadFile("ABE2\\MI.MOV", true);
         
-        mAudioController.ChangeAudioSpec(8064 / 4, 37800);
+        mAudioController.SetAudioSpec(8064 / 4, 37800);
 
         mPsx = true;
 
         // TODO: Add to interface - must be added/removed outside of ctor/dtor due
         // to data race issues
         mAudioController.AddPlayer(this);
+
+        std::vector<Uint8> b;
+        mAudioBuffer.push_back(b);
     }
 
     ~MovMovie()
     {
+        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
         mAudioController.RemovePlayer(this);
     }
 
@@ -150,7 +154,23 @@ public:
     // Audio thread context
     virtual void Play(Uint8* stream, Sint32 len) override
     {
+        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+
         // TODO: Consume mAudioBuffer and update the matching video frame number
+        size_t have = mAudioBuffer.front().size();
+        size_t take = len;
+        if (len > have)
+        {
+            // Buffer underflow - we don't have enough data to fill the requested buffer
+            // audio glitches ahoy!
+            take = have;
+        }
+
+        for (int i = 0; i < take; i++)
+        {
+            stream[i] = mAudioBuffer.front()[i];
+        }
+        mAudioBuffer.front().erase(mAudioBuffer.front().begin(), mAudioBuffer.front().begin() + take);
     }
 
     // Main thread context
@@ -158,6 +178,15 @@ public:
     {
         // TODO: Populate mAudioBuffer and mVideoBuffer
         // for up to N buffered frames
+        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+        if (mAudioBuffer.front().size() > 8000*3)
+        {
+            if (!pixels.empty())
+            {
+                RenderFrame(frameW, frameH, pixels.data());
+            }
+            return;
+        }
 
         std::vector<unsigned char> r(32768);
         std::vector<unsigned char> outPtr(32678);
@@ -166,9 +195,7 @@ public:
         unsigned int sectorNumber = 0;
         const int kDataSize = 2016;
 
-        int frameW = 0;
-        int frameH = 0;
-
+  
         for (;;)
         {
             MasherVideoHeaderWrapper w;
@@ -199,13 +226,26 @@ public:
                     */
 
                     RawCdImage::CDXASector* rawXa = (RawCdImage::CDXASector*)&w;
-                    numBytes = mAdpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), &rawXa->data[0], true);
+                    if (rawXa->subheader.coding_info != 0)
+                    {
+                        numBytes = mAdpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), &rawXa->data[0], true);
+                    }
+                    else
+                    {
+                        // Blank/empty audio frame, play silence so video stays in sync
+                        numBytes = 2016 * 2 * 2;
+                    }
                 }
                 else
                 {
                     numBytes = mAdpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), (uint8_t *)&w.mAkikMagic, true);
                 }
 
+              
+                for (int i = 0; i < numBytes; i++)
+                {
+                    mAudioBuffer.front().push_back(outPtr[i]);
+                }
 
                 /* TODO: Update
                 AudioBuffer::mPlayedSamples = 0;
@@ -257,8 +297,11 @@ public:
     }
 
 private:
+    std::mutex mAudioBufferMutex;
     std::deque<std::vector<Uint8>> mAudioBuffer;
     std::deque<std::vector<Uint8>> mVideoBuffer;
+    int frameW = 0;
+    int frameH = 0;
 
     PSXMDECDecoder mMdec;
     PSXADPCMDecoder mAdpcm;

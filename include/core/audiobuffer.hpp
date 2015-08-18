@@ -10,10 +10,9 @@ class IAudioController
 {
 public:
     virtual ~IAudioController() = default;
-    virtual void Open(Uint16 frameSize, int freq) = 0;
     virtual void AddPlayer(IAudioPlayer* player) = 0;
     virtual void RemovePlayer(IAudioPlayer* player) = 0;
-    virtual void ChangeAudioSpec(Uint16 frameSize, int freq) = 0;
+    virtual void SetAudioSpec(Uint16 frameSize, int freq) = 0;
 };
 
 class IAudioPlayer
@@ -26,12 +25,13 @@ public:
 class SdlAudioWrapper : public IAudioController
 {
 public:
-    virtual void Open(Uint16 frameSize, int freq) override;
+    SdlAudioWrapper();
     virtual void AddPlayer(IAudioPlayer* player) override;
     virtual void RemovePlayer(IAudioPlayer* player) override;
-    virtual void ChangeAudioSpec(Uint16 frameSize, int freq) override;
+    virtual void SetAudioSpec(Uint16 frameSize, int freq) override;
     ~SdlAudioWrapper();
 private:
+    void Open(Uint16 frameSize, int freq);
     void Close();
     static void StaticAudioCallback(void *udata, Uint8 *stream, int len);
     void AudioCallback(Uint8 *stream, int len);
@@ -39,4 +39,5 @@ private:
     // This will overflow when playing roughly 10000 years worth of video.
     std::atomic<Uint64> mPlayedSamples; 
     std::set<IAudioPlayer*> mAudioPlayers;
+    int mDevice = 0;
 };
