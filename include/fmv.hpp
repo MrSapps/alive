@@ -8,11 +8,12 @@
 #include "oddlib/PSXMDECDecoder.h"
 
 class GameData;
+class IAudioController;
 
 class Fmv
 {
 public:
-    Fmv(GameData& gameData);
+    Fmv(GameData& gameData, IAudioController& audioController);
     ~Fmv();
     void Play();
     void Stop();
@@ -22,6 +23,7 @@ private:
     void RenderVideoUi();
 private:
     GameData& mGameData;
+    IAudioController& mAudioController;
     std::unique_ptr<class IMovie> mFmv;
     std::vector<std::unique_ptr<class FmvUi>> mFmvUis;
 };

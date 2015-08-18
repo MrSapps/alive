@@ -5,6 +5,7 @@
 #include "fmv.hpp"
 #include <memory>
 #include "oddlib/masher.hpp"
+#include "core/audiobuffer.hpp"
 #include "SDL.h"
 //#include <GL/glew.h>
 #ifdef _WIN32
@@ -51,4 +52,5 @@ private:
 
     SDL_Window* mWindow = nullptr;
     SDL_GLContext mContext = nullptr;
+    SdlAudioWrapper mAudioHandler;
 };

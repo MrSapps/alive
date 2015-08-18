@@ -21,11 +21,10 @@ public:
     }
 };
 
-class IMovie
+class IMovie : public IAudioPlayer
 {
 public:
     virtual ~IMovie() = default;
-    virtual void OnRenderAudio(Uint8 *stream, Sint32 len) = 0;
     virtual void OnRenderFrame() = 0;
     virtual bool IsEnd() = 0;
 protected:
@@ -60,9 +59,13 @@ protected:
         glDeleteTextures(1, &TextureID);
     }
 
+protected:
+    std::mutex mAudioLock;
+
 private:
     AutoMouseCursorHide mHideMouseCursor;
 };
+
 
 
 // PSX MOV/STR format, all PSX game versions use this.
@@ -76,16 +79,32 @@ protected:
     std::unique_ptr<Oddlib::IStream> mFmvStream;
 
     bool mPsx = false;
-    MovMovie() = default;
+    MovMovie(IAudioController& audioController)
+        : mAudioController(audioController)
+    {
+
+    }
 public:
-    MovMovie(const std::string& fullPath)
+    MovMovie(const std::string& fullPath, IAudioController& audioController)
+        : mAudioController(audioController)
     {
         gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin");
         gCd = std::make_unique<RawCdImage>(*gStream);
         gCd->LogTree();
         mFmvStream = gCd->ReadFile("ABE2\\MI.MOV", true);
-        AudioBuffer::ChangeAudioSpec(8064 / 4, 37800);
+        
+        mAudioController.ChangeAudioSpec(8064 / 4, 37800);
+
         mPsx = true;
+
+        // TODO: Add to interface - must be added/removed outside of ctor/dtor due
+        // to data race issues
+        mAudioController.AddPlayer(this);
+    }
+
+    ~MovMovie()
+    {
+        mAudioController.RemovePlayer(this);
     }
 
     struct RawCDXASector
@@ -128,13 +147,18 @@ public:
     };
 #pragma pack(pop)
 
-    virtual void OnRenderAudio(Uint8 *stream, Sint32 len) override
+    // Audio thread context
+    virtual void Play(Uint8* stream, Sint32 len) override
     {
-
+        // TODO: Consume mAudioBuffer and update the matching video frame number
     }
 
+    // Main thread context
     virtual void OnRenderFrame() override
     {
+        // TODO: Populate mAudioBuffer and mVideoBuffer
+        // for up to N buffered frames
+
         std::vector<unsigned char> r(32768);
         std::vector<unsigned char> outPtr(32678);
 
@@ -148,27 +172,16 @@ public:
         for (;;)
         {
             MasherVideoHeaderWrapper w;
-
-            /*
-            if (mPsx)
-            {
-                uint8_t sync[12];
-                mFmvStream->ReadBytes(reinterpret_cast<Uint8*>(&sync), sizeof(sync));
-
-                uint8_t header[4];
-                mFmvStream->ReadBytes(reinterpret_cast<Uint8*>(&header), sizeof(header));
-            }*/
-
             if (mFmvStream->AtEnd())
             {
                 return;
             }
             mFmvStream->ReadBytes(reinterpret_cast<Uint8*>(&w), sizeof(w));
-   
+
             // PC sector must start with "MOIR" if video, else starts with "VALE"
             if (!mPsx && w.mSectorType != 0x52494f4d)
             {
-               // abort();
+                // abort();
             }
 
             // AKIK is 0x80010160 in PSX
@@ -193,6 +206,8 @@ public:
                     numBytes = mAdpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), (uint8_t *)&w.mAkikMagic, true);
                 }
 
+
+                /* TODO: Update
                 AudioBuffer::mPlayedSamples = 0;
                 AudioBuffer::SendSamples((char*)outPtr.data(), numBytes);
 
@@ -200,7 +215,7 @@ public:
                 while (AudioBuffer::mPlayedSamples < numBytes / 4)
                 {
 
-                }
+                }*/
 
                 // Must be VALE
                 continue;
@@ -209,13 +224,6 @@ public:
             {
                 frameW = w.mWidth;
                 frameH = w.mHeight;
-
-                //std::cout << "sector: " << w.mSectorNumber << std::endl;
-                //std::cout << "data len: " << w.mFrameDataLen << std::endl;
-                //std::cout << "frame number: " << w.mFrameNum << std::endl;
-                //std::cout << "num sectors in frame: " << w.mNumSectorsInFrame << std::endl;
-                //std::cout << "frame sector number: " << w.mSectorNumberInFrame << std::endl;
-                // SetSurfaceSize(w.mWidth, w.mHeight);
 
                 uint32_t bytes_to_copy = w.mFrameDataLen - w.mSectorNumberInFrame *kDataSize;
                 if (bytes_to_copy > 0)
@@ -245,12 +253,16 @@ public:
 
     virtual bool IsEnd() override
     {
-        return mFmvStream->AtEnd();
+        return mFmvStream->AtEnd() && mAudioBuffer.empty() && mVideoBuffer.empty();
     }
 
 private:
+    std::deque<std::vector<Uint8>> mAudioBuffer;
+    std::deque<std::vector<Uint8>> mVideoBuffer;
+
     PSXMDECDecoder mMdec;
     PSXADPCMDecoder mAdpcm;
+    IAudioController& mAudioController;
 };
 
 // Same as MOV/STR format but with modified magic in the video frames
@@ -258,11 +270,13 @@ private:
 class DDVMovie : public MovMovie
 {
 public:
-    DDVMovie(const std::string& fullPath)
+    DDVMovie(const std::string& fullPath, IAudioController& audioController)
+        : MovMovie(audioController)
     {
         mPsx = false;
         mFmvStream = std::make_unique<Oddlib::Stream>(fullPath);
-        AudioBuffer::ChangeAudioSpec(8064 / 4, 37800);
+        // TODO: Update
+        //AudioBuffer::ChangeAudioSpec(8064 / 4, 37800);
     }
 };
 
@@ -279,7 +293,8 @@ public:
         
         if (mMasher->HasAudio())
         {
-            AudioBuffer::ChangeAudioSpec(mMasher->SingleAudioFrameSizeBytes(), mMasher->AudioSampleRate());
+            // TODO: Update
+           // AudioBuffer::ChangeAudioSpec(mMasher->SingleAudioFrameSizeBytes(), mMasher->AudioSampleRate());
         }
 
         if (mMasher->HasVideo())
@@ -297,11 +312,6 @@ public:
         }
     }
 
-    virtual void OnRenderAudio(Uint8 *stream, Sint32 len) override
-    {
-
-    }
-
     virtual void OnRenderFrame() override
     {
         std::vector<Uint16> decodedFrame(mMasher->SingleAudioFrameSizeBytes() * 2); // *2 if stereo
@@ -309,11 +319,12 @@ public:
         if (!mEnd)
         {
             RenderFrame(mMasher->Width(), mMasher->Height(), mFramePixels.data());
+            /* TODO: Update
             AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
             while (AudioBuffer::mPlayedSamples < mMasher->FrameNumber() * mMasher->SingleAudioFrameSizeBytes())
             {
 
-            }
+            }*/
         }
     }
 
@@ -396,8 +407,8 @@ private:
     std::vector<const char*> listbox_items;
     std::unique_ptr<class IMovie>& mFmv;
 public:
-    FmvUi(std::unique_ptr<class IMovie>& fmv)
-        : mFmv(fmv)
+    FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController)
+        : mFmv(fmv), mAudioController(audioController)
     {
 #ifdef _WIN32
         strcpy(buf, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee\\");
@@ -460,7 +471,7 @@ public:
             {
                 //mFmv = std::make_unique<MasherMovie>(fullPath);
                 //mFmv = std::make_unique<DDVMovie>(fullPath);
-                mFmv = std::make_unique<MovMovie>(fullPath); 
+                mFmv = std::make_unique<MovMovie>(fullPath, mAudioController); 
             }
             catch (const Oddlib::Exception& ex)
             {
@@ -470,6 +481,8 @@ public:
 
         ImGui::End();
     }
+private:
+    IAudioController& mAudioController;
 };
 
 void Fmv::RenderVideoUi()
@@ -481,7 +494,7 @@ void Fmv::RenderVideoUi()
             auto fmvs = mGameData.Fmvs();
             for (auto fmvSet : fmvs)
             {
-                mFmvUis.emplace_back(std::make_unique<FmvUi>(mFmv));
+                mFmvUis.emplace_back(std::make_unique<FmvUi>(mFmv, mAudioController));
             }
         }
 
@@ -498,8 +511,8 @@ void Fmv::RenderVideoUi()
     }
 }
 
-Fmv::Fmv(GameData& gameData)
-    : mGameData(gameData)
+Fmv::Fmv(GameData& gameData, IAudioController& audioController)
+    : mGameData(gameData), mAudioController(audioController)
 {
 
 }

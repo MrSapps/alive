@@ -187,7 +187,7 @@ void UpdateImGui()
 }
 
 Engine::Engine()
-    : mFmv(mGameData)
+    : mFmv(mGameData, mAudioHandler)
 {
 
 }
