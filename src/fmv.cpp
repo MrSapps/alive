@@ -74,7 +74,7 @@ class MovMovie : public IMovie
 private:
     std::unique_ptr<Oddlib::Stream> gStream;
     std::unique_ptr<RawCdImage> gCd;
-    std::vector<Uint32> pixels;
+    std::vector<Uint32> mPixelBuffer;
 protected:
     std::unique_ptr<Oddlib::IStream> mFmvStream;
 
@@ -88,10 +88,10 @@ public:
     MovMovie(const std::string& fullPath, IAudioController& audioController)
         : mAudioController(audioController)
     {
-        gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin");
+        gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin");
         gCd = std::make_unique<RawCdImage>(*gStream);
         gCd->LogTree();
-        mFmvStream = gCd->ReadFile("ABE2\\MI.MOV", true);
+        mFmvStream = gCd->ReadFile("BR\\BR.MOV", true);
         
         mAudioController.SetAudioSpec(8064 / 4, 37800);
 
@@ -100,9 +100,6 @@ public:
         // TODO: Add to interface - must be added/removed outside of ctor/dtor due
         // to data race issues
         mAudioController.AddPlayer(this);
-
-        std::vector<Uint8> b;
-        mAudioBuffer.push_back(b);
     }
 
     ~MovMovie()
@@ -157,7 +154,7 @@ public:
         std::lock_guard<std::mutex> lock(mAudioBufferMutex);
 
         // TODO: Consume mAudioBuffer and update the matching video frame number
-        size_t have = mAudioBuffer.front().size();
+        size_t have = mAudioBuffer.size();
         size_t take = len;
         if (len > have)
         {
@@ -168,9 +165,15 @@ public:
 
         for (int i = 0; i < take; i++)
         {
-            stream[i] = mAudioBuffer.front()[i];
+            stream[i] = mAudioBuffer[i];
         }
-        mAudioBuffer.front().erase(mAudioBuffer.front().begin(), mAudioBuffer.front().begin() + take);
+        mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take);
+        mConsumedAudioSamples += take;
+    }
+
+    bool NeedBuffer()
+    {
+        return (/*mVideoBuffer.size() < 30 || */ mAudioBuffer.size() < (8064 * 30)) && !mFmvStream->AtEnd();
     }
 
     // Main thread context
@@ -179,25 +182,61 @@ public:
         // TODO: Populate mAudioBuffer and mVideoBuffer
         // for up to N buffered frames
         std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-        if (mAudioBuffer.front().size() > 8000*3)
+
+        while (NeedBuffer())
         {
-            if (!pixels.empty())
-            {
-                RenderFrame(frameW, frameH, pixels.data());
-            }
-            return;
+            BufferFrame();
         }
 
-        std::vector<unsigned char> r(32768);
-        std::vector<unsigned char> outPtr(32678);
+        // 10080 or 10320 ??
+        size_t frameToDisplay = mConsumedAudioSamples / (8064 + (8064 / 4));
 
+        // 6214 frames
+        std::cout << "Frame num " << frameToDisplay << " samples played " << (size_t)mConsumedAudioSamples << std::endl;
+
+        while (!mVideoBuffer.empty())
+        {  
+            Frame& f = mVideoBuffer.front();
+            if (f.mFrameNum < frameToDisplay)
+            {
+                mVideoBuffer.pop_front();
+                continue;
+            }
+
+            if (f.mFrameNum == frameToDisplay)
+            {
+                RenderFrame(f.mW, f.mH, f.mPixels.data());
+                break;
+            }
+
+        }
+
+        while (NeedBuffer())
+        {
+            BufferFrame();
+        }
+    }
+
+    void BufferFrame()
+    {
+
+        const int kXaFrameDataSize = 2016;
+        const int kNumAudioChannels = 2;
+        const int kBytesPerSample = 2;
+        std::vector<unsigned char> outPtr(kXaFrameDataSize * kNumAudioChannels * kBytesPerSample);
+        
+        if (mDemuxBuffer.empty())
+        {
+            mDemuxBuffer.resize(1024 * 1024);
+        }
+
+        std::vector<Uint8> pixelBuffer;
         unsigned int numSectorsToRead = 0;
         unsigned int sectorNumber = 0;
-        const int kDataSize = 2016;
 
-  
         for (;;)
         {
+
             MasherVideoHeaderWrapper w;
             if (mFmvStream->AtEnd())
             {
@@ -241,54 +280,45 @@ public:
                     numBytes = mAdpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), (uint8_t *)&w.mAkikMagic, true);
                 }
 
-              
                 for (int i = 0; i < numBytes; i++)
                 {
-                    mAudioBuffer.front().push_back(outPtr[i]);
+                    mAudioBuffer.push_back(outPtr[i]);
                 }
-
-                /* TODO: Update
-                AudioBuffer::mPlayedSamples = 0;
-                AudioBuffer::SendSamples((char*)outPtr.data(), numBytes);
-
-                // 8064
-                while (AudioBuffer::mPlayedSamples < numBytes / 4)
-                {
-
-                }*/
 
                 // Must be VALE
                 continue;
             }
             else
             {
-                frameW = w.mWidth;
-                frameH = w.mHeight;
+                const int frameW = w.mWidth;
+                const int frameH = w.mHeight;
 
-                uint32_t bytes_to_copy = w.mFrameDataLen - w.mSectorNumberInFrame *kDataSize;
+                uint32_t bytes_to_copy = w.mFrameDataLen - w.mSectorNumberInFrame *kXaFrameDataSize;
                 if (bytes_to_copy > 0)
                 {
-                    if (bytes_to_copy > kDataSize)
+                    if (bytes_to_copy > kXaFrameDataSize)
                     {
-                        bytes_to_copy = kDataSize;
+                        bytes_to_copy = kXaFrameDataSize;
                     }
 
-                    memcpy(r.data() + w.mSectorNumberInFrame * kDataSize, w.frame, bytes_to_copy);
+                    memcpy(mDemuxBuffer.data() + w.mSectorNumberInFrame * kXaFrameDataSize, w.frame, bytes_to_copy);
                 }
 
                 if (w.mSectorNumberInFrame == w.mNumSectorsInFrame - 1)
                 {
-                    break;
+                    // Always resize as its possible for a stream to change its frame size to be smaller or larger
+                    // this happens in the AE PSX MI.MOV streams
+                    pixelBuffer.resize(frameW * frameH* 4); // 4 bytes per pixel
+
+                    mMdec.DecodeFrameToABGR32((uint16_t*)pixelBuffer.data(), (uint16_t*)mDemuxBuffer.data(), frameW, frameH, false);
+                    mVideoBuffer.push_back(Frame{ mFrameCounter++, frameW, frameH, pixelBuffer });
+
+                    return;
                 }
             }
         }
 
-        // Always resize as its possible for a stream to change its frame size to be smaller or larger
-        // this happens in the AE PSX MI.MOV streams
-        pixels.resize(frameW * frameH);
-
-        mMdec.DecodeFrameToABGR32((uint16_t*)pixels.data(), (uint16_t*)r.data(), frameW, frameH, false);
-        RenderFrame(frameW, frameH, pixels.data());
+       
     }
 
     virtual bool IsEnd() override
@@ -297,12 +327,19 @@ public:
     }
 
 private:
+    struct Frame
+    {
+        size_t mFrameNum;
+        int mW;
+        int mH;
+        std::vector<Uint8> mPixels;
+    };
+    size_t mFrameCounter = 0;
+    std::atomic<size_t> mConsumedAudioSamples;
+    std::vector<unsigned char> mDemuxBuffer;
     std::mutex mAudioBufferMutex;
-    std::deque<std::vector<Uint8>> mAudioBuffer;
-    std::deque<std::vector<Uint8>> mVideoBuffer;
-    int frameW = 0;
-    int frameH = 0;
-
+    std::deque<Uint8> mAudioBuffer;
+    std::deque<Frame> mVideoBuffer;
     PSXMDECDecoder mMdec;
     PSXADPCMDecoder mAdpcm;
     IAudioController& mAudioController;
