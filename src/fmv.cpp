@@ -93,7 +93,10 @@ public:
         gCd->LogTree();
         mFmvStream = gCd->ReadFile("BR\\BR.MOV", true);
         
-        mAudioController.SetAudioSpec(8064 / 4, 37800);
+        //mAudioController.SetAudioSpec(8064 / 4, 37800);
+        mAudioController.SetAudioSpec(37800/15, 37800);
+
+        
 
         mPsx = true;
 
@@ -173,7 +176,7 @@ public:
 
     bool NeedBuffer()
     {
-        return (/*mVideoBuffer.size() < 30 || */ mAudioBuffer.size() < (8064 * 30)) && !mFmvStream->AtEnd();
+        return (mVideoBuffer.size() == 0 || mAudioBuffer.size() < (10080 * 2)) && !mFmvStream->AtEnd();
     }
 
     // Main thread context
@@ -189,11 +192,17 @@ public:
         }
 
         // 10080 or 10320 ??
-        size_t frameToDisplay = mConsumedAudioSamples / (8064 + (8064 / 4));
+        size_t frameToDisplay = (mConsumedAudioSamples / ((37800 / 15)*2*2));
 
-        // 6214 frames
-        std::cout << "Frame num " << frameToDisplay << " samples played " << (size_t)mConsumedAudioSamples << std::endl;
+        int num = -1;
+        if (!mVideoBuffer.empty())
+        {
+            num = mVideoBuffer.begin()->mFrameNum;
+        }
 
+        std::cout << "Playing frame num " << frameToDisplay << " first buffered frame is " << num << " samples played " << (size_t)mConsumedAudioSamples << std::endl;
+
+        bool played = false;
         while (!mVideoBuffer.empty())
         {  
             Frame& f = mVideoBuffer.front();
@@ -205,10 +214,24 @@ public:
 
             if (f.mFrameNum == frameToDisplay)
             {
+                mLast = f;
                 RenderFrame(f.mW, f.mH, f.mPixels.data());
+                played = true;
                 break;
             }
 
+        }
+
+        if (!played && !mVideoBuffer.empty())
+        {
+            Frame& f = mVideoBuffer.front();
+            RenderFrame(f.mW, f.mH, f.mPixels.data());
+        }
+
+        if (!played && mVideoBuffer.empty())
+        {
+            Frame& f = mLast;
+            RenderFrame(f.mW, f.mH, f.mPixels.data());
         }
 
         while (NeedBuffer())
@@ -327,6 +350,7 @@ public:
     }
 
 private:
+
     struct Frame
     {
         size_t mFrameNum;
@@ -334,6 +358,9 @@ private:
         int mH;
         std::vector<Uint8> mPixels;
     };
+    Frame mLast;
+
+
     size_t mFrameCounter = 0;
     std::atomic<size_t> mConsumedAudioSamples;
     std::vector<unsigned char> mDemuxBuffer;
