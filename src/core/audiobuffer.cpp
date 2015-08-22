@@ -1,6 +1,8 @@
 #include "core/audiobuffer.hpp"
 #include "oddlib/exceptions.hpp"
+#include "logger.hpp"
 #include <string>
+#include <sstream>
 
 #define AUDIO_BUFFER_CHANNELS 2
 #define AUDIO_BUFFER_FORMAT AUDIO_S16
@@ -39,11 +41,34 @@ void SdlAudioWrapper::Open(Uint16 frameSize, int freq)
     audioSpec.samples = frameSize;
     audioSpec.format = AUDIO_BUFFER_FORMAT;
 
+    SDL_AudioSpec obtained = {};
+
     // Open the audio device
-    mDevice = SDL_OpenAudioDevice(NULL, 0, &audioSpec, NULL, 0);
+    mDevice = SDL_OpenAudioDevice(NULL, 0, &audioSpec, &obtained, 0);
     if (mDevice == 0)
     {
         throw Oddlib::Exception((std::string("SDL_OpenAudio failed: ") + SDL_GetError()).c_str());
+    }
+
+    if (obtained.samples > audioSpec.samples)
+    {
+        LOG_WARNING("Got " << obtained.samples << " samples but wanted " << audioSpec.samples << " samples trying again with half the number of samples");
+    }
+
+    Close();
+
+    audioSpec.samples = audioSpec.samples / 2;
+    mDevice = SDL_OpenAudioDevice(NULL, 0, &audioSpec, &obtained, 0);
+    if (mDevice == 0)
+    {
+        throw Oddlib::Exception((std::string("SDL_OpenAudio failed: ") + SDL_GetError()).c_str());
+    }
+
+    if (obtained.samples > audioSpec.samples)
+    {
+        std::stringstream s;
+        s << "Got " << obtained.samples << " samples but wanted " << audioSpec.samples;
+        throw Oddlib::Exception(s.str().c_str());
     }
 
     // Start the call back

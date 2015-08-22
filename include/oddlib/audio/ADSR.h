@@ -40,7 +40,7 @@ typedef struct _VAGHdr							//File Header
 	char	title[32];
 } VAGHdr;
 
-
+/*
 typedef struct _VAGBlk							//Sample Block
 {
 	struct
@@ -58,7 +58,7 @@ typedef struct _VAGBlk							//Sample Block
 
 	char	brr[14];								//Compressed samples
 } VAGBlk;
-
+*/
 
 //InitADSR is shamelessly ripped from P.E.Op.S. cause I'm lazy
 static void InitADSR(void);
