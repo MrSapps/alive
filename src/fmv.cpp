@@ -24,10 +24,61 @@ public:
 class IMovie : public IAudioPlayer
 {
 public:
+    IMovie(IAudioController& controller) 
+        : mAudioController(controller)
+    {
+
+    }
+
     virtual ~IMovie() = default;
     virtual void OnRenderFrame() = 0;
-    virtual bool IsEnd() = 0;
+    virtual bool EndOfStream() = 0;
+
+    bool IsEnd()
+    {
+        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+        const auto ret = EndOfStream() && mAudioBuffer.empty();
+        if (ret && !mVideoBuffer.empty())
+        {
+            LOG_ERROR("Still " << mVideoBuffer.size() << " frames left after audio finished");
+        }
+        return ret;
+    }
+
 protected:
+    // Audio thread context
+    virtual void Play(Uint8* stream, Sint32 len) override
+    {
+        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+
+        // TODO: Consume mAudioBuffer and update the matching video frame number
+        size_t have = mAudioBuffer.size();
+        size_t take = len;
+        if (len > have)
+        {
+            // Buffer underflow - we don't have enough data to fill the requested buffer
+            // audio glitches ahoy!
+            take = have;
+        }
+
+        for (int i = 0; i < take; i++)
+        {
+            stream[i] = mAudioBuffer[i];
+        }
+        mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take);
+        mConsumedAudioBytes += take;
+    }
+
+    // 64608768, 125
+    // 64608768 / 10080 = 6409
+    // 6409 + 11 = 6420
+    // 64608768 / 6420 = 10063
+
+    // (67 * 5) + 127 + (67*5)+  127+431+533+508+665+2387+972
+    // = 6420 * 8064
+    // 
+
+
     void RenderFrame(int width, int height, const GLvoid *pixels)
     {
         // TODO: Optimize - should use VBO's & update 1 texture rather than creating per frame
@@ -60,44 +111,48 @@ protected:
     }
 
 protected:
-    std::mutex mAudioLock;
-
+    struct Frame
+    {
+        size_t mFrameNum;
+        int mW;
+        int mH;
+        std::vector<Uint8> mPixels;
+    };
+    Frame mLast;
+    size_t mFrameCounter = 0;
+    size_t mConsumedAudioBytes = 0;
+    std::mutex mAudioBufferMutex;
+    std::deque<Uint8> mAudioBuffer;
+    std::deque<Frame> mVideoBuffer;
+    IAudioController& mAudioController;
 private:
     //AutoMouseCursorHide mHideMouseCursor;
 };
-
-int gFakeFrames = 0;
 
 // PSX MOV/STR format, all PSX game versions use this.
 class MovMovie : public IMovie
 {
 private:
-    std::unique_ptr<Oddlib::Stream> gStream;
-    std::unique_ptr<RawCdImage> gCd;
-    std::vector<Uint32> mPixelBuffer;
+    std::unique_ptr<Oddlib::Stream> mCdImageFileStream;
+    std::unique_ptr<RawCdImage> mCdRom;
 protected:
     std::unique_ptr<Oddlib::IStream> mFmvStream;
-
     bool mPsx = false;
     MovMovie(IAudioController& audioController)
-        : mAudioController(audioController)
+        : IMovie(audioController)
     {
 
     }
 public:
     MovMovie(const std::string& fullPath, IAudioController& audioController)
-        : mAudioController(audioController)
+        : IMovie(audioController)
     {
-        gStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin");
-        gCd = std::make_unique<RawCdImage>(*gStream);
-        gCd->LogTree();
-        mFmvStream = gCd->ReadFile("BR\\BR.MOV", true);
+        mCdImageFileStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin");
+        mCdRom = std::make_unique<RawCdImage>(*mCdImageFileStream);
+        mCdRom->LogTree();
+        mFmvStream = mCdRom->ReadFile("BR\\BR.MOV", true);
         
-        //mAudioController.SetAudioSpec(8064 / 4, 37800);
         mAudioController.SetAudioSpec(37800/15, 37800);
-
-        auto fileSize = mFmvStream->Size();
-        auto numFrames = fileSize / 2048;
 
         mPsx = true;
 
@@ -109,7 +164,14 @@ public:
     ~MovMovie()
     {
         std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+
+        // TODO: Data race fix
         mAudioController.RemovePlayer(this);
+    }
+
+    virtual bool EndOfStream() override
+    {
+        return mFmvStream->AtEnd();
     }
 
     struct RawCDXASector
@@ -129,7 +191,7 @@ public:
         unsigned short int mVersion;
     };
 
-    struct MasherVideoHeaderWrapper
+    struct PsxStrHeader
     {
         // these 2 make up the 8 byte subheader?
         unsigned int mSectorType; // AKIK
@@ -152,40 +214,8 @@ public:
     };
 #pragma pack(pop)
 
-    // Audio thread context
-    virtual void Play(Uint8* stream, Sint32 len) override
-    {
-        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
 
-        // TODO: Consume mAudioBuffer and update the matching video frame number
-        size_t have = mAudioBuffer.size();
-        size_t take = len;
-        if (len > have)
-        {
-            // Buffer underflow - we don't have enough data to fill the requested buffer
-            // audio glitches ahoy!
-            take = have;
-        }
-
-        for (int i = 0; i < take; i++)
-        {
-            stream[i] = mAudioBuffer[i];
-        }
-        mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take);
-        mConsumedAudioBytes += take;
-        mVideoFrameIndex = mConsumedAudioBytes / 10063;
-    }
-
-    // 64608768, 125
-    // 64608768 / 10080 = 6409
-    // 6409 + 11 = 6420
-    // 64608768 / 6420 = 10063
-
-    // (67 * 5) + 127 + (67*5)+  127+431+533+508+665+2387+972
-    // = 6420 * 8064
-    // 
-
-    bool NeedBuffer()
+    bool NeedBuffer() const
     {
         return (mVideoBuffer.size() == 0 || mAudioBuffer.size() < (10080 * 2)) && !mFmvStream->AtEnd();
     }
@@ -213,17 +243,19 @@ public:
 
 //        std::cout << "Playing frame num " << mVideoFrameIndex << " first buffered frame is " << num << " samples played " << (size_t)mConsumedAudioBytes << std::endl;
 
+        const auto videoFrameIndex = mConsumedAudioBytes / 10063;
+
         bool played = false;
         while (!mVideoBuffer.empty())
         {  
             Frame& f = mVideoBuffer.front();
-            if (f.mFrameNum < mVideoFrameIndex)
+            if (f.mFrameNum < videoFrameIndex)
             {
                 mVideoBuffer.pop_front();
                 continue;
             }
 
-            if (f.mFrameNum == mVideoFrameIndex)
+            if (f.mFrameNum == videoFrameIndex)
             {
                 mLast = f;
                 RenderFrame(f.mW, f.mH, f.mPixels.data());
@@ -271,7 +303,7 @@ public:
         for (;;)
         {
 
-            MasherVideoHeaderWrapper w;
+            PsxStrHeader w;
             if (mFmvStream->AtEnd())
             {
                 return;
@@ -306,7 +338,6 @@ public:
                     else
                     {
                         // Blank/empty audio frame, play silence so video stays in sync
-                        gFakeFrames++;
                         numBytes = 2016 * 2 * 2;
                     }
                 }
@@ -356,35 +387,10 @@ public:
        
     }
 
-    virtual bool IsEnd() override
-    {
-        // TODO: Don't have mVideoBuffer.empty() here - this will cope with if there
-        // is 1 frame left over from audio to video rounding errors
-        return mFmvStream->AtEnd() && mAudioBuffer.empty() && mVideoBuffer.empty();
-    }
-
 private:
-
-    struct Frame
-    {
-        size_t mFrameNum;
-        int mW;
-        int mH;
-        std::vector<Uint8> mPixels;
-    };
-    Frame mLast;
-
-
-    size_t mFrameCounter = 0;
-    std::atomic<size_t> mVideoFrameIndex;
-    std::atomic<size_t> mConsumedAudioBytes;
     std::vector<unsigned char> mDemuxBuffer;
-    std::mutex mAudioBufferMutex;
-    std::deque<Uint8> mAudioBuffer;
-    std::deque<Frame> mVideoBuffer;
     PSXMDECDecoder mMdec;
     PSXADPCMDecoder mAdpcm;
-    IAudioController& mAudioController;
 };
 
 // Same as MOV/STR format but with modified magic in the video frames
@@ -407,7 +413,8 @@ public:
 class MasherMovie : public IMovie
 {
 public:
-    MasherMovie(const std::string& fileName)
+    MasherMovie(const std::string& fileName, IAudioController& audioController)
+        : IMovie(audioController)
     {
         LOG_INFO("Playing movie " << fileName);
 
@@ -415,49 +422,40 @@ public:
         
         if (mMasher->HasAudio())
         {
-            // TODO: Update
-           // AudioBuffer::ChangeAudioSpec(mMasher->SingleAudioFrameSizeBytes(), mMasher->AudioSampleRate());
+            mAudioController.SetAudioSpec(mMasher->SingleAudioFrameSizeBytes(), mMasher->AudioSampleRate());
         }
 
         if (mMasher->HasVideo())
         {
-            mFrameSurface = SDL_CreateRGBSurface(0, mMasher->Width(), mMasher->Height(), 32, 0, 0, 0, 0);
             mFramePixels.resize(mMasher->Width() * mMasher->Height());
         }
     }
 
     ~MasherMovie()
     {
-        if (mFrameSurface)
-        {
-            SDL_FreeSurface(mFrameSurface);
-        }
+
+    }
+
+
+    virtual bool EndOfStream() override
+    {
+        return mAtEndOfStream;
     }
 
     virtual void OnRenderFrame() override
     {
-        std::vector<Uint16> decodedFrame(mMasher->SingleAudioFrameSizeBytes() * 2); // *2 if stereo
-        mEnd = !mMasher->Update(mFramePixels.data(), (Uint8*)decodedFrame.data());
-        if (!mEnd)
+        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+
+        std::vector<Uint16> decodedAudioFrame(mMasher->SingleAudioFrameSizeBytes() * 2); // *2 if stereo
+        mAtEndOfStream = !mMasher->Update(mFramePixels.data(), (Uint8*)decodedAudioFrame.data());
+        if (!mAtEndOfStream)
         {
             RenderFrame(mMasher->Width(), mMasher->Height(), mFramePixels.data());
-            /* TODO: Update
-            AudioBuffer::SendSamples((char*)decodedFrame.data(), decodedFrame.size() * 2);
-            while (AudioBuffer::mPlayedSamples < mMasher->FrameNumber() * mMasher->SingleAudioFrameSizeBytes())
-            {
-
-            }*/
         }
     }
 
-    virtual bool IsEnd() override
-    {
-        return mEnd;
-    }
-
 private:
-    bool mEnd = false;
-    SDL_Surface* mFrameSurface = nullptr;
+    bool mAtEndOfStream = false;
     std::unique_ptr<Oddlib::Masher> mMasher;
     std::vector<Uint32> mFramePixels;
 };
@@ -473,9 +471,10 @@ void BarLoop()
 
     if (targetSong != -1)
     {
-        if (player->LoadSequenceData(AliveAudio::m_LoadedSeqData[targetSong]) == 0);
-        player->PlaySequence();
-
+        if (player->LoadSequenceData(AliveAudio::m_LoadedSeqData[targetSong]) == 0)
+        {
+            player->PlaySequence();
+        }
         targetSong = -1;
     }
 }
@@ -591,8 +590,17 @@ public:
             std::cout << "Play " << listbox_items[listbox_item_current] << std::endl;
             try
             {
-                //mFmv = std::make_unique<MasherMovie>(fullPath);
-                //mFmv = std::make_unique<DDVMovie>(fullPath);
+                /* TODO: Abstract opening files on disk/cdrom images/mods etc
+                auto stream = mFileSystem.OpenFile("whatever.ddv");
+                if (!stream)
+                {
+
+                }
+                mFmv = IMovie::Factory(std::move(stream));
+                */
+
+                //mFmv = std::make_unique<MasherMovie>(fullPath, mAudioController);
+                //mFmv = std::make_unique<DDVMovie>(fullPath, mAudioController);
                 mFmv = std::make_unique<MovMovie>(fullPath, mAudioController); 
             }
             catch (const Oddlib::Exception& ex)
