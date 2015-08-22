@@ -63,10 +63,10 @@ protected:
     std::mutex mAudioLock;
 
 private:
-    AutoMouseCursorHide mHideMouseCursor;
+    //AutoMouseCursorHide mHideMouseCursor;
 };
 
-
+int gFakeFrames = 0;
 
 // PSX MOV/STR format, all PSX game versions use this.
 class MovMovie : public IMovie
@@ -96,7 +96,8 @@ public:
         //mAudioController.SetAudioSpec(8064 / 4, 37800);
         mAudioController.SetAudioSpec(37800/15, 37800);
 
-        
+        auto fileSize = mFmvStream->Size();
+        auto numFrames = fileSize / 2048;
 
         mPsx = true;
 
@@ -171,8 +172,18 @@ public:
             stream[i] = mAudioBuffer[i];
         }
         mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take);
-        mConsumedAudioSamples += take;
+        mConsumedAudioBytes += take;
+        mVideoFrameIndex = mConsumedAudioBytes / 10063;
     }
+
+    // 64608768, 125
+    // 64608768 / 10080 = 6409
+    // 6409 + 11 = 6420
+    // 64608768 / 6420 = 10063
+
+    // (67 * 5) + 127 + (67*5)+  127+431+533+508+665+2387+972
+    // = 6420 * 8064
+    // 
 
     bool NeedBuffer()
     {
@@ -192,7 +203,7 @@ public:
         }
 
         // 10080 or 10320 ??
-        size_t frameToDisplay = (mConsumedAudioSamples / ((37800 / 15)*2*2));
+
 
         int num = -1;
         if (!mVideoBuffer.empty())
@@ -200,19 +211,19 @@ public:
             num = mVideoBuffer.begin()->mFrameNum;
         }
 
-        std::cout << "Playing frame num " << frameToDisplay << " first buffered frame is " << num << " samples played " << (size_t)mConsumedAudioSamples << std::endl;
+//        std::cout << "Playing frame num " << mVideoFrameIndex << " first buffered frame is " << num << " samples played " << (size_t)mConsumedAudioBytes << std::endl;
 
         bool played = false;
         while (!mVideoBuffer.empty())
         {  
             Frame& f = mVideoBuffer.front();
-            if (f.mFrameNum < frameToDisplay)
+            if (f.mFrameNum < mVideoFrameIndex)
             {
                 mVideoBuffer.pop_front();
                 continue;
             }
 
-            if (f.mFrameNum == frameToDisplay)
+            if (f.mFrameNum == mVideoFrameIndex)
             {
                 mLast = f;
                 RenderFrame(f.mW, f.mH, f.mPixels.data());
@@ -295,6 +306,7 @@ public:
                     else
                     {
                         // Blank/empty audio frame, play silence so video stays in sync
+                        gFakeFrames++;
                         numBytes = 2016 * 2 * 2;
                     }
                 }
@@ -346,6 +358,8 @@ public:
 
     virtual bool IsEnd() override
     {
+        // TODO: Don't have mVideoBuffer.empty() here - this will cope with if there
+        // is 1 frame left over from audio to video rounding errors
         return mFmvStream->AtEnd() && mAudioBuffer.empty() && mVideoBuffer.empty();
     }
 
@@ -362,7 +376,8 @@ private:
 
 
     size_t mFrameCounter = 0;
-    std::atomic<size_t> mConsumedAudioSamples;
+    std::atomic<size_t> mVideoFrameIndex;
+    std::atomic<size_t> mConsumedAudioBytes;
     std::vector<unsigned char> mDemuxBuffer;
     std::mutex mAudioBufferMutex;
     std::deque<Uint8> mAudioBuffer;
