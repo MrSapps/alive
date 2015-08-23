@@ -188,8 +188,8 @@ protected:
     struct Frame
     {
         size_t mFrameNum;
-        int mW;
-        int mH;
+        Uint32 mW;
+        Uint32 mH;
         std::vector<Uint8> mPixels;
     };
     Frame mLast;
