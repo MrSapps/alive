@@ -360,8 +360,8 @@ public:
             }
             else
             {
-                const int frameW = w.mWidth;
-                const int frameH = w.mHeight;
+                const Uint32 frameW = w.mWidth;
+                const Uint32 frameH = w.mHeight;
 
                 uint32_t bytes_to_copy = w.mFrameDataLen - w.mSectorNumberInFrame *kXaFrameDataSize;
                 if (bytes_to_copy > 0)
