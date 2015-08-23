@@ -40,6 +40,7 @@ namespace Oddlib
         Uint32 AudioSampleRate() const { return mAudioHeader.mSampleRate; }
         Uint32 FrameNumber() const { return mCurrentFrame; }
         Uint32 FrameRate() const { return mFileHeader.mFrameRate; }
+        Uint32 NumberOfFrames() const { return mFileHeader.mNumberOfFrames; }
     private:
         void Read();
         void ParseVideoFrame(Uint32* pixelBuffer);

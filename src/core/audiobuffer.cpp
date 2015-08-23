@@ -91,6 +91,7 @@ void SdlAudioWrapper::RemovePlayer(IAudioPlayer* player)
 
 void SdlAudioWrapper::SetAudioSpec(Uint16 frameSize, int freq)
 {
+    LOG_INFO("SetAudioSpec samples: " << frameSize << " freq " << freq);
     SdlAudioLocker audioLocker;
     Close();
     mPlayedSamples = 0;
