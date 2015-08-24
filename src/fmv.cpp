@@ -226,10 +226,15 @@ public:
         mCdRom = std::make_unique<RawCdImage>(*mCdImageFileStream);
         mCdRom->LogTree();
         mFmvStream = mCdRom->ReadFile("BR\\BR.MOV", true);
-        
-        mAudioController.SetAudioSpec(37800/15, 37800);
 
-        mAudioBytesPerFrame = 10063; // TODO: Calculate correctly
+        const int kSampleRate = 37800;
+        const int kFps = 15;
+
+        mAudioController.SetAudioSpec(kSampleRate / kFps, kSampleRate);
+
+        // TODO: Check the correctness of this
+        int numFrames = (mFmvStream->Size()/10) / 2048;
+        mAudioBytesPerFrame = (4 * kSampleRate)*(numFrames / kFps) / numFrames;
 
         mPsx = true;
 
@@ -623,9 +628,9 @@ public:
                 mFmv = IMovie::Factory(std::move(stream));
                 */
 
-                mFmv = std::make_unique<MasherMovie>(fullPath, mAudioController);
+                //mFmv = std::make_unique<MasherMovie>(fullPath, mAudioController);
                 //mFmv = std::make_unique<DDVMovie>(fullPath, mAudioController);
-                //mFmv = std::make_unique<MovMovie>(fullPath, mAudioController); 
+                mFmv = std::make_unique<MovMovie>(fullPath, mAudioController); 
             }
             catch (const Oddlib::Exception& ex)
             {
