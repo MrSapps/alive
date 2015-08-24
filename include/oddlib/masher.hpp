@@ -36,7 +36,7 @@ namespace Oddlib
         Uint32 Height() const { return mVideoHeader.mHeight; }
         bool HasVideo() const { return mbHasVideo; }
         bool HasAudio() const { return mbHasAudio; }
-        Uint32 SingleAudioFrameSizeBytes() const { return mAudioHeader.mSingleAudioFrameSize; }
+        Uint32 SingleAudioFrameSizeSamples() const { return mAudioHeader.mSingleAudioFrameSize; }
         Uint32 AudioSampleRate() const { return mAudioHeader.mSampleRate; }
         Uint32 FrameNumber() const { return mCurrentFrame; }
         Uint32 FrameRate() const { return mFileHeader.mFrameRate; }

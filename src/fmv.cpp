@@ -426,7 +426,7 @@ public:
 
         if (mMasher->HasAudio())
         {
-            mAudioController.SetAudioSpec(mMasher->SingleAudioFrameSizeBytes(), mMasher->AudioSampleRate());
+            mAudioController.SetAudioSpec(mMasher->SingleAudioFrameSizeSamples(), mMasher->AudioSampleRate());
         }
 
         if (mMasher->HasVideo())
@@ -434,9 +434,9 @@ public:
             mFramePixels.resize(mMasher->Width() * mMasher->Height() * 4);
         }
 
-     
-        // TODO: Calculate
-        mAudioBytesPerFrame = mMasher->AudioSampleRate()/4;
+        // 18827760 - 18821880 = 5880/4 = 1470 extra samples (half the SingleAudioFrameSizeSamples).
+
+        mAudioBytesPerFrame = (4 * mMasher->AudioSampleRate())*(mMasher->NumberOfFrames() / mMasher->FrameRate()) / mMasher->NumberOfFrames();
 
     }
 
@@ -452,14 +452,14 @@ public:
 
     virtual bool NeedBuffer() override
     {
-        return (mVideoBuffer.size() == 0 || mAudioBuffer.size() < (mMasher->SingleAudioFrameSizeBytes()*2*2*4)) && !mAtEndOfStream;
+        return (mVideoBuffer.size() == 0 || mAudioBuffer.size() < (mMasher->SingleAudioFrameSizeSamples()*2*2*4)) && !mAtEndOfStream;
     }
 
     virtual void FillBuffers() override
     {
         while (NeedBuffer())
         {
-            std::vector<Uint8> decodedAudioFrame(mMasher->SingleAudioFrameSizeBytes() * 2 * 2); // *2 if stereo
+            std::vector<Uint8> decodedAudioFrame(mMasher->SingleAudioFrameSizeSamples() * 2 * 2); // *2 if stereo
             mAtEndOfStream = !mMasher->Update((Uint32*)mFramePixels.data(), decodedAudioFrame.data());
             if (!mAtEndOfStream)
             {
