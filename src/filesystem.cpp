@@ -2,6 +2,7 @@
 #include "logger.hpp"
 #include "string_util.hpp"
 #include "SDL.h"
+#include "oddlib/stream.hpp"
 
 FileSystem::FileSystem()
 {
@@ -18,6 +19,19 @@ bool FileSystem::Init()
     InitBasePath();
     return true;
 }
+
+void FileSystem::AddResourcePath(const std::string& path, int priority)
+{
+//    mResourcePaths.push(ResourcePathAbstraction(path, priority));
+}
+
+std::unique_ptr<Oddlib::IStream> FileSystem::OpenResource(const std::wstring& name)
+{
+    // Look in each resource path by priority
+
+    return nullptr;
+}
+
 
 void FileSystem::InitBasePath()
 {
