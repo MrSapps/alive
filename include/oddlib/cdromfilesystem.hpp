@@ -368,6 +368,13 @@ public:
 
         virtual void Seek(size_t pos) override
         {
+            if (pos == 0)
+            {
+                mSector = mDr.location.little;
+                mPos = 0;
+                mStream.Seek((mSector * kRawSectorSize) + 16);
+                return;
+            }
             throw std::runtime_error("Seek() not implemented");
         }
 
