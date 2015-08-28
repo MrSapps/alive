@@ -20,12 +20,7 @@ namespace Oddlib
         Masher(const Masher&) = delete;
         Masher& operator = (const Masher&) = delete;
 
-        explicit Masher(const std::string& fileName) : mStream(fileName)
-        {
-            Read();
-        }
-
-        explicit Masher(std::vector<Uint8>&& data) : mStream(std::move(data))
+        explicit Masher(std::unique_ptr<Oddlib::IStream> stream) : mStream(std::move(stream))
         {
             Read();
         }
@@ -77,7 +72,7 @@ namespace Oddlib
             uint32_t mNumberOfFramesInterleave;
         };
 
-        Stream mStream;
+        std::unique_ptr<Oddlib::IStream> mStream;
 
         DDVHeader mFileHeader = {};
         VideoHeader mVideoHeader = {};

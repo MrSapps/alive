@@ -9,14 +9,14 @@ namespace Oddlib
 {
     void Masher::Read()
     {
-        mStream.ReadUInt32(mFileHeader.mDdvTag);
+        mStream->ReadUInt32(mFileHeader.mDdvTag);
         if (mFileHeader.mDdvTag != MakeType('D', 'D', 'V', 0))
         {
             LOG_ERROR("Invalid DDV magic tag " << mFileHeader.mDdvTag);
             throw InvalidDdv("Invalid DDV tag");
         }
 
-        mStream.ReadUInt32(mFileHeader.mDdvVersion);
+        mStream->ReadUInt32(mFileHeader.mDdvVersion);
         if (mFileHeader.mDdvVersion != 1)
         {
             // This is the only version seen in all of the known data
@@ -24,21 +24,21 @@ namespace Oddlib
             throw InvalidDdv("Wrong DDV version");
         }
 
-        mStream.ReadUInt32(mFileHeader.mContains);
-        mStream.ReadUInt32(mFileHeader.mFrameRate);
-        mStream.ReadUInt32(mFileHeader.mNumberOfFrames);
+        mStream->ReadUInt32(mFileHeader.mContains);
+        mStream->ReadUInt32(mFileHeader.mFrameRate);
+        mStream->ReadUInt32(mFileHeader.mNumberOfFrames);
 
         mbHasVideo = (mFileHeader.mContains & 0x1) == 0x1;
         mbHasAudio = (mFileHeader.mContains & 0x2) == 0x2;
 
         if (mbHasVideo)
         {
-            mStream.ReadUInt32(mVideoHeader.mUnknown);
-            mStream.ReadUInt32(mVideoHeader.mWidth);
-            mStream.ReadUInt32(mVideoHeader.mHeight);
-            mStream.ReadUInt32(mVideoHeader.mMaxAudioFrameSize);
-            mStream.ReadUInt32(mVideoHeader.mMaxVideoFrameSize);
-            mStream.ReadUInt32(mVideoHeader.mKeyFrameRate);
+            mStream->ReadUInt32(mVideoHeader.mUnknown);
+            mStream->ReadUInt32(mVideoHeader.mWidth);
+            mStream->ReadUInt32(mVideoHeader.mHeight);
+            mStream->ReadUInt32(mVideoHeader.mMaxAudioFrameSize);
+            mStream->ReadUInt32(mVideoHeader.mMaxVideoFrameSize);
+            mStream->ReadUInt32(mVideoHeader.mKeyFrameRate);
 
             mNumMacroblocksX = (mVideoHeader.mWidth / 16);
             if (mVideoHeader.mWidth % 16 != 0)
@@ -55,17 +55,17 @@ namespace Oddlib
 
         if (mbHasAudio)
         {
-            mStream.ReadUInt32(mAudioHeader.mAudioFormat);
-            mStream.ReadUInt32(mAudioHeader.mSampleRate);
-            mStream.ReadUInt32(mAudioHeader.mMaxAudioFrameSize);
-            mStream.ReadUInt32(mAudioHeader.mSingleAudioFrameSize);
-            mStream.ReadUInt32(mAudioHeader.mNumberOfFramesInterleave);
+            mStream->ReadUInt32(mAudioHeader.mAudioFormat);
+            mStream->ReadUInt32(mAudioHeader.mSampleRate);
+            mStream->ReadUInt32(mAudioHeader.mMaxAudioFrameSize);
+            mStream->ReadUInt32(mAudioHeader.mSingleAudioFrameSize);
+            mStream->ReadUInt32(mAudioHeader.mNumberOfFramesInterleave);
 
 
             for (uint32_t i = 0; i < mAudioHeader.mNumberOfFramesInterleave; i++)
             {
                 uint32_t tmp = 0;
-                mStream.ReadUInt32(tmp);
+                mStream->ReadUInt32(tmp);
                 mAudioFrameSizes.emplace_back(tmp);
             }
         }
@@ -73,7 +73,7 @@ namespace Oddlib
         for (uint32_t i = 0; i < mFileHeader.mNumberOfFrames; i++)
         {
             uint32_t tmp = 0;
-            mStream.ReadUInt32(tmp);
+            mStream->ReadUInt32(tmp);
             mFrameSizes.emplace_back(tmp);
         }
 
@@ -81,7 +81,7 @@ namespace Oddlib
         for (auto i = 0u; i < mAudioHeader.mNumberOfFramesInterleave; i++)
         {
             const uint32_t totalSize = mAudioFrameSizes[i];
-            mStream.Seek(mStream.Pos() + totalSize);
+            mStream->Seek(mStream->Pos() + totalSize);
         }
 
         mMacroBlockBuffer.resize(mNumMacroblocksX * mNumMacroblocksY * 16 * 16 * 6);
@@ -1182,11 +1182,11 @@ namespace Oddlib
                 // the size of the video data, and the audio data is
                 // the remaining data after this.
                 uint32_t videoDataSize = 0;
-                mStream.ReadUInt32(videoDataSize);
+                mStream->ReadUInt32(videoDataSize);
 
                 // Video data
                 mVideoFrameData.resize(videoDataSize);
-                mStream.ReadBytes(mVideoFrameData.data(), videoDataSize);
+                mStream->ReadBytes(mVideoFrameData.data(), videoDataSize);
 
                 // Calc size of audio data
                 const uint32_t totalSize = mFrameSizes[mCurrentFrame];
@@ -1194,7 +1194,7 @@ namespace Oddlib
 
                 // Audio data
                 mAudioFrameData.resize(audioDataSize);
-                mStream.ReadBytes(mAudioFrameData.data(), audioDataSize);
+                mStream->ReadBytes(mAudioFrameData.data(), audioDataSize);
                 ParseVideoFrame(pixelBuffer);
                 ParseAudioFrame(audioBuffer);
             }
@@ -1202,14 +1202,14 @@ namespace Oddlib
             {
                 const uint32_t totalSize = mFrameSizes[mCurrentFrame];
                 mAudioFrameData.resize(totalSize + 4); // TODO: Figure out if this is required or is just a bug
-                mStream.ReadBytes(mAudioFrameData.data(), totalSize);
+                mStream->ReadBytes(mAudioFrameData.data(), totalSize);
                 ParseAudioFrame(audioBuffer);
             }
             else if (mbHasVideo)
             {
                 const uint32_t totalSize = mFrameSizes[mCurrentFrame];
                 mVideoFrameData.resize(totalSize);
-                mStream.ReadBytes(mVideoFrameData.data(), totalSize);
+                mStream->ReadBytes(mVideoFrameData.data(), totalSize);
                 ParseVideoFrame(pixelBuffer);
             }
             mCurrentFrame++;

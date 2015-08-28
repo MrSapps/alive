@@ -46,18 +46,21 @@ FileSystem::Directory::Directory(const std::string& path, int priority)
 
 std::unique_ptr<Oddlib::IStream> FileSystem::Directory::Open(const std::string& fileName)
 {
-    return std::make_unique<Oddlib::Stream>(fileName);
+    const auto fullFileName = GetFilePath(Path(), fileName);
+    return std::make_unique<Oddlib::Stream>(fullFileName);
 }
 
 bool FileSystem::Directory::Exists(const std::string& fileName) const
 {
-    return FileExists(fileName);
+    const auto fullFileName = GetFilePath(Path(), fileName);
+    return FileExists(fullFileName);
 }
 
 FileSystem::RawCdImagePath::RawCdImagePath(const std::string& path, int priority) 
     : IResourcePathAbstraction(path, priority)
 {
     mCdImage = std::make_unique<RawCdImage>(path);
+    mCdImage->LogTree();
 }
 
 std::unique_ptr<Oddlib::IStream> FileSystem::RawCdImagePath::Open(const std::string& fileName)
@@ -88,7 +91,7 @@ bool FileSystem::Init()
 
 void FileSystem::AddResourcePath(const std::string& path, int priority)
 {
-    mResourcePaths.emplace_back(std::make_unique<Directory>(path, priority));
+    mResourcePaths.emplace_back(MakeResourcePath(path, priority));
     std::sort(mResourcePaths.begin(), mResourcePaths.end(),
         [](const std::unique_ptr<IResourcePathAbstraction>& lhs, const std::unique_ptr<IResourcePathAbstraction>& rhs)
     {
@@ -105,6 +108,11 @@ std::unique_ptr<Oddlib::IStream> FileSystem::OpenResource(const std::string& nam
 {
     LOG_INFO("Opening resource: " << name);
 
+    if (mResourcePaths.empty())
+    {
+        throw Oddlib::Exception("No resource paths configured");
+    }
+
     // Look in each resource path by priority
     for (auto& resourceLocation : mResourcePaths)
     {
@@ -113,7 +121,20 @@ std::unique_ptr<Oddlib::IStream> FileSystem::OpenResource(const std::string& nam
             return resourceLocation->Open(name);
         }
     }
-    return nullptr;
+  
+    throw Oddlib::Exception("Missing resource");
+}
+
+std::unique_ptr<FileSystem::IResourcePathAbstraction> FileSystem::MakeResourcePath(std::string path, int priority)
+{
+    TRACE_ENTRYEXIT;
+    if (string_util::ends_with(path, ".bin", true))
+    {
+        LOG_INFO("Adding CD image: " << path);
+        return std::make_unique<FileSystem::RawCdImagePath>(path, priority);
+    }
+    LOG_INFO("Adding directory: " << path);
+    return std::make_unique<FileSystem::Directory>(path, priority);
 }
 
 std::unique_ptr<Oddlib::IStream> FileSystem::Open(const std::string& name)

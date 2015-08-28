@@ -2,6 +2,8 @@
 
 #include <string>
 #include <deque>
+#include <algorithm>
+#include <ctype.h>
 
 namespace string_util
 {
@@ -19,13 +21,28 @@ namespace string_util
         return tokens;
     }
 
-    inline bool ends_with(std::string const& value, std::string const& ending)
+    inline bool ends_with(std::string const& value, std::string const& ending, bool ignoreCase = false)
     {
+
         if (ending.size() > value.size())
         {
             return false;
         }
-        return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+
+        if (ignoreCase)
+        {
+            std::string valueLower = value;
+            std::transform(valueLower.begin(), valueLower.end(), valueLower.begin(), ::tolower);
+
+            std::string endingLower = ending;
+            std::transform(endingLower.begin(), endingLower.end(), endingLower.begin(), ::tolower);
+
+            return std::equal(endingLower.rbegin(), endingLower.rend(), valueLower.rbegin());
+        }
+        else
+        {
+            return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+        }
     }
 
     inline bool contains(const std::string& haystack, const std::string& needle)

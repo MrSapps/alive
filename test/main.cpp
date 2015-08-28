@@ -1719,8 +1719,8 @@ const static Uint16 kLowCompression16BitExpected[0x3281] =
 class TestMasher : public Oddlib::Masher
 {
 public:
-    TestMasher(std::vector<Uint8>&& data)
-        : Oddlib::Masher(std::move(data))
+    TestMasher(std::unique_ptr<Oddlib::IStream> stream)
+        : Oddlib::Masher(std::move(stream))
     {
 
     }
@@ -1734,7 +1734,7 @@ public:
 // Audio and video test
 TEST(Masher, all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave)
 {
-    TestMasher masher(get_all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave());
+    TestMasher masher(std::make_unique<Oddlib::Stream>(get_all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave()));
     ASSERT_EQ(true, masher.HasVideo());
     ASSERT_EQ(true, masher.HasAudio());
     ASSERT_EQ(258u, masher.Width());
@@ -1765,7 +1765,7 @@ TEST(Masher, all_colours_high_compression_30_fps)
 
 TEST(Masher, all_colours_low_compression_30_fps)
 {
-    TestMasher masher(get_all_colours_low_compression_30_fps());
+    TestMasher masher(std::make_unique<Oddlib::Stream>(get_all_colours_low_compression_30_fps()));
     ASSERT_EQ(true, masher.HasVideo());
     ASSERT_EQ(false, masher.HasAudio());
     ASSERT_EQ(258u, masher.Width());
@@ -1834,7 +1834,7 @@ TEST(Masher, stereo_8_low_compression_all_samples)
 
 TEST(Masher, stereo_16_high_compression_all_samples)
 {
-    TestMasher masher(get_stereo_16_high_compression_all_samples());
+    TestMasher masher(std::make_unique<Oddlib::Stream>(get_stereo_16_high_compression_all_samples()));
     ASSERT_EQ(false, masher.HasVideo());
     ASSERT_EQ(true, masher.HasAudio());
 

@@ -20,6 +20,7 @@ public:
     std::unique_ptr<Oddlib::IStream> Open(const std::string& name);
     std::unique_ptr<Oddlib::IStream> OpenResource(const std::string& name);
 private:
+
     class IResourcePathAbstraction
     {
     public:
@@ -35,6 +36,8 @@ private:
         std::string mPath;
         int mPriority = 0;
     };
+
+    std::unique_ptr<IResourcePathAbstraction> MakeResourcePath(std::string path, int priority);
 
     class Directory : public IResourcePathAbstraction
     {

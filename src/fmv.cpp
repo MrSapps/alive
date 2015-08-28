@@ -6,6 +6,7 @@
 #include "logger.hpp"
 #include "SDL_opengl.h"
 #include "oddlib/audio/SequencePlayer.h"
+#include "filesystem.hpp"
 
 class AutoMouseCursorHide
 {
@@ -207,8 +208,6 @@ private:
 // PSX MOV/STR format, all PSX game versions use this.
 class MovMovie : public IMovie
 {
-private:
-    std::unique_ptr<RawCdImage> mCdRom;
 protected:
     std::unique_ptr<Oddlib::IStream> mFmvStream;
     bool mPsx = false;
@@ -218,12 +217,10 @@ protected:
 
     }
 public:
-    MovMovie(const std::string& fullPath, IAudioController& audioController)
+    MovMovie(const std::string& fullPath, IAudioController& audioController, FileSystem& fs)
         : IMovie(audioController)
     {
-        mCdRom = std::make_unique<RawCdImage>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin");
-        mCdRom->LogTree();
-        mFmvStream = mCdRom->ReadFile("BR\\BR.MOV", true);
+        mFmvStream = fs.OpenResource("BR\\BR.MOV");
 
         const int kSampleRate = 37800;
         const int kFps = 15;
@@ -235,8 +232,6 @@ public:
         mAudioBytesPerFrame = (4 * kSampleRate)*(numFrames / kFps) / numFrames;
 
         mPsx = true;
-
-     
     }
 
     struct RawCDXASector
@@ -405,13 +400,13 @@ private:
 class DDVMovie : public MovMovie
 {
 public:
-    DDVMovie(const std::string& fullPath, IAudioController& audioController)
+    DDVMovie(const std::string& fullPath, IAudioController& audioController, FileSystem& fs)
         : MovMovie(audioController)
     {
         mPsx = false;
         mAudioBytesPerFrame = 10063; // TODO: Calculate
         mAudioController.SetAudioSpec(37800/15, 37800);
-        mFmvStream = std::make_unique<Oddlib::Stream>(fullPath);
+        mFmvStream = fs.OpenResource(fullPath);
     }
 };
 
@@ -420,12 +415,12 @@ public:
 class MasherMovie : public IMovie
 {
 public:
-    MasherMovie(const std::string& fileName, IAudioController& audioController)
+    MasherMovie(const std::string& fileName, IAudioController& audioController, FileSystem& fs)
         : IMovie(audioController)
     {
         LOG_INFO("Playing movie " << fileName);
 
-        mMasher = std::make_unique<Oddlib::Masher>(fileName);
+        mMasher = std::make_unique<Oddlib::Masher>(fs.OpenResource(fileName));
 
         if (mMasher->HasAudio())
         {
@@ -549,29 +544,20 @@ void ChangeTheme(void *clientData)
 class FmvUi
 {
 private:
-    char buf[4096];
     ImGuiTextFilter mFilter;
     int listbox_item_current = 1;
     std::vector<const char*> listbox_items;
     std::unique_ptr<class IMovie>& mFmv;
 public:
-    FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController)
-        : mFmv(fmv), mAudioController(audioController)
+    FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController, FileSystem& fs)
+        : mFmv(fmv), mAudioController(audioController), mFileSystem(fs)
     {
-#ifdef _WIN32
-        strcpy(buf, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus\\");
-#else
-        strcpy(buf, "/media/paul/FF7DISC3/Program Files (x86)/Steam/SteamApps/common/Oddworld Abes Exoddus/");
-#endif
     }
 
     void DrawVideoSelectionUi(const std::string& setName, const std::vector<std::string>& allFmvs)
     {
         std::string name = "Video player (" + setName + ")";
         ImGui::Begin(name.c_str(), nullptr, ImVec2(550, 580), 1.0f, ImGuiWindowFlags_NoCollapse);
-
-
-        ImGui::InputText("Video path", buf, sizeof(buf));
 
         mFilter.Draw();
 
@@ -613,7 +599,6 @@ public:
 
         if (ImGui::Button("Play", ImVec2(ImGui::GetWindowWidth(), 20)))
         {
-            std::string fullPath = std::string(buf) + listbox_items[listbox_item_current];
             std::cout << "Play " << listbox_items[listbox_item_current] << std::endl;
             try
             {
@@ -627,12 +612,12 @@ public:
                 */
 
                 //mFmv = std::make_unique<MasherMovie>(fullPath, mAudioController);
-                mFmv = std::make_unique<DDVMovie>(fullPath, mAudioController);
+                mFmv = std::make_unique<DDVMovie>(listbox_items[listbox_item_current], mAudioController, mFileSystem);
                // mFmv = std::make_unique<MovMovie>(fullPath, mAudioController); 
             }
             catch (const Oddlib::Exception& ex)
             {
-
+                LOG_ERROR("Exception: " << ex.what());
             }
         }
 
@@ -640,6 +625,7 @@ public:
     }
 private:
     IAudioController& mAudioController;
+    FileSystem& mFileSystem;
 };
 
 void Fmv::RenderVideoUi()
@@ -651,7 +637,7 @@ void Fmv::RenderVideoUi()
             auto fmvs = mGameData.Fmvs();
             for (auto fmvSet : fmvs)
             {
-                mFmvUis.emplace_back(std::make_unique<FmvUi>(mFmv, mAudioController));
+                mFmvUis.emplace_back(std::make_unique<FmvUi>(mFmv, mAudioController, mFileSystem));
             }
         }
 
@@ -668,8 +654,8 @@ void Fmv::RenderVideoUi()
     }
 }
 
-Fmv::Fmv(GameData& gameData, IAudioController& audioController)
-    : mGameData(gameData), mAudioController(audioController)
+Fmv::Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs)
+    : mGameData(gameData), mAudioController(audioController), mFileSystem(fs)
 {
 
 }
