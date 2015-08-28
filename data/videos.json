@@ -15,6 +15,9 @@
         "ExoddusPsx": [
             "MI\MI.MOV"
         ],
+        "ExoddusPsxDemo": [
+            "ABE2\MI.MOV"
+        ],
         "ExoddusPc": [
             "TRAIN2.DDV",
             "BREW.DDV",
@@ -230,7 +233,7 @@
             "F2P8P7.ddv",
             "F4C11C13.ddv",
             "F4C13C11.ddv",
-            "_GAMEBGN.ddv",
+            "GAMEBGN.ddv",
             "Goodend.ddv",
             "gtddlogo.ddv",
             "Halts.ddv",
@@ -260,8 +263,8 @@
             "r1p13p14.ddv",
             "r1p14p13.ddv",
             "R1p18p1.ddv",
-            "_R1P18P19.ddv",
-            "_R1P19P18.ddv",
+            "R1P18P19.ddv",
+            "R1P19P18.ddv",
             "R1P1P13.ddv",
             "R1p1p18.ddv",
             "R1P6P11.ddv",
