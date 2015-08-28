@@ -95,6 +95,17 @@ namespace Oddlib
         return (c == EOF);
     }
 
+    std::string Stream::LoadAllToString()
+    {
+        Seek(0);
+        std::string content
+        { 
+            std::istreambuf_iterator<char>(*mStream),
+            std::istreambuf_iterator<char>()
+        };
+        return content;
+    }
+
     size_t Stream::Pos() const
     {
         const size_t pos = static_cast<size_t>(mStream->tellg());

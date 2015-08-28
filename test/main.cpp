@@ -1941,8 +1941,7 @@ TEST(string_util, split)
 
 TEST(CdFs, Read_FileSystemLimits)
 {
-    Oddlib::Stream stream(get_test());
-    RawCdImage img(stream);
+    RawCdImage img(get_test());
     img.LogTree();
 
     ASSERT_EQ(true, img.FileExists("ROOT.TXT"));
@@ -1981,8 +1980,7 @@ TEST(CdFs, Read_FileSystemLimits)
 
 TEST(CdFs, Read_XaSectors)
 {
-    Oddlib::Stream stream(get_xa());
-    RawCdImage img(stream);
+    RawCdImage img(get_xa());
     img.LogTree();
 
     ASSERT_EQ(false, img.FileExists(""));

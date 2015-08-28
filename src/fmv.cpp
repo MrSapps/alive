@@ -208,7 +208,6 @@ private:
 class MovMovie : public IMovie
 {
 private:
-    std::unique_ptr<Oddlib::Stream> mCdImageFileStream;
     std::unique_ptr<RawCdImage> mCdRom;
 protected:
     std::unique_ptr<Oddlib::IStream> mFmvStream;
@@ -222,8 +221,7 @@ public:
     MovMovie(const std::string& fullPath, IAudioController& audioController)
         : IMovie(audioController)
     {
-        mCdImageFileStream = std::make_unique<Oddlib::Stream>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin");
-        mCdRom = std::make_unique<RawCdImage>(*mCdImageFileStream);
+        mCdRom = std::make_unique<RawCdImage>("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin");
         mCdRom->LogTree();
         mFmvStream = mCdRom->ReadFile("BR\\BR.MOV", true);
 
@@ -629,8 +627,8 @@ public:
                 */
 
                 //mFmv = std::make_unique<MasherMovie>(fullPath, mAudioController);
-                //mFmv = std::make_unique<DDVMovie>(fullPath, mAudioController);
-                mFmv = std::make_unique<MovMovie>(fullPath, mAudioController); 
+                mFmv = std::make_unique<DDVMovie>(fullPath, mAudioController);
+               // mFmv = std::make_unique<MovMovie>(fullPath, mAudioController); 
             }
             catch (const Oddlib::Exception& ex)
             {

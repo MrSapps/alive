@@ -4,19 +4,21 @@
 #include <map>
 #include <vector>
 
+class FileSystem;
+
 class GameData
 {
 public:
     GameData();
     ~GameData();
-    bool Init(std::string basePath);
+    bool Init(FileSystem& fs);
     const std::map<std::string, std::vector<std::string>>& Fmvs() const
     {
         return mFmvData;
     }
 
 private:
-    bool LoadFmvData(std::string basePath);
+    bool LoadFmvData(FileSystem& fs);
 
 private:
     std::map<std::string, std::vector<std::string>> mFmvData;

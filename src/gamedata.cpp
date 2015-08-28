@@ -3,6 +3,8 @@
 #include <fstream>
 #include "alive_version.h"
 #include "SDL.h"
+#include "filesystem.hpp"
+#include "oddlib/stream.hpp"
 
 GameData::GameData()
 {
@@ -14,21 +16,12 @@ GameData::~GameData()
 
 }
 
-bool GameData::LoadFmvData(std::string basePath)
+bool GameData::LoadFmvData(FileSystem& fs)
 {
+    auto stream = fs.Open("data/videos.json");
+    std::string jsonFileContents = stream->LoadAllToString();
+
     jsonxx::Object rootJsonObject;
-    std::ifstream tmpStream(basePath + "data/videos.json");
-    if (!tmpStream)
-    {
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-            ALIVE_VERSION_NAME_STR  " Missing file",
-            (basePath + "data/videos.json is missing.").c_str(),
-            NULL);
-        return false;
-    }
-    std::string jsonFileContents((std::istreambuf_iterator<char>(tmpStream)), std::istreambuf_iterator<char>());
-
-
     rootJsonObject.parse(jsonFileContents);
     if (rootJsonObject.has<jsonxx::Object>("FMVS"))
     {
@@ -51,9 +44,9 @@ bool GameData::LoadFmvData(std::string basePath)
     return true;
 }
 
-bool GameData::Init(std::string basePath)
+bool GameData::Init(FileSystem& fs)
 {
-    if (!LoadFmvData(basePath))
+    if (!LoadFmvData(fs))
     {
         return false;
     }

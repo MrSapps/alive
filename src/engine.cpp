@@ -222,7 +222,7 @@ bool Engine::Init()
         return false;
     }
 
-    if (!mGameData.Init(mFileSystem.BasePath())) // TODO
+    if (!mGameData.Init(mFileSystem))
     {
         LOG_ERROR("Game data init failure");
         return false;

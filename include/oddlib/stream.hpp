@@ -22,6 +22,7 @@ namespace Oddlib
         virtual size_t Size() const = 0;
         virtual bool AtEnd() const = 0;
         virtual const std::string& Name() const = 0;
+        virtual std::string LoadAllToString() = 0;
     };
 
     class Stream : public IStream
@@ -40,6 +41,7 @@ namespace Oddlib
         virtual size_t Size() const override;
         virtual bool AtEnd() const override;
         virtual const std::string& Name() const override { return mName; }
+        virtual std::string LoadAllToString() override;
     private:
         mutable std::unique_ptr<std::istream> mStream;
         size_t mSize = 0;

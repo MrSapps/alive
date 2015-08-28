@@ -2,6 +2,8 @@
 
 #include <string>
 #include "string_util.hpp"
+#include "oddlib/exceptions.hpp"
+#include "oddlib/exceptions.hpp"
 
 class InvalidCdImageException : public Oddlib::Exception
 {
@@ -21,8 +23,15 @@ class RawCdImage
 public:
     RawCdImage(const RawCdImage&) = delete;
     RawCdImage& operator = (const RawCdImage&) = delete;
-    RawCdImage(Oddlib::Stream& stream)
-        : mStream(stream)
+
+    RawCdImage(const std::string& fileName)
+        : mStream(fileName)
+    {
+        ReadFileSystem();
+    }
+
+    RawCdImage(std::vector<Uint8>&& buffer)
+        : mStream(std::move(buffer))
     {
         ReadFileSystem();
     }
@@ -32,14 +41,14 @@ public:
         mRoot.Log(1);
     }
 
-    bool FileExists(std::string fileName)
+    bool FileExists(std::string fileName) const
     {
         return DoFind(fileName) != nullptr;
     }
 
     std::unique_ptr<Oddlib::IStream> ReadFile(std::string fileName, bool includeSubheaders)
     {
-        DrWrapper* record = DoFind(fileName);
+        const DrWrapper* record = DoFind(fileName);
         if (!record)
         {
             throw Oddlib::Exception("File not found on CD-ROM");
@@ -50,7 +59,7 @@ public:
 public:
     struct DrWrapper;
 
-    DrWrapper* DoFind(std::string fileName)
+    const DrWrapper* DoFind(std::string fileName) const
     {
         if (fileName.empty())
         {
@@ -307,7 +316,7 @@ public:
         Stream(const Stream&) = delete;
         Stream& operator = (const Stream&) = delete;
 
-        Stream(directory_record& dr, std::string name, Oddlib::IStream& stream, bool includeSubHeaders)
+        Stream(const directory_record& dr, std::string name, Oddlib::IStream& stream, bool includeSubHeaders)
             : mDr(dr), mName(name), mStream(stream), mIncludeSubHeader(includeSubHeaders)
         {
             mSector = mDr.location.little;
@@ -381,6 +390,11 @@ public:
         virtual const std::string& Name() const override
         {
             return mName;
+        }
+
+        virtual std::string LoadAllToString() override
+        {
+            throw Oddlib::Exception("LoadAllToString not implemented yet");
         }
 
     private:
@@ -457,7 +471,7 @@ public:
         } while (volDesc->mType != 1);
     }
 
-    Oddlib::Stream& mStream;
+    Oddlib::Stream mStream;
 public:
     struct DrWrapper
     {
@@ -493,7 +507,7 @@ private:
 
         }
 
-        DrWrapper* Find(std::deque<std::string>& parts)
+        const DrWrapper* Find(std::deque<std::string>& parts) const
         {
             if (parts.empty())
             {
@@ -519,7 +533,7 @@ private:
                 else
                 {
                     find = parts.front();
-                    for (auto& file : mFiles)
+                    for (const auto& file : mFiles)
                     {
                         if (file.mName == find)
                         {
