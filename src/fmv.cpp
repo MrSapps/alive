@@ -220,7 +220,7 @@ public:
     MovMovie(const std::string& fullPath, IAudioController& audioController, FileSystem& fs)
         : IMovie(audioController)
     {
-        mFmvStream = fs.OpenResource("BR\\BR.MOV");
+        mFmvStream = fs.OpenResource(fullPath);
 
         const int kSampleRate = 37800;
         const int kFps = 15;
@@ -599,21 +599,28 @@ public:
 
         if (ImGui::Button("Play", ImVec2(ImGui::GetWindowWidth(), 20)))
         {
-            std::cout << "Play " << listbox_items[listbox_item_current] << std::endl;
             try
             {
-                /* TODO: Abstract opening files on disk/cdrom images/mods etc
-                auto stream = mFileSystem.OpenFile("whatever.ddv");
-                if (!stream)
+                // TODO: Clean up and move stream into fmv object rather than opening twice
+                const std::string fmvName = listbox_items[listbox_item_current];
+                auto stream = mFileSystem.OpenResource(fmvName);
+                char idBuffer[4] = {};
+                stream->ReadBytes(reinterpret_cast<Sint8*>(idBuffer), sizeof(idBuffer));
+                stream->Seek(0);
+                std::string idStr(idBuffer, 3);
+                if (idStr == "DDV")
                 {
-
+                    mFmv = std::make_unique<MasherMovie>(fmvName, mAudioController, mFileSystem);
                 }
-                mFmv = IMovie::Factory(std::move(stream));
-                */
+                else if (idStr == "MOI")
+                {
+                    mFmv = std::make_unique<DDVMovie>(fmvName, mAudioController, mFileSystem);
+                }
+                else
+                {
+                    mFmv = std::make_unique<MovMovie>(fmvName, mAudioController, mFileSystem);
+                }
 
-                //mFmv = std::make_unique<MasherMovie>(fullPath, mAudioController);
-                mFmv = std::make_unique<DDVMovie>(listbox_items[listbox_item_current], mAudioController, mFileSystem);
-               // mFmv = std::make_unique<MovMovie>(fullPath, mAudioController); 
             }
             catch (const Oddlib::Exception& ex)
             {
