@@ -217,10 +217,10 @@ protected:
 
     }
 public:
-    MovMovie(const std::string& fullPath, IAudioController& audioController, FileSystem& fs)
+    MovMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream)
         : IMovie(audioController)
     {
-        mFmvStream = fs.OpenResource(fullPath);
+        mFmvStream = std::move(stream);
 
         const int kSampleRate = 37800;
         const int kFps = 15;
@@ -400,13 +400,13 @@ private:
 class DDVMovie : public MovMovie
 {
 public:
-    DDVMovie(const std::string& fullPath, IAudioController& audioController, FileSystem& fs)
+    DDVMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream)
         : MovMovie(audioController)
     {
         mPsx = false;
         mAudioBytesPerFrame = 10063; // TODO: Calculate
         mAudioController.SetAudioSpec(37800/15, 37800);
-        mFmvStream = fs.OpenResource(fullPath);
+        mFmvStream = std::move(stream);
     }
 };
 
@@ -415,12 +415,10 @@ public:
 class MasherMovie : public IMovie
 {
 public:
-    MasherMovie(const std::string& fileName, IAudioController& audioController, FileSystem& fs)
+    MasherMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream)
         : IMovie(audioController)
     {
-        LOG_INFO("Playing movie " << fileName);
-
-        mMasher = std::make_unique<Oddlib::Masher>(fs.OpenResource(fileName));
+        mMasher = std::make_unique<Oddlib::Masher>(std::move(stream));
 
         if (mMasher->HasAudio())
         {
@@ -601,7 +599,7 @@ public:
         {
             try
             {
-                // TODO: Clean up and move stream into fmv object rather than opening twice
+                // TODO: Clean up
                 const std::string fmvName = listbox_items[listbox_item_current];
                 auto stream = mFileSystem.OpenResource(fmvName);
                 char idBuffer[4] = {};
@@ -610,15 +608,15 @@ public:
                 std::string idStr(idBuffer, 3);
                 if (idStr == "DDV")
                 {
-                    mFmv = std::make_unique<MasherMovie>(fmvName, mAudioController, mFileSystem);
+                    mFmv = std::make_unique<MasherMovie>(mAudioController, std::move(stream));
                 }
                 else if (idStr == "MOI")
                 {
-                    mFmv = std::make_unique<DDVMovie>(fmvName, mAudioController, mFileSystem);
+                    mFmv = std::make_unique<DDVMovie>(mAudioController, std::move(stream));
                 }
                 else
                 {
-                    mFmv = std::make_unique<MovMovie>(fmvName, mAudioController, mFileSystem);
+                    mFmv = std::make_unique<MovMovie>(mAudioController, std::move(stream));
                 }
 
             }
