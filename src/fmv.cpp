@@ -543,7 +543,7 @@ class FmvUi
 {
 private:
     ImGuiTextFilter mFilter;
-    int listbox_item_current = 1;
+    int listbox_item_current = 0;
     std::vector<const char*> listbox_items;
     std::unique_ptr<class IMovie>& mFmv;
 public:

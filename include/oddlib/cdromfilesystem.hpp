@@ -43,7 +43,9 @@ public:
 
     bool FileExists(std::string fileName) const
     {
-        return DoFind(fileName) != nullptr;
+        // Ignore files that have 0 byte size
+        auto rec = DoFind(fileName);
+        return rec != nullptr && rec->mDr.data_length.little != 0;
     }
 
     std::unique_ptr<Oddlib::IStream> ReadFile(std::string fileName, bool includeSubheaders)

@@ -7,13 +7,33 @@
             "R1P19P18.ddv"
         ],
         "OddyseePsx": [
-            "R1.MOV"
+            "E1.MOV",
+            "F1.MOV",
+            "F2.MOV",
+            "L1.MOV",
+            "R1.MOV",
+            "S1.MOV",
+            "P2\C1.MOV",
+            "P2\D1.MOV",
+            "P2\D2.MOV",
+            "P2\E2.MOV",
+            "P2\R2.MOV"
         ],
         "OddyseeDemoPsx": [
             "ABESODSE\R1.MOV"
         ],
         "ExoddusPsx": [
-            "MI\MI.MOV"
+            "BA\BA.MOV",
+            "BR\BR.MOV",
+            "BW\BW.MOV",
+            "CR\CR.MOV",
+            "FD\FD.MOV",
+            "MI\MI.MOV",
+            "NE\NE.MOV",
+            "PV\PV.MOV",
+            "ST\ST.MOV",
+            "SV\SV.MOV",
+            "TL\TL.MOV"
         ],
         "ExoddusPsxDemo": [
             "ABE2\MI.MOV"
