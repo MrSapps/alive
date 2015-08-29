@@ -223,21 +223,6 @@ bool Engine::Init()
         return false;
     }
 
-    // TODO: Load paths from json
-    mFileSystem.AddResourcePath(R"(C:\Program Files (x86)\Steam\SteamApps\common\Oddworld Abes Exoddus)", 1);
-    mFileSystem.AddResourcePath(R"(C:\Program Files (x86)\Steam\SteamApps\common\Oddworld Abes Oddysee)", 2);
-
-    mFileSystem.AddResourcePath(R"(C:\Users\paul\Desktop\alive\all_data\abeodd)", 99);
-    mFileSystem.AddResourcePath(R"(C:\Users\paul\Desktop\alive\all_data\exoddemo)", 99);
-    
-    mFileSystem.AddResourcePath(R"(C:\Users\paul\Desktop\alive\all_data\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin)", 99);
-    mFileSystem.AddResourcePath(R"(C:\Users\paul\Desktop\alive\all_data\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin)", 99);
-    mFileSystem.AddResourcePath(R"(C:\Users\paul\Desktop\alive\all_data\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin)", 99);
-    mFileSystem.AddResourcePath(R"(C:\Users\paul\Desktop\alive\all_data\Oddworld - Abe's Oddysee (E) [SLES-00664].bin)", 99);
-   
-    mFileSystem.AddResourcePath(R"(C:\Users\paul\Desktop\alive\all_data\Demo One (Version 5) (E) (Track 01) [PBPX-95001].bin)", 99);
-    mFileSystem.AddResourcePath(R"(C:\Users\paul\Desktop\alive\all_data\Euro Demo 38 (E) (Track 1) [SCED-01148].bin)", 99);
-
     if (!InitSDL())
     {
         LOG_ERROR("SDL init failure");

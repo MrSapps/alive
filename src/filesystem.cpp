@@ -6,6 +6,7 @@
 #include "oddlib/cdromfilesystem.hpp"
 #include <algorithm>
 #include <fstream>
+#include "jsonxx/jsonxx.h"
 
 #ifdef _WIN32
 const char kDirSeperator = '\\';
@@ -86,6 +87,7 @@ FileSystem::~FileSystem()
 bool FileSystem::Init()
 {
     InitBasePath();
+    InitResourcePaths();
     return true;
 }
 
@@ -175,4 +177,27 @@ void FileSystem::InitBasePath()
         LOG_ERROR("SDL_GetBasePath failed, falling back to ." << kDirSeperator);
     }
     LOG_INFO("basePath is " << mBasePath);
+}
+
+void FileSystem::InitResourcePaths()
+{
+    auto stream = Open("data/resource_paths.json");
+    std::string jsonFileContents = stream->LoadAllToString();
+
+    jsonxx::Object rootJsonObject;
+    rootJsonObject.parse(jsonFileContents);
+    if (rootJsonObject.has<jsonxx::Array>("ResourcePaths"))
+    {
+        jsonxx::Array& resourcePaths = rootJsonObject.get<jsonxx::Array>("ResourcePaths");
+
+        for (size_t i = 0; i < resourcePaths.size(); i++)
+        {
+            jsonxx::Object pathAndPriority = resourcePaths.get<jsonxx::Object>(i);
+
+            auto path = pathAndPriority.get<jsonxx::String>("path");
+            auto priority = pathAndPriority.get<jsonxx::Number>("priority");
+
+            AddResourcePath(path, priority);
+        }
+    }
 }

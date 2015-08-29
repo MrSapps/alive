@@ -58,6 +58,7 @@ private:
     };
 
     void InitBasePath();
+    void InitResourcePaths();
 private:
     std::string mBasePath;
     std::vector<std::unique_ptr<IResourcePathAbstraction>> mResourcePaths;
