@@ -181,21 +181,23 @@ void FileSystem::InitBasePath()
 
 void FileSystem::InitResourcePaths()
 {
+    TRACE_ENTRYEXIT;
+
     auto stream = Open("data/resource_paths.json");
-    std::string jsonFileContents = stream->LoadAllToString();
+    const std::string jsonFileContents = stream->LoadAllToString();
 
     jsonxx::Object rootJsonObject;
     rootJsonObject.parse(jsonFileContents);
     if (rootJsonObject.has<jsonxx::Array>("ResourcePaths"))
     {
-        jsonxx::Array& resourcePaths = rootJsonObject.get<jsonxx::Array>("ResourcePaths");
+        const jsonxx::Array& resourcePaths = rootJsonObject.get<jsonxx::Array>("ResourcePaths");
 
         for (size_t i = 0; i < resourcePaths.size(); i++)
         {
-            jsonxx::Object pathAndPriority = resourcePaths.get<jsonxx::Object>(i);
+            const jsonxx::Object& pathAndPriority = resourcePaths.get<jsonxx::Object>(i);
 
-            auto path = pathAndPriority.get<jsonxx::String>("path");
-            auto priority = pathAndPriority.get<jsonxx::Number>("priority");
+            const auto& path = pathAndPriority.get<jsonxx::String>("path");
+            const auto& priority = pathAndPriority.get<jsonxx::Number>("priority");
 
             AddResourcePath(path, priority);
         }
