@@ -19,6 +19,7 @@ public:
     bool Exists(const std::string& name) const;
     std::unique_ptr<Oddlib::IStream> Open(const std::string& name);
     std::unique_ptr<Oddlib::IStream> OpenResource(const std::string& name);
+    void DebugUi();
 private:
 
     class IResourcePathAbstraction

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <fstream>
 #include "jsonxx/jsonxx.h"
+#include "imgui/imgui.h"
 
 #ifdef _WIN32
 const char kDirSeperator = '\\';
@@ -127,6 +128,29 @@ std::unique_ptr<Oddlib::IStream> FileSystem::OpenResource(const std::string& nam
     throw Oddlib::Exception("Missing resource");
 }
 
+void FileSystem::DebugUi()
+{
+    ImGui::Begin("Resource paths", nullptr, ImGuiWindowFlags_NoCollapse);
+    static int idx = 0;
+    static std::vector<const char*> items;
+    items.resize(mResourcePaths.size());
+
+    for (size_t i=0; i<items.size(); i++)
+    {
+        items[i] = mResourcePaths[i]->Path().c_str();
+    }
+    
+    ImGui::PushItemWidth(-1);
+    ImGui::ListBox("", &idx, items.data(), static_cast<int>(items.size()), static_cast<int>(items.size()));
+    
+    /* TODO: Allow edits
+    ImGui::Button("Delete selected");
+    ImGui::Button("Add");
+    */
+
+    ImGui::End();
+}
+
 std::unique_ptr<FileSystem::IResourcePathAbstraction> FileSystem::MakeResourcePath(std::string path, int priority)
 {
     TRACE_ENTRYEXIT;
@@ -199,7 +223,7 @@ void FileSystem::InitResourcePaths()
             const auto& path = pathAndPriority.get<jsonxx::String>("path");
             const auto& priority = pathAndPriority.get<jsonxx::Number>("priority");
 
-            AddResourcePath(path, priority);
+            AddResourcePath(path,static_cast<int>(priority));
         }
     }
 }
