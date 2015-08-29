@@ -690,8 +690,6 @@ void Fmv::Render()
 {
     glEnable(GL_TEXTURE_2D);
 
-    mFileSystem.DebugUi();
-
     RenderVideoUi();
 
     if (mFmv)
@@ -701,5 +699,11 @@ void Fmv::Render()
         {
             mFmv = nullptr;
         }
+    }
+    else
+    {
+
+        mFileSystem.DebugUi();
+
     }
 }
