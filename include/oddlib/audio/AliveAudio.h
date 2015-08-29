@@ -21,7 +21,7 @@
 #include "ADSR.h"
 #include "biquad.h"
 
-void AliveInitAudio();
+void AliveInitAudio(class FileSystem& fs);
 void AliveAudioSDLCallback(void *udata, Uint8 *stream, int len);
 
 const int AliveAudioSampleRate = 44100;
@@ -50,8 +50,8 @@ public:
 	static void LoadSoundbank(char * fileName);
 	static void SetSoundbank(AliveAudioSoundbank * soundbank);
 
-	static void LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile);
-	static void LoadAllFromLvl(Oddlib::LvlArchive& lvlArchive, std::string vabID, std::string seqFile);
+    static void LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile, FileSystem& fs);
+    static void LoadAllFromLvl(Oddlib::LvlArchive& lvlArchive, std::string vabID, std::string seqFile);
 
 	static biquad * AliveAudioEQBiQuad;
 	static std::mutex EQMutex;

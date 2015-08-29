@@ -10,7 +10,7 @@
 #include <fstream>
 #include "alive_version.h"
 #include "core/audiobuffer.hpp"
-
+#include "oddlib/audio/AliveAudio.h"
 
 extern "C"
 {
@@ -223,11 +223,14 @@ bool Engine::Init()
         return false;
     }
 
+
     if (!InitSDL())
     {
         LOG_ERROR("SDL init failure");
         return false;
     }
+
+    AliveInitAudio(mFileSystem);
 
     InitGL();
     InitImGui();

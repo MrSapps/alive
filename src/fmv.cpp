@@ -500,13 +500,14 @@ void BarLoop()
 }
 
 
-void ChangeTheme(void *clientData)
+void ChangeTheme(void *clientData, FileSystem& fs)
 {
     //player->StopSequence();
 
     jsonxx::Object theme = AliveAudio::m_Config.get<jsonxx::Array>("themes").get<jsonxx::Object>(14);
 
-    Oddlib::LvlArchive archive(theme.get<jsonxx::String>("lvl", "null") + ".LVL");
+    const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".LVL";
+    Oddlib::LvlArchive archive(fs.OpenResource(lvlFileName));
     AliveAudio::LoadAllFromLvl(archive, theme.get<jsonxx::String>("vab", "null"), theme.get<jsonxx::String>("seq", "null"));
 
     //TwRemoveAllVars(m_GUIFileList);
@@ -580,7 +581,7 @@ public:
             int id = 24; // death sound
             player.reset(new SequencePlayer());
             player->m_QuarterCallback = BarLoop;
-            ChangeTheme(0);
+            ChangeTheme(0, mFileSystem);
             if (firstChange || player->m_PlayerState == ALIVE_SEQUENCER_FINISHED || player->m_PlayerState == ALIVE_SEQUENCER_STOPPED)
             {
                 if (player->LoadSequenceData(AliveAudio::m_LoadedSeqData[id]) == 0)

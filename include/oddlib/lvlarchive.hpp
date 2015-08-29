@@ -40,7 +40,7 @@ namespace Oddlib
 
             FileChunk& operator = (const FileChunk&) const = delete;
             FileChunk(const FileChunk&) = delete;
-            FileChunk(Stream& stream, Uint32 type, Uint32 id, Uint32 dataSize)
+            FileChunk(IStream& stream, Uint32 type, Uint32 id, Uint32 dataSize)
                 : mStream(stream), mId(id), mType(type), mDataSize(dataSize)
             {
                 mFilePos = static_cast<Uint32>(stream.Pos());
@@ -49,7 +49,7 @@ namespace Oddlib
             Uint32 Type() const;
             std::vector<Uint8> ReadData() const;
         private:
-            Stream& mStream;
+            IStream& mStream;
             Uint32 mId = 0;
             Uint32 mType = 0;
             Uint32 mFilePos = 0;
@@ -62,7 +62,7 @@ namespace Oddlib
         public:
             File(const File&) = delete;
             File& operator = (const File&) = delete;
-            File(Stream& stream, const FileRecord& rec);
+            File(IStream& stream, const FileRecord& rec);
             const std::string& FileName() const;
             FileChunk* ChunkById(Uint32 id);
             FileChunk* ChunkByIndex(Uint32 index) { return mChunks[index].get(); }
@@ -70,13 +70,15 @@ namespace Oddlib
             // Deugging feature
             void SaveChunks();
         private:
-            void LoadChunks(Stream& stream, Uint32 fileSize);
+            void LoadChunks(IStream& stream, Uint32 fileSize);
             std::string mFileName;
             std::vector<std::unique_ptr<FileChunk>> mChunks;
         };
 
         explicit LvlArchive(const std::string& fileName);
         explicit LvlArchive(std::vector<Uint8>&& data);
+        explicit LvlArchive(std::unique_ptr<IStream> stream);
+
         File* FileByName(const std::string& fileName);
         Uint32 FileCount() const { return static_cast<Uint32>(mFiles.size()); }
         struct FileRecord
@@ -113,7 +115,7 @@ namespace Oddlib
 
         void ReadHeader(LvlHeader& header);
 
-        Stream mStream;
+        std::unique_ptr<IStream> mStream;
         std::vector<std::unique_ptr<File>> mFiles;
     };
 }

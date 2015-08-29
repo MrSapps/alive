@@ -35,9 +35,10 @@ static bool FileExists(const std::string& fileName)
     fileStream.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
     if (fileStream)
     {
-        LOG_INFO("File: " << fileName << " not found");
+        LOG_INFO("File: " << fileName << " found");
         return true;
     }
+    LOG_WARNING("File: " << fileName << " not found");
     return false;
 }
 

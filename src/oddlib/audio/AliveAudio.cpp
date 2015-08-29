@@ -1,5 +1,5 @@
 #include "oddlib/audio/AliveAudio.h"
-#include "oddlib/audio/FileManager.h"
+#include "filesystem.hpp"
 
 biquad * AliveAudio::AliveAudioEQBiQuad = nullptr;
 std::vector<unsigned char> AliveAudio::m_SoundsDat;
@@ -14,16 +14,16 @@ bool AliveAudio::EQEnabled = true;
 bool AliveAudio::voiceListLocked = false;
 long long AliveAudio::currentSampleIndex = 0;
 
-void LoadJsonConfig(std::string filePath)
+static void LoadJsonConfig(std::string filePath, FileSystem& fs)
 {
-	std::string jsonData = mgFileManager::ReadFileToString(filePath.c_str());
+    std::string jsonData = fs.Open(filePath)->LoadAllToString();
 	jsonxx::Object obj;
 	obj.parse(jsonData);
 
 	AliveAudio::m_Config.import(obj);
 }
 
-void AliveInitAudio()
+void AliveInitAudio(FileSystem& fs)
 {
 	SDL_Init(SDL_INIT_AUDIO);
 	// UGLY FIX ALL OF THIS
@@ -38,31 +38,21 @@ void AliveInitAudio()
 	waveSpec.format = AUDIO_F32;
 
 	/* Open the audio device */
-	if (SDL_OpenAudio(&waveSpec, NULL) < 0){
+	if (SDL_OpenAudio(&waveSpec, NULL) < 0)
+    {
 		fprintf(stderr, "Failed to initialize audio: %s\n", SDL_GetError());
 		exit(-1);
 	}
 
-	LoadJsonConfig("C:\\Users\\paul\\Desktop\\alive\\alive\\data\\themes.json");
-	LoadJsonConfig("C:\\Users\\paul\\Desktop\\alive\\alive\\data\\sfx_list.json");
+	LoadJsonConfig("data/themes.json", fs);
+	LoadJsonConfig("data/sfx_list.json", fs);
 
-	std::ifstream soundDatFile;
-	soundDatFile.open("C:\\Users\\paul\\Desktop\\alive\\alive\\data\\sounds.dat", std::ios::binary);
-	if (!soundDatFile.is_open())
-	{
-		abort();
-	}
-	soundDatFile.seekg(0, std::ios::end);
-	std::streamsize fileSize = soundDatFile.tellg();
-	soundDatFile.seekg(0, std::ios::beg);
-	AliveAudio::m_SoundsDat = std::vector<unsigned char>(fileSize + 1); // Plus one, just in case interpolating tries to go that one byte further!
+    auto soundsDatSteam = fs.OpenResource("sounds.dat");
+    AliveAudio::m_SoundsDat = std::vector<unsigned char>(soundsDatSteam->Size() + 1); // Plus one, just in case interpolating tries to go that one byte further!
 
-	if (soundDatFile.read((char*)AliveAudio::m_SoundsDat.data(), fileSize))
-	{
-		// Tada!
-	}
+    soundsDatSteam->ReadBytes(AliveAudio::m_SoundsDat.data(), soundsDatSteam->Size());
 
-	//SDL_PauseAudio(0);
+	SDL_PauseAudio(0);
 }
 
 void CleanVoices()
@@ -377,9 +367,9 @@ void AliveAudio::SetSoundbank(AliveAudioSoundbank * soundbank)
 	AliveAudio::m_CurrentSoundbank = soundbank;
 }
 
-void AliveAudio::LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile)
+void AliveAudio::LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile, FileSystem& fs)
 {
-	Oddlib::LvlArchive archive(lvlPath);
+    Oddlib::LvlArchive archive(fs.OpenResource(lvlPath));
 	LoadAllFromLvl(archive, vabID, seqFile);
 }
 
