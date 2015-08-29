@@ -210,11 +210,6 @@ Engine::~Engine()
 
 bool Engine::Init()
 {
-    if (!InitSDL())
-    {
-        LOG_ERROR("SDL init failure");
-        return false;
-    }
 
     if (!mFileSystem.Init())
     {
@@ -243,6 +238,11 @@ bool Engine::Init()
     mFileSystem.AddResourcePath(R"(C:\Users\paul\Desktop\alive\all_data\Demo One (Version 5) (E) (Track 01) [PBPX-95001].bin)", 99);
     mFileSystem.AddResourcePath(R"(C:\Users\paul\Desktop\alive\all_data\Euro Demo 38 (E) (Track 1) [SCED-01148].bin)", 99);
 
+    if (!InitSDL())
+    {
+        LOG_ERROR("SDL init failure");
+        return false;
+    }
 
     InitGL();
     InitImGui();
