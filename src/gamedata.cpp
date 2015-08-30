@@ -25,17 +25,37 @@ bool GameData::LoadFmvData(FileSystem& fs)
     rootJsonObject.parse(jsonFileContents);
     if (rootJsonObject.has<jsonxx::Object>("FMVS"))
     {
-        jsonxx::Object& fmvObj = rootJsonObject.get<jsonxx::Object>("FMVS");
+        const jsonxx::Object& fmvObj = rootJsonObject.get<jsonxx::Object>("FMVS");
         for (auto& v : fmvObj.kv_map())
         {
-            std::string arrayName = v.first;
+            // Group of FMV's name, e.g. "AbesExoddusPcDemo"
+            const std::string& arrayName = v.first;
 
             std::vector<std::string> fmvs;
-            jsonxx::Array& ar = fmvObj.get<jsonxx::Array>(v.first);
+            const jsonxx::Array& ar = fmvObj.get<jsonxx::Array>(v.first);
             for (size_t i = 0; i < ar.size(); i++)
             {
-                jsonxx::String s = ar.get<jsonxx::String>(i);
-                fmvs.emplace_back(s);
+                if (ar.has<jsonxx::String>(i))
+                {
+                    const jsonxx::String& s = ar.get<jsonxx::String>(i);
+                    fmvs.emplace_back(s);
+                }
+                else if (ar.has<jsonxx::Object>(i))
+                {
+                    const jsonxx::Object& subFmvObj = ar.get<jsonxx::Object>(i);
+                    const std::string& file = subFmvObj.get<jsonxx::String>("file");
+                    const jsonxx::Array& containsArray = subFmvObj.get<jsonxx::Array>("contains");
+
+                    for (size_t j = 0; j < containsArray.size(); j++)
+                    {
+                        const jsonxx::Object& subFmvSettings = containsArray.get<jsonxx::Object>(j);
+                        const std::string& mappedName = subFmvSettings.get<jsonxx::String>("name");
+                        const Uint32 startSector = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("start"));
+                        const Uint32 endSector = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("end"));
+
+                    }
+
+                }
             }
             mFmvData[v.first] = std::move(fmvs);
         }

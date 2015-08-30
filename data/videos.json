@@ -7,36 +7,50 @@
             "R1P19P18.ddv"
         ],
         "OddyseePsx": [
-            "E1.MOV",
+            {
+                "file": "E1.MOV",
+                "contains": [
+                    {
+                        "name": "TRAIN2.DDV",
+                        "start": 0,
+                        "end": 1
+                    },
+                    {
+                        "name": "TRAIN1.DDV",
+                        "start": 2,
+                        "end": 3
+                    }
+                ]
+            },
             "F1.MOV",
             "F2.MOV",
             "L1.MOV",
             "R1.MOV",
             "S1.MOV",
-            "P2\C1.MOV",
-            "P2\D1.MOV",
-            "P2\D2.MOV",
-            "P2\E2.MOV",
-            "P2\R2.MOV"
+            "P2\\C1.MOV",
+            "P2\\D1.MOV",
+            "P2\\D2.MOV",
+            "P2\\E2.MOV",
+            "P2\\R2.MOV"
         ],
         "OddyseeDemoPsx": [
-            "ABESODSE\R1.MOV"
+            "ABESODSE\\R1.MOV"
         ],
         "ExoddusPsx": [
-            "BA\BA.MOV",
-            "BR\BR.MOV",
-            "BW\BW.MOV",
-            "CR\CR.MOV",
-            "FD\FD.MOV",
-            "MI\MI.MOV",
-            "NE\NE.MOV",
-            "PV\PV.MOV",
-            "ST\ST.MOV",
-            "SV\SV.MOV",
-            "TL\TL.MOV"
+            "BA\\BA.MOV",
+            "BR\\BR.MOV",
+            "BW\\BW.MOV",
+            "CR\\CR.MOV",
+            "FD\\FD.MOV",
+            "MI\\MI.MOV",
+            "NE\\NE.MOV",
+            "PV\\PV.MOV",
+            "ST\\ST.MOV",
+            "SV\\SV.MOV",
+            "TL\\TL.MOV"
         ],
         "ExoddusPsxDemo": [
-            "ABE2\MI.MOV"
+            "ABE2\\MI.MOV"
         ],
         "ExoddusPc": [
             "TRAIN2.DDV",
