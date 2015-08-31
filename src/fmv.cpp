@@ -25,6 +25,8 @@ public:
 class IMovie : public IAudioPlayer
 {
 public:
+    static std::unique_ptr<IMovie> Factory(const std::string& fmvName, IAudioController& audioController, FileSystem& fs);
+
     IMovie(IAudioController& controller) 
         : mAudioController(controller)
     {
@@ -480,6 +482,32 @@ private:
     std::vector<Uint8> mFramePixels;
 };
 
+/*static*/ std::unique_ptr<IMovie> IMovie::Factory(const std::string& fmvName, IAudioController& audioController, FileSystem& fs)
+{
+    TRACE_ENTRYEXIT;
+
+    // TODO: Look up PSX names
+    auto stream = fs.OpenResource(fmvName);
+    char idBuffer[4] = {};
+    stream->ReadBytes(reinterpret_cast<Sint8*>(idBuffer), sizeof(idBuffer));
+    stream->Seek(0);
+    std::string idStr(idBuffer, 3);
+    if (idStr == "DDV")
+    {
+        return std::make_unique<MasherMovie>(audioController, std::move(stream));
+    }
+    else if (idStr == "MOI")
+    {
+        return std::make_unique<DDVMovie>(audioController, std::move(stream));
+    }
+    else
+    {
+        return std::make_unique<MovMovie>(audioController, std::move(stream));
+    }
+    return nullptr;
+}
+
+
 std::unique_ptr<SequencePlayer> player;
 bool firstChange = true;
 int targetSong = -1;
@@ -578,7 +606,7 @@ public:
 
         if (ImGui::Button("Music test"))
         {
-            int id = 24; // death sound
+            int id = 26; // death sound
             player.reset(new SequencePlayer());
             player->m_QuarterCallback = BarLoop;
             ChangeTheme(0, mFileSystem);
@@ -592,7 +620,7 @@ public:
             }
             else
             {
-                targetSong = (int)id;
+                targetSong = id;
             }
         }
 
@@ -600,26 +628,8 @@ public:
         {
             try
             {
-                // TODO: Clean up
                 const std::string fmvName = listbox_items[listbox_item_current];
-                auto stream = mFileSystem.OpenResource(fmvName);
-                char idBuffer[4] = {};
-                stream->ReadBytes(reinterpret_cast<Sint8*>(idBuffer), sizeof(idBuffer));
-                stream->Seek(0);
-                std::string idStr(idBuffer, 3);
-                if (idStr == "DDV")
-                {
-                    mFmv = std::make_unique<MasherMovie>(mAudioController, std::move(stream));
-                }
-                else if (idStr == "MOI")
-                {
-                    mFmv = std::make_unique<DDVMovie>(mAudioController, std::move(stream));
-                }
-                else
-                {
-                    mFmv = std::make_unique<MovMovie>(mAudioController, std::move(stream));
-                }
-
+                mFmv = IMovie::Factory(fmvName, mAudioController, mFileSystem);
             }
             catch (const Oddlib::Exception& ex)
             {
