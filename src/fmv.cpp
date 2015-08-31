@@ -581,9 +581,9 @@ public:
     {
     }
 
-    void DrawVideoSelectionUi(const std::string& setName, const std::vector<std::string>& allFmvs)
+    void DrawVideoSelectionUi(const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
     {
-        std::string name = "Video player (" + setName + ")";
+        std::string name = "Video player";
         ImGui::Begin(name.c_str(), nullptr, ImVec2(550, 580), 1.0f, ImGuiWindowFlags_NoCollapse);
 
         mFilter.Draw();
@@ -593,11 +593,11 @@ public:
         listbox_items.resize(allFmvs.size());
 
         int matchingFilter = 0;
-        for (size_t i = 0; i < allFmvs.size(); i++)
+        for (const auto& fmv : allFmvs)
         {
-            if (mFilter.PassFilter(allFmvs[i].c_str()))
+            if (mFilter.PassFilter(fmv.first.c_str()))
             {
-                listbox_items[matchingFilter] = allFmvs[i].c_str();
+                listbox_items[matchingFilter] = fmv.first.c_str();
                 matchingFilter++;
             }
         }
@@ -648,25 +648,11 @@ void Fmv::RenderVideoUi()
 {
     if (!mFmv)
     {
-        if (mFmvUis.empty())
+        if (!mFmvUi)
         {
-            auto fmvs = mGameData.Fmvs();
-            for (auto fmvSet : fmvs)
-            {
-                mFmvUis.emplace_back(std::make_unique<FmvUi>(mFmv, mAudioController, mFileSystem));
-            }
+            mFmvUi = std::make_unique<FmvUi>(mFmv, mAudioController, mFileSystem);
         }
-
-        if (!mFmvUis.empty())
-        {
-            int i = 0;
-            auto fmvs = mGameData.Fmvs();
-            for (auto fmvSet : fmvs)
-            {
-                mFmvUis[i]->DrawVideoSelectionUi(fmvSet.first, fmvSet.second);
-                i++;
-            }
-        }
+        mFmvUi->DrawVideoSelectionUi(mGameData.Fmvs());
     }
 }
 

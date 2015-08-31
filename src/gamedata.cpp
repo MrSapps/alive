@@ -29,35 +29,59 @@ bool GameData::LoadFmvData(FileSystem& fs)
         for (auto& v : fmvObj.kv_map())
         {
             // Group of FMV's name, e.g. "AbesExoddusPcDemo"
-            const std::string& arrayName = v.first;
+            const std::string& gameName = v.first;
 
-            std::vector<std::string> fmvs;
+
             const jsonxx::Array& ar = fmvObj.get<jsonxx::Array>(v.first);
             for (size_t i = 0; i < ar.size(); i++)
             {
+                // Read out the record
+                FmvSection section = {};
+                bool isSubEntry = false;
+                std::string pcFileName;
                 if (ar.has<jsonxx::String>(i))
                 {
-                    const jsonxx::String& s = ar.get<jsonxx::String>(i);
-                    fmvs.emplace_back(s);
+                    // Just a file name
+                    pcFileName = ar.get<jsonxx::String>(i);
+                    auto it = mFmvData.find(pcFileName);
+                    if (it == std::end(mFmvData))
+                    {
+                        mFmvData[pcFileName] = std::vector<FmvSection>();
+                        it = mFmvData.find(pcFileName);
+                    }
                 }
                 else if (ar.has<jsonxx::Object>(i))
                 {
+                    isSubEntry = true;
+
+                    // Maps a PSX file name to a PC file name - and what part of the PSX
+                    // file contains the PC file. As PSX movies are many movies in one file.
                     const jsonxx::Object& subFmvObj = ar.get<jsonxx::Object>(i);
-                    const std::string& file = subFmvObj.get<jsonxx::String>("file");
+                    section.mPsxFileName = subFmvObj.get<jsonxx::String>("file");
                     const jsonxx::Array& containsArray = subFmvObj.get<jsonxx::Array>("contains");
 
                     for (size_t j = 0; j < containsArray.size(); j++)
                     {
-                        const jsonxx::Object& subFmvSettings = containsArray.get<jsonxx::Object>(j);
-                        const std::string& mappedName = subFmvSettings.get<jsonxx::String>("name");
-                        const Uint32 startSector = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("start"));
-                        const Uint32 endSector = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("end"));
+                        const jsonxx::Object& subFmvSettings = containsArray.get<jsonxx::Object>(j);;
+                        pcFileName  = subFmvSettings.get<jsonxx::String>("name");
+                        section.mStart = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("start"));
+                        section.mEnd = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("end"));
 
+                        // Grab a vector for the fmv name e.g "whatever.ddv"
+                        auto it = mFmvData.find(pcFileName);
+                        if (it == std::end(mFmvData))
+                        {
+                            mFmvData[pcFileName] = std::vector<FmvSection>();
+                            it = mFmvData.find(pcFileName);
+                        }
+
+                        it->second.emplace_back(section);
                     }
-
                 }
+
+               
+
             }
-            mFmvData[v.first] = std::move(fmvs);
         }
     }
 

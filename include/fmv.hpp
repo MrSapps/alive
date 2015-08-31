@@ -27,5 +27,5 @@ private:
     IAudioController& mAudioController;
     FileSystem& mFileSystem;
     std::unique_ptr<class IMovie> mFmv;
-    std::vector<std::unique_ptr<class FmvUi>> mFmvUis;
+    std::unique_ptr<class FmvUi> mFmvUi;
 };

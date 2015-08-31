@@ -3,6 +3,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "SDL_types.h"
 
 class FileSystem;
 
@@ -12,14 +13,22 @@ public:
     GameData();
     ~GameData();
     bool Init(FileSystem& fs);
-    const std::map<std::string, std::vector<std::string>>& Fmvs() const
+
+    struct FmvSection
+    {
+        std::string mPsxFileName;
+        Uint32 mStart;
+        Uint32 mEnd;
+    };  
+    
+    const std::map<std::string, std::vector<FmvSection>> Fmvs() const
     {
         return mFmvData;
     }
-
 private:
     bool LoadFmvData(FileSystem& fs);
 
 private:
-    std::map<std::string, std::vector<std::string>> mFmvData;
+
+    std::map<std::string, std::vector<FmvSection>> mFmvData;
 };

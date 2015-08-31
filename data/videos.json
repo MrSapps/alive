@@ -11,14 +11,24 @@
                 "file": "E1.MOV",
                 "contains": [
                     {
-                        "name": "TRAIN2.DDV",
+                        "name": "Barrels.ddv",
                         "start": 0,
-                        "end": 1
+                        "end": 3569
                     },
                     {
-                        "name": "TRAIN1.DDV",
-                        "start": 2,
-                        "end": 3
+                        "name": "TRAIN2.DDV",
+                        "start": 3569,
+                        "end": 518
+                    },
+                    {
+                        "name": "TRAIN3.DDV",
+                        "start": 4087,
+                        "end": 12649
+                    },
+                    {
+                        "name": "TRAIN4.DDV",
+                        "start": 16736,
+                        "end": 518
                     }
                 ]
             },
