@@ -18,6 +18,7 @@ public:
     void AddResourcePath(const std::string& path, int priority);
     bool Exists(const std::string& name) const;
     std::unique_ptr<Oddlib::IStream> Open(const std::string& name);
+    bool ResourceExists(const std::string& name) const;
     std::unique_ptr<Oddlib::IStream> OpenResource(const std::string& name);
     void DebugUi();
 private:

@@ -64,8 +64,8 @@ bool GameData::LoadFmvData(FileSystem& fs)
                     {
                         const jsonxx::Object& subFmvSettings = containsArray.get<jsonxx::Object>(j);;
                         pcFileName  = subFmvSettings.get<jsonxx::String>("name");
-                        section.mStart = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("start"));
-                        section.mEnd = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("end"));
+                        section.mStartSector = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("start_sector"));
+                        section.mNumberOfSectors = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("number_of_sectors"));
 
                         // Grab a vector for the fmv name e.g "whatever.ddv"
                         auto it = mFmvData.find(pcFileName);

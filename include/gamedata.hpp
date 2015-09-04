@@ -17,8 +17,8 @@ public:
     struct FmvSection
     {
         std::string mPsxFileName;
-        Uint32 mStart;
-        Uint32 mEnd;
+        Uint32 mStartSector;
+        Uint32 mNumberOfSectors;
     };  
     
     const std::map<std::string, std::vector<FmvSection>> Fmvs() const

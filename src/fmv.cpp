@@ -25,7 +25,7 @@ public:
 class IMovie : public IAudioPlayer
 {
 public:
-    static std::unique_ptr<IMovie> Factory(const std::string& fmvName, IAudioController& audioController, FileSystem& fs);
+    static std::unique_ptr<IMovie> Factory(const std::string& fmvName, IAudioController& audioController, FileSystem& fs, const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs);
 
     IMovie(IAudioController& controller) 
         : mAudioController(controller)
@@ -482,12 +482,39 @@ private:
     std::vector<Uint8> mFramePixels;
 };
 
-/*static*/ std::unique_ptr<IMovie> IMovie::Factory(const std::string& fmvName, IAudioController& audioController, FileSystem& fs)
+/*static*/ std::unique_ptr<IMovie> IMovie::Factory(
+    const std::string& fmvName, 
+    IAudioController& audioController, 
+    FileSystem& fs, 
+    const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
 {
     TRACE_ENTRYEXIT;
 
-    // TODO: Look up PSX names
-    auto stream = fs.OpenResource(fmvName);
+    std::string targetName = fmvName;
+
+    // Check the PC name
+    bool exists = fs.ResourceExists(fmvName);
+    if (!exists)
+    {
+        // Find the mapping of PSX -> PC fmv names from the json data
+        auto fmvData = allFmvs.find(fmvName);
+        if (fmvData != std::end(allFmvs))
+        {
+            // Check if the PSX file containing the FMV exists
+            const std::vector<GameData::FmvSection>& sections = fmvData->second;
+            for (const GameData::FmvSection& section : sections)
+            {
+                exists = fs.ResourceExists(section.mPsxFileName);
+                if (exists)
+                {
+                    targetName = section.mPsxFileName;
+                    break;
+                }
+            }
+        }
+    }
+    auto stream = fs.OpenResource(targetName);
+
     char idBuffer[4] = {};
     stream->ReadBytes(reinterpret_cast<Sint8*>(idBuffer), sizeof(idBuffer));
     stream->Seek(0);
@@ -629,7 +656,7 @@ public:
             try
             {
                 const std::string fmvName = listbox_items[listbox_item_current];
-                mFmv = IMovie::Factory(fmvName, mAudioController, mFileSystem);
+                mFmv = IMovie::Factory(fmvName, mAudioController, mFileSystem, allFmvs);
             }
             catch (const Oddlib::Exception& ex)
             {

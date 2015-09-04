@@ -12,23 +12,23 @@
                 "contains": [
                     {
                         "name": "Barrels.ddv",
-                        "start": 0,
-                        "end": 3569
+                        "start_sector": 0,
+                        "number_of_sectors": 3569
                     },
                     {
-                        "name": "TRAIN2.DDV",
-                        "start": 3569,
-                        "end": 518
+                        "name": "E1P4C8.ddv",
+                        "start_sector": 3569,
+                        "number_of_sectors": 518
                     },
                     {
-                        "name": "TRAIN3.DDV",
-                        "start": 4087,
-                        "end": 12649
+                        "name": "moon.ddv",
+                        "start_sector": 4087,
+                        "number_of_sectors": 12649
                     },
                     {
-                        "name": "TRAIN4.DDV",
-                        "start": 16736,
-                        "end": 518
+                        "name": "L1P1C14.ddv",
+                        "start_sector": 16736,
+                        "number_of_sectors": 518
                     }
                 ]
             },

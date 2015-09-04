@@ -108,6 +108,19 @@ bool FileSystem::Exists(const std::string& name) const
     return FileExists(GetFilePath(mBasePath,name));
 }
 
+bool FileSystem::ResourceExists(const std::string& name) const
+{
+    // Look in each resource path by priority
+    for (auto& resourceLocation : mResourcePaths)
+    {
+        if (resourceLocation->Exists(name))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::unique_ptr<Oddlib::IStream> FileSystem::OpenResource(const std::string& name)
 {
     LOG_INFO("Opening resource: " << name);
