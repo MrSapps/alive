@@ -95,12 +95,19 @@ bool FileSystem::Init()
 
 void FileSystem::AddResourcePath(const std::string& path, int priority)
 {
-    mResourcePaths.emplace_back(MakeResourcePath(path, priority));
-    std::sort(mResourcePaths.begin(), mResourcePaths.end(),
-        [](const std::unique_ptr<IResourcePathAbstraction>& lhs, const std::unique_ptr<IResourcePathAbstraction>& rhs)
+    try
     {
-        return lhs->Priority() < rhs->Priority();
-    });
+        mResourcePaths.emplace_back(MakeResourcePath(path, priority));
+        std::sort(mResourcePaths.begin(), mResourcePaths.end(),
+            [](const std::unique_ptr<IResourcePathAbstraction>& lhs, const std::unique_ptr<IResourcePathAbstraction>& rhs)
+        {
+            return lhs->Priority() < rhs->Priority();
+        });
+    }
+    catch (const Oddlib::Exception& ex)
+    {
+        LOG_ERROR("Failed to add resource path: " << path << " with priority: " << priority << " err: " << ex.what());
+    }
 }
 
 bool FileSystem::Exists(const std::string& name) const
