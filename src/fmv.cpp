@@ -219,10 +219,18 @@ protected:
 
     }
 public:
-    MovMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream)
+    MovMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, Uint32 startSector, Uint32 numberOfSectors)
         : IMovie(audioController)
     {
-        mFmvStream = std::move(stream);
+        if (numberOfSectors == 0)
+        {
+            mFmvStream = std::move(stream);
+        }
+        else
+        {
+            // Playing only a subset of the stream
+            mFmvStream.reset(stream->Clone(startSector, numberOfSectors));
+        }
 
         const int kSampleRate = 37800;
         const int kFps = 15;
@@ -491,6 +499,8 @@ private:
     TRACE_ENTRYEXIT;
 
     std::string targetName = fmvName;
+    Uint32 startSector = 0;
+    Uint32 numberOfSectors = 0;
 
     // Check the PC name
     bool exists = fs.ResourceExists(fmvName);
@@ -508,6 +518,8 @@ private:
                 if (exists)
                 {
                     targetName = section.mPsxFileName;
+                    startSector = section.mStartSector;
+                    numberOfSectors = section.mNumberOfSectors;
                     break;
                 }
             }
@@ -529,7 +541,8 @@ private:
     }
     else
     {
-        return std::make_unique<MovMovie>(audioController, std::move(stream));
+        // Only PSX FMV's have many in a single file
+        return std::make_unique<MovMovie>(audioController, std::move(stream), startSector, numberOfSectors);
     }
     return nullptr;
 }

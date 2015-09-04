@@ -11,6 +11,8 @@ namespace Oddlib
     {
     public:
         virtual ~IStream() = default;
+        virtual IStream* Clone() = 0;
+        virtual IStream* Clone(Uint32 start, Uint32 size) = 0;
         virtual void ReadUInt8(Uint8& output) = 0;
         virtual void ReadUInt32(Uint32& output) = 0;
         virtual void ReadUInt16(Uint16& output) = 0;
@@ -30,6 +32,8 @@ namespace Oddlib
     public:
         explicit Stream(const std::string& fileName);
         explicit Stream(std::vector<Uint8>&& data);
+        virtual IStream* Clone() override;
+        virtual IStream* Clone(Uint32 start, Uint32 size) override;
         virtual void ReadUInt8(Uint8& output) override;
         virtual void ReadUInt32(Uint32& output) override;
         virtual void ReadUInt16(Uint16& output) override;
@@ -46,5 +50,6 @@ namespace Oddlib
         mutable std::unique_ptr<std::istream> mStream;
         size_t mSize = 0;
         std::string mName;
+        bool mFromMemoryBuffer = false;
     };
 }

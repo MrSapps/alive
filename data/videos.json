@@ -17,17 +17,17 @@
                     },
                     {
                         "name": "E1P4C8.ddv",
-                        "start_sector": 3569,
+                        "start_sector": 3570,
                         "number_of_sectors": 518
                     },
                     {
                         "name": "moon.ddv",
-                        "start_sector": 4087,
+                        "start_sector": 4089,
                         "number_of_sectors": 12649
                     },
                     {
                         "name": "L1P1C14.ddv",
-                        "start_sector": 16736,
+                        "start_sector": 16739,
                         "number_of_sectors": 518
                     }
                 ]

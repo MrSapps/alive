@@ -55,6 +55,8 @@ public:
         {
             throw Oddlib::Exception("File not found on CD-ROM");
         }
+        // The raw cd bin image file stream will be cloned so that 2 open cd
+        // files don't stomp on each others seek pos etc.
         return std::make_unique<Stream>(record->mDr, record->mName, mStream, includeSubheaders);
     }
 
@@ -319,9 +321,28 @@ public:
         Stream& operator = (const Stream&) = delete;
 
         Stream(const directory_record& dr, std::string name, Oddlib::IStream& stream, bool includeSubHeaders)
-            : mDr(dr), mName(name), mStream(stream), mIncludeSubHeader(includeSubHeaders)
+            : mDr(dr), mName(name), mStream(stream.Clone()), mIncludeSubHeader(includeSubHeaders)
         {
             mSector = mDr.location.little;
+        }
+
+        virtual Oddlib::IStream* Clone() override
+        {
+            return new Stream(mDr, mName, *mStream, mIncludeSubHeader);
+        }
+
+        virtual Oddlib::IStream* Clone(Uint32 start, Uint32 size)
+        {
+            directory_record subDir = mDr;
+            subDir.location.little += start;
+            subDir.data_length.little = size * 2048;
+            return new 
+                Stream(subDir, 
+                mName + "sub(L"
+                    + std::to_string(subDir.location.little) + "S" 
+                    + std::to_string(subDir.data_length.little) + ")",
+                *mStream, 
+                mIncludeSubHeader);
         }
 
         virtual void ReadUInt8(Uint8& output) override
@@ -351,21 +372,22 @@ public:
 
         virtual void ReadBytes(Uint8* pDest, size_t destSize) override
         {
-            mStream.Seek((mSector * kRawSectorSize) + 16);
+            // TODO: Will always move up by 1 raw sector currently
+            mStream->Seek((mSector * kRawSectorSize) + 16);
             mSector++;
 
             char subHeader[8] = {};
-            mStream.ReadBytes(reinterpret_cast<Sint8*>(subHeader), sizeof(subHeader));
+            mStream->ReadBytes(reinterpret_cast<Sint8*>(subHeader), sizeof(subHeader));
             const int sectorDataSize = (IsMode2Form2(subHeader)) ? 2336 : 2048;
 
             mPos += 2048;
 
             if (mIncludeSubHeader)
             {
-                mStream.Seek(mStream.Pos() - sizeof(subHeader));
+                mStream->Seek(mStream->Pos() - sizeof(subHeader));
             }
 
-            mStream.ReadBytes(pDest, destSize);
+            mStream->ReadBytes(pDest, destSize);
         }
 
         virtual void Seek(size_t pos) override
@@ -374,9 +396,18 @@ public:
             {
                 mSector = mDr.location.little;
                 mPos = 0;
-                mStream.Seek((mSector * kRawSectorSize) + 16);
+                mStream->Seek((mSector * kRawSectorSize) + 16);
                 return;
             }
+
+            if ((pos % 2048) != 0)
+            {
+                mPos = 0;
+                mSector = pos / 2048;
+                mStream->Seek((mSector * kRawSectorSize) + 16);
+                return;
+            }
+
             throw std::runtime_error("Seek() not implemented");
         }
 
@@ -412,9 +443,12 @@ public:
         unsigned int mSector = 0;
         directory_record mDr;
         std::string mName;
-        Oddlib::IStream& mStream;
+
+        // Stream the raw cd bin image file
+        std::unique_ptr<Oddlib::IStream> mStream;
     };
 
+private:
 
     struct Directory;
 

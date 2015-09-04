@@ -16,6 +16,7 @@ namespace Oddlib
         mStream = std::move(s);
         Seek(0);
         mName = "Memory buffer (" + std::to_string(mSize) + ") bytes";
+        mFromMemoryBuffer = true;
     }
 
     Stream::Stream(const std::string& fileName)
@@ -33,6 +34,27 @@ namespace Oddlib
         s->seekg(std::ios::beg);
 
         mStream = std::move(s);
+    }
+
+    IStream* Stream::Clone()
+    {
+        if (!mFromMemoryBuffer)
+        {
+            return new Stream(mName);
+        }
+        auto oldPos = Pos();
+
+        Seek(0);
+        std::vector<Uint8> streamData(Size());
+        ReadBytes(streamData.data(), Size());
+        Seek(oldPos);
+
+        return new Stream(std::move(streamData));
+    }
+
+    IStream* Stream::Clone(Uint32 /*start*/, Uint32 /*size*/)
+    {
+        throw Exception("Sub clone not supported on direct file streams");
     }
 
     template<typename T>
@@ -76,7 +98,6 @@ namespace Oddlib
     {
         if (!mStream->read(reinterpret_cast<char*>(pDest), destSize))
         {
-            auto pos = this->Pos();
             throw Exception("ReadBytes failure");
         }
     }
