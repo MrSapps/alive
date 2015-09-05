@@ -13,6 +13,46 @@
 #define NOEXEPT noexcept
 #endif
 
+enum colour { DARKBLUE = 1, DARKGREEN, DARKTEAL, DARKRED, DARKPINK, DARKYELLOW, GRAY, DARKGRAY, BLUE, GREEN, TEAL, RED, PINK, YELLOW, WHITE };
+
+#ifdef _WIN32
+#include <windows.h>
+static void* gConsoleHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+
+struct setcolour
+{
+    colour _c;
+    void* _console_handle;
+
+    setcolour(colour c)
+        : _c(c), _console_handle(0)
+    {
+        _console_handle = gConsoleHandle;
+    }
+};
+
+
+static std::basic_ostream<char> &operator<<(std::basic_ostream<char> &s, const setcolour &ref)
+{
+    ::SetConsoleTextAttribute(ref._console_handle, ref._c);
+    return s;
+}
+#else
+struct setcolour
+{
+    colour _c;
+    setcolour(colour c)
+        : _c(c)
+    {
+    }
+};
+
+static std::basic_ostream<char> &operator<<(std::basic_ostream<char>& s, const setcolour& /*ref*/)
+{
+    // Not supported on other platforms yet
+    return s;
+}
+#endif
 
 struct None
 {
@@ -28,7 +68,7 @@ struct LogData
 template<typename List>
 void Log(const char* function, LogData<List>&& data)
 {
-    std::cout << function;
+    std::cout << setcolour(PINK) << function << std::flush;
     output(std::cout, std::move(data.list));
     std::cout << std::endl;
 }
@@ -76,10 +116,10 @@ inline void output(std::ostream& /*os*/, None)
 }
 
 #define TRACE_ENTRYEXIT Logging::AutoLog __funcTrace(FNAME)
-#define LOG_TRACE(msg) (Log(FNAME, LogData<None>() << " [T] " << msg))
-#define LOG_INFO(msg) (Log(FNAME, LogData<None>() << " [I] " << msg))
-#define LOG_WARNING(msg) (Log(FNAME, LogData<None>() << " [W] " << msg))
-#define LOG_ERROR(msg) (Log(FNAME, LogData<None>() << " [E] " << msg))
+#define LOG_TRACE(msg) (Log(FNAME, LogData<None>() << setcolour(WHITE) << " [T] " << msg << std::flush))
+#define LOG_INFO(msg) (Log(FNAME, LogData<None>() << setcolour(GREEN) << " [I] " << msg << std::flush))
+#define LOG_WARNING(msg) (Log(FNAME, LogData<None>() << setcolour(YELLOW) << " [W] " << msg << std::flush))
+#define LOG_ERROR(msg) (Log(FNAME, LogData<None>() << setcolour(RED) << " [E] " << msg << std::flush))
 #define LOG(msg) (Log(LogData<None>() << msg))
 
 namespace Logging
@@ -92,18 +132,18 @@ namespace Logging
         AutoLog(const char* funcName)
           : mFuncName(funcName)
         {
-            LOG("[ENTER] " << mFuncName);
+            LOG(setcolour(WHITE) << "[ENTER] " << mFuncName << std::flush);
         }
 
         ~AutoLog()
         {
             if (std::uncaught_exception())
             {
-                LOG("[EXIT_EXCEPTION] " << mFuncName);
+                LOG(setcolour(WHITE) << "[EXIT_EXCEPTION] " << mFuncName << std::flush);
             }
             else
             {
-                LOG("[EXIT]  " << mFuncName);
+                LOG(setcolour(WHITE) << "[EXIT]  " << mFuncName << std::flush);
             }
         }
 

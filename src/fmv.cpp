@@ -81,7 +81,7 @@ public:
         // 2016 samples every 4 sectors, num sectors = file size / 2048?
         
         const auto videoFrameIndex = mConsumedAudioBytes / mAudioBytesPerFrame;// 10063;
-        std::cout << "Total audio bytes is " << mConsumedAudioBytes << std::endl;
+        //std::cout << "Total audio bytes is " << mConsumedAudioBytes << std::endl;
 
         bool played = false;
         while (!mVideoBuffer.empty())
@@ -497,6 +497,10 @@ private:
     const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
 {
     TRACE_ENTRYEXIT;
+
+    // TODO: Because the names don't match the priority has no effect
+
+    // TODO: PSX fmv seems to have a lot of "black" at the end
 
     std::string targetName = fmvName;
     Uint32 startSector = 0;
