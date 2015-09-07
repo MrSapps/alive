@@ -1993,3 +1993,44 @@ TEST(CdFs, Read_XaSectors)
     ASSERT_EQ(false, img.FileExists("XA2\\ASDFG"));
 
 }
+
+class SubTitle
+{
+public:
+
+private:
+    Uint64 mStartTimeStamp;
+    Uint64 mEndTimeStamp;
+    std::string mSubTitleText;
+};
+
+class SubTitleParser
+{
+public:
+    SubTitleParser(std::unique_ptr<Oddlib::IStream> stream)
+    {
+        std::string data = stream->LoadAllToString();
+
+        std::deque<std::string> lines = string_util::split(data, L'\n');
+
+        for (const std::string& str : lines)
+        {
+            std::cout << str.c_str() << std::endl;
+        }
+    }
+
+    bool Parse()
+    {
+        return false;
+    }
+private:
+
+};
+
+
+TEST(SubTitleParser, Parse)
+{
+    SubTitleParser p(std::make_unique<Oddlib::Stream>("data\\Begin.ddv.srt"));
+    ASSERT_EQ(true, p.Parse());
+
+}
