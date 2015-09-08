@@ -2011,7 +2011,7 @@ public:
 
     }
 
-    SubTitle(std::deque<std::string>& lines)
+    SubTitle(std::deque<std::string> lines)
     {
         ParseSequnceNumber(TakeLine(lines));
         ParseStartEndTime(TakeLine(lines));
@@ -2049,6 +2049,8 @@ protected:
         const Uint32 mm = std::stol(timeStr.substr(3, 2));
         const Uint32 ss = std::stol(timeStr.substr(6, 2));
         const Uint32 ms = std::stol(timeStr.substr(9, 3));
+
+        // TODO: Time conversion
 
         return 0;
     }
@@ -2112,6 +2114,6 @@ TEST(SubTitleParser, Parse)
 
     ASSERT_EQ(1, s.SequnceNumber());
     //ASSERT_EQ(10500, s.StartTimeStamp());
-   // ASSERT_EQ(13000, s.EndTimeStamp());
+    //ASSERT_EQ(13000, s.EndTimeStamp());
     ASSERT_EQ("Fool", s.SubTitleText());
 }
