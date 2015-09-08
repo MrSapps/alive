@@ -1939,6 +1939,15 @@ TEST(string_util, split)
     ASSERT_EQ("staple", parts[2]);
 }
 
+TEST(string_util, trim)
+{
+    ASSERT_EQ("lol lol", string_util::trim(" lol lol "));
+    ASSERT_EQ("", string_util::trim(""));
+    ASSERT_EQ("", string_util::trim(" "));
+    ASSERT_EQ("lol", string_util::trim("  lol"));
+    ASSERT_EQ("lol", string_util::trim("lol  "));
+}
+
 TEST(CdFs, Read_FileSystemLimits)
 {
     RawCdImage img(get_test());
@@ -1997,40 +2006,112 @@ TEST(CdFs, Read_XaSectors)
 class SubTitle
 {
 public:
+    SubTitle()
+    {
+
+    }
+
+    SubTitle(std::deque<std::string>& lines)
+    {
+        ParseSequnceNumber(TakeLine(lines));
+        ParseStartEndTime(TakeLine(lines));
+        ParseText(TakeLine(lines));
+    }
+
+    Uint64 SequnceNumber() const { return mSequnceNumber; }
+    Uint64 StartTimeStamp() const { return mStartTimeStamp; }
+    Uint64 EndTimeStamp() const { return mEndTimeStamp; }
+    const std::string& SubTitleText() const { return mSubTitleText; }
+
+protected:
+    void ParseSequnceNumber(const std::string& line)
+    {
+        mSequnceNumber = std::stoll(line);
+    }
+
+    void ParseStartEndTime(const std::string& line)
+    {
+        // "00:00:10,500 --> 00:00:13,000"
+        const std::string startTime = line.substr(0, 12);
+        mStartTimeStamp = ParseTime(startTime);
+        const std::string divider = line.substr(12, 5);
+        if (divider != " --> ")
+        {
+            throw Oddlib::Exception("Invalid time stamp");
+        }
+        const std::string endTime = line.substr(17);
+        mEndTimeStamp = ParseTime(endTime);
+    }
+
+    Uint64 ParseTime(const std::string& timeStr)
+    {
+        const Uint32 hh = std::stol(timeStr.substr(0, 2));
+        const Uint32 mm = std::stol(timeStr.substr(3, 2));
+        const Uint32 ss = std::stol(timeStr.substr(6, 2));
+        const Uint32 ms = std::stol(timeStr.substr(9, 3));
+
+        return 0;
+    }
+
+    void ParseText(const std::string& text)
+    {
+        mSubTitleText = text;
+    }
+
+    std::string TakeLine(std::deque<std::string>& lines)
+    {
+        std::string ret;
+        do
+        {
+            if (lines.empty())
+            {
+                throw Oddlib::Exception("Premature end of file");
+            }
+
+            ret = lines.front();
+            string_util::trim(ret);
+            lines.pop_front();
+        } while (ret.empty());
+
+        return ret;
+    }
 
 private:
-    Uint64 mStartTimeStamp;
-    Uint64 mEndTimeStamp;
+    Uint64 mSequnceNumber = 0;
+    Uint64 mStartTimeStamp = 0;
+    Uint64 mEndTimeStamp = 0;
     std::string mSubTitleText;
 };
 
 class SubTitleParser
 {
 public:
-    SubTitleParser(std::unique_ptr<Oddlib::IStream> stream)
+    SubTitleParser(const std::string& input)
     {
-        std::string data = stream->LoadAllToString();
-
-        std::deque<std::string> lines = string_util::split(data, L'\n');
-
-        for (const std::string& str : lines)
+        std::deque<std::string> lines = string_util::split(input, L'\n');
+        while (!lines.empty())
         {
-            std::cout << str.c_str() << std::endl;
+            Parse(lines);
         }
     }
 
-    bool Parse()
+protected:
+
+    void Parse(std::deque<std::string>& lines)
     {
-        return false;
+        SubTitle s(lines);
     }
-private:
+
 
 };
 
 
 TEST(SubTitleParser, Parse)
 {
-    SubTitleParser p(std::make_unique<Oddlib::Stream>("data\\Begin.ddv.srt"));
-    ASSERT_EQ(true, p.Parse());
+    SubTitle s(std::deque<std::string> { "1", "12:34:56,789 --> 12:34:56,790", "Fool" });
 
+    ASSERT_EQ(1, s.SequnceNumber());
+    //ASSERT_EQ(10500, s.StartTimeStamp());
+   // ASSERT_EQ(13000, s.EndTimeStamp());
+    ASSERT_EQ("Fool", s.SubTitleText());
 }
