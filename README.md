@@ -16,3 +16,6 @@ You can become a patreon here (donations to support development):
 https://www.patreon.com/alive
 
 IRC channel is #oddworld on irc.esper.net
+
+
+[![Video player](https://raw.githubusercontent.com/paulsapps/alive/dev/doc/screenshots/alive1.png)]
