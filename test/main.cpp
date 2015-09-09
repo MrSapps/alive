@@ -2011,7 +2011,7 @@ public:
 
     }
 
-    SubTitle(std::deque<std::string> lines)
+    SubTitle(std::deque<std::string>& lines)
     {
         ParseSequnceNumber(TakeLine(lines));
         ParseStartEndTime(TakeLine(lines));
@@ -2019,8 +2019,8 @@ public:
     }
 
     Uint64 SequnceNumber() const { return mSequnceNumber; }
-    Uint64 StartTimeStamp() const { return mStartTimeStamp; }
-    Uint64 EndTimeStamp() const { return mEndTimeStamp; }
+    Uint64 StartTimeStampMsec() const { return mStartTimeStamp; }
+    Uint64 EndTimeStampMsec() const { return mEndTimeStamp; }
     const std::string& SubTitleText() const { return mSubTitleText; }
 
 protected:
@@ -2045,14 +2045,11 @@ protected:
 
     Uint64 ParseTime(const std::string& timeStr)
     {
-        const Uint32 hh = std::stol(timeStr.substr(0, 2));
-        const Uint32 mm = std::stol(timeStr.substr(3, 2));
-        const Uint32 ss = std::stol(timeStr.substr(6, 2));
-        const Uint32 ms = std::stol(timeStr.substr(9, 3));
-
-        // TODO: Time conversion
-
-        return 0;
+        const Uint64 hh = std::stol(timeStr.substr(0, 2)) * 60 * 60 * 1000; // to mins, to seconds, to msec
+        const Uint64 mm = std::stol(timeStr.substr(3, 2)) * 60 * 1000; // to seconds to msec
+        const Uint64 ss = std::stol(timeStr.substr(6, 2)) * 1000; // to msec
+        const Uint64 ms = std::stol(timeStr.substr(9, 3)); // already msec
+        return hh + mm + ss + ms;
     }
 
     void ParseText(const std::string& text)
@@ -2071,7 +2068,7 @@ protected:
             }
 
             ret = lines.front();
-            string_util::trim(ret);
+            ret = string_util::trim(ret);
             lines.pop_front();
         } while (ret.empty());
 
@@ -2088,32 +2085,65 @@ private:
 class SubTitleParser
 {
 public:
+    SubTitleParser(std::unique_ptr<Oddlib::IStream> stream)
+    {
+        Parse(stream->LoadAllToString());
+    }
+
     SubTitleParser(const std::string& input)
     {
+        Parse(input);
+    }
+
+    SubTitle* Find(Uint64 curTime)
+    {
+        return nullptr;
+    }
+
+protected:
+    void Parse(const std::string& input)
+    {
         std::deque<std::string> lines = string_util::split(input, L'\n');
-        while (!lines.empty())
+        while (!lines.empty() && lines.size() >= 3)
         {
             Parse(lines);
         }
     }
 
-protected:
-
     void Parse(std::deque<std::string>& lines)
     {
         SubTitle s(lines);
+        mMap[s.StartTimeStampMsec()] = s;
+       // std::cout << s.SubTitleText().c_str() << std::endl;
     }
 
+    std::map<Uint64, SubTitle> mMap;
 
 };
 
 
 TEST(SubTitleParser, Parse)
 {
-    SubTitle s(std::deque<std::string> { "1", "12:34:56,789 --> 12:34:56,790", "Fool" });
+    {
+        auto data = std::deque<std::string> { "1", "12:34:56,789 --> 12:34:56,790", "Fool" };
+        SubTitle s(data);
+        ASSERT_EQ(1, s.SequnceNumber());
+        ASSERT_EQ(45296789u, s.StartTimeStampMsec());
+        ASSERT_EQ(45296790u, s.EndTimeStampMsec());
+        ASSERT_EQ("Fool", s.SubTitleText());
+    }
+    {
+        auto data = std::deque<std::string> { "1", "00:00:00,000 --> 00:00:00,001", " lol " };
+        SubTitle s(data);
+        ASSERT_EQ(1, s.SequnceNumber());
+        ASSERT_EQ(0u, s.StartTimeStampMsec());
+        ASSERT_EQ(1u, s.EndTimeStampMsec());
+        ASSERT_EQ("lol", s.SubTitleText());
+    }
 
-    ASSERT_EQ(1, s.SequnceNumber());
-    //ASSERT_EQ(10500, s.StartTimeStamp());
-    //ASSERT_EQ(13000, s.EndTimeStamp());
-    ASSERT_EQ("Fool", s.SubTitleText());
+    SubTitleParser p("1\r\n12:34:56,789 --> 12:34:56,790\r\nFool\r\n");
+    ASSERT_NE(nullptr, p.Find(45296789u));
+    ASSERT_NE(nullptr, p.Find(45296790u));
+    ASSERT_EQ(nullptr, p.Find(45296791u));
+    ASSERT_EQ(nullptr, p.Find(1));
 }
