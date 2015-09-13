@@ -378,7 +378,7 @@ public:
 
             char subHeader[8] = {};
             mStream->ReadBytes(reinterpret_cast<Sint8*>(subHeader), sizeof(subHeader));
-            const int sectorDataSize = (IsMode2Form2(subHeader)) ? 2336 : 2048;
+            //const int sectorDataSize = (IsMode2Form2(subHeader)) ? 2336 : 2048;
 
             mPos += 2048;
 

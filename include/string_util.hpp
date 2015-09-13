@@ -28,6 +28,11 @@ namespace string_util
         return tokens;
     }
 
+    inline char c_tolower(int c)
+    {
+        return static_cast<char>(::tolower(c));
+    }
+
     inline bool ends_with(std::string const& value, std::string const& ending, bool ignoreCase = false)
     {
 
@@ -39,10 +44,10 @@ namespace string_util
         if (ignoreCase)
         {
             std::string valueLower = value;
-            std::transform(valueLower.begin(), valueLower.end(), valueLower.begin(), ::tolower);
+            std::transform(valueLower.begin(), valueLower.end(), valueLower.begin(), c_tolower);
 
             std::string endingLower = ending;
-            std::transform(endingLower.begin(), endingLower.end(), endingLower.begin(), ::tolower);
+            std::transform(endingLower.begin(), endingLower.end(), endingLower.begin(), c_tolower);
 
             return std::equal(endingLower.rbegin(), endingLower.rend(), valueLower.rbegin());
         }

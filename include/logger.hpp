@@ -34,7 +34,7 @@ struct setcolour
 
 static std::basic_ostream<char> &operator<<(std::basic_ostream<char> &s, const setcolour &ref)
 {
-    ::SetConsoleTextAttribute(ref._console_handle, ref._c);
+    ::SetConsoleTextAttribute(ref._console_handle, static_cast<WORD>(ref._c));
     return s;
 }
 #else

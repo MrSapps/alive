@@ -2003,6 +2003,7 @@ TEST(CdFs, Read_XaSectors)
 
 }
 
+// Very basic SRT/subrip parser. Will only handle 1 line per subtitle
 class SubTitle
 {
 public:
@@ -2021,7 +2022,7 @@ public:
     Uint64 SequnceNumber() const { return mSequnceNumber; }
     Uint64 StartTimeStampMsec() const { return mStartTimeStamp; }
     Uint64 EndTimeStampMsec() const { return mEndTimeStamp; }
-    const std::string& SubTitleText() const { return mSubTitleText; }
+    const std::string& Text() const { return mSubTitleText; }
 
 protected:
     void ParseSequnceNumber(const std::string& line)
@@ -2095,9 +2096,22 @@ public:
         Parse(input);
     }
 
-    SubTitle* Find(Uint64 curTime)
+    std::vector<const SubTitle*> Find(Uint64 curTime)
     {
-        return nullptr;
+        // TODO: Performance - might be slow if 100,000s of sub titles since this is a brute force
+        // range search.
+        std::vector<const SubTitle*> ret;
+        for (const SubTitle& sub : mSubTitles)
+        {
+            if (sub.StartTimeStampMsec() <= curTime)
+            {
+                if (sub.EndTimeStampMsec() >= curTime)
+                {
+                    ret.push_back(&sub);
+                }
+            }
+        }
+        return ret;
     }
 
 protected:
@@ -2108,42 +2122,69 @@ protected:
         {
             Parse(lines);
         }
+
+        // Sort by starting time
+        std::sort(std::begin(mSubTitles), std::end(mSubTitles), [](const SubTitle& lhs, const SubTitle& rhs)
+        {
+            return lhs.StartTimeStampMsec() < rhs.StartTimeStampMsec();
+        });
     }
 
     void Parse(std::deque<std::string>& lines)
     {
-        SubTitle s(lines);
-        mMap[s.StartTimeStampMsec()] = s;
-       // std::cout << s.SubTitleText().c_str() << std::endl;
+        mSubTitles.emplace_back(lines);
     }
 
-    std::map<Uint64, SubTitle> mMap;
-
+    std::vector<SubTitle> mSubTitles;
 };
 
 
 TEST(SubTitleParser, Parse)
 {
+    // Check full range
     {
         auto data = std::deque<std::string> { "1", "12:34:56,789 --> 12:34:56,790", "Fool" };
         SubTitle s(data);
-        ASSERT_EQ(1, s.SequnceNumber());
+        ASSERT_EQ(1u, s.SequnceNumber());
         ASSERT_EQ(45296789u, s.StartTimeStampMsec());
         ASSERT_EQ(45296790u, s.EndTimeStampMsec());
-        ASSERT_EQ("Fool", s.SubTitleText());
+        ASSERT_EQ("Fool", s.Text());
     }
+
+    // Check milisecond range
     {
         auto data = std::deque<std::string> { "1", "00:00:00,000 --> 00:00:00,001", " lol " };
         SubTitle s(data);
-        ASSERT_EQ(1, s.SequnceNumber());
+        ASSERT_EQ(1u, s.SequnceNumber());
         ASSERT_EQ(0u, s.StartTimeStampMsec());
         ASSERT_EQ(1u, s.EndTimeStampMsec());
-        ASSERT_EQ("lol", s.SubTitleText());
+        ASSERT_EQ("lol", s.Text());
     }
 
-    SubTitleParser p("1\r\n12:34:56,789 --> 12:34:56,790\r\nFool\r\n");
-    ASSERT_NE(nullptr, p.Find(45296789u));
-    ASSERT_NE(nullptr, p.Find(45296790u));
-    ASSERT_EQ(nullptr, p.Find(45296791u));
-    ASSERT_EQ(nullptr, p.Find(1));
+    // Test finding single subtitle
+    {
+        SubTitleParser p("1\r\n12:34:56,789 --> 12:34:56,790\r\nFool\r\n");
+        ASSERT_EQ(0u, p.Find(45296788u).size());
+        ASSERT_EQ(1u, p.Find(45296789u).size());
+        ASSERT_EQ("Fool", p.Find(45296789u)[0]->Text());
+        ASSERT_EQ(1u, p.Find(45296790u).size());
+        ASSERT_EQ("Fool", p.Find(45296790u)[0]->Text());
+        ASSERT_EQ(0u, p.Find(45296791u).size());
+        ASSERT_EQ(0u, p.Find(1).size());
+    }
+    
+    // Test finding overlapping subtitle
+    {
+        SubTitleParser p("1\r\n12:34:56,789 --> 12:34:56,800\r\nFool1\r\n2\r\n12:34:56,789 --> 12:34:56,810\r\nFool2\r\n");
+        ASSERT_EQ(0u, p.Find(45296788u).size());
+        ASSERT_EQ(2u, p.Find(45296789u).size());
+        ASSERT_EQ("Fool1", p.Find(45296789u)[0]->Text());
+        ASSERT_EQ("Fool2", p.Find(45296789u)[1]->Text());
+        ASSERT_EQ(2u, p.Find(45296800u).size());
+        ASSERT_EQ("Fool1", p.Find(45296800u)[0]->Text());
+        ASSERT_EQ("Fool2", p.Find(45296800u)[1]->Text());
+        ASSERT_EQ(1u, p.Find(45296801u).size());
+        ASSERT_EQ("Fool2", p.Find(45296801u)[0]->Text());
+        ASSERT_EQ(0u, p.Find(1).size());
+    }
 }
