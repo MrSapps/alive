@@ -197,6 +197,7 @@ EXEC_PROGRAM(${CMAKE_COMMAND}
 add_executable(Tests 
     test/sample_files/generated_headers/sample.lvl.g.h
     test/main.cpp
+    include/subtitles.hpp
 )
 
 
@@ -239,6 +240,7 @@ add_executable(Alive MACOSX_BUNDLE
     src/gridmap.cpp
     include/gridobject.hpp
     src/gridobject.cpp
+    include/subtitles.hpp
 )
 
 SET(CPACK_PACKAGE_EXECUTABLES Alive "A.L.I.V.E")

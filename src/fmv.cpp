@@ -7,6 +7,7 @@
 #include "SDL_opengl.h"
 #include "oddlib/audio/SequencePlayer.h"
 #include "filesystem.hpp"
+#include "subtitles.hpp"
 
 class AutoMouseCursorHide
 {
@@ -27,8 +28,8 @@ class IMovie : public IAudioPlayer
 public:
     static std::unique_ptr<IMovie> Factory(const std::string& fmvName, IAudioController& audioController, FileSystem& fs, const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs);
 
-    IMovie(IAudioController& controller) 
-        : mAudioController(controller)
+    IMovie(IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles)
+        : mAudioController(controller), mSubTitles(std::move(subtitles))
     {
         // TODO: Add to interface - must be added/removed outside of ctor/dtor due
         // to data race issues
@@ -82,6 +83,23 @@ public:
         
         const auto videoFrameIndex = mConsumedAudioBytes / mAudioBytesPerFrame;// 10063;
         //std::cout << "Total audio bytes is " << mConsumedAudioBytes << std::endl;
+
+        if (mSubTitles)
+        {
+            // We assume the FPS is always 15, thus 1000/15=66.66 so frame number * 66 = number of msecs into the video
+            const auto& subs = mSubTitles->Find(videoFrameIndex * 66);
+            if (!subs.empty())
+            {
+                for (const auto& sub : subs)
+                {
+                    LOG_INFO("Subs [" << subs.size() << "] :" << sub->Text());
+                }
+            }
+            else
+            {
+                LOG_INFO("No sub");
+            }
+        }
 
         bool played = false;
         while (!mVideoBuffer.empty())
@@ -203,6 +221,7 @@ protected:
     std::deque<Frame> mVideoBuffer;
     IAudioController& mAudioController;
     int mAudioBytesPerFrame = 1;
+    std::unique_ptr<SubTitleParser> mSubTitles;
 private:
     //AutoMouseCursorHide mHideMouseCursor;
 };
@@ -213,14 +232,14 @@ class MovMovie : public IMovie
 protected:
     std::unique_ptr<Oddlib::IStream> mFmvStream;
     bool mPsx = false;
-    MovMovie(IAudioController& audioController)
-        : IMovie(audioController)
+    MovMovie(IAudioController& audioController, std::unique_ptr<SubTitleParser> subtitles)
+        : IMovie(audioController, std::move(subtitles))
     {
 
     }
 public:
-    MovMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, Uint32 startSector, Uint32 numberOfSectors)
-        : IMovie(audioController)
+    MovMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles, Uint32 startSector, Uint32 numberOfSectors)
+        : IMovie(audioController, std::move(subtitles))
     {
         if (numberOfSectors == 0)
         {
@@ -410,8 +429,8 @@ private:
 class DDVMovie : public MovMovie
 {
 public:
-    DDVMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream)
-        : MovMovie(audioController)
+    DDVMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles)
+        : MovMovie(audioController, std::move(subtitles))
     {
         mPsx = false;
         mAudioBytesPerFrame = 10063; // TODO: Calculate
@@ -425,8 +444,8 @@ public:
 class MasherMovie : public IMovie
 {
 public:
-    MasherMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream)
-        : IMovie(audioController)
+    MasherMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles)
+        : IMovie(audioController, std::move(subtitles))
     {
         mMasher = std::make_unique<Oddlib::Masher>(std::move(stream));
 
@@ -500,7 +519,7 @@ private:
 
     // TODO: Because the names don't match the priority has no effect
 
-    // TODO: PSX fmv seems to have a lot of "black" at the end
+    // TODO: PSX fmv seems to have a lot of "black" at the end - probably json data is incorrect or needs tweaking?
 
     std::string targetName = fmvName;
     Uint32 startSector = 0;
@@ -529,7 +548,16 @@ private:
             }
         }
     }
+
     auto stream = fs.OpenResource(targetName);
+
+    // Try to open any corrisponding subtitle file
+    const std::string subTitleFileName = "data/" + targetName + ".SRT";
+    std::unique_ptr<SubTitleParser> subTitles;
+    if (fs.Exists(subTitleFileName))
+    {
+        subTitles = std::make_unique<SubTitleParser>(fs.Open(subTitleFileName));
+    }
 
     char idBuffer[4] = {};
     stream->ReadBytes(reinterpret_cast<Sint8*>(idBuffer), sizeof(idBuffer));
@@ -537,16 +565,16 @@ private:
     std::string idStr(idBuffer, 3);
     if (idStr == "DDV")
     {
-        return std::make_unique<MasherMovie>(audioController, std::move(stream));
+        return std::make_unique<MasherMovie>(audioController, std::move(stream), std::move(subTitles));
     }
     else if (idStr == "MOI")
     {
-        return std::make_unique<DDVMovie>(audioController, std::move(stream));
+        return std::make_unique<DDVMovie>(audioController, std::move(stream), std::move(subTitles));
     }
     else
     {
         // Only PSX FMV's have many in a single file
-        return std::make_unique<MovMovie>(audioController, std::move(stream), startSector, numberOfSectors);
+        return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), startSector, numberOfSectors);
     }
     return nullptr;
 }
