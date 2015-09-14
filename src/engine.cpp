@@ -12,8 +12,6 @@
 #include "core/audiobuffer.hpp"
 #include "oddlib/audio/AliveAudio.h"
 
-#include <GL/GL.h>
-#include "SDL_opengl.h"
 
 #include "nanovg.h"
 #define NANOVG_GL3_IMPLEMENTATION
