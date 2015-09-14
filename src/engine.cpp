@@ -76,8 +76,6 @@ static ImVec2 mousePosScale(1.0f, 1.0f);
 // - try adjusting ImGui::GetIO().PixelCenterOffset to 0.5f or 0.375f
 static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count)
 {
-    return;
-    /*
     if (cmd_lists_count == 0)
         return;
 
@@ -94,6 +92,7 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnable(GL_TEXTURE_2D);
+
     //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context
 
     // Setup orthographic projection matrix
@@ -111,6 +110,7 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
+
 
     // Render command lists
 #define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
@@ -139,6 +139,7 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
             vtx_offset += pcmd->vtx_count;
         }
     }
+
 #undef OFFSETOF
 
     // Restore modified state
@@ -150,7 +151,7 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
-    glPopAttrib();*/
+    glPopAttrib();
 }
 
 static GLuint       g_FontTexture = 0;
@@ -419,10 +420,8 @@ void Engine::Render()
 
     nvgResetTransform(mNanoVg);
 
-   // mFmv.Render();
+    mFmv.Render();
 
-    // Draw UI buffers
-    ImGui::Render();
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
@@ -439,8 +438,13 @@ void Engine::Render()
 
     nvgEndFrame(mNanoVg);
 
+    // Draw UI buffers
+    ImGui::Render();
+
     // Flip the buffers
     nvgluBindFramebuffer(nullptr);
+
+ 
     SDL_GL_SwapWindow(mWindow);
 }
 
@@ -455,7 +459,7 @@ bool Engine::InitSDL()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     //SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG ); // May be a performance booster in *nix?
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
     mWindow = SDL_CreateWindow(ALIVE_VERSION_NAME_STR,
@@ -575,9 +579,8 @@ void Engine::InitGL()
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    /*
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    */
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+
 
     mContext = SDL_GL_CreateContext(mWindow);
 
