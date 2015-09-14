@@ -25,6 +25,41 @@ public:
     }
 };
 
+static void RenderSubtitles(NVGcontext* ctx, const char* msg)
+{
+    int w = 640 * 2;
+    int h = 480 * 2;
+
+   // SDL_GetWindowSize(mWindow, &w, &h);
+
+    int xpos = 0;
+    int ypos = h;
+    nvgFillColor(ctx, nvgRGBA(0, 0, 0, 255));
+    nvgFontSize(ctx, 70-5);
+
+    nvgTextAlign(ctx, NVG_ALIGN_TOP);
+    
+    float bounds[4];
+    nvgTextBounds(ctx, xpos, ypos, msg, nullptr, bounds);
+
+    float fontX = bounds[0];
+    float fontY = bounds[1];
+    float fontW = bounds[2] - bounds[0];
+    float fontH = bounds[3] - bounds[1];
+
+    // Move off the bottom of the screen by half the font height
+    ypos -= fontH + (fontH/2);
+
+    // Center XPos in the screenW
+    xpos = (w / 2) - (fontW / 2);
+
+    nvgText(ctx, xpos, ypos, msg, nullptr);
+
+    nvgFillColor(ctx, nvgRGBA(255, 255, 255, 255));
+    nvgText(ctx, xpos-3, ypos-3, msg, nullptr);
+
+}
+
 class IMovie : public IAudioPlayer
 {
 public:
@@ -93,18 +128,15 @@ public:
             {
                 for (const auto& sub : subs)
                 {
-                    LOG_INFO("Subs [" << subs.size() << "] :" << sub->Text());
+                   // LOG_INFO("Subs [" << subs.size() << "] :" << sub->Text());
                 }
-                int xpos = 100;
-                int ypos = 600;
+
                 const char* msg = subs[0]->Text().c_str();
-                nvgFillColor(ctx, nvgRGBA(255, 255, 255, 255));
-                nvgFontSize(ctx, 40);
-                nvgText(ctx, xpos, ypos, msg, nullptr);
+                RenderSubtitles(ctx, msg);
             }
             else
             {
-                LOG_INFO("No sub");
+                //LOG_INFO("No sub");
             }
         }
 
@@ -769,6 +801,8 @@ void Fmv::Render(NVGcontext* ctx)
     glEnable(GL_TEXTURE_2D);
 
     RenderVideoUi();
+
+    //RenderSubtitles(ctx, "The quick brown fox jumps over the lazy dog");
 
     if (mFmv)
     {
