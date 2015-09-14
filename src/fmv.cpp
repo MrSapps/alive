@@ -9,6 +9,7 @@
 #include "subtitles.hpp"
 #include <GL/glew.h>
 #include "SDL_opengl.h"
+#include "nanovg.h"
 
 class AutoMouseCursorHide
 {
@@ -50,7 +51,7 @@ public:
     virtual void FillBuffers() = 0;
 
     // Main thread context
-    void OnRenderFrame()
+    void OnRenderFrame(NVGcontext* ctx)
     {
         // TODO: Populate mAudioBuffer and mVideoBuffer
         // for up to N buffered frames
@@ -84,7 +85,6 @@ public:
         
         const auto videoFrameIndex = mConsumedAudioBytes / mAudioBytesPerFrame;// 10063;
         //std::cout << "Total audio bytes is " << mConsumedAudioBytes << std::endl;
-
         if (mSubTitles)
         {
             // We assume the FPS is always 15, thus 1000/15=66.66 so frame number * 66 = number of msecs into the video
@@ -95,6 +95,12 @@ public:
                 {
                     LOG_INFO("Subs [" << subs.size() << "] :" << sub->Text());
                 }
+                int xpos = 100;
+                int ypos = 600;
+                const char* msg = subs[0]->Text().c_str();
+                nvgFillColor(ctx, nvgRGBA(255, 255, 255, 255));
+                nvgFontSize(ctx, 80);
+                nvgText(ctx, xpos, ypos, msg, nullptr);
             }
             else
             {
@@ -138,6 +144,9 @@ public:
         {
             FillBuffers();
         }
+
+
+
     }
 
     // Main thread context
@@ -755,7 +764,7 @@ void Fmv::Update()
 
 }
 
-void Fmv::Render()
+void Fmv::Render(NVGcontext* ctx)
 {
     glEnable(GL_TEXTURE_2D);
 
@@ -763,7 +772,7 @@ void Fmv::Render()
 
     if (mFmv)
     {
-        mFmv->OnRenderFrame();
+        mFmv->OnRenderFrame(ctx);
         if (mFmv->IsEnd())
         {
             mFmv = nullptr;

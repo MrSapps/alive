@@ -420,7 +420,7 @@ void Engine::Render()
 
     nvgResetTransform(mNanoVg);
 
-    mFmv.Render();
+    mFmv.Render(mNanoVg);
 
 
     GLenum error = glGetError();
@@ -428,13 +428,6 @@ void Engine::Render()
     {
         LOG_ERROR(gluErrorString(error));
     }
-
-    int xpos = 200;
-    int ypos = 200;
-    const char* msg = "Hello text rendering";
-    nvgFillColor(mNanoVg, nvgRGBA(0, 0, 0, 255));
-    nvgFontSize(mNanoVg, 80);
-    nvgText(mNanoVg, xpos, ypos , msg, nullptr);
 
     nvgEndFrame(mNanoVg);
 

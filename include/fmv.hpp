@@ -19,7 +19,7 @@ public:
     void Play();
     void Stop();
     void Update();
-    void Render();
+    void Render(struct NVGcontext* ctx);
 private:
     void RenderVideoUi();
 private:
