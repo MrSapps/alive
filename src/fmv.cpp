@@ -4,10 +4,11 @@
 #include "oddlib/cdromfilesystem.hpp"
 #include "gamedata.hpp"
 #include "logger.hpp"
-#include "SDL_opengl.h"
 #include "oddlib/audio/SequencePlayer.h"
 #include "filesystem.hpp"
 #include "subtitles.hpp"
+#include <GL/glew.h>
+#include "SDL_opengl.h"
 
 class AutoMouseCursorHide
 {

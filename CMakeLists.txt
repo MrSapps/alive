@@ -64,7 +64,8 @@ include_directories(
     ${SDL2_INCLUDE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/packaging
     ${OPENGL_INCLUDE_DIRS}
-   
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glew-1.11.0/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/include
@@ -74,6 +75,15 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/luajit/src
 )
 
+add_definitions(-DGLEW_STATIC)
+
+SET(glew_src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glew-1.11.0/src/glew.c
+)
+
+add_library(glew STATIC ${glew_src})
+SET_PROPERTY(TARGET glew PROPERTY FOLDER "3rdparty")
+
 SET(imgui_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_rect_pack.h
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_textedit.h
@@ -82,6 +92,18 @@ SET(imgui_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imgui.h
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imgui.cpp
 )
+
+SET(nanovg_src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/fontstash.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/nanovg.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/nanovg.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/nanovg_gl.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/nanovg_gl_utils.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/stb_image.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/stb_truetype.h
+)
+add_library(NanoVg STATIC ${nanovg_src})
+SET_PROPERTY(TARGET NanoVg PROPERTY FOLDER "3rdparty")
 
 add_library(imgui STATIC ${imgui_src})
 SET_PROPERTY(TARGET imgui PROPERTY FOLDER "3rdparty")
@@ -251,7 +273,7 @@ SET(CPACK_PACKAGE_VERSION_MINOR ${ALIVE_VERSION_MINOR})
 SET(CPACK_PACKAGE_VERSION_PATCH ${ALIVE_VERSION_PATCH})
 
 #cotire(Alive)
-TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
+TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib NanoVg glew ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
 install(
     TARGETS Alive 
     BUNDLE DESTINATION .

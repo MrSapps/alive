@@ -7,15 +7,8 @@
 #include "oddlib/masher.hpp"
 #include "core/audiobuffer.hpp"
 #include "SDL.h"
-//#include <GL/glew.h>
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#ifdef __APPLE__
-#  include <OpenGL/gl.h>
-#else
-#  include <GL/gl.h>
-#endif/*__APPLE__*/
+#include <GL/glew.h>
+#include "SDL_opengl.h"
 
 class Engine
 {
@@ -28,6 +21,8 @@ private:
     void Update();
     void Render();
     bool InitSDL();
+    int LoadNanoVgFonts(struct NVGcontext* vg);
+    void InitNanoVg();
     void InitGL();
     void InitImGui();
     void InitBasePath();
@@ -58,4 +53,6 @@ private:
 
     Fmv mFmv;
 
+    struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;
+    struct NVGcontext* mNanoVg = nullptr;
 };

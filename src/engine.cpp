@@ -12,6 +12,14 @@
 #include "core/audiobuffer.hpp"
 #include "oddlib/audio/AliveAudio.h"
 
+#include <GL/GL.h>
+#include "SDL_opengl.h"
+
+#include "nanovg.h"
+#define NANOVG_GL3_IMPLEMENTATION
+#include "nanovg_gl.h"
+#include "nanovg_gl_utils.h"
+
 extern "C"
 {
 #include "lua.h"
@@ -94,7 +102,7 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
 
     //std::cout << "ON RENDER " << width << " " << height << std::endl;
 
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -201,6 +209,16 @@ Engine::~Engine()
         ImGui::GetIO().Fonts->TexID = 0;
         g_FontTexture = 0;
     }
+    
+    if (mNanoVgFrameBuffer)
+    {
+        nvgluDeleteFramebuffer(mNanoVgFrameBuffer);
+    }
+
+    if (mNanoVg)
+    {
+        nvgDeleteGL3(mNanoVg);
+    }
 
     ImGui::Shutdown();
     SDL_GL_DeleteContext(mContext);
@@ -223,16 +241,19 @@ bool Engine::Init()
         return false;
     }
 
-
     if (!InitSDL())
     {
         LOG_ERROR("SDL init failure");
         return false;
     }
 
+    InitGL();
+
+    InitNanoVg();
+
     AliveInitAudio(mFileSystem);
 
-    InitGL();
+  
     InitImGui();
 
     ToState(eRunning);
@@ -390,7 +411,7 @@ void Engine::Render()
 
     // Clear screen
     glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     mFmv.Render();
 
@@ -400,17 +421,28 @@ void Engine::Render()
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
     {
-        //            std::cout << gluErrorString(error) << std::endl;
+        LOG_ERROR(gluErrorString(error));
     }
 
    
     // Flip the buffers
+    nvgluBindFramebuffer(nullptr);
     SDL_GL_SwapWindow(mWindow);
 }
 
 bool Engine::InitSDL()
 {
-    SDL_Init(SDL_INIT_EVERYTHING);
+    if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS) != 0)
+    {
+        LOG_ERROR("SDL_Init failed " << SDL_GetError());
+        return false;
+    }
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    //SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG ); // May be a performance booster in *nix?
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
     mWindow = SDL_CreateWindow(ALIVE_VERSION_NAME_STR,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640*2, 480*2,
@@ -422,6 +454,50 @@ bool Engine::InitSDL()
 #endif
 
     return true;
+}
+
+int Engine::LoadNanoVgFonts(NVGcontext* vg)
+{
+    int font = nvgCreateFont(vg, "sans", "data/Roboto-Regular.ttf");
+    if (font == -1)
+    {
+        LOG_ERROR("Could not add font regular");
+        return -1;
+    }
+
+    font = nvgCreateFont(vg, "sans-bold", "data/Roboto-Bold.ttf");
+    if (font == -1)
+    {
+        LOG_ERROR("Could not add font bold");
+        return -1;
+    }
+    return 0;
+}
+
+void Engine::InitNanoVg()
+{
+    LOG_INFO("Creating nanovg context");
+    mNanoVg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+    if (!mNanoVg)
+    {
+        throw Oddlib::Exception("Couldn't create nanovg gl3 context");
+    }
+
+    LOG_INFO("Creating nanovg framebuffer");
+    mNanoVgFrameBuffer = nvgluCreateFramebuffer(mNanoVg, 600, 600, 0);
+    if (!mNanoVgFrameBuffer)
+    {
+        throw Oddlib::Exception("Couldn't create nanovg framebuffer");
+    }
+
+    /*
+    if (LoadNanoVgFonts(mNanoVg) != 0)
+    {
+        throw Oddlib::Exception("Failed to load fonts");
+    }
+    */
+
+    LOG_INFO("Nanovg initialized");
 }
 
 void Engine::InitImGui()
@@ -474,6 +550,7 @@ void Engine::InitImGui()
 
 void Engine::InitGL()
 {
+    /*
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
@@ -481,14 +558,23 @@ void Engine::InitGL()
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    */
 
     mContext = SDL_GL_CreateContext(mWindow);
 
-    //    glewExperimental = GL_TRUE;
-    // GLenum status = glewInit();
-    // if (status != GLEW_OK) {
-    //     printf("Could not initialize GLEW!\n");
-    //  }
+    glewExperimental = GL_TRUE;
+    GLenum err = glewInit();
+    if (err == GLEW_OK)
+    {
+        // GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
+        glGetError();
+
+        glEnable(GL_STENCIL_TEST);
+    }
+    else
+    {
+        throw Oddlib::Exception(reinterpret_cast<const char*>(glewGetErrorString(err)));
+    }
 }
 
 void Engine::ToState(Engine::eStates newState)
