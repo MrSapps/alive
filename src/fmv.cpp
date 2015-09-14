@@ -99,7 +99,7 @@ public:
                 int ypos = 600;
                 const char* msg = subs[0]->Text().c_str();
                 nvgFillColor(ctx, nvgRGBA(255, 255, 255, 255));
-                nvgFontSize(ctx, 80);
+                nvgFontSize(ctx, 40);
                 nvgText(ctx, xpos, ypos, msg, nullptr);
             }
             else
