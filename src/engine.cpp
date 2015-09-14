@@ -78,6 +78,8 @@ static ImVec2 mousePosScale(1.0f, 1.0f);
 // - try adjusting ImGui::GetIO().PixelCenterOffset to 0.5f or 0.375f
 static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count)
 {
+    return;
+    /*
     if (cmd_lists_count == 0)
         return;
 
@@ -150,7 +152,7 @@ static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_c
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
-    glPopAttrib();
+    glPopAttrib();*/
 }
 
 static GLuint       g_FontTexture = 0;
@@ -228,7 +230,6 @@ Engine::~Engine()
 
 bool Engine::Init()
 {
-
     if (!mFileSystem.Init())
     {
         LOG_ERROR("File system init failure");
@@ -412,8 +413,15 @@ void Engine::Render()
     // Clear screen
     glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    
+    // Scaled vector rendering area
+    int w, h;
+    SDL_GetWindowSize(mWindow, &w, &h);
+    nvgBeginFrame(mNanoVg, w, h, 1.0f);
 
-    mFmv.Render();
+    nvgResetTransform(mNanoVg);
+
+   // mFmv.Render();
 
     // Draw UI buffers
     ImGui::Render();
@@ -424,7 +432,15 @@ void Engine::Render()
         LOG_ERROR(gluErrorString(error));
     }
 
-   
+    int xpos = 200;
+    int ypos = 200;
+    const char* msg = "Hello text rendering";
+    nvgFillColor(mNanoVg, nvgRGBA(0, 0, 0, 255));
+    nvgFontSize(mNanoVg, 80);
+    nvgText(mNanoVg, xpos, ypos , msg, nullptr);
+
+    nvgEndFrame(mNanoVg);
+
     // Flip the buffers
     nvgluBindFramebuffer(nullptr);
     SDL_GL_SwapWindow(mWindow);
@@ -458,14 +474,14 @@ bool Engine::InitSDL()
 
 int Engine::LoadNanoVgFonts(NVGcontext* vg)
 {
-    int font = nvgCreateFont(vg, "sans", "data/Roboto-Regular.ttf");
+    int font = nvgCreateFont(vg, "sans", (mFileSystem.BasePath() + "/data/Roboto-Regular.ttf").c_str());
     if (font == -1)
     {
         LOG_ERROR("Could not add font regular");
         return -1;
     }
 
-    font = nvgCreateFont(vg, "sans-bold", "data/Roboto-Bold.ttf");
+    font = nvgCreateFont(vg, "sans-bold", (mFileSystem.BasePath() + "/data/Roboto-Bold.ttf").c_str());
     if (font == -1)
     {
         LOG_ERROR("Could not add font bold");
@@ -477,7 +493,13 @@ int Engine::LoadNanoVgFonts(NVGcontext* vg)
 void Engine::InitNanoVg()
 {
     LOG_INFO("Creating nanovg context");
+    
+#ifdef _DEBUG
+    mNanoVg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+#else
     mNanoVg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+#endif
+
     if (!mNanoVg)
     {
         throw Oddlib::Exception("Couldn't create nanovg gl3 context");
@@ -490,12 +512,10 @@ void Engine::InitNanoVg()
         throw Oddlib::Exception("Couldn't create nanovg framebuffer");
     }
 
-    /*
     if (LoadNanoVgFonts(mNanoVg) != 0)
     {
         throw Oddlib::Exception("Failed to load fonts");
     }
-    */
 
     LOG_INFO("Nanovg initialized");
 }
@@ -550,13 +570,14 @@ void Engine::InitImGui()
 
 void Engine::InitGL()
 {
-    /*
+    
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    /*
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     */
 

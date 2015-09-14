@@ -21,6 +21,7 @@ public:
     bool ResourceExists(const std::string& name) const;
     std::unique_ptr<Oddlib::IStream> OpenResource(const std::string& name);
     void DebugUi();
+    std::string BasePath() const { return mBasePath; }
 private:
 
     class IResourcePathAbstraction
