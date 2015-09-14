@@ -17,3 +17,6 @@
 [submodule "3rdParty/cotire"]
 	path = 3rdParty/cotire
 	url = https://github.com/sakra/cotire
+[submodule "3rdParty/nanovg"]
+	path = 3rdParty/nanovg
+	url = https://github.com/memononen/nanovg.git
