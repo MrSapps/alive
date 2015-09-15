@@ -84,7 +84,7 @@ AliveAudioSoundbank::AliveAudioSoundbank(std::string lvlPath, std::string vabID)
 
 void AliveAudioSoundbank::InitFromVab(Vab& mVab)
 {
-	for (int i = 0; i < mVab.iOffs.size(); i++)
+	for (size_t i = 0; i < mVab.iOffs.size(); i++)
 	{
 		AliveAudioSample * sample = new  AliveAudioSample();
 		sample->i_SampleSize = mVab.iOffs[i]->iLengthOrDuration / sizeof(Uint16);
@@ -99,7 +99,7 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab)
 		m_Samples.push_back(sample);
 	}
 
-	for (int i = 0; i < mVab.iAoVags.size(); i++)
+    for (size_t i = 0; i < mVab.iAoVags.size(); i++)
 	{
 		AliveAudioSample * sample = new  AliveAudioSample();
 		sample->i_SampleSize = mVab.iAoVags[i]->iSize / sizeof(Uint16);

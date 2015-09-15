@@ -82,7 +82,7 @@ void AliveRenderAudio(float * AudioStream, int StreamLength)
 	static float tick = 0;
 	static int note = 0;
 
-	AliveAudioSoundbank * currentSoundbank = AliveAudio::m_CurrentSoundbank;
+	//AliveAudioSoundbank * currentSoundbank = AliveAudio::m_CurrentSoundbank;
 
 	AliveAudio::voiceListMutex.lock();
 	int voiceCount = AliveAudio::m_Voices.size();
@@ -144,7 +144,7 @@ typedef struct _StereoSample
 	float R;
 } StereoSample;
 
-void AliveAudioSDLCallback(void *udata, Uint8 *stream, int len)
+void AliveAudioSDLCallback(void * /*udata*/, Uint8 *stream, int len)
 {
 	memset(stream, 0, len);
 	AliveRenderAudio((float *)stream, len / sizeof(float));
@@ -175,7 +175,7 @@ void AliveAudio::PlayOneShot(std::string soundID)
 {
 	jsonxx::Array soundList = AliveAudio::m_Config.get<jsonxx::Array>("sounds");
 
-	for (int i = 0; i < soundList.size(); i++)
+	for (size_t i = 0; i < soundList.size(); i++)
 	{
 		jsonxx::Object sndObj = soundList.get<jsonxx::Object>(i);
 		if (sndObj.get<jsonxx::String>("id") == soundID)
@@ -194,7 +194,7 @@ void AliveAudio::PlayOneShot(std::string soundID)
 	}
 }
 
-void AliveAudio::NoteOn(int program, int note, char velocity, float pitch, int trackID, float trackDelay)
+void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, int trackID, float trackDelay)
 {
 	if (!voiceListLocked)
 		voiceListMutex.lock();
@@ -377,7 +377,7 @@ void AliveAudio::LoadAllFromLvl(Oddlib::LvlArchive& archive, std::string vabID, 
 {
 	m_LoadedSeqData.clear();
 	SetSoundbank(new AliveAudioSoundbank(archive, vabID));
-	for (int i = 0; i < archive.FileByName(seqFile)->ChunkCount(); i++)
+    for (size_t i = 0; i < archive.FileByName(seqFile)->ChunkCount(); i++)
 	{
 		m_LoadedSeqData.push_back(archive.FileByName(seqFile)->ChunkByIndex(i)->ReadData());
 	}

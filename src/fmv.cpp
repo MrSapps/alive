@@ -25,25 +25,26 @@ public:
     }
 };
 
-static void RenderSubtitles(NVGcontext* ctx, const char* msg)
+static float Percent(float max, float percent)
 {
-    int w = 640 * 2;
-    int h = 480 * 2;
+    return (max / 100.0f) * percent;
+}
 
-   // SDL_GetWindowSize(mWindow, &w, &h);
+static void RenderSubtitles(NVGcontext* ctx, const char* msg, int screenW, int screenH)
+{
+    float xpos = 0.0f;
+    float ypos = static_cast<float>(screenH);
 
-    int xpos = 0;
-    int ypos = h;
     nvgFillColor(ctx, nvgRGBA(0, 0, 0, 255));
-    nvgFontSize(ctx, 70-5);
+    nvgFontSize(ctx, Percent(static_cast<float>(screenH), 6.7f));
 
     nvgTextAlign(ctx, NVG_ALIGN_TOP);
     
     float bounds[4];
     nvgTextBounds(ctx, xpos, ypos, msg, nullptr, bounds);
 
-    float fontX = bounds[0];
-    float fontY = bounds[1];
+    //float fontX = bounds[0];
+    //float fontY = bounds[1];
     float fontW = bounds[2] - bounds[0];
     float fontH = bounds[3] - bounds[1];
 
@@ -51,12 +52,13 @@ static void RenderSubtitles(NVGcontext* ctx, const char* msg)
     ypos -= fontH + (fontH/2);
 
     // Center XPos in the screenW
-    xpos = (w / 2) - (fontW / 2);
+    xpos = (screenW / 2) - (fontW / 2);
 
     nvgText(ctx, xpos, ypos, msg, nullptr);
 
     nvgFillColor(ctx, nvgRGBA(255, 255, 255, 255));
-    nvgText(ctx, xpos-3, ypos-3, msg, nullptr);
+    float adjust = Percent(static_cast<float>(screenH), 0.3f);
+    nvgText(ctx, xpos - adjust, ypos - adjust, msg, nullptr);
 
 }
 
@@ -86,7 +88,7 @@ public:
     virtual void FillBuffers() = 0;
 
     // Main thread context
-    void OnRenderFrame(NVGcontext* ctx)
+    void OnRenderFrame(NVGcontext* ctx, int screenW, int screenH)
     {
         // TODO: Populate mAudioBuffer and mVideoBuffer
         // for up to N buffered frames
@@ -126,17 +128,13 @@ public:
             const auto& subs = mSubTitles->Find((videoFrameIndex * 66)+500); // audio has about 500msec latency, so fix it up to sync the subs
             if (!subs.empty())
             {
-                for (const auto& sub : subs)
-                {
-                   // LOG_INFO("Subs [" << subs.size() << "] :" << sub->Text());
-                }
-
+                // TODO: Render all active subs, not just the first one
                 const char* msg = subs[0]->Text().c_str();
-                RenderSubtitles(ctx, msg);
-            }
-            else
-            {
-                //LOG_INFO("No sub");
+                RenderSubtitles(ctx, msg, screenW, screenH);
+                if (subs.size() > 1)
+                {
+                    LOG_WARNING("Too many active subtitles " << subs.size());
+                }
             }
         }
 
@@ -195,7 +193,7 @@ public:
 
 protected:
     // Audio thread context, from IAudioPlayer
-    virtual void Play(Uint8* stream, Sint32 len) override
+    virtual void Play(Uint8* stream, Uint32 len) override
     {
         std::lock_guard<std::mutex> lock(mAudioBufferMutex);
 
@@ -210,7 +208,7 @@ protected:
             take = have;
         }
 
-        for (int i = 0; i < take; i++)
+        for (auto i = 0u; i < take; i++)
         {
             stream[i] = mAudioBuffer[i];
         }
@@ -232,10 +230,10 @@ protected:
 
 
         // For Ortho mode, of course
-        int X = -1;
-        int Y = -1;
-        int Width = 2;
-        int Height = 2;
+        GLfloat X = -1.0f;
+        GLfloat Y = -1.0f;
+        GLfloat Width = 2.0f;
+        GLfloat Height = 2.0f;
 
         glBegin(GL_QUADS);
         glTexCoord2f(0, 0); glVertex3f(X, Y, 0);
@@ -370,9 +368,6 @@ public:
         }
 
         std::vector<Uint8> pixelBuffer;
-        unsigned int numSectorsToRead = 0;
-        unsigned int sectorNumber = 0;
-
         for (;;)
         {
 
@@ -429,8 +424,8 @@ public:
             }
             else
             {
-                const Uint32 frameW = w.mWidth;
-                const Uint32 frameH = w.mHeight;
+                const Uint16 frameW = w.mWidth;
+                const Uint16 frameH = w.mHeight;
 
                 uint32_t bytes_to_copy = w.mFrameDataLen - w.mSectorNumberInFrame *kXaFrameDataSize;
                 if (bytes_to_copy > 0)
@@ -493,7 +488,7 @@ public:
 
         if (mMasher->HasAudio())
         {
-            mAudioController.SetAudioSpec(mMasher->SingleAudioFrameSizeSamples(), mMasher->AudioSampleRate());
+            mAudioController.SetAudioSpec(static_cast<Uint16>(mMasher->SingleAudioFrameSizeSamples()), mMasher->AudioSampleRate());
         }
 
         if (mMasher->HasVideo())
@@ -618,7 +613,6 @@ private:
         // Only PSX FMV's have many in a single file
         return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), startSector, numberOfSectors);
     }
-    return nullptr;
 }
 
 
@@ -642,7 +636,7 @@ void BarLoop()
 }
 
 
-void ChangeTheme(void *clientData, FileSystem& fs)
+void ChangeTheme(void * /*clientData*/, FileSystem& fs)
 {
     //player->StopSequence();
 
@@ -653,9 +647,9 @@ void ChangeTheme(void *clientData, FileSystem& fs)
     AliveAudio::LoadAllFromLvl(archive, theme.get<jsonxx::String>("vab", "null"), theme.get<jsonxx::String>("seq", "null"));
 
     //TwRemoveAllVars(m_GUIFileList);
-    for (int i = 0; i < archive.FileCount(); i++)
+    for (Uint32 i = 0; i < archive.FileCount(); i++)
     {
-        char labelTest[100];
+        //char labelTest[100];
 //        sprintf(labelTest, "group='Files' label='%s'", archive.mFiles[i].get()->FileName().c_str());
         //TwAddButton(m_GUIFileList, nullptr, nullptr, nullptr, labelTest);
     }
@@ -663,19 +657,19 @@ void ChangeTheme(void *clientData, FileSystem& fs)
    // TwRemoveAllVars(m_GUITones);
     for (int e = 0; e < 128; e++)
     {
-        for (int i = 0; i < AliveAudio::m_CurrentSoundbank->m_Programs[e]->m_Tones.size(); i++)
+        for (size_t i = 0; i < AliveAudio::m_CurrentSoundbank->m_Programs[e]->m_Tones.size(); i++)
         {
-            char labelTest[100];
-            sprintf(labelTest, "group='Program %i' label='%i - Min:%i Max:%i'", e, i, AliveAudio::m_CurrentSoundbank->m_Programs[e]->m_Tones[i]->Min, AliveAudio::m_CurrentSoundbank->m_Programs[e]->m_Tones[i]->Max);
+           // char labelTest[100];
+            //sprintf(labelTest, "group='Program %i' label='%i - Min:%i Max:%i'", e, i, AliveAudio::m_CurrentSoundbank->m_Programs[e]->m_Tones[i]->Min, AliveAudio::m_CurrentSoundbank->m_Programs[e]->m_Tones[i]->Max);
            // TwAddButton(m_GUITones, nullptr, PlaySound, (void*)new int[2]{ e, i }, labelTest);
         }
     }
 
    // TwRemoveAllVars(m_GUISequences);
-    for (int i = 0; i < AliveAudio::m_LoadedSeqData.size(); i++)
+    for (size_t i = 0; i < AliveAudio::m_LoadedSeqData.size(); i++)
     {
-        char labelTest[100];
-        sprintf(labelTest, "group='Seq Files' label='Play Seq %i'", i);
+        //char labelTest[100];
+        //sprintf(labelTest, "group='Seq Files' label='Play Seq %i'", i);
 
        // TwAddButton(m_GUISequences, nullptr, PlaySong, (char*)i, labelTest);
     }
@@ -690,6 +684,8 @@ private:
     std::vector<const char*> listbox_items;
     std::unique_ptr<class IMovie>& mFmv;
 public:
+    FmvUi(const FmvUi&) = delete;
+    FmvUi& operator = (const FmvUi&) = delete;
     FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController, FileSystem& fs)
         : mFmv(fmv), mAudioController(audioController), mFileSystem(fs)
     {
@@ -796,17 +792,17 @@ void Fmv::Update()
 
 }
 
-void Fmv::Render(NVGcontext* ctx)
+void Fmv::Render(NVGcontext* ctx, int screenW, int screenH)
 {
     glEnable(GL_TEXTURE_2D);
 
     RenderVideoUi();
 
-    //RenderSubtitles(ctx, "The quick brown fox jumps over the lazy dog");
+    //RenderSubtitles(ctx, "The quick brown fox jumps over the lazy dog", screenW, screenH);
 
     if (mFmv)
     {
-        mFmv->OnRenderFrame(ctx);
+        mFmv->OnRenderFrame(ctx, screenW, screenH);
         if (mFmv->IsEnd())
         {
             mFmv = nullptr;

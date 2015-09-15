@@ -53,7 +53,7 @@ void SequencePlayer::m_PlayerThreadFunction()
 		{
 			bool firstNote = true;
 			AliveAudio::LockNotes();
-			for (int i = 0; i < m_MessageList.size(); i++)
+            for (size_t i = 0; i < m_MessageList.size(); i++)
 			{
 				AliveAudioMidiMessage m = m_MessageList[i];
 				switch (m.Type)
@@ -164,13 +164,13 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
 
 	m_TimeSignatureBars = seqHeader.mTimeSignatureBars;
 
-	m_SongTempo = 60000000.0 / tempoValue;
+	m_SongTempo = 60000000.0f / tempoValue;
 
-	int channels[16];
+	//int channels[16];
 
 	unsigned int deltaTime = 0;
 
-	const size_t midiDataStart = stream.Pos();
+	//const size_t midiDataStart = stream.Pos();
 
 	// Context state
 	SeqInfo gSeqInfo = {};
@@ -219,6 +219,7 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
 				//std::cout << "end of track" << std::endl;
 				m_MessageList.push_back(AliveAudioMidiMessage(ALIVE_MIDI_ENDTRACK, deltaTime, 0, 0, 0));
 				return 0;
+                /*
 				int loopCount = gSeqInfo.iNumTimesToLoop;// v1 some hard coded data?? or just a local static?
 				if (loopCount) // If zero then loop forever
 				{
@@ -239,7 +240,7 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
 				//OutputDebugString("EOT: Loop forever\n");
 				// Must be a loop back to the start?
 				stream.Seek(midiDataStart);
-
+                */
 			}
 
 			case 0x51:    // Tempo in microseconds per quarter note (24-bit value)

@@ -19,7 +19,7 @@ class IAudioPlayer
 {
 public:
     virtual ~IAudioPlayer() = default;
-    virtual void Play(Uint8* stream, Sint32 len) = 0;
+    virtual void Play(Uint8* stream, Uint32 len) = 0;
 };
 
 class SdlAudioWrapper : public IAudioController

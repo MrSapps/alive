@@ -9,7 +9,7 @@ extern "C"
 #include "lauxlib.h"
 }
 
-int main(int argc, char** argv)
+int main(int /*argc*/, char** /*argv*/)
 {
     TRACE_ENTRYEXIT;
 

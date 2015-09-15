@@ -420,7 +420,7 @@ void Engine::Render()
 
     nvgResetTransform(mNanoVg);
 
-    mFmv.Render(mNanoVg);
+    mFmv.Render(mNanoVg, w, h);
 
 
     GLenum error = glGetError();
@@ -458,6 +458,8 @@ bool Engine::InitSDL()
     mWindow = SDL_CreateWindow(ALIVE_VERSION_NAME_STR,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640*2, 480*2,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+
+    SDL_SetWindowMinimumSize(mWindow, 320, 240);
 
 #if defined(_WIN32)
     // I'd like my icon back thanks
@@ -501,7 +503,9 @@ void Engine::InitNanoVg()
     }
 
     LOG_INFO("Creating nanovg framebuffer");
-    mNanoVgFrameBuffer = nvgluCreateFramebuffer(mNanoVg, 600, 600, 0);
+
+    // TODO: Should dynamic be set to the window size * 2
+    mNanoVgFrameBuffer = nvgluCreateFramebuffer(mNanoVg, 800*2, 600*2, 0);
     if (!mNanoVgFrameBuffer)
     {
         throw Oddlib::Exception("Couldn't create nanovg framebuffer");

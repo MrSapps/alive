@@ -74,11 +74,11 @@ static void AliveAudioSetEQ(float cutoff)
 	if (AliveAudio::AliveAudioEQBiQuad != nullptr)
 		delete AliveAudio::AliveAudioEQBiQuad;
 
-	AliveAudio::AliveAudioEQBiQuad = BiQuad_new(PEQ, 8, cutoff, AliveAudioSampleRate, 1);
+	AliveAudio::AliveAudioEQBiQuad = BiQuad_new(PEQ, 8.0f, cutoff, static_cast<float>(AliveAudioSampleRate), 1.0f);
 	AliveAudio::EQMutex.unlock();
 }
 
-static void AliveEQEffect(float * stream, int len)
+inline void AliveEQEffect(float * stream, int len)
 {
 	if (AliveAudio::AliveAudioEQBiQuad == nullptr)
 		AliveAudioSetEQ(20500);
