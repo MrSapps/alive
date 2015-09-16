@@ -21,6 +21,7 @@ build_script:
  - cmake --build . --config Release -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 install:
+ - git submodule update --init --recursive
  - ps: Start-FileDownload 'https://www.libsdl.org/release/SDL2-devel-2.0.3-VC.zip'
  - 7z x SDL2-devel-2.0.3-VC.zip
  - set SDL2DIR=C:\alive\SDL2-devel-2.0.3-VC
