@@ -1,0 +1,27 @@
+version: 1.0.{build}
+
+os: Visual Studio 2015
+
+platform: 
+ - x86
+ - x64
+configuration: 
+ - Debug
+ - Release
+
+clone_folder: c:\alive
+
+before_build:
+ - if %configuration%==Release (cmake -G "Visual Studio 14 Win64")
+
+build_script:
+ - cmake --build . --config Release -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+install:
+ - ps: Start-FileDownload 'https://www.libsdl.org/release/SDL2-devel-2.0.3-VC.zip'
+ - set WXWIN=C:\rpcs3\wxWidgets
+ - set COMMIT_SHA=%APPVEYOR_REPO_COMMIT:~0,8%
+
+artifacts:
+ - path: bin
+   name: rpcs3-$(configuration)-$(COMMIT_SHA)
