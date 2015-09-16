@@ -17,6 +17,7 @@ before_build:
 build_script:
  - mkdir build
  - cd build
+ - cmake ..
  - cmake --build . --config Release -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 install:
