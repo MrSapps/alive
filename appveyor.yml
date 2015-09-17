@@ -35,7 +35,7 @@ install:
  - dir "C:\Program Files (x86)\"
  - set SDL2DIR=C:\alive\SDL2-2.0.3
  - set COMMIT_SHA=%APPVEYOR_REPO_COMMIT:~0,8%
- - set PATH="C:\Program Files (x86)\CMake\bin\";%PATH
+ - set PATH="C:\Program Files (x86)\CMake\bin\";%PATH%
 
 artifacts:
  - path: bin
