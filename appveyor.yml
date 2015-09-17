@@ -19,6 +19,8 @@ build_script:
  - cd build
  - cmake ..
  - cmake --build . --config Release -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+ - cpack -C Release
+ - ctest -VV
 
 install:
  - git submodule update --init --recursive
