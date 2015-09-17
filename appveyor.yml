@@ -12,14 +12,14 @@ configuration:
 clone_folder: c:\alive
 
 before_build:
- - if %configuration%==Release (cmake -G "Visual Studio 13 Win64")
-
-build_script:
  - mkdir build
  - cd build
- - cmake ..
- - cmake --build . --config Release -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
- - cpack -C Release
+ - if %platform%==x64 (cmake .. -G "Visual Studio 13 Win64")
+ - if %platform%==x86 (cmake ..)
+
+build_script:
+ - cmake --build . --config $(configuration) -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+ - cpack -C $(configuration)
  - ctest -VV
 
 install:
@@ -32,4 +32,4 @@ install:
 
 artifacts:
  - path: bin
-   name: rpcs3-$(configuration)-$(COMMIT_SHA)
+   name: Alive-$(configuration)-$(COMMIT_SHA)
