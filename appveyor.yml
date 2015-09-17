@@ -14,8 +14,8 @@ before_build:
  - cd build
  - call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%
  - cmake --help
- - if %platform%==x64 (cmake .. -G "Visual Studio 2013 Win64")
- - if %platform%==x86 (cmake .. -G "Visual Studio 2013")
+ - if %platform%==x64 (cmake .. -G "Visual Studio 12 2013 Win64")
+ - if %platform%==x86 (cmake .. -G "Visual Studio 12 2013")
 
 build_script:
  - cmake --build . --config $(configuration) -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
