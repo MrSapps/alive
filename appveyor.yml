@@ -28,6 +28,9 @@ install:
  - ps: Start-FileDownload 'https://www.libsdl.org/release/SDL2-devel-2.0.3-VC.zip'
  - 7z x SDL2-devel-2.0.3-VC.zip
  - dir
+ - dir "C:\Program Files\AppVeyor\"
+ - dir "C:\"
+ - dir "C:\Program Files\"
  - set SDL2DIR=C:\alive\SDL2-2.0.3
  - set COMMIT_SHA=%APPVEYOR_REPO_COMMIT:~0,8%
 
