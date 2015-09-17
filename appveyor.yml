@@ -21,8 +21,8 @@ build_script:
  - cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
  # Gotta use the full path to cpack because chocolatey replaces cpack with itself!
  - call "C:\Program Files (x86)\cmake\bin\cpack" --help
- #- "C:/Program Files/CMake/bin/cpack" -G WiX -C %configuration%
- - ctest -VV
+ - call "C:\Program Files (x86)\cmake\bin\cpack" -G WiX -C %configuration%
+ - ctest -VV -C %configuration%
 
 install:
  - git submodule update --init --recursive
