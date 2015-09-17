@@ -1,6 +1,6 @@
 version: 1.0.{build}
 
-os: Visual Studio 2015
+os: Visual Studio 2013
 
 platform: 
  - x86
@@ -12,7 +12,7 @@ configuration:
 clone_folder: c:\alive
 
 before_build:
- - if %configuration%==Release (cmake -G "Visual Studio 14 Win64")
+ - if %configuration%==Release (cmake -G "Visual Studio 13 Win64")
 
 build_script:
  - mkdir build
