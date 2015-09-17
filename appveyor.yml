@@ -31,6 +31,7 @@ install:
  - dir "C:\Program Files\AppVeyor\"
  - dir "C:\"
  - dir "C:\Program Files\"
+ - dir "C:\Program Files (x86)\"
  - set SDL2DIR=C:\alive\SDL2-2.0.3
  - set COMMIT_SHA=%APPVEYOR_REPO_COMMIT:~0,8%
 
