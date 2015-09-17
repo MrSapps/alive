@@ -12,8 +12,8 @@ clone_folder: c:\alive
 before_build:
  - mkdir build
  - cd build
- - if %platform%==x64 (cmake .. -G "Visual Studio 13 Win64")
- - if %platform%==x86 (cmake .. -G "Visual Studio 13")
+ - if %platform%==x64 (cmake .. -G "Visual Studio 2013 Win64")
+ - if %platform%==x86 (cmake .. -G "Visual Studio 2013")
 
 build_script:
  - cmake --build . --config $(configuration) -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
