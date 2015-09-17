@@ -18,8 +18,8 @@ before_build:
  - if %platform%==x86 (cmake .. -G "Visual Studio 12 2013")
 
 build_script:
- - cmake --build . --config $(configuration) -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
- - cpack -C $(configuration)
+ - cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+ - cpack -C %configuration%
  - ctest -VV
 
 install:
