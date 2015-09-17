@@ -19,6 +19,7 @@ before_build:
 
 build_script:
  - cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+ - cpack --help
  - cpack -G WiX -C %configuration%
  - ctest -VV
 
