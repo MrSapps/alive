@@ -485,12 +485,6 @@ int Engine::LoadNanoVgFonts(NVGcontext* vg)
         return -1;
     }
 
-    font = nvgCreateFont(vg, "sans-bold", (mFileSystem.BasePath() + "/data/Roboto-Bold.ttf").c_str());
-    if (font == -1)
-    {
-        LOG_ERROR("Could not add font bold");
-        return -1;
-    }
     return 0;
 }
 
