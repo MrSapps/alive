@@ -253,8 +253,16 @@ bool Engine::Init()
 
         InitNanoVg();
 
-        AliveInitAudio(mFileSystem);
-
+        try
+        {
+            // Currently requires sounds.dat to be available from the get-go, so make
+            // this failure non-fatal
+            AliveInitAudio(mFileSystem);
+        }
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR("Audio init failure: " << ex.what());
+        }
 
         InitImGui();
 
