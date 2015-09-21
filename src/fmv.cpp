@@ -694,7 +694,13 @@ public:
     void DrawVideoSelectionUi(const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
     {
         std::string name = "Video player";
-        ImGui::Begin(name.c_str(), nullptr, ImVec2(550, 580), 1.0f, ImGuiWindowFlags_NoCollapse);
+        static bool bSet = false;
+        if (!bSet)
+        {
+            ImGui::SetNextWindowPos(ImVec2(720, 40));
+            bSet = true;
+        }
+        ImGui::Begin(name.c_str(), nullptr, ImVec2(550, 580), 1.0f, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
 
         mFilter.Draw();
 
@@ -714,7 +720,7 @@ public:
         ImGui::PushItemWidth(-1);
         ImGui::ListBox("##", &listbox_item_current, listbox_items.data(), matchingFilter, 27);
 
-        if (ImGui::Button("Music test"))
+        if (ImGui::Button("Music test", ImVec2(ImGui::GetWindowWidth(), 20)))
         {
             int id = 26; // death sound
             player.reset(new SequencePlayer());

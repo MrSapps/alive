@@ -23,6 +23,7 @@ public:
     void DebugUi();
     std::string BasePath() const { return mBasePath; }
 private:
+    void SortPaths();
 
     class IResourcePathAbstraction
     {
@@ -32,6 +33,7 @@ private:
         virtual ~IResourcePathAbstraction() = default;
         IResourcePathAbstraction(const std::string& path, int priority) : mPath(path), mPriority(priority) { }
         int Priority() const { return mPriority; }
+        void SetPriority(int priority) { mPriority = priority; }
         const std::string& Path() const { return mPath; }
         virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) = 0;
         virtual bool Exists(const std::string& fileName) const = 0;

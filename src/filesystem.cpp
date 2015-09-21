@@ -97,12 +97,18 @@ void FileSystem::AddResourcePath(const std::string& path, int priority)
 {
     try
     {
-        mResourcePaths.emplace_back(MakeResourcePath(path, priority));
-        std::sort(mResourcePaths.begin(), mResourcePaths.end(),
-            [](const std::unique_ptr<IResourcePathAbstraction>& lhs, const std::unique_ptr<IResourcePathAbstraction>& rhs)
+        for (auto& resPath : mResourcePaths)
         {
-            return lhs->Priority() < rhs->Priority();
-        });
+            if (resPath->Path() == path)
+            {
+                resPath->SetPriority(priority);
+                SortPaths();
+                return;
+            }
+        }
+
+        mResourcePaths.emplace_back(MakeResourcePath(path, priority));
+        SortPaths();
     }
     catch (const Oddlib::Exception& ex)
     {
@@ -151,25 +157,88 @@ std::unique_ptr<Oddlib::IStream> FileSystem::OpenResource(const std::string& nam
 
 void FileSystem::DebugUi()
 {
-    ImGui::Begin("Resource paths", nullptr, ImGuiWindowFlags_NoCollapse);
-    static int idx = 0;
-    static std::vector<const char*> items;
-    items.resize(mResourcePaths.size());
-
-    for (size_t i=0; i<items.size(); i++)
+    static bool bSet = false;
+    if (!bSet)
     {
-        items[i] = mResourcePaths[i]->Path().c_str();
+        ImGui::SetNextWindowPos(ImVec2(10, 40));
+        bSet = true;
+    }
+    ImGui::Begin("Resource paths", nullptr, ImVec2(700, 200), 1.0f, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
+    
+    ImGui::GetStyle().WindowMinSize = ImVec2(260, 200);
+    ImGui::GetStyle().WindowTitleAlign = ImGuiAlign_Center;
+
+
+    static int idx = -1;
+    static std::vector<const char*> items;
+    if (items.empty())
+    {
+        for (size_t i = 0; i < mResourcePaths.size(); i++)
+        {
+            items.push_back(mResourcePaths[i]->Path().c_str());
+        }
+    }
+
+    static char pathBuffer[255] = {};
+    static char priorityBuffer[255] = {};
+    if (ImGui::ListBoxHeader("##", ImVec2(ImGui::GetWindowWidth()-15, ImGui::GetWindowSize().y - 130)))
+    {
+        for (size_t i = 0; i < items.size(); i++)
+        {
+            if (ImGui::Selectable(items[i], static_cast<int>(i) == idx))
+            {
+                idx = i;
+                memset(pathBuffer, 0, sizeof(pathBuffer));
+                strncpy(pathBuffer, items[i], sizeof(pathBuffer));
+
+                memset(priorityBuffer, 0, sizeof(priorityBuffer));
+                strncpy(priorityBuffer, std::to_string(mResourcePaths[i]->Priority()).c_str(), sizeof(priorityBuffer));
+            }
+        }
+        ImGui::ListBoxFooter();
     }
     
-    ImGui::PushItemWidth(-1);
-    ImGui::ListBox("", &idx, items.data(), static_cast<int>(items.size()), static_cast<int>(items.size()));
-    
-    /* TODO: Allow edits
-    ImGui::Button("Delete selected");
-    ImGui::Button("Add");
-    */
+
+    ImGui::InputText("Path", pathBuffer, sizeof(pathBuffer));
+    ImGui::InputText("Priority", priorityBuffer, sizeof(priorityBuffer));
+
+   
+    if (ImGui::Button("Add/Update", ImVec2(ImGui::GetWindowWidth(), 20)))
+    {
+       
+        try
+        {
+            const std::string resPath = pathBuffer;
+            const int priority = std::stoi(priorityBuffer);
+            AddResourcePath(resPath, priority);
+            items.clear();
+        }
+        catch (const std::exception&)
+        {
+
+        }
+    }
+
+
+    if (ImGui::Button("Delete selected", ImVec2(ImGui::GetWindowWidth(), 20)))
+    {
+        if (idx >= 0 && idx < static_cast<int>(mResourcePaths.size()))
+        {
+            mResourcePaths.erase(mResourcePaths.begin() + idx);
+        }
+        items.clear();
+    }
 
     ImGui::End();
+}
+
+void FileSystem::SortPaths()
+{
+    std::sort(mResourcePaths.begin(), mResourcePaths.end(),
+        [](const std::unique_ptr<IResourcePathAbstraction>& lhs, const std::unique_ptr<IResourcePathAbstraction>& rhs)
+    {
+        return lhs->Priority() < rhs->Priority();
+    });
 }
 
 std::unique_ptr<FileSystem::IResourcePathAbstraction> FileSystem::MakeResourcePath(std::string path, int priority)
