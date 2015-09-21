@@ -229,36 +229,43 @@ Engine::~Engine()
 
 bool Engine::Init()
 {
-    if (!mFileSystem.Init())
+    try
     {
-        LOG_ERROR("File system init failure");
+        if (!mFileSystem.Init())
+        {
+            LOG_ERROR("File system init failure");
+            return false;
+        }
+
+        if (!mGameData.Init(mFileSystem))
+        {
+            LOG_ERROR("Game data init failure");
+            return false;
+        }
+
+        if (!InitSDL())
+        {
+            LOG_ERROR("SDL init failure");
+            return false;
+        }
+
+        InitGL();
+
+        InitNanoVg();
+
+        AliveInitAudio(mFileSystem);
+
+
+        InitImGui();
+
+        ToState(eRunning);
+        return true;
+    }
+    catch (const std::exception& ex)
+    {
+        LOG_ERROR("Caught error when trying to init: " << ex.what());
         return false;
     }
-
-    if (!mGameData.Init(mFileSystem))
-    {
-        LOG_ERROR("Game data init failure");
-        return false;
-    }
-
-    if (!InitSDL())
-    {
-        LOG_ERROR("SDL init failure");
-        return false;
-    }
-
-    InitGL();
-
-    InitNanoVg();
-
-    AliveInitAudio(mFileSystem);
-
-  
-    InitImGui();
-
-    ToState(eRunning);
-
-    return true;
 }
 
 int Engine::Run()
