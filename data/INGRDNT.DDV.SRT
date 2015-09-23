@@ -3,7 +3,7 @@
 Then I found out the other ingredients
 
 2
-00:00:06,700 --> 00:00:07,800
+00:00:07,000 --> 00:00:07,800
 HEY!!
 
 3
