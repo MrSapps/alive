@@ -724,8 +724,20 @@ public:
                 matchingFilter++;
             }
         }
-        ImGui::PushItemWidth(-1);
-        ImGui::ListBox("##", &listbox_item_current, listbox_items.data(), matchingFilter, 27);
+
+        if (ImGui::ListBoxHeader("##", ImVec2(ImGui::GetWindowWidth() - 15, ImGui::GetWindowSize().y - 115)))
+        {
+            for (size_t i = 0; i < listbox_items.size(); i++)
+            {
+                if (ImGui::Selectable(listbox_items[i], static_cast<int>(i) == listbox_item_current))
+                {
+                    listbox_item_current = i;
+                }
+            }
+            ImGui::ListBoxFooter();
+        }
+
+
 
         if (ImGui::Button("Music test", ImVec2(ImGui::GetWindowWidth(), 20)))
         {

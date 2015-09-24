@@ -181,7 +181,7 @@ void FileSystem::DebugUi()
 
     static char pathBuffer[255] = {};
     static char priorityBuffer[255] = {};
-    if (ImGui::ListBoxHeader("##", ImVec2(ImGui::GetWindowWidth()-15, ImGui::GetWindowSize().y - 130)))
+    if (ImGui::ListBoxHeader("##", ImVec2(ImGui::GetWindowWidth()-15, ImGui::GetWindowSize().y - 137)))
     {
         for (size_t i = 0; i < items.size(); i++)
         {
