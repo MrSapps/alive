@@ -48,7 +48,16 @@
         ],
         "ExoddusPsx": [
             "BA\\BA.MOV",
-            "BR\\BR.MOV",
+            {
+                "file": "BR\\BR.MOV",
+                "contains": [
+                    {
+                        "name": "INGRDNT.DDV",
+                        "start_sector": 23959,
+                        "number_of_sectors": 6650
+                    }
+                ]
+            },
             "BW\\BW.MOV",
             "CR\\CR.MOV",
             "FD\\FD.MOV",
