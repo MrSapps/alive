@@ -712,16 +712,14 @@ public:
         mFilter.Draw();
 
 
+        listbox_items.clear();
+        listbox_items.reserve(allFmvs.size());
 
-        listbox_items.resize(allFmvs.size());
-
-        int matchingFilter = 0;
         for (const auto& fmv : allFmvs)
         {
             if (mFilter.PassFilter(fmv.first.c_str()))
             {
-                listbox_items[matchingFilter] = fmv.first.c_str();
-                matchingFilter++;
+                listbox_items.emplace_back(fmv.first.c_str());
             }
         }
 
