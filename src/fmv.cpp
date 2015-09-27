@@ -725,6 +725,11 @@ public:
 
         if (ImGui::ListBoxHeader("##", ImVec2(ImGui::GetWindowWidth() - 15, ImGui::GetWindowSize().y - 115)))
         {
+            if (listbox_item_current >= listbox_items.size())
+            {
+                listbox_item_current = 0;
+            }
+
             for (size_t i = 0; i < listbox_items.size(); i++)
             {
                 if (ImGui::Selectable(listbox_items[i], static_cast<int>(i) == listbox_item_current))
@@ -757,7 +762,7 @@ public:
             }
         }
 
-        if (ImGui::Button("Play", ImVec2(ImGui::GetWindowWidth(), 20)))
+        if (ImGui::Button("Play", ImVec2(ImGui::GetWindowWidth(), 20)) && !listbox_items.empty())
         {
             try
             {

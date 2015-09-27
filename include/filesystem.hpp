@@ -16,13 +16,18 @@ public:
     ~FileSystem();
     bool Init();
     void AddResourcePath(const std::string& path, int priority);
+    
+    // TODO: Make more common - also need FS for user data such as saves and configured res paths
     bool Exists(const std::string& name) const;
     std::unique_ptr<Oddlib::IStream> Open(const std::string& name);
+
     bool ResourceExists(const std::string& name) const;
     std::unique_ptr<Oddlib::IStream> OpenResource(const std::string& name);
+
     void DebugUi();
     std::string BasePath() const { return mBasePath; }
 private:
+    void CopyPerUserFiles();
     void SortPaths();
 
     class IResourcePathAbstraction

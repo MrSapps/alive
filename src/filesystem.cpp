@@ -90,6 +90,7 @@ bool FileSystem::Init()
 {
     InitBasePath();
     InitResourcePaths();
+    CopyPerUserFiles();
     return true;
 }
 
@@ -134,6 +135,14 @@ bool FileSystem::ResourceExists(const std::string& name) const
     return false;
 }
 
+/*
+* Rules:
+* 1. Zero length files are ignored.
+* 2. File systems are searched in priority ordering.
+* 3. The alternate file name (PSX file name) is treated the same as the original file name.
+* 4. The larger PSX file name wins even if its lower priority - this is to handle a case where BR.MOV in CD1 isn't 0 bytes
+* and we need to make sure we pick the CD2 BR.MOV.
+*/
 std::unique_ptr<Oddlib::IStream> FileSystem::OpenResource(const std::string& name)
 {
     LOG_INFO("Opening resource: " << name);
@@ -232,9 +241,15 @@ void FileSystem::DebugUi()
     ImGui::End();
 }
 
+void FileSystem::CopyPerUserFiles()
+{
+    // TODO: Copy config files to user profile so the user can provide their own/edit them
+    // this is also where save files will be located, will differ per OS.
+}
+
 void FileSystem::SortPaths()
 {
-    std::sort(mResourcePaths.begin(), mResourcePaths.end(),
+    std::stable_sort(mResourcePaths.begin(), mResourcePaths.end(),
         [](const std::unique_ptr<IResourcePathAbstraction>& lhs, const std::unique_ptr<IResourcePathAbstraction>& rhs)
     {
         return lhs->Priority() < rhs->Priority();
