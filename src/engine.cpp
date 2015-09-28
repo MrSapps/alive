@@ -196,7 +196,8 @@ void UpdateImGui()
 }
 
 Engine::Engine()
-    : mFmv(mGameData, mAudioHandler, mFileSystem)
+    : mFmv(mGameData, mAudioHandler, mFileSystem),
+      mSound(mGameData, mAudioHandler, mFileSystem)
 {
 
 }
@@ -382,6 +383,7 @@ void Engine::Update()
     // TODO: Move into state machine
     //mFmv.Play("INGRDNT.DDV");
     mFmv.Update();
+    mSound.Update();
 }
 
 
@@ -439,7 +441,7 @@ void Engine::Render()
     nvgResetTransform(mNanoVg);
 
     mFmv.Render(mNanoVg, w, h);
-
+    mSound.Render(w, h);
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)

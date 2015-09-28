@@ -3,6 +3,7 @@
 #include "gamedata.hpp"
 #include "filesystem.hpp"
 #include "fmv.hpp"
+#include "sound.hpp"
 #include <memory>
 #include "oddlib/masher.hpp"
 #include "core/audiobuffer.hpp"
@@ -51,6 +52,7 @@ private:
 
 
     Fmv mFmv;
+    Sound mSound;
 
     struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;
     struct NVGcontext* mNanoVg = nullptr;
