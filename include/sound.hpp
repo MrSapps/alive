@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+#include <string>
 
 class GameData;
 class IAudioController;
@@ -24,4 +26,5 @@ private:
     std::unique_ptr<class SequencePlayer> mSeqPlayer;
     int mTargetSong = -1;
     bool mLoopSong = false;
+    std::vector<std::string> mThemes;
 };

@@ -20,45 +20,13 @@ void Sound::BarLoop()
 }
 
 
-void ChangeTheme(void * /*clientData*/, FileSystem& fs)
+void ChangeTheme(FileSystem& fs, const std::deque<std::string>& parts)
 {
     try
     {
-        //player->StopSequence();
-
-        jsonxx::Object theme = AliveAudio::m_Config.get<jsonxx::Array>("themes").get<jsonxx::Object>(14);
-
-        const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".LVL";
+        const std::string lvlFileName = parts[0];
         Oddlib::LvlArchive archive(fs.ResourceExists(lvlFileName)->Open(lvlFileName));
-        AliveAudio::LoadAllFromLvl(archive, theme.get<jsonxx::String>("vab", "null"), theme.get<jsonxx::String>("seq", "null"));
-
-        //TwRemoveAllVars(m_GUIFileList);
-        for (Uint32 i = 0; i < archive.FileCount(); i++)
-        {
-            //char labelTest[100];
-            //        sprintf(labelTest, "group='Files' label='%s'", archive.mFiles[i].get()->FileName().c_str());
-            //TwAddButton(m_GUIFileList, nullptr, nullptr, nullptr, labelTest);
-        }
-
-        // TwRemoveAllVars(m_GUITones);
-        for (int e = 0; e < 128; e++)
-        {
-            for (size_t i = 0; i < AliveAudio::m_CurrentSoundbank->m_Programs[e]->m_Tones.size(); i++)
-            {
-                // char labelTest[100];
-                //sprintf(labelTest, "group='Program %i' label='%i - Min:%i Max:%i'", e, i, AliveAudio::m_CurrentSoundbank->m_Programs[e]->m_Tones[i]->Min, AliveAudio::m_CurrentSoundbank->m_Programs[e]->m_Tones[i]->Max);
-                // TwAddButton(m_GUITones, nullptr, PlaySound, (void*)new int[2]{ e, i }, labelTest);
-            }
-        }
-
-        // TwRemoveAllVars(m_GUISequences);
-        for (size_t i = 0; i < AliveAudio::m_LoadedSeqData.size(); i++)
-        {
-            //char labelTest[100];
-            //sprintf(labelTest, "group='Seq Files' label='Play Seq %i'", i);
-
-            // TwAddButton(m_GUISequences, nullptr, PlaySong, (char*)i, labelTest);
-        }
+        AliveAudio::LoadAllFromLvl(archive, parts[1], parts[2]); // vab, bsq
     }
     catch (const std::exception& ex)
     {
@@ -92,26 +60,59 @@ void Sound::Render(int w, int h)
     {
         ImGui::SetNextWindowPos(ImVec2(320, 250));
         bSet = true;
+        auto themes = AliveAudio::m_Config.get<jsonxx::Array>("themes");
+        for (auto i = 0u; i < themes.size(); i++)
+        {
+            auto theme = themes.get<jsonxx::Object>(i);
+
+            const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".LVL";
+            auto res = mFs.ResourceExists(lvlFileName);
+            if (res)
+            {
+                Oddlib::LvlArchive archive(res->Open(lvlFileName));
+                auto vabName = theme.get<jsonxx::String>("vab", "null");
+                auto bsqName = theme.get<jsonxx::String>("seq", "null");
+
+                Oddlib::LvlArchive::File* file = archive.FileByName(bsqName);
+                for (auto j = 0u; j < file->ChunkCount(); j++)
+                {
+                    mThemes.push_back(lvlFileName + "!" + vabName + "!" + bsqName + "!" + std::to_string(j));
+                }
+
+
+                //AliveAudio::LoadAllFromLvl(archive, vabName, bsqName);
+            }
+        }
     }
+
 
     ImGui::Begin("Sound", nullptr, ImVec2(250, 280), 1.0f, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
 
-    if (ImGui::Button("Music test", ImVec2(ImGui::GetWindowWidth(), 20)))
+    static int selectedIndex = 0; 
+    for (size_t i = 0; i < mThemes.size(); i++)
     {
-        int id = 26; // death sound
-        mSeqPlayer = std::make_unique<SequencePlayer>();
-        mSeqPlayer->m_QuarterCallback = [&]() { BarLoop(); };
-        ChangeTheme(0, mFs);
-        if (mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_FINISHED || mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_STOPPED)
+        if (ImGui::Selectable(mThemes[i].c_str(), static_cast<int>(i) == selectedIndex))
         {
-            if (id < AliveAudio::m_LoadedSeqData.size() && mSeqPlayer->LoadSequenceData(AliveAudio::m_LoadedSeqData[id]) == 0)
+            selectedIndex = static_cast<int>(i);
+            if (selectedIndex >= 0 && selectedIndex < mThemes.size() && !mThemes.empty())
             {
-                mSeqPlayer->PlaySequence();
+                mSeqPlayer = std::make_unique<SequencePlayer>();
+                mSeqPlayer->m_QuarterCallback = [&]() { BarLoop(); };
+                const auto parts = string_util::split(mThemes[selectedIndex], '!');
+                int seqId = std::atoi(parts[3].c_str());
+                ChangeTheme(mFs, parts);
+                if (mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_FINISHED || mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_STOPPED)
+                {
+                    if (seqId < AliveAudio::m_LoadedSeqData.size() && mSeqPlayer->LoadSequenceData(AliveAudio::m_LoadedSeqData[seqId]) == 0)
+                    {
+                        mSeqPlayer->PlaySequence();
+                    }
+                }
+                else
+                {
+                    mTargetSong = seqId;
+                }
             }
-        }
-        else
-        {
-            mTargetSong = id;
         }
     }
 
