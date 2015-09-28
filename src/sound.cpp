@@ -79,7 +79,10 @@ Sound::~Sound()
 
 void Sound::Update()
 {
-
+    if (mSeqPlayer)
+    {
+        mSeqPlayer->m_PlayerThreadFunction();
+    }
 }
 
 void Sound::Render(int w, int h)
@@ -96,7 +99,7 @@ void Sound::Render(int w, int h)
     if (ImGui::Button("Music test", ImVec2(ImGui::GetWindowWidth(), 20)))
     {
         int id = 26; // death sound
-        mSeqPlayer.reset(new SequencePlayer());
+        mSeqPlayer = std::make_unique<SequencePlayer>();
         mSeqPlayer->m_QuarterCallback = [&]() { BarLoop(); };
         ChangeTheme(0, mFs);
         if (mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_FINISHED || mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_STOPPED)

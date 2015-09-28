@@ -3,14 +3,14 @@
 SequencePlayer::SequencePlayer()
 {
 	// Start the Sequencer thread.
-	m_SequenceThread = new std::thread(&SequencePlayer::m_PlayerThreadFunction, this);
+	//m_SequenceThread = new std::thread(&SequencePlayer::m_PlayerThreadFunction, this);
 }
 
 SequencePlayer::~SequencePlayer()
 {
 	m_KillThread = true;
-	m_SequenceThread->join();
-	delete m_SequenceThread;
+	//m_SequenceThread->join();
+	//delete m_SequenceThread;
 }
 
 // Midi stuff
@@ -42,11 +42,12 @@ float SequencePlayer::MidiTimeToSample(int time)
 	return ((60 * time) / m_SongTempo) * (AliveAudioSampleRate / 500.0f);
 }
 
+// TODO: This thread spin locks
 void SequencePlayer::m_PlayerThreadFunction()
 {
 	int channels[16];
 
-	while (!m_KillThread)
+	//while (!m_KillThread)
 	{
 		m_PlayerStateMutex.lock();
 		if (m_PlayerState == ALIVE_SEQUENCER_INIT_VOICES)
