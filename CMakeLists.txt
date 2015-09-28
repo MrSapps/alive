@@ -159,7 +159,6 @@ add_library(oddlib STATIC
     include/oddlib/audio/ADSR.h
     include/oddlib/audio/AliveAudio.h
     include/oddlib/audio/biquad.h
-    include/oddlib/audio/EQ.h
     include/oddlib/audio/Helper.h
     include/oddlib/audio/Program.h
     include/oddlib/audio/Sample.h
