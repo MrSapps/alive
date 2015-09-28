@@ -25,7 +25,6 @@ private:
     void InitNanoVg();
     void InitGL();
     void InitImGui();
-    void InitBasePath();
     void RenderVideoUi();
     void ImGui_WindowResize();
 private:

@@ -16,7 +16,7 @@ class Fmv
 public:
     Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs);
     ~Fmv();
-    void Play();
+    void Play(const std::string& name);
     void Stop();
     void Update();
     void Render(struct NVGcontext* ctx, int screenW, int screenH);

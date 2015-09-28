@@ -588,6 +588,10 @@ private:
         }
     }
    
+    if (!resourceLocation)
+    {
+        throw Oddlib::Exception("FMV not found");
+    }
 
     auto stream = resourceLocation->Open(targetName);
 
@@ -808,9 +812,19 @@ Fmv::~Fmv()
 
 }
 
-void Fmv::Play()
+void Fmv::Play(const std::string& name)
 {
-
+    if (!mFmv)
+    {
+        try
+        {
+            mFmv = IMovie::Factory(name, mAudioController, mFileSystem, mGameData.Fmvs());
+        }
+        catch (const Oddlib::Exception& ex)
+        {
+            LOG_ERROR("Exception: " << ex.what());
+        }
+    }
 }
 
 void Fmv::Stop()
@@ -820,7 +834,13 @@ void Fmv::Stop()
 
 void Fmv::Update()
 {
-
+    if (mFmv)
+    {
+        if (mFmv->IsEnd())
+        {
+            mFmv = nullptr;
+        }
+    }
 }
 
 void Fmv::Render(NVGcontext* ctx, int screenW, int screenH)
@@ -829,20 +849,12 @@ void Fmv::Render(NVGcontext* ctx, int screenW, int screenH)
 
     RenderVideoUi();
 
-    //RenderSubtitles(ctx, "The quick brown fox jumps over the lazy dog", screenW, screenH);
-
     if (mFmv)
     {
         mFmv->OnRenderFrame(ctx, screenW, screenH);
-        if (mFmv->IsEnd())
-        {
-            mFmv = nullptr;
-        }
     }
     else
     {
-
         mFileSystem.DebugUi();
-
     }
 }
