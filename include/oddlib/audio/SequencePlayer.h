@@ -6,6 +6,7 @@
 #include <vector>
 #include "oddlib/stream.hpp"
 #include "oddlib/audio/AliveAudio.h"
+#include <functional>
 //#include "PreciseTimer.h"
 
 struct SeqHeader
@@ -62,10 +63,6 @@ struct AliveAudioMidiMessage
 	int Special = 0;
 };
 
-// Gets called every time the play position is at 1/4 of the song.
-// Useful for changing sequences but keeping the time signature in sync.
-typedef void ( * AliveAudioQuarterCallback)();
-
 class SequencePlayer
 {
 public:
@@ -82,7 +79,10 @@ public:
 
 	int m_TrackID = 1; // The track ID. Use this to seperate SoundFX from Music.
 	AliveAudioSequencerState m_PlayerState = ALIVE_SEQUENCER_STOPPED;
-	AliveAudioQuarterCallback m_QuarterCallback;
+
+    // Gets called every time the play position is at 1/4 of the song.
+    // Useful for changing sequences but keeping the time signature in sync.
+	std::function<void()> m_QuarterCallback;
 
 //private:
 	int m_KillThread = false; // If true, loop thread will exit.
