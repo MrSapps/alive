@@ -1954,29 +1954,29 @@ TEST(CdFs, Read_FileSystemLimits)
     RawCdImage img(get_test());
     img.LogTree();
 
-    ASSERT_EQ(true, img.FileExists("ROOT.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEN_TEST\\1.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEN_TEST\\12.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEN_TEST\\123.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEN_TEST\\1234.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEN_TEST\\12345.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEN_TEST\\123456.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEN_TEST\\1234567.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEN_TEST\\12345678.TXT"));
+    ASSERT_GT(img.FileExists("ROOT.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEN_TEST\\1.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEN_TEST\\12.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEN_TEST\\123.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEN_TEST\\1234.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEN_TEST\\12345.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEN_TEST\\123456.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEN_TEST\\1234567.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEN_TEST\\12345678.TXT"), 0);
 
-    ASSERT_EQ(true, img.FileExists("LEVEL1\\LVL1.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LVL2.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LVL3.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LVL4.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LVL5.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LVL6.TXT"));
-    ASSERT_EQ(true, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL7.TXT"));
-    ASSERT_EQ(false, img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL77.TXT"));
+    ASSERT_GT(img.FileExists("LEVEL1\\LVL1.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LVL2.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LVL3.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LVL4.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LVL5.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LVL6.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL7.TXT"), 0);
+    ASSERT_EQ(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL77.TXT"), -1);
 
-    ASSERT_EQ(true, img.FileExists("TEST\\SECTORS1\\EXAMPLE.TXT"));
-    ASSERT_EQ(true, img.FileExists("TEST\\SECTORS2\\BIG.TXT"));
-    ASSERT_EQ(true, img.FileExists("TEST\\XA1\\SMALL.TXT"));
-    ASSERT_EQ(true, img.FileExists("TEST\\XA1\\BIG.TXT"));
+    ASSERT_GT(img.FileExists("TEST\\SECTORS1\\EXAMPLE.TXT"), 0);
+    ASSERT_GT(img.FileExists("TEST\\SECTORS2\\BIG.TXT"), 0);
+    ASSERT_GT(img.FileExists("TEST\\XA1\\SMALL.TXT"), 0);
+    ASSERT_GT(img.FileExists("TEST\\XA1\\BIG.TXT"), 0);
 
     auto data = img.ReadFile("TEST\\SECTORS1\\EXAMPLE.TXT", false);
 
@@ -1993,14 +1993,14 @@ TEST(CdFs, Read_XaSectors)
     RawCdImage img(get_xa());
     img.LogTree();
 
-    ASSERT_EQ(false, img.FileExists(""));
-    ASSERT_EQ(true, img.FileExists("NOT_XA\\SMALL.TXT"));
-    ASSERT_EQ(true, img.FileExists("\\NOT_XA\\SMALL.TXT"));
-    ASSERT_EQ(true, img.FileExists("NOT_XA\\BIG.TXT"));
-    ASSERT_EQ(true, img.FileExists("XA1\\XBIG.TXT"));
-    ASSERT_EQ(true, img.FileExists("XA1\\XSMALL"));
-    ASSERT_EQ(false, img.FileExists("XA2\\XSMALL"));
-    ASSERT_EQ(false, img.FileExists("XA2\\ASDFG"));
+    ASSERT_EQ(img.FileExists(""), -1);
+    ASSERT_GT(img.FileExists("NOT_XA\\SMALL.TXT"), 0);
+    ASSERT_GT(img.FileExists("\\NOT_XA\\SMALL.TXT"), 0);
+    ASSERT_GT(img.FileExists("NOT_XA\\BIG.TXT"), 0);
+    ASSERT_GT(img.FileExists("XA1\\XBIG.TXT"), 0);
+    ASSERT_GT(img.FileExists("XA1\\XSMALL"), 0);
+    ASSERT_EQ(img.FileExists("XA2\\XSMALL"), -1);
+    ASSERT_EQ(img.FileExists("XA2\\ASDFG"), -1);
 
 }
 

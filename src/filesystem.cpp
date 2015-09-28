@@ -29,17 +29,17 @@ static std::string GetFilePath(const std::string& basePath, const std::string& f
     return fullFileName;
 }
 
-static bool FileExists(const std::string& fileName)
+static Sint64 FileExists(const std::string& fileName)
 {
     std::ifstream fileStream;
     fileStream.open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
     if (fileStream)
     {
         LOG_INFO("File: " << fileName << " found");
-        return true;
+        return fileStream.tellg();
     }
     LOG_WARNING("File: " << fileName << " not found");
-    return false;
+    return -1;
 }
 
 FileSystem::Directory::Directory(const std::string& path, int priority)
@@ -53,7 +53,7 @@ std::unique_ptr<Oddlib::IStream> FileSystem::Directory::Open(const std::string& 
     return std::make_unique<Oddlib::Stream>(fullFileName);
 }
 
-bool FileSystem::Directory::Exists(const std::string& fileName) const
+Sint64 FileSystem::Directory::Exists(const std::string& fileName) const
 {
     const auto fullFileName = GetFilePath(Path(), fileName);
     return FileExists(fullFileName);
@@ -71,7 +71,7 @@ std::unique_ptr<Oddlib::IStream> FileSystem::RawCdImagePath::Open(const std::str
     return mCdImage->ReadFile(fileName, true);
 }
 
-bool FileSystem::RawCdImagePath::Exists(const std::string& fileName) const
+Sint64 FileSystem::RawCdImagePath::Exists(const std::string& fileName) const
 {
     return mCdImage->FileExists(fileName);
 }
@@ -119,49 +119,54 @@ void FileSystem::AddResourcePath(const std::string& path, int priority)
 
 bool FileSystem::Exists(const std::string& name) const
 {
-    return FileExists(GetFilePath(mBasePath,name));
+    return FileExists(GetFilePath(mBasePath,name)) > 0;
 }
 
-bool FileSystem::ResourceExists(const std::string& name) const
+FileSystem::IResourcePathAbstraction* FileSystem::ResourceExists(const std::string& name, int& priority, bool pickBiggestFile) const
 {
-    // Look in each resource path by priority
-    for (auto& resourceLocation : mResourcePaths)
-    {
-        if (resourceLocation->Exists(name))
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-/*
-* Rules:
-* 1. Zero length files are ignored.
-* 2. File systems are searched in priority ordering.
-* 3. The alternate file name (PSX file name) is treated the same as the original file name.
-* 4. The larger PSX file name wins even if its lower priority - this is to handle a case where BR.MOV in CD1 isn't 0 bytes
-* and we need to make sure we pick the CD2 BR.MOV.
-*/
-std::unique_ptr<Oddlib::IStream> FileSystem::OpenResource(const std::string& name)
-{
-    LOG_INFO("Opening resource: " << name);
-
     if (mResourcePaths.empty())
     {
         throw Oddlib::Exception("No resource paths configured");
     }
 
     // Look in each resource path by priority
+    IResourcePathAbstraction* resLocation = nullptr;
+    Sint64 lastSize = 0;
+
     for (auto& resourceLocation : mResourcePaths)
     {
-        if (resourceLocation->Exists(name))
+        const auto fileSize = resourceLocation->Exists(name);
+        if (fileSize > 0 )
         {
-            return resourceLocation->Open(name);
+            if (!pickBiggestFile)
+            {
+                priority = resourceLocation->Priority();
+                return resourceLocation.get();
+            }
+            else
+            {
+                if (!resLocation || fileSize > lastSize)
+                {
+                    resLocation = resourceLocation.get();
+                    lastSize = fileSize;
+                }
+            }
         }
     }
-  
-    throw Oddlib::Exception("Missing resource");
+
+    if (resLocation)
+    {
+        priority = resLocation->Priority();
+        return resLocation;
+    }
+
+    return nullptr;
+}
+
+FileSystem::IResourcePathAbstraction* FileSystem::ResourceExists(const std::string& name, bool pickBiggestFile) const
+{
+    int dummy = 0;
+    return ResourceExists(name, dummy, pickBiggestFile);
 }
 
 void FileSystem::DebugUi()

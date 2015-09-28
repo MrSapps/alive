@@ -47,7 +47,12 @@ void AliveInitAudio(FileSystem& fs)
 	LoadJsonConfig("data/themes.json", fs);
 	LoadJsonConfig("data/sfx_list.json", fs);
 
-    auto soundsDatSteam = fs.OpenResource("sounds.dat");
+    auto res = fs.ResourceExists("sounds.dat");
+    if (!res)
+    {
+        throw Oddlib::Exception("sounds.dat not found");
+    }
+    auto soundsDatSteam = res->Open("sounds.dat");
     AliveAudio::m_SoundsDat = std::vector<unsigned char>(soundsDatSteam->Size() + 1); // Plus one, just in case interpolating tries to go that one byte further!
 
     soundsDatSteam->ReadBytes(AliveAudio::m_SoundsDat.data(), soundsDatSteam->Size());
@@ -369,7 +374,7 @@ void AliveAudio::SetSoundbank(AliveAudioSoundbank * soundbank)
 
 void AliveAudio::LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile, FileSystem& fs)
 {
-    Oddlib::LvlArchive archive(fs.OpenResource(lvlPath));
+    Oddlib::LvlArchive archive(fs.ResourceExists(lvlPath)->Open(lvlPath));
 	LoadAllFromLvl(archive, vabID, seqFile);
 }
 

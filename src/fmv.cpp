@@ -554,41 +554,44 @@ private:
 {
     TRACE_ENTRYEXIT;
 
-    // TODO: Because the names don't match the priority has no effect
-
     // TODO: PSX fmv seems to have a lot of "black" at the end - probably json data is incorrect or needs tweaking?
-
     std::string targetName = fmvName;
     Uint32 startSector = 0;
     Uint32 numberOfSectors = 0;
 
     // Check the PC name
-    bool exists = fs.ResourceExists(fmvName);
-    if (!exists)
+    int pcFmvPriority = 0;
+    auto resourceLocation = fs.ResourceExists(fmvName, pcFmvPriority);
+
+    // Find the mapping of PSX -> PC fmv names from the json data
+    auto fmvData = allFmvs.find(fmvName);
+    if (fmvData != std::end(allFmvs))
     {
-        // Find the mapping of PSX -> PC fmv names from the json data
-        auto fmvData = allFmvs.find(fmvName);
-        if (fmvData != std::end(allFmvs))
+        // Check if the PSX file containing the FMV exists
+        const std::vector<GameData::FmvSection>& sections = fmvData->second;
+        for (const GameData::FmvSection& section : sections)
         {
-            // Check if the PSX file containing the FMV exists
-            const std::vector<GameData::FmvSection>& sections = fmvData->second;
-            for (const GameData::FmvSection& section : sections)
+            // For BR.MOV there is a slight hack to pick the biggest file because BR.MOV on CD1 isn't 0 bytes for some reason
+            // and we always want the CD2 BR.MOV which is bigger.
+            int psxFmvPriority = 0;
+            auto tmpResourceLocation = fs.ResourceExists(section.mPsxFileName, psxFmvPriority, section.mPsxFileName == "BR\\BR.MOV");
+            // Only pick PSX FMV over the PC version when either its the only thing we have
+            // or when we have both but the PSX data is marked higher priority than the PC data.
+            if (tmpResourceLocation && (!resourceLocation || (resourceLocation && psxFmvPriority > pcFmvPriority)))
             {
-                exists = fs.ResourceExists(section.mPsxFileName);
-                if (exists)
-                {
-                    targetName = section.mPsxFileName;
-                    startSector = section.mStartSector;
-                    numberOfSectors = section.mNumberOfSectors;
-                    break;
-                }
+                resourceLocation = tmpResourceLocation;
+                targetName = section.mPsxFileName;
+                startSector = section.mStartSector;
+                numberOfSectors = section.mNumberOfSectors;
+                break;
             }
         }
     }
+   
 
-    auto stream = fs.OpenResource(targetName);
+    auto stream = resourceLocation->Open(targetName);
 
-    // Try to open any corrisponding subtitle file
+    // Try to open any corresponding subtitle file
     const std::string subTitleFileName = "data/" + fmvName + ".SRT";
     std::unique_ptr<SubTitleParser> subTitles;
     if (fs.Exists(subTitleFileName))
@@ -645,7 +648,7 @@ void ChangeTheme(void * /*clientData*/, FileSystem& fs)
         jsonxx::Object theme = AliveAudio::m_Config.get<jsonxx::Array>("themes").get<jsonxx::Object>(14);
 
         const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".LVL";
-        Oddlib::LvlArchive archive(fs.OpenResource(lvlFileName));
+        Oddlib::LvlArchive archive(fs.ResourceExists(lvlFileName)->Open(lvlFileName));
         AliveAudio::LoadAllFromLvl(archive, theme.get<jsonxx::String>("vab", "null"), theme.get<jsonxx::String>("seq", "null"));
 
         //TwRemoveAllVars(m_GUIFileList);
