@@ -54,7 +54,8 @@ void SequencePlayer::m_PlayerThreadFunction()
         if (m_PlayerState == ALIVE_SEQUENCER_INIT_VOICES)
         {
             bool firstNote = true;
-            mAliveAudio.LockNotes();
+            std::lock_guard<std::recursive_mutex> notesLock(mAliveAudio.voiceListMutex);
+
             for (size_t i = 0; i < m_MessageList.size(); i++)
             {
                 AliveAudioMidiMessage m = m_MessageList[i];
@@ -81,7 +82,6 @@ void SequencePlayer::m_PlayerThreadFunction()
                 }
 
             }
-            mAliveAudio.UnlockNotes();
         }
         m_PlayerStateMutex.unlock();
 
