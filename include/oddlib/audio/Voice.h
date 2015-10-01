@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SDL.h"
+
 class AliveAudioVoice
 {
 public:
@@ -7,7 +9,7 @@ public:
 	int		i_Program;
 	int		i_Note = 0;
 	bool	b_Dead = false;
-	double	f_SampleOffset = 0;
+	unsigned int	f_SampleOffset = 0;
 	bool	b_NoteOn = true;
 	double	f_Velocity = 1.0f;
 	double	f_Pitch = 0.0f;
@@ -24,5 +26,5 @@ public:
 	double ActiveDecayLevel = 1;
 	double ActiveSustainLevel = 1;
 
-    float GetSample(bool interpolation);
+    Uint16 GetSample(bool interpolation);
 };

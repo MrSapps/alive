@@ -41,9 +41,6 @@ public:
 
     void DebugPlayFirstToneSample(int program, int tone);
 
-    void LockNotes();
-    void UnlockNotes();
-
     void ClearAllVoices(bool forceKill = true);
     void ClearAllTrackVoices(int trackID, bool forceKill = false);
 
@@ -56,29 +53,31 @@ public:
     biquad * AliveAudioEQBiQuad = nullptr;
     std::mutex EQMutex;
 
-    AliveAudioSoundbank* m_CurrentSoundbank;
+    AliveAudioSoundbank* m_CurrentSoundbank = nullptr;
     std::vector<std::vector<Uint8>> m_LoadedSeqData;
-    std::mutex voiceListMutex;
+    std::recursive_mutex voiceListMutex;
     std::vector<AliveAudioVoice *> m_Voices;
     bool Interpolation = false;
     bool EQEnabled = false;
-    bool voiceListLocked = false;
     long long currentSampleIndex = 0;
     jsonxx::Object m_Config;
 
     void AliveAudioSetEQ(float cutoff)
     {
+        /* TODO FIX ME
         EQMutex.lock();
 
         if (AliveAudio::AliveAudioEQBiQuad != nullptr)
             delete AliveAudioEQBiQuad;
 
-        AliveAudioEQBiQuad = BiQuad_new(PEQ, 8.0f, cutoff, static_cast<float>(AliveAudioSampleRate), 1.0f);
+        AliveAudioEQBiQuad = BiQuad_new(PEQ, 8u, cutoff, AliveAudioSampleRate, 1u);
         EQMutex.unlock();
+        */
     }
 
-    void AliveEQEffect(float* stream, int len)
+    void AliveEQEffect(Uint8* stream, int len)
     {
+        /* TODO FIX ME
         if (AliveAudioEQBiQuad == nullptr)
         {
             AliveAudioSetEQ(20500);
@@ -92,13 +91,14 @@ public:
         }
 
         EQMutex.unlock();
+        */
     }
 
     virtual void Play(Uint8* stream, Uint32 len) override;
     void AliveInitAudio(FileSystem& fs);
 private:
     void CleanVoices();
-    void AliveRenderAudio(float * AudioStream, int StreamLength);
+    void AliveRenderAudio(Uint8* AudioStream, int StreamLength);
 
     void LoadJsonConfig(std::string filePath, FileSystem& fs);
 };
