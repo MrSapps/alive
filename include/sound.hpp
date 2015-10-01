@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include "oddlib/audio/AliveAudio.h"
 
 class GameData;
 class IAudioController;
@@ -19,6 +20,7 @@ public:
     void Render(int w, int h);
 private:
     void BarLoop();
+    void ChangeTheme(FileSystem& fs, const std::deque<std::string>& parts);
 private:
     GameData& mGameData;
     IAudioController& mAudioController;
@@ -27,4 +29,5 @@ private:
     int mTargetSong = -1;
     bool mLoopSong = false;
     std::vector<std::string> mThemes;
+    AliveAudio mAliveAudio;
 };

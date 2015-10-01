@@ -66,7 +66,7 @@ struct AliveAudioMidiMessage
 class SequencePlayer
 {
 public:
-	SequencePlayer();
+    SequencePlayer(AliveAudio& aliveAudio);
 	~SequencePlayer();
 
 	int LoadSequenceData(std::vector<Uint8> seqData);
@@ -96,5 +96,6 @@ public:
 	std::thread * m_SequenceThread;
 	std::mutex m_MessageListMutex;
 	std::mutex m_PlayerStateMutex;
+    AliveAudio& mAliveAudio;
 };
 

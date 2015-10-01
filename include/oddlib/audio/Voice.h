@@ -24,5 +24,5 @@ public:
 	double ActiveDecayLevel = 1;
 	double ActiveSustainLevel = 1;
 
-	float GetSample();
+    float GetSample(bool interpolation);
 };

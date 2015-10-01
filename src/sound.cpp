@@ -4,7 +4,6 @@
 #include "core/audiobuffer.hpp"
 #include "logger.hpp"
 #include "filesystem.hpp"
-#include "oddlib/audio/AliveAudio.h"
 
 void Sound::BarLoop()
 {
@@ -12,7 +11,7 @@ void Sound::BarLoop()
 
     if (mTargetSong != -1)
     {
-        if (mSeqPlayer->LoadSequenceData(AliveAudio::m_LoadedSeqData[mTargetSong]) == 0)
+        if (mSeqPlayer->LoadSequenceData(mAliveAudio.m_LoadedSeqData[mTargetSong]) == 0)
         {
             mSeqPlayer->PlaySequence();
         }
@@ -21,13 +20,13 @@ void Sound::BarLoop()
 }
 
 
-void ChangeTheme(FileSystem& fs, const std::deque<std::string>& parts)
+void Sound::ChangeTheme(FileSystem& fs, const std::deque<std::string>& parts)
 {
     try
     {
         const std::string lvlFileName = parts[0];
         Oddlib::LvlArchive archive(fs.ResourceExists(lvlFileName)->Open(lvlFileName));
-        AliveAudio::LoadAllFromLvl(archive, parts[1], parts[2]); // vab, bsq
+        mAliveAudio.LoadAllFromLvl(archive, parts[1], parts[2]); // vab, bsq
     }
     catch (const std::exception& ex)
     {
@@ -63,7 +62,7 @@ void Sound::Render(int w, int h)
         {
             // Currently requires sounds.dat to be available from the get-go, so make
             // this failure non-fatal
-            AliveInitAudio(mFs);
+            mAliveAudio.AliveInitAudio(mFs);
         }
         catch (const std::exception& ex)
         {
@@ -72,7 +71,7 @@ void Sound::Render(int w, int h)
 
         ImGui::SetNextWindowPos(ImVec2(320, 250));
         bSet = true;
-        auto themes = AliveAudio::m_Config.get<jsonxx::Array>("themes");
+        auto themes = mAliveAudio.m_Config.get<jsonxx::Array>("themes");
         for (auto i = 0u; i < themes.size(); i++)
         {
             auto theme = themes.get<jsonxx::Object>(i);
@@ -105,14 +104,14 @@ void Sound::Render(int w, int h)
             selectedIndex = static_cast<int>(i);
             if (selectedIndex >= 0 && selectedIndex < mThemes.size() && !mThemes.empty())
             {
-                mSeqPlayer = std::make_unique<SequencePlayer>();
+                mSeqPlayer = std::make_unique<SequencePlayer>(mAliveAudio);
                 mSeqPlayer->m_QuarterCallback = [&]() { BarLoop(); };
                 const auto parts = string_util::split(mThemes[selectedIndex], '!');
                 int seqId = std::atoi(parts[3].c_str());
                 ChangeTheme(mFs, parts);
                 if (mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_FINISHED || mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_STOPPED)
                 {
-                    if (seqId < AliveAudio::m_LoadedSeqData.size() && mSeqPlayer->LoadSequenceData(AliveAudio::m_LoadedSeqData[seqId]) == 0)
+                    if (seqId < mAliveAudio.m_LoadedSeqData.size() && mSeqPlayer->LoadSequenceData(mAliveAudio.m_LoadedSeqData[seqId]) == 0)
                     {
                         mSeqPlayer->PlaySequence();
                     }

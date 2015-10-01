@@ -20,76 +20,87 @@
 #include "Sample.h"
 #include "ADSR.h"
 #include "biquad.h"
-
-void AliveInitAudio(class FileSystem& fs);
-void AliveAudioSDLCallback(void *udata, Uint8 *stream, int len);
+#include "core/audiobuffer.hpp"
 
 const int AliveAudioSampleRate = 44100;
 
-class AliveAudio
+class FileSystem;
+
+class AliveAudio : public IAudioPlayer
 {
 public:
-	static std::vector<unsigned char> m_SoundsDat;
-	static void PlayOneShot(int program, int note, float volume, float pitch = 0);
-	static void PlayOneShot(std::string soundID);
+    std::vector<unsigned char> m_SoundsDat;
+    void PlayOneShot(int program, int note, float volume, float pitch = 0);
+    void PlayOneShot(std::string soundID);
 
-	static void NoteOn(int program, int note, char velocity, float pitch = 0, int trackID = 0, float trackDelay = 0);
-	static void NoteOn(int program, int note, char velocity, int trackID = 0, float trackDelay = 0);
+    void NoteOn(int program, int note, char velocity, float pitch = 0, int trackID = 0, float trackDelay = 0);
+    void NoteOn(int program, int note, char velocity, int trackID = 0, float trackDelay = 0);
 
-	static void NoteOff(int program, int note, int trackID = 0);
-	static void NoteOffDelay(int program, int note, int trackID = 0, float trackDelay = 0);
+    void NoteOff(int program, int note, int trackID = 0);
+    void NoteOffDelay(int program, int note, int trackID = 0, float trackDelay = 0);
 
-	static void DebugPlayFirstToneSample(int program, int tone);
+    void DebugPlayFirstToneSample(int program, int tone);
 
-	static void LockNotes();
-	static void UnlockNotes();
+    void LockNotes();
+    void UnlockNotes();
 
-	static void ClearAllVoices(bool forceKill = true);
-	static void ClearAllTrackVoices(int trackID, bool forceKill = false);
+    void ClearAllVoices(bool forceKill = true);
+    void ClearAllTrackVoices(int trackID, bool forceKill = false);
 
-	static void LoadSoundbank(char * fileName);
-	static void SetSoundbank(AliveAudioSoundbank * soundbank);
+    void LoadSoundbank(char * fileName);
+    void SetSoundbank(AliveAudioSoundbank * soundbank);
 
-    static void LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile, FileSystem& fs);
-    static void LoadAllFromLvl(Oddlib::LvlArchive& lvlArchive, std::string vabID, std::string seqFile);
+    void LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile, FileSystem& fs);
+    void LoadAllFromLvl(Oddlib::LvlArchive& lvlArchive, std::string vabID, std::string seqFile);
 
-	static biquad * AliveAudioEQBiQuad;
-	static std::mutex EQMutex;
+    biquad * AliveAudioEQBiQuad = nullptr;
+    std::mutex EQMutex;
 
-	static AliveAudioSoundbank* m_CurrentSoundbank;
-	static std::vector<std::vector<Uint8>> m_LoadedSeqData;
-	static std::mutex voiceListMutex;
-	static std::vector<AliveAudioVoice *> m_Voices;
-	static bool Interpolation;
-	static bool EQEnabled;
-	static bool voiceListLocked;
-	static long long currentSampleIndex;
-	static jsonxx::Object m_Config;
+    AliveAudioSoundbank* m_CurrentSoundbank;
+    std::vector<std::vector<Uint8>> m_LoadedSeqData;
+    std::mutex voiceListMutex;
+    std::vector<AliveAudioVoice *> m_Voices;
+    bool Interpolation = false;
+    bool EQEnabled = false;
+    bool voiceListLocked = false;
+    long long currentSampleIndex = 0;
+    jsonxx::Object m_Config;
+
+    void AliveAudioSetEQ(float cutoff)
+    {
+        EQMutex.lock();
+
+        if (AliveAudio::AliveAudioEQBiQuad != nullptr)
+            delete AliveAudioEQBiQuad;
+
+        AliveAudioEQBiQuad = BiQuad_new(PEQ, 8.0f, cutoff, static_cast<float>(AliveAudioSampleRate), 1.0f);
+        EQMutex.unlock();
+    }
+
+    void AliveEQEffect(float* stream, int len)
+    {
+        if (AliveAudioEQBiQuad == nullptr)
+        {
+            AliveAudioSetEQ(20500);
+        }
+
+        EQMutex.lock();
+
+        for (int i = 0; i < len; i++)
+        {
+            stream[i] = BiQuad(stream[i], AliveAudioEQBiQuad);
+        }
+
+        EQMutex.unlock();
+    }
+
+    virtual void Play(Uint8* stream, Uint32 len) override;
+    void AliveInitAudio(FileSystem& fs);
+private:
+    void CleanVoices();
+    void AliveRenderAudio(float * AudioStream, int StreamLength);
+
+    void LoadJsonConfig(std::string filePath, FileSystem& fs);
 };
 
-static void AliveAudioSetEQ(float cutoff)
-{
-	AliveAudio::EQMutex.lock();
-
-	if (AliveAudio::AliveAudioEQBiQuad != nullptr)
-		delete AliveAudio::AliveAudioEQBiQuad;
-
-	AliveAudio::AliveAudioEQBiQuad = BiQuad_new(PEQ, 8.0f, cutoff, static_cast<float>(AliveAudioSampleRate), 1.0f);
-	AliveAudio::EQMutex.unlock();
-}
-
-inline void AliveEQEffect(float * stream, int len)
-{
-	if (AliveAudio::AliveAudioEQBiQuad == nullptr)
-		AliveAudioSetEQ(20500);
-
-	AliveAudio::EQMutex.lock();
-
-	for (int i = 0; i < len; i++)
-	{
-		stream[i] = BiQuad(stream[i], AliveAudio::AliveAudioEQBiQuad);
-	}
-
-	AliveAudio::EQMutex.unlock();
-}
 ///////////////
