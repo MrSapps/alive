@@ -1,5 +1,8 @@
 # Ignore the build and lib dirs
+build/**
+build/*
 build
+
 lib/*
 
 # Ignore any executables
