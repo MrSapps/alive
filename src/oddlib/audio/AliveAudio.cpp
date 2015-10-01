@@ -42,7 +42,7 @@ void AliveAudio::AliveInitAudio(FileSystem& fs)
         throw Oddlib::Exception("sounds.dat not found");
     }
     auto soundsDatSteam = res->Open("sounds.dat");
-    AliveAudio::m_SoundsDat = std::vector<unsigned char>(soundsDatSteam->Size() + 1); // Plus one, just in case interpolating tries to go that one byte further!
+    m_SoundsDat = std::vector<unsigned char>(soundsDatSteam->Size() + 1); // Plus one, just in case interpolating tries to go that one byte further!
 
     soundsDatSteam->ReadBytes(m_SoundsDat.data(), soundsDatSteam->Size());
 
@@ -51,7 +51,7 @@ void AliveAudio::AliveInitAudio(FileSystem& fs)
 
 void AliveAudio::CleanVoices()
 {
-    AliveAudio::voiceListMutex.lock();
+    voiceListMutex.lock();
     std::vector<AliveAudioVoice *> deadVoices;
 
     for (auto voice : m_Voices)
@@ -66,9 +66,9 @@ void AliveAudio::CleanVoices()
     {
         delete obj;
 
-        AliveAudio::m_Voices.erase(std::remove(AliveAudio::m_Voices.begin(), AliveAudio::m_Voices.end(), obj), AliveAudio::m_Voices.end());
+        m_Voices.erase(std::remove(m_Voices.begin(), m_Voices.end(), obj), m_Voices.end());
     }
-    AliveAudio::voiceListMutex.unlock();
+    voiceListMutex.unlock();
 }
 
 void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
@@ -79,8 +79,8 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
     //AliveAudioSoundbank * currentSoundbank = AliveAudio::m_CurrentSoundbank;
 
     voiceListMutex.lock();
-    int voiceCount = AliveAudio::m_Voices.size();
-    AliveAudioVoice ** rawPointer = AliveAudio::m_Voices.data(); // Real nice speed boost here.
+    int voiceCount = m_Voices.size();
+    AliveAudioVoice ** rawPointer = m_Voices.data(); // Real nice speed boost here.
 
     for (int i = 0; i < StreamLength; i += 2)
     {
@@ -143,7 +143,7 @@ void AliveAudio::Play(Uint8* stream, Uint32 len)
 {
     AliveRenderAudio((float *)stream, len / sizeof(float));
 
-    if (AliveAudio::EQEnabled)
+    if (EQEnabled)
     {
         AliveEQEffect((float *)stream, len / sizeof(float));
     }
@@ -169,7 +169,7 @@ void AliveAudio::PlayOneShot(int program, int note, float volume, float pitch)
 
 void AliveAudio::PlayOneShot(std::string soundID)
 {
-    jsonxx::Array soundList = AliveAudio::m_Config.get<jsonxx::Array>("sounds");
+    jsonxx::Array soundList = m_Config.get<jsonxx::Array>("sounds");
 
     for (size_t i = 0; i < soundList.size(); i++)
     {
@@ -281,7 +281,7 @@ void AliveAudio::ClearAllVoices(bool forceKill)
 
     std::vector<AliveAudioVoice *> deadVoices;
 
-    for (auto voice : AliveAudio::m_Voices)
+    for (auto& voice : m_Voices)
     {
         if (forceKill)
         {
@@ -297,11 +297,11 @@ void AliveAudio::ClearAllVoices(bool forceKill)
         }
     }
 
-    for (auto obj : deadVoices)
+    for (auto& obj : deadVoices)
     {
         delete obj;
 
-        AliveAudio::m_Voices.erase(std::remove(AliveAudio::m_Voices.begin(), AliveAudio::m_Voices.end(), obj), AliveAudio::m_Voices.end());
+        m_Voices.erase(std::remove(m_Voices.begin(), m_Voices.end(), obj), m_Voices.end());
     }
 
     UnlockNotes();
@@ -313,7 +313,7 @@ void AliveAudio::ClearAllTrackVoices(int trackID, bool forceKill)
 
     std::vector<AliveAudioVoice *> deadVoices;
 
-    for (auto voice : AliveAudio::m_Voices)
+    for (auto& voice : m_Voices)
     {
         if (forceKill)
         {
@@ -332,11 +332,11 @@ void AliveAudio::ClearAllTrackVoices(int trackID, bool forceKill)
         }
     }
 
-    for (auto obj : deadVoices)
+    for (auto& obj : deadVoices)
     {
         delete obj;
 
-        AliveAudio::m_Voices.erase(std::remove(AliveAudio::m_Voices.begin(), AliveAudio::m_Voices.end(), obj), AliveAudio::m_Voices.end());
+        m_Voices.erase(std::remove(m_Voices.begin(), m_Voices.end(), obj), m_Voices.end());
     }
 
     UnlockNotes();
@@ -348,7 +348,7 @@ void AliveAudio::LoadSoundbank(char * fileName)
 
     if (m_CurrentSoundbank != nullptr)
     {
-        delete AliveAudio::m_CurrentSoundbank;
+        delete m_CurrentSoundbank;
     }
 
     AliveAudioSoundbank * soundBank = new AliveAudioSoundbank(fileName, *this);
@@ -359,9 +359,9 @@ void AliveAudio::SetSoundbank(AliveAudioSoundbank * soundbank)
 {
     ClearAllVoices(true);
 
-    if (AliveAudio::m_CurrentSoundbank != nullptr)
+    if (m_CurrentSoundbank != nullptr)
     {
-        delete AliveAudio::m_CurrentSoundbank;
+        delete m_CurrentSoundbank;
     }
 
     m_CurrentSoundbank = soundbank;
