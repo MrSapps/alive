@@ -10,7 +10,6 @@
 #include <fstream>
 #include "alive_version.h"
 #include "core/audiobuffer.hpp"
-#include "oddlib/audio/AliveAudio.h"
 
 
 #include "nanovg.h"
@@ -254,17 +253,6 @@ bool Engine::Init()
 
         InitNanoVg();
 
-        try
-        {
-            // Currently requires sounds.dat to be available from the get-go, so make
-            // this failure non-fatal
-            AliveInitAudio(mFileSystem);
-        }
-        catch (const std::exception& ex)
-        {
-            LOG_ERROR("Audio init failure: " << ex.what());
-        }
-
         InitImGui();
 
         ToState(eRunning);
@@ -359,9 +347,6 @@ void Engine::Update()
             if (key == SDL_SCANCODE_ESCAPE)
             {
                 mFmv.Stop();
-
-                //targetFps = 60;
-
             }
 
             if (key >= 0 && key < 512)
@@ -393,6 +378,7 @@ void Engine::Render()
     static bool showAbout = false;
     if (ImGui::BeginMainMenuBar())
     {
+        /*
         if (ImGui::BeginMenu("File"))
         {
             if (ImGui::MenuItem("Exit", "CTRL+Q")) { ToState(eShuttingDown); }
@@ -407,7 +393,7 @@ void Engine::Render()
             if (ImGui::MenuItem("Copy", "CTRL+C")) {}
             if (ImGui::MenuItem("Paste", "CTRL+V")) {}
             ImGui::EndMenu();
-        }
+        }*/
         if (ImGui::BeginMenu("Help"))
         {
             if (ImGui::MenuItem("About", "CTRL+H"))

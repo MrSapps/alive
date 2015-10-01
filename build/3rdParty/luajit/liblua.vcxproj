@@ -1,0 +1,766 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|Win32">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|Win32">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{2F991336-D377-45FA-8F7B-79AE743FE45D}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>Win32</Platform>
+    <ProjectName>liblua</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+    <PropertyGroup>
+      <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">liblua.dir\Debug\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">lua</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.lib</TargetExt>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">liblua.dir\Release\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">lua</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.lib</TargetExt>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">liblua.dir\MinSizeRel\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">lua</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">.lib</TargetExt>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">liblua.dir\RelWithDebInfo\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">lua</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">.lib</TargetExt>
+    </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Debug/</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsC</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <SuppressStartupBanner></SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <CompileAs>CompileAsC</CompileAs>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SuppressStartupBanner></SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat></DebugInformationFormat>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>MinSizeRel/</AssemblerListingLocation>
+      <CompileAs>CompileAsC</CompileAs>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SuppressStartupBanner></SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat></DebugInformationFormat>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR="MinSizeRel";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR=\"MinSizeRel\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>RelWithDebInfo/</AssemblerListingLocation>
+      <CompileAs>CompileAsC</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SuppressStartupBanner></SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR="RelWithDebInfo";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR=\"RelWithDebInfo\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\3rdParty\luajit\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building Custom Rule C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+C:\cmake-2.8.12.2-win32-x86\bin\cmake.exe -HC:/Users/pmoran/Desktop/c/alive/alive -BC:/Users/pmoran/Desktop/c/alive/alive/build --check-stamp-file C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\build\CMakeFiles\2.8.12.2\CMakeASMCompiler.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeASMInformation.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\dist.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPack.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPackComponent.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\lua.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\FindReadline.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPkgConfig.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindCurses.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\luaconf.h.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building Custom Rule C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+C:\cmake-2.8.12.2-win32-x86\bin\cmake.exe -HC:/Users/pmoran/Desktop/c/alive/alive -BC:/Users/pmoran/Desktop/c/alive/alive/build --check-stamp-file C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\build\CMakeFiles\2.8.12.2\CMakeASMCompiler.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeASMInformation.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\dist.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPack.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPackComponent.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\lua.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\FindReadline.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPkgConfig.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindCurses.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\luaconf.h.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Building Custom Rule C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
+C:\cmake-2.8.12.2-win32-x86\bin\cmake.exe -HC:/Users/pmoran/Desktop/c/alive/alive -BC:/Users/pmoran/Desktop/c/alive/alive/build --check-stamp-file C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\build\CMakeFiles\2.8.12.2\CMakeASMCompiler.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeASMInformation.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\dist.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPack.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPackComponent.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\lua.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\FindReadline.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPkgConfig.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindCurses.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\luaconf.h.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Building Custom Rule C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
+C:\cmake-2.8.12.2-win32-x86\bin\cmake.exe -HC:/Users/pmoran/Desktop/c/alive/alive -BC:/Users/pmoran/Desktop/c/alive/alive/build --check-stamp-file C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\build\CMakeFiles\2.8.12.2\CMakeASMCompiler.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeASMInformation.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\dist.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPack.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPackComponent.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\lua.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\FindReadline.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPkgConfig.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindCurses.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\luaconf.h.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\CMakeFiles\b6689d25093bea3ba1f5be88cdc0d83e\lj_vm.obj.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating lj_vm.obj</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\buildvm.exe -m peobj -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_vm.obj
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_vm.obj.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\buildvm.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_vm.obj</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating lj_vm.obj</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\buildvm.exe -m peobj -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_vm.obj
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_vm.obj.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\buildvm.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_vm.obj</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Generating lj_vm.obj</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\buildvm.exe -m peobj -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_vm.obj
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_vm.obj.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\buildvm.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_vm.obj</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Generating lj_vm.obj</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\buildvm.exe -m peobj -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_vm.obj
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_vm.obj.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\buildvm.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_vm.obj</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\CMakeFiles\b6689d25093bea3ba1f5be88cdc0d83e\lj_ffdef.h.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating lj_ffdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\buildvm.exe -m ffdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_ffdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_ffdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_ffdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating lj_ffdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\buildvm.exe -m ffdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_ffdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_ffdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_ffdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Generating lj_ffdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\buildvm.exe -m ffdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_ffdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_ffdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_ffdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Generating lj_ffdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\buildvm.exe -m ffdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_ffdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_ffdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_ffdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\CMakeFiles\b6689d25093bea3ba1f5be88cdc0d83e\lj_bcdef.h.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating lj_bcdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\buildvm.exe -m bcdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_bcdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_bcdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_bcdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating lj_bcdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\buildvm.exe -m bcdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_bcdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_bcdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_bcdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Generating lj_bcdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\buildvm.exe -m bcdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_bcdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_bcdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_bcdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Generating lj_bcdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\buildvm.exe -m bcdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_bcdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_bcdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_bcdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\CMakeFiles\b6689d25093bea3ba1f5be88cdc0d83e\lj_libdef.h.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating lj_libdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\buildvm.exe -m libdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_libdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_libdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_libdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating lj_libdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\buildvm.exe -m libdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_libdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_libdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_libdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Generating lj_libdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\buildvm.exe -m libdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_libdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_libdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_libdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Generating lj_libdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\buildvm.exe -m libdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_libdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_libdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_libdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\CMakeFiles\b6689d25093bea3ba1f5be88cdc0d83e\lj_recdef.h.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating lj_recdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\buildvm.exe -m recdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_recdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_recdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_recdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating lj_recdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\buildvm.exe -m recdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_recdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_recdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_recdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Generating lj_recdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\buildvm.exe -m recdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_recdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_recdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_recdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Generating lj_recdef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\buildvm.exe -m recdef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_recdef.h src/lib_base.c src/lib_math.c src/lib_bit.c src/lib_string.c src/lib_table.c src/lib_io.c src/lib_os.c src/lib_debug.c src/lib_jit.c src/lib_ffi.c src/lib_package_rel.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_recdef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_base.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_math.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_bit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_string.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_table.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_io.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_os.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_debug.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_jit.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_ffi.c;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lib_package_rel.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_recdef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\CMakeFiles\b6689d25093bea3ba1f5be88cdc0d83e\lj_folddef.h.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Generating lj_folddef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\buildvm.exe -m folddef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_folddef.h src/lj_opt_fold.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_folddef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lj_opt_fold.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_folddef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Generating lj_folddef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\buildvm.exe -m folddef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_folddef.h src/lj_opt_fold.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_folddef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lj_opt_fold.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_folddef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Generating lj_folddef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\buildvm.exe -m folddef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_folddef.h src/lj_opt_fold.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_folddef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lj_opt_fold.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_folddef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Generating lj_folddef.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
+cd C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\buildvm.exe -m folddef -o C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/lj_folddef.h src/lj_opt_fold.c
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/build/CMakeFiles/b6689d25093bea3ba1f5be88cdc0d83e/lj_folddef.h.rule;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\buildvm.exe;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\lj_opt_fold.c;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\lj_folddef.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lj_ffdef.h" />
+    <ClInclude Include="lj_bcdef.h" />
+    <ClInclude Include="lj_libdef.h" />
+    <ClInclude Include="lj_recdef.h" />
+    <ClInclude Include="lj_folddef.h" />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_gc.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_err.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_char.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_bc.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_obj.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_str.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_tab.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_func.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_udata.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_meta.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_debug.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_state.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_dispatch.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_vmevent.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_vmmath.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_strscan.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_api.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_lex.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_parse.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_bcread.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_bcwrite.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_load.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_ir.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_opt_mem.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_opt_fold.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_opt_narrow.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_opt_dce.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_opt_loop.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_opt_split.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_opt_sink.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_mcode.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_snap.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_record.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_crecord.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_ffrecord.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_asm.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_trace.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_gdbjit.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_ctype.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_cdata.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_cconv.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_ccall.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_ccallback.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_carith.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_clib.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_cparse.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_lib.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lj_alloc.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_aux.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_init.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_base.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_math.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_bit.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_string.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_table.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_io.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_os.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_debug.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_jit.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_ffi.c"  />
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\lib_package_rel.c"  />
+    <Object Include="lj_vm.obj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:/Users/pmoran/Desktop/c/alive/alive/build/ZERO_CHECK.vcxproj">
+      <Project>13B7ED77-6743-4E7C-9B14-87500E290968</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/buildvm.vcxproj">
+      <Project>7680C5EC-CD22-42C2-9D56-0680964BBBBC</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

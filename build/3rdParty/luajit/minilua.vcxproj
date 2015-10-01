@@ -1,0 +1,325 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|Win32">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|Win32">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{0D766828-319C-4EB3-9F26-010C203A43B5}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>Win32</Platform>
+    <ProjectName>minilua</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+    <PropertyGroup>
+      <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Debug\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">minilua.dir\Debug\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">minilua</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.exe</TargetExt>
+      <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+      <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateManifest>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\Release\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">minilua.dir\Release\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">minilua</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.exe</TargetExt>
+      <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+      <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateManifest>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\MinSizeRel\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">minilua.dir\MinSizeRel\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">minilua</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">.exe</TargetExt>
+      <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkIncremental>
+      <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">true</GenerateManifest>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\RelWithDebInfo\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">minilua.dir\RelWithDebInfo\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">minilua</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">.exe</TargetExt>
+      <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">true</LinkIncremental>
+      <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">true</GenerateManifest>
+    </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Debug/</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsC</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <SuppressStartupBanner></SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 /debug %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ImportLibrary>C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/Debug/minilua.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/Debug/minilua.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+      <Version></Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <CompileAs>CompileAsC</CompileAs>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SuppressStartupBanner></SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat></DebugInformationFormat>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <ImportLibrary>C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/Release/minilua.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/Release/minilua.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+      <Version></Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>MinSizeRel/</AssemblerListingLocation>
+      <CompileAs>CompileAsC</CompileAs>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SuppressStartupBanner></SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat></DebugInformationFormat>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR="MinSizeRel";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR=\"MinSizeRel\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <ImportLibrary>C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/MinSizeRel/minilua.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/MinSizeRel/minilua.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+      <Version></Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>RelWithDebInfo/</AssemblerListingLocation>
+      <CompileAs>CompileAsC</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>
+      </ExceptionHandling>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SuppressStartupBanner></SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR="RelWithDebInfo";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;LUAJIT_OS=LUAJIT_OS_WINDOWS;CMAKE_INTDIR=\"RelWithDebInfo\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\pmoran\Desktop\c\alive\alive\include;C:\Users\pmoran\Desktop\c\alive\alive\test\sample_files\generated_headers;C:\Users\pmoran\Desktop\c\SDL2-2.0.3\include;C:\Users\pmoran\Desktop\c\alive\alive\build\packaging;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\glew-1.11.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\nanovg\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest\include;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\gmock-1.7.0\gtest;C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\dynasm;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\host;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 /debug %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ImportLibrary>C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/RelWithDebInfo/minilua.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/pmoran/Desktop/c/alive/alive/build/3rdParty/luajit/RelWithDebInfo/minilua.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+      <Version></Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\3rdParty\luajit\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building Custom Rule C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+C:\cmake-2.8.12.2-win32-x86\bin\cmake.exe -HC:/Users/pmoran/Desktop/c/alive/alive -BC:/Users/pmoran/Desktop/c/alive/alive/build --check-stamp-file C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\build\CMakeFiles\2.8.12.2\CMakeASMCompiler.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeASMInformation.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\dist.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPack.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPackComponent.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\lua.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\FindReadline.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPkgConfig.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindCurses.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\luaconf.h.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building Custom Rule C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+C:\cmake-2.8.12.2-win32-x86\bin\cmake.exe -HC:/Users/pmoran/Desktop/c/alive/alive -BC:/Users/pmoran/Desktop/c/alive/alive/build --check-stamp-file C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\build\CMakeFiles\2.8.12.2\CMakeASMCompiler.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeASMInformation.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\dist.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPack.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPackComponent.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\lua.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\FindReadline.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPkgConfig.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindCurses.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\luaconf.h.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Building Custom Rule C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
+C:\cmake-2.8.12.2-win32-x86\bin\cmake.exe -HC:/Users/pmoran/Desktop/c/alive/alive -BC:/Users/pmoran/Desktop/c/alive/alive/build --check-stamp-file C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\build\CMakeFiles\2.8.12.2\CMakeASMCompiler.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeASMInformation.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\dist.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPack.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPackComponent.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\lua.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\FindReadline.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPkgConfig.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindCurses.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\luaconf.h.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Building Custom Rule C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
+C:\cmake-2.8.12.2-win32-x86\bin\cmake.exe -HC:/Users/pmoran/Desktop/c/alive/alive -BC:/Users/pmoran/Desktop/c/alive/alive/build --check-stamp-file C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/Users/pmoran/Desktop/c/alive/alive/3rdParty/luajit/CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;C:\Users\pmoran\Desktop\c\alive\alive\build\CMakeFiles\2.8.12.2\CMakeASMCompiler.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeASMInformation.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\dist.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPack.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CPackComponent.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Templates\CPackConfig.cmake.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\lua.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\cmake\FindReadline.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPkgConfig.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindCurses.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\cmake-2.8.12.2-win32-x86\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\src\luaconf.h.in;C:\Users\pmoran\Desktop\c\alive\alive\3rdParty\luajit\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\Users\pmoran\Desktop\c\alive\alive\build\3rdParty\luajit\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\3rdParty\luajit\src\host\minilua.c"  />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:/Users/pmoran/Desktop/c/alive/alive/build/ZERO_CHECK.vcxproj">
+      <Project>13B7ED77-6743-4E7C-9B14-87500E290968</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

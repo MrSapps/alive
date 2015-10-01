@@ -4,6 +4,7 @@
 #include "core/audiobuffer.hpp"
 #include "logger.hpp"
 #include "filesystem.hpp"
+#include "oddlib/audio/AliveAudio.h"
 
 void Sound::BarLoop()
 {
@@ -58,6 +59,17 @@ void Sound::Render(int w, int h)
     static bool bSet = false;
     if (!bSet)
     {
+        try
+        {
+            // Currently requires sounds.dat to be available from the get-go, so make
+            // this failure non-fatal
+            AliveInitAudio(mFs);
+        }
+        catch (const std::exception& ex)
+        {
+            LOG_ERROR("Audio init failure: " << ex.what());
+        }
+
         ImGui::SetNextWindowPos(ImVec2(320, 250));
         bSet = true;
         auto themes = AliveAudio::m_Config.get<jsonxx::Array>("themes");
@@ -78,9 +90,6 @@ void Sound::Render(int w, int h)
                 {
                     mThemes.push_back(lvlFileName + "!" + vabName + "!" + bsqName + "!" + std::to_string(j));
                 }
-
-
-                //AliveAudio::LoadAllFromLvl(archive, vabName, bsqName);
             }
         }
     }
