@@ -37,12 +37,12 @@ void Sound::ChangeTheme(FileSystem& fs, const std::deque<std::string>& parts)
 Sound::Sound(GameData& gameData, IAudioController& audioController, FileSystem& fs)
     : mGameData(gameData), mAudioController(audioController), mFs(fs)
 {
-
+    mAudioController.AddPlayer(&mAliveAudio);
 }
 
 Sound::~Sound()
 {
-
+    mAudioController.RemovePlayer(&mAliveAudio);
 }
 
 void Sound::Update()
