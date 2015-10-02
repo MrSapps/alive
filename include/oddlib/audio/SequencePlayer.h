@@ -2,7 +2,7 @@
 
 #include "SDL.h"
 #include <string>
-#include <thread>
+#include "stdthread.h"
 #include <vector>
 #include "oddlib/stream.hpp"
 #include "oddlib/audio/AliveAudio.h"
@@ -75,7 +75,7 @@ public:
 	void StopSequence();
 
 	float MidiTimeToSample(int time);
-	int GetPlaybackPositionSample();
+    Uint64 GetPlaybackPositionSample();
 
 	int m_TrackID = 1; // The track ID. Use this to seperate SoundFX from Music.
 	AliveAudioSequencerState m_PlayerState = ALIVE_SEQUENCER_STOPPED;

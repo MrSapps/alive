@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <iostream>
 #include <vector>
-#include <mutex>
 #include <algorithm>
 
 #include "vab.hpp"
@@ -21,6 +20,7 @@
 #include "ADSR.h"
 #include "biquad.h"
 #include "core/audiobuffer.hpp"
+#include "stdthread.h"
 
 const int AliveAudioSampleRate = 44100;
 
@@ -59,10 +59,10 @@ public:
     std::vector<AliveAudioVoice *> m_Voices;
     bool Interpolation = false;
     bool EQEnabled = false;
-    long long currentSampleIndex = 0;
+    Uint64 currentSampleIndex = 0;
     jsonxx::Object m_Config;
 
-    void AliveAudioSetEQ(float cutoff)
+    void AliveAudioSetEQ(float /*cutoff*/)
     {
         /* TODO FIX ME
         EQMutex.lock();
@@ -75,7 +75,7 @@ public:
         */
     }
 
-    void AliveEQEffect(Uint8* stream, int len)
+    void AliveEQEffect(Uint8* /*stream*/, int /*len*/)
     {
         /* TODO FIX ME
         if (AliveAudioEQBiQuad == nullptr)

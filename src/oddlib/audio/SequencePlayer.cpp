@@ -110,7 +110,7 @@ void SequencePlayer::m_PlayerThreadFunction()
     }
 }
 
-int SequencePlayer::GetPlaybackPositionSample()
+Uint64 SequencePlayer::GetPlaybackPositionSample()
 {
     return mAliveAudio.currentSampleIndex - m_SongBeginSample;
 }

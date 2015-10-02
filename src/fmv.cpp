@@ -9,7 +9,7 @@
 #include <GL/glew.h>
 #include "SDL_opengl.h"
 #include "nanovg.h"
-#include <mutex>
+#include "stdthread.h"
 
 class AutoMouseCursorHide
 {
@@ -664,7 +664,7 @@ public:
 
         if (ImGui::ListBoxHeader("##", ImVec2(ImGui::GetWindowWidth() - 15, ImGui::GetWindowSize().y - 95)))
         {
-            if (listbox_item_current >= listbox_items.size())
+            if (listbox_item_current >= static_cast<int>(listbox_items.size()))
             {
                 listbox_item_current = 0;
             }
