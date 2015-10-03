@@ -4,6 +4,7 @@
 #include <ostream>
 #include <istream>
 #include <fstream>
+#include <memory>
 
 struct VabHeader
 {
@@ -76,10 +77,10 @@ struct ProgAtr
     unsigned int iReserved1;
     unsigned int iReserved2;
 
+    // Pointers are not owned
     std::vector< VagAtr* > iTones;
 };
 
-// vag/tone/waves that are linked to an instrument
 struct VagAtr
 {
     VagAtr( std::istream& aStream )
@@ -162,9 +163,8 @@ struct VagAtr
     short int iReserved[4];
 };
 
-// AE VAB header points into sounds.dat!
-
-// A record in the VB!! file not the VH!!
+// AE VB file entry - rather than having the sound data in the VB it actually just has
+// pointers into sounds.dat instead
 struct AEVh
 {
     AEVh( std::istream& aStream )
@@ -203,13 +203,16 @@ public:
 
 public:
     VabHeader* iHeader;  // File header
-    std::vector< ProgAtr* > iProgs; // Always 128 of these - must be what the midi data is indexing into?
-    std::vector< VagAtr* > iTones;	// always 16 * num progs? Also called a tone??
+
+    // We have 128 programs in a VAB
+    std::vector< std::unique_ptr<ProgAtr> > mProgs;
+
+    // Which can have 16 tones or instruments which are mapped to key ranges
+    // and a sample along with how to play that sample
+    std::vector< std::unique_ptr<VagAtr> > mTones;
+
     // VAG Data body / (VB 254 VAG data) ("Samples" in AE?)
     // 512bytes /2 = 256 samps max
-    std::vector< AEVh* > iOffs;
-
-    std::vector< AoVag* > iAoVags;
-
-    // What about AO? Seems the same as sounds.dat but in each VB file
+    std::vector< std::unique_ptr<AEVh> > iOffs;
+    std::vector< std::unique_ptr<AoVag> > iAoVags;
 };

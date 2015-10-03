@@ -114,28 +114,28 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
     for (int i = 0; i < 128; i++)
     {
         AliveAudioProgram * program = new AliveAudioProgram();
-        for (int t = 0; t < mVab.iProgs[i]->iNumTones; t++)
+        for (int t = 0; t < mVab.mProgs[i]->iNumTones; t++)
         {
             AliveAudioTone * tone = new AliveAudioTone();
 
-            if (mVab.iProgs[i]->iTones[t]->iVag == 0) // Some Tones have vag 0? Essentially null?
+            if (mVab.mProgs[i]->iTones[t]->iVag == 0) // Some Tones have vag 0? Essentially null?
             {
                 delete tone;
                 continue;
             }
 
-            tone->f_Volume = mVab.iProgs[i]->iTones[t]->iVol / 127.0f;
-            tone->c_Center = mVab.iProgs[i]->iTones[t]->iCenter;
-            tone->c_Shift = mVab.iProgs[i]->iTones[t]->iShift;
-            tone->f_Pan = (mVab.iProgs[i]->iTones[t]->iPan / 64.0f) - 1.0f;
-            tone->Min = mVab.iProgs[i]->iTones[t]->iMin;
-            tone->Max = mVab.iProgs[i]->iTones[t]->iMax;
-            tone->Pitch = mVab.iProgs[i]->iTones[t]->iShift / 100.0f;
-            tone->m_Sample = m_Samples[mVab.iProgs[i]->iTones[t]->iVag - 1];
+            tone->f_Volume = mVab.mProgs[i]->iTones[t]->iVol / 127.0f;
+            tone->c_Center = mVab.mProgs[i]->iTones[t]->iCenter;
+            tone->c_Shift = mVab.mProgs[i]->iTones[t]->iShift;
+            tone->f_Pan = (mVab.mProgs[i]->iTones[t]->iPan / 64.0f) - 1.0f;
+            tone->Min = mVab.mProgs[i]->iTones[t]->iMin;
+            tone->Max = mVab.mProgs[i]->iTones[t]->iMax;
+            tone->Pitch = mVab.mProgs[i]->iTones[t]->iShift / 100.0f;
+            tone->m_Sample = m_Samples[mVab.mProgs[i]->iTones[t]->iVag - 1];
             program->m_Tones.push_back(tone);
 
-            unsigned short ADSR1 = mVab.iProgs[i]->iTones[t]->iAdsr1;
-            unsigned short ADSR2 = mVab.iProgs[i]->iTones[t]->iAdsr2;
+            unsigned short ADSR1 = mVab.mProgs[i]->iTones[t]->iAdsr1;
+            unsigned short ADSR2 = mVab.mProgs[i]->iTones[t]->iAdsr2;
 
             REAL_ADSR realADSR = {};
             PSXConvADSR(&realADSR, ADSR1, ADSR2, false);

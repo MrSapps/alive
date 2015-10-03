@@ -11,155 +11,83 @@ Vab::Vab()
 
 }
 
-Vab::Vab( std::string aVhFile, std::string aVbFile )
+Vab::Vab(std::string aVhFile, std::string aVbFile)
 {
-    LoadVhFile( aVhFile );
-    LoadVbFile( aVbFile );
+    LoadVhFile(aVhFile);
+    LoadVbFile(aVbFile);
 }
 
-void Vab::LoadVbFile( std::string aFileName )
+void Vab::LoadVbFile(std::string aFileName)
 {
     // Read the file.
     std::ifstream file;
-    file.open( aFileName.c_str(), std::ios::binary );
+    file.open(aFileName.c_str(), std::ios::binary);
     if (!file.is_open())
     {
         abort();
     }
-    ReadVb( file );
+    ReadVb(file);
 }
 
-void Vab::ReadVb( std::istream& aStream )
+void Vab::ReadVb(std::istream& aStream)
 {
+    aStream.seekg(0, aStream.end);
+    auto streamSize = aStream.tellg();
+    aStream.seekg(0, aStream.beg);
 
-    //    aStream.setByteOrder( QDataStream::LittleEndian );
-	aStream.seekg(0, aStream.end);
-	auto streamSize = aStream.tellg();
-	aStream.seekg(0, aStream.beg);
-    
-	if (streamSize > 5120) // HACK: No exoddus vb is greater than 5kb
-	{
+    if (streamSize > 5120) // HACK: No exoddus vb is greater than 5kb
+    {
         for (auto i = 0; i < iHeader->iNumVags; ++i)
-		{
-			AoVag* vag = new AoVag();
-			aStream.read((char*)&vag->iSize, sizeof(vag->iSize));
-			aStream.read((char*)&vag->iSampleRate, sizeof(vag->iSampleRate));
-			vag->iSampleData.resize(vag->iSize);
-			aStream.read((char*)vag->iSampleData.data(), vag->iSize);
+        {
+            auto vag = std::make_unique<AoVag>();
+            aStream.read((char*)&vag->iSize, sizeof(vag->iSize));
+            aStream.read((char*)&vag->iSampleRate, sizeof(vag->iSampleRate));
+            vag->iSampleData.resize(vag->iSize);
+            aStream.read((char*)vag->iSampleData.data(), vag->iSize);
 
-			iAoVags.push_back(vag);
-		}
-	}
-	else
-	{
-		for (unsigned int i = 0; i < iHeader->iNumVags; i++)
-		{
-			AEVh* vh = new AEVh(aStream);
-			iOffs.push_back(vh);
-		}
-	}
+            iAoVags.emplace_back(std::move(vag));
+        }
+    }
+    else
+    {
+        for (unsigned int i = 0; i < iHeader->iNumVags; i++)
+        {
+            iOffs.emplace_back(std::make_unique<AEVh>(aStream));
+        }
+    }
 }
 
 
-void Vab::LoadVhFile( std::string aFileName )
+void Vab::LoadVhFile(std::string aFileName)
 {
     // Read the file.
     std::ifstream file;
-    file.open( aFileName.c_str(), std::ios::binary );
+    file.open(aFileName.c_str(), std::ios::binary);
     if (!file.is_open())
     {
         abort();
     }
-    ReadVh( file );
+    ReadVh(file);
 }
 
-void Vab::ReadVh( std::istream& aStream )
+void Vab::ReadVh(std::istream& aStream)
 {
-    iHeader = new VabHeader( aStream );
+    iHeader = new VabHeader(aStream);
     int tones = 0;
-    for ( unsigned int i=0; i<128; i++ ) // 128 = max progs
+    for (unsigned int i = 0; i < 128; i++) // 128 = max progs
     {
-        ProgAtr* progAttr = new ProgAtr( aStream );
-        iProgs.push_back( progAttr );
+        auto progAttr = std::make_unique<ProgAtr>(aStream);
         tones += progAttr->iNumTones;
+        mProgs.emplace_back(std::move(progAttr));
     }
 
-    for ( unsigned int i=0; i<iHeader->iNumProgs; i++ )
+    for (unsigned int i = 0; i < iHeader->iNumProgs; i++)
     {
-        for ( unsigned int j=0; j<16; j++ ) // 16 = max tones
+        for (unsigned int j = 0; j < 16; j++) // 16 = max tones
         {
-            VagAtr* vagAttr = new VagAtr( aStream );
-            /* Remove these to get num tones to match header, but messes up index of tones*/
-            /*
-            if ( vagAttr->iVag == 0 )
-            {
-                delete vagAttr;
-                continue;
-            }
-            */
-
-            iTones.push_back( vagAttr );
-
-            iProgs[vagAttr->iProg]->iTones.push_back( vagAttr );
+            auto vagAttr = std::make_unique<VagAtr>(aStream);
+            mProgs[vagAttr->iProg]->iTones.push_back(vagAttr.get());
+            mTones.emplace_back(std::move(vagAttr));
         }
     }
-
-    /* Remove these to get num progs to match header*/
-    /*
-    for ( size_t i=0; i<iProgs.size(); i++ )
-    {
-        if ( iProgs[i]->iTones.empty() )
-        {
-            iProgs.erase( iProgs.begin() + i , iProgs.begin() + i + 1 );
-            i = 0;
-        }
-    }
-    */
-
-
-    // No 512 bytes at EOF!?
-    // aStream.device()->seek( aStream.device()->pos() - 1 );
-
-    if ( aStream.bad() )
-    {
-        //qDebug("Past EOF!!");
-    }
-
-    /*
-    int abe = -1;
-    int slig = -1;
-
-    for ( unsigned int i=0; i<iTones.size(); i++ )
-    {
-
-        unsigned int index = iTones[i]->iProg;
-        if ( iTones[i]->iVag == 15 )
-        {
-            if ( abe != -1 && abe != index )
-            {
- //               qDebug("Abe error!");
-            }
-            abe = index;
-        }
-
-        if ( iTones[i]->iVag == 40 )
-        {
-            if ( slig != -1 && slig != index )
-            {
-//                qDebug("Slig error!");
-            }
-            slig = index;
-        }
-
-        if ( index > 0 && index < iProgs.size())
-        {
-            iProgs[index]->iTones.push_back( iTones[i] );
-        }
-    }
-
-   // iProgs[abe] = iProgs[slig];
-
-    //iProgs[abe]->iAttr = 90;
-*/
-
 }
