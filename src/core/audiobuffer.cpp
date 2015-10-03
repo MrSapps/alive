@@ -5,7 +5,9 @@
 #include <sstream>
 
 #define AUDIO_BUFFER_CHANNELS 2
-#define AUDIO_BUFFER_FORMAT AUDIO_S16
+//#define AUDIO_BUFFER_FORMAT AUDIO_S16
+#define AUDIO_BUFFER_FORMAT AUDIO_F32 // HACK: float breaks FMV sound
+
 //#define AUDIO_BUFFER_FORMAT_SIZE (SDL_AUDIO_BITSIZE(AUDIO_BUFFER_FORMAT) / 8)
 //#define AUDIO_BUFFER_SAMPLE_SIZE (AUDIO_BUFFER_FORMAT_SIZE * AUDIO_BUFFER_CHANNELS)
 
@@ -50,25 +52,25 @@ void SdlAudioWrapper::Open(Uint16 frameSize, int freq)
         throw Oddlib::Exception((std::string("SDL_OpenAudio failed: ") + SDL_GetError()).c_str());
     }
 
+
     if (obtained.samples > audioSpec.samples)
     {
         LOG_WARNING("Got " << obtained.samples << " samples but wanted " << audioSpec.samples << " samples trying again with half the number of samples");
-    }
+        Close();
 
-    Close();
+        audioSpec.samples = audioSpec.samples / 2;
+        mDevice = SDL_OpenAudioDevice(NULL, 0, &audioSpec, &obtained, 0);
+        if (mDevice == 0)
+        {
+            throw Oddlib::Exception((std::string("SDL_OpenAudio failed: ") + SDL_GetError()).c_str());
+        }
 
-    audioSpec.samples = audioSpec.samples / 2;
-    mDevice = SDL_OpenAudioDevice(NULL, 0, &audioSpec, &obtained, 0);
-    if (mDevice == 0)
-    {
-        throw Oddlib::Exception((std::string("SDL_OpenAudio failed: ") + SDL_GetError()).c_str());
-    }
-
-    if (obtained.samples > audioSpec.samples)
-    {
-        std::stringstream s;
-        s << "Got " << obtained.samples << " samples but wanted " << audioSpec.samples;
-        throw Oddlib::Exception(s.str().c_str());
+        if (obtained.samples > audioSpec.samples)
+        {
+            std::stringstream s;
+            s << "Got " << obtained.samples << " samples but wanted " << audioSpec.samples;
+            throw Oddlib::Exception(s.str().c_str());
+        }
     }
 
     // Start the call back

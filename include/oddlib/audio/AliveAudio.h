@@ -62,9 +62,9 @@ public:
     Uint64 currentSampleIndex = 0;
     jsonxx::Object m_Config;
 
-    void AliveAudioSetEQ(float /*cutoff*/)
+    void AliveAudioSetEQ(float cutoff)
     {
-        /* TODO FIX ME
+        
         EQMutex.lock();
 
         if (AliveAudio::AliveAudioEQBiQuad != nullptr)
@@ -72,12 +72,12 @@ public:
 
         AliveAudioEQBiQuad = BiQuad_new(PEQ, 8u, cutoff, AliveAudioSampleRate, 1u);
         EQMutex.unlock();
-        */
+       
     }
 
-    void AliveEQEffect(Uint8* /*stream*/, int /*len*/)
+    void AliveEQEffect(float* stream, int len)
     {
-        /* TODO FIX ME
+       
         if (AliveAudioEQBiQuad == nullptr)
         {
             AliveAudioSetEQ(20500);
@@ -91,14 +91,13 @@ public:
         }
 
         EQMutex.unlock();
-        */
     }
 
     virtual void Play(Uint8* stream, Uint32 len) override;
     void AliveInitAudio(FileSystem& fs);
 private:
     void CleanVoices();
-    void AliveRenderAudio(Uint8* AudioStream, int StreamLength);
+    void AliveRenderAudio(float* AudioStream, int StreamLength);
 
     void LoadJsonConfig(std::string filePath, FileSystem& fs);
 };

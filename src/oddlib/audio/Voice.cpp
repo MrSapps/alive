@@ -1,7 +1,7 @@
 #include "oddlib/audio/Voice.h"
 #include "oddlib/audio/AliveAudio.h"
 
-Uint16 AliveAudioVoice::GetSample(bool interpolation)
+float AliveAudioVoice::GetSample(bool interpolation)
 {
     if (b_Dead)	// Don't return anything if dead. This voice should now be removed.
     {
@@ -52,8 +52,7 @@ Uint16 AliveAudioVoice::GetSample(bool interpolation)
         }
     }
 
-    // TODO FIX ME - not sure this is correct anymore :(
-    Uint32 sampleFrameRate = pow(1.059463, i_Note - m_Tone->c_Center + m_Tone->Pitch + f_Pitch) * (44100.0 / AliveAudioSampleRate);
+    double sampleFrameRate = pow(1.059463, i_Note - m_Tone->c_Center + m_Tone->Pitch + f_Pitch) * (44100.0 / AliveAudioSampleRate);
     f_SampleOffset += (sampleFrameRate);
 
     return m_Tone->m_Sample->GetSample(f_SampleOffset, interpolation) * ActiveAttackLevel * ActiveDecayLevel * ((b_NoteOn) ? ActiveSustainLevel : ActiveReleaseLevel) * f_Velocity;

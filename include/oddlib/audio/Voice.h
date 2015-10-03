@@ -5,11 +5,11 @@
 class AliveAudioVoice
 {
 public:
-	class AliveAudioTone * m_Tone;
-	int		i_Program;
+	class AliveAudioTone * m_Tone = nullptr;
+	int		i_Program = 0;
 	int		i_Note = 0;
 	bool	b_Dead = false;
-	unsigned int	f_SampleOffset = 0;
+	float	f_SampleOffset = 0;
 	bool	b_NoteOn = true;
 	double	f_Velocity = 1.0f;
 	double	f_Pitch = 0.0f;
@@ -26,5 +26,5 @@ public:
 	double ActiveDecayLevel = 1;
 	double ActiveSustainLevel = 1;
 
-    Uint16 GetSample(bool interpolation);
+    float GetSample(bool interpolation);
 };

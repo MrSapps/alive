@@ -72,7 +72,7 @@ void AliveAudio::CleanVoices()
 
 }
 
-void AliveAudio::AliveRenderAudio(Uint8 * AudioStream, int StreamLength)
+void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
 {
     static float tick = 0;
     static int note = 0;
@@ -83,12 +83,14 @@ void AliveAudio::AliveRenderAudio(Uint8 * AudioStream, int StreamLength)
 
 
     const int voiceCount = m_Voices.size();
+    /*
     if (voiceCount == 0)
     {
         // Bail out early if nothing to render
         currentSampleIndex += StreamLength;
         return;
     }
+    */
 
     AliveAudioVoice ** rawPointer = m_Voices.data(); // Real nice speed boost here.
 
@@ -124,23 +126,19 @@ void AliveAudio::AliveRenderAudio(Uint8 * AudioStream, int StreamLength)
             {
                 leftPan = 1.0f - abs(centerPan);
             }
-            else if (centerPan < 0)
+            
+            if (centerPan < 0)
             {
                 rightPan = 1.0f - abs(centerPan);
             }
 
-            // TODO FIX ME: Format isn't float anymore!
-            const Uint16  s = voice->GetSample(Interpolation);
-            Uint16  leftSample = s * leftPan;
-            Uint16  rightSample = s * rightPan;
+            // TODO FIX ME
+            float  s = voice->GetSample(Interpolation);
+            float leftSample = (s * leftPan);
+            float rightSample = (s * rightPan);
 
-          
-            //SDL_MixAudioFormat((Uint8 *)(AudioStream + i), (const Uint8*)&leftSample, AUDIO_U16, sizeof(unsigned char), 37); // Left Channel
-            //SDL_MixAudioFormat((Uint8 *)(AudioStream + i + 1), (const Uint8*)&rightSample, AUDIO_U16, sizeof(unsigned char), 37); // Right Channel
-
-            *(Uint8 *)(AudioStream + i) = *(const Uint8*)&leftSample;
-            *(Uint8 *)(AudioStream + i + 1) = *(const Uint8*)&rightSample;
-
+            SDL_MixAudioFormat((Uint8 *)(AudioStream + i), (const Uint8*)&leftSample, AUDIO_F32, sizeof(float), 37); // Left Channel
+            SDL_MixAudioFormat((Uint8 *)(AudioStream + i + 1), (const Uint8*)&rightSample, AUDIO_F32, sizeof(float), 37); // Right Channel
         }
 
         currentSampleIndex++;
@@ -159,11 +157,11 @@ typedef struct _StereoSample
 
 void AliveAudio::Play(Uint8* stream, Uint32 len)
 {
-    AliveRenderAudio(stream, len);
+    AliveRenderAudio(reinterpret_cast<float*>(stream), len / sizeof(float));
 
     if (EQEnabled)
     {
-        AliveEQEffect(stream, len);
+        AliveEQEffect(reinterpret_cast<float*>(stream), len / sizeof(float));
     }
 }
 

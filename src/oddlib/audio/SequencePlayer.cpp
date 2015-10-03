@@ -91,7 +91,9 @@ void SequencePlayer::m_PlayerThreadFunction()
 
             // Give a quarter beat anyway
             if (m_QuarterCallback != nullptr)
+            {
                 m_QuarterCallback();
+            }
         }
 
         if (m_PlayerState == ALIVE_SEQUENCER_PLAYING)
@@ -104,7 +106,9 @@ void SequencePlayer::m_PlayerThreadFunction()
                 m_PrevBar = currentQuarterBeat;
 
                 if (m_QuarterCallback != nullptr)
+                {
                     m_QuarterCallback();
+                }
             }
         }
     }

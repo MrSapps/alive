@@ -8,5 +8,5 @@ public:
     Uint16 * m_SampleBuffer;
     unsigned int i_SampleSize;
 
-    Uint16 GetSample(Uint32 sampleOffset, bool interpolation);
+    float GetSample(float sampleOffset, bool interpolation);
 };
