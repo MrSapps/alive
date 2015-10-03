@@ -55,7 +55,7 @@ void AliveAudio::CleanVoices()
 
     std::vector<AliveAudioVoice *> deadVoices;
 
-    for (auto voice : m_Voices)
+    for (auto& voice : m_Voices)
     {
         if (voice->b_Dead)
         {
@@ -63,7 +63,7 @@ void AliveAudio::CleanVoices()
         }
     }
 
-    for (auto obj : deadVoices)
+    for (auto& obj : deadVoices)
     {
         delete obj;
 
@@ -149,12 +149,6 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
     CleanVoices();
 }
 
-typedef struct _StereoSample
-{
-    float L;
-    float R;
-} StereoSample;
-
 void AliveAudio::Play(Uint8* stream, Uint32 len)
 {
     AliveRenderAudio(reinterpret_cast<float*>(stream), len / sizeof(float));
@@ -168,7 +162,7 @@ void AliveAudio::Play(Uint8* stream, Uint32 len)
 void AliveAudio::PlayOneShot(int program, int note, float volume, float pitch)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
-    for (auto tone : m_CurrentSoundbank->m_Programs[program]->m_Tones)
+    for (auto& tone : m_CurrentSoundbank->m_Programs[program]->m_Tones)
     {
         if (note >= tone->Min && note <= tone->Max)
         {
@@ -208,7 +202,7 @@ void AliveAudio::PlayOneShot(std::string soundID)
 void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, int trackID, float trackDelay)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
-    for (auto tone : m_CurrentSoundbank->m_Programs[program]->m_Tones)
+    for (auto& tone : m_CurrentSoundbank->m_Programs[program]->m_Tones)
     {
         if (note >= tone->Min && note <= tone->Max)
         {
@@ -232,7 +226,7 @@ void AliveAudio::NoteOn(int program, int note, char velocity, int trackID, float
 void AliveAudio::NoteOff(int program, int note, int trackID)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
-    for (auto voice : m_Voices)
+    for (auto& voice : m_Voices)
     {
         if (voice->i_Note == note && voice->i_Program == program && voice->i_TrackID == trackID)
         {
@@ -244,7 +238,7 @@ void AliveAudio::NoteOff(int program, int note, int trackID)
 void AliveAudio::NoteOffDelay(int program, int note, int trackID, float trackDelay)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
-    for (auto voice : m_Voices)
+    for (auto& voice : m_Voices)
     {
         if (voice->i_Note == note && voice->i_Program == program && voice->i_TrackID == trackID && voice->f_TrackDelay < trackDelay && voice->f_NoteOffDelay <= 0)
         {

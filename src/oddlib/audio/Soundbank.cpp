@@ -2,12 +2,12 @@
 
 AliveAudioSoundbank::~AliveAudioSoundbank()
 {
-    for (auto sample : m_Samples)
+    for (auto& sample : m_Samples)
     {
         delete sample;
     }
 
-    for (auto program : m_Programs)
+    for (auto& program : m_Programs)
     {
         for (auto tone : program->m_Tones)
         {
