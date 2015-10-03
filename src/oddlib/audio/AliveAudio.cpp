@@ -1,6 +1,11 @@
 #include "oddlib/audio/AliveAudio.h"
 #include "filesystem.hpp"
 
+static float RandFloat(float a, float b)
+{
+    return ((b - a)*((float)rand() / RAND_MAX)) + a;
+}
+
 void AliveAudio::LoadJsonConfig(std::string filePath, FileSystem& fs)
 {
     std::string jsonData = fs.Open(filePath)->LoadAllToString();
@@ -194,7 +199,7 @@ void AliveAudio::PlayOneShot(std::string soundID)
                 randB = (float)sndObj.get<jsonxx::Array>("pitchrand").get<jsonxx::Number>(1);
             }
 
-            PlayOneShot((int)sndObj.get<jsonxx::Number>("prog"), (int)sndObj.get<jsonxx::Number>("note"), 1.0f, AliveAudioHelper::RandFloat(randA, randB));
+            PlayOneShot((int)sndObj.get<jsonxx::Number>("prog"), (int)sndObj.get<jsonxx::Number>("note"), 1.0f, RandFloat(randA, randB));
         }
     }
 }
