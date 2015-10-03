@@ -1,0 +1,36 @@
+version: 1.0.{build}
+
+platform: 
+ - x86
+ - x64
+configuration: 
+ - Debug
+ - Release
+
+clone_folder: c:\alive
+
+before_build:
+ - mkdir build
+ - cd build
+ - call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%
+ - cmake --help
+ - echo %platform%
+ - if %platform%==X64 (cmake .. -G "Visual Studio 12 2013 Win64")
+ - if %platform%==x86 (cmake .. -G "Visual Studio 12 2013")
+
+build_script:
+ - cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+ # Gotta use the full path to cpack because chocolatey replaces cpack with itself!
+ - call "C:\Program Files (x86)\cmake\bin\cpack" --help
+ - call "C:\Program Files (x86)\cmake\bin\cpack" -G WIX -C %configuration%
+ - ctest -VV -C %configuration%
+
+install:
+ - git submodule update --init --recursive
+ - ps: Start-FileDownload 'https://www.libsdl.org/release/SDL2-devel-2.0.3-VC.zip'
+ - 7z x SDL2-devel-2.0.3-VC.zip
+ - set SDL2DIR=C:\alive\SDL2-2.0.3
+
+artifacts:
+ - path: build\*.msi
+   name: Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)

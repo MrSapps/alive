@@ -2,3 +2,21 @@
 	path = 3rdParty/gmock-1.7.0
 	url = https://github.com/paulsapps/gmock-1.7.0.git
 	
+[submodule "3rdParty/imgui"]
+	path = 3rdParty/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "3rdParty/jsonxx"]
+	path = 3rdParty/jsonxx
+	url = https://github.com/hjiang/jsonxx
+[submodule "3rdParty/luajit"]
+	path = 3rdParty/luajit
+	url = https://github.com/q-gears/luajit
+[submodule "3rdParty/solar-cmake"]
+	path = 3rdParty/solar-cmake
+	url = https://github.com/petroules/solar-cmake
+[submodule "3rdParty/cotire"]
+	path = 3rdParty/cotire
+	url = https://github.com/sakra/cotire
+[submodule "3rdParty/nanovg"]
+	path = 3rdParty/nanovg
+	url = https://github.com/memononen/nanovg.git

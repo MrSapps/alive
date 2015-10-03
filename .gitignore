@@ -1,5 +1,8 @@
 # Ignore the build and lib dirs
+build/**
+build/*
 build
+
 lib/*
 
 # Ignore any executables
@@ -36,3 +39,20 @@ bin/*
 *.exe
 *.out
 *.app
+
+# Data files and MSVC generated files via CMake
+*.vcxproj
+*.vcproj.filters
+*.rule
+*.BAN
+*.FNT
+*.BND
+*.CAM
+*.SAV
+*.VB
+*.VH
+*.JOY
+*.BSQ
+
+# Generated headers
+test/sample_files/generated_headers/*.h

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdexcept>
 
 namespace Oddlib
@@ -7,6 +9,7 @@ namespace Oddlib
     public:
         explicit Exception(const char* msg)
             : mMsg(msg)
+
         {
 
         }

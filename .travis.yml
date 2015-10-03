@@ -1,25 +1,25 @@
 os:
  - linux
  - osx
-
 env: 
  global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
   - secure: "d8/9ELIMrdr9hB2ZB5U33hWlFGUMTjK1Ncj7nOLb1hsHS6/U7XyAh5RNl3v90K0iOCvFXokIc1EFmiTZiw/dP15S+MONRs9MgzwHkMlXfdkHtaPswNRYfXavWuhaGXNSSNAlwKxRCobymyVX5goKxsADaAouSY/vQwKVdIVYd1s="
+  - secure: "Gv879EwhQyTnFmClRfD+YrEF5GuH6gl/EORkUaW27gjcKvjGhW4K6yHNjJ4kiuYybvVVaJ5AY1K8WUnH6AhfECfKJBl5Eb7EZA47o4Z8UkmiyEs296OWyPHIwIWrLWQsXIQ2nb1fwKnd0nzpiyy5DzSxm5pgotv3eU/ipdZUp20="
+  - secure: "dlvyRvnk4+6XP/b1atadJhvL7QjdV74/3Q48joUmT6EPlBhG7YSKZsbQir+vZInufXJ9dgqm7k4sbLt4pPM4BpspnP7QERzvL5e5qQjJ/9g+aDedtNDOhJXqH9iU+Rf9GHoScsP5XfUgSYSn+GtJomC9FI9BSBLOkJVSnc3ljZc="
  matrix:
   - COVERAGE=1
   - COVERAGE=0
-  
 matrix:
  exclude:
 # Don't build using gcc on mac
 #  - os: osx
 #    compiler: gcc
 # Don't try to do Coverity or coverage builds on mac
-#  - os: osx
-#    env: COVERITY=1
-#    env: COVERAGE=1
+  - os: osx
+    env: COVERITY=1
+    env: COVERAGE=1
 # Don't do cov or coverage on clang
   - os: linux
     compiler: clang
@@ -33,18 +33,20 @@ compiler:
 - clang
 language: cpp
 
-
-before_script: 
+install:
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository --yes ppa:kalakris/cmake; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y; fi
 - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update; fi
-
-- sudo apt-get install gcc-4.9
-- sudo apt-get install g++-4.9
-- sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 20
-- sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 20
-- sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
-- sudo update-alternatives --config gcc
-- sudo update-alternatives --config g++
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install cmake; fi
+# new gcc pulls in new libstdcpp for make_unique in clang
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install gcc-4.9; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install g++-4.9; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1  && "${COVERAGE}" == 0 ]]; then sudo apt-get install valgrind; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 20; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 20; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo update-alternatives --config gcc; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo update-alternatives --config g++; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo apt-get install ruby1.9.1 ruby1.9.1-dev; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo apt-get install rubygems1.9.1 irb1.9.1 ri1.9.1; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then rvmsudo  gem install coveralls-lcov; fi
@@ -52,35 +54,43 @@ before_script:
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.11.orig.tar.gz; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then tar xf lcov_1.11.orig.tar.gz; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" ]]; then sudo make -C lcov-1.11/ install; fi
-- sudo apt-get install libc++-dev
-
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then curl -O http://www.libsdl.org/release/SDL2-2.0.1.tar.gz; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then tar -xzvf SDL2-2.0.1.tar.gz; fi
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then (cd SDL2-2.0.1 && ./configure && make && sudo make install); fi
 - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
+- if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install sdl2; fi
 
-- $CXX --version
-
-install:
-- curl -O http://www.libsdl.org/release/SDL2-2.0.0.tar.gz
-- tar -xzvf SDL2-2.0.0.tar.gz
-- (cd SDL2-2.0.0 && ./configure && make && sudo make install)
-
-
-before_install: 
 script: 
+- $CXX --version
 
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then mkdir build; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cd build; fi
-- if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cmake -G"Unix Makefiles" ..; fi
+
+- UseValgrind=OFF
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1  && "${COVERAGE}" == 0 ]]; then UseValgrind=ON; fi
+- if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cmake -G"Unix Makefiles" .. -DUseValgrind=$UseValgrind; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then make -j2; fi
 - if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then cpack -C Release; fi
-- if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then ctest --output-on-failure; fi
+- if [[ "${COVERITY_SCAN_BRANCH}" != 1 ]]; then ctest -VV; fi
 
 after_success:
-- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then lcov --directory . --capture --output-file coverage.info; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then lcov --remove coverage.info '*/3rdParty/*' '/usr/*' --output-file coverage.info; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then lcov --list coverage.info; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 ]]; then coveralls-lcov coverage.info; fi
-  
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 && "${COVERAGE}" == 1 ]]; then lcov --directory . --capture --output-file coverage.info; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 && "${COVERAGE}" == 1 ]]; then lcov --remove coverage.info '*/3rdParty/*' '/usr/*' --output-file coverage.info; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 && "${COVERAGE}" == 1 ]]; then lcov --list coverage.info; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 && "${COVERAGE}" == 1 ]]; then coveralls-lcov coverage.info; fi
+
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then fileToUpload=`ls *.dmg`; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then fileToUpload=`ls *.deb`; fi
+- hash=`git rev-parse HEAD`
+- if [[ "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" == 0 && "${COVERAGE}" == 0 ]]; then curl --ftp-create-dirs -T $fileToUpload -u $FTP_USER:$FTP_PASSWORD ftp://mlgthatsme.com/$hash/$fileToUpload; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then fileToUpload=`ls *.tar.gz`; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" == 0 && "${COVERAGE}" == 0 ]]; then curl --ftp-create-dirs -T $fileToUpload -u $FTP_USER:$FTP_PASSWORD ftp://mlgthatsme.com/$hash/$fileToUpload; fi
+
 language: cpp
+
+notifications:
+  irc:
+    - "irc.esper.net#oddworld"
 
 addons:
   coverity_scan:
@@ -91,3 +101,4 @@ addons:
     build_command_prepend: "mkdir build; cd build; cmake .."
     build_command:   "make -j 2"
     branch_pattern: coverity_scan
+

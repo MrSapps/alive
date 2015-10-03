@@ -1,0 +1,211 @@
+{
+	"themes":[
+	  {  
+	     "name":"Mines - PC Demo",
+         "lvl":"mi_pc_demo",
+         "vab":"MINES",
+         "seq":"MISEQ.BSQ",
+      },
+	  {  
+	     "name":"Credits - PC Demo",
+         "lvl":"cr_pc_demo",
+         "vab":"OPTION",
+         "seq":"STSEQ.BSQ",
+      },
+	  {  
+	     "name":"ExoddusMenu - PC Demo",
+         "lvl":"st_pc_demo",
+         "vab":"OPTION",
+         "seq":"STSEQ.BSQ",
+      },
+	  {  
+	     "name":"Credits",
+         "lvl":"C1",
+         "vab":"OPTSNDFX",
+         "seq":"C1SEQ.BSQ",
+      },
+	  {// Rupture Farms
+		 "name":"Rupture Farms 1",
+         "lvl":"R1",
+         "vab":"RFSNDFX",
+         "seq":"R1SEQ.BSQ",
+      },
+	  {// Rupture Farms
+		 "name":"Rupture Farms 2",
+         "lvl":"R2",
+         "vab":"RFSNDFX",
+         "seq":"R2SEQ.BSQ",
+      },
+	  {// Rupture Farms
+		"name":"Rupture Farms 6",
+         "lvl":"R6",
+         "vab":"RFENDER",
+         "seq":"R6SEQ.BSQ",
+      },
+	  {// Main Menu
+		 "name":"Oddysee Menu",
+         "lvl":"S1",
+         "vab":"OPTSNDFX",
+         "seq":"S1SEQ.BSQ",
+      },
+	  {// Scrabania
+		 "name":"Scrabania",
+         "lvl":"D1",
+         "vab":"D1SNDFX",
+         "seq":"D1SEQ.BSQ",
+      },
+	  {// ?
+		 "name":"Scrabania 2",
+         "lvl":"D2",
+         "vab":"D2SNDFX",
+         "seq":"D2SEQ.BSQ",
+      },
+	  {// ?
+         "lvl":"E1",
+         "vab":"E1SNDFX",
+         "seq":"E1SEQ.BSQ",
+      },
+	  {// ?
+         "lvl":"E2",
+         "vab":"E2SNDFX",
+         "seq":"E2SEQ.BSQ",
+      },
+	  {// ?
+         "lvl":"F1",
+         "vab":"F1SNDFX",
+         "seq":"F1SEQ.BSQ",
+      },
+	  {// ?
+         "lvl":"F2",
+         "vab":"F2SNDFX",
+         "seq":"F2SEQ.BSQ",
+      },
+      {// Mines
+		 "name":"Mines",
+         "lvl":"MI",
+         "vab":"MINES",
+         "seq":"MISEQ.BSQ",
+		 "idle" : [12,13,14],
+		 "suspense" : 15,
+		 "slig" : 16,
+		 "intense" : 17
+      },
+	  {// Mines Italian Test
+		 "name":"Mines Italian",
+         "lvl":"MI_ITALIAN",
+         "vab":"MINES",
+         "seq":"MISEQ.BSQ",
+		 "idle" : [12,13,14],
+		 "suspense" : 15,
+		 "slig" : 16,
+		 "intense" : 17
+      },
+      {// Necrum
+		 "name":"Necrum",
+         "lvl":"NE",
+         "vab":"NECRUM",
+         "seq":"NESEQ.BSQ",
+		 "idle" : [14,15,16],
+		 "suspense" : 17,
+		 "slig" : 18,
+		 "intense" : 19
+      },
+      {// Exoddus Main Menu
+		 "name": "Exoddus Menu",
+         "lvl":"ST",
+         "vab":"OPTION",
+         "seq":"STSEQ.BSQ",
+		 "idle" : [2,3]
+      },
+      {// Barracks
+		 "name": "Barracks",
+         "lvl":"BA",
+         "vab":"BARRACKS",
+         "seq":"BASEQ.BSQ",
+		 "idle" : [12,13,14],
+		 "suspense" : 15,
+		 "slig" : 16,
+		 "intense" : 17
+      },
+      {// Bonewerks
+		"name": "Bonewerks",
+         "lvl":"BW",
+         "vab":"BONEWERK",
+         "seq":"BWSEQ.BSQ",
+		 "idle" : [12,13,14],
+		 "suspense" : 15,
+		 "slig" : 16,
+		 "intense" : 17
+      },
+      {// Brewery
+		 "name": "Brewery",
+         "lvl":"BR",
+         "vab":"BREWERY",
+         "seq":"BRSEQ.BSQ",
+		 "idle" : [12,13,14],
+		 "suspense" : 15,
+		 "slig" : 16,
+		 "intense" : 17
+      },
+	  {// Brewery Ender
+		"name": "Brewery Ender",
+         "lvl":"BW",
+         "vab":"BWENDER",
+         "seq":"B3SEQ.BSQ",
+		 "idle" : [12],
+		 "suspense" : 13,
+		 "slig" : 14,
+		 "intense" : 15
+      },
+	  {// Feeco Depot
+		 "name": "Feeco Depot",
+         "lvl":"FD",
+         "vab":"FEECO",
+         "seq":"FDSEQ.BSQ",
+		 "idle" : [12,13,14],
+		 "suspense" : 15,
+		 "slig" : 16,
+		 "intense" : 17
+      },
+	  {// Paramite Vault // Todo: Revise
+		 "name": "Paramite Vault",
+         "lvl":"PV",
+         "vab":"PARVAULT",
+         "seq":"PVSEQ.BSQ",
+		 "idle" : [12,13,14],
+		 "suspense" : 15,
+		 "slig" : 17,
+		 "intense" : 16
+      },
+	  {// Paramite Vault Ender // Todo: Revise
+		 "name": "Paramite Vault Ender",
+         "lvl":"PV",
+         "vab":"PVENDER",
+         "seq":"PVSEQ.BSQ",
+		 "idle" : [12],
+		 "suspense" : 13,
+		 "slig" : 16,
+		 "intense" : 14
+      },
+	  {// Scrab Vault
+		 "name": "Scrab Vault",
+         "lvl":"SV",
+         "vab":"SCRVAULT",
+         "seq":"SVSEQ.BSQ",
+		 "idle" : [10,11,12],
+		 "suspense" : 13,
+		 "slig" : 15,
+		 "intense" : 14
+      },
+	  {// Scrab Vault Ender // Todo: Revise
+		 "name": "Scrab Vault Ender",
+         "lvl":"SV",
+         "vab":"SVENDER",
+         "seq":"SVSEQ.BSQ",
+		 "idle" : [13],
+		 "suspense" : 14,
+		 "slig" : 16,
+		 "intense" : 15
+      }
+   ]
+}

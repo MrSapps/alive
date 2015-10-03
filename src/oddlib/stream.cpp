@@ -13,56 +13,77 @@ namespace Oddlib
         mSize = data.size();
         auto s = std::make_unique<std::stringstream>();
         std::copy(data.begin(), data.end(), std::ostream_iterator<unsigned char>(*s));
-        mStream.reset(s.release());
+        mStream = std::move(s);
         Seek(0);
+        mName = "Memory buffer (" + std::to_string(mSize) + ") bytes";
+        mFromMemoryBuffer = true;
     }
 
     Stream::Stream(const std::string& fileName)
+        : mName(fileName)
     {
         auto s = std::make_unique<std::ifstream>();
         s->open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
         if (!*s)
         {
-            LOG_ERROR("Lvl file not found %s", fileName.c_str());
+            LOG_ERROR("File not found " << fileName);
             throw Exception("File not found");
         }
 
         mSize = static_cast<size_t>(s->tellg());
         s->seekg(std::ios::beg);
 
-        mStream.reset(s.release());
+        mStream = std::move(s);
+    }
+
+    IStream* Stream::Clone()
+    {
+        if (!mFromMemoryBuffer)
+        {
+            return new Stream(mName);
+        }
+        auto oldPos = Pos();
+
+        Seek(0);
+        std::vector<Uint8> streamData(Size());
+        ReadBytes(streamData.data(), Size());
+        Seek(oldPos);
+
+        return new Stream(std::move(streamData));
+    }
+
+    IStream* Stream::Clone(Uint32 /*start*/, Uint32 /*size*/)
+    {
+        throw Exception("Sub clone not supported on direct file streams");
+    }
+
+    template<typename T>
+    void DoRead(std::unique_ptr<std::istream>& stream, T& output)
+    {
+        if (!stream->read(reinterpret_cast<char*>(&output), sizeof(output)))
+        {
+            throw Exception("Read failure");
+        }
     }
 
     void Stream::ReadUInt8(Uint8& output)
     {
-        if (!mStream->read(reinterpret_cast<char*>(&output), sizeof(output)))
-        {
-            throw Exception("ReadUInt8 failure");
-        }
+        DoRead<decltype(output)>(mStream, output);
     }
 
     void Stream::ReadUInt32(Uint32& output)
     {
-        if (!mStream->read(reinterpret_cast<char*>(&output), sizeof(output)))
-        {
-            throw Exception("ReadUInt32 failure");
-        }
+        DoRead<decltype(output)>(mStream, output);
     }
 
     void Stream::ReadUInt16(Uint16& output)
     {
-        if (!mStream->read(reinterpret_cast<char*>(&output), sizeof(output)))
-        {
-            throw Exception("ReadUInt32 failure");
-        }
+        DoRead<decltype(output)>(mStream, output);
     }
 
     void Stream::ReadSInt16(Sint16& output)
     {
-        if (!mStream->read(reinterpret_cast<char*>(&output), sizeof(output)))
-        {
-            throw Exception("ReadSInt16 failure");
-        }
+        DoRead<decltype(output)>(mStream, output);
     }
 
     void Stream::ReadBytes(Sint8* pDest, size_t destSize)
@@ -93,6 +114,17 @@ namespace Oddlib
     {
         const int c = mStream->peek();
         return (c == EOF);
+    }
+
+    std::string Stream::LoadAllToString()
+    {
+        Seek(0);
+        std::string content
+        { 
+            std::istreambuf_iterator<char>(*mStream),
+            std::istreambuf_iterator<char>()
+        };
+        return content;
     }
 
     size_t Stream::Pos() const

@@ -34,7 +34,7 @@ namespace Oddlib
 
     // ===================================================================
 
-    LvlArchive::File::File(Stream& stream, const LvlArchive::FileRecord& rec)
+    LvlArchive::File::File(IStream& stream, const LvlArchive::FileRecord& rec)
     {
         mFileName = std::string(
             reinterpret_cast<const char*>(rec.iFileNameBytes), 
@@ -55,7 +55,7 @@ namespace Oddlib
 
     LvlArchive::FileChunk* LvlArchive::File::ChunkById(Uint32 id)
     {
-        LOG_INFO("Find chunk with id %d", id);
+        LOG_INFO("Find chunk with id " << id);
         auto it = std::find_if(std::begin(mChunks), std::end(mChunks), [&] (std::unique_ptr<FileChunk>& chunk)
         {
             return chunk->Id() == id;
@@ -76,7 +76,7 @@ namespace Oddlib
         }
     }
 
-    void LvlArchive::File::LoadChunks(Stream& stream, Uint32 fileSize)
+    void LvlArchive::File::LoadChunks(IStream& stream, Uint32 fileSize)
     {
         while (stream.Pos() < stream.Pos() + fileSize)
         {
@@ -111,17 +111,35 @@ namespace Oddlib
     // ===================================================================
 
     LvlArchive::LvlArchive(const std::string& fileName)
-        : mStream(fileName)
+        : mStream(std::make_unique<Stream>(fileName))
     {
         TRACE_ENTRYEXIT;
+        Load();
+    }
 
+    LvlArchive::LvlArchive(std::unique_ptr<IStream> stream)
+        : mStream(std::move(stream))
+    {
+        TRACE_ENTRYEXIT;
+        Load();
+    }
+
+    LvlArchive::LvlArchive(std::vector<Uint8>&& data)
+        : mStream(std::make_unique<Stream>(std::move(data)))
+    {
+        TRACE_ENTRYEXIT;
+        Load();
+    }
+
+    void LvlArchive::Load()
+    {
         // Read and validate the header
         LvlHeader header;
         ReadHeader(header);
-        if (header.iNull1 != 0 && header.iNull2 != 0 && header.iMagic != MakeType('I', 'n', 'd', 'x'))
+        if (header.iNull1 != 0 || header.iNull2 != 0 || header.iMagic != MakeType('I', 'n', 'd', 'x'))
         {
             LOG_ERROR("Invalid LVL header");
-            throw Exception("Invalid header");
+            throw InvalidLvl("Invalid header");
         }
 
         // Read the file records
@@ -130,24 +148,24 @@ namespace Oddlib
         for (auto i = 0u; i < header.iNumFiles; i++)
         {
             FileRecord rec;
-            mStream.ReadBytes(&rec.iFileNameBytes[0], sizeof(rec.iFileNameBytes));
-            mStream.ReadUInt32(rec.iStartSector);
-            mStream.ReadUInt32(rec.iNumSectors);
-            mStream.ReadUInt32(rec.iFileSize);
+            mStream->ReadBytes(&rec.iFileNameBytes[0], sizeof(rec.iFileNameBytes));
+            mStream->ReadUInt32(rec.iStartSector);
+            mStream->ReadUInt32(rec.iNumSectors);
+            mStream->ReadUInt32(rec.iFileSize);
             recs.emplace_back(rec);
         }
 
         for (const auto& rec : recs)
         {
-            mFiles.emplace_back(std::make_unique<File>(mStream, rec));
+            mFiles.emplace_back(std::make_unique<File>(*mStream, rec));
         }
 
-        LOG_INFO("Loaded LVL '%s' with %d files", fileName.c_str(), header.iNumFiles);
+        LOG_INFO("Loaded LVL '" << mStream->Name() << "' with " << header.iNumFiles << " files");
     }
 
     LvlArchive::File* LvlArchive::FileByName(const std::string& fileName)
     {
-        LOG_INFO("Find file '%s'", fileName.c_str());
+        LOG_INFO("Find file '" << fileName << "'");
         auto it = std::find_if(std::begin(mFiles), std::end(mFiles), [&](std::unique_ptr<File>& file)
         {
             return file->FileName() == fileName;
@@ -157,13 +175,13 @@ namespace Oddlib
 
     void LvlArchive::ReadHeader(LvlHeader& header)
     {
-        mStream.ReadUInt32(header.iFirstFileOffset);
-        mStream.ReadUInt32(header.iNull1);
-        mStream.ReadUInt32(header.iMagic);
-        mStream.ReadUInt32(header.iNull2);
-        mStream.ReadUInt32(header.iNumFiles);
-        mStream.ReadUInt32(header.iUnknown1);
-        mStream.ReadUInt32(header.iUnknown2);
-        mStream.ReadUInt32(header.iUnknown3);
+        mStream->ReadUInt32(header.iFirstFileOffset);
+        mStream->ReadUInt32(header.iNull1);
+        mStream->ReadUInt32(header.iMagic);
+        mStream->ReadUInt32(header.iNull2);
+        mStream->ReadUInt32(header.iNumFiles);
+        mStream->ReadUInt32(header.iUnknown1);
+        mStream->ReadUInt32(header.iUnknown2);
+        mStream->ReadUInt32(header.iUnknown3);
     }
 }
