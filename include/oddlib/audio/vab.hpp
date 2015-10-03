@@ -202,7 +202,7 @@ public:
     void ReadVh( std::istream& aStream );
 
 public:
-    VabHeader* iHeader;  // File header
+    std::unique_ptr<VabHeader> mHeader;  // File header
 
     // We have 128 programs in a VAB
     std::vector< std::unique_ptr<ProgAtr> > mProgs;
