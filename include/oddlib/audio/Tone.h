@@ -29,5 +29,6 @@ public:
 
 	bool Loop = false;
 
-	AliveAudioSample * m_Sample;
+    // Not owned
+	AliveAudioSample * m_Sample = nullptr;
 };

@@ -153,7 +153,6 @@ add_library(oddlib STATIC
     src/oddlib/audio/Sample.cpp
     src/oddlib/audio/SequencePlayer.cpp
     src/oddlib/audio/Soundbank.cpp
-    src/oddlib/audio/Tone.cpp
     src/oddlib/audio/vab.cpp
     src/oddlib/audio/Voice.cpp
     include/oddlib/audio/ADSR.h

@@ -39,7 +39,7 @@ float AliveAudioVoice::GetSample(bool interpolation)
 
     // For some reason, for samples that dont loop, they need to be cut off 1 sample earlier.
     // Todo: Revise this. Maybe its the loop flag at the end of the sample!? 
-    if ((m_Tone->Loop) ? f_SampleOffset >= m_Tone->m_Sample->i_SampleSize : (f_SampleOffset >= m_Tone->m_Sample->i_SampleSize - 1))
+    if ((m_Tone->Loop) ? f_SampleOffset >= m_Tone->m_Sample->mSampleSize : (f_SampleOffset >= m_Tone->m_Sample->mSampleSize - 1))
     {
         if (m_Tone->Loop)
         {

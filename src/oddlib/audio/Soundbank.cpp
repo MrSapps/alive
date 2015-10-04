@@ -2,10 +2,7 @@
 
 AliveAudioSoundbank::~AliveAudioSoundbank()
 {
-    for (auto& sample : m_Samples)
-    {
-        delete sample;
-    }
+
 }
 
 AliveAudioSoundbank::AliveAudioSoundbank(std::string fileName, AliveAudio& aliveAudio)
@@ -76,30 +73,30 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
 {
     for (size_t i = 0; i < mVab.iOffs.size(); i++)
     {
-        AliveAudioSample * sample = new  AliveAudioSample();
+        auto sample = std::make_unique<AliveAudioSample>();
         if (mVab.iAoVags.size() > 0)
         {
-            sample->i_SampleSize = mVab.iAoVags[i]->iSize / sizeof(Uint16);
+            sample->mSampleSize = mVab.iAoVags[i]->iSize / sizeof(Uint16);
             sample->m_SampleBuffer.resize(mVab.iAoVags[i]->iSize);
             memcpy(sample->m_SampleBuffer.data(), mVab.iAoVags[i]->iSampleData.data(), sample->m_SampleBuffer.size() * sizeof(Uint16));
         }
         else
         {
-            sample->i_SampleSize = mVab.iOffs[i]->iLengthOrDuration / sizeof(Uint16);
-            sample->m_SampleBuffer.resize(sample->i_SampleSize);
+            sample->mSampleSize = mVab.iOffs[i]->iLengthOrDuration / sizeof(Uint16);
+            sample->m_SampleBuffer.resize(sample->mSampleSize);
             memcpy(sample->m_SampleBuffer.data(), aliveAudio.m_SoundsDat.data() + mVab.iOffs[i]->iFileOffset, sample->m_SampleBuffer.size() * sizeof(Uint16));
 
         }
-        m_Samples.push_back(sample);
+        m_Samples.emplace_back(std::move(sample));
     }
 
     for (size_t i = 0; i < mVab.iAoVags.size(); i++)
     {
-        AliveAudioSample * sample = new  AliveAudioSample();
-        sample->i_SampleSize = mVab.iAoVags[i]->iSize / sizeof(Uint16);
+        auto sample = std::make_unique<AliveAudioSample>();
+        sample->mSampleSize = mVab.iAoVags[i]->iSize / sizeof(Uint16);
         sample->m_SampleBuffer.resize(mVab.iAoVags[i]->iSize / sizeof(Uint16));
         memcpy(sample->m_SampleBuffer.data(), mVab.iAoVags[i]->iSampleData.data(), mVab.iAoVags[i]->iSize);
-        m_Samples.push_back(sample);
+        m_Samples.emplace_back(std::move(sample));
     }
 
     for (int i = 0; i < 128; i++)
@@ -121,7 +118,7 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
             tone->Min = mVab.mProgs[i]->iTones[t]->iMin;
             tone->Max = mVab.mProgs[i]->iTones[t]->iMax;
             tone->Pitch = mVab.mProgs[i]->iTones[t]->iShift / 100.0f;
-            tone->m_Sample = m_Samples[mVab.mProgs[i]->iTones[t]->iVag - 1];
+            tone->m_Sample = m_Samples[mVab.mProgs[i]->iTones[t]->iVag - 1].get();
          
             unsigned short ADSR1 = mVab.mProgs[i]->iTones[t]->iAdsr1;
             unsigned short ADSR2 = mVab.mProgs[i]->iTones[t]->iAdsr2;
