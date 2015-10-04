@@ -12,7 +12,6 @@
 #include "jsonxx/jsonxx.h"
 
 #include "Soundbank.h"
-#include "Tone.h"
 #include "Voice.h"
 #include "Sample.h"
 #include "ADSR.h"

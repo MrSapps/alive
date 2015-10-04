@@ -160,7 +160,6 @@ add_library(oddlib STATIC
     include/oddlib/audio/Sample.h
     include/oddlib/audio/SequencePlayer.h
     include/oddlib/audio/Soundbank.h
-    include/oddlib/audio/Tone.h
     include/oddlib/audio/vab.hpp
     include/oddlib/audio/Voice.h
     include/oddlib/cdromfilesystem.hpp
