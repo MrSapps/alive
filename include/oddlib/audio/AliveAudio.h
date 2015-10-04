@@ -47,17 +47,7 @@ public:
     void LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile, FileSystem& fs);
     void LoadAllFromLvl(Oddlib::LvlArchive& lvlArchive, std::string vabID, std::string seqFile);
 
-    biquad * AliveAudioEQBiQuad = nullptr;
-    std::mutex EQMutex;
 
-    AliveAudioSoundbank* m_CurrentSoundbank = nullptr;
-    std::vector<std::vector<Uint8>> m_LoadedSeqData;
-    std::recursive_mutex voiceListMutex;
-    std::vector<AliveAudioVoice *> m_Voices;
-    bool Interpolation = true;
-    bool EQEnabled = false;
-    Uint64 currentSampleIndex = 0;
-    jsonxx::Object m_Config;
 
     void AliveAudioSetEQ(float cutoff)
     {
@@ -72,9 +62,17 @@ public:
        
     }
 
+    std::vector<std::vector<Uint8>> m_LoadedSeqData;
+    std::recursive_mutex voiceListMutex;
+    jsonxx::Object m_Config;
+    Uint64 currentSampleIndex = 0;
+
+    virtual void Play(Uint8* stream, Uint32 len) override;
+    void AliveInitAudio(FileSystem& fs);
+private:
     void AliveEQEffect(float* stream, int len)
     {
-       
+
         if (AliveAudioEQBiQuad == nullptr)
         {
             AliveAudioSetEQ(20500);
@@ -90,9 +88,16 @@ public:
         EQMutex.unlock();
     }
 
-    virtual void Play(Uint8* stream, Uint32 len) override;
-    void AliveInitAudio(FileSystem& fs);
-private:
+
+    biquad * AliveAudioEQBiQuad = nullptr;
+    std::mutex EQMutex;
+
+    AliveAudioSoundbank* m_CurrentSoundbank = nullptr;
+
+    std::vector<AliveAudioVoice *> m_Voices;
+    bool Interpolation = true;
+    bool EQEnabled = false;
+
     void CleanVoices();
     void AliveRenderAudio(float* AudioStream, int StreamLength);
 
