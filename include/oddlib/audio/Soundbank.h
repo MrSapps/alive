@@ -1,8 +1,14 @@
 #pragma once
 
 #include "Sample.h"
-#include "Program.h"
+#include "Tone.h"
 #include <memory>
+
+class AliveAudioProgram
+{
+public:
+    std::vector<std::unique_ptr<AliveAudioTone>> m_Tones;
+};
 
 class AliveAudio;
 class AliveAudioSoundbank

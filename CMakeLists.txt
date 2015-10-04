@@ -149,7 +149,6 @@ add_library(oddlib STATIC
     src/oddlib/audio/ADSR.cpp
     src/oddlib/audio/AliveAudio.cpp
     src/oddlib/audio/biquad.cpp
-    src/oddlib/audio/Program.cpp
     src/oddlib/audio/Sample.cpp
     src/oddlib/audio/SequencePlayer.cpp
     src/oddlib/audio/Soundbank.cpp
@@ -158,7 +157,6 @@ add_library(oddlib STATIC
     include/oddlib/audio/ADSR.h
     include/oddlib/audio/AliveAudio.h
     include/oddlib/audio/biquad.h
-    include/oddlib/audio/Program.h
     include/oddlib/audio/Sample.h
     include/oddlib/audio/SequencePlayer.h
     include/oddlib/audio/Soundbank.h
