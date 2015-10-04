@@ -96,7 +96,6 @@ void SdlAudioWrapper::SetAudioSpec(Uint16 frameSize, int freq)
     LOG_INFO("SetAudioSpec samples: " << frameSize << " freq " << freq);
     SdlAudioLocker audioLocker;
     Close();
-    mPlayedSamples = 0;
     Open(frameSize, freq);
 }
 
