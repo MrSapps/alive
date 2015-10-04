@@ -6,13 +6,6 @@ AliveAudioSoundbank::~AliveAudioSoundbank()
     {
         delete sample;
     }
-
-    for (auto& program : m_Programs)
-    {
-       
-
-        delete program;
-    }
 }
 
 AliveAudioSoundbank::AliveAudioSoundbank(std::string fileName, AliveAudio& aliveAudio)
@@ -110,7 +103,7 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
 
     for (int i = 0; i < 128; i++)
     {
-        AliveAudioProgram * program = new AliveAudioProgram();
+        auto program = std::make_unique<AliveAudioProgram>();
         for (int t = 0; t < mVab.mProgs[i]->iNumTones; t++)
         {
             auto tone = std::make_unique<AliveAudioTone>();
@@ -152,6 +145,6 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
             program->m_Tones.emplace_back(std::move(tone));
         }
 
-        m_Programs.push_back(program);
+        m_Programs.emplace_back(std::move(program));
     }
 }
