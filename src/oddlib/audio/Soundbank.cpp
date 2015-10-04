@@ -77,15 +77,18 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
     for (size_t i = 0; i < mVab.iOffs.size(); i++)
     {
         AliveAudioSample * sample = new  AliveAudioSample();
-        sample->i_SampleSize = mVab.iOffs[i]->iLengthOrDuration / sizeof(Uint16);
         if (mVab.iAoVags.size() > 0)
         {
-            sample->m_SampleBuffer = new Uint16[mVab.iAoVags[i]->iSize / sizeof(Uint16)];
-            std::copy(mVab.iAoVags[i]->iSampleData.data(), mVab.iAoVags[i]->iSampleData.data() + mVab.iAoVags[i]->iSampleData.size(), sample->m_SampleBuffer);
+            sample->i_SampleSize = mVab.iAoVags[i]->iSize / sizeof(Uint16);
+            sample->m_SampleBuffer.resize(mVab.iAoVags[i]->iSize);
+            memcpy(sample->m_SampleBuffer.data(), mVab.iAoVags[i]->iSampleData.data(), sample->m_SampleBuffer.size() * sizeof(Uint16));
         }
         else
         {
-            sample->m_SampleBuffer = (Uint16*)(aliveAudio.m_SoundsDat.data() + mVab.iOffs[i]->iFileOffset);
+            sample->i_SampleSize = mVab.iOffs[i]->iLengthOrDuration / sizeof(Uint16);
+            sample->m_SampleBuffer.resize(sample->i_SampleSize);
+            memcpy(sample->m_SampleBuffer.data(), aliveAudio.m_SoundsDat.data() + mVab.iOffs[i]->iFileOffset, sample->m_SampleBuffer.size() * sizeof(Uint16));
+
         }
         m_Samples.push_back(sample);
     }
@@ -94,10 +97,8 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
     {
         AliveAudioSample * sample = new  AliveAudioSample();
         sample->i_SampleSize = mVab.iAoVags[i]->iSize / sizeof(Uint16);
-
-        sample->m_SampleBuffer = (Uint16*)new char[mVab.iAoVags[i]->iSize];
-        //std::copy(mVab.iAoVags[i]->iSampleData.begin(), mVab.iAoVags[i]->iSampleData.end(), sample->m_SampleBuffer);
-        memcpy(sample->m_SampleBuffer, mVab.iAoVags[i]->iSampleData.data(), mVab.iAoVags[i]->iSize);
+        sample->m_SampleBuffer.resize(mVab.iAoVags[i]->iSize / sizeof(Uint16));
+        memcpy(sample->m_SampleBuffer.data(), mVab.iAoVags[i]->iSampleData.data(), mVab.iAoVags[i]->iSize);
         m_Samples.push_back(sample);
     }
 

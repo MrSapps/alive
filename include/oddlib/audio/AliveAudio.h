@@ -56,7 +56,7 @@ public:
     std::vector<std::vector<Uint8>> m_LoadedSeqData;
     std::recursive_mutex voiceListMutex;
     std::vector<AliveAudioVoice *> m_Voices;
-    bool Interpolation = false;
+    bool Interpolation = true;
     bool EQEnabled = false;
     Uint64 currentSampleIndex = 0;
     jsonxx::Object m_Config;
