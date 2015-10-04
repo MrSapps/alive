@@ -174,7 +174,7 @@ void AliveAudio::PlayOneShot(int program, int note, float volume, float pitch)
             AliveAudioVoice * voice = new AliveAudioVoice();
             voice->i_Note = note;
             voice->f_Velocity = volume;
-            voice->m_Tone = tone;
+            voice->m_Tone = tone.get();
             voice->f_Pitch = pitch;
             m_Voices.push_back(voice);
         }
@@ -213,7 +213,7 @@ void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, i
         {
             AliveAudioVoice * voice = new AliveAudioVoice();
             voice->i_Note = note;
-            voice->m_Tone = tone;
+            voice->m_Tone = tone.get();
             voice->i_Program = program;
             voice->f_Velocity = velocity / 127.0f;
             voice->i_TrackID = trackID;

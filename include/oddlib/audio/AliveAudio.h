@@ -12,7 +12,6 @@
 #include "jsonxx/jsonxx.h"
 
 #include "Soundbank.h"
-#include "Helper.h"
 #include "Program.h"
 #include "Tone.h"
 #include "Voice.h"

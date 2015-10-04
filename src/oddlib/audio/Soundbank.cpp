@@ -9,10 +9,7 @@ AliveAudioSoundbank::~AliveAudioSoundbank()
 
     for (auto& program : m_Programs)
     {
-        for (auto tone : program->m_Tones)
-        {
-            delete tone;
-        }
+       
 
         delete program;
     }
@@ -116,11 +113,10 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
         AliveAudioProgram * program = new AliveAudioProgram();
         for (int t = 0; t < mVab.mProgs[i]->iNumTones; t++)
         {
-            AliveAudioTone * tone = new AliveAudioTone();
+            auto tone = std::make_unique<AliveAudioTone>();
 
             if (mVab.mProgs[i]->iTones[t]->iVag == 0) // Some Tones have vag 0? Essentially null?
             {
-                delete tone;
                 continue;
             }
 
@@ -132,8 +128,7 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
             tone->Max = mVab.mProgs[i]->iTones[t]->iMax;
             tone->Pitch = mVab.mProgs[i]->iTones[t]->iShift / 100.0f;
             tone->m_Sample = m_Samples[mVab.mProgs[i]->iTones[t]->iVag - 1];
-            program->m_Tones.push_back(tone);
-
+         
             unsigned short ADSR1 = mVab.mProgs[i]->iTones[t]->iAdsr1;
             unsigned short ADSR2 = mVab.mProgs[i]->iTones[t]->iAdsr2;
 
@@ -145,12 +140,16 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
             tone->ReleaseTime = realADSR.release_time;
             tone->SustainTime = realADSR.sustain_time;
 
+      
             if (realADSR.attack_time > 1) // This works until the loop database is added.
+            {
                 tone->Loop = true;
+            }
 
             /*if (i == 27 || i == 81)
             tone->Loop = true;*/
 
+            program->m_Tones.emplace_back(std::move(tone));
         }
 
         m_Programs.push_back(program);
