@@ -20,3 +20,6 @@
 [submodule "3rdParty/nanovg"]
 	path = 3rdParty/nanovg
 	url = https://github.com/memononen/nanovg.git
+[submodule "3rdParty/stk"]
+	path = 3rdParty/stk
+	url = https://github.com/thestk/stk.git
