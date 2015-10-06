@@ -73,6 +73,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest
     ${CMAKE_BINARY_DIR}/3rdParty/luajit
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/luajit/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/include
 )
 
 add_definitions(-DGLEW_STATIC)
@@ -83,6 +84,17 @@ SET(glew_src
 
 add_library(glew STATIC ${glew_src})
 SET_PROPERTY(TARGET glew PROPERTY FOLDER "3rdparty")
+
+SET(stk_src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/ADSR.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/BiQuad.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/FreeVerb.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/Stk.cpp
+)
+
+add_library(stk STATIC ${stk_src})
+SET_PROPERTY(TARGET stk PROPERTY FOLDER "3rdparty")
+
 
 SET(imgui_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_rect_pack.h
@@ -269,7 +281,7 @@ SET(CPACK_PACKAGE_VERSION_MINOR ${ALIVE_VERSION_MINOR})
 SET(CPACK_PACKAGE_VERSION_PATCH ${ALIVE_VERSION_PATCH})
 
 #cotire(Alive)
-TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib NanoVg glew ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
+TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
 install(
     TARGETS Alive 
     BUNDLE DESTINATION .
