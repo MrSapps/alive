@@ -88,6 +88,8 @@ SET_PROPERTY(TARGET glew PROPERTY FOLDER "3rdparty")
 SET(stk_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/ADSR.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/BiQuad.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/Delay.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/OnePole.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/FreeVerb.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/Stk.cpp
 )

@@ -1,5 +1,6 @@
 #include "oddlib/audio/AliveAudio.h"
 #include "filesystem.hpp"
+#include "stk/include/FreeVerb.h"
 
 static float RandFloat(float a, float b)
 {
@@ -154,6 +155,7 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
     CleanVoices();
 }
 
+
 void AliveAudio::Play(Uint8* stream, Uint32 len)
 {
     AliveRenderAudio(reinterpret_cast<float*>(stream), len / sizeof(float));
@@ -161,6 +163,19 @@ void AliveAudio::Play(Uint8* stream, Uint32 len)
     if (EQEnabled)
     {
         AliveEQEffect(reinterpret_cast<float*>(stream), len / sizeof(float));
+    }
+
+    // TODO: Find a better way of feeding the data in
+    int blen = len / sizeof(float);
+    float* buffer = reinterpret_cast<float*>(stream);
+
+    stk::FreeVerb verb;
+    for (int i = 0; i < blen; i++)
+    {
+        stk::StkFrames frame(1, 2);
+        frame[0] = buffer[i];
+        verb.tick(frame);
+        buffer[i] = frame[0];
     }
 }
 

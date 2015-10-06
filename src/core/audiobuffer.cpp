@@ -3,6 +3,7 @@
 #include "logger.hpp"
 #include <string>
 #include <sstream>
+#include "stk/include/Stk.h"
 
 #define AUDIO_BUFFER_CHANNELS 2
 //#define AUDIO_BUFFER_FORMAT AUDIO_S16
@@ -72,6 +73,8 @@ void SdlAudioWrapper::Open(Uint16 frameSize, int freq)
             throw Oddlib::Exception(s.str().c_str());
         }
     }
+
+    stk::Stk::setSampleRate(freq);
 
     // Start the call back
     SDL_PauseAudioDevice(mDevice, 0);
