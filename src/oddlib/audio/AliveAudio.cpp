@@ -143,8 +143,8 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
             float leftSample = (s * leftPan);
             float rightSample = (s * rightPan);
 
-            SDL_MixAudioFormat((Uint8 *)(AudioStream + i), (const Uint8*)&leftSample, AUDIO_F32, sizeof(float), 37); // Left Channel
-            SDL_MixAudioFormat((Uint8 *)(AudioStream + i + 1), (const Uint8*)&rightSample, AUDIO_F32, sizeof(float), 37); // Right Channel
+            SDL_MixAudioFormat((Uint8 *)(AudioStream + i), (const Uint8*)&leftSample, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME); // Left Channel
+            SDL_MixAudioFormat((Uint8 *)(AudioStream + i + 1), (const Uint8*)&rightSample, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME); // Right Channel
         }
 
         currentSampleIndex++;
