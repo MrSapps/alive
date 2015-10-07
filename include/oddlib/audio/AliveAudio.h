@@ -77,6 +77,7 @@ public:
 	bool AntiAliasFilteringEnabled = false;
     bool ReverbEnabled = false;
     float ReverbMix = 0.5f;
+    bool DebugDisableVoiceResampling = false;
 
 private:
     void AliveEQEffect(float* stream, int len)

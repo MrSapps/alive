@@ -29,6 +29,7 @@ public:
     bool	b_NoteOn = true;
     double	f_Velocity = 1.0f;
     double	f_Pitch = 0.0f;
+    bool    m_DebugDisableResampling = false;
 
     int		i_TrackID = 0; // This is used to distinguish between sounds fx and music
     double	f_TrackDelay = 0; // Used by the sequencer for perfect timing

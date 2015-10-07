@@ -52,7 +52,7 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool antialia
 	}
 	else
 	{
-		ActiveAttackLevel += ((1.0 / AliveAudioSampleRate) / m_Tone->AttackTime);
+		ActiveAttackLevel += ((1.0 / AliveAudioSampleRate) / m_Tone->AttackTime)*4;
 
 		if (ActiveAttackLevel > 1)
 		{
@@ -62,6 +62,8 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool antialia
 
 	// That constant is 2^(1/12)
 	double sampleFrameRateMul = pow(1.05946309436, i_Note - m_Tone->c_Center + m_Tone->Pitch + f_Pitch) * (44100.0 / AliveAudioSampleRate);
+    if (m_DebugDisableResampling)
+        sampleFrameRateMul = 1.0f;
 	f_SampleOffset += (sampleFrameRateMul);
 
 	// For some reason, for samples that dont loop, they need to be cut off 1 sample earlier.
