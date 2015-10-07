@@ -129,8 +129,12 @@ void Sound::Render(int w, int h)
 
 	ImGui::Begin("Audio output settings");
 		ImGui::Checkbox("Use antialiasing", &mAliveAudio.AntiAliasFilteringEnabled);
+
 		bool useCubicInterpolation = (mAliveAudio.Interpolation == AudioInterpolation_cubic);
 		ImGui::Checkbox("Use cubic interpolation instead of linear", &useCubicInterpolation);
 		mAliveAudio.Interpolation = useCubicInterpolation ? AudioInterpolation_cubic : AudioInterpolation_linear;
+
+		ImGui::Checkbox("Use reverb", &mAliveAudio.ReverbEnabled);
+		ImGui::SliderFloat("Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
 	ImGui::End();
 }
