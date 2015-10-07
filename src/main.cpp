@@ -7,6 +7,13 @@ extern "C"
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
+
+	// Hack to make SDL2 link
+	void *__iob_func()
+	{
+		static FILE f[] = {*stdin, *stdout, *stderr};
+		return f;
+	}
 }
 
 int main(int /*argc*/, char** /*argv*/)

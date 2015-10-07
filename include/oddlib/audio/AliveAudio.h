@@ -18,6 +18,7 @@
 #include "biquad.h"
 #include "core/audiobuffer.hpp"
 #include "stdthread.h"
+#include "AudioInterpolation.h"
 
 const int AliveAudioSampleRate = 44100;
 
@@ -69,6 +70,11 @@ public:
 
     virtual void Play(Uint8* stream, Uint32 len) override;
     void AliveInitAudio(FileSystem& fs);
+
+	// Can be changed from outside class
+    AudioInterpolation Interpolation = AudioInterpolation_linear;
+	bool AntiAliasFilteringEnabled = false;
+
 private:
     void AliveEQEffect(float* stream, int len)
     {
@@ -95,7 +101,6 @@ private:
     AliveAudioSoundbank* m_CurrentSoundbank = nullptr;
 
     std::vector<AliveAudioVoice *> m_Voices;
-    bool Interpolation = true;
     bool EQEnabled = false;
 
     void CleanVoices();

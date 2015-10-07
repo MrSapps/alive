@@ -139,7 +139,7 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
             }
 
             // TODO FIX ME
-            float  s = voice->GetSample(Interpolation);
+            float  s = voice->GetSample(Interpolation, AntiAliasFilteringEnabled);
             float leftSample = (s * leftPan);
             float rightSample = (s * rightPan);
 
