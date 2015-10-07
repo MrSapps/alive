@@ -30,8 +30,8 @@ public:
     void PlayOneShot(int program, int note, float volume, float pitch = 0);
     void PlayOneShot(std::string soundID);
 
-    void NoteOn(int program, int note, char velocity, float pitch = 0, int trackID = 0, float trackDelay = 0);
-    void NoteOn(int program, int note, char velocity, int trackID = 0, float trackDelay = 0);
+    void NoteOn(int program, int note, char velocity, float pitch = 0, int trackID = 0, double trackDelay = 0);
+    void NoteOn(int program, int note, char velocity, int trackID = 0, double trackDelay = 0);
 
     void NoteOff(int program, int note, int trackID = 0);
     void NoteOffDelay(int program, int note, int trackID = 0, float trackDelay = 0);

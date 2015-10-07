@@ -13,7 +13,7 @@ public:
     int		i_Program = 0;
     int		i_Note = 0;
     bool	b_Dead = false;
-    float	f_SampleOffset = 0;
+    double	f_SampleOffset = 0;
     bool	b_NoteOn = true;
     double	f_Velocity = 1.0f;
     double	f_Pitch = 0.0f;

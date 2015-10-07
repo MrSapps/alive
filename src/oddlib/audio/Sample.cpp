@@ -12,7 +12,7 @@ static float SampleSint16ToFloat(Sint16 v)
     return (v / 32767.0f);
 }
 
-float AliveAudioSample::GetSample(float sampleOffset, bool interpolation)
+float AliveAudioSample::GetSample(double sampleOffset, bool interpolation)
 {
     if (!interpolation)
     {
@@ -26,12 +26,13 @@ float AliveAudioSample::GetSample(float sampleOffset, bool interpolation)
     }
     else
     {
-        int roundedOffset = (int)floor(sampleOffset);
-        if (roundedOffset+1 >= m_SampleBuffer.size())
-        {
-            LOG_ERROR("Sample buffer index out of bounds");
-            roundedOffset = m_SampleBuffer.size() - 2;
-        }
-        return SampleSint16ToFloat(Lerp<Sint16>(m_SampleBuffer[roundedOffset], m_SampleBuffer[roundedOffset + 1], sampleOffset - roundedOffset));
+		int baseOffset = (int)floor(sampleOffset);
+		int nextOffset = (baseOffset + 1) % m_SampleBuffer.size(); // TODO: Don't assume looping
+		if (baseOffset >= m_SampleBuffer.size())
+		{
+            LOG_ERROR("Sample buffer index out of bounds (interpolated)");
+            baseOffset = nextOffset = m_SampleBuffer.size() - 1;
+		}
+        return SampleSint16ToFloat(Lerp<Sint16>(m_SampleBuffer[baseOffset], m_SampleBuffer[nextOffset], sampleOffset - baseOffset));
     }
 }

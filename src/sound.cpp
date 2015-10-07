@@ -104,7 +104,7 @@ void Sound::Render(int w, int h)
             selectedIndex = static_cast<int>(i);
             if (selectedIndex >= 0 && selectedIndex < mThemes.size() && !mThemes.empty())
             {
-                mAudioController.SetAudioSpec(512, AliveAudioSampleRate);
+                mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
                 mSeqPlayer = std::make_unique<SequencePlayer>(mAliveAudio);
                 mSeqPlayer->m_QuarterCallback = [&]() { BarLoop(); };
                 const auto parts = string_util::split(mThemes[selectedIndex], '!');

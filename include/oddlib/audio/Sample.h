@@ -13,5 +13,5 @@ public:
     std::vector<Uint16> m_SampleBuffer;
     unsigned int mSampleSize = 0;
 
-    float GetSample(float sampleOffset, bool interpolation);
+    float GetSample(double sampleOffset, bool interpolation);
 };
