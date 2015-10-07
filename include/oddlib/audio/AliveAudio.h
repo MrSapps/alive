@@ -19,6 +19,7 @@
 #include "core/audiobuffer.hpp"
 #include "stdthread.h"
 #include "AudioInterpolation.h"
+#include "stk/include/FreeVerb.h"
 
 const int AliveAudioSampleRate = 44100;
 
@@ -74,6 +75,8 @@ public:
 	// Can be changed from outside class
     AudioInterpolation Interpolation = AudioInterpolation_linear;
 	bool AntiAliasFilteringEnabled = false;
+    bool ReverbEnabled = false;
+    float ReverbMix = 0.5f;
 
 private:
     void AliveEQEffect(float* stream, int len)
@@ -102,6 +105,7 @@ private:
 
     std::vector<AliveAudioVoice *> m_Voices;
     bool EQEnabled = false;
+    stk::FreeVerb m_Reverb;
 
     void CleanVoices();
     void AliveRenderAudio(float* AudioStream, int StreamLength);
