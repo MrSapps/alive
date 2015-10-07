@@ -8,12 +8,14 @@ extern "C"
 #include "lualib.h"
 #include "lauxlib.h"
 
-	// Hack to make SDL2 link
-	void *__iob_func()
-	{
-		static FILE f[] = {*stdin, *stdout, *stderr};
-		return f;
-	}
+    // Hack to make SDL2 link
+    #if _MSC_VER == 1900
+    void *__iob_func()
+    {
+        static FILE f[] = { *stdin, *stdout, *stderr };
+        return f;
+    }
+    #endif
 }
 
 int main(int /*argc*/, char** /*argv*/)
