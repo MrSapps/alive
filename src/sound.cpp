@@ -104,7 +104,7 @@ void Sound::Render(int w, int h)
             selectedIndex = static_cast<int>(i);
             if (selectedIndex >= 0 && selectedIndex < mThemes.size() && !mThemes.empty())
             {
-                mAudioController.SetAudioSpec(512, AliveAudioSampleRate);
+                mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
                 mSeqPlayer = std::make_unique<SequencePlayer>(mAliveAudio);
                 mSeqPlayer->m_QuarterCallback = [&]() { BarLoop(); };
                 const auto parts = string_util::split(mThemes[selectedIndex], '!');
@@ -126,4 +126,11 @@ void Sound::Render(int w, int h)
     }
 
     ImGui::End();
+
+	ImGui::Begin("Audio output settings");
+		ImGui::Checkbox("Use antialiasing", &mAliveAudio.AntiAliasFilteringEnabled);
+		bool useCubicInterpolation = (mAliveAudio.Interpolation == AudioInterpolation_cubic);
+		ImGui::Checkbox("Use cubic interpolation instead of linear", &useCubicInterpolation);
+		mAliveAudio.Interpolation = useCubicInterpolation ? AudioInterpolation_cubic : AudioInterpolation_linear;
+	ImGui::End();
 }

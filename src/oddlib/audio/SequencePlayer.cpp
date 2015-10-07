@@ -37,10 +37,10 @@ static Uint32 _MidiReadVarLen(Oddlib::Stream& stream)
     return ret;
 }
 
-float SequencePlayer::MidiTimeToSample(int time)
+double SequencePlayer::MidiTimeToSample(int time)
 {
     // This may, or may not be correct. // TODO: Revise
-    return ((60 * time) / m_SongTempo) * (AliveAudioSampleRate / 500.0f);
+    return ((60 * time) / m_SongTempo) * (AliveAudioSampleRate / 500.0);
 }
 
 // TODO: This thread spin locks

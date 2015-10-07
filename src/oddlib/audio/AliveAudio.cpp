@@ -139,7 +139,7 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
             }
 
             // TODO FIX ME
-            float  s = voice->GetSample(Interpolation);
+            float  s = voice->GetSample(Interpolation, AntiAliasFilteringEnabled);
             float leftSample = (s * leftPan);
             float rightSample = (s * rightPan);
 
@@ -165,10 +165,10 @@ void AliveAudio::Play(Uint8* stream, Uint32 len)
         AliveEQEffect(reinterpret_cast<float*>(stream), len / sizeof(float));
     }
 
+	/*
     // TODO: Find a better way of feeding the data in
     int blen = len / sizeof(float);
     float* buffer = reinterpret_cast<float*>(stream);
-
     stk::FreeVerb verb;
     for (int i = 0; i < blen; i++)
     {
@@ -177,6 +177,7 @@ void AliveAudio::Play(Uint8* stream, Uint32 len)
         verb.tick(frame);
         buffer[i] = frame[0];
     }
+	*/
 }
 
 void AliveAudio::PlayOneShot(int program, int note, float volume, float pitch)
@@ -219,7 +220,7 @@ void AliveAudio::PlayOneShot(std::string soundID)
     }
 }
 
-void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, int trackID, float trackDelay)
+void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, int trackID, double trackDelay)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
     for (auto& tone : m_CurrentSoundbank->m_Programs[program]->m_Tones)
@@ -238,7 +239,7 @@ void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, i
     }
 }
 
-void AliveAudio::NoteOn(int program, int note, char velocity, int trackID, float trackDelay)
+void AliveAudio::NoteOn(int program, int note, char velocity, int trackID, double trackDelay)
 {
     NoteOn(program, note, velocity, 0, trackID, trackDelay);
 }

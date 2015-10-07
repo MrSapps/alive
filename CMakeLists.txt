@@ -170,6 +170,7 @@ add_library(oddlib STATIC
     src/oddlib/audio/Voice.cpp
     include/oddlib/audio/ADSR.h
     include/oddlib/audio/AliveAudio.h
+    include/oddlib/audio/AudioInterpolation.h
     include/oddlib/audio/biquad.h
     include/oddlib/audio/Sample.h
     include/oddlib/audio/SequencePlayer.h
