@@ -3,6 +3,8 @@
 #include "oddlib/audio/Sample.h"
 #include "logger.hpp"
 
+#include <algorithm>
+
 template<class T>
 static T Lerp(T from, T to, float t)
 {
@@ -44,10 +46,9 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool antialia
     {
         if (b_NoteOn)
         {
-            m_ADSR_Level += ((1.0 / AliveAudioSampleRate) / m_Tone->AttackTime);
+            m_ADSR_Level += ((1.0 / AliveAudioSampleRate) / m_Tone->Env.AttackTime);
             if (m_ADSR_Level > 1.0f)
             {
-                m_ADSR_Level = 1.0f;
                 m_ADSR_State = ADSR_State_decay;
             }
         }
@@ -60,12 +61,12 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool antialia
     {
         if (b_NoteOn)
         {
-            if (m_Tone->DecayTime > 0.0)
-                m_ADSR_Level -= ((1.0 / AliveAudioSampleRate) / m_Tone->DecayTime);
+            if (m_Tone->Env.DecayTime > 0.0)
+                m_ADSR_Level -= ((1.0 / AliveAudioSampleRate) / m_Tone->Env.DecayTime);
 
-            if (m_Tone->DecayTime <= 0.0 || m_ADSR_Level < m_Tone->SustainLevel)
+            if (m_Tone->Env.DecayTime <= 0.0 || m_ADSR_Level < m_Tone->Env.SustainLevel)
             {
-                m_ADSR_Level = m_Tone->SustainLevel;
+                m_ADSR_Level = m_Tone->Env.SustainLevel;
                 m_ADSR_State = ADSR_State_sustain;
             }
         }
@@ -81,7 +82,17 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool antialia
     }
     else if (m_ADSR_State == ADSR_State_release)
     {
-        m_ADSR_Level -= ((1.0 / AliveAudioSampleRate) / m_Tone->ReleaseTime);
+        if (m_Tone->Env.ExpRelease)
+        {
+            double delta = m_ADSR_Level*((1.0 / AliveAudioSampleRate) / m_Tone->Env.LinearReleaseTime); // Exp starts as fast as linear
+            if (delta < 0.000001)
+                delta = 0.000001; // Avoid denormals, and make sure that the voice ends some day
+            m_ADSR_Level -= delta;
+        }
+        else
+        {
+            m_ADSR_Level -= ((1.0 / AliveAudioSampleRate) / m_Tone->Env.LinearReleaseTime);
+        }
     }
 
     if (m_ADSR_Level <= 0) // Release/decay is done. So the voice is done.
