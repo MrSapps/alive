@@ -145,7 +145,7 @@ void Sound::Render(int w, int h)
 
         ImGui::EndGroup(); }
 
-        ImGui::Checkbox("Use reverb", &mAliveAudio.ReverbEnabled);
+        ImGui::Checkbox("Force reverb", &mAliveAudio.ForceReverb);
         ImGui::SliderFloat("Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
 
         ImGui::Checkbox("Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);

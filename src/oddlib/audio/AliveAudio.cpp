@@ -86,6 +86,12 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
 
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
 
+    // Reset buffers
+    for (int i = 0; i < StreamLength; ++i)
+    {
+        m_DryChannelBuffer[i] = 0;
+        m_ReverbChannelBuffer[i] = 0;
+    }
 
     const int voiceCount = m_Voices.size();
     /*
@@ -131,7 +137,7 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
             {
                 leftPan = 1.0f - abs(centerPan);
             }
-            
+
             if (centerPan < 0)
             {
                 rightPan = 1.0f - abs(centerPan);
@@ -142,14 +148,39 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
             float leftSample = (s * leftPan);
             float rightSample = (s * rightPan);
 
-            SDL_MixAudioFormat((Uint8 *)(AudioStream + i), (const Uint8*)&leftSample, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME); // Left Channel
-            SDL_MixAudioFormat((Uint8 *)(AudioStream + i + 1), (const Uint8*)&rightSample, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME); // Right Channel
+            if (voice->m_Tone->Reverbate || ForceReverb)
+            {
+                m_ReverbChannelBuffer[i] += leftSample;
+                m_ReverbChannelBuffer[i + 1] += rightSample;
+            }
+            else
+            {
+                m_DryChannelBuffer[i] += leftSample;
+                m_DryChannelBuffer[i + 1] += rightSample;
+            }
         }
 
         currentSampleIndex++;
     }
 
+    m_Reverb.setEffectMix(ReverbMix);
 
+    // TODO: Find a better way of feeding the data in
+    for (int i = 0; i < StreamLength; i += 2)
+    {
+        float left = m_Reverb.tick(m_ReverbChannelBuffer[i], m_ReverbChannelBuffer[i + 1], 0);
+        float right = m_Reverb.lastOut(1);
+        m_ReverbChannelBuffer[i] = left;
+        m_ReverbChannelBuffer[i + 1] = right;
+    }
+   
+    for (int i = 0; i < StreamLength; i += 2)
+    {
+        float left = m_DryChannelBuffer[i] + m_ReverbChannelBuffer[i];
+        float right = m_DryChannelBuffer[i + 1] + m_ReverbChannelBuffer[i + 1];
+        SDL_MixAudioFormat((Uint8 *)(AudioStream + i), (const Uint8*)&left, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
+        SDL_MixAudioFormat((Uint8 *)(AudioStream + i + 1), (const Uint8*)&right, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
+    }
 
     CleanVoices();
 }
@@ -157,27 +188,20 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
 
 void AliveAudio::Play(Uint8* stream, Uint32 len)
 {
+    if (m_DryChannelBuffer.size() != len)
+    {
+        // Maybe it's ok to have some crackles when the buffer size changes.
+        // (This allocates memory, which you should never do in audio thread.)
+        m_DryChannelBuffer.resize(len);
+        m_ReverbChannelBuffer.resize(len);
+    }
+
+
     AliveRenderAudio(reinterpret_cast<float*>(stream), len / sizeof(float));
 
     if (EQEnabled)
     {
         AliveEQEffect(reinterpret_cast<float*>(stream), len / sizeof(float));
-    }
-
-    if (ReverbEnabled)
-    {
-        m_Reverb.setEffectMix(ReverbMix);
-
-        // TODO: Find a better way of feeding the data in
-        int blen = len / sizeof(float);
-        float* buffer = reinterpret_cast<float*>(stream);
-        for (int i = 0; i < blen; i++)
-        {
-            stk::StkFrames frame(1, 2);
-            frame[0] = buffer[i];
-            m_Reverb.tick(frame);
-            buffer[i] = frame[0];
-        }
     }
 }
 

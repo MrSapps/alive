@@ -31,6 +31,7 @@ public:
     unsigned char Max;
 
     float Pitch;
+    bool Reverbate;
 
     VolumeEnvelope Env;
 

@@ -225,6 +225,7 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
             tone->Min = mVab.mProgs[i]->iTones[t]->iMin;
             tone->Max = mVab.mProgs[i]->iTones[t]->iMax;
             tone->Pitch = mVab.mProgs[i]->iTones[t]->iShift / 100.0f;
+            tone->Reverbate = (mVab.mProgs[i]->iMode == 4);
             tone->m_Sample = m_Samples[mVab.mProgs[i]->iTones[t]->iVag - 1].get();
          
 #if 1 // Use nocash emu based ADSR calc
