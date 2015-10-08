@@ -127,16 +127,27 @@ void Sound::Render(int w, int h)
 
     ImGui::End();
 
-	ImGui::Begin("Audio output settings");
-		ImGui::Checkbox("Use antialiasing", &mAliveAudio.AntiAliasFilteringEnabled);
+    { ImGui::Begin("Audio output settings");
+        ImGui::Checkbox("Use antialiasing (not implemented)", &mAliveAudio.AntiAliasFilteringEnabled);
 
-		bool useCubicInterpolation = (mAliveAudio.Interpolation == AudioInterpolation_cubic);
-		ImGui::Checkbox("Use cubic interpolation instead of linear", &useCubicInterpolation);
-		mAliveAudio.Interpolation = useCubicInterpolation ? AudioInterpolation_cubic : AudioInterpolation_linear;
+        { ImGui::BeginGroup();
+            if (ImGui::RadioButton("No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
+                mAliveAudio.Interpolation = AudioInterpolation_none;
 
-		ImGui::Checkbox("Use reverb", &mAliveAudio.ReverbEnabled);
-		ImGui::SliderFloat("Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
+            if (ImGui::RadioButton("Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
+                mAliveAudio.Interpolation = AudioInterpolation_linear;
 
-		ImGui::Checkbox("Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
-	ImGui::End();
+            if (ImGui::RadioButton("Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
+                mAliveAudio.Interpolation = AudioInterpolation_cubic;
+
+            if (ImGui::RadioButton("Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
+                mAliveAudio.Interpolation = AudioInterpolation_hermite;
+
+        ImGui::EndGroup(); }
+
+        ImGui::Checkbox("Use reverb", &mAliveAudio.ReverbEnabled);
+        ImGui::SliderFloat("Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
+
+        ImGui::Checkbox("Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
+    ImGui::End(); }
 }

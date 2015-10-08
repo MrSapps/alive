@@ -73,7 +73,7 @@ public:
     void AliveInitAudio(FileSystem& fs);
 
 	// Can be changed from outside class
-    AudioInterpolation Interpolation = AudioInterpolation_linear;
+    AudioInterpolation Interpolation = AudioInterpolation_hermite;
 	bool AntiAliasFilteringEnabled = false;
     bool ReverbEnabled = false;
     float ReverbMix = 0.5f;

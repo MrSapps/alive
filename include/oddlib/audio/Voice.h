@@ -36,5 +36,4 @@ public:
 private:
     double m_ADSR_Level = 0; // Value of the adsr curve at current time
     ADSR_State m_ADSR_State = ADSR_State_attack;
-    float m_LastSample = 0.0f;
 };
