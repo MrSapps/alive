@@ -198,22 +198,26 @@ protected:
         std::lock_guard<std::mutex> lock(mAudioBufferMutex);
 
         // Consume mAudioBuffer and update the amount of consumed bytes
-        size_t have = mAudioBuffer.size();
-        size_t take = len;
-        if (len > have)
+        size_t have = mAudioBuffer.size()/sizeof(int16_t);
+        size_t take = len/sizeof(float);
+        if (take > have)
         {
             // Buffer underflow - we don't have enough data to fill the requested buffer
             // audio glitches ahoy!
-            LOG_ERROR("Audio buffer underflow want " << len << " bytes " << " have " << have << " bytes");
+            LOG_ERROR("Audio buffer underflow want " << take << " samples " << " have " << have << " samples");
             take = have;
         }
 
-        for (auto i = 0u; i < take; i++)
+        float *floatOutStream = reinterpret_cast<float*>(stream);
+        for (int i = 0; i < take; i++)
         {
-            stream[i] = mAudioBuffer[i];
+            uint8_t low = mAudioBuffer[i*sizeof(int16_t)];
+            uint8_t high = mAudioBuffer[i*sizeof(int16_t) + 1];
+            int16_t fixed = (int16_t)(low | (high << 8));
+            floatOutStream[i] = fixed / 32768.0f;
         }
-        mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take);
-        mConsumedAudioBytes += take;
+        mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take*sizeof(int16_t));
+        mConsumedAudioBytes += take*sizeof(int16_t);
     }
 
     void RenderFrame(int width, int height, const GLvoid *pixels)
