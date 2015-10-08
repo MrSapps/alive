@@ -31,34 +31,55 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool antialia
 		return 0;
 	}
 
-	// ActiveDecayLevel -= ((1.0 / AliveAudioSampleRate) / m_Tone->DecayTime);
+    if (m_ADSR_State == ADSR_State_attack)
+    {
+        if (b_NoteOn)
+        {
+            m_ADSR_Level += ((1.0 / AliveAudioSampleRate) / m_Tone->AttackTime);
+            if (m_ADSR_Level > 1.0f)
+            {
+                m_ADSR_Level = 1.0f;
+                m_ADSR_State = ADSR_State_decay;
+            }
+        }
+        else
+        {
+            m_ADSR_State = ADSR_State_release;
+        }
+    }
+    else if (m_ADSR_State == ADSR_State_decay)
+    {
+        if (b_NoteOn)
+        {
+            if (m_Tone->DecayTime > 0.0)
+                m_ADSR_Level -= ((1.0 / AliveAudioSampleRate) / m_Tone->DecayTime);
 
-	if (ActiveDecayLevel < 0)
-	{
-		ActiveDecayLevel = 0;
-	}
+            if (m_Tone->DecayTime <= 0.0 || m_ADSR_Level < m_Tone->SustainLevel)
+            {
+                m_ADSR_Level = m_Tone->SustainLevel;
+                m_ADSR_State = ADSR_State_sustain;
+            }
+        }
+        else
+        {
+            m_ADSR_State = ADSR_State_release;
+        }
+    }
+    else if (m_ADSR_State == ADSR_State_sustain)
+    {
+        if (!b_NoteOn)
+            m_ADSR_State = ADSR_State_release;
+    }
+    else if (m_ADSR_State == ADSR_State_release)
+    {
+        m_ADSR_Level -= ((1.0 / AliveAudioSampleRate) / m_Tone->ReleaseTime);
+    }
 
-	if (!b_NoteOn)
-	{
-		ActiveReleaseLevel -= ((1.0 / AliveAudioSampleRate) / m_Tone->ReleaseTime);
-
-		ActiveReleaseLevel -= ((1.0 / AliveAudioSampleRate) / m_Tone->DecayTime); // Hacks?!?! --------------------
-
-		if (ActiveReleaseLevel <= 0) // Release is done. So the voice is done.
-		{
-			b_Dead = true;
-			ActiveReleaseLevel = 0;
-		}
-	}
-	else
-	{
-		ActiveAttackLevel += ((1.0 / AliveAudioSampleRate) / m_Tone->AttackTime)*4;
-
-		if (ActiveAttackLevel > 1)
-		{
-			ActiveAttackLevel = 1;
-		}
-	}
+    if (m_ADSR_Level <= 0) // Release/decay is done. So the voice is done.
+    {
+        b_Dead = true;
+        m_ADSR_Level = 0.0f;
+    }
 
 	// That constant is 2^(1/12)
 	double sampleFrameRateMul = pow(1.05946309436, i_Note - m_Tone->c_Center + m_Tone->Pitch + f_Pitch) * (44100.0 / AliveAudioSampleRate);
@@ -136,6 +157,6 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool antialia
 			m_LastSample = sample;
 		}
 
-		return sample * ActiveAttackLevel * ActiveDecayLevel * ((b_NoteOn) ? ActiveSustainLevel : ActiveReleaseLevel) * f_Velocity;
+		return sample * m_ADSR_Level * f_Velocity;
 	}
 }
