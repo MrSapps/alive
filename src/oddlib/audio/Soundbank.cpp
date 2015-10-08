@@ -71,16 +71,8 @@ AliveAudioSoundbank::AliveAudioSoundbank(std::string lvlPath, std::string vabID,
     InitFromVab(vab, aliveAudio);
 }
 
-struct ADSR
-{
-    double AttackTime;
-    double DecayTime;
-    double SustainLevel;
-    double ReleaseTime;
-};
-
 // Convert PSX volume envelope info to conventional ADSR. Not exact, because PSX format is richer.
-static ADSR PSXEnvelopeToADSR(uint16_t low, uint16_t high)
+static VolumeEnvelope PSXEnvelopeToADSR(uint16_t low, uint16_t high)
 {
     // Following the spec of nocash emu: http://problemkaputt.de/psx-spx.htm#spuvolumeandadsrgenerator
 
@@ -130,7 +122,7 @@ static ADSR PSXEnvelopeToADSR(uint16_t low, uint16_t high)
     AdsrLevel = AdsrLevel + AdsrStep; saturated to 0.. + 7FFFh
     */
 
-    ADSR adsr = { 0 };
+    VolumeEnvelope env = { 0 };
     const int maxAmplitude = 0x8000;
     const double expMinAmplitude = 0.1; // Gotta have some threshold when approximating exp with linear curve
 
@@ -152,11 +144,11 @@ static ADSR PSXEnvelopeToADSR(uint16_t low, uint16_t high)
             durationInSamples += cycles;
             level += step;
         }
-        adsr.AttackTime = durationInSamples / 44100.0;
+        env.AttackTime = durationInSamples / 44100.0;
     }
 
     { // Sustain
-        adsr.SustainLevel = 1.0*sustainLevel / maxAmplitude;
+        env.SustainLevel = 1.0*sustainLevel / maxAmplitude;
     }
 
     { // Decay
@@ -165,8 +157,8 @@ static ADSR PSXEnvelopeToADSR(uint16_t low, uint16_t high)
         double timeStep = step/44100.0;
         double amplitudeShift = 1.0*shift / maxAmplitude;
 
-        double target = std::max(expMinAmplitude, adsr.SustainLevel);
-        adsr.DecayTime = -log(target) / (amplitudeShift / timeStep);
+        double target = std::max(expMinAmplitude, env.SustainLevel);
+        env.DecayTime = -log(target) / (amplitudeShift / timeStep);
         int breakpoint_place = 1;
     }
 
@@ -176,19 +168,12 @@ static ADSR PSXEnvelopeToADSR(uint16_t low, uint16_t high)
         double timeStep = step/44100.0;
         double amplitudeShift = 1.0*shift / maxAmplitude;
 
-        if (releaseMode == 0) // Linear
-        {
-            adsr.ReleaseTime = 1.0 / (amplitudeShift / timeStep);
-        }
-        else // Exp
-        {
-            adsr.ReleaseTime = -log(expMinAmplitude) / (amplitudeShift / timeStep);
-            int breakpoint_place2 = 1;
-        }
-        int breakpoint_place = 1;
+        // Exponential release is calculated at playback
+        env.ExpRelease = (releaseMode == 1);
+        env.LinearReleaseTime = 1.0 / (amplitudeShift / timeStep);
     }
 
-    return adsr;
+    return env;
 }
 
 void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
@@ -243,14 +228,11 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& aliveAudio)
             tone->m_Sample = m_Samples[mVab.mProgs[i]->iTones[t]->iVag - 1].get();
          
 #if 1 // Use nocash emu based ADSR calc
-            ADSR adsr = PSXEnvelopeToADSR(  mVab.mProgs[i]->iTones[t]->iAdsr1,
-                                            mVab.mProgs[i]->iTones[t]->iAdsr2);
-            tone->AttackTime = adsr.AttackTime;
-            tone->DecayTime = adsr.DecayTime;
-            tone->ReleaseTime = adsr.ReleaseTime;
-            tone->SustainLevel = adsr.SustainLevel;
+            VolumeEnvelope env = PSXEnvelopeToADSR(  mVab.mProgs[i]->iTones[t]->iAdsr1,
+                                                     mVab.mProgs[i]->iTones[t]->iAdsr2);
+            tone->Env = env;
 
-            if (adsr.AttackTime > 0.5) // This works until the loop database is added.
+            if (env.AttackTime > 0.5) // This works until the loop database is added.
             {
                 tone->Loop = true;
             }

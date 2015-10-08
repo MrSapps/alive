@@ -3,6 +3,15 @@
 #include "Sample.h"
 #include <memory>
 
+// Extended ADSR
+struct VolumeEnvelope
+{
+    double AttackTime;
+    double DecayTime;
+    double SustainLevel;
+    double LinearReleaseTime;
+    bool ExpRelease;
+};
 
 class AliveAudioTone
 {
@@ -23,12 +32,7 @@ public:
 
     float Pitch;
 
-    double AttackTime;
-    double ReleaseTime;
-    bool ReleaseExponential = false;
-    double DecayTime;
-    double SustainTime;
-    double SustainLevel;
+    VolumeEnvelope Env;
 
     bool Loop = false;
 
