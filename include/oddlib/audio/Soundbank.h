@@ -28,6 +28,7 @@ public:
     bool ReleaseExponential = false;
     double DecayTime;
     double SustainTime;
+    double SustainLevel;
 
     bool Loop = false;
 

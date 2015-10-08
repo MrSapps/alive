@@ -3,17 +3,12 @@
 #include "SDL.h"
 #include "oddlib/audio/AudioInterpolation.h"
 
-// Biquad filter implemented with the help of http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt 
-struct BiquadFilterCoeff {
-	float b0, b1, b2, a0, a1, a2;
+enum ADSR_State {
+    ADSR_State_attack,
+    ADSR_State_decay,
+    ADSR_State_sustain,
+    ADSR_State_release,
 };
-
-struct BiquadFilterState {
-	BiquadFilterCoeff coeff;
-	float prev_filtered[2];
-	float prev_samples[2];
-};
-
 class AliveAudioVoice
 {
 public:
@@ -29,21 +24,17 @@ public:
     bool	b_NoteOn = true;
     double	f_Velocity = 1.0f;
     double	f_Pitch = 0.0f;
+    bool    m_DebugDisableResampling = false;
 
     int		i_TrackID = 0; // This is used to distinguish between sounds fx and music
     double	f_TrackDelay = 0; // Used by the sequencer for perfect timing
     bool	m_UsesNoteOffDelay = false;
     double	f_NoteOffDelay = 0;
 
-
-    // Active ADSR Levels
-    double ActiveAttackLevel = 0;
-    double ActiveReleaseLevel = 1;
-    double ActiveDecayLevel = 1;
-    double ActiveSustainLevel = 1;
-
     float GetSample(AudioInterpolation interpolation, bool antiAliasFilteringEnabled);
 
 private:
-	float m_LastSample = 0.0f;
+    double m_ADSR_Level = 0; // Value of the adsr curve at current time
+    ADSR_State m_ADSR_State = ADSR_State_attack;
+    float m_LastSample = 0.0f;
 };

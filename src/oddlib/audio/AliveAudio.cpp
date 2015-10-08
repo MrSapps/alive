@@ -193,6 +193,7 @@ void AliveAudio::PlayOneShot(int program, int note, float volume, float pitch)
             voice->f_Velocity = volume;
             voice->m_Tone = tone.get();
             voice->f_Pitch = pitch;
+            voice->m_DebugDisableResampling = DebugDisableVoiceResampling;
             m_Voices.push_back(voice);
         }
     }
@@ -235,6 +236,7 @@ void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, i
             voice->f_Velocity = velocity / 127.0f;
             voice->i_TrackID = trackID;
             voice->f_TrackDelay = trackDelay;
+            voice->m_DebugDisableResampling = DebugDisableVoiceResampling;
             m_Voices.push_back(voice);
         }
     }
