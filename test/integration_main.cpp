@@ -2,6 +2,9 @@
 #include "engine.hpp"
 #include "logger.hpp"
 #include "fmv.hpp"
+#include "alive_version.h"
+#include "imgui/imgui.h"
+#include "sound.hpp"
 
 extern "C"
 {
