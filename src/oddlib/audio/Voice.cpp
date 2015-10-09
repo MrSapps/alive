@@ -47,8 +47,9 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool antialia
         if (b_NoteOn)
         {
             m_ADSR_Level += ((1.0 / AliveAudioSampleRate) / m_Tone->Env.AttackTime);
-            if (m_ADSR_Level > 1.0f)
+            if (m_ADSR_Level > 1.0)
             {
+                m_ADSR_Level = 1.0;
                 m_ADSR_State = ADSR_State_decay;
             }
         }

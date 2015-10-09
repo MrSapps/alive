@@ -75,7 +75,7 @@ public:
 	// Can be changed from outside class
     AudioInterpolation Interpolation = AudioInterpolation_hermite;
 	bool AntiAliasFilteringEnabled = false;
-    bool ReverbEnabled = false;
+    bool ForceReverb = false;
     float ReverbMix = 0.5f;
     bool DebugDisableVoiceResampling = false;
 
@@ -105,6 +105,9 @@ private:
     AliveAudioSoundbank* m_CurrentSoundbank = nullptr;
 
     std::vector<AliveAudioVoice *> m_Voices;
+    std::vector<float> m_DryChannelBuffer;
+    std::vector<float> m_ReverbChannelBuffer;
+
     bool EQEnabled = false;
     stk::FreeVerb m_Reverb;
 
