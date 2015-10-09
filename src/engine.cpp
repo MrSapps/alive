@@ -11,6 +11,7 @@
 #include "alive_version.h"
 #include "core/audiobuffer.hpp"
 #include "fmv.hpp"
+#include "sound.hpp"
 
 #include "nanovg.h"
 #define NANOVG_GL3_IMPLEMENTATION
@@ -195,7 +196,6 @@ void UpdateImGui()
 }
 
 Engine::Engine()
-    : mSound(mGameData, mAudioHandler, mFileSystem)
 {
 
 }
@@ -270,6 +270,7 @@ bool Engine::Init()
 void Engine::InitSubSystems()
 {
     mFmv = std::make_unique<Fmv>(mGameData, mAudioHandler, mFileSystem);
+    mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem);
 }
 
 int Engine::Run()
@@ -375,7 +376,7 @@ void Engine::Update()
     // TODO: Move into state machine
     //mFmv.Play("INGRDNT.DDV");
     mFmv->Update();
-    mSound.Update();
+    mSound->Update();
 }
 
 
@@ -395,7 +396,7 @@ void Engine::Render()
     nvgResetTransform(mNanoVg);
 
     mFmv->Render(mNanoVg, w, h);
-    mSound.Render(w, h);
+    mSound->Render(w, h);
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)

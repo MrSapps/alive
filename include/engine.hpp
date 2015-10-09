@@ -2,13 +2,12 @@
 
 #include "gamedata.hpp"
 #include "filesystem.hpp"
-#include "sound.hpp"
 #include <memory>
 #include "oddlib/masher.hpp"
-#include "core/audiobuffer.hpp"
 #include "SDL.h"
 #include <GL/glew.h>
 #include "SDL_opengl.h"
+#include "core/audiobuffer.hpp"
 
 class Engine
 {
@@ -54,7 +53,7 @@ protected:
 
 
     std::unique_ptr<class Fmv> mFmv;
-    Sound mSound;
+    std::unique_ptr<class Sound> mSound;
 
     struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;
     struct NVGcontext* mNanoVg = nullptr;

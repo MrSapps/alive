@@ -28,22 +28,6 @@ public:
         static bool showAbout = false;
         if (ImGui::BeginMainMenuBar())
         {
-            /*
-            if (ImGui::BeginMenu("File"))
-            {
-            if (ImGui::MenuItem("Exit", "CTRL+Q")) { ToState(eShuttingDown); }
-            ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Edit"))
-            {
-            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-            ImGui::Separator();
-            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-            ImGui::EndMenu();
-            }*/
             if (ImGui::BeginMenu("Help"))
             {
                 if (ImGui::MenuItem("About", "CTRL+H"))
@@ -69,6 +53,7 @@ public:
     virtual void InitSubSystems() override
     {
         mFmv = std::make_unique<DebugFmv>(mGameData, mAudioHandler, mFileSystem);
+        mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem);
     }
 
     virtual bool Init() override
