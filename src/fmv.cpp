@@ -704,22 +704,12 @@ private:
     FileSystem& mFileSystem;
 };
 
-void Fmv::RenderVideoUi()
-{
-    if (!mFmv)
-    {
-        if (!mFmvUi)
-        {
-            mFmvUi = std::make_unique<FmvUi>(mFmv, mAudioController, mFileSystem);
-        }
-        mFmvUi->DrawVideoSelectionUi(mGameData.Fmvs());
-    }
-}
 
 Fmv::Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs)
     : mGameData(gameData), mAudioController(audioController), mFileSystem(fs)
 {
-
+    // TODO: Should probably be handled by something else
+    glEnable(GL_TEXTURE_2D);
 }
 
 Fmv::~Fmv()
@@ -742,6 +732,11 @@ void Fmv::Play(const std::string& name)
     }
 }
 
+bool Fmv::IsPlaying() const
+{
+    return mFmv != nullptr;
+}
+
 void Fmv::Stop()
 {
     mFmv = nullptr;
@@ -760,16 +755,42 @@ void Fmv::Update()
 
 void Fmv::Render(NVGcontext* ctx, int screenW, int screenH)
 {
-    glEnable(GL_TEXTURE_2D);
-
-    RenderVideoUi();
-
     if (mFmv)
     {
         mFmv->OnRenderFrame(ctx, screenW, screenH);
     }
-    else
+}
+
+DebugFmv::DebugFmv(GameData& gameData, IAudioController& audioController, FileSystem& fs) 
+    : Fmv(gameData, audioController, fs)
+{
+
+}
+
+DebugFmv::~DebugFmv()
+{
+
+}
+
+void DebugFmv::Render(struct NVGcontext* ctx, int screenW, int screenH)
+{
+    Fmv::Render(ctx, screenW, screenH);
+
+    if (!mFmv)
     {
+        RenderVideoUi();
         mFileSystem.DebugUi();
+    }
+}
+
+void DebugFmv::RenderVideoUi()
+{
+    if (!mFmv)
+    {
+        if (!mFmvUi)
+        {
+            mFmvUi = std::make_unique<FmvUi>(mFmv, mAudioController, mFileSystem);
+        }
+        mFmvUi->DrawVideoSelectionUi(mGameData.Fmvs());
     }
 }

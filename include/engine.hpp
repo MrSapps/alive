@@ -2,7 +2,6 @@
 
 #include "gamedata.hpp"
 #include "filesystem.hpp"
-#include "fmv.hpp"
 #include "sound.hpp"
 #include <memory>
 #include "oddlib/masher.hpp"
@@ -28,7 +27,9 @@ private:
     void InitImGui();
     void RenderVideoUi();
     void ImGui_WindowResize();
-private:
+protected:
+    virtual void InitSubSystems();
+
     enum eStates
     {
         eStarting,
@@ -51,7 +52,7 @@ private:
     SDL_GLContext mContext = nullptr;
 
 
-    Fmv mFmv;
+    std::unique_ptr<class Fmv> mFmv;
     Sound mSound;
 
     struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;

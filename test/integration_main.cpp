@@ -1,6 +1,7 @@
 #include "SDL.h"
 #include "engine.hpp"
 #include "logger.hpp"
+#include "fmv.hpp"
 
 extern "C"
 {
@@ -21,6 +22,11 @@ extern "C"
 class TestEngine : public Engine
 {
 public:
+    virtual void InitSubSystems() override
+    {
+        mFmv = std::make_unique<DebugFmv>(mGameData, mAudioHandler, mFileSystem);
+    }
+
     virtual bool Init() override
     {
         return Engine::Init();

@@ -10,7 +10,7 @@
 #include <fstream>
 #include "alive_version.h"
 #include "core/audiobuffer.hpp"
-
+#include "fmv.hpp"
 
 #include "nanovg.h"
 #define NANOVG_GL3_IMPLEMENTATION
@@ -195,8 +195,7 @@ void UpdateImGui()
 }
 
 Engine::Engine()
-    : mFmv(mGameData, mAudioHandler, mFileSystem),
-      mSound(mGameData, mAudioHandler, mFileSystem)
+    : mSound(mGameData, mAudioHandler, mFileSystem)
 {
 
 }
@@ -256,6 +255,9 @@ bool Engine::Init()
         InitImGui();
 
         ToState(eRunning);
+
+        InitSubSystems();
+
         return true;
     }
     catch (const std::exception& ex)
@@ -263,6 +265,11 @@ bool Engine::Init()
         LOG_ERROR("Caught error when trying to init: " << ex.what());
         return false;
     }
+}
+
+void Engine::InitSubSystems()
+{
+    mFmv = std::make_unique<Fmv>(mGameData, mAudioHandler, mFileSystem);
 }
 
 int Engine::Run()
@@ -346,7 +353,7 @@ void Engine::Update()
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
             if (key == SDL_SCANCODE_ESCAPE)
             {
-                mFmv.Stop();
+                mFmv->Stop();
             }
 
             if (key >= 0 && key < 512)
@@ -367,7 +374,7 @@ void Engine::Update()
 
     // TODO: Move into state machine
     //mFmv.Play("INGRDNT.DDV");
-    mFmv.Update();
+    mFmv->Update();
     mSound.Update();
 }
 
@@ -426,7 +433,7 @@ void Engine::Render()
 
     nvgResetTransform(mNanoVg);
 
-    mFmv.Render(mNanoVg, w, h);
+    mFmv->Render(mNanoVg, w, h);
     mSound.Render(w, h);
 
     GLenum error = glGetError();
