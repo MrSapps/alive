@@ -180,6 +180,43 @@ add_library(oddlib STATIC
     include/oddlib/cdromfilesystem.hpp
 )
 
+add_library(AliveLib STATIC
+    ${WIN32_ONLY_SRC}
+    include/core/audiobuffer.hpp
+    src/core/audiobuffer.cpp
+    include/fmv.hpp
+    src/fmv.cpp
+    include/sound.hpp
+    src/sound.cpp
+    include/engine.hpp
+    src/engine.cpp
+    include/gamedata.hpp
+    src/gamedata.cpp
+    include/filesystem.hpp
+    src/filesystem.cpp
+    include/gridmap.hpp
+    src/gridmap.cpp
+    include/gridobject.hpp
+    src/gridobject.cpp
+    include/subtitles.hpp
+)
+
+add_executable(Alive MACOSX_BUNDLE
+    src/main.cpp
+)
+
+SET(Alive_Libs  AliveLib jsonxx imgui oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
+
+#cotire(Alive)
+TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
+
+add_executable(IntegrationTest
+  test/integration_main.cpp
+)
+
+TARGET_LINK_LIBRARIES(IntegrationTest ${Alive_Libs})
+
+
 #cotire(oddlib)
 
 # Bake binary test files in C array/header files
@@ -254,28 +291,6 @@ SET(WIN32_ONLY_SRC
     rsc/app.ico)
 endif()
 
-add_executable(Alive MACOSX_BUNDLE
-    ${WIN32_ONLY_SRC}
-    include/core/audiobuffer.hpp
-    src/core/audiobuffer.cpp
-    src/main.cpp
-    include/fmv.hpp
-    src/fmv.cpp
-    include/sound.hpp
-    src/sound.cpp
-    include/engine.hpp
-    src/engine.cpp
-    include/gamedata.hpp
-    src/gamedata.cpp
-    include/filesystem.hpp
-    src/filesystem.cpp
-    include/gridmap.hpp
-    src/gridmap.cpp
-    include/gridobject.hpp
-    src/gridobject.cpp
-    include/subtitles.hpp
-)
-
 SET(CPACK_PACKAGE_EXECUTABLES Alive "A.L.I.V.E")
 SET(CPACK_WIX_PROGRAM_MENU_FOLDER "Alive")
 SET(CPACK_PACKAGE_VENDOR "PaulsApps.com")
@@ -283,14 +298,10 @@ SET(CPACK_PACKAGE_VERSION_MAJOR ${ALIVE_VERSION_MAJOR})
 SET(CPACK_PACKAGE_VERSION_MINOR ${ALIVE_VERSION_MINOR})
 SET(CPACK_PACKAGE_VERSION_PATCH ${ALIVE_VERSION_PATCH})
 
-#cotire(Alive)
-TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
 install(
     TARGETS Alive 
     BUNDLE DESTINATION .
     RUNTIME DESTINATION .)
-
-
 
 if (WIN32 AND MSVC)
    add_custom_command(TARGET Alive POST_BUILD

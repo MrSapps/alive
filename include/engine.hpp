@@ -15,9 +15,9 @@ class Engine
 {
 public:
     Engine();
-    ~Engine();
-    bool Init();
-    int Run();
+    virtual ~Engine();
+    virtual bool Init();
+    virtual int Run();
 private:
     void Update();
     void Render();
