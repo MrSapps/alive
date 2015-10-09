@@ -29,6 +29,7 @@ private:
     void ImGui_WindowResize();
 protected:
     virtual void InitSubSystems();
+    virtual void DebugRender() { };
 
     enum eStates
     {

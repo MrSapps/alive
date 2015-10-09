@@ -381,46 +381,7 @@ void Engine::Update()
 
 void Engine::Render()
 {
-    // Render main menu bar
-    static bool showAbout = false;
-    if (ImGui::BeginMainMenuBar())
-    {
-        /*
-        if (ImGui::BeginMenu("File"))
-        {
-            if (ImGui::MenuItem("Exit", "CTRL+Q")) { ToState(eShuttingDown); }
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Edit"))
-        {
-            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-            ImGui::Separator();
-            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-            ImGui::EndMenu();
-        }*/
-        if (ImGui::BeginMenu("Help"))
-        {
-            if (ImGui::MenuItem("About", "CTRL+H"))
-            {
-                showAbout = !showAbout;
-            }
-            ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-    }
-
-    //ImGui::ShowTestWindow();
-
-    // Render about screen
-    if (showAbout)
-    {
-        ImGui::Begin(ALIVE_VERSION_NAME_STR, nullptr, ImVec2(400, 100));
-        ImGui::Text("Open source ALIVE engine PaulsApps.com 2015");
-        ImGui::End();
-    }
+    DebugRender();
 
     // Clear screen
     glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
