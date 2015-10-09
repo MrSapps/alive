@@ -125,7 +125,7 @@ public:
         if (mSubTitles)
         {
             // We assume the FPS is always 15, thus 1000/15=66.66 so frame number * 66 = number of msecs into the video
-            const auto& subs = mSubTitles->Find((videoFrameIndex * 66)+500); // audio has about 500msec latency, so fix it up to sync the subs
+            const auto& subs = mSubTitles->Find((videoFrameIndex * 66));
             if (!subs.empty())
             {
                 // TODO: Render all active subs, not just the first one
