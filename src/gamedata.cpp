@@ -102,7 +102,7 @@ bool GameData::LoadPathDb(FileSystem& fs)
         {
             const auto lvlEntry = lvls.get<jsonxx::Object>(i);
             const auto pathBndFileName = lvlEntry.get<jsonxx::String>("file_name");
-            auto pathDbIterator = mPathDb[pathBndFileName];
+            auto& pathDbIterator = mPathDb[pathBndFileName];
             const auto paths = lvlEntry.get<jsonxx::Array>("paths");
             for (size_t j = 0; j < paths.size(); j++)
             {

@@ -12,6 +12,7 @@
 #include "core/audiobuffer.hpp"
 #include "fmv.hpp"
 #include "sound.hpp"
+#include "gridmap.hpp"
 
 #include "nanovg.h"
 #define NANOVG_GL3_IMPLEMENTATION
@@ -271,6 +272,7 @@ void Engine::InitSubSystems()
 {
     mFmv = std::make_unique<Fmv>(mGameData, mAudioHandler, mFileSystem);
     mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem);
+    mLevel = std::make_unique<Level>(mGameData, mAudioHandler, mFileSystem);
 }
 
 int Engine::Run()
@@ -377,6 +379,7 @@ void Engine::Update()
     //mFmv.Play("INGRDNT.DDV");
     mFmv->Update();
     mSound->Update();
+    mLevel->Update();
 }
 
 
@@ -397,6 +400,7 @@ void Engine::Render()
 
     mFmv->Render(mNanoVg, w, h);
     mSound->Render(w, h);
+    mLevel->Render(mNanoVg, w, h);
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
