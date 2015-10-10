@@ -42,7 +42,7 @@ public:
         return mFmvData;
     }
 
-    const PathDb Paths() const
+    const PathDb& Paths() const
     {
         return mPathDb;
     }
