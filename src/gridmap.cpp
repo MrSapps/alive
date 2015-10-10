@@ -10,13 +10,19 @@ Level::Level(GameData& gameData, IAudioController& audioController, FileSystem& 
 
 void Level::Update()
 {
-
+    if (mMap)
+    {
+        mMap->Update();
+    }
 }
 
 void Level::Render(NVGcontext* ctx, int screenW, int screenH)
 {
-    nvgText(ctx, 100, 100, "Level rendering test", nullptr);
     RenderDebugPathSelection();
+    if (mMap)
+    {
+        mMap->Render(ctx, screenW, screenH);
+    }
 }
 
 void Level::RenderDebugPathSelection()
@@ -60,6 +66,7 @@ void Level::RenderDebugPathSelection()
                     {
                         // Then we can get a stream for the chunk
                         auto chunkStream = chunk->Stream();
+                        mMap = std::make_unique<GridMap>(*chunkStream, *entry);
                     }
                 }
             }
@@ -67,4 +74,24 @@ void Level::RenderDebugPathSelection()
     }
 
     ImGui::End();
+}
+
+GridMap::GridMap(Oddlib::IStream& pathChunkStream, const GameData::PathEntry& pathSettings)
+{
+    mScreens.resize(pathSettings.mMapXSize);
+    for (auto& col : mScreens)
+    {
+        col.resize(pathSettings.mMapYSize);
+    }
+}
+
+void GridMap::Update()
+{
+
+}
+
+void GridMap::Render(NVGcontext* ctx, int screenW, int screenH)
+{
+    std::string str = "Level rendering test (" + std::to_string(mScreens.size()) + "," + std::to_string(mScreens[0].size()) + ")";
+    nvgText(ctx, 100, 100, str.c_str(), nullptr);
 }
