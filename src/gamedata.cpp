@@ -88,11 +88,52 @@ bool GameData::LoadFmvData(FileSystem& fs)
     return true;
 }
 
+bool GameData::LoadPathDb(FileSystem& fs)
+{
+    auto stream = fs.Open("data/pathdb.json");
+    std::string jsonFileContents = stream->LoadAllToString();
+
+    jsonxx::Object rootJsonObject;
+    rootJsonObject.parse(jsonFileContents);
+    if (rootJsonObject.has<jsonxx::Array>("lvls"))
+    {
+        const auto& lvls = rootJsonObject.get<jsonxx::Array>("lvls");
+        for (size_t i = 0; i < lvls.size(); i++)
+        {
+            const auto lvlEntry = lvls.get<jsonxx::Object>(i);
+            const auto pathBndFileName = lvlEntry.get<jsonxx::String>("file_name");
+            auto pathDbIterator = mPathDb[pathBndFileName];
+            const auto paths = lvlEntry.get<jsonxx::Array>("paths");
+            for (size_t j = 0; j < paths.size(); j++)
+            {
+                const auto pathObj = paths.get<jsonxx::Object>(j);
+                pathDbIterator.emplace_back(PathEntry
+                {
+                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("id")),
+                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("collision")),
+                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("index")),
+                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("object")),
+                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("x")),
+                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("y"))
+                });
+            }
+        }
+    }
+
+    return true;
+}
+
 bool GameData::Init(FileSystem& fs)
 {
     if (!LoadFmvData(fs))
     {
         return false;
     }
+
+    if (!LoadPathDb(fs))
+    {
+        return false;
+    }
+
     return true;
 }
