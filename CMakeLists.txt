@@ -263,6 +263,8 @@ add_executable(Alive MACOSX_BUNDLE
     src/fmv.cpp
     include/sound.hpp
     src/sound.cpp
+	include/renderer.hpp
+    src/renderer.cpp
     include/engine.hpp
     src/engine.cpp
     include/gamedata.hpp

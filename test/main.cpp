@@ -26,6 +26,18 @@
 #include "xa.bin.g.h"
 #include "subtitles.hpp"
 
+// Hack to make SDL2 link
+#if _MSC_VER == 1900
+extern "C"
+{
+    void *__iob_func()
+    {
+        static FILE f[] = { *stdin, *stdout, *stderr };
+        return f;
+    }
+}
+#endif
+
 int main(int argc, char** argv)
 {
     ::testing::InitGoogleMock(&argc, argv);
