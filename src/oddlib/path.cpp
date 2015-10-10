@@ -35,7 +35,7 @@ namespace Oddlib
                 << std::to_string(XSize()) << " " << std::to_string(YSize()));
         }
 
-        return mCameras[(x * YSize()) + y];
+        return mCameras[(y * XSize()) + x];
     }
 
     void Path::ReadCameraMap(IStream& stream)
@@ -48,7 +48,7 @@ namespace Oddlib
         {
             stream.ReadBytes(nameBuffer.data(), nameBuffer.size());
             std::string tmpStr(reinterpret_cast<const char*>(nameBuffer.data()), nameBuffer.size());
-            if (!tmpStr.empty())
+            if (tmpStr[0] != 0)
             {
                 tmpStr += ".CAM";
             }

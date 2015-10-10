@@ -118,7 +118,7 @@ void GridMap::Render(NVGcontext* ctx, int screenW, int screenH)
         for (auto y = 0u; y < mScreens[0].size(); y++)
         {
             nvgResetTransform(ctx);
-            nvgText(ctx, 100+(x*30), 100+(y*30), mScreens[x][y]->FileName().c_str(), nullptr);
+            nvgText(ctx, 40+(x*100), 40+(y*20), mScreens[x][y]->FileName().c_str(), nullptr);
         }
     }
 }
