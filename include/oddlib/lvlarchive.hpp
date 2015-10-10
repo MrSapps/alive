@@ -48,6 +48,7 @@ namespace Oddlib
             Uint32 Id() const;
             Uint32 Type() const;
             std::vector<Uint8> ReadData() const;
+            std::unique_ptr<Oddlib::IStream> Stream() const;
         private:
             IStream& mStream;
             Uint32 mId = 0;

@@ -10,7 +10,9 @@
 #include <fstream>
 #include "alive_version.h"
 #include "core/audiobuffer.hpp"
-
+#include "fmv.hpp"
+#include "sound.hpp"
+#include "gridmap.hpp"
 
 #include "nanovg.h"
 #define NANOVG_GL3_IMPLEMENTATION
@@ -195,8 +197,6 @@ void UpdateImGui()
 }
 
 Engine::Engine()
-    : mFmv(mGameData, mAudioHandler, mFileSystem),
-      mSound(mGameData, mAudioHandler, mFileSystem)
 {
 
 }
@@ -256,6 +256,9 @@ bool Engine::Init()
         InitImGui();
 
         ToState(eRunning);
+
+        InitSubSystems();
+
         return true;
     }
     catch (const std::exception& ex)
@@ -263,6 +266,13 @@ bool Engine::Init()
         LOG_ERROR("Caught error when trying to init: " << ex.what());
         return false;
     }
+}
+
+void Engine::InitSubSystems()
+{
+    mFmv = std::make_unique<Fmv>(mGameData, mAudioHandler, mFileSystem);
+    mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem);
+    mLevel = std::make_unique<Level>(mGameData, mAudioHandler, mFileSystem);
 }
 
 int Engine::Run()
@@ -346,7 +356,7 @@ void Engine::Update()
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
             if (key == SDL_SCANCODE_ESCAPE)
             {
-                mFmv.Stop();
+                mFmv->Stop();
             }
 
             if (key >= 0 && key < 512)
@@ -367,53 +377,15 @@ void Engine::Update()
 
     // TODO: Move into state machine
     //mFmv.Play("INGRDNT.DDV");
-    mFmv.Update();
-    mSound.Update();
+    mFmv->Update();
+    mSound->Update();
+    mLevel->Update();
 }
 
 
 void Engine::Render()
 {
-    // Render main menu bar
-    static bool showAbout = false;
-    if (ImGui::BeginMainMenuBar())
-    {
-        /*
-        if (ImGui::BeginMenu("File"))
-        {
-            if (ImGui::MenuItem("Exit", "CTRL+Q")) { ToState(eShuttingDown); }
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Edit"))
-        {
-            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-            ImGui::Separator();
-            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-            ImGui::EndMenu();
-        }*/
-        if (ImGui::BeginMenu("Help"))
-        {
-            if (ImGui::MenuItem("About", "CTRL+H"))
-            {
-                showAbout = !showAbout;
-            }
-            ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-    }
-
-    //ImGui::ShowTestWindow();
-
-    // Render about screen
-    if (showAbout)
-    {
-        ImGui::Begin(ALIVE_VERSION_NAME_STR, nullptr, ImVec2(400, 100));
-        ImGui::Text("Open source ALIVE engine PaulsApps.com 2015");
-        ImGui::End();
-    }
+    DebugRender();
 
     // Clear screen
     glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
@@ -426,8 +398,9 @@ void Engine::Render()
 
     nvgResetTransform(mNanoVg);
 
-    mFmv.Render(mNanoVg, w, h);
-    mSound.Render(w, h);
+    mFmv->Render(mNanoVg, w, h);
+    mSound->Render(w, h);
+    mLevel->Render(mNanoVg, w, h);
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)

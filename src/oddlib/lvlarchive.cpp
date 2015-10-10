@@ -27,6 +27,11 @@ namespace Oddlib
         return r;
     }
 
+    std::unique_ptr<Oddlib::IStream> LvlArchive::FileChunk::Stream() const
+    {
+        return std::make_unique<Oddlib::Stream>(ReadData());
+    }
+
     const std::string& LvlArchive::File::FileName() const
     {
         return mFileName;
