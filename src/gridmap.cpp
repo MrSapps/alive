@@ -1,6 +1,7 @@
 #include "gridmap.hpp"
 #include "imgui/imgui.h"
 #include "oddlib/lvlarchive.hpp"
+#include "oddlib/path.hpp"
 
 Level::Level(GameData& gameData, IAudioController& audioController, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
@@ -66,7 +67,13 @@ void Level::RenderDebugPathSelection()
                     {
                         // Then we can get a stream for the chunk
                         auto chunkStream = chunk->Stream();
-                        mMap = std::make_unique<GridMap>(*chunkStream, *entry);
+                        Oddlib::Path path(*chunkStream, 
+                                          entry->mNumberOfCollisionItems, 
+                                          entry->mObjectIndexTableOffset,
+                                          entry->mObjectDataOffset, 
+                                          entry->mMapXSize, 
+                                          entry->mMapYSize);
+                        mMap = std::make_unique<GridMap>(path);
                     }
                 }
             }
@@ -76,12 +83,26 @@ void Level::RenderDebugPathSelection()
     ImGui::End();
 }
 
-GridMap::GridMap(Oddlib::IStream& pathChunkStream, const GameData::PathEntry& pathSettings)
+GridScreen::GridScreen(const std::string& fileName)
+    : mFileName(fileName)
 {
-    mScreens.resize(pathSettings.mMapXSize);
+
+}
+
+GridMap::GridMap(Oddlib::Path& path)
+{
+    mScreens.resize(path.XSize());
     for (auto& col : mScreens)
     {
-        col.resize(pathSettings.mMapYSize);
+        col.resize(path.YSize());
+    }
+
+    for (Uint32 x = 0; x < path.XSize(); x++)
+    {
+        for (Uint32 y = 0; y < path.YSize(); y++)
+        {
+            mScreens[x][y] = std::make_unique<GridScreen>(path.CameraFileName(x,y));
+        }
     }
 }
 
@@ -92,6 +113,13 @@ void GridMap::Update()
 
 void GridMap::Render(NVGcontext* ctx, int screenW, int screenH)
 {
-    std::string str = "Level rendering test (" + std::to_string(mScreens.size()) + "," + std::to_string(mScreens[0].size()) + ")";
-    nvgText(ctx, 100, 100, str.c_str(), nullptr);
+    for (auto x = 0u; x < mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mScreens[0].size(); y++)
+        {
+            nvgResetTransform(ctx);
+            nvgText(ctx, 100+(x*30), 100+(y*30), mScreens[x][y]->FileName().c_str(), nullptr);
+        }
+    }
 }
+

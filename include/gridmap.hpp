@@ -8,6 +8,7 @@
 #include "filesystem.hpp"
 #include "nanovg.h"
 
+namespace Oddlib { class Path; }
 
 class Level
 {
@@ -26,15 +27,17 @@ private:
 class GridScreen
 {
 public:
-
+    explicit GridScreen(const std::string& fileName);
+    const std::string& FileName() const { return mFileName; }
 private:
     //std::vector<std::unique_ptr<class MapObject>> mObjects;
+    std::string mFileName;
 };
 
 class GridMap
 {
 public:
-    GridMap(Oddlib::IStream& pathChunkStream, const GameData::PathEntry& pathSettings);
+    explicit GridMap(Oddlib::Path& path);
     void Update();
     void Render(NVGcontext* ctx, int screenW, int screenH);
 private:

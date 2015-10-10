@@ -178,6 +178,8 @@ add_library(oddlib STATIC
     include/oddlib/audio/vab.hpp
     include/oddlib/audio/Voice.h
     include/oddlib/cdromfilesystem.hpp
+    src/oddlib/path.cpp
+    include/oddlib/path.hpp
 )
 
 add_library(AliveLib STATIC
