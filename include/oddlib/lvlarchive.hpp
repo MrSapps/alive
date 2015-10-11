@@ -33,11 +33,6 @@ namespace Oddlib
         class FileChunk
         {
         public:
-            enum eTypes
-            {
-
-            };
-
             FileChunk& operator = (const FileChunk&) const = delete;
             FileChunk(const FileChunk&) = delete;
             FileChunk(IStream& stream, Uint32 type, Uint32 id, Uint32 dataSize)
@@ -67,6 +62,7 @@ namespace Oddlib
             const std::string& FileName() const;
             FileChunk* ChunkById(Uint32 id);
             FileChunk* ChunkByIndex(Uint32 index) { return mChunks[index].get(); }
+            FileChunk* ChunkByType(Uint32 type);
             size_t ChunkCount() const { return mChunks.size(); }
             // Deugging feature
             void SaveChunks();

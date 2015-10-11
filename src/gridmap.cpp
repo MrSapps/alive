@@ -2,6 +2,10 @@
 //#include "imgui/imgui.h"
 #include "oddlib/lvlarchive.hpp"
 #include "renderer.hpp"
+#include "oddlib/path.hpp"
+#include "oddlib/ao_bits_pc.hpp"
+
+#include <cassert>
 
 Level::Level(GameData& gameData, IAudioController& audioController, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
@@ -68,7 +72,13 @@ void Level::RenderDebugPathSelection()
                     {
                         // Then we can get a stream for the chunk
                         auto chunkStream = chunk->Stream();
-                        mMap = std::make_unique<GridMap>(*chunkStream, *entry);
+                        Oddlib::Path path(*chunkStream, 
+                                          entry->mNumberOfCollisionItems, 
+                                          entry->mObjectIndexTableOffset,
+                                          entry->mObjectDataOffset, 
+                                          entry->mMapXSize, 
+                                          entry->mMapYSize);
+                        mMap = std::make_unique<GridMap>(path, std::move(archive));
                     }
                 }
             }
@@ -79,12 +89,46 @@ void Level::RenderDebugPathSelection()
 #endif
 }
 
-GridMap::GridMap(Oddlib::IStream& pathChunkStream, const GameData::PathEntry& pathSettings)
+GridScreen::GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive, Renderer *rend)
+    : mFileName(fileName)
+    , mTexHandle(0)
+    , mRend(rend)
 {
-    mScreens.resize(pathSettings.mMapXSize);
+    auto file = archive.FileByName(fileName);
+    if (file)
+    {
+        auto chunk = file->ChunkByType(Oddlib::MakeType('B','i','t','s'));
+        auto stream = chunk->Stream();
+        Oddlib::AoBitsPc bits(*stream);
+
+        assert(bits.getImageFormat()->format == SDL_PIXELFORMAT_RGB24);
+        assert(bits.getImageFormat()->BytesPerPixel == 1);
+        assert(bits.getImageFormat()->BitsPerPixel == 8);
+
+        mTexHandle = mRend->createTexture(bits.getPixelData(), bits.getImageWidth(), bits.getImageHeight(), PixelFormat_RGB24);
+    }
+}
+
+GridScreen::~GridScreen()
+{
+    mRend->destroyTexture(mTexHandle);
+}
+
+GridMap::GridMap(Oddlib::Path& path, std::unique_ptr<Oddlib::LvlArchive> archive, Renderer *rend)
+    : mArchive(std::move(archive))
+{
+    mScreens.resize(path.XSize());
     for (auto& col : mScreens)
     {
-        col.resize(pathSettings.mMapYSize);
+        col.resize(path.YSize());
+    }
+
+    for (Uint32 x = 0; x < path.XSize(); x++)
+    {
+        for (Uint32 y = 0; y < path.YSize(); y++)
+        {
+            mScreens[x][y] = std::make_unique<GridScreen>(path.CameraFileName(x,y), *mArchive, rend);
+        }
     }
 }
 
@@ -95,6 +139,13 @@ void GridMap::Update()
 
 void GridMap::Render(Renderer* rend, int screenW, int screenH)
 {
-    std::string str = "Level rendering test (" + std::to_string(mScreens.size()) + "," + std::to_string(mScreens[0].size()) + ")";
-    rend->drawText(100, 100, str.c_str());
+    for (auto x = 0u; x < mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mScreens[0].size(); y++)
+        {
+            rend->resetTransform();
+            rend->drawText(40+(x*100), 40+(y*20), mScreens[x][y]->FileName().c_str());
+        }
+    }
 }
+

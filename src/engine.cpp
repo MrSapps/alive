@@ -280,7 +280,17 @@ void Engine::Render()
     mSound->Render(w, h);
     mLevel->Render(mRenderer.get(), w, h);
 
-    mRenderer->fillColor(0, 0, 0, 255);
+    uint8_t testPixels[4*3] = {
+        255, 0, 0,
+        0, 255, 0,
+        0, 255, 0,
+        255, 0, 0,
+    };
+    int tex = mRenderer->createTexture(testPixels, 2, 2, PixelFormat_RGB24);
+    mRenderer->drawQuad(tex, 10, 10, 200, 200);
+    mRenderer->destroyTexture(tex);
+
+    mRenderer->fillColor(255, 0, 0, 255);
     mRenderer->drawText(10, 10, "Woot");
 
     mRenderer->endFrame();

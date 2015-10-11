@@ -9,7 +9,7 @@
 #include "nanovg.h"
 
 class Renderer;
-
+namespace Oddlib { class Path; class LvlArchive; }
 class Level
 {
 public:
@@ -27,18 +27,24 @@ private:
 class GridScreen
 {
 public:
-
+    GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive, Renderer *rend);
+    ~GridScreen();
+    const std::string& FileName() const { return mFileName; }
 private:
-    //std::vector<std::unique_ptr<class MapObject>> mObjects;
+    std::string mFileName;
+    int mTexHandle;
+    Renderer *mRend;
 };
 
 class GridMap
 {
 public:
-    GridMap(Oddlib::IStream& pathChunkStream, const GameData::PathEntry& pathSettings);
+    GridMap(Oddlib::Path& path, std::unique_ptr<Oddlib::LvlArchive> archive, Renderer *rend);
     void Update();
     void Render(Renderer* rend, int screenW, int screenH);
 private:
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
-    // std::vector<std::unique_ptr<class MapObject>> mObjects;
+
+    // TODO: Should be owned and ref counted by something else
+    std::unique_ptr<Oddlib::LvlArchive> mArchive;
 };
