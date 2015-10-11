@@ -4,8 +4,6 @@
 #include "oddlib/masher.hpp"
 #include "oddlib/exceptions.hpp"
 #include "logger.hpp"
-#include "imgui/imgui.h"
-#include "imgui/stb_rect_pack.h"
 #include "jsonxx/jsonxx.h"
 #include <fstream>
 #include "alive_version.h"
@@ -14,10 +12,6 @@
 #include "sound.hpp"
 #include "gridmap.hpp"
 
-#include "nanovg.h"
-#define NANOVG_GL3_IMPLEMENTATION
-#include "nanovg_gl.h"
-#include "nanovg_gl_utils.h"
 
 extern "C"
 {
@@ -67,95 +61,7 @@ void setWindowsIcon(SDL_Window *sdlWindow)
 }
 #endif
 
-static GLuint fontTex;
 static bool mousePressed[4] = { false, false };
-static ImVec2 mousePosScale(1.0f, 1.0f);
-
-// This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
-// If text or lines are blurry when integrating ImGui in your engine:
-// - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
-// - try adjusting ImGui::GetIO().PixelCenterOffset to 0.5f or 0.375f
-static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count)
-{
-    if (cmd_lists_count == 0)
-        return;
-
-    // We are using the OpenGL fixed pipeline to make the example code simpler to read!
-    // A probable faster way to render would be to collate all vertices from all cmd_lists into a single vertex buffer.
-    // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers.
-    glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TRANSFORM_BIT);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_SCISSOR_TEST);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glEnable(GL_TEXTURE_2D);
-
-    //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context
-
-    // Setup orthographic projection matrix
-    const float width = ImGui::GetIO().DisplaySize.x;
-    const float height = ImGui::GetIO().DisplaySize.y;
-
-    //std::cout << "ON RENDER " << width << " " << height << std::endl;
-
-    glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0.0f, width, height, 0.0f, -1.0f, +1.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-
-    // Render command lists
-#define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
-    for (int n = 0; n < cmd_lists_count; n++)
-    {
-        const ImDrawList* cmd_list = cmd_lists[n];
-        const unsigned char* vtx_buffer = (const unsigned char*)&cmd_list->vtx_buffer.front();
-        glVertexPointer(2, GL_FLOAT, sizeof(ImDrawVert), (void*)(vtx_buffer + OFFSETOF(ImDrawVert, pos)));
-        glTexCoordPointer(2, GL_FLOAT, sizeof(ImDrawVert), (void*)(vtx_buffer + OFFSETOF(ImDrawVert, uv)));
-        glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(ImDrawVert), (void*)(vtx_buffer + OFFSETOF(ImDrawVert, col)));
-
-        int vtx_offset = 0;
-        for (size_t cmd_i = 0; cmd_i < cmd_list->commands.size(); cmd_i++)
-        {
-            const ImDrawCmd* pcmd = &cmd_list->commands[cmd_i];
-            if (pcmd->user_callback)
-            {
-                pcmd->user_callback(cmd_list, pcmd);
-            }
-            else
-            {
-                glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->texture_id);
-                glScissor((int)pcmd->clip_rect.x, (int)(height - pcmd->clip_rect.w), (int)(pcmd->clip_rect.z - pcmd->clip_rect.x), (int)(pcmd->clip_rect.w - pcmd->clip_rect.y));
-                glDrawArrays(GL_TRIANGLES, vtx_offset, pcmd->vtx_count);
-            }
-            vtx_offset += pcmd->vtx_count;
-        }
-    }
-
-#undef OFFSETOF
-
-    // Restore modified state
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glPopAttrib();
-}
-
-static GLuint       g_FontTexture = 0;
 
 void Engine::ImGui_WindowResize()
 {
@@ -163,13 +69,11 @@ void Engine::ImGui_WindowResize()
     int fb_w, fb_h;
     SDL_GetWindowSize(mWindow, &w, &h);
     SDL_GetWindowSize(mWindow, &fb_w, &fb_h); // Needs to be corrected for SDL Framebuffer
-    mousePosScale.x = (float)fb_w / w;
-    mousePosScale.y = (float)fb_h / h;
 
-    ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);  // Display size, in pixels. For clamping windows positions.
+    //ImGuiIO& io = ImGui::GetIO();
+    //io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);  // Display size, in pixels. For clamping windows positions.
 
-    std::cout << "ON RESIZE " << io.DisplaySize.x << " " << io.DisplaySize.y << std::endl;
+    //std::cout << "ON RESIZE " << io.DisplaySize.x << " " << io.DisplaySize.y << std::endl;
 
 
     //    io.PixelCenterOffset = 0.0f;                        // Align OpenGL texels
@@ -178,7 +82,7 @@ void Engine::ImGui_WindowResize()
 
 void UpdateImGui()
 {
-    ImGuiIO& io = ImGui::GetIO();
+    //ImGuiIO& io = ImGui::GetIO();
 
     SDL_PumpEvents();
 
@@ -187,13 +91,13 @@ void UpdateImGui()
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
 
-    io.MousePos = ImVec2((float)mouse_x * mousePosScale.x, (float)mouse_y * mousePosScale.y);      // Mouse position, in pixels (set to -1,-1 if no mouse / on another screen, etc.)
+    //io.MousePos = ImVec2((float)mouse_x * mousePosScale.x, (float)mouse_y * mousePosScale.y);      // Mouse position, in pixels (set to -1,-1 if no mouse / on another screen, etc.)
 
-    io.MouseDown[0] = mousePressed[0] || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT));
-    io.MouseDown[1] = mousePressed[1] || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT));
+    //io.MouseDown[0] = mousePressed[0] || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT));
+    //io.MouseDown[1] = mousePressed[1] || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT));
 
     // Start the frame
-    ImGui::NewFrame();
+    //ImGui::NewFrame();
 }
 
 Engine::Engine()
@@ -203,25 +107,8 @@ Engine::Engine()
 
 Engine::~Engine()
 {
+    mRenderer.reset();
 
-    if (g_FontTexture)
-    {
-        glDeleteTextures(1, &g_FontTexture);
-        ImGui::GetIO().Fonts->TexID = 0;
-        g_FontTexture = 0;
-    }
-    
-    if (mNanoVgFrameBuffer)
-    {
-        nvgluDeleteFramebuffer(mNanoVgFrameBuffer);
-    }
-
-    if (mNanoVg)
-    {
-        nvgDeleteGL3(mNanoVg);
-    }
-
-    ImGui::Shutdown();
     SDL_GL_DeleteContext(mContext);
     SDL_DestroyWindow(mWindow);
     SDL_Quit();
@@ -251,9 +138,6 @@ bool Engine::Init()
 
         InitGL();
 
-        InitNanoVg();
-
-        InitImGui();
 
         ToState(eRunning);
 
@@ -270,6 +154,7 @@ bool Engine::Init()
 
 void Engine::InitSubSystems()
 {
+    mRenderer = std::make_unique<Renderer>((mFileSystem.BasePath() + "/data/Roboto-Regular.ttf").c_str());
     mFmv = std::make_unique<Fmv>(mGameData, mAudioHandler, mFileSystem);
     mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem);
     mLevel = std::make_unique<Level>(mGameData, mAudioHandler, mFileSystem);
@@ -287,9 +172,9 @@ int Engine::Run()
 
 void Engine::Update()
 {
-    ImGuiIO& io = ImGui::GetIO();
-    mousePressed[0] = mousePressed[1] = false;
-    io.MouseWheel = 0;
+    //ImGuiIO& io = ImGui::GetIO();
+    //mousePressed[0] = mousePressed[1] = false;
+    //io.MouseWheel = 0;
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -299,11 +184,11 @@ void Engine::Update()
         case SDL_MOUSEWHEEL:
             if (event.wheel.y < 0)
             {
-                ImGui::GetIO().MouseWheel = -1.0f;
+                //ImGui::GetIO().MouseWheel = -1.0f;
             }
             else
             {
-                ImGui::GetIO().MouseWheel = 1.0f;
+                //ImGui::GetIO().MouseWheel = 1.0f;
             }
             break;
 
@@ -320,7 +205,7 @@ void Engine::Update()
                 if (keycode >= 32 && keycode <= 255)
                 {
                     //printable ASCII characters
-                    ImGui::GetIO().AddInputCharacter((char)keycode);
+                    //ImGui::GetIO().AddInputCharacter((char)keycode);
                 }
             }
         }
@@ -332,7 +217,7 @@ void Engine::Update()
             case SDL_WINDOWEVENT_RESIZED:
             case SDL_WINDOWEVENT_MAXIMIZED:
             case SDL_WINDOWEVENT_RESTORED:
-                ImGui_WindowResize();
+                //ImGui_WindowResize();
 
                 break;
             }
@@ -348,7 +233,7 @@ void Engine::Update()
                     const Uint32 windowFlags = SDL_GetWindowFlags(mWindow);
                     bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
                     SDL_SetWindowFullscreen(mWindow, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    ImGui_WindowResize();
+                    //ImGui_WindowResize();
                 }
 
             }
@@ -363,10 +248,10 @@ void Engine::Update()
             {
                 SDL_Keymod modstate = SDL_GetModState();
 
-                ImGuiIO& io = ImGui::GetIO();
-                io.KeysDown[key] = event.type == SDL_KEYDOWN;
-                io.KeyCtrl = (modstate & KMOD_CTRL) != 0;
-                io.KeyShift = (modstate & KMOD_SHIFT) != 0;
+                //ImGuiIO& io = ImGui::GetIO();
+                //io.KeysDown[key] = event.type == SDL_KEYDOWN;
+                //io.KeyCtrl = (modstate & KMOD_CTRL) != 0;
+                //io.KeyShift = (modstate & KMOD_SHIFT) != 0;
             }
         }
             break;
@@ -385,38 +270,20 @@ void Engine::Update()
 
 void Engine::Render()
 {
-    DebugRender();
-
-    // Clear screen
-    glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    
-    // Scaled vector rendering area
     int w, h;
     SDL_GetWindowSize(mWindow, &w, &h);
-    nvgBeginFrame(mNanoVg, w, h, 1.0f);
+    mRenderer->beginFrame(w, h);
 
-    nvgResetTransform(mNanoVg);
+    DebugRender();
 
-    mFmv->Render(mNanoVg, w, h);
+    mFmv->Render(mRenderer.get(), w, h);
     mSound->Render(w, h);
-    mLevel->Render(mNanoVg, w, h);
+    mLevel->Render(mRenderer.get(), w, h);
 
-    GLenum error = glGetError();
-    if (error != GL_NO_ERROR)
-    {
-        LOG_ERROR(gluErrorString(error));
-    }
+    mRenderer->fillColor(0, 0, 0, 255);
+    mRenderer->drawText(10, 10, "Woot");
 
-    nvgEndFrame(mNanoVg);
-
-    // Draw UI buffers
-    ImGui::Render();
-
-    // Flip the buffers
-    nvgluBindFramebuffer(nullptr);
-
- 
+    mRenderer->endFrame();
     SDL_GL_SwapWindow(mWindow);
 }
 
@@ -448,95 +315,52 @@ bool Engine::InitSDL()
     return true;
 }
 
-int Engine::LoadNanoVgFonts(NVGcontext* vg)
-{
-    int font = nvgCreateFont(vg, "sans", (mFileSystem.BasePath() + "/data/Roboto-Regular.ttf").c_str());
-    if (font == -1)
-    {
-        LOG_ERROR("Could not add font regular");
-        return -1;
-    }
-
-    return 0;
-}
-
-void Engine::InitNanoVg()
-{
-    LOG_INFO("Creating nanovg context");
-    
-#ifdef _DEBUG
-    mNanoVg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-#else
-    mNanoVg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-#endif
-
-    if (!mNanoVg)
-    {
-        throw Oddlib::Exception("Couldn't create nanovg gl3 context");
-    }
-
-    LOG_INFO("Creating nanovg framebuffer");
-
-    // TODO: Should dynamic be set to the window size * 2
-    mNanoVgFrameBuffer = nvgluCreateFramebuffer(mNanoVg, 800*2, 600*2, 0);
-    if (!mNanoVgFrameBuffer)
-    {
-        throw Oddlib::Exception("Couldn't create nanovg framebuffer");
-    }
-
-    if (LoadNanoVgFonts(mNanoVg) != 0)
-    {
-        throw Oddlib::Exception("Failed to load fonts");
-    }
-
-    LOG_INFO("Nanovg initialized");
-}
 
 void Engine::InitImGui()
 {
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui_WindowResize();
-    io.RenderDrawListsFn = ImImpl_RenderDrawLists;
+    //ImGuiIO& io = ImGui::GetIO();
+    //ImGui_WindowResize();
+    //io.RenderDrawListsFn = ImImpl_RenderDrawLists;
 
     // Build texture
     unsigned char* pixels;
     int width, height;
-    io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
+    //io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
 
     // Create texture
-    glGenTextures(1, &g_FontTexture);
-    glBindTexture(GL_TEXTURE_2D, g_FontTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width, height, 0, GL_ALPHA, GL_UNSIGNED_BYTE, pixels);
+    //glGenTextures(1, &g_FontTexture);
+    //glBindTexture(GL_TEXTURE_2D, g_FontTexture);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width, height, 0, GL_ALPHA, GL_UNSIGNED_BYTE, pixels);
 
     // Store our identifier
-    io.Fonts->TexID = (void *)(intptr_t)g_FontTexture;
+    //io.Fonts->TexID = (void *)(intptr_t)g_FontTexture;
 
     // Cleanup (don't clear the input data if you want to append new fonts later)
-    io.Fonts->ClearInputData();
-    io.Fonts->ClearTexData();
+    //io.Fonts->ClearInputData();
+    //io.Fonts->ClearTexData();
 
     //
     // setup SDL2 keymapping
     //
-    io.KeyMap[ImGuiKey_Tab] = SDL_GetScancodeFromKey(SDLK_TAB);
-    io.KeyMap[ImGuiKey_LeftArrow] = SDL_GetScancodeFromKey(SDLK_LEFT);
-    io.KeyMap[ImGuiKey_RightArrow] = SDL_GetScancodeFromKey(SDLK_RIGHT);
-    io.KeyMap[ImGuiKey_UpArrow] = SDL_GetScancodeFromKey(SDLK_UP);
-    io.KeyMap[ImGuiKey_DownArrow] = SDL_GetScancodeFromKey(SDLK_DOWN);
-    io.KeyMap[ImGuiKey_Home] = SDL_GetScancodeFromKey(SDLK_HOME);
-    io.KeyMap[ImGuiKey_End] = SDL_GetScancodeFromKey(SDLK_END);
-    io.KeyMap[ImGuiKey_Delete] = SDL_GetScancodeFromKey(SDLK_DELETE);
-    io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
-    io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
-    io.KeyMap[ImGuiKey_Escape] = SDL_GetScancodeFromKey(SDLK_ESCAPE);
-    io.KeyMap[ImGuiKey_A] = SDLK_a;
-    io.KeyMap[ImGuiKey_C] = SDLK_c;
-    io.KeyMap[ImGuiKey_V] = SDLK_v;
-    io.KeyMap[ImGuiKey_X] = SDLK_x;
-    io.KeyMap[ImGuiKey_Y] = SDLK_y;
-    io.KeyMap[ImGuiKey_Z] = SDLK_z;
+    //io.KeyMap[ImGuiKey_Tab] = SDL_GetScancodeFromKey(SDLK_TAB);
+    //io.KeyMap[ImGuiKey_LeftArrow] = SDL_GetScancodeFromKey(SDLK_LEFT);
+    //io.KeyMap[ImGuiKey_RightArrow] = SDL_GetScancodeFromKey(SDLK_RIGHT);
+    //io.KeyMap[ImGuiKey_UpArrow] = SDL_GetScancodeFromKey(SDLK_UP);
+    //io.KeyMap[ImGuiKey_DownArrow] = SDL_GetScancodeFromKey(SDLK_DOWN);
+    //io.KeyMap[ImGuiKey_Home] = SDL_GetScancodeFromKey(SDLK_HOME);
+    //io.KeyMap[ImGuiKey_End] = SDL_GetScancodeFromKey(SDLK_END);
+    //io.KeyMap[ImGuiKey_Delete] = SDL_GetScancodeFromKey(SDLK_DELETE);
+    //io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
+    //io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
+    //io.KeyMap[ImGuiKey_Escape] = SDL_GetScancodeFromKey(SDLK_ESCAPE);
+    //io.KeyMap[ImGuiKey_A] = SDLK_a;
+    //io.KeyMap[ImGuiKey_C] = SDLK_c;
+    //io.KeyMap[ImGuiKey_V] = SDLK_v;
+    //io.KeyMap[ImGuiKey_X] = SDLK_x;
+    //io.KeyMap[ImGuiKey_Y] = SDLK_y;
+    //io.KeyMap[ImGuiKey_Z] = SDLK_z;
 
 }
 

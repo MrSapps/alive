@@ -8,13 +8,14 @@
 #include "filesystem.hpp"
 #include "nanovg.h"
 
+class Renderer;
 
 class Level
 {
 public:
     Level(GameData& gameData, IAudioController& audioController, FileSystem& fs);
     void Update();
-    void Render(NVGcontext* ctx, int screenW, int screenH);
+    void Render(Renderer* rend, int screenW, int screenH);
 private:
     void RenderDebugPathSelection();
 
@@ -36,7 +37,7 @@ class GridMap
 public:
     GridMap(Oddlib::IStream& pathChunkStream, const GameData::PathEntry& pathSettings);
     void Update();
-    void Render(NVGcontext* ctx, int screenW, int screenH);
+    void Render(Renderer* rend, int screenW, int screenH);
 private:
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
     // std::vector<std::unique_ptr<class MapObject>> mObjects;

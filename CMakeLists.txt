@@ -188,6 +188,8 @@ add_library(AliveLib STATIC
     src/fmv.cpp
     include/sound.hpp
     src/sound.cpp
+	include/renderer.hpp
+	src/renderer.cpp
     include/engine.hpp
     src/engine.cpp
     include/gamedata.hpp
@@ -290,30 +292,6 @@ SET(WIN32_ONLY_SRC
     rsc/resource.h
     rsc/app.ico)
 endif()
-
-add_executable(Alive MACOSX_BUNDLE
-    ${WIN32_ONLY_SRC}
-    include/core/audiobuffer.hpp
-    src/core/audiobuffer.cpp
-    src/main.cpp
-    include/fmv.hpp
-    src/fmv.cpp
-    include/sound.hpp
-    src/sound.cpp
-    include/renderer.hpp
-    src/renderer.cpp
-    include/engine.hpp
-    src/engine.cpp
-    include/gamedata.hpp
-    src/gamedata.cpp
-    include/filesystem.hpp
-    src/filesystem.cpp
-    include/gridmap.hpp
-    src/gridmap.cpp
-    include/gridobject.hpp
-    src/gridobject.cpp
-    include/subtitles.hpp
-)
 
 SET(CPACK_PACKAGE_EXECUTABLES Alive "A.L.I.V.E")
 SET(CPACK_WIX_PROGRAM_MENU_FOLDER "Alive")

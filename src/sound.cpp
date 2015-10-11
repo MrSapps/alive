@@ -55,6 +55,7 @@ void Sound::Update()
 
 void Sound::Render(int w, int h)
 {
+#if 0
     static bool bSet = false;
     if (!bSet)
     {
@@ -150,4 +151,5 @@ void Sound::Render(int w, int h)
 
         ImGui::Checkbox("Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
     ImGui::End(); }
+#endif
 }

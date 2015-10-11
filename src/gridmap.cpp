@@ -1,6 +1,7 @@
 #include "gridmap.hpp"
-#include "imgui/imgui.h"
+//#include "imgui/imgui.h"
 #include "oddlib/lvlarchive.hpp"
+#include "renderer.hpp"
 
 Level::Level(GameData& gameData, IAudioController& audioController, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
@@ -16,17 +17,18 @@ void Level::Update()
     }
 }
 
-void Level::Render(NVGcontext* ctx, int screenW, int screenH)
+void Level::Render(Renderer* rend, int screenW, int screenH)
 {
     RenderDebugPathSelection();
     if (mMap)
     {
-        mMap->Render(ctx, screenW, screenH);
+        mMap->Render(rend, screenW, screenH);
     }
 }
 
 void Level::RenderDebugPathSelection()
 {
+#if 0
     ImGui::Begin("Paths", nullptr, ImVec2(400, 200), 1.0f, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
 
     static std::vector<std::pair<std::string, const GameData::PathEntry*>> items;
@@ -74,6 +76,7 @@ void Level::RenderDebugPathSelection()
     }
 
     ImGui::End();
+#endif
 }
 
 GridMap::GridMap(Oddlib::IStream& pathChunkStream, const GameData::PathEntry& pathSettings)
@@ -90,8 +93,8 @@ void GridMap::Update()
 
 }
 
-void GridMap::Render(NVGcontext* ctx, int screenW, int screenH)
+void GridMap::Render(Renderer* rend, int screenW, int screenH)
 {
     std::string str = "Level rendering test (" + std::to_string(mScreens.size()) + "," + std::to_string(mScreens[0].size()) + ")";
-    nvgText(ctx, 100, 100, str.c_str(), nullptr);
+    rend->drawText(100, 100, str.c_str());
 }

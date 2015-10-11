@@ -1,5 +1,5 @@
 #include "fmv.hpp"
-#include "imgui/imgui.h"
+//#include "imgui/imgui.h"
 #include "core/audiobuffer.hpp"
 #include "oddlib/cdromfilesystem.hpp"
 #include "gamedata.hpp"
@@ -10,6 +10,7 @@
 #include "SDL_opengl.h"
 #include "nanovg.h"
 #include "stdthread.h"
+#include "renderer.hpp"
 
 class AutoMouseCursorHide
 {
@@ -30,18 +31,17 @@ static float Percent(float max, float percent)
     return (max / 100.0f) * percent;
 }
 
-static void RenderSubtitles(NVGcontext* ctx, const char* msg, int screenW, int screenH)
+static void RenderSubtitles(Renderer* rend, const char* msg, int screenW, int screenH)
 {
     float xpos = 0.0f;
     float ypos = static_cast<float>(screenH);
 
-    nvgFillColor(ctx, nvgRGBA(0, 0, 0, 255));
-    nvgFontSize(ctx, Percent(static_cast<float>(screenH), 6.7f));
-
-    nvgTextAlign(ctx, NVG_ALIGN_TOP);
+    rend->fillColor(0, 0, 0, 255);
+    rend->fontSize(Percent(static_cast<float>(screenH), 6.7f));
+    rend->textAlign(TEXT_ALIGN_TOP);
     
     float bounds[4];
-    nvgTextBounds(ctx, xpos, ypos, msg, nullptr, bounds);
+    rend->textBounds(xpos, ypos, msg, bounds);
 
     //float fontX = bounds[0];
     //float fontY = bounds[1];
@@ -54,12 +54,10 @@ static void RenderSubtitles(NVGcontext* ctx, const char* msg, int screenW, int s
     // Center XPos in the screenW
     xpos = (screenW / 2) - (fontW / 2);
 
-    nvgText(ctx, xpos, ypos, msg, nullptr);
-
-    nvgFillColor(ctx, nvgRGBA(255, 255, 255, 255));
+    rend->drawText(xpos, ypos, msg);
+    rend->fillColor(255, 255, 255, 255);
     float adjust = Percent(static_cast<float>(screenH), 0.3f);
-    nvgText(ctx, xpos - adjust, ypos - adjust, msg, nullptr);
-
+    rend->drawText(xpos - adjust, ypos - adjust, msg);
 }
 
 class IMovie : public IAudioPlayer
@@ -88,7 +86,7 @@ public:
     virtual void FillBuffers() = 0;
 
     // Main thread context
-    void OnRenderFrame(NVGcontext* ctx, int screenW, int screenH)
+    void OnRenderFrame(Renderer* rend, int screenW, int screenH)
     {
         // TODO: Populate mAudioBuffer and mVideoBuffer
         // for up to N buffered frames
@@ -130,7 +128,7 @@ public:
             {
                 // TODO: Render all active subs, not just the first one
                 const char* msg = subs[0]->Text().c_str();
-                RenderSubtitles(ctx, msg, screenW, screenH);
+                RenderSubtitles(rend, msg, screenW, screenH);
                 if (subs.size() > 1)
                 {
                     LOG_WARNING("Too many active subtitles " << subs.size());
@@ -629,7 +627,7 @@ private:
 class FmvUi
 {
 private:
-    ImGuiTextFilter mFilter;
+    //ImGuiTextFilter mFilter;
     int listbox_item_current = 0;
     std::vector<const char*> listbox_items;
     std::unique_ptr<class IMovie>& mFmv;
@@ -643,6 +641,7 @@ public:
 
     void DrawVideoSelectionUi(const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
     {
+#if 0
         std::string name = "Video player";
         static bool bSet = false;
         if (!bSet)
@@ -698,6 +697,7 @@ public:
         }
 
         ImGui::End();
+#endif
     }
 private:
     IAudioController& mAudioController;
@@ -753,11 +753,11 @@ void Fmv::Update()
     }
 }
 
-void Fmv::Render(NVGcontext* ctx, int screenW, int screenH)
+void Fmv::Render(Renderer* rend, int screenW, int screenH)
 {
     if (mFmv)
     {
-        mFmv->OnRenderFrame(ctx, screenW, screenH);
+        mFmv->OnRenderFrame(rend, screenW, screenH);
     }
 }
 
@@ -772,9 +772,9 @@ DebugFmv::~DebugFmv()
 
 }
 
-void DebugFmv::Render(struct NVGcontext* ctx, int screenW, int screenH)
+void DebugFmv::Render(Renderer* rend, int screenW, int screenH)
 {
-    Fmv::Render(ctx, screenW, screenH);
+    Fmv::Render(rend, screenW, screenH);
 
     if (!mFmv)
     {

@@ -10,6 +10,7 @@
 class GameData;
 class IAudioController;
 class FileSystem;
+class Renderer;
 
 class Fmv
 {
@@ -20,7 +21,7 @@ public:
     bool IsPlaying() const;
     void Stop();
     void Update();
-    virtual void Render(struct NVGcontext* ctx, int screenW, int screenH);
+    virtual void Render(Renderer* rend, int screenW, int screenH);
 protected:
     GameData& mGameData;
     IAudioController& mAudioController;
@@ -34,7 +35,7 @@ class DebugFmv : public Fmv
 public:
     DebugFmv(GameData& gameData, IAudioController& audioController, FileSystem& fs);
     virtual ~DebugFmv();
-    virtual void Render(struct NVGcontext* ctx, int screenW, int screenH) override;
+    virtual void Render(Renderer* rend, int screenW, int screenH) override;
 private:
     void RenderVideoUi();
     std::unique_ptr<class FmvUi> mFmvUi;
