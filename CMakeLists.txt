@@ -203,6 +203,7 @@ add_library(AliveLib STATIC
     include/gridobject.hpp
     src/gridobject.cpp
     include/subtitles.hpp
+    include/sdl_raii.hpp
 )
 
 add_executable(Alive MACOSX_BUNDLE

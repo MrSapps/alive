@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SDL.h"
+#include "sdl_raii.hpp"
 
 namespace Oddlib
 {
@@ -12,9 +13,8 @@ namespace Oddlib
         AoBitsPc(const AoBitsPc&) = delete;
         AoBitsPc& operator = (const AoBitsPc&) = delete;
         explicit AoBitsPc(IStream& stream);
-        ~AoBitsPc();
     private:
         void GenerateImage(IStream& stream);
-        SDL_Surface* mSurface = nullptr;
+        SDL_SurfacePtr mSurface;
     };
 }

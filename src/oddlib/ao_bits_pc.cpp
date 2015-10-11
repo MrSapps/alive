@@ -9,16 +9,8 @@ namespace Oddlib
 
     AoBitsPc::AoBitsPc(IStream& stream)
     {
-        mSurface = SDL_CreateRGBSurface(0, 640, 240, 16, red_mask, green_mask, blue_mask, 0);
+        mSurface.reset(SDL_CreateRGBSurface(0, 640, 240, 16, red_mask, green_mask, blue_mask, 0));
         GenerateImage(stream);
-    }
-
-    AoBitsPc::~AoBitsPc()
-    {
-        if (mSurface)
-        {
-            SDL_FreeSurface(mSurface);
-        }
     }
 
     void AoBitsPc::GenerateImage(IStream& stream)
@@ -39,7 +31,7 @@ namespace Oddlib
             stream.ReadBytes(buffer.data(), buffer.size());
 
             // Convert to an SDL surface
-            SDL_Surface* strip = SDL_CreateRGBSurfaceFrom(buffer.data(), 16, 240, 16, kStripSize*sizeof(Uint16), red_mask, green_mask, blue_mask, 0);
+            SDL_SurfacePtr strip(SDL_CreateRGBSurfaceFrom(buffer.data(), 16, 240, 16, kStripSize*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
 
             // Copy paste the strip into the full image
             SDL_Rect dstRect;
@@ -47,11 +39,10 @@ namespace Oddlib
             dstRect.y = 0;
             dstRect.w = kStripSize;
             dstRect.h = 240;
-            SDL_BlitSurface(strip, NULL, mSurface, &dstRect);
-            SDL_FreeSurface(strip);
+            SDL_BlitSurface(strip.get(), NULL, mSurface.get(), &dstRect);
         }
 
-        //SDL_SaveBMP(mSurface, "testing.bmp");
+        //SDL_SaveBMP(mSurface.get(), "testing.bmp");
     }
 
 }
