@@ -2,6 +2,7 @@
 #include "imgui/imgui.h"
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/path.hpp"
+#include "oddlib/ao_bits_pc.hpp"
 
 Level::Level(GameData& gameData, IAudioController& audioController, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
@@ -73,7 +74,7 @@ void Level::RenderDebugPathSelection()
                                           entry->mObjectDataOffset, 
                                           entry->mMapXSize, 
                                           entry->mMapYSize);
-                        mMap = std::make_unique<GridMap>(path);
+                        mMap = std::make_unique<GridMap>(path, std::move(archive));
                     }
                 }
             }
@@ -83,13 +84,20 @@ void Level::RenderDebugPathSelection()
     ImGui::End();
 }
 
-GridScreen::GridScreen(const std::string& fileName)
+GridScreen::GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive)
     : mFileName(fileName)
 {
-
+    auto file = archive.FileByName(fileName);
+    if (file)
+    {
+        auto chunk = file->ChunkByType(Oddlib::MakeType('B','i','t','s'));
+        auto stream = chunk->Stream();
+        Oddlib::AoBitsPc bits(*stream);
+    }
 }
 
-GridMap::GridMap(Oddlib::Path& path)
+GridMap::GridMap(Oddlib::Path& path, std::unique_ptr<Oddlib::LvlArchive> archive)
+    : mArchive(std::move(archive))
 {
     mScreens.resize(path.XSize());
     for (auto& col : mScreens)
@@ -101,7 +109,7 @@ GridMap::GridMap(Oddlib::Path& path)
     {
         for (Uint32 y = 0; y < path.YSize(); y++)
         {
-            mScreens[x][y] = std::make_unique<GridScreen>(path.CameraFileName(x,y));
+            mScreens[x][y] = std::make_unique<GridScreen>(path.CameraFileName(x,y), *mArchive);
         }
     }
 }

@@ -8,7 +8,7 @@
 #include "filesystem.hpp"
 #include "nanovg.h"
 
-namespace Oddlib { class Path; }
+namespace Oddlib { class Path; class LvlArchive; }
 
 class Level
 {
@@ -27,20 +27,21 @@ private:
 class GridScreen
 {
 public:
-    explicit GridScreen(const std::string& fileName);
+    GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive);
     const std::string& FileName() const { return mFileName; }
 private:
-    //std::vector<std::unique_ptr<class MapObject>> mObjects;
     std::string mFileName;
 };
 
 class GridMap
 {
 public:
-    explicit GridMap(Oddlib::Path& path);
+    GridMap(Oddlib::Path& path, std::unique_ptr<Oddlib::LvlArchive> archive);
     void Update();
     void Render(NVGcontext* ctx, int screenW, int screenH);
 private:
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
-    // std::vector<std::unique_ptr<class MapObject>> mObjects;
+
+    // TODO: Should be owned and ref counted by something else
+    std::unique_ptr<Oddlib::LvlArchive> mArchive;
 };

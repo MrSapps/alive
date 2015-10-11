@@ -68,6 +68,16 @@ namespace Oddlib
         return it == std::end(mChunks) ? nullptr : it->get();
     }
 
+    LvlArchive::FileChunk* LvlArchive::File::ChunkByType(Uint32 type)
+    {
+        LOG_INFO("Find chunk with type " << type);
+        auto it = std::find_if(std::begin(mChunks), std::end(mChunks), [&](std::unique_ptr<FileChunk>& chunk)
+        {
+            return chunk->Type() == type;
+        });
+        return it == std::end(mChunks) ? nullptr : it->get();
+    }
+
     void LvlArchive::File::SaveChunks()
     {
         for (const auto& chunk : mChunks)
