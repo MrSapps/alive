@@ -2,8 +2,7 @@
 #include "imgui/imgui.h"
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/path.hpp"
-#include "oddlib/ao_bits_pc.hpp"
-#include "oddlib/ae_bits_pc.hpp"
+#include "oddlib/bits_factory.hpp"
 
 Level::Level(GameData& gameData, IAudioController& audioController, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
@@ -93,7 +92,7 @@ GridScreen::GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive)
     {
         auto chunk = file->ChunkByType(Oddlib::MakeType('B','i','t','s'));
         auto stream = chunk->Stream();
-        std::make_unique<Oddlib::AeBitsPc>(*stream);
+        auto bits = Oddlib::MakeBits(*stream);
     }
 }
 

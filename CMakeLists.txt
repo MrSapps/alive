@@ -184,6 +184,8 @@ add_library(oddlib STATIC
     include/oddlib/ao_bits_pc.hpp
     src/oddlib/ae_bits_pc.cpp
     include/oddlib/ae_bits_pc.hpp
+    src/oddlib/bits_factory.cpp
+    include/oddlib/bits_factory.hpp
 )
 
 add_library(AliveLib STATIC

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sdl_raii.hpp"
+#include "oddlib/bits_factory.hpp"
 #include <vector>
 
 namespace Oddlib
@@ -8,12 +9,13 @@ namespace Oddlib
     class IStream;
     struct BitsLogic;
 
-    class AeBitsPc
+    class AeBitsPc : public IBits
     {
     public:
         AeBitsPc(const AeBitsPc&) = delete;
         AeBitsPc& operator = (const AeBitsPc&) = delete;
         explicit AeBitsPc(IStream& stream);
+        virtual SDL_Surface* GetSurface() const override;
     private:
         void vlc_decode(const std::vector<Uint16>& aCamSeg, std::vector<Uint16>& aDst);
         void process_segment(Uint16* aVlcBufferPtr, int xPos);

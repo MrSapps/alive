@@ -106,6 +106,11 @@ namespace Oddlib
         GenerateImage(stream);
     }
 
+    SDL_Surface* AeBitsPc::GetSurface() const
+    {
+        return mSurface.get();
+    }
+
     void AeBitsPc::GenerateImage(IStream& stream)
     {
         const Uint32 kStripSize = 16;

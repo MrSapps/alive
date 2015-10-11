@@ -13,6 +13,11 @@ namespace Oddlib
         GenerateImage(stream);
     }
 
+    SDL_Surface* AoBitsPc::GetSurface() const
+    {
+        return mSurface.get();
+    }
+
     void AoBitsPc::GenerateImage(IStream& stream)
     {
         std::vector<Uint8> buffer;
