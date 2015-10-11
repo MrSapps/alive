@@ -187,7 +187,6 @@ add_library(oddlib STATIC
 )
 
 add_library(AliveLib STATIC
-    ${WIN32_ONLY_SRC}
     include/core/audiobuffer.hpp
     src/core/audiobuffer.cpp
     include/fmv.hpp
@@ -208,7 +207,15 @@ add_library(AliveLib STATIC
     include/sdl_raii.hpp
 )
 
+if(WIN32)
+SET(WIN32_RESOURCES_SRC
+    rsc/Resource.rc
+    rsc/resource.h
+    rsc/app.ico)
+endif()
+
 add_executable(Alive MACOSX_BUNDLE
+    ${WIN32_RESOURCES_SRC}
     src/main.cpp
 )
 
@@ -218,6 +225,7 @@ SET(Alive_Libs  AliveLib jsonxx imgui oddlib NanoVg glew stk ${OPENGL_LIBRARIES}
 TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
 
 add_executable(IntegrationTest
+  ${WIN32_RESOURCES_SRC}
   test/integration_main.cpp
 )
 
@@ -291,12 +299,6 @@ git_shorttag(GIT_SHORT_REV)
 set(ALIVE_VERSION "ALIVE v${ALIVE_VERSION_MAJOR}.${ALIVE_VERSION_MINOR}.${ALIVE_VERSION_PATCH} rev(${GIT_SHORT_REV})")
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/packaging/alive_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/packaging/alive_version.h)
 
-if(WIN32)
-SET(WIN32_ONLY_SRC
-    rsc/Resource.rc
-    rsc/resource.h
-    rsc/app.ico)
-endif()
 
 SET(CPACK_PACKAGE_EXECUTABLES Alive "A.L.I.V.E")
 SET(CPACK_WIX_PROGRAM_MENU_FOLDER "Alive")
