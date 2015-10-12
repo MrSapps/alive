@@ -448,7 +448,7 @@ public:
                     // this happens in the AE PSX MI.MOV streams
                     pixelBuffer.resize(frameW * frameH* 4); // 4 bytes per pixel
 
-                    mMdec.DecodeFrameToABGR32((uint16_t*)pixelBuffer.data(), (uint16_t*)mDemuxBuffer.data(), frameW, frameH, false);
+                    mMdec.DecodeFrameToABGR32((uint16_t*)pixelBuffer.data(), (uint16_t*)mDemuxBuffer.data(), frameW, frameH);
                     mVideoBuffer.push_back(Frame{ mFrameCounter++, frameW, frameH, pixelBuffer });
 
                     return;

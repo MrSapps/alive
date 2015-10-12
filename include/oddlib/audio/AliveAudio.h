@@ -15,7 +15,6 @@
 #include "Voice.h"
 #include "Sample.h"
 #include "ADSR.h"
-#include "biquad.h"
 #include "core/audiobuffer.hpp"
 #include "stdthread.h"
 #include "AudioInterpolation.h"

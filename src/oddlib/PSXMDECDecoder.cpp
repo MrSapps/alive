@@ -619,8 +619,7 @@ void PSXMDECDecoder::YUVfunction1(uint8_t arg_image[][4], int index, int r0, int
 // Old code was a mess. New code should be much better.
 // Could be cleaned up even more, but theres no need at the moment.
 void PSXMDECDecoder::YUV2BGRA32(int16_t *arg_blk,
-    uint8_t arg_image[][4],
-    bool arg_no_color)
+    uint8_t arg_image[][4])
 {
     double rConstant = 1.402;
     double gConstant = -0.3437;
@@ -678,8 +677,7 @@ void PSXMDECDecoder::YUV2BGRA32(int16_t *arg_blk,
 uint8_t PSXMDECDecoder::DecodeFrameToABGR32(uint16_t *arg_decoded_image,
     uint16_t *arg_bs_image,
     uint16_t arg_width,
-    uint16_t arg_height,
-    bool arg_no_color)
+    uint16_t arg_height)
 {
     uint16_t *rl = new uint16_t[(arg_bs_image[0] + 2) * sizeof(int32_t)];
     DecodeDCTVLC(rl, arg_bs_image);
@@ -702,7 +700,7 @@ uint8_t PSXMDECDecoder::DecodeFrameToABGR32(uint16_t *arg_decoded_image,
         for (; arg_size > 0; arg_size -= blocksize / 2, arg_image += blocksize)
         {
             tmp_rl = RL2BLK(tmp_rl, blk);
-            YUV2BGRA32(blk, (uint8_t(*)[4])arg_image, arg_no_color);
+            YUV2BGRA32(blk, (uint8_t(*)[4])arg_image);
         }
 
 
