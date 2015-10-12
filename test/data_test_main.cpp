@@ -3,6 +3,7 @@
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/bits_factory.hpp"
 #include "oddlib/ao_bits_pc.hpp"
+#include "oddlib/ae_bits_pc.hpp"
 #include "oddlib/anim.hpp"
 #include "filesystem.hpp"
 #include "logger.hpp"
@@ -106,7 +107,19 @@ public:
             auto bits = Oddlib::MakeBits(*chunk.Stream());
             if (mType == eAoPc)
             {
-                auto ptr = dynamic_cast<Oddlib::AoBitsPc*>(bits.get());
+                Oddlib::IBits* ptr = nullptr;
+                switch (mType)
+                {
+                case eAoPc:
+                    ptr = dynamic_cast<Oddlib::AoBitsPc*>(bits.get());
+                    break;
+
+                case eAePc:
+                    ptr = dynamic_cast<Oddlib::AeBitsPc*>(bits.get());
+                    break;
+                }
+
+
                 if (!ptr)
                 {
                     LOG_ERROR("Wrong camera type constructed");
@@ -152,6 +165,7 @@ int main(int /*argc*/, char** /*argv*/)
         "c1.lvl"
     };
     DataTest aoPc(DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee", aoLvls);
+    //DataTest aoPsx(DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin", aoLvls);
 
     const std::vector<std::string> aeLvls =
     {
@@ -170,8 +184,7 @@ int main(int /*argc*/, char** /*argv*/)
     DataTest aePc(DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus", aeLvls);
 
     /* TODO: Check all other data
-    DataTest aoPsx("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin");
-
+ 
     // AE PC/PSX
 
     DataTest aePsxCd1("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin");
