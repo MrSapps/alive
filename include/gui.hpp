@@ -134,6 +134,7 @@ struct GuiContext_Turtle {
     V2i last_bounding_max; // Most recently added gui element
     char label[MAX_GUI_LABEL_SIZE]; // Label of the gui_begin
     int window_ix;
+    int layer; // Graphical layer
     bool detached; // If true, moving of this turtle doesn't affect parent bounding boxes etc.
     DragDropData inactive_dragdropdata; // This is copied to gui context when actual dragging and dropping within this turtle starts
 };
@@ -146,10 +147,11 @@ struct GuiContext_Window {
 
     V2i pos; // Top-left position
     V2i client_size; // Size, not taking account title bar or borders
+    V2i total_size; // Value depends from client_size
 };
 
 #define MAX_GUI_STACK_SIZE 32
-#define MAX_GUI_ELEMENT_COUNT 256
+#define MAX_GUI_ELEMENT_COUNT 256 // @todo Remove limit
 #define MAX_GUI_WINDOW_COUNT 64
 #define GUI_FILENAME_SIZE MAX_PATH_SIZE
 
@@ -172,10 +174,10 @@ struct GuiContext_Window {
 #define GUI_KEY_8 '8'
 #define GUI_KEY_9 '9'
 
-typedef void (*DrawButtonFunc)(void *user_data, float x, float y, float w, float h, bool down, bool hover);
-typedef void (*DrawTextFunc)(void *user_data, float x, float y, const char *text);
-typedef void (*CalcTextSizeFunc)(float ret[2], void *user_data, const char *text);
-typedef void (*DrawWindowFunc)(void *user_data, float x, float y, float w, float h, float title_bar_height, const char *title);
+typedef void (*DrawButtonFunc)(void *user_data, float x, float y, float w, float h, bool down, bool hover, int layer);
+typedef void (*DrawTextFunc)(void *user_data, float x, float y, const char *text, int layer);
+typedef void (*CalcTextSizeFunc)(float ret[2], void *user_data, const char *text, int layer);
+typedef void (*DrawWindowFunc)(void *user_data, float x, float y, float w, float h, float title_bar_height, const char *title, int layer);
 
 // User-supplied callbacks
 // TODO: Not sure if callbacks are better than providing an array containing all drawing commands of a frame.
@@ -192,9 +194,10 @@ struct GuiContext {
     // Write to these to make gui work
     V2i cursor_pos; // Screen position, pixel coordinates
     uint8_t key_state[GUI_KEY_COUNT];
+    V2i next_window_pos;
 
-    int hovered_window_ix;
-    int focused_window_ix;
+    // Internals
+
     V2i cursor_delta;
 
     V2i drag_start_pos; // Pixel coordinates
@@ -206,11 +209,15 @@ struct GuiContext {
     int turtle_ix;
 
     GuiContext_Window windows[MAX_GUI_WINDOW_COUNT];
+    int window_order[MAX_GUI_WINDOW_COUNT];
+    int window_count;
+    int hovered_window_ix;
 
-                           // This is used at mouse input and render dimensions. All gui calculations are done in pt.
+    // This is used at mouse input and render dimensions. All gui calculations are done in pt.
     float dpi_scale; // 1.0: pixels == points, 2.0: pixels == 2.0*points (gui size is doubled). 
 
     GuiId hot_id, last_hot_id;
+    int hot_win_ix;
     GuiId active_id;
 
     Skin skin;

@@ -1,6 +1,6 @@
 #include "sound.hpp"
 #include "oddlib/audio/SequencePlayer.h"
-#include "imgui/imgui.h"
+#include "gui.hpp"
 #include "core/audiobuffer.hpp"
 #include "logger.hpp"
 #include "filesystem.hpp"
@@ -53,9 +53,8 @@ void Sound::Update()
     }
 }
 
-void Sound::Render(int w, int h)
+void Sound::Render(GuiContext *gui, int w, int h)
 {
-#if 0
     static bool bSet = false;
     if (!bSet)
     {
@@ -70,7 +69,6 @@ void Sound::Render(int w, int h)
             LOG_ERROR("Audio init failure: " << ex.what());
         }
 
-        ImGui::SetNextWindowPos(ImVec2(320, 250));
         bSet = true;
         auto themes = mAliveAudio.m_Config.get<jsonxx::Array>("themes");
         for (auto i = 0u; i < themes.size(); i++)
@@ -94,13 +92,14 @@ void Sound::Render(int w, int h)
         }
     }
 
-
-    ImGui::Begin("Sound", nullptr, ImVec2(250, 280), 1.0f, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
+    gui->next_window_pos = V2i(320, 250);
+    gui_begin_window(gui, "Sound", V2i(250, 290));
 
     static int selectedIndex = 0; 
     for (size_t i = 0; i < mThemes.size(); i++)
     {
-        if (ImGui::Selectable(mThemes[i].c_str(), static_cast<int>(i) == selectedIndex))
+        //if (ImGui::Selectable(mThemes[i].c_str(), static_cast<int>(i) == selectedIndex))
+        if (gui_button(gui, mThemes[i].c_str()))
         {
             selectedIndex = static_cast<int>(i);
             if (selectedIndex >= 0 && selectedIndex < mThemes.size() && !mThemes.empty())
@@ -126,7 +125,8 @@ void Sound::Render(int w, int h)
         }
     }
 
-    ImGui::End();
+    gui_end_window(gui);
+#if 0
 
     { ImGui::Begin("Audio output settings");
         ImGui::Checkbox("Use antialiasing (not implemented)", &mAliveAudio.AntiAliasFilteringEnabled);

@@ -8,6 +8,7 @@
 class GameData;
 class IAudioController;
 class FileSystem;
+class GuiContext;
 
 class Sound
 {
@@ -17,7 +18,7 @@ public:
     Sound(GameData& gameData, IAudioController& audioController, FileSystem& fs);
     ~Sound();
     void Update();
-    void Render(int w, int h);
+    void Render(GuiContext *gui, int w, int h);
 private:
     void BarLoop();
     void ChangeTheme(FileSystem& fs, const std::deque<std::string>& parts);

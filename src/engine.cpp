@@ -135,9 +135,11 @@ bool Engine::Init()
 }
 
 // TODO: Move gui drawing to own file
-void drawButton(void *void_rend, float x, float y, float w, float h, bool down, bool hover)
+void drawButton(void *void_rend, float x, float y, float w, float h, bool down, bool hover, int layer)
 {
     Renderer *rend = (Renderer*)void_rend;
+    rend->beginLayer(layer);
+
     float cornerRadius = 4.0f;
     Color gradBegin = { 1.f, 1.f, 1.f, 64/255.f };
     Color gradEnd = { 0.f, 0.f, 0.f, 64/255.f };
@@ -176,23 +178,29 @@ void drawButton(void *void_rend, float x, float y, float w, float h, bool down, 
     rend->roundedRect(x + 0.5f, y + 0.5f, w - 1, h - 1, cornerRadius - 0.5f);
     rend->strokeColor(outlineColor);
     rend->stroke();
+
+    rend->endLayer();
 }
 
 static const float g_gui_font_size = 16.f;
 
-void drawText(void *void_rend, float x, float y, const char *text)
+void drawText(void *void_rend, float x, float y, const char *text, int layer)
 {
     Renderer *rend = (Renderer*)void_rend;
+    rend->beginLayer(layer);
 
     rend->fontSize(g_gui_font_size);
     rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
     rend->fillColor(Color{ 1.f, 1.f, 1.f, 160/255.f });
     rend->text(x, y, text);
+
+    rend->endLayer();
 }
 
-void calcTextSize(float ret[2], void *void_rend, const char *text)
+void calcTextSize(float ret[2], void *void_rend, const char *text, int layer)
 {
     Renderer *rend = (Renderer*)void_rend;
+    rend->beginLayer(layer);
 
     rend->fontSize(g_gui_font_size);
     rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
@@ -200,11 +208,15 @@ void calcTextSize(float ret[2], void *void_rend, const char *text)
     rend->textBounds(0, 0, text, bounds);
     ret[0] = bounds[2] - bounds[0];
     ret[1] = bounds[3] - bounds[1];
+
+    rend->endLayer();
 }
 
-void drawWindow(void *void_rend, float x, float y, float w, float h, float titleBarHeight, const char *title)
+void drawWindow(void *void_rend, float x, float y, float w, float h, float titleBarHeight, const char *title, int layer)
 {
     Renderer *rend = (Renderer*)void_rend;
+
+    rend->beginLayer(layer); // Makes window reordering possible
 
     float cornerRadius = 3.0f;
     RenderPaint shadowPaint;
@@ -248,6 +260,8 @@ void drawWindow(void *void_rend, float x, float y, float w, float h, float title
     rend->fontBlur(0);
     rend->fillColor(Color{ 230/255.f, 230/255.f, 230/255.f, 200/255.f });
     rend->text(x + w / 2, y + 16, title);
+
+    rend->endLayer();
 }
 
 void Engine::InitSubSystems()
@@ -403,12 +417,9 @@ void Engine::Render()
     int w, h;
     SDL_GetWindowSize(mWindow, &w, &h);
     mRenderer->beginFrame(w, h);
+    gui_begin(gui, "background");
 
     DebugRender();
-
-    mFmv->Render(mRenderer.get(), w, h);
-    mSound->Render(w, h);
-    mLevel->Render(mRenderer.get(), w, h);
 
     uint8_t testPixels[4*3] = {
         255, 0, 0,
@@ -419,8 +430,20 @@ void Engine::Render()
     int tex = mRenderer->createTexture(testPixels, 2, 2, PixelFormat_RGB24);
     mRenderer->drawQuad(tex, 50, 50, 200, 200);
 
+    gui->next_window_pos = V2i(10, 10);
+    gui_begin_window(gui, "Test window", V2i(300, 200));
+    if (gui_button(gui, "Test button"))
+        LOG("BUTTON PRESSED");
+    gui_button(gui, "This is also a button");
+    gui_button(gui, "12394857349857");
+    gui_end_window(gui);
+
+    mFmv->Render(mRenderer.get(), w, h);
+    mSound->Render(gui, w, h);
+    mLevel->Render(mRenderer.get(), w, h);
+
+
 #if 0
-    mRenderer->strokeColor(Color{ 0, 0, 0, 1 });
     mRenderer->strokeWidth(5);
 
     mRenderer->beginPath();
@@ -430,29 +453,14 @@ void Engine::Render()
     mRenderer->closePath();
     mRenderer->stroke();
 
-
 #endif
-
-    gui_begin_window(gui, "Test window", V2i(300, 200));
-
-    gui_begin(gui, "background");
-    if (gui_button(gui, "Test button"))
-        LOG("BUTTON PRESSED");
-    gui_next_row(gui);
-    gui_hor_space(gui);
-    gui_button(gui, "This is also a button");
-    gui_next_row(gui);
-    gui_hor_space(gui);
-    gui_button(gui, "12394857349857");
-    gui_end(gui);
-
-    gui_end_window(gui);
 
     mRenderer->drawQuad(tex, 20, 20, 30, 30);
 
-    mRenderer->destroyTexture(tex);
-
+    gui_end(gui);
     mRenderer->endFrame();
+
+    mRenderer->destroyTexture(tex);
     SDL_GL_SwapWindow(mWindow);
 }
 

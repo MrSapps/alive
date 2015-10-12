@@ -1,6 +1,7 @@
 #ifndef ALIVE_RENDERER_HPP
 #define ALIVE_RENDERER_HPP
 
+#include <vector>
 #include <GL/glew.h>
 #include "SDL_opengl.h"
 
@@ -60,6 +61,41 @@ enum PixelFormat
     PixelFormat_RGB24 = 0
 };
 
+// Internal to Renderer
+enum DrawCmdType {
+    DrawCmdType_quad,
+    DrawCmdType_fillColor,
+    DrawCmdType_strokeColor,
+    DrawCmdType_strokeWidth,
+    DrawCmdType_fontSize,
+    DrawCmdType_fontBlur,
+    DrawCmdType_textAlign,
+    DrawCmdType_text,
+    DrawCmdType_resetTransform,
+    DrawCmdType_beginPath,
+    DrawCmdType_moveTo,
+    DrawCmdType_lineTo,
+    DrawCmdType_closePath,
+    DrawCmdType_fill,
+    DrawCmdType_stroke,
+    DrawCmdType_roundedRect,
+    DrawCmdType_rect,
+    DrawCmdType_solidPathWinding,
+    DrawCmdType_fillPaint,
+};
+struct DrawCmd {
+    DrawCmdType type;
+    int layer;
+    union { // This union is to make the struct smaller, as RenderPaint is quite large
+        struct {
+            int integer;
+            float f[5];
+            char str[64]; // TODO: Allocate dynamically from cheap frame allocator
+        };
+        RenderPaint paint;
+    };
+};
+
 // GLES2 renderer
 class Renderer {
 public:
@@ -70,12 +106,18 @@ public:
     void beginFrame(int w, int h);
     void endFrame();
 
+    // Layers with larger depth are drawn on top
+    void beginLayer(int depth);
+    void endLayer();
+
+    // Textures are rendered in endFrame, so don't destroy too soon
+    int createTexture(void *pixels, int width, int height, PixelFormat format);
+    void destroyTexture(int handle);
+
+    // Drawing commands, which will be buffered and issued at the end of the frame.
     // All coordinates are given in pixels.
     // All color components are given in 0..1 floating point.
 
-    // Textured quad rendering
-    int createTexture(void *pixels, int width, int height, PixelFormat format);
-    void destroyTexture(int handle);
     void drawQuad(int texHandle, float x, float y, float w, float h);
 
     // NanoVG wrap
@@ -85,7 +127,6 @@ public:
     void fontSize(float s);
     void fontBlur(float s);
     void textAlign(int align); // TextAlign bitfield
-    void textBounds(int x, int y, const char *msg, float bounds[4]);
     void text(float x, float y, const char *msg);
     void resetTransform();
     void beginPath();
@@ -98,13 +139,18 @@ public:
     void rect(float x, float y, float w, float h);
     void solidPathWinding(bool b); // If false, then holes are created
 
+    void fillPaint(RenderPaint p);
+
+    // Not drawing commands
     RenderPaint linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec);
     RenderPaint boxGradient(float x, float y, float w, float h,
                             float r, float f, Color icol, Color ocol);
-    void fillPaint(RenderPaint p);
+    // TODO: Add fontsize param to make independent of "current state"
+    void textBounds(int x, int y, const char *msg, float bounds[4]);
 
 private:
-    void preVectorDraw();
+    void pushCmd(DrawCmd cmd);
+
     // Vector rendering
     struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;
     struct NVGcontext* mNanoVg = nullptr;
@@ -122,7 +168,9 @@ private:
         Mode_vector,
         Mode_quads,
     };
-    Mode mMode;
+
+    std::vector<int> mLayerStack;
+    std::vector<DrawCmd> mDrawCmds;
 };
 
 #endif
