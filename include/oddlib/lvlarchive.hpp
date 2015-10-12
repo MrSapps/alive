@@ -77,6 +77,7 @@ namespace Oddlib
         explicit LvlArchive(std::unique_ptr<IStream> stream);
 
         File* FileByName(const std::string& fileName);
+        File* FileByIndex(Uint32 index) { return mFiles[index].get(); }
         Uint32 FileCount() const { return static_cast<Uint32>(mFiles.size()); }
         struct FileRecord
         {

@@ -230,8 +230,14 @@ add_executable(IntegrationTest
   ${WIN32_RESOURCES_SRC}
   test/integration_main.cpp
 )
-
 TARGET_LINK_LIBRARIES(IntegrationTest ${Alive_Libs})
+
+add_executable(DataTest
+  ${WIN32_RESOURCES_SRC}
+  test/data_test_main.cpp
+)
+TARGET_LINK_LIBRARIES(DataTest ${Alive_Libs})
+
 
 
 #cotire(oddlib)

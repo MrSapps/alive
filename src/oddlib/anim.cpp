@@ -4,7 +4,7 @@
 
 namespace Oddlib
 {
-    AnimSerializer::AnimSerializer(Stream& stream)
+    AnimSerializer::AnimSerializer(IStream& stream)
     {
         // Read the header
         stream.ReadUInt16(h.iMaxW);
@@ -33,7 +33,7 @@ namespace Oddlib
         ParseAnimationSets(stream);
     }
 
-    void AnimSerializer::ParseAnimationSets(Stream& stream)
+    void AnimSerializer::ParseAnimationSets(IStream& stream)
     {
         // Collect all animation sets
         auto hdr = std::make_unique<AnimationHeader>();

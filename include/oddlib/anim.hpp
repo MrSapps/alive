@@ -7,14 +7,14 @@
 namespace Oddlib
 {
     class LvlArchive;
-    class Stream;
+    class IStream;
 
     class AnimSerializer
     {
     public:
-        AnimSerializer(Stream& stream);
+        AnimSerializer(IStream& stream);
     private:
-        void ParseAnimationSets(Stream& stream);
+        void ParseAnimationSets(IStream& stream);
 
         struct BanHeader
         {
