@@ -80,26 +80,6 @@ void Engine::ImGui_WindowResize()
 
 }
 
-void UpdateImGui()
-{
-    //ImGuiIO& io = ImGui::GetIO();
-
-    SDL_PumpEvents();
-
-    // Setup inputs
-    // (we already got mouse wheel, keyboard keys & characters from glfw callbacks polled in glfwPollEvents())
-    int mouse_x, mouse_y;
-    SDL_GetMouseState(&mouse_x, &mouse_y);
-
-    //io.MousePos = ImVec2((float)mouse_x * mousePosScale.x, (float)mouse_y * mousePosScale.y);      // Mouse position, in pixels (set to -1,-1 if no mouse / on another screen, etc.)
-
-    //io.MouseDown[0] = mousePressed[0] || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT));
-    //io.MouseDown[1] = mousePressed[1] || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT));
-
-    // Start the frame
-    //ImGui::NewFrame();
-}
-
 Engine::Engine()
 {
 
@@ -107,6 +87,8 @@ Engine::Engine()
 
 Engine::~Engine()
 {
+    destroy_gui(gui);
+
     mRenderer.reset();
 
     SDL_GL_DeleteContext(mContext);
@@ -152,12 +134,87 @@ bool Engine::Init()
     }
 }
 
+// TODO: Move gui drawing to own file
+void drawButton(void *void_rend, float x, float y, float w, float h, bool down, bool hover)
+{
+    Renderer *rend = (Renderer*)void_rend;
+    float cornerRadius = 4.0f;
+    Color gradBegin = { 1.f, 1.f, 1.f, 64/255.f };
+    Color gradEnd = { 0.f, 0.f, 0.f, 64/255.f };
+
+    Color bgColor = { 0.3f, 0.3f, 0.3f, 0.5f };
+
+    if (down)
+    {
+        Color begin = { 0.f, 0.f, 0.f, 64/255.f };
+        Color end = { 0.3f, 0.3f, 0.3f, 64/255.f };
+        gradBegin = begin;
+        gradEnd = end;
+    }
+
+    RenderPaint overlay = rend->linearGradient(x, y, x, y + h,
+                                              gradBegin,
+                                              gradEnd);
+
+    rend->beginPath();
+    rend->roundedRect(x + 1, y + 1, w - 2, h - 2, cornerRadius - 1);
+
+    rend->fillColor(bgColor);
+    rend->fill();
+
+    rend->fillPaint(overlay);
+    rend->fill();
+
+    Color outlineColor = Color{ 0, 0, 0, 0.4f };
+    if (hover && !down)
+    {
+        outlineColor.r = 1.f;
+        outlineColor.g = 1.f;
+        outlineColor.b = 1.f;
+    }
+    rend->beginPath();
+    rend->roundedRect(x + 0.5f, y + 0.5f, w - 1, h - 1, cornerRadius - 0.5f);
+    rend->strokeColor(outlineColor);
+    rend->stroke();
+}
+
+void drawText(void *void_rend, float x, float y, const char *text, float font_size)
+{
+    Renderer *rend = (Renderer*)void_rend;
+
+    rend->fontSize(font_size);
+    rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
+    rend->fillColor(Color{ 1.f, 1.f, 1.f, 160/255.f });
+    rend->text(x, y, text);
+}
+
+void calcTextSize(float ret[2], void *void_rend, const char *text, float font_size)
+{
+    Renderer *rend = (Renderer*)void_rend;
+
+    rend->fontSize(font_size);
+    rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
+    float bounds[4];
+    rend->textBounds(0, 0, text, bounds);
+    ret[0] = bounds[2] - bounds[0];
+    ret[1] = bounds[3] - bounds[1];
+}
+
 void Engine::InitSubSystems()
 {
     mRenderer = std::make_unique<Renderer>((mFileSystem.BasePath() + "/data/Roboto-Regular.ttf").c_str());
     mFmv = std::make_unique<Fmv>(mGameData, mAudioHandler, mFileSystem);
     mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem);
     mLevel = std::make_unique<Level>(mGameData, mAudioHandler, mFileSystem);
+
+    { // Init gui system
+        GuiCallbacks callbacks = { 0 };
+        callbacks.user_data = mRenderer.get();
+        callbacks.draw_button = drawButton;
+        callbacks.draw_text = drawText;
+        callbacks.calc_text_size = calcTextSize;
+        gui = create_gui(callbacks);
+    }
 }
 
 int Engine::Run()
@@ -172,9 +229,12 @@ int Engine::Run()
 
 void Engine::Update()
 {
-    //ImGuiIO& io = ImGui::GetIO();
-    //mousePressed[0] = mousePressed[1] = false;
-    //io.MouseWheel = 0;
+    { // Reset gui input
+        for (int i = 0; i < GUI_KEY_COUNT; ++i)
+            gui->key_state[i] = 0;
+        gui->cursor_pos.x = -1;
+        gui->cursor_pos.y = -1;
+    }
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -209,7 +269,7 @@ void Engine::Update()
                 }
             }
         }
-            break;
+        break;
 
         case SDL_WINDOWEVENT:
             switch (event.window.event)
@@ -222,20 +282,37 @@ void Engine::Update()
                 break;
             }
             break;
+        case SDL_MOUSEBUTTONUP:
+        case SDL_MOUSEBUTTONDOWN:
+        {
+            int guiKey = -1;
+            if (event.button.button == SDL_BUTTON(SDL_BUTTON_LEFT))
+                guiKey = GUI_KEY_LMB;
 
+            if (guiKey >= 0)
+            {
+                  int state = gui->key_state[guiKey];
+                  if (event.type == SDL_MOUSEBUTTONUP)
+                  {
+                      state |= GUI_KEYSTATE_RELEASED_BIT;
+                  }
+                  else
+                  {
+                      state |= GUI_KEYSTATE_PRESSED_BIT;
+                  }
+                  gui->key_state[GUI_KEY_LMB] = state;
+            }
+
+        } break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:
         {
-            if (event.type == SDL_KEYDOWN)
+            if (event.key.keysym.sym == 13)
             {
-                if (event.key.keysym.sym == 13)
-                {
-                    const Uint32 windowFlags = SDL_GetWindowFlags(mWindow);
-                    bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
-                    SDL_SetWindowFullscreen(mWindow, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    //ImGui_WindowResize();
-                }
-
+                const Uint32 windowFlags = SDL_GetWindowFlags(mWindow);
+                bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
+                SDL_SetWindowFullscreen(mWindow, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                //ImGui_WindowResize();
             }
 
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
@@ -244,21 +321,24 @@ void Engine::Update()
                 mFmv->Stop();
             }
 
-            if (key >= 0 && key < 512)
-            {
-                SDL_Keymod modstate = SDL_GetModState();
+            SDL_Keymod modstate = SDL_GetModState();
 
-                //ImGuiIO& io = ImGui::GetIO();
-                //io.KeysDown[key] = event.type == SDL_KEYDOWN;
-                //io.KeyCtrl = (modstate & KMOD_CTRL) != 0;
-                //io.KeyShift = (modstate & KMOD_SHIFT) != 0;
-            }
-        }
             break;
+        }
         }
     }
 
-    UpdateImGui();
+    { // Set rest of gui input state which wasn't set in event polling loop
+        SDL_PumpEvents();
+
+        int mouse_x, mouse_y;
+        SDL_GetMouseState(&mouse_x, &mouse_y);
+        gui->cursor_pos.x = mouse_x;
+        gui->cursor_pos.y = mouse_y;
+
+        if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT))
+            gui->key_state[GUI_KEY_LMB] |= GUI_KEYSTATE_DOWN_BIT;
+    }
 
     // TODO: Move into state machine
     //mFmv.Play("INGRDNT.DDV");
@@ -266,7 +346,6 @@ void Engine::Update()
     mSound->Update();
     mLevel->Update();
 }
-
 
 void Engine::Render()
 {
@@ -287,11 +366,36 @@ void Engine::Render()
         255, 0, 0,
     };
     int tex = mRenderer->createTexture(testPixels, 2, 2, PixelFormat_RGB24);
-    mRenderer->drawQuad(tex, 10, 10, 200, 200);
-    mRenderer->destroyTexture(tex);
+    mRenderer->drawQuad(tex, 50, 50, 200, 200);
 
-    mRenderer->fillColor(255, 0, 0, 255);
-    mRenderer->drawText(10, 10, "Woot");
+#if 0
+    mRenderer->strokeColor(Color{ 0, 0, 0, 1 });
+    mRenderer->strokeWidth(5);
+
+    mRenderer->beginPath();
+    mRenderer->moveTo(10, 10);
+    mRenderer->lineTo(100, 150);
+    mRenderer->lineTo(100, 50);
+    mRenderer->closePath();
+    mRenderer->stroke();
+
+
+#endif
+
+    gui_begin(gui, "background");
+    if (gui_button(gui, "Test button"))
+        LOG("BUTTON PRESSED");
+    gui_next_row(gui);
+    gui_hor_space(gui);
+    gui_button(gui, "This is also a button");
+    gui_next_row(gui);
+    gui_hor_space(gui);
+    gui_button(gui, "12394857349857");
+    gui_end(gui);
+
+    mRenderer->drawQuad(tex, 20, 20, 30, 30);
+
+    mRenderer->destroyTexture(tex);
 
     mRenderer->endFrame();
     SDL_GL_SwapWindow(mWindow);
@@ -323,55 +427,6 @@ bool Engine::InitSDL()
 #endif
 
     return true;
-}
-
-
-void Engine::InitImGui()
-{
-    //ImGuiIO& io = ImGui::GetIO();
-    //ImGui_WindowResize();
-    //io.RenderDrawListsFn = ImImpl_RenderDrawLists;
-
-    // Build texture
-    unsigned char* pixels;
-    int width, height;
-    //io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
-
-    // Create texture
-    //glGenTextures(1, &g_FontTexture);
-    //glBindTexture(GL_TEXTURE_2D, g_FontTexture);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width, height, 0, GL_ALPHA, GL_UNSIGNED_BYTE, pixels);
-
-    // Store our identifier
-    //io.Fonts->TexID = (void *)(intptr_t)g_FontTexture;
-
-    // Cleanup (don't clear the input data if you want to append new fonts later)
-    //io.Fonts->ClearInputData();
-    //io.Fonts->ClearTexData();
-
-    //
-    // setup SDL2 keymapping
-    //
-    //io.KeyMap[ImGuiKey_Tab] = SDL_GetScancodeFromKey(SDLK_TAB);
-    //io.KeyMap[ImGuiKey_LeftArrow] = SDL_GetScancodeFromKey(SDLK_LEFT);
-    //io.KeyMap[ImGuiKey_RightArrow] = SDL_GetScancodeFromKey(SDLK_RIGHT);
-    //io.KeyMap[ImGuiKey_UpArrow] = SDL_GetScancodeFromKey(SDLK_UP);
-    //io.KeyMap[ImGuiKey_DownArrow] = SDL_GetScancodeFromKey(SDLK_DOWN);
-    //io.KeyMap[ImGuiKey_Home] = SDL_GetScancodeFromKey(SDLK_HOME);
-    //io.KeyMap[ImGuiKey_End] = SDL_GetScancodeFromKey(SDLK_END);
-    //io.KeyMap[ImGuiKey_Delete] = SDL_GetScancodeFromKey(SDLK_DELETE);
-    //io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
-    //io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
-    //io.KeyMap[ImGuiKey_Escape] = SDL_GetScancodeFromKey(SDLK_ESCAPE);
-    //io.KeyMap[ImGuiKey_A] = SDLK_a;
-    //io.KeyMap[ImGuiKey_C] = SDLK_c;
-    //io.KeyMap[ImGuiKey_V] = SDLK_v;
-    //io.KeyMap[ImGuiKey_X] = SDLK_x;
-    //io.KeyMap[ImGuiKey_Y] = SDLK_y;
-    //io.KeyMap[ImGuiKey_Z] = SDLK_z;
-
 }
 
 void Engine::InitGL()

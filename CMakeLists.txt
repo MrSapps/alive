@@ -194,6 +194,8 @@ add_library(AliveLib STATIC
     src/sound.cpp
 	include/renderer.hpp
 	src/renderer.cpp
+	include/gui.hpp
+	src/gui.cpp
     include/engine.hpp
     src/engine.cpp
     include/gamedata.hpp

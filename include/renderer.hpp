@@ -15,6 +15,20 @@ enum TextAlign {
 	TEXT_ALIGN_BASELINE	= 1<<6, // Default, align text vertically to baseline. 
 };
 
+struct Color {
+    float r, g, b, a;
+};
+
+struct RenderPaint {
+	float xform[6];
+	float extent[2];
+	float radius;
+	float feather;
+    Color innerColor;
+    Color outerColor;
+	int image;
+};
+
 // Vertex array object. Contains vertex and index buffers
 // Copy-pasted from revolc engine
 typedef struct Vao {
@@ -55,20 +69,36 @@ public:
     void beginFrame(int w, int h);
     void endFrame();
 
+    // All coordinates are given in pixels.
+    // All color components are given in 0..1 floating point.
+
     // Textured quad rendering
     int createTexture(void *pixels, int width, int height, PixelFormat format);
     void destroyTexture(int handle);
     void drawQuad(int texHandle, float x, float y, float w, float h);
 
     // NanoVG wrap
-    void drawText(int xpos, int ypos, const char *msg);
-    void fillColor(int r, int g, int b, int a);
+    void fillColor(Color c);
+    void strokeColor(Color c);
+    void strokeWidth(float size);
     void fontSize(float s);
-    void textAlign(TextAlign align);
+    void textAlign(int align); // TextAlign bitfield
     void textBounds(int x, int y, const char *msg, float bounds[4]);
+    void text(float x, float y, const char *msg);
     void resetTransform();
+    void beginPath();
+    void moveTo(float x, float y);
+    void lineTo(float x, float y);
+    void closePath();
+    void fill();
+    void stroke();
+    void roundedRect(float x, float y, float w, float h, float r);
+
+    RenderPaint linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec);
+    void fillPaint(RenderPaint p);
 
 private:
+    void preVectorDraw();
     // Vector rendering
     struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;
     struct NVGcontext* mNanoVg = nullptr;

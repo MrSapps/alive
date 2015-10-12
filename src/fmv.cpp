@@ -36,7 +36,7 @@ static void RenderSubtitles(Renderer* rend, const char* msg, int screenW, int sc
     float xpos = 0.0f;
     float ypos = static_cast<float>(screenH);
 
-    rend->fillColor(0, 0, 0, 255);
+    rend->fillColor(Color{ 0, 0, 0, 1 });
     rend->fontSize(Percent(static_cast<float>(screenH), 6.7f));
     rend->textAlign(TEXT_ALIGN_TOP);
     
@@ -54,10 +54,10 @@ static void RenderSubtitles(Renderer* rend, const char* msg, int screenW, int sc
     // Center XPos in the screenW
     xpos = (screenW / 2) - (fontW / 2);
 
-    rend->drawText(xpos, ypos, msg);
-    rend->fillColor(255, 255, 255, 255);
+    rend->text(xpos, ypos, msg);
+    rend->fillColor(Color{ 1, 1, 1, 1 });
     float adjust = Percent(static_cast<float>(screenH), 0.3f);
-    rend->drawText(xpos - adjust, ypos - adjust, msg);
+    rend->text(xpos - adjust, ypos - adjust, msg);
 }
 
 class IMovie : public IAudioPlayer

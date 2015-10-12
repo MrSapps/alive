@@ -327,7 +327,7 @@ Renderer::~Renderer()
 void Renderer::beginFrame(int w, int h)
 {
     // Clear screen
-    glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
+    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     mMode = Mode_none;
     
@@ -442,36 +442,151 @@ void Renderer::drawQuad(int texHandle, float x, float y, float w, float h)
     unbind_vao();
 }
 
-void Renderer::drawText(int xpos, int ypos, const char *msg)
+void Renderer::preVectorDraw()
 {
     if (mMode != Mode_vector)
         nvgBeginFrame(mNanoVg, mW, mH, 1.0f);
     mMode = Mode_vector;
-
-    nvgText(mNanoVg, xpos, ypos, msg, nullptr);
 }
 
-void Renderer::fillColor(int r, int g, int b, int a)
+void Renderer::fillColor(Color c)
 {
-    nvgFillColor(mNanoVg, nvgRGBA(r, g, b, a));
+    preVectorDraw();
+    nvgFillColor(mNanoVg, nvgRGBAf(c.r, c.g, c.b, c.a));
+}
+
+void Renderer::strokeColor(Color c)
+{
+    preVectorDraw();
+    nvgStrokeColor(mNanoVg, nvgRGBAf(c.r, c.g, c.b, c.a));
+}
+
+void Renderer::strokeWidth(float size)
+{
+    preVectorDraw();
+    nvgStrokeWidth(mNanoVg, size);
 }
 
 void Renderer::fontSize(float s)
 {
+    preVectorDraw();
     nvgFontSize(mNanoVg, s);
 }
 
-void Renderer::textAlign(TextAlign align)
+void Renderer::textAlign(int align)
 {
+    preVectorDraw();
     nvgTextAlign(mNanoVg, align);
 }
 
 void Renderer::textBounds(int x, int y, const char *msg, float bounds[4])
 {
+    preVectorDraw();
     nvgTextBounds(mNanoVg, x, y, msg, nullptr, bounds);
+}
+
+void Renderer::text(float x, float y, const char *msg)
+{
+    preVectorDraw();
+    nvgText(mNanoVg, x, y, msg, nullptr);
 }
 
 void Renderer::resetTransform()
 {
+    preVectorDraw();
     nvgResetTransform(mNanoVg);
+}
+
+void Renderer::beginPath()
+{
+    preVectorDraw();
+    nvgBeginPath(mNanoVg);
+}
+
+void Renderer::moveTo(float x, float y)
+{
+    preVectorDraw();
+    nvgMoveTo(mNanoVg, x, y);
+}
+
+void Renderer::lineTo(float x, float y)
+{
+    preVectorDraw();
+    nvgLineTo(mNanoVg, x, y);
+}
+
+void Renderer::closePath()
+{
+    preVectorDraw();
+    nvgClosePath(mNanoVg);
+}
+
+void Renderer::fill()
+{
+    preVectorDraw();
+    nvgFill(mNanoVg);
+}
+
+void Renderer::stroke()
+{
+    preVectorDraw();
+    nvgStroke(mNanoVg);
+}
+
+void Renderer::roundedRect(float x, float y, float w, float h, float r)
+{
+    preVectorDraw();
+    nvgRoundedRect(mNanoVg, x, y, w, h, r);
+}
+
+RenderPaint Renderer::linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec)
+{
+    preVectorDraw();
+
+    RenderPaint p = { 0 };
+    NVGpaint nvp = nvgLinearGradient(mNanoVg, sx, sy, ex, ey, nvgRGBAf(sc.r, sc.g, sc.b, sc.a), nvgRGBAf(ec.r, ec.g, ec.b, ec.a));
+
+    assert(sizeof(p.xform) == sizeof(nvp.xform));
+    assert(sizeof(p.extent) == sizeof(nvp.extent));
+
+	memcpy(p.xform, nvp.xform, sizeof(p.xform));
+	memcpy(p.extent, nvp.extent, sizeof(p.xform));
+    p.radius = nvp.radius;
+    p.feather = nvp.feather;
+    p.innerColor.r = nvp.innerColor.r;
+    p.innerColor.g = nvp.innerColor.g;
+    p.innerColor.b = nvp.innerColor.b;
+    p.innerColor.a = nvp.innerColor.a;
+    p.outerColor.r = nvp.outerColor.r;
+    p.outerColor.g = nvp.outerColor.g;
+    p.outerColor.b = nvp.outerColor.b;
+    p.outerColor.a = nvp.outerColor.a;
+    p.image = nvp.image;
+    return p;
+}
+
+void Renderer::fillPaint(RenderPaint p)
+{
+    preVectorDraw();
+
+    NVGpaint nvp = { 0 };
+
+    assert(sizeof(p.xform) == sizeof(nvp.xform));
+    assert(sizeof(p.extent) == sizeof(nvp.extent));
+
+	memcpy(nvp.xform, p.xform, sizeof(p.xform));
+	memcpy(nvp.extent, p.extent, sizeof(p.xform));
+    nvp.radius = p.radius;
+    nvp.feather = p.feather;
+    nvp.innerColor.r = p.innerColor.r;
+    nvp.innerColor.g = p.innerColor.g;
+    nvp.innerColor.b = p.innerColor.b;
+    nvp.innerColor.a = p.innerColor.a;
+    nvp.outerColor.r = p.outerColor.r;
+    nvp.outerColor.g = p.outerColor.g;
+    nvp.outerColor.b = p.outerColor.b;
+    nvp.outerColor.a = p.outerColor.a;
+    nvp.image = p.image;
+
+    nvgFillPaint(mNanoVg, nvp);
 }

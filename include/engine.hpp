@@ -9,6 +9,7 @@
 #include "SDL_opengl.h"
 #include "core/audiobuffer.hpp"
 #include "renderer.hpp"
+#include "gui.hpp"
 
 class Engine
 {
@@ -23,7 +24,6 @@ private:
     bool InitSDL();
     int LoadNanoVgFonts(struct NVGcontext* vg);
     void InitGL();
-    void InitImGui();
     void RenderVideoUi();
     void ImGui_WindowResize();
 protected:
@@ -55,4 +55,5 @@ protected:
     std::unique_ptr<class Fmv> mFmv;
     std::unique_ptr<class Sound> mSound;
     std::unique_ptr<class Level> mLevel;
+    GuiContext *gui = nullptr;
 };

@@ -144,7 +144,7 @@ void GridMap::Render(Renderer* rend, int screenW, int screenH)
         for (auto y = 0u; y < mScreens[0].size(); y++)
         {
             rend->resetTransform();
-            rend->drawText(40+(x*100), 40+(y*20), mScreens[x][y]->FileName().c_str());
+            rend->text(40+(x*100), 40+(y*20), mScreens[x][y]->FileName().c_str());
         }
     }
 }
