@@ -11,6 +11,7 @@
 #define ARRAY_COUNT(x) (sizeof(x)/sizeof(*x))
 #define CLAMP(v, a, b) (MIN(MAX((v), (a)), (b)))
 #define ABS(x) ((x) < 0 ? (-x) : x)
+#define GUI_WINDOW_TITLE_BAR_HEIGHT 25.0f
 
 void destroy_window(GuiContext *ctx, int handle)
 {
@@ -204,17 +205,27 @@ V2i gui_parent_turtle_start_pos(GuiContext *ctx)
 
 int gui_layer(GuiContext *ctx) { return gui_turtle(ctx)->layer; }
 
-bool gui_is_inside_window(GuiContext *ctx)
+bool gui_is_inside_window(GuiContext *ctx, V2i size)
 {
+    // TODO: Take size into account
     V2i pos = gui_turtle_pos(ctx);
     GuiContext_Window *win = gui_window(ctx);
-    if (pos.x < win->pos.x || pos.y < win->pos.y)
+    if (pos.x < win->pos.x || pos.y < win->pos.y + GUI_WINDOW_TITLE_BAR_HEIGHT)
         return false;
     if (pos.x >= win->pos.x + win->total_size.x || pos.y >= win->pos.y + win->total_size.y)
         return false;
     return true;
 }
 
+void gui_start_dragging(GuiContext *ctx, V2f start_value)
+{
+    assert(!ctx->dragging);
+    ctx->dragging = true;
+    ctx->drag_start_pos = ctx->cursor_pos;
+    ctx->drag_start_value = start_value;
+    // Store dragdropdata
+    ctx->dragdropdata = gui_turtle(ctx)->inactive_dragdropdata;
+}
 
 GuiId gui_id(const char *label)
 {
@@ -356,10 +367,6 @@ void gui_begin(GuiContext *ctx, const char *label, bool detached)
     if (ctx->turtle_ix >= MAX_GUI_STACK_SIZE)
         ctx->turtle_ix = 0; // Failsafe
 
-    if (ctx->turtle_ix == 0) { // Root
-        ctx->hovered_window_ix = -1;
-    }
-
     GuiContext_Turtle *prev = &ctx->turtles[ctx->turtle_ix];
     GuiContext_Turtle *cur = &ctx->turtles[ctx->turtle_ix + 1];
 
@@ -475,20 +482,7 @@ void gui_end_ex(GuiContext *ctx, bool make_zero_size, DragDropData *dropdata)
     }
 #endif
 
-    { // Dragging logic
-        if (ctx->hovered_window_ix == gui_turtle(ctx)->window_ix &&
-            (ctx->key_state[GUI_KEY_LMB] & GUI_KEYSTATE_DOWN_BIT) && !ctx->dragging) {
-            V2i pos = gui_turtle(ctx)->start_pos;
-            V2i size = gui_turtle(ctx)->bounding_max - pos;
-            const V2i c_p = px_to_pt(ctx->cursor_pos, ctx->dpi_scale);
-            //if (v2i_in_rect(c_p, pos, size)) { // This if doesn't work well with window dragging
-                ctx->dragging = true;
-                ctx->drag_start_pos = ctx->cursor_pos;
-                // Store dragdropdata
-                ctx->dragdropdata = gui_turtle(ctx)->inactive_dragdropdata;
-            //}
-        }
-
+    { // Dragging stop logic
         if (!ctx->key_state[GUI_KEY_LMB] & GUI_KEYSTATE_DOWN_BIT) {
             if (ctx->dragdropdata.tag && dropdata) {
                 V2i pos = gui_turtle(ctx)->start_pos;
@@ -707,11 +701,10 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_si
 
     gui_begin(ctx, label, true);
     gui_turtle(ctx)->window_ix = win_handle;
-    gui_turtle(ctx)->layer = gui_window_order(ctx, win_handle) * 10000; // Maybe 10k layers inside a window is enough
+    gui_turtle(ctx)->layer = 1337 + gui_window_order(ctx, win_handle) * 10000; // Maybe 10k layers inside a window is enough
 
     { // Ordinary gui element logic
-        const float title_bar_height = 25.0f;
-        V2i size = win->client_size + V2i(0, title_bar_height);
+        V2i size = win->client_size + V2i(0, GUI_WINDOW_TITLE_BAR_HEIGHT);
         win->total_size = size;
 
         // Dummy window background element. Makes clicking through window impossible.
@@ -721,9 +714,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_si
 
         // Title bar logic
         bool went_down, down, hover;
-        gui_button_logic(ctx, label, win->pos, V2i(size.x, title_bar_height), NULL, &went_down, &down, &hover);
-        if (hover)
-            ctx->hovered_window_ix = win_handle;
+        gui_button_logic(ctx, label, win->pos, V2i(size.x, GUI_WINDOW_TITLE_BAR_HEIGHT), NULL, &went_down, &down, &hover);
 
         if (went_down)
         {
@@ -739,7 +730,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_si
             }
             ctx->window_order[ctx->window_count - 1] = win_handle;
 
-            ctx->drag_start_value = v2i_to_v2f(win->pos);
+            gui_start_dragging(ctx, v2i_to_v2f(win->pos));
         }
 
         V2i prev_value = win->pos;
@@ -747,18 +738,67 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_si
             win->pos = v2f_to_v2i(ctx->drag_start_value) - ctx->drag_start_pos + ctx->cursor_pos;
 
         win->pos.x = MAX(10 - size.x, win->pos.x);
-        win->pos.y = MAX(10 - title_bar_height, win->pos.y);
+        win->pos.y = MAX(10 - GUI_WINDOW_TITLE_BAR_HEIGHT, win->pos.y);
 
         V2i px_pos = pt_to_px(win->pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
         ctx->callbacks.draw_window(ctx->callbacks.user_data,
-                                   px_pos.x, px_pos.y, px_size.x, px_size.y, title_bar_height,
+                                   px_pos.x, px_pos.y, px_size.x, px_size.y, GUI_WINDOW_TITLE_BAR_HEIGHT,
                                    gui_label_text(label), gui_layer(ctx));
 
         // Turtle to content area
-        V2i content_pos = win->pos + V2i(0, title_bar_height);
+        V2i content_pos = win->pos + V2i(0, GUI_WINDOW_TITLE_BAR_HEIGHT);
         gui_turtle(ctx)->start_pos = content_pos;
         gui_turtle(ctx)->pos = content_pos;
+    }
+
+    // Scrollbar
+    if (win->client_size.y < win->last_frame_bounding_size.y)
+    {
+        const int scroll_bar_width = 15;
+        const int scroll_handle_height = 10;
+
+        char scroll_label[MAX_GUI_LABEL_SIZE];
+        snprintf(scroll_label, ARRAY_COUNT(scroll_label), "winscroll_%s", label);
+        V2i pos = win->pos + V2i(win->total_size.x - scroll_bar_width, GUI_WINDOW_TITLE_BAR_HEIGHT);
+        V2i size = V2i(scroll_bar_width, win->client_size.y);
+
+        bool went_down, down, hover;
+        gui_button_logic(ctx, scroll_label, pos, size, NULL, &went_down, &down, &hover);
+
+        if (went_down)
+        {
+            gui_start_dragging(ctx, V2f(0, win->scroll));
+            printf("scroll: %i\n", win->scroll);
+        }
+
+        int prev_value = win->scroll;
+        if (down && ctx->dragging) {
+            float start_rel_scroll = 1.0f * ctx->drag_start_value.y / (win->last_frame_bounding_size.y - win->client_size.y);
+            float rel_scroll = start_rel_scroll + 1.0f * (ctx->cursor_pos.y - ctx->drag_start_pos.y) / (win->client_size.y - scroll_handle_height);
+            win->scroll = rel_scroll*(win->last_frame_bounding_size.y - win->client_size.y);
+        }
+        win->scroll = CLAMP(win->scroll, 0, win->last_frame_bounding_size.y - win->client_size.y);
+
+        { // Draw
+            { // Bg
+                V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
+                V2i px_size = pt_to_px(size, ctx->dpi_scale);
+                ctx->callbacks.draw_button(ctx->callbacks.user_data, px_pos.x, px_pos.y, px_size.x, px_size.y, false, false, gui_layer(ctx));
+            }
+
+            { // Handle
+                float rel_scroll = 1.0f * win->scroll / (win->last_frame_bounding_size.y - win->client_size.y);
+                V2i px_pos = pt_to_px(pos + V2i(0, rel_scroll*(win->client_size.y - scroll_handle_height)), ctx->dpi_scale);
+                V2i px_size = pt_to_px(V2i(scroll_bar_width, scroll_handle_height), ctx->dpi_scale);
+                ctx->callbacks.draw_button(ctx->callbacks.user_data, px_pos.x, px_pos.y, px_size.x, px_size.y, down, hover, gui_layer(ctx));
+            }
+        }
+
+        // Scroll client area
+        V2i client_start_pos = gui_turtle(ctx)->pos - V2i(0, win->scroll);
+        gui_turtle(ctx)->start_pos = client_start_pos;
+        gui_turtle(ctx)->pos = client_start_pos;
     }
 
 #if 0
@@ -798,7 +838,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_si
 
 void gui_end_window_ex(GuiContext *ctx, bool *open)
 {
-    gui_window(ctx)->last_frame_bounding_max = gui_turtle(ctx)->bounding_max;
+    gui_window(ctx)->last_frame_bounding_size = gui_turtle(ctx)->bounding_max - gui_turtle(ctx)->start_pos;
 
     gui_end(ctx);
 }
@@ -919,27 +959,28 @@ void gui_label(GuiContext *ctx, const char *label)
 
 bool gui_button(GuiContext *ctx, const char *label)
 {
-    if (!gui_is_inside_window(ctx))
-        return false;
-
     gui_begin(ctx, label);
     V2i margin(5, 3);
     V2i pos = gui_turtle(ctx)->pos;
     V2i size = gui_size(ctx, label, V2i(50, 20)); // @todo Minimum size to skin
-    float text_size[2];
-    ctx->callbacks.calc_text_size(text_size, ctx->callbacks.user_data, gui_label_text(label), gui_layer(ctx));
-    size.x = MAX(text_size[0] + margin.x*2, size.x);
-    size.y = MAX(text_size[1] + margin.y*2, size.y);
 
-    bool went_up, hover, down;
-    gui_button_logic(ctx, label, pos, size, &went_up, NULL, &down, &hover);
+    bool went_up = false, hover = false, down = false;
+    if (gui_is_inside_window(ctx, size))
+    {
+        float text_size[2];
+        ctx->callbacks.calc_text_size(text_size, ctx->callbacks.user_data, gui_label_text(label), gui_layer(ctx));
+        size.x = MAX(text_size[0] + margin.x * 2, size.x);
+        size.y = MAX(text_size[1] + margin.y * 2, size.y);
 
-    V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
-    V2i px_size = pt_to_px(size, ctx->dpi_scale);
-    ctx->callbacks.draw_button(ctx->callbacks.user_data, px_pos.x, px_pos.y, px_size.x, px_size.y, down, hover, gui_layer(ctx));
+        gui_button_logic(ctx, label, pos, size, &went_up, NULL, &down, &hover);
 
-    V2i px_margin = pt_to_px(margin, ctx->dpi_scale);
-    ctx->callbacks.draw_text(ctx->callbacks.user_data, px_pos.x + px_margin.x, px_pos.y + px_margin.y, gui_label_text(label), gui_layer(ctx));
+        V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
+        V2i px_size = pt_to_px(size, ctx->dpi_scale);
+        ctx->callbacks.draw_button(ctx->callbacks.user_data, px_pos.x, px_pos.y, px_size.x, px_size.y, down, hover, gui_layer(ctx));
+
+        V2i px_margin = pt_to_px(margin, ctx->dpi_scale);
+        ctx->callbacks.draw_text(ctx->callbacks.user_data, px_pos.x + px_margin.x, px_pos.y + px_margin.y, gui_label_text(label), gui_layer(ctx));
+    }
 
     gui_enlarge_bounding(ctx, pos + size);
     gui_end(ctx);

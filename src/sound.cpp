@@ -93,7 +93,7 @@ void Sound::Render(GuiContext *gui, int w, int h)
     }
 
     gui->next_window_pos = V2i(320, 250);
-    gui_begin_window(gui, "Sound", V2i(250, 290));
+    gui_begin_window(gui, "Sound", V2i(250, 400));
 
     static int selectedIndex = 0; 
     for (size_t i = 0; i < mThemes.size(); i++)

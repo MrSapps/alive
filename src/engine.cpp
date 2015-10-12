@@ -428,7 +428,7 @@ void Engine::Render()
         255, 0, 0,
     };
     int tex = mRenderer->createTexture(testPixels, 2, 2, PixelFormat_RGB24);
-    mRenderer->drawQuad(tex, 50, 50, 200, 200);
+
 
     gui->next_window_pos = V2i(10, 10);
     gui_begin_window(gui, "Test window", V2i(300, 200));
@@ -436,6 +436,13 @@ void Engine::Render()
         LOG("BUTTON PRESSED");
     gui_button(gui, "This is also a button");
     gui_button(gui, "12394857349857");
+
+    gui_begin(gui, "game area");
+    mRenderer->beginLayer(gui_layer(gui));
+    mRenderer->drawQuad(tex, 50, 50, 200, 200);
+    mRenderer->endLayer();
+    gui_end(gui);
+
     gui_end_window(gui);
 
     mFmv->Render(mRenderer.get(), w, h);

@@ -143,7 +143,8 @@ struct Rendering;
 struct GuiContext_Window {
     GuiId id;
     bool used;
-    V2i last_frame_bounding_max;
+    V2i last_frame_bounding_size;
+    int scroll; // Translation in pt. Cannot be relative, because adding content shouldn't cause translation to change.
 
     V2i pos; // Top-left position
     V2i client_size; // Size, not taking account title bar or borders
@@ -211,7 +212,6 @@ struct GuiContext {
     GuiContext_Window windows[MAX_GUI_WINDOW_COUNT];
     int window_order[MAX_GUI_WINDOW_COUNT];
     int window_count;
-    int hovered_window_ix;
 
     // This is used at mouse input and render dimensions. All gui calculations are done in pt.
     float dpi_scale; // 1.0: pixels == points, 2.0: pixels == 2.0*points (gui size is doubled). 
@@ -233,6 +233,8 @@ const char *gui_label_text(const char *label);
 // @note skin_source_file contents is not copied
 GuiContext *create_gui(GuiCallbacks callbacks);
 void destroy_gui(GuiContext *ctx);
+
+int gui_layer(GuiContext *ctx);
 
 void gui_begin_window(GuiContext *ctx, const char *label, V2i min_size);
 void gui_end_window(GuiContext *ctx, bool *open = NULL);
