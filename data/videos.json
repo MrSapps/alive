@@ -32,7 +32,61 @@
                     }
                 ]
             },
-            "F1.MOV",
+             {
+                "file": "F1.MOV",
+                "contains": [
+                    {
+                        "name": "F1p1p2.ddv",
+                        "start_sector": 0,
+                        "number_of_sectors": 529
+                    },
+                    {
+                        "name": "F1P2P1.ddv",
+                        "start_sector": 530,
+                        "number_of_sectors": 529
+                    },
+                    {
+                        "name": "F1P2P5.ddv",
+                        "start_sector": 1060,
+                        "number_of_sectors": 369
+                    },
+                    {
+                        "name": "F1P5P2.ddv",
+                        "start_sector": 1430,
+                        "number_of_sectors": 369
+                    },
+                    {
+                        "name": "F1P5P6.ddv",
+                        "start_sector": 1800,
+                        "number_of_sectors": 518
+                    },
+                    {
+                        "name": "F1P6P5.ddv",
+                        "start_sector": 2319,
+                        "number_of_sectors": 518
+                    },
+                    {
+                        "name": "F1P8P9.ddv",
+                        "start_sector": 2838,
+                        "number_of_sectors": 518
+                    },
+                    {
+                        "name": "F1P9P8.ddv",
+                        "start_sector": 3357,
+                        "number_of_sectors": 518
+                    },
+                    {
+                        "name": "PARAMITE.ddv",
+                        "start_sector": 4395,
+                        "number_of_sectors": 2509
+                    },
+                    {
+                        "name": "F1p9f2.ddv",
+                        "start_sector": 7424,
+                        "number_of_sectors": 1459
+                    }  
+                ]
+            },
             "F2.MOV",
             "L1.MOV",
             "R1.MOV",
