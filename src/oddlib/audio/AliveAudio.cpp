@@ -168,16 +168,16 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
     // TODO: Find a better way of feeding the data in
     for (int i = 0; i < StreamLength; i += 2)
     {
-        float left = m_Reverb.tick(m_ReverbChannelBuffer[i], m_ReverbChannelBuffer[i + 1], 0);
-        float right = m_Reverb.lastOut(1);
+        const float left = static_cast<float>(m_Reverb.tick(m_ReverbChannelBuffer[i], m_ReverbChannelBuffer[i + 1], 0));
+        const float right = static_cast<float>(m_Reverb.lastOut(1));
         m_ReverbChannelBuffer[i] = left;
         m_ReverbChannelBuffer[i + 1] = right;
     }
    
     for (int i = 0; i < StreamLength; i += 2)
     {
-        float left = m_DryChannelBuffer[i] + m_ReverbChannelBuffer[i];
-        float right = m_DryChannelBuffer[i + 1] + m_ReverbChannelBuffer[i + 1];
+        const float left = m_DryChannelBuffer[i] + m_ReverbChannelBuffer[i];
+        const float right = m_DryChannelBuffer[i + 1] + m_ReverbChannelBuffer[i + 1];
         SDL_MixAudioFormat((Uint8 *)(AudioStream + i), (const Uint8*)&left, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
         SDL_MixAudioFormat((Uint8 *)(AudioStream + i + 1), (const Uint8*)&right, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
     }
@@ -198,11 +198,6 @@ void AliveAudio::Play(Uint8* stream, Uint32 len)
 
 
     AliveRenderAudio(reinterpret_cast<float*>(stream), len / sizeof(float));
-
-    if (EQEnabled)
-    {
-        AliveEQEffect(reinterpret_cast<float*>(stream), len / sizeof(float));
-    }
 }
 
 void AliveAudio::PlayOneShot(int program, int note, float volume, float pitch)

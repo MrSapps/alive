@@ -71,7 +71,7 @@ public:
 
     void ReadFg1s(Oddlib::LvlArchive& archive)
     {
-        ForChunksOfType(archive, Oddlib::MakeType('F', 'G', '1', ' '), [&](Oddlib::LvlArchive::FileChunk& chunk)
+        ForChunksOfType(archive, Oddlib::MakeType('F', 'G', '1', ' '), [&](Oddlib::LvlArchive::FileChunk&)
         {
             // TODO: FG1 parsing
         });
@@ -79,7 +79,7 @@ public:
 
     void ReadFonts(Oddlib::LvlArchive& archive)
     {
-        ForChunksOfType(archive, Oddlib::MakeType('F', 'o', 'n', 't'), [&](Oddlib::LvlArchive::FileChunk& chunk)
+        ForChunksOfType(archive, Oddlib::MakeType('F', 'o', 'n', 't'), [&](Oddlib::LvlArchive::FileChunk&)
         {
             // TODO: Font parsing
         });
@@ -87,7 +87,7 @@ public:
 
     void ReadAllPaths(Oddlib::LvlArchive& archive)
     {
-        ForChunksOfType(archive, Oddlib::MakeType('P', 'a', 't', 'h'), [&](Oddlib::LvlArchive::FileChunk& chunk)
+        ForChunksOfType(archive, Oddlib::MakeType('P', 'a', 't', 'h'), [&](Oddlib::LvlArchive::FileChunk&)
         {
             // TODO: Load the game data json for the required hard coded data to load the path
             /*
@@ -117,6 +117,9 @@ public:
                 case eAePc:
                     ptr = dynamic_cast<Oddlib::AeBitsPc*>(bits.get());
                     break;
+
+                default:
+                    abort();
                 }
 
 

@@ -6,9 +6,9 @@
 namespace Oddlib
 {
     Path::Path( IStream& pathChunkStream,
-                Uint32 numberOfCollisionItems,
-                Uint32 objectIndexTableOffset,
-                Uint32 objectDataOffset,
+                Uint32 /*numberOfCollisionItems*/,
+                Uint32 /*objectIndexTableOffset*/,
+                Uint32 /*objectDataOffset*/,
                 Uint32 mapXSize, Uint32 mapYSize)
      : mXSize(mapXSize), mYSize(mapYSize)
     {

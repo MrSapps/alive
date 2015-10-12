@@ -209,7 +209,7 @@ protected:
         }
 
         float *floatOutStream = reinterpret_cast<float*>(stream);
-        for (int i = 0; i < take; i++)
+        for (auto i = 0u; i < take; i++)
         {
             uint8_t low = mAudioBuffer[i*sizeof(int16_t)];
             uint8_t high = mAudioBuffer[i*sizeof(int16_t) + 1];

@@ -40,11 +40,6 @@ class PSXMDECDecoder
 {
 public:
     PSXMDECDecoder();
-    uint8_t DecodeFrameToBGR24(uint16_t *arg_decoded_image,
-        uint16_t *arg_bs_image,
-        uint16_t arg_width,
-        uint16_t arg_height,
-        bool arg_no_color);
 
     uint8_t DecodeFrameToABGR32(uint16_t *arg_decoded_image,
         uint16_t *arg_bs_image,

@@ -7,7 +7,7 @@ namespace Oddlib
 {
     // NOTE: More reversing is required to fully understand these algorithms, but its something like JPEG
     // and since its enough to actually decode the data this is where the work on reversing stopped :)
-    static const int g_red_table[] =
+    static const unsigned short int g_red_table[] =
     {
         0x00000, 0x00800, 0x01000, 0x01800, 0x02000, 0x02800, // 0
         0x03000, 0x03800, 0x04000, 0x04800, 0x05000, 0x05800, // 6
@@ -22,7 +22,7 @@ namespace Oddlib
         0x0F800, 0x0F800, 0x0F800, 0x0F800                    // 60-64
     };
 
-    static const int g_blue_table[] =
+    static const unsigned short int g_blue_table[] =
     {
         0, 1, 2, 3, 4, 5,                   // 0
         6, 7, 8, 9, 0x0A, 0x0B,             // 6
@@ -37,7 +37,7 @@ namespace Oddlib
         0x1F, 0x1F, 0x1F, 0x1F              // 60
     };
 
-    static const int g_green_table[] =
+    static const unsigned short int g_green_table[] =
     {
         0x000, 0x040, 0x080, 0x0C0, 0x100, 0x140, // 0
         0x180, 0x1C0, 0x200, 0x240, 0x280, 0x2C0, // 6

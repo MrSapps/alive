@@ -4,7 +4,7 @@
 #include "oddlib/path.hpp"
 #include "oddlib/bits_factory.hpp"
 
-Level::Level(GameData& gameData, IAudioController& audioController, FileSystem& fs)
+Level::Level(GameData& gameData, IAudioController& /*audioController*/, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
 {
 
@@ -119,14 +119,14 @@ void GridMap::Update()
 
 }
 
-void GridMap::Render(NVGcontext* ctx, int screenW, int screenH)
+void GridMap::Render(NVGcontext* ctx, int /*screenW*/, int /*screenH*/)
 {
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[0].size(); y++)
         {
             nvgResetTransform(ctx);
-            nvgText(ctx, 40+(x*100), 40+(y*20), mScreens[x][y]->FileName().c_str(), nullptr);
+            nvgText(ctx, 40.0f + (x*100.0f), 40.0f + (y * 20.0f), mScreens[x][y]->FileName().c_str(), nullptr);
         }
     }
 }

@@ -138,7 +138,8 @@ static VolumeEnvelope PSXEnvelopeToADSR(uint16_t low, uint16_t high)
                 // HACK: Stop here to match the linear attack curve better.
                 // Makes the attack a bit too fast, but that's maybe better than too slow.
                 break;
-                cycles = cycles * 4;
+                // can be reenstated if hack is fixed
+                //cycles = cycles * 4;
             }
 
             durationInSamples += cycles;
@@ -159,7 +160,6 @@ static VolumeEnvelope PSXEnvelopeToADSR(uint16_t low, uint16_t high)
 
         double target = std::max(expMinAmplitude, env.SustainLevel);
         env.DecayTime = -log(target) / (amplitudeShift / timeStep);
-        int breakpoint_place = 1;
     }
 
     { // Release

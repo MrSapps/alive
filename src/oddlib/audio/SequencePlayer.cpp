@@ -65,19 +65,19 @@ void SequencePlayer::m_PlayerThreadFunction()
                     mAliveAudio.NoteOn(channels[m.Channel], m.Note, m.Velocity, m_TrackID, MidiTimeToSample(m.TimeOffset));
                     if (firstNote)
                     {
-                        m_SongBeginSample = mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset);
+                        m_SongBeginSample = static_cast<int>(mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset));
                         firstNote = false;
                     }
                     break;
                 case ALIVE_MIDI_NOTE_OFF:
-                    mAliveAudio.NoteOffDelay(channels[m.Channel], m.Note, m_TrackID, MidiTimeToSample(m.TimeOffset)); // Fix this. Make note off's have an offset in the voice timeline.
+                    mAliveAudio.NoteOffDelay(channels[m.Channel], m.Note, m_TrackID, static_cast<float>(MidiTimeToSample(m.TimeOffset))); // Fix this. Make note off's have an offset in the voice timeline.
                     break;
                 case ALIVE_MIDI_PROGRAM_CHANGE:
                     channels[m.Channel] = m.Special;
                     break;
                 case ALIVE_MIDI_ENDTRACK:
                     m_PlayerState = ALIVE_SEQUENCER_PLAYING;
-                    m_SongFinishSample = mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset);
+                    m_SongFinishSample = static_cast<Uint64>(mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset));
                     break;
                 }
 
@@ -95,8 +95,8 @@ void SequencePlayer::m_PlayerThreadFunction()
 
         if (m_PlayerState == ALIVE_SEQUENCER_PLAYING)
         {
-            int quarterBeat = (m_SongFinishSample - m_SongBeginSample) / m_TimeSignatureBars;
-            int currentQuarterBeat = (int)(floor(GetPlaybackPositionSample() / quarterBeat));
+            const Uint64  quarterBeat = (m_SongFinishSample - m_SongBeginSample) / m_TimeSignatureBars;
+            const int currentQuarterBeat = (int)(floor(GetPlaybackPositionSample() / quarterBeat));
 
             if (m_PrevBar != currentQuarterBeat)
             {

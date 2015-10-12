@@ -162,8 +162,6 @@ add_library(oddlib STATIC
     src/oddlib/PSXMDECDecoder.cpp
     src/oddlib/audio/ADSR.cpp
     src/oddlib/audio/AliveAudio.cpp
-    src/oddlib/audio/biquad.cpp
-    src/oddlib/audio/Sample.cpp
     src/oddlib/audio/SequencePlayer.cpp
     src/oddlib/audio/Soundbank.cpp
     src/oddlib/audio/vab.cpp
@@ -171,7 +169,6 @@ add_library(oddlib STATIC
     include/oddlib/audio/ADSR.h
     include/oddlib/audio/AliveAudio.h
     include/oddlib/audio/AudioInterpolation.h
-    include/oddlib/audio/biquad.h
     include/oddlib/audio/Sample.h
     include/oddlib/audio/SequencePlayer.h
     include/oddlib/audio/Soundbank.h
