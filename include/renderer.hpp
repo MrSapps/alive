@@ -19,14 +19,15 @@ struct Color {
     float r, g, b, a;
 };
 
+// For NanoVG wrap
 struct RenderPaint {
-	float xform[6];
-	float extent[2];
-	float radius;
-	float feather;
+    float xform[6];
+    float extent[2];
+    float radius;
+    float feather;
     Color innerColor;
     Color outerColor;
-	int image;
+    int image;
 };
 
 // Vertex array object. Contains vertex and index buffers
@@ -82,6 +83,7 @@ public:
     void strokeColor(Color c);
     void strokeWidth(float size);
     void fontSize(float s);
+    void fontBlur(float s);
     void textAlign(int align); // TextAlign bitfield
     void textBounds(int x, int y, const char *msg, float bounds[4]);
     void text(float x, float y, const char *msg);
@@ -93,8 +95,12 @@ public:
     void fill();
     void stroke();
     void roundedRect(float x, float y, float w, float h, float r);
+    void rect(float x, float y, float w, float h);
+    void solidPathWinding(bool b); // If false, then holes are created
 
     RenderPaint linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec);
+    RenderPaint boxGradient(float x, float y, float w, float h,
+                            float r, float f, Color icol, Color ocol);
     void fillPaint(RenderPaint p);
 
 private:

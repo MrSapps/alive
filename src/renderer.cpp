@@ -473,6 +473,12 @@ void Renderer::fontSize(float s)
     nvgFontSize(mNanoVg, s);
 }
 
+void Renderer::fontBlur(float s)
+{
+    preVectorDraw();
+    nvgFontBlur(mNanoVg, s);
+}
+
 void Renderer::textAlign(int align)
 {
     preVectorDraw();
@@ -539,12 +545,21 @@ void Renderer::roundedRect(float x, float y, float w, float h, float r)
     nvgRoundedRect(mNanoVg, x, y, w, h, r);
 }
 
-RenderPaint Renderer::linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec)
+void Renderer::rect(float x, float y, float w, float h)
 {
     preVectorDraw();
+    nvgRect(mNanoVg, x, y, w, h);
+}
 
+void Renderer::solidPathWinding(bool b)
+{
+    preVectorDraw();
+    nvgPathWinding(mNanoVg, b ? NVG_SOLID : NVG_HOLE);
+}
+
+static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
+{
     RenderPaint p = { 0 };
-    NVGpaint nvp = nvgLinearGradient(mNanoVg, sx, sy, ex, ey, nvgRGBAf(sc.r, sc.g, sc.b, sc.a), nvgRGBAf(ec.r, ec.g, ec.b, ec.a));
 
     assert(sizeof(p.xform) == sizeof(nvp.xform));
     assert(sizeof(p.extent) == sizeof(nvp.extent));
@@ -563,6 +578,23 @@ RenderPaint Renderer::linearGradient(float sx, float sy, float ex, float ey, Col
     p.outerColor.a = nvp.outerColor.a;
     p.image = nvp.image;
     return p;
+}
+
+RenderPaint Renderer::linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec)
+{
+    preVectorDraw();
+
+    RenderPaint p = { 0 };
+    NVGpaint nvp = nvgLinearGradient(mNanoVg, sx, sy, ex, ey, nvgRGBAf(sc.r, sc.g, sc.b, sc.a), nvgRGBAf(ec.r, ec.g, ec.b, ec.a));
+    return NVGpaintToRenderPaint(nvp);
+}
+
+RenderPaint Renderer::boxGradient(float x, float y, float w, float h,
+                                  float r, float f, Color icol, Color ocol)
+{
+    preVectorDraw();
+    NVGpaint nvp = nvgBoxGradient(mNanoVg, x, y, w, h, r, f, nvgRGBAf(icol.r, icol.g, icol.b, icol.a), nvgRGBAf(ocol.r, ocol.g, ocol.b, ocol.a));
+    return NVGpaintToRenderPaint(nvp);
 }
 
 void Renderer::fillPaint(RenderPaint p)

@@ -165,7 +165,7 @@ void drawButton(void *void_rend, float x, float y, float w, float h, bool down, 
     rend->fillPaint(overlay);
     rend->fill();
 
-    Color outlineColor = Color{ 0, 0, 0, 0.4f };
+    Color outlineColor = Color{ 0, 0, 0, 0.3f };
     if (hover && !down)
     {
         outlineColor.r = 1.f;
@@ -178,26 +178,76 @@ void drawButton(void *void_rend, float x, float y, float w, float h, bool down, 
     rend->stroke();
 }
 
-void drawText(void *void_rend, float x, float y, const char *text, float font_size)
+static const float g_gui_font_size = 16.f;
+
+void drawText(void *void_rend, float x, float y, const char *text)
 {
     Renderer *rend = (Renderer*)void_rend;
 
-    rend->fontSize(font_size);
+    rend->fontSize(g_gui_font_size);
     rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
     rend->fillColor(Color{ 1.f, 1.f, 1.f, 160/255.f });
     rend->text(x, y, text);
 }
 
-void calcTextSize(float ret[2], void *void_rend, const char *text, float font_size)
+void calcTextSize(float ret[2], void *void_rend, const char *text)
 {
     Renderer *rend = (Renderer*)void_rend;
 
-    rend->fontSize(font_size);
+    rend->fontSize(g_gui_font_size);
     rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
     float bounds[4];
     rend->textBounds(0, 0, text, bounds);
     ret[0] = bounds[2] - bounds[0];
     ret[1] = bounds[3] - bounds[1];
+}
+
+void drawWindow(void *void_rend, float x, float y, float w, float h, float titleBarHeight, const char *title)
+{
+    Renderer *rend = (Renderer*)void_rend;
+
+    float cornerRadius = 3.0f;
+    RenderPaint shadowPaint;
+    RenderPaint headerPaint;
+
+    // Window
+    rend->beginPath();
+    rend->roundedRect(x, y, w, h, cornerRadius);
+    rend->fillColor(Color{ 28/255.f, 30/255.f, 34/255.f, 192/255.f });
+    //	nvgFillColor(vg, nvgRGBA(0,0,0,128));
+    rend->fill();
+
+    // Drop shadow
+    shadowPaint = rend->boxGradient(x, y + 2, w, h, cornerRadius * 2, 10, Color{ 0.f, 0.f, 0.f, 128 / 255.f }, Color{ 0.f, 0.f, 0.f, 0.f });
+    rend->beginPath();
+    rend->rect(x - 10, y - 10, w + 20, h + 30);
+    rend->roundedRect(x, y, w, h, cornerRadius);
+    rend->solidPathWinding(false);
+    rend->fillPaint(shadowPaint);
+    rend->fill();
+    rend->solidPathWinding(true);
+
+    // Header
+    headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.f, 1.f, 1.f, 8 / 255.f }, Color{ 0.f, 0.f, 0.f, 16/255.f });
+    rend->beginPath();
+    rend->roundedRect(x + 1, y + 1, w - 2, titleBarHeight, cornerRadius - 1);
+    rend->fillPaint(headerPaint);
+    rend->fill();
+    rend->beginPath();
+    rend->moveTo(x + 0.5f, y + 0.5f + titleBarHeight);
+    rend->lineTo(x + 0.5f + w - 1, y + 0.5f + titleBarHeight);
+    rend->strokeColor(Color{ 0, 0, 0, 64/255.f });
+    rend->stroke();
+
+    rend->fontSize(18.0f);
+    rend->textAlign(TEXT_ALIGN_CENTER | TEXT_ALIGN_MIDDLE);
+    rend->fontBlur(3);
+    rend->fillColor(Color{ 0.f, 0.f, 0.f, 160/255.f });
+    rend->text(x + w / 2, y + 16 + 1, title);
+
+    rend->fontBlur(0);
+    rend->fillColor(Color{ 230/255.f, 230/255.f, 230/255.f, 200/255.f });
+    rend->text(x + w / 2, y + 16, title);
 }
 
 void Engine::InitSubSystems()
@@ -213,6 +263,7 @@ void Engine::InitSubSystems()
         callbacks.draw_button = drawButton;
         callbacks.draw_text = drawText;
         callbacks.calc_text_size = calcTextSize;
+        callbacks.draw_window = drawWindow;
         gui = create_gui(callbacks);
     }
 }
@@ -382,6 +433,8 @@ void Engine::Render()
 
 #endif
 
+    gui_begin_window(gui, "Test window", V2i(300, 200));
+
     gui_begin(gui, "background");
     if (gui_button(gui, "Test button"))
         LOG("BUTTON PRESSED");
@@ -392,6 +445,8 @@ void Engine::Render()
     gui_hor_space(gui);
     gui_button(gui, "12394857349857");
     gui_end(gui);
+
+    gui_end_window(gui);
 
     mRenderer->drawQuad(tex, 20, 20, 30, 30);
 

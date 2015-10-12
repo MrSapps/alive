@@ -143,6 +143,9 @@ struct GuiContext_Window {
     GuiId id;
     bool used;
     V2i last_frame_bounding_max;
+
+    V2i pos; // Top-left position
+    V2i client_size; // Size, not taking account title bar or borders
 };
 
 #define MAX_GUI_STACK_SIZE 32
@@ -170,8 +173,9 @@ struct GuiContext_Window {
 #define GUI_KEY_9 '9'
 
 typedef void (*DrawButtonFunc)(void *user_data, float x, float y, float w, float h, bool down, bool hover);
-typedef void (*DrawTextFunc)(void *user_data, float x, float y, const char *text, float font_size);
-typedef void (*CalcTextSizeFunc)(float ret[2], void *user_data, const char *text, float font_size);
+typedef void (*DrawTextFunc)(void *user_data, float x, float y, const char *text);
+typedef void (*CalcTextSizeFunc)(float ret[2], void *user_data, const char *text);
+typedef void (*DrawWindowFunc)(void *user_data, float x, float y, float w, float h, float title_bar_height, const char *title);
 
 // User-supplied callbacks
 // TODO: Not sure if callbacks are better than providing an array containing all drawing commands of a frame.
@@ -180,6 +184,7 @@ struct GuiCallbacks {
     DrawButtonFunc draw_button;
     DrawTextFunc draw_text;
     CalcTextSizeFunc calc_text_size;
+    DrawWindowFunc draw_window;
 };
 
 // Handles the gui state
@@ -222,8 +227,8 @@ const char *gui_label_text(const char *label);
 GuiContext *create_gui(GuiCallbacks callbacks);
 void destroy_gui(GuiContext *ctx);
 
-void gui_begin_window(GuiContext *ctx, const char *label, V2i min_size_px);
-void gui_end_window(GuiContext *ctx, bool *open);
+void gui_begin_window(GuiContext *ctx, const char *label, V2i min_size);
+void gui_end_window(GuiContext *ctx, bool *open = NULL);
 
 void gui_begin_contextmenu(GuiContext *ctx, const char *label);
 void gui_end_contextmenu(GuiContext *ctx, bool *open);
