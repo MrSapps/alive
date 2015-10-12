@@ -600,7 +600,7 @@ private:
     auto stream = resourceLocation->Open(targetName);
 
     // Try to open any corresponding subtitle file
-    const std::string subTitleFileName = "data/" + fmvName + ".SRT";
+    const std::string subTitleFileName = "data/subtitles/" + fmvName + ".SRT";
     std::unique_ptr<SubTitleParser> subTitles;
     if (fs.Exists(subTitleFileName))
     {
