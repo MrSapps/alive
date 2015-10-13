@@ -143,7 +143,7 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
             mAliveAudio.Interpolation = AudioInterpolation_hermite;
 
         gui_checkbox(gui, "Force reverb", &mAliveAudio.ForceReverb);
-        //ImGui::SliderFloat("Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
+        gui_slider(gui, "Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
 
         gui_checkbox(gui, "Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
     gui_end_window(gui);  }

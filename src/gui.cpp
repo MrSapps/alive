@@ -11,7 +11,8 @@
 #define ARRAY_COUNT(x) (sizeof(x)/sizeof(*x))
 #define CLAMP(v, a, b) (MIN(MAX((v), (a)), (b)))
 #define ABS(x) ((x) < 0 ? (-x) : x)
-#define GUI_WINDOW_TITLE_BAR_HEIGHT 25.0f
+#define GUI_WINDOW_TITLE_BAR_HEIGHT 25.f
+#define GUI_SCROLL_BAR_WIDTH 15.f
 
 void destroy_window(GuiContext *ctx, int handle)
 {
@@ -654,6 +655,56 @@ void do_skinning(GuiContext *ctx, const char *label, V2i pos, V2i size, Color co
 }
 #endif
 
+#define SELECT_COMP(v, h) ((h) ? (v.x) : (v.y))
+void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, float max, bool h)
+{
+    const int scroll_bar_width = GUI_SCROLL_BAR_WIDTH;
+    const int scroll_handle_height = 10;
+
+    gui_begin(ctx, label);
+
+    V2i pos = gui_turtle_pos(ctx);
+    V2i size;
+    SELECT_COMP(size, h) = SELECT_COMP(gui_window(ctx)->client_size, h);
+    SELECT_COMP(size, !h) = scroll_bar_width;
+
+    bool went_down, down, hover;
+    gui_button_logic(ctx, label, pos, size, NULL, &went_down, &down, &hover);
+
+    if (went_down)
+        gui_start_dragging(ctx, V2f(*value, 0));
+
+    if (down && ctx->dragging) {
+        float px_delta = SELECT_COMP(ctx->cursor_pos, h) - SELECT_COMP(ctx->drag_start_pos, h);
+        *value = ctx->drag_start_value.x + px_delta / (SELECT_COMP(size, h) - scroll_handle_height) *(max - min);
+    }
+    *value = CLAMP(*value, min, max);
+
+    { // Draw
+        { // Bg
+            V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
+            V2i px_size = pt_to_px(size, ctx->dpi_scale);
+            ctx->callbacks.draw_button(ctx->callbacks.user_data, px_pos.x, px_pos.y, px_size.x, px_size.y, false, false, gui_layer(ctx));
+        }
+
+        { // Handle
+            float rel_scroll = (*value - min) / (max - min);
+            V2i handle_pos = pos;
+            SELECT_COMP(handle_pos, h) += rel_scroll*(SELECT_COMP(size, h) - scroll_handle_height);
+            V2i handle_size = size;
+            SELECT_COMP(handle_size, h) = scroll_handle_height;
+
+            V2i px_pos = pt_to_px(handle_pos, ctx->dpi_scale);
+            V2i px_size = pt_to_px(handle_size, ctx->dpi_scale);
+            ctx->callbacks.draw_button(ctx->callbacks.user_data, px_pos.x, px_pos.y, px_size.x, px_size.y, down, hover, gui_layer(ctx));
+        }
+    }
+
+    gui_enlarge_bounding(ctx, pos + size);
+
+    gui_end(ctx);
+}
+
 void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_size)
 {
     int win_handle = -1;
@@ -755,23 +806,17 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_si
     // Scrollbar
     if (win->client_size.y < win->last_frame_bounding_size.y)
     {
-        const int scroll_bar_width = 15;
-        const int scroll_handle_height = 10;
+        V2i client_start_pos = gui_turtle(ctx)->pos - V2i(0, win->scroll);
 
         char scroll_label[MAX_GUI_LABEL_SIZE];
         snprintf(scroll_label, ARRAY_COUNT(scroll_label), "winscroll_%s", label);
-        V2i pos = win->pos + V2i(win->total_size.x - scroll_bar_width, GUI_WINDOW_TITLE_BAR_HEIGHT);
-        V2i size = V2i(scroll_bar_width, win->client_size.y);
+        gui_turtle(ctx)->pos = win->pos + V2i(win->total_size.x - GUI_SCROLL_BAR_WIDTH, GUI_WINDOW_TITLE_BAR_HEIGHT);
 
-        bool went_down, down, hover;
-        gui_button_logic(ctx, scroll_label, pos, size, NULL, &went_down, &down, &hover);
+        float scroll = win->scroll;
+        gui_slider_ex(ctx, scroll_label, &scroll, 0, win->last_frame_bounding_size.y - win->client_size.y, false);
+        win->scroll = (int)scroll;
 
-        if (went_down)
-        {
-            gui_start_dragging(ctx, V2f(0, win->scroll));
-            printf("scroll: %i\n", win->scroll);
-        }
-
+/*
         int prev_value = win->scroll;
         if (down && ctx->dragging) {
             float start_rel_scroll = 1.0f * ctx->drag_start_value.y / (win->last_frame_bounding_size.y - win->client_size.y);
@@ -779,24 +824,9 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_si
             win->scroll = rel_scroll*(win->last_frame_bounding_size.y - win->client_size.y);
         }
         win->scroll = CLAMP(win->scroll, 0, win->last_frame_bounding_size.y - win->client_size.y);
-
-        { // Draw
-            { // Bg
-                V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
-                V2i px_size = pt_to_px(size, ctx->dpi_scale);
-                ctx->callbacks.draw_button(ctx->callbacks.user_data, px_pos.x, px_pos.y, px_size.x, px_size.y, false, false, gui_layer(ctx));
-            }
-
-            { // Handle
-                float rel_scroll = 1.0f * win->scroll / (win->last_frame_bounding_size.y - win->client_size.y);
-                V2i px_pos = pt_to_px(pos + V2i(0, rel_scroll*(win->client_size.y - scroll_handle_height)), ctx->dpi_scale);
-                V2i px_size = pt_to_px(V2i(scroll_bar_width, scroll_handle_height), ctx->dpi_scale);
-                ctx->callbacks.draw_button(ctx->callbacks.user_data, px_pos.x, px_pos.y, px_size.x, px_size.y, down, hover, gui_layer(ctx));
-            }
-        }
+        */
 
         // Scroll client area
-        V2i client_start_pos = gui_turtle(ctx)->pos - V2i(0, win->scroll);
         gui_turtle(ctx)->start_pos = client_start_pos;
         gui_turtle(ctx)->pos = client_start_pos;
     }
@@ -1034,6 +1064,12 @@ bool gui_radiobutton(GuiContext *ctx, const char *label, bool value)
 {
     bool v = value;
     return gui_checkbox(ctx, label, &v); // @todo Proper radiobutton
+}
+
+void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max)
+{
+    gui_slider_ex(ctx, label, value, min, max, true);
+    gui_next_row(ctx);
 }
 
 void gui_next_row(GuiContext *ctx)

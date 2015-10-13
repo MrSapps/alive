@@ -255,6 +255,7 @@ void gui_label(GuiContext *ctx, const char *label);
 bool gui_button(GuiContext *ctx, const char *label);
 bool gui_checkbox(GuiContext *ctx, const char *label, bool *value);
 bool gui_radiobutton(GuiContext *ctx, const char *label, bool value);
+void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max);
 
 void gui_begin(GuiContext *ctx, const char *label, bool detached = false);
 void gui_end(GuiContext *ctx);
