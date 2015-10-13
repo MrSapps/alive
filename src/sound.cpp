@@ -124,32 +124,27 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
             }
         }
     }
-
     gui_end_window(gui);
-#if 0
 
-    { ImGui::Begin("Audio output settings");
-        ImGui::Checkbox("Use antialiasing (not implemented)", &mAliveAudio.AntiAliasFilteringEnabled);
+    gui->next_window_pos = V2i(50, 250);
+    { gui_begin_window(gui, "Audio output settings", V2i(250, 300));
+        gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.AntiAliasFilteringEnabled);
 
-        { ImGui::BeginGroup();
-            if (ImGui::RadioButton("No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
-                mAliveAudio.Interpolation = AudioInterpolation_none;
+        if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
+            mAliveAudio.Interpolation = AudioInterpolation_none;
 
-            if (ImGui::RadioButton("Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
-                mAliveAudio.Interpolation = AudioInterpolation_linear;
+        if (gui_radiobutton(gui, "Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
+            mAliveAudio.Interpolation = AudioInterpolation_linear;
 
-            if (ImGui::RadioButton("Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
-                mAliveAudio.Interpolation = AudioInterpolation_cubic;
+        if (gui_radiobutton(gui, "Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
+            mAliveAudio.Interpolation = AudioInterpolation_cubic;
 
-            if (ImGui::RadioButton("Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
-                mAliveAudio.Interpolation = AudioInterpolation_hermite;
+        if (gui_radiobutton(gui, "Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
+            mAliveAudio.Interpolation = AudioInterpolation_hermite;
 
-        ImGui::EndGroup(); }
+        gui_checkbox(gui, "Force reverb", &mAliveAudio.ForceReverb);
+        //ImGui::SliderFloat("Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
 
-        ImGui::Checkbox("Force reverb", &mAliveAudio.ForceReverb);
-        ImGui::SliderFloat("Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
-
-        ImGui::Checkbox("Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
-    ImGui::End(); }
-#endif
+        gui_checkbox(gui, "Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
+    gui_end_window(gui);  }
 }

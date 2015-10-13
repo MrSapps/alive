@@ -176,6 +176,7 @@ struct GuiContext_Window {
 #define GUI_KEY_9 '9'
 
 typedef void (*DrawButtonFunc)(void *user_data, float x, float y, float w, float h, bool down, bool hover, int layer);
+typedef void (*DrawCheckBoxFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer);
 typedef void (*DrawTextFunc)(void *user_data, float x, float y, const char *text, int layer);
 typedef void (*CalcTextSizeFunc)(float ret[2], void *user_data, const char *text, int layer);
 typedef void (*DrawWindowFunc)(void *user_data, float x, float y, float w, float h, float title_bar_height, const char *title, int layer);
@@ -185,6 +186,7 @@ typedef void (*DrawWindowFunc)(void *user_data, float x, float y, float w, float
 struct GuiCallbacks {
     void *user_data;
     DrawButtonFunc draw_button;
+    DrawCheckBoxFunc draw_checkbox;
     DrawTextFunc draw_text;
     CalcTextSizeFunc calc_text_size;
     DrawWindowFunc draw_window;
@@ -251,6 +253,8 @@ bool gui_knob(GuiContext *ctx, const char *label, float min, float max, float *v
 void gui_label(GuiContext *ctx, const char *label);
 
 bool gui_button(GuiContext *ctx, const char *label);
+bool gui_checkbox(GuiContext *ctx, const char *label, bool *value);
+bool gui_radiobutton(GuiContext *ctx, const char *label, bool value);
 
 void gui_begin(GuiContext *ctx, const char *label, bool detached = false);
 void gui_end(GuiContext *ctx);
