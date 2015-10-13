@@ -218,6 +218,7 @@ void drawText(void *void_rend, float x, float y, const char *text, int layer)
 
     rend->fontSize(g_gui_font_size);
     rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
+    rend->fontBlur(0);
     rend->fillColor(Color{ 1.f, 1.f, 1.f, 160/255.f });
     rend->text(x, y, text);
 
@@ -231,6 +232,7 @@ void calcTextSize(float ret[2], void *void_rend, const char *text, int layer)
 
     rend->fontSize(g_gui_font_size);
     rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
+    rend->fontBlur(0);
     float bounds[4];
     rend->textBounds(0, 0, text, bounds);
     ret[0] = bounds[2] - bounds[0];
@@ -287,6 +289,8 @@ void drawWindow(void *void_rend, float x, float y, float w, float h, float title
     rend->fontBlur(0);
     rend->fillColor(Color{ 230/255.f, 230/255.f, 230/255.f, 200/255.f });
     rend->text(x + w / 2, y + 16, title);
+
+    rend->fontSize(g_gui_font_size); // TODO: There's some problem with command order. This fixes incorrect text size calcs.
 
     rend->endLayer();
 }
@@ -455,47 +459,14 @@ void Engine::Render()
         0, 255, 0,
         255, 0, 0,
     };
-    int tex = mRenderer->createTexture(testPixels, 2, 2, PixelFormat_RGB24);
-
-
-    gui->next_window_pos = V2i(10, 10);
-    gui_begin_window(gui, "Test window", V2i(300, 200));
-    if (gui_button(gui, "Test button"))
-        LOG("BUTTON PRESSED");
-    gui_button(gui, "This is also a button");
-    gui_button(gui, "12394857349857");
-
-    gui_begin(gui, "game area");
-    mRenderer->beginLayer(gui_layer(gui));
-    mRenderer->drawQuad(tex, 50, 50, 200, 200);
-    mRenderer->endLayer();
-    gui_end(gui);
-
-    gui_end_window(gui);
 
     mFmv->Render(mRenderer.get(), gui, w, h);
     mSound->Render(gui, w, h);
     mLevel->Render(mRenderer.get(), gui, w, h);
 
-
-#if 0
-    mRenderer->strokeWidth(5);
-
-    mRenderer->beginPath();
-    mRenderer->moveTo(10, 10);
-    mRenderer->lineTo(100, 150);
-    mRenderer->lineTo(100, 50);
-    mRenderer->closePath();
-    mRenderer->stroke();
-
-#endif
-
-    mRenderer->drawQuad(tex, 20, 20, 30, 30);
-
     gui_end(gui);
     mRenderer->endFrame();
 
-    mRenderer->destroyTexture(tex);
     SDL_GL_SwapWindow(mWindow);
 }
 

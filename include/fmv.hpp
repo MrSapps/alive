@@ -11,7 +11,7 @@ class GameData;
 class IAudioController;
 class FileSystem;
 class Renderer;
-class GuiContext;
+struct GuiContext;
 
 class Fmv
 {

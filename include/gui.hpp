@@ -14,70 +14,27 @@ struct V2i {
     V2i(int x, int y) : x(x), y(y) {}
 };
 
-static V2i v2i(int x, int y)
-{
-    V2i v = { x, y };
-    return v;
-}
-static V2i operator+(V2i a, V2i b)
-{
-    return V2i(a.x + b.x, a.y + b.y);
-}
-static V2i operator-(V2i a, V2i b)
-{
-    return V2i(a.x - b.x, a.y - b.y);
-}
-static V2i operator*(V2i a, V2i b)
-{
-    return V2i(a.x * b.x, a.y * b.y);
-}
-static V2i operator*(V2i a, int m)
-{
-    return V2i(a.x * m, a.y * m);
-}
-static V2i operator/(V2i v, int d)
-{
-    return V2i(v.x / d, v.y / d);
-}
-static bool operator==(V2i a, V2i b)
-{
-    return a.x == b.x && a.y == b.y;
-}
-static bool operator!=(V2i a, V2i b)
-{
-    return a.x != b.x || a.y != b.y;
-}
-static V2i rounded_to_grid(V2i v, int grid)
-{
-    return V2i((v.x + grid / 2) / grid, (v.y + grid / 2) / grid)*grid;
-}
+V2i v2i(int x, int y);
+V2i operator+(V2i a, V2i b);
+V2i operator-(V2i a, V2i b);
+V2i operator*(V2i a, V2i b);
+V2i operator*(V2i a, int m);
+V2i operator/(V2i v, int d);
+bool operator==(V2i a, V2i b);
+bool operator!=(V2i a, V2i b);
+V2i rounded_to_grid(V2i v, int grid);
+
 struct V2f {
     float x, y;
 
     V2f() : x(0), y(0) {}
     V2f(float x, float y) : x(x), y(y) {}
 };
-static V2f operator+(V2f a, V2f b)
-{
-    return V2f(a.x + b.x, a.y + b.y);
-}
-static V2f operator*(V2f a, float m)
-{
-    return V2f(a.x*m, a.y*m);
-}
-
-static V2f v2i_to_v2f(V2i v)
-{
-    return V2f((float)v.x, (float)v.y);
-}
-static V2i v2f_to_v2i(V2f v)
-{
-    return V2i((int)v.x, (int)v.y);
-}
-static bool v2i_in_rect(V2i v, V2i pos, V2i size)
-{
-    return v.x >= pos.x && v.y >= pos.y && v.x < pos.x + size.x && v.y < pos.y + size.y;
-}
+V2f operator+(V2f a, V2f b);
+V2f operator*(V2f a, float m);
+V2f v2i_to_v2f(V2i v);
+V2i v2f_to_v2i(V2f v);
+bool v2i_in_rect(V2i v, V2i pos, V2i size);
 
 struct Skin {
 #if 0

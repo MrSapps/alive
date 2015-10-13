@@ -11,8 +11,68 @@
 #define ARRAY_COUNT(x) (sizeof(x)/sizeof(*x))
 #define CLAMP(v, a, b) (MIN(MAX((v), (a)), (b)))
 #define ABS(x) ((x) < 0 ? (-x) : x)
-#define GUI_WINDOW_TITLE_BAR_HEIGHT 25.f
-#define GUI_SCROLL_BAR_WIDTH 15.f
+#define GUI_WINDOW_TITLE_BAR_HEIGHT 25
+#define GUI_SCROLL_BAR_WIDTH 15
+
+V2i v2i(int x, int y)
+{
+    V2i v = { x, y };
+    return v;
+}
+V2i operator+(V2i a, V2i b)
+{
+    return V2i(a.x + b.x, a.y + b.y);
+}
+V2i operator-(V2i a, V2i b)
+{
+    return V2i(a.x - b.x, a.y - b.y);
+}
+V2i operator*(V2i a, V2i b)
+{
+    return V2i(a.x * b.x, a.y * b.y);
+}
+V2i operator*(V2i a, int m)
+{
+    return V2i(a.x * m, a.y * m);
+}
+V2i operator/(V2i v, int d)
+{
+    return V2i(v.x / d, v.y / d);
+}
+bool operator==(V2i a, V2i b)
+{
+    return a.x == b.x && a.y == b.y;
+}
+bool operator!=(V2i a, V2i b)
+{
+    return a.x != b.x || a.y != b.y;
+}
+V2i rounded_to_grid(V2i v, int grid)
+{
+    return V2i((v.x + grid / 2) / grid, (v.y + grid / 2) / grid)*grid;
+}
+
+V2f operator+(V2f a, V2f b)
+{
+    return V2f(a.x + b.x, a.y + b.y);
+}
+V2f operator*(V2f a, float m)
+{
+    return V2f(a.x*m, a.y*m);
+}
+
+V2f v2i_to_v2f(V2i v)
+{
+    return V2f((float)v.x, (float)v.y);
+}
+V2i v2f_to_v2i(V2f v)
+{
+    return V2i((int)v.x, (int)v.y);
+}
+bool v2i_in_rect(V2i v, V2i pos, V2i size)
+{
+    return v.x >= pos.x && v.y >= pos.y && v.x < pos.x + size.x && v.y < pos.y + size.y;
+}
 
 void destroy_window(GuiContext *ctx, int handle)
 {
@@ -206,7 +266,7 @@ V2i gui_parent_turtle_start_pos(GuiContext *ctx)
 
 int gui_layer(GuiContext *ctx) { return gui_turtle(ctx)->layer; }
 
-bool gui_is_inside_window(GuiContext *ctx, V2i size)
+bool gui_is_inside_window(GuiContext *ctx, V2i)
 {
     // TODO: Take size into account
     V2i pos = gui_turtle_pos(ctx);
@@ -242,14 +302,14 @@ GuiId gui_id(const char *label)
 }
 
 // Call _inside_ target element
-V2i gui_pos(GuiContext *ctx, const char *label, V2i pos)
+V2i gui_pos(GuiContext *, const char *, V2i pos)
 {
     //V2i override_offset = get_tbl(GuiId, V2i)(&ctx->skin.element_offsets, gui_id(label));
     //if (override_offset == ctx->skin.element_offsets.null_value)
         return pos;
     //return gui_parent_turtle_start_pos(ctx) + override_offset;
 }
-V2i gui_size(GuiContext *ctx, const char *label, V2i size)
+V2i gui_size(GuiContext *, const char *, V2i size)
 {
     //V2i override_size = get_tbl(GuiId, V2i)(&ctx->skin.element_sizes, gui_id(label));
     //if (override_size == ctx->skin.element_sizes.null_value)
@@ -397,7 +457,7 @@ void gui_begin(GuiContext *ctx, const char *label, bool detached)
 void do_resize_handle(GuiContext *ctx, bool right_handle)
 {
     V2i panel_size = gui_turtle(ctx)->bounding_max - gui_turtle(ctx)->start_pos;
-    GuiId panel_id = gui_id(gui_turtle(ctx)->label);
+    //GuiId panel_id = gui_id(gui_turtle(ctx)->label);
 
     char handle_label[MAX_GUI_LABEL_SIZE];
     snprintf(handle_label, ARRAY_COUNT(handle_label), "%ihandle_%s", right_handle ? 0 : 1, gui_turtle(ctx)->label);
@@ -675,8 +735,8 @@ void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, 
         gui_start_dragging(ctx, V2f(*value, 0));
 
     if (down && ctx->dragging) {
-        float px_delta = SELECT_COMP(ctx->cursor_pos, h) - SELECT_COMP(ctx->drag_start_pos, h);
-        *value = ctx->drag_start_value.x + px_delta / (SELECT_COMP(size, h) - scroll_handle_height) *(max - min);
+        int px_delta = SELECT_COMP(ctx->cursor_pos, h) - SELECT_COMP(ctx->drag_start_pos, h);
+        *value = ctx->drag_start_value.x + 1.f*px_delta / (SELECT_COMP(size, h) - scroll_handle_height) *(max - min);
     }
     *value = CLAMP(*value, min, max);
 
@@ -684,19 +744,19 @@ void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, 
         { // Bg
             V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
             V2i px_size = pt_to_px(size, ctx->dpi_scale);
-            ctx->callbacks.draw_button(ctx->callbacks.user_data, px_pos.x, px_pos.y, px_size.x, px_size.y, false, false, gui_layer(ctx));
+            ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, false, false, gui_layer(ctx));
         }
 
         { // Handle
             float rel_scroll = (*value - min) / (max - min);
             V2i handle_pos = pos;
-            SELECT_COMP(handle_pos, h) += rel_scroll*(SELECT_COMP(size, h) - scroll_handle_height);
+            SELECT_COMP(handle_pos, h) += (int)(rel_scroll*(SELECT_COMP(size, h) - scroll_handle_height));
             V2i handle_size = size;
             SELECT_COMP(handle_size, h) = scroll_handle_height;
 
             V2i px_pos = pt_to_px(handle_pos, ctx->dpi_scale);
             V2i px_size = pt_to_px(handle_size, ctx->dpi_scale);
-            ctx->callbacks.draw_button(ctx->callbacks.user_data, px_pos.x, px_pos.y, px_size.x, px_size.y, down, hover, gui_layer(ctx));
+            ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, down, hover, gui_layer(ctx));
         }
     }
 
@@ -705,7 +765,7 @@ void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, 
     gui_end(ctx);
 }
 
-void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_size)
+void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i min_size)
 {
     int win_handle = -1;
     { // Find/create platform window
@@ -734,7 +794,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_si
         else {
             assert(free_handle >= 0);
             // Create new window
-            bool toplevel_turtle = (ctx->turtle_ix == 0);
+            //bool toplevel_turtle = (ctx->turtle_ix == 0);
             assert(ctx->window_count < MAX_GUI_WINDOW_COUNT);
 
             ctx->windows[free_handle].id = gui_id(label);
@@ -794,7 +854,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_si
         V2i px_pos = pt_to_px(win->pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
         ctx->callbacks.draw_window(ctx->callbacks.user_data,
-                                   px_pos.x, px_pos.y, px_size.x, px_size.y, GUI_WINDOW_TITLE_BAR_HEIGHT,
+                                   1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, GUI_WINDOW_TITLE_BAR_HEIGHT,
                                    gui_label_text(label), gui_layer(ctx));
 
         // Turtle to content area
@@ -807,24 +867,18 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_si
     if (win->client_size.y < win->last_frame_bounding_size.y)
     {
         V2i client_start_pos = gui_turtle(ctx)->pos - V2i(0, win->scroll);
+        char scroll_panel_label[MAX_GUI_LABEL_SIZE];
+        snprintf(scroll_panel_label, ARRAY_COUNT(scroll_panel_label), "winscrollpanel_%s", label);
+        gui_begin(ctx, scroll_panel_label, true); // Detach so that the scroll doesn't take part in window contents size
 
         char scroll_label[MAX_GUI_LABEL_SIZE];
         snprintf(scroll_label, ARRAY_COUNT(scroll_label), "winscroll_%s", label);
         gui_turtle(ctx)->pos = win->pos + V2i(win->total_size.x - GUI_SCROLL_BAR_WIDTH, GUI_WINDOW_TITLE_BAR_HEIGHT);
 
-        float scroll = win->scroll;
-        gui_slider_ex(ctx, scroll_label, &scroll, 0, win->last_frame_bounding_size.y - win->client_size.y, false);
+        float scroll = 1.f*win->scroll;
+        gui_slider_ex(ctx, scroll_label, &scroll, 0, 1.f*win->last_frame_bounding_size.y - win->client_size.y, false);
         win->scroll = (int)scroll;
-
-/*
-        int prev_value = win->scroll;
-        if (down && ctx->dragging) {
-            float start_rel_scroll = 1.0f * ctx->drag_start_value.y / (win->last_frame_bounding_size.y - win->client_size.y);
-            float rel_scroll = start_rel_scroll + 1.0f * (ctx->cursor_pos.y - ctx->drag_start_pos.y) / (win->client_size.y - scroll_handle_height);
-            win->scroll = rel_scroll*(win->last_frame_bounding_size.y - win->client_size.y);
-        }
-        win->scroll = CLAMP(win->scroll, 0, win->last_frame_bounding_size.y - win->client_size.y);
-        */
+        gui_end(ctx);
 
         // Scroll client area
         gui_turtle(ctx)->start_pos = client_start_pos;
@@ -866,7 +920,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i pos, V2i min_si
 #endif
 }
 
-void gui_end_window_ex(GuiContext *ctx, bool *open)
+void gui_end_window_ex(GuiContext *ctx, bool * /*open*/)
 {
     gui_window(ctx)->last_frame_bounding_size = gui_turtle(ctx)->bounding_max - gui_turtle(ctx)->start_pos;
 
@@ -875,8 +929,8 @@ void gui_end_window_ex(GuiContext *ctx, bool *open)
 
 void gui_begin_window(GuiContext *ctx, const char *label, V2i min_size)
 {
-    bool toplevel_turtle = (ctx->turtle_ix == 0);
-    gui_begin_window_ex(ctx, label, V2i(0, 0), min_size);
+    //bool toplevel_turtle = (ctx->turtle_ix == 0);
+    gui_begin_window_ex(ctx, label, min_size);
 }
 
 void gui_end_window(GuiContext *ctx, bool *open)
@@ -886,7 +940,7 @@ void gui_end_window(GuiContext *ctx, bool *open)
 
 void gui_begin_contextmenu(GuiContext *ctx, const char *label)
 {
-    gui_begin_window_ex(ctx, label, ctx->cursor_pos, v2i(10, 10));
+    gui_begin_window_ex(ctx, label, v2i(10, 10));
 }
 
 void gui_end_contextmenu(GuiContext *ctx, bool *open)
@@ -932,7 +986,6 @@ bool gui_knob(GuiContext *ctx, const char *label, float min, float max, float *v
         if (went_down)
             ctx->drag_start_value.x = *value;
 
-        float prev_value = *value;
         if (down && ctx->dragging) {
             *value = ctx->drag_start_value.x + (max - min) / 100.0f*(ctx->drag_start_pos.y - ctx->cursor_pos.y);
             *value = CLAMP(*value, min, max);
@@ -944,20 +997,15 @@ bool gui_knob(GuiContext *ctx, const char *label, float min, float max, float *v
                     snprintf(buf, ARRAY_COUNT(buf), "%.3f", *value);
                     str = buf;
                 }
-                //draw_text(gui_rendering(ctx),
-                //    pt_to_px(pos + V2i(size.x / 2, -15), ctx->dpi_scale),
-                //    TextAlign_center,
-                //    str,
-                //    gui_color(ctx, label, ctx->skin.default_color));
             }
         }
         ret = down;
     //}
 
-    float d = ctx->dpi_scale;
-    V2i center = pos + size / 2;
-    V2i knob_center = v2i(center.x, pos.y + size.x / 2);
-    float rad = size.x / 2.0f;
+    //float d = ctx->dpi_scale;
+    //V2i center = pos + size / 2;
+    //V2i knob_center = v2i(center.x, pos.y + size.x / 2);
+    //float rad = size.x / 2.0f;
     //Color auxillary = ctx->skin.default_color;
     //auxillary.a *= 0.4f;
     //draw_arc(gui_rendering(ctx), pt_to_px(knob_center, d), pt_to_px_f32(rad - ctx->skin.knob_arc_width, d) - 3.0f, 2, 4, auxillary);
@@ -999,17 +1047,17 @@ bool gui_button(GuiContext *ctx, const char *label)
     {
         float text_size[2];
         ctx->callbacks.calc_text_size(text_size, ctx->callbacks.user_data, gui_label_text(label), gui_layer(ctx));
-        size.x = MAX(text_size[0] + margin.x * 2, size.x);
-        size.y = MAX(text_size[1] + margin.y * 2, size.y);
+        size.x = MAX((int)text_size[0] + margin.x * 2, size.x);
+        size.y = MAX((int)text_size[1] + margin.y * 2, size.y);
 
         gui_button_logic(ctx, label, pos, size, &went_up, NULL, &down, &hover);
 
         V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
-        ctx->callbacks.draw_button(ctx->callbacks.user_data, px_pos.x, px_pos.y, px_size.x, px_size.y, down, hover, gui_layer(ctx));
+        ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, down, hover, gui_layer(ctx));
 
         V2i px_margin = pt_to_px(margin, ctx->dpi_scale);
-        ctx->callbacks.draw_text(ctx->callbacks.user_data, px_pos.x + px_margin.x, px_pos.y + px_margin.y, gui_label_text(label), gui_layer(ctx));
+        ctx->callbacks.draw_text(ctx->callbacks.user_data, 1.f*px_pos.x + px_margin.x, 1.f*px_pos.y + px_margin.y, gui_label_text(label), gui_layer(ctx));
     }
 
     gui_enlarge_bounding(ctx, pos + size);
@@ -1032,12 +1080,12 @@ bool gui_checkbox(GuiContext *ctx, const char *label, bool *value)
     {
         float text_size[2];
         ctx->callbacks.calc_text_size(text_size, ctx->callbacks.user_data, gui_label_text(label), gui_layer(ctx));
-        size.x = MAX(text_size[0] + margin.x * 2, size.x);
-        size.y = MAX(text_size[1] + margin.y * 2, size.y);
+        size.x = MAX((int)text_size[0] + margin.x * 2, size.x);
+        size.y = MAX((int)text_size[1] + margin.y * 2, size.y);
 
         V2i px_margin = pt_to_px(margin, ctx->dpi_scale);
-        float box_width = size.y;
-        float px_box_width = pt_to_px(V2i(0, box_width), ctx->dpi_scale).y - px_margin.y*2;
+        int box_width = size.y;
+        float px_box_width = pt_to_px(V2i(0, box_width), ctx->dpi_scale).y - px_margin.y*2.f;
 
         size.x += box_width + margin.x;
 
@@ -1046,8 +1094,8 @@ bool gui_checkbox(GuiContext *ctx, const char *label, bool *value)
         V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
 
-        ctx->callbacks.draw_checkbox(ctx->callbacks.user_data, px_pos.x + px_margin.x, px_pos.y + px_margin.x, px_box_width, *value, down, hover, gui_layer(ctx));
-        ctx->callbacks.draw_text(ctx->callbacks.user_data, px_pos.x + px_box_width + 2*px_margin.x, px_pos.y + px_margin.y, gui_label_text(label), gui_layer(ctx));
+        ctx->callbacks.draw_checkbox(ctx->callbacks.user_data, 1.f*px_pos.x + px_margin.x, 1.f*px_pos.y + px_margin.x, 1.f*px_box_width, *value, down, hover, gui_layer(ctx));
+        ctx->callbacks.draw_text(ctx->callbacks.user_data, px_pos.x + px_box_width + 2.f*px_margin.x, 1.f*px_pos.y + px_margin.y, gui_label_text(label), gui_layer(ctx));
     }
 
     gui_enlarge_bounding(ctx, pos + size);

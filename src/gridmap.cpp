@@ -174,7 +174,7 @@ void GridMap::Render(Renderer* rend, GuiContext *gui, int /*screenW*/, int /*scr
 
         rend->beginLayer(gui_layer(gui));
         V2i pos = gui_turtle_pos(gui);
-        rend->drawQuad(screen->getTexHandle(), pos.x, pos.y, size.x, size.y);
+        rend->drawQuad(screen->getTexHandle(), 1.0f*pos.x, 1.0f*pos.y, 1.0f*size.x, 1.0f*size.y);
         rend->endLayer();
 
         gui_end_window(gui);

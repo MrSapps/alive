@@ -756,7 +756,7 @@ void Fmv::Update()
     }
 }
 
-void Fmv::Render(Renderer* rend, GuiContext *gui, int screenW, int screenH)
+void Fmv::Render(Renderer* rend, GuiContext *, int screenW, int screenH)
 {
     if (mFmv)
     {

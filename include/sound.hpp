@@ -8,7 +8,7 @@
 class GameData;
 class IAudioController;
 class FileSystem;
-class GuiContext;
+struct GuiContext;
 
 class Sound
 {

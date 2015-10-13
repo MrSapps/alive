@@ -8,7 +8,7 @@
 #include "filesystem.hpp"
 #include "nanovg.h"
 
-class GuiContext;
+struct GuiContext;
 class Renderer;
 namespace Oddlib { class Path; class LvlArchive; }
 class Level
