@@ -473,7 +473,7 @@ void Engine::Render()
 
     gui_end_window(gui);
 
-    mFmv->Render(mRenderer.get(), w, h);
+    mFmv->Render(mRenderer.get(), gui, w, h);
     mSound->Render(gui, w, h);
     mLevel->Render(mRenderer.get(), w, h);
 
