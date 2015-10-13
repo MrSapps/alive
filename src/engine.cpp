@@ -475,7 +475,7 @@ void Engine::Render()
 
     mFmv->Render(mRenderer.get(), gui, w, h);
     mSound->Render(gui, w, h);
-    mLevel->Render(mRenderer.get(), w, h);
+    mLevel->Render(mRenderer.get(), gui, w, h);
 
 
 #if 0

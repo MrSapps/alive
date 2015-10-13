@@ -1,5 +1,5 @@
 #include "gridmap.hpp"
-//#include "imgui/imgui.h"
+#include "gui.hpp"
 #include "oddlib/lvlarchive.hpp"
 #include "renderer.hpp"
 #include "oddlib/path.hpp"
@@ -21,19 +21,19 @@ void Level::Update()
     }
 }
 
-void Level::Render(Renderer* rend, int screenW, int screenH)
+void Level::Render(Renderer* rend, GuiContext *gui, int screenW, int screenH)
 {
-    RenderDebugPathSelection();
+    RenderDebugPathSelection(rend, gui);
     if (mMap)
     {
-        mMap->Render(rend, screenW, screenH);
+        mMap->Render(rend, gui, screenW, screenH);
     }
 }
 
-void Level::RenderDebugPathSelection()
+void Level::RenderDebugPathSelection(Renderer *rend, GuiContext *gui)
 {
-#if 0
-    ImGui::Begin("Paths", nullptr, ImVec2(400, 200), 1.0f, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
+    gui->next_window_pos = V2i(600, 100);
+    gui_begin_window(gui, "Paths", V2i(300, 400));
 
     static std::vector<std::pair<std::string, const GameData::PathEntry*>> items;
     if (items.empty())
@@ -50,7 +50,7 @@ void Level::RenderDebugPathSelection()
 
     for (const auto& item : items)
     {
-        if (ImGui::Selectable(item.first.c_str()))
+        if (gui_button(gui, item.first.c_str()))
         {
             const GameData::PathEntry* entry = item.second;
             const std::string baseLvlName = item.first.substr(0, 2); // R1, MI etc
@@ -78,15 +78,14 @@ void Level::RenderDebugPathSelection()
                                           entry->mObjectDataOffset, 
                                           entry->mMapXSize, 
                                           entry->mMapYSize);
-                        mMap = std::make_unique<GridMap>(path, std::move(archive));
+                        mMap = std::make_unique<GridMap>(path, std::move(archive), rend);
                     }
                 }
             }
         }
     }
 
-    ImGui::End();
-#endif
+    gui_end_window(gui);
 }
 
 GridScreen::GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive, Renderer *rend)
@@ -97,17 +96,20 @@ GridScreen::GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive,
     auto file = archive.FileByName(fileName);
     if (file)
     {
-        auto chunk = file->ChunkByType(Oddlib::MakeType('B','i','t','s'));
+        auto chunk = file->ChunkByType(Oddlib::MakeType('B', 'i', 't', 's'));
         auto stream = chunk->Stream();
 
         auto bits = Oddlib::MakeBits(*stream);
 
-        SDL_Surface *s = bits->GetSurface();
-        assert(s->format->format == SDL_PIXELFORMAT_RGB24);
-        assert(s->format->BytesPerPixel == 1);
-        assert(s->format->BitsPerPixel == 8);
-
-        mTexHandle = mRend->createTexture(s->pixels, s->w, s->h, PixelFormat_RGB24);
+        SDL_Surface *surf = bits->GetSurface();
+        SDL_Surface *converted = nullptr;
+        if (surf->format->format != SDL_PIXELFORMAT_RGB24)
+        {
+            converted = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGB24, 0);
+            surf = converted;
+        }
+        mTexHandle = mRend->createTexture(surf->pixels, surf->w, surf->h, PixelFormat_RGB24);
+        SDL_FreeSurface(converted);
     }
 }
 
@@ -139,15 +141,43 @@ void GridMap::Update()
 
 }
 
-void GridMap::Render(Renderer* rend, int /*screenW*/, int /*screenH*/)
+void GridMap::Render(Renderer* rend, GuiContext *gui, int /*screenW*/, int /*screenH*/)
 {
+    gui->next_window_pos = V2i(950, 50);
+    gui_begin_window(gui, "GridMap", V2i(200, 500));
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[0].size(); y++)
         {
-            rend->resetTransform();
-            rend->text(40.0f + (x*100.0f), 40.0f + (y * 20.0f), mScreens[x][y]->FileName().c_str());
+            if (gui_button(gui, mScreens[x][y]->FileName().c_str()))
+            {
+                mEditorScreenX = (int)x;
+                mEditorScreenY = (int)y;
+            }
         }
+    }
+    gui_end_window(gui);
+
+    if (mEditorScreenX >= (int)mScreens.size() || mEditorScreenY >= (int)mScreens.size())
+    {
+        mEditorScreenX = mEditorScreenY = -1;
+    }
+
+    if (mEditorScreenX >= 0 && mEditorScreenY >= 0)
+    {
+        GridScreen *screen = mScreens[mEditorScreenX][mEditorScreenY].get();
+
+        gui->next_window_pos = V2i(600, 600);
+
+        V2i size(300, 300);
+        gui_begin_window(gui, "CAM", size);
+
+        rend->beginLayer(gui_layer(gui));
+        V2i pos = gui_turtle_pos(gui);
+        rend->drawQuad(screen->getTexHandle(), pos.x, pos.y, size.x, size.y);
+        rend->endLayer();
+
+        gui_end_window(gui);
     }
 }
 

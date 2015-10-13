@@ -146,6 +146,7 @@ namespace Oddlib
 
         // TODO FIX ME should only be using a 640x240 buffer
         mSurface.reset(SDL_CreateRGBSurfaceFrom(g_vram, 1024, 512, 16, 1024 * sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+
         //SDL_SaveBMP(mSurface.get(), "testing.bmp");
     }
 
