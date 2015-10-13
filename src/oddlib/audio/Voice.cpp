@@ -6,7 +6,7 @@
 #include <algorithm>
 
 template<class T>
-static T Lerp(T from, T to, float t)
+static float Lerp(T from, T to, float t)
 {
     return from + ((to - from)*t);
 }
@@ -35,7 +35,7 @@ float InterpHermite(float x0, float x1, float x2, float x3, float t)
     return (((((c3 * t) + c2) * t) + c1) * t) + c0;
 }
 
-float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool antialiasFilteringEnabled)
+float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antialiasFilteringEnabled*/)
 {
 	if (b_Dead)	// Don't return anything if dead. This voice should now be removed.
 	{
@@ -140,14 +140,14 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool antialia
         }
         else if (interpolation == AudioInterpolation_linear)
         {
-            int baseOffset = (int)floor(f_SampleOffset);
+            int baseOffset = static_cast<int>(floor(f_SampleOffset));
             int nextOffset = (baseOffset + 1) % sampleBuffer.size(); // TODO: Don't assume looping
-            if (baseOffset >= sampleBuffer.size())
+            if (baseOffset >= static_cast<int>(sampleBuffer.size()))
             {
                 LOG_ERROR("Sample buffer index out of bounds (interpolated)");
                 baseOffset = nextOffset = sampleBuffer.size() - 1;
             }
-            sample = SampleSint16ToFloat(Lerp<Sint16>(sampleBuffer[baseOffset], sampleBuffer[nextOffset], f_SampleOffset - baseOffset));
+            sample = SampleSint16ToFloat(static_cast<Sint16>(Lerp<Sint16>(sampleBuffer[baseOffset], sampleBuffer[nextOffset], static_cast<float>(f_SampleOffset - baseOffset))));
         }
         else if (interpolation == AudioInterpolation_cubic || interpolation == AudioInterpolation_hermite)
         {
@@ -166,7 +166,7 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool antialia
                 SampleSint16ToFloat(sampleBuffer[offsets[3]]),
             };
 
-            float t = f_SampleOffset - floor(f_SampleOffset);
+            float t = static_cast<float>(f_SampleOffset - floor(f_SampleOffset));
             assert(t >= 0.0 && t <= 1.0);
             if (interpolation == AudioInterpolation_cubic)
                 sample = InterpCubic(raw_samples[0], raw_samples[1], raw_samples[2], raw_samples[3], t);
@@ -174,6 +174,6 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool antialia
                 sample = InterpHermite(raw_samples[0], raw_samples[1], raw_samples[2], raw_samples[3], t);
         }
 
-        return sample * m_ADSR_Level * f_Velocity;
+        return static_cast<float>(sample * m_ADSR_Level * f_Velocity);
     }
 }

@@ -45,7 +45,7 @@ enum AliveAudioSequencerState
 
 struct AliveAudioMidiMessage
 {
-    AliveAudioMidiMessage(AliveAudioMidiMessageType type, int timeOffset, int channel, int note, int velocity, int special = 0)
+    AliveAudioMidiMessage(AliveAudioMidiMessageType type, int timeOffset, int channel, int note, char velocity, int special = 0)
     {
         Type = type;
         Channel = channel;
@@ -57,7 +57,7 @@ struct AliveAudioMidiMessage
     AliveAudioMidiMessageType Type;
     int Channel;
     int Note;
-    int Velocity;
+    char Velocity;
     int TimeOffset;
     int Special = 0;
 };
@@ -85,7 +85,7 @@ public:
 
     //private:
     int m_KillThread = false; // If true, loop thread will exit.
-    int m_SongFinishSample = 0; // Not relative.
+    Uint64 m_SongFinishSample = 0; // Not relative.
     int m_SongBeginSample = 0;	// Not relative.
     int m_PrevBar = 0;
     int m_TimeSignatureBars = 0;

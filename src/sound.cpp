@@ -53,7 +53,7 @@ void Sound::Update()
     }
 }
 
-void Sound::Render(GuiContext *gui, int w, int h)
+void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
 {
     static bool bSet = false;
     if (!bSet)
@@ -102,7 +102,7 @@ void Sound::Render(GuiContext *gui, int w, int h)
         if (gui_button(gui, mThemes[i].c_str()))
         {
             selectedIndex = static_cast<int>(i);
-            if (selectedIndex >= 0 && selectedIndex < mThemes.size() && !mThemes.empty())
+            if (selectedIndex >= 0 && selectedIndex < static_cast<int>(mThemes.size()) && !mThemes.empty())
             {
                 mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
                 mSeqPlayer = std::make_unique<SequencePlayer>(mAliveAudio);
@@ -112,7 +112,7 @@ void Sound::Render(GuiContext *gui, int w, int h)
                 ChangeTheme(mFs, parts);
                 if (mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_FINISHED || mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_STOPPED)
                 {
-                    if (seqId < mAliveAudio.m_LoadedSeqData.size() && mSeqPlayer->LoadSequenceData(mAliveAudio.m_LoadedSeqData[seqId]) == 0)
+                    if (seqId < static_cast<int>(mAliveAudio.m_LoadedSeqData.size()) && mSeqPlayer->LoadSequenceData(mAliveAudio.m_LoadedSeqData[seqId]) == 0)
                     {
                         mSeqPlayer->PlaySequence();
                     }

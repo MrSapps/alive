@@ -619,8 +619,7 @@ void PSXMDECDecoder::YUVfunction1(uint8_t arg_image[][4], int index, int r0, int
 // Old code was a mess. New code should be much better.
 // Could be cleaned up even more, but theres no need at the moment.
 void PSXMDECDecoder::YUV2BGRA32(int16_t *arg_blk,
-    uint8_t arg_image[][4],
-    bool arg_no_color)
+    uint8_t arg_image[][4])
 {
     double rConstant = 1.402;
     double gConstant = -0.3437;
@@ -675,64 +674,10 @@ void PSXMDECDecoder::YUV2BGRA32(int16_t *arg_blk,
     }
 }
 
-
-
-uint8_t PSXMDECDecoder::DecodeFrameToBGR24(uint16_t *arg_decoded_image,
-    uint16_t *arg_bs_image,
-    uint16_t arg_width,
-    uint16_t arg_height,
-    bool arg_no_color)
-{
-    uint16_t *rl = new uint16_t[(arg_bs_image[0] + 2) * sizeof(int32_t)];
-    DecodeDCTVLC(rl, arg_bs_image);
-
-    //  do_hack(arg_bs_image[2], rl, (unsigned char*)arg_decoded_image);
-
-    /*
-    uint16_t *tmp_rl = rl;
-    tmp_rl += 2;
-
-    uint8_t color_bytes = 3;
-    uint8_t w = color_bytes * 8;
-    uint16_t height2 = (arg_height + 15) &~ 15;
-    uint16_t *image = new uint16_t[height2 * w * sizeof(int16_t)];
-    uint16_t slice = height2 * w / 2;
-    arg_width = arg_width * color_bytes / 2;
-    for(uint16_t x = 0; x < arg_width; x += w)
-    {
-    uint16_t *arg_image = image;
-    uint16_t arg_size = slice;
-    int16_t blk[DCT_BLOCK_SIZE * 6];
-    uint16_t blocksize = 16 * 16 * color_bytes / 2;
-    for(;arg_size > 0; arg_size -= blocksize / 2, arg_image += blocksize)
-    {
-    tmp_rl = RL2BLK(tmp_rl, blk);
-    YUV2BGR24(blk, (uint8_t (*)[3])arg_image, arg_no_color);
-    }
-
-
-    uint16_t *src = image;
-    uint16_t *dst = arg_decoded_image + x;
-    for(int16_t y = arg_height - 1; y >= 0; y--)
-    {
-    memcpy(dst, src, w * 2);
-    src += w;
-    dst += arg_width;
-    }
-    }
-    delete [] image;
-    delete [] rl;
-    */
-
-    return 0;
-}
-
-
 uint8_t PSXMDECDecoder::DecodeFrameToABGR32(uint16_t *arg_decoded_image,
     uint16_t *arg_bs_image,
     uint16_t arg_width,
-    uint16_t arg_height,
-    bool arg_no_color)
+    uint16_t arg_height)
 {
     uint16_t *rl = new uint16_t[(arg_bs_image[0] + 2) * sizeof(int32_t)];
     DecodeDCTVLC(rl, arg_bs_image);
@@ -755,7 +700,7 @@ uint8_t PSXMDECDecoder::DecodeFrameToABGR32(uint16_t *arg_decoded_image,
         for (; arg_size > 0; arg_size -= blocksize / 2, arg_image += blocksize)
         {
             tmp_rl = RL2BLK(tmp_rl, blk);
-            YUV2BGRA32(blk, (uint8_t(*)[4])arg_image, arg_no_color);
+            YUV2BGRA32(blk, (uint8_t(*)[4])arg_image);
         }
 
 

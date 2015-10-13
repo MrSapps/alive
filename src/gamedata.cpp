@@ -29,8 +29,7 @@ bool GameData::LoadFmvData(FileSystem& fs)
         for (auto& v : fmvObj.kv_map())
         {
             // Group of FMV's name, e.g. "AbesExoddusPcDemo"
-            const std::string& gameName = v.first;
-
+            //const std::string& gameName = v.first;
 
             const jsonxx::Array& ar = fmvObj.get<jsonxx::Array>(v.first);
             for (size_t i = 0; i < ar.size(); i++)

@@ -207,7 +207,7 @@ protected:
         }
 
         float *floatOutStream = reinterpret_cast<float*>(stream);
-        for (int i = 0; i < take; i++)
+        for (auto i = 0u; i < take; i++)
         {
             uint8_t low = mAudioBuffer[i*sizeof(int16_t)];
             uint8_t high = mAudioBuffer[i*sizeof(int16_t) + 1];
@@ -446,7 +446,7 @@ public:
                     // this happens in the AE PSX MI.MOV streams
                     pixelBuffer.resize(frameW * frameH* 4); // 4 bytes per pixel
 
-                    mMdec.DecodeFrameToABGR32((uint16_t*)pixelBuffer.data(), (uint16_t*)mDemuxBuffer.data(), frameW, frameH, false);
+                    mMdec.DecodeFrameToABGR32((uint16_t*)pixelBuffer.data(), (uint16_t*)mDemuxBuffer.data(), frameW, frameH);
                     mVideoBuffer.push_back(Frame{ mFrameCounter++, frameW, frameH, pixelBuffer });
 
                     return;
@@ -598,7 +598,7 @@ private:
     auto stream = resourceLocation->Open(targetName);
 
     // Try to open any corresponding subtitle file
-    const std::string subTitleFileName = "data/" + fmvName + ".SRT";
+    const std::string subTitleFileName = "data/subtitles/" + fmvName + ".SRT";
     std::unique_ptr<SubTitleParser> subTitles;
     if (fs.Exists(subTitleFileName))
     {

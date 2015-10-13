@@ -97,7 +97,9 @@ namespace Oddlib
         return static_cast<Uint16>((v >> 16) & 0xFFFF);
     }
 
+#ifndef MAKELONG
 #define MAKELONG(a, b)      ((((Uint16)(((a)) & 0xffff)) | ((Uint32)((Uint16)(((b)) & 0xffff))) << 16))
+#endif
 
     static void SetLoWord(Uint32& v, Uint16 lo)
     {
@@ -172,7 +174,7 @@ namespace Oddlib
         SkipBits(v8, 11, bitsShiftedCounter);
         Uint32 v3 = v8;
 
-        *pOutput++ = rawWord4; // store in output
+        *pOutput++ = static_cast<unsigned short>(rawWord4); // store in output
 
         while (1)
         {
@@ -233,7 +235,7 @@ namespace Oddlib
                                     OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, bitsShiftedCounter, v3);
                                 } // End while
 
-                                *pOutput++ = rawWord4;
+                                *pOutput++ = static_cast<unsigned short>(rawWord4);
 
                                 if ((Uint16)rawWord4 == MDEC_END)
                                 {
@@ -246,7 +248,7 @@ namespace Oddlib
                                     }
 
                                     rawWord4 = v15 & MASK_11_BITS;
-                                    *pOutput++ = rawWord4;
+                                    *pOutput++ = static_cast<unsigned short>(rawWord4);
 
                                     int rawWord5;
                                     CheckForEscapeCode(bitsShiftedCounter, rawWord5, rawBitStreamPtr, rawWord4, v3);
@@ -265,7 +267,7 @@ namespace Oddlib
                             OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, bitsShiftedCounter, v3);
                         } // End while
 
-                        *pOutput++ = rawWord4;
+                        *pOutput++ = static_cast<unsigned short>(rawWord4);
 
                         if ((Uint16)rawWord4 == MDEC_END)
                         {
@@ -278,7 +280,7 @@ namespace Oddlib
                             }
 
                             rawWord4 = t11Bits & MASK_11_BITS;
-                            *pOutput++ = rawWord4;
+                            *pOutput++ = static_cast<unsigned short>(rawWord4);
 
                             int rawWord7;
                             CheckForEscapeCode(bitsShiftedCounter, rawWord7, rawBitStreamPtr, rawWord4, v3);
@@ -298,7 +300,7 @@ namespace Oddlib
                     OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, bitsShiftedCounter, v3);
                 } // End while
 
-                *pOutput++ = rawWord4;
+                *pOutput++ = static_cast<unsigned short>(rawWord4);
 
             } while ((Uint16)rawWord4 != MDEC_END);
 
@@ -311,7 +313,7 @@ namespace Oddlib
             }
 
             rawWord4 = tmp11Bits2;
-            *pOutput++ = rawWord4;
+            *pOutput++ = static_cast<unsigned short>(rawWord4);
 
             int rawWord9;
             CheckForEscapeCode(bitsShiftedCounter, rawWord9, rawBitStreamPtr, rawWord4, v3);
@@ -466,7 +468,7 @@ namespace Oddlib
                 signed int v24 = output_q[v23] + (macroBlockWord1 << 22);
                 SetHiWord(v25, GetHiWord(v24));
                 counter = v22 + 1;
-                SetLoWord(v25, (*(v21)* (v24 >> 22) + 4) >> 3);
+                SetLoWord(v25, static_cast<Uint16>((*(v21)* (v24 >> 22) + 4) >> 3));
                 v6 = v21 + 1;
                 output_q[v23] = v25;
             } while (counter < 63);                     // 63 AC values?
@@ -500,7 +502,7 @@ namespace Oddlib
                 }
                 SetHiWord(outVal, GetHiWord(v14));
                 ++counter;
-                SetLoWord(outVal, (*(v17)* (v14 >> 22) + 4) >> 3);
+                SetLoWord(outVal, static_cast<Uint16>((*(v17)* (v14 >> 22) + 4) >> 3));
                 v6 = v17 + 1;
                 output_q[idx] = outVal;
                 if (counter >= 63)                      // 63 AC values?
@@ -802,12 +804,12 @@ namespace Oddlib
 
     int GetSoundTableValue(Sint16 tblIndex)
     {
-        Sint16 oldIdx = tblIndex;
+        //Sint16 oldIdx = tblIndex;
 
         int result; // eax@1
         Sint16 positiveTblIdx; // ax@1
 
-        positiveTblIdx = abs(tblIndex);
+        positiveTblIdx = static_cast<Sint16>(abs(tblIndex));
         result = (Uint16)((Sint16)gSndTbl_byte_62EEB0[positiveTblIdx >> 7] << 7) | (Uint16)(positiveTblIdx >> gSndTbl_byte_62EEB0[positiveTblIdx >> 7]);
         if (tblIndex < 0)
         {
@@ -824,7 +826,7 @@ namespace Oddlib
 
     int sub_408F50(Sint16 a1)
     {
-        Sint16 v2 = abs(a1);
+        Sint16 v2 = static_cast<Sint16>(abs(a1));
         int result = (Uint16)((v2 & 0x7F) << (v2 >> 7)) | (Uint16)(1 << ((v2 >> 7) - 2));
         if (a1 < 0)
         {
@@ -894,13 +896,13 @@ namespace Oddlib
         int counter; // [sp+40h] [bp+8h]@17
 
         gBitCounter -= 16;
-        firstWord = gFirstAudioFrameDWORD;
+        firstWord = static_cast<Sint16>(gFirstAudioFrameDWORD);
         secondWord = gFirstAudioFrameDWORD >> 16;
 
         secondWord = ReadNextAudioWord(secondWord);
         gFirstAudioFrameDWORD >>= 16;
 
-        secondWordCopy = secondWord;
+        secondWordCopy = static_cast<Sint16>(secondWord);
         gBitCounter -= 16;
         thirdWord = secondWord >> 16;
         const int bUseTbl = firstWord & 0xFFFF;
@@ -909,7 +911,7 @@ namespace Oddlib
 
 
         secondWordCopyCopy = secondWordCopy;
-        thirdWordCopy = thirdWord;
+        thirdWordCopy = static_cast<Sint16>(thirdWord);
         gBitCounter -= 16;
         fourthWord = thirdWord >> 16;
         secondWordCopyCopyCopy = secondWordCopyCopy;
@@ -917,7 +919,7 @@ namespace Oddlib
         fourthWord = ReadNextAudioWord(fourthWord);
 
         thirdWordCopyCopy = thirdWordCopy;
-        fourthWordCopy = fourthWord;
+        fourthWordCopy = static_cast<Sint16>(fourthWord);
         gBitCounter -= 16;
         fithWord = fourthWord >> 16;
         thirdWordCopyCopyCopy = thirdWordCopyCopy;
@@ -932,7 +934,7 @@ namespace Oddlib
         secondWordMask = 1 << (secondWordCopyCopyCopy - 1);
         thirdWordMask = 1 << (thirdWordCopyCopy - 1);
         forthWordMask = 1 << (fourthWordCopy - 1);
-        fithWordCopy = fithWord;
+        fithWordCopy = static_cast<Sint16>(fithWord);
         fithHiWord = fithWord >> 16;
         gFirstAudioFrameDWORD = fithHiWord;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD); // or fithHiWord
@@ -941,7 +943,7 @@ namespace Oddlib
         *outPtr = fithWordCopy;
         fithWordCopyCopy = (Sint16)fithWordCopy;
         outPtr += gAudioFrameSizeBytes;
-        outputTmp = gFirstAudioFrameDWORD;
+        outputTmp = static_cast<Sint16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
         gBitCounter -= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
@@ -950,7 +952,7 @@ namespace Oddlib
         outputTmpCopy = (Sint16)outputTmp;
         *outPtr = outputTmp;
         outPtr += gAudioFrameSizeBytes;
-        outputTmp1 = gFirstAudioFrameDWORD;
+        outputTmp1 = static_cast<Sint16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
         gBitCounter -= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
@@ -966,7 +968,7 @@ namespace Oddlib
             for (;;)
             {
                 //            LOWORD(v45) = gFirstAudioFrameDWORD_dword_62EFB4 & secondWord_Unknown1;
-                SetLoInt(v45, gFirstAudioFrameDWORD & secondWord_Unknown1); // dword to word
+                SetLoInt(v45, static_cast<Uint16>(gFirstAudioFrameDWORD & secondWord_Unknown1)); // dword to word
 
 
                 gBitCounter -= secondWordCopyCopyCopyCopy;
@@ -1038,14 +1040,14 @@ namespace Oddlib
                 const int v58 = (v59 + v60) >> 1;
                 if (bUseTbl)
                 {
-                    const Sint16 v61 = GetSoundTableValue(v58); // int to short
-                    loopOutput = (Sint16)sub_408F50(v45 + v61); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
+                    const auto v61 = GetSoundTableValue(static_cast<Sint16>(v58)); // int to short
+                    loopOutput = (Sint16)sub_408F50(static_cast<Sint16>(v45 + v61)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
                 }
                 else
                 {
                     loopOutput = (Sint16)(v58 + (Uint16)v45);
                 }
-                *outPtr = loopOutput; // int to word
+                *outPtr = static_cast<Uint16>(loopOutput); // int to word
                 bCountIsOne = counter == 1;
                 outPtr += gAudioFrameSizeBytes;
                 --counter;
@@ -1114,7 +1116,7 @@ namespace Oddlib
         return result;
     }
 
-    int SetAudioFrameSizeBytesAndBits(int audioFrameSizeBytes, int audioFrameSizeBits)
+    int SetAudioFrameSizeBytesAndBits(int audioFrameSizeBytes)
     {
         int result; // eax@1
 
@@ -1131,7 +1133,7 @@ namespace Oddlib
         if (mbHasAudio)
         {
             //            SetAudioFrameSizeBytesAndBits(mAudioFrameSizeBytes, mAudioFrameSizeBits);
-            SetAudioFrameSizeBytesAndBits(2, 16);
+            SetAudioFrameSizeBytesAndBits(2);
 
             decode_audio_frame((Uint16 *)mAudioFrameData.data(), (Uint16 *)audioBuffer, mAudioHeader.mSingleAudioFrameSize);
             //++thisPtr->mAudioFrameNumber;
@@ -1153,7 +1155,7 @@ namespace Oddlib
             {
                 i >>= 1;
             }
-            gSndTbl_byte_62EEB0[index++] = tableValue;
+            gSndTbl_byte_62EEB0[index++] = static_cast<unsigned char>(tableValue);
         } while (index < 256);
     }
 

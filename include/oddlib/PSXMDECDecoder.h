@@ -40,17 +40,11 @@ class PSXMDECDecoder
 {
 public:
     PSXMDECDecoder();
-    uint8_t DecodeFrameToBGR24(uint16_t *arg_decoded_image,
-        uint16_t *arg_bs_image,
-        uint16_t arg_width,
-        uint16_t arg_height,
-        bool arg_no_color);
 
     uint8_t DecodeFrameToABGR32(uint16_t *arg_decoded_image,
         uint16_t *arg_bs_image,
         uint16_t arg_width,
-        uint16_t arg_height,
-        bool arg_no_color);
+        uint16_t arg_height);
 
 
 private:
@@ -97,8 +91,7 @@ private:
         bool arg_no_color);
     void YUVfunction1(uint8_t arg_image[][4], int index, int r0, int g0, int b0, int y);
     void YUV2BGRA32(int16_t *arg_blk,
-        uint8_t arg_image[][4],
-        bool arg_no_color);
+        uint8_t arg_image[][4]);
 
     uint16_t *RL2BLK(uint16_t *, int16_t *);
     void DecodeDCTVLC(uint16_t *mdec_rl, uint16_t *mdec_bs);

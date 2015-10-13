@@ -51,7 +51,7 @@ void setWindowsIcon(SDL_Window *sdlWindow)
         if (hKernel32)
         {
             typedef BOOL(WINAPI *pSetConsoleIcon)(HICON icon);
-            pSetConsoleIcon setConsoleIcon = (pSetConsoleIcon)::GetProcAddress(hKernel32, "SetConsoleIcon");
+            pSetConsoleIcon setConsoleIcon = reinterpret_cast<pSetConsoleIcon>(::GetProcAddress(hKernel32, "SetConsoleIcon"));
             if (setConsoleIcon)
             {
                 setConsoleIcon(icon);

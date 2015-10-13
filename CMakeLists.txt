@@ -162,8 +162,6 @@ add_library(oddlib STATIC
     src/oddlib/PSXMDECDecoder.cpp
     src/oddlib/audio/ADSR.cpp
     src/oddlib/audio/AliveAudio.cpp
-    src/oddlib/audio/biquad.cpp
-    src/oddlib/audio/Sample.cpp
     src/oddlib/audio/SequencePlayer.cpp
     src/oddlib/audio/Soundbank.cpp
     src/oddlib/audio/vab.cpp
@@ -171,7 +169,6 @@ add_library(oddlib STATIC
     include/oddlib/audio/ADSR.h
     include/oddlib/audio/AliveAudio.h
     include/oddlib/audio/AudioInterpolation.h
-    include/oddlib/audio/biquad.h
     include/oddlib/audio/Sample.h
     include/oddlib/audio/SequencePlayer.h
     include/oddlib/audio/Soundbank.h
@@ -182,10 +179,13 @@ add_library(oddlib STATIC
     include/oddlib/path.hpp
     src/oddlib/ao_bits_pc.cpp
     include/oddlib/ao_bits_pc.hpp
+    src/oddlib/ae_bits_pc.cpp
+    include/oddlib/ae_bits_pc.hpp
+    src/oddlib/bits_factory.cpp
+    include/oddlib/bits_factory.hpp
 )
 
 add_library(AliveLib STATIC
-    ${WIN32_ONLY_SRC}
     include/core/audiobuffer.hpp
     src/core/audiobuffer.cpp
     include/fmv.hpp
@@ -207,9 +207,18 @@ add_library(AliveLib STATIC
     include/gridobject.hpp
     src/gridobject.cpp
     include/subtitles.hpp
+    include/sdl_raii.hpp
 )
 
+if(WIN32)
+SET(WIN32_RESOURCES_SRC
+    rsc/Resource.rc
+    rsc/resource.h
+    rsc/app.ico)
+endif()
+
 add_executable(Alive MACOSX_BUNDLE
+    ${WIN32_RESOURCES_SRC}
     src/main.cpp
 )
 
@@ -219,10 +228,17 @@ SET(Alive_Libs  AliveLib jsonxx imgui oddlib NanoVg glew stk ${OPENGL_LIBRARIES}
 TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
 
 add_executable(IntegrationTest
+  ${WIN32_RESOURCES_SRC}
   test/integration_main.cpp
 )
-
 TARGET_LINK_LIBRARIES(IntegrationTest ${Alive_Libs})
+
+add_executable(DataTest
+  ${WIN32_RESOURCES_SRC}
+  test/data_test_main.cpp
+)
+TARGET_LINK_LIBRARIES(DataTest ${Alive_Libs})
+
 
 
 #cotire(oddlib)
@@ -292,12 +308,6 @@ git_shorttag(GIT_SHORT_REV)
 set(ALIVE_VERSION "ALIVE v${ALIVE_VERSION_MAJOR}.${ALIVE_VERSION_MINOR}.${ALIVE_VERSION_PATCH} rev(${GIT_SHORT_REV})")
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/packaging/alive_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/packaging/alive_version.h)
 
-if(WIN32)
-SET(WIN32_ONLY_SRC
-    rsc/Resource.rc
-    rsc/resource.h
-    rsc/app.ico)
-endif()
 
 SET(CPACK_PACKAGE_EXECUTABLES Alive "A.L.I.V.E")
 SET(CPACK_WIX_PROGRAM_MENU_FOLDER "Alive")
@@ -337,7 +347,7 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/videos.json" DESTINATION "${DATA
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/themes.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/sfx_list.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resource_paths.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/Roboto-Regular.ttf" DESTINATION "${DATA_DIR}")
 
 

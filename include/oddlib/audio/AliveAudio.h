@@ -15,7 +15,6 @@
 #include "Voice.h"
 #include "Sample.h"
 #include "ADSR.h"
-#include "biquad.h"
 #include "core/audiobuffer.hpp"
 #include "stdthread.h"
 #include "AudioInterpolation.h"
@@ -50,20 +49,6 @@ public:
     void LoadAllFromLvl(Oddlib::LvlArchive& lvlArchive, std::string vabID, std::string seqFile);
 
 
-
-    void AliveAudioSetEQ(float cutoff)
-    {
-        
-        EQMutex.lock();
-
-        if (AliveAudio::AliveAudioEQBiQuad != nullptr)
-            delete AliveAudioEQBiQuad;
-
-        AliveAudioEQBiQuad = BiQuad_new(PEQ, 8u, cutoff, AliveAudioSampleRate, 1u);
-        EQMutex.unlock();
-       
-    }
-
     std::vector<std::vector<Uint8>> m_LoadedSeqData;
     std::recursive_mutex voiceListMutex;
     jsonxx::Object m_Config;
@@ -80,35 +65,12 @@ public:
     bool DebugDisableVoiceResampling = false;
 
 private:
-    void AliveEQEffect(float* stream, int len)
-    {
-
-        if (AliveAudioEQBiQuad == nullptr)
-        {
-            AliveAudioSetEQ(20500);
-        }
-
-        EQMutex.lock();
-
-        for (int i = 0; i < len; i++)
-        {
-            stream[i] = BiQuad(stream[i], AliveAudioEQBiQuad);
-        }
-
-        EQMutex.unlock();
-    }
-
-
-    biquad * AliveAudioEQBiQuad = nullptr;
-    std::mutex EQMutex;
-
     AliveAudioSoundbank* m_CurrentSoundbank = nullptr;
 
     std::vector<AliveAudioVoice *> m_Voices;
     std::vector<float> m_DryChannelBuffer;
     std::vector<float> m_ReverbChannelBuffer;
 
-    bool EQEnabled = false;
     stk::FreeVerb m_Reverb;
 
     void CleanVoices();

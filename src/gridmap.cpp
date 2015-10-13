@@ -3,11 +3,11 @@
 #include "oddlib/lvlarchive.hpp"
 #include "renderer.hpp"
 #include "oddlib/path.hpp"
-#include "oddlib/ao_bits_pc.hpp"
+#include "oddlib/bits_factory.hpp"
 
 #include <cassert>
 
-Level::Level(GameData& gameData, IAudioController& audioController, FileSystem& fs)
+Level::Level(GameData& gameData, IAudioController& /*audioController*/, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
 {
 
@@ -99,13 +99,15 @@ GridScreen::GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive,
     {
         auto chunk = file->ChunkByType(Oddlib::MakeType('B','i','t','s'));
         auto stream = chunk->Stream();
-        Oddlib::AoBitsPc bits(*stream);
 
-        assert(bits.getImageFormat()->format == SDL_PIXELFORMAT_RGB24);
-        assert(bits.getImageFormat()->BytesPerPixel == 1);
-        assert(bits.getImageFormat()->BitsPerPixel == 8);
+        auto bits = Oddlib::MakeBits(*stream);
 
-        mTexHandle = mRend->createTexture(bits.getPixelData(), bits.getImageWidth(), bits.getImageHeight(), PixelFormat_RGB24);
+        SDL_Surface *s = bits->GetSurface();
+        assert(s->format->format == SDL_PIXELFORMAT_RGB24);
+        assert(s->format->BytesPerPixel == 1);
+        assert(s->format->BitsPerPixel == 8);
+
+        mTexHandle = mRend->createTexture(s->pixels, s->w, s->h, PixelFormat_RGB24);
     }
 }
 
@@ -137,14 +139,14 @@ void GridMap::Update()
 
 }
 
-void GridMap::Render(Renderer* rend, int screenW, int screenH)
+void GridMap::Render(Renderer* rend, int /*screenW*/, int /*screenH*/)
 {
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[0].size(); y++)
         {
             rend->resetTransform();
-            rend->text(40+(x*100), 40+(y*20), mScreens[x][y]->FileName().c_str());
+            rend->text(40.0f + (x*100.0f), 40.0f + (y * 20.0f), mScreens[x][y]->FileName().c_str());
         }
     }
 }

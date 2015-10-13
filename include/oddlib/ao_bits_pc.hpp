@@ -1,26 +1,24 @@
 #pragma once
 
 #include "SDL.h"
+#include "sdl_raii.hpp"
+#include "oddlib/bits_factory.hpp"
 
 namespace Oddlib
 {
     class IStream;
 
-    class AoBitsPc
+    class AoBitsPc : public IBits
     {
     public:
         AoBitsPc(const AoBitsPc&) = delete;
         AoBitsPc& operator = (const AoBitsPc&) = delete;
         explicit AoBitsPc(IStream& stream);
-        ~AoBitsPc();
 
-        void *getPixelData() const { return mSurface->pixels; }
-        int getImageWidth() const { return mSurface->w; }
-        int getImageHeight() const { return mSurface->h; }
-        SDL_PixelFormat *getImageFormat() const { return mSurface->format; }
-
+        // Returns observing pointer to surface
+        virtual SDL_Surface* GetSurface() const override;
     private:
         void GenerateImage(IStream& stream);
-        SDL_Surface* mSurface = nullptr;
+        SDL_SurfacePtr mSurface;
     };
 }
