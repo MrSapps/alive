@@ -357,6 +357,7 @@ void Renderer::endFrame()
     std::stable_sort(mDrawCmds.begin(), mDrawCmds.end(), DrawCmdSort());
 
     // Actual rendering
+    glViewport(0, 0, mW, mH);
     nvgResetTransform(mNanoVg);
     bool vectorModeOn = false;
     for (size_t i = 0; i < mDrawCmds.size(); ++i)
