@@ -447,11 +447,11 @@ void Renderer::endFrame()
             RenderPaint p = cmd.paint;
             NVGpaint nvp = { 0 };
 
-            assert(sizeof(p.xform) == sizeof(nvp.xform));
-            assert(sizeof(p.extent) == sizeof(nvp.extent));
+            static_assert(sizeof(p.xform) == sizeof(nvp.xform), "wrong size");
+            static_assert(sizeof(p.extent) == sizeof(nvp.extent), "wrong size");
 
             memcpy(nvp.xform, p.xform, sizeof(p.xform));
-            memcpy(nvp.extent, p.extent, sizeof(p.xform));
+            memcpy(nvp.extent, p.extent, sizeof(p.extent));
             nvp.radius = p.radius;
             nvp.feather = p.feather;
             nvp.innerColor.r = p.innerColor.r;
@@ -690,11 +690,11 @@ static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
 {
     RenderPaint p = { 0 };
 
-    assert(sizeof(p.xform) == sizeof(nvp.xform));
-    assert(sizeof(p.extent) == sizeof(nvp.extent));
+    static_assert(sizeof(p.xform) == sizeof(nvp.xform), "wrong size");
+    static_assert(sizeof(p.extent) == sizeof(nvp.extent), "wrong size");
 
 	memcpy(p.xform, nvp.xform, sizeof(p.xform));
-	memcpy(p.extent, nvp.extent, sizeof(p.xform));
+	memcpy(p.extent, nvp.extent, sizeof(p.extent));
     p.radius = nvp.radius;
     p.feather = nvp.feather;
     p.innerColor.r = nvp.innerColor.r;
