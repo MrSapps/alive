@@ -27,6 +27,7 @@ class TestEngine : public Engine
 public:
     virtual void DebugRender() override
     {
+        /*
         // Render main menu bar
         static bool showAbout = false;
         if (ImGui::BeginMainMenuBar())
@@ -50,7 +51,7 @@ public:
             ImGui::Begin(ALIVE_VERSION_NAME_STR, nullptr, ImVec2(400, 100));
             ImGui::Text("Open source ALIVE engine PaulsApps.com 2015");
             ImGui::End();
-        }
+        }*/
     }
 
     virtual void InitSubSystems() override

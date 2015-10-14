@@ -87,11 +87,11 @@ struct DrawCmd {
     DrawCmdType type;
     int layer;
     union { // This union is to make the struct smaller, as RenderPaint is quite large
-        struct {
+        struct Parts {
             int integer;
             float f[5];
             char str[64]; // TODO: Allocate dynamically from cheap frame allocator
-        };
+        } parts;
         RenderPaint paint;
     };
 };

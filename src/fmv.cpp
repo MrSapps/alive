@@ -31,17 +31,17 @@ static float Percent(float max, float percent)
     return (max / 100.0f) * percent;
 }
 
-static void RenderSubtitles(Renderer* rend, const char* msg, int screenW, int screenH)
+static void RenderSubtitles(Renderer& rend, const char* msg, int screenW, int screenH)
 {
     float xpos = 0.0f;
     float ypos = static_cast<float>(screenH);
 
-    rend->fillColor(Color{ 0, 0, 0, 1 });
-    rend->fontSize(Percent(static_cast<float>(screenH), 6.7f));
-    rend->textAlign(TEXT_ALIGN_TOP);
+    rend.fillColor(Color{ 0, 0, 0, 1 });
+    rend.fontSize(Percent(static_cast<float>(screenH), 6.7f));
+    rend.textAlign(TEXT_ALIGN_TOP);
     
     float bounds[4];
-    rend->textBounds(xpos, ypos, msg, bounds);
+    rend.textBounds(static_cast<int>(xpos), static_cast<int>(ypos), msg, bounds);
 
     //float fontX = bounds[0];
     //float fontY = bounds[1];
@@ -54,10 +54,10 @@ static void RenderSubtitles(Renderer* rend, const char* msg, int screenW, int sc
     // Center XPos in the screenW
     xpos = (screenW / 2) - (fontW / 2);
 
-    rend->text(xpos, ypos, msg);
-    rend->fillColor(Color{ 1, 1, 1, 1 });
+    rend.text(xpos, ypos, msg);
+    rend.fillColor(Color{ 1, 1, 1, 1 });
     float adjust = Percent(static_cast<float>(screenH), 0.3f);
-    rend->text(xpos - adjust, ypos - adjust, msg);
+    rend.text(xpos - adjust, ypos - adjust, msg);
 }
 
 class IMovie : public IAudioPlayer
@@ -86,7 +86,7 @@ public:
     virtual void FillBuffers() = 0;
 
     // Main thread context
-    void OnRenderFrame(Renderer* rend, int screenW, int screenH)
+    void OnRenderFrame(Renderer& rend, int screenW, int screenH)
     {
         // TODO: Populate mAudioBuffer and mVideoBuffer
         // for up to N buffered frames
@@ -639,17 +639,17 @@ public:
     {
     }
 
-    void DrawVideoSelectionUi(GuiContext *gui, const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
+    void DrawVideoSelectionUi(GuiContext& gui, const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
     {
 
         std::string name = "Video player";
         static bool bSet = false;
         if (!bSet)
         {
-            gui->next_window_pos = V2i(720, 40);
+            gui.next_window_pos = V2i(720, 40);
             bSet = true;
         }
-        gui_begin_window(gui, name.c_str(), V2i(300, 580));
+        gui_begin_window(&gui, name.c_str(), V2i(300, 580));
 
         //mFilter.Draw();
 
@@ -677,7 +677,7 @@ public:
             for (size_t i = 0; i < listbox_items.size(); i++)
             {
                 //if (ImGui::Selectable(listbox_items[i], static_cast<int>(i) == listbox_item_current))
-                if (gui_button(gui, listbox_items[i]))
+                if (gui_button(&gui, listbox_items[i]))
                 {
                     //listbox_item_current = i;
                     pressed = i;
@@ -700,7 +700,7 @@ public:
             }
         }
 
-        gui_end_window(gui);
+        gui_end_window(&gui);
     }
 private:
     IAudioController& mAudioController;
@@ -756,7 +756,7 @@ void Fmv::Update()
     }
 }
 
-void Fmv::Render(Renderer* rend, GuiContext *, int screenW, int screenH)
+void Fmv::Render(Renderer& rend, GuiContext& , int screenW, int screenH)
 {
     if (mFmv)
     {
@@ -775,7 +775,7 @@ DebugFmv::~DebugFmv()
 
 }
 
-void DebugFmv::Render(Renderer* rend, GuiContext *gui, int screenW, int screenH)
+void DebugFmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 {
     Fmv::Render(rend, gui, screenW, screenH);
 
@@ -786,7 +786,7 @@ void DebugFmv::Render(Renderer* rend, GuiContext *gui, int screenW, int screenH)
     }
 }
 
-void DebugFmv::RenderVideoUi(GuiContext *gui)
+void DebugFmv::RenderVideoUi(GuiContext& gui)
 {
     if (!mFmv)
     {

@@ -385,11 +385,11 @@ void Renderer::endFrame()
         {
         case DrawCmdType_quad:
         {
-            int texHandle = cmd.integer;
-            float x = cmd.f[0];
-            float y = cmd.f[1];
-            float w = cmd.f[2];
-            float h = cmd.f[3];
+            int texHandle = cmd.parts.integer;
+            float x = cmd.parts.f[0];
+            float y = cmd.parts.f[1];
+            float w = cmd.parts.f[2];
+            float h = cmd.parts.f[3];
 
             float white[4] = { 1, 1, 1, 1 };
 
@@ -433,23 +433,23 @@ void Renderer::endFrame()
 
             unbind_vao();
         } break;
-        case DrawCmdType_fillColor: nvgFillColor(mNanoVg, nvgRGBAf(cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3])); break;
-        case DrawCmdType_strokeColor: nvgStrokeColor(mNanoVg, nvgRGBAf(cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3])); break;
-        case DrawCmdType_strokeWidth: nvgStrokeWidth(mNanoVg, cmd.f[0]); break;
-        case DrawCmdType_fontSize: nvgFontSize(mNanoVg, cmd.f[0]); break;
-        case DrawCmdType_fontBlur: nvgFontBlur(mNanoVg, cmd.f[0]); break;
-        case DrawCmdType_textAlign: nvgTextAlign(mNanoVg, cmd.integer); break;
-        case DrawCmdType_text: nvgText(mNanoVg, cmd.f[0], cmd.f[1], cmd.str, nullptr); break;
+        case DrawCmdType_fillColor: nvgFillColor(mNanoVg, nvgRGBAf(cmd.parts.f[0], cmd.parts.f[1], cmd.parts.f[2], cmd.parts.f[3])); break;
+        case DrawCmdType_strokeColor: nvgStrokeColor(mNanoVg, nvgRGBAf(cmd.parts.f[0], cmd.parts.f[1], cmd.parts.f[2], cmd.parts.f[3])); break;
+        case DrawCmdType_strokeWidth: nvgStrokeWidth(mNanoVg, cmd.parts.f[0]); break;
+        case DrawCmdType_fontSize: nvgFontSize(mNanoVg, cmd.parts.f[0]); break;
+        case DrawCmdType_fontBlur: nvgFontBlur(mNanoVg, cmd.parts.f[0]); break;
+        case DrawCmdType_textAlign: nvgTextAlign(mNanoVg, cmd.parts.integer); break;
+        case DrawCmdType_text: nvgText(mNanoVg, cmd.parts.f[0], cmd.parts.f[1], cmd.parts.str, nullptr); break;
         case DrawCmdType_resetTransform: nvgResetTransform(mNanoVg); break;
         case DrawCmdType_beginPath: nvgBeginPath(mNanoVg); break;
-        case DrawCmdType_moveTo: nvgMoveTo(mNanoVg, cmd.f[0], cmd.f[1]); break;
-        case DrawCmdType_lineTo: nvgLineTo(mNanoVg, cmd.f[0], cmd.f[1]); break;
+        case DrawCmdType_moveTo: nvgMoveTo(mNanoVg, cmd.parts.f[0], cmd.parts.f[1]); break;
+        case DrawCmdType_lineTo: nvgLineTo(mNanoVg, cmd.parts.f[0], cmd.parts.f[1]); break;
         case DrawCmdType_closePath: nvgClosePath(mNanoVg); break;
         case DrawCmdType_fill: nvgFill(mNanoVg); break;
         case DrawCmdType_stroke: nvgStroke(mNanoVg); break;
-        case DrawCmdType_roundedRect: nvgRoundedRect(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3], cmd.f[4]); break;
-        case DrawCmdType_rect: nvgRect(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3]); break;
-        case DrawCmdType_solidPathWinding: nvgPathWinding(mNanoVg, cmd.integer ? NVG_SOLID : NVG_HOLE); break;
+        case DrawCmdType_roundedRect: nvgRoundedRect(mNanoVg, cmd.parts.f[0], cmd.parts.f[1], cmd.parts.f[2], cmd.parts.f[3], cmd.parts.f[4]); break;
+        case DrawCmdType_rect: nvgRect(mNanoVg, cmd.parts.f[0], cmd.parts.f[1], cmd.parts.f[2], cmd.parts.f[3]); break;
+        case DrawCmdType_solidPathWinding: nvgPathWinding(mNanoVg, cmd.parts.integer ? NVG_SOLID : NVG_HOLE); break;
         case DrawCmdType_fillPaint:
         {
             RenderPaint p = cmd.paint;
@@ -533,11 +533,11 @@ void Renderer::drawQuad(int texHandle, float x, float y, float w, float h)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_quad;
-    cmd.integer = texHandle;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = w;
-    cmd.f[3] = h;
+    cmd.parts.integer = texHandle;
+    cmd.parts.f[0] = x;
+    cmd.parts.f[1] = y;
+    cmd.parts.f[2] = w;
+    cmd.parts.f[3] = h;
     pushCmd(cmd);
 }
 
@@ -545,7 +545,7 @@ void Renderer::fillColor(Color c)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_fillColor;
-    memcpy(cmd.f, &c, sizeof(c));
+    memcpy(cmd.parts.f, &c, sizeof(c));
     pushCmd(cmd);
 }
 
@@ -553,7 +553,7 @@ void Renderer::strokeColor(Color c)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_strokeColor;
-    memcpy(cmd.f, &c, sizeof(c));
+    memcpy(cmd.parts.f, &c, sizeof(c));
     pushCmd(cmd);
 }
 
@@ -561,7 +561,7 @@ void Renderer::strokeWidth(float size)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_strokeWidth;
-    cmd.f[0] = size;
+    cmd.parts.f[0] = size;
     pushCmd(cmd);
 }
 
@@ -569,7 +569,7 @@ void Renderer::fontSize(float s)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_fontSize;
-    cmd.f[0] = s;
+    cmd.parts.f[0] = s;
     pushCmd(cmd);
 }
 
@@ -577,7 +577,7 @@ void Renderer::fontBlur(float s)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_fontBlur;
-    cmd.f[0] = s;
+    cmd.parts.f[0] = s;
     pushCmd(cmd);
 }
 
@@ -585,7 +585,7 @@ void Renderer::textAlign(int align)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_textAlign;
-    cmd.integer = align;
+    cmd.parts.integer = align;
     pushCmd(cmd);
 }
 
@@ -593,10 +593,10 @@ void Renderer::text(float x, float y, const char *msg)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_text;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    strncpy(cmd.str, msg, sizeof(cmd.str));
-    cmd.str[sizeof(cmd.str) - 1] = '\0';
+    cmd.parts.f[0] = x;
+    cmd.parts.f[1] = y;
+    strncpy(cmd.parts.str, msg, sizeof(cmd.parts.str));
+    cmd.parts.str[sizeof(cmd.parts.str) - 1] = '\0';
     pushCmd(cmd);
 }
 
@@ -618,8 +618,8 @@ void Renderer::moveTo(float x, float y)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_moveTo;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
+    cmd.parts.f[0] = x;
+    cmd.parts.f[1] = y;
     pushCmd(cmd);
 }
 
@@ -627,8 +627,8 @@ void Renderer::lineTo(float x, float y)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_lineTo;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
+    cmd.parts.f[0] = x;
+    cmd.parts.f[1] = y;
     pushCmd(cmd);
 }
 
@@ -657,11 +657,11 @@ void Renderer::roundedRect(float x, float y, float w, float h, float r)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_roundedRect;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = w;
-    cmd.f[3] = h;
-    cmd.f[4] = r;
+    cmd.parts.f[0] = x;
+    cmd.parts.f[1] = y;
+    cmd.parts.f[2] = w;
+    cmd.parts.f[3] = h;
+    cmd.parts.f[4] = r;
     pushCmd(cmd);
 }
 
@@ -669,10 +669,10 @@ void Renderer::rect(float x, float y, float w, float h)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_rect;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = w;
-    cmd.f[3] = h;
+    cmd.parts.f[0] = x;
+    cmd.parts.f[1] = y;
+    cmd.parts.f[2] = w;
+    cmd.parts.f[3] = h;
     pushCmd(cmd);
 }
 
@@ -680,7 +680,7 @@ void Renderer::solidPathWinding(bool b)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_solidPathWinding;
-    cmd.integer = b;
+    cmd.parts.integer = b;
     pushCmd(cmd);
 }
 
