@@ -179,6 +179,7 @@ struct GuiContext {
     GuiId hot_id, last_hot_id;
     int hot_win_ix;
     GuiId active_id;
+    int active_win_ix;
 
     Skin skin;
     //SkinningMode skinning_mode;
