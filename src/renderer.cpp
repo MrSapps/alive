@@ -2,7 +2,7 @@
 #include "oddlib/exceptions.hpp"
 #include "logger.hpp"
 #include "nanovg.h"
-#define NANOVG_GLES3_IMPLEMENTATION
+#define NANOVG_GLES2_IMPLEMENTATION
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
@@ -204,9 +204,9 @@ Renderer::Renderer(const char *fontPath)
         LOG_INFO("Creating nanovg context");
 
 #ifdef _DEBUG
-        mNanoVg = nvgCreateGLES3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+        mNanoVg = nvgCreateGLES2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
 #else
-        mNanoVg = nvgCreateGLES3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+        mNanoVg = nvgCreateGLES2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 #endif
 
         if (!mNanoVg)
@@ -318,7 +318,7 @@ Renderer::~Renderer()
 
         if (mNanoVg)
         {
-            nvgDeleteGLES3(mNanoVg);
+            nvgDeleteGLES2(mNanoVg);
         }
     }
 
