@@ -284,7 +284,8 @@ Renderer::Renderer(const char *fontPath)
             {
                 char* infoLog = (char*)malloc(sizeof(char) * infoLen);
                 glGetProgramInfoLog(mProgram, infoLen, NULL, infoLog);
-                LOG("Error linking program:\n%s\n", infoLog);
+                LOG_INFO("Error linking program");
+                LOG_INFO(infoLog); // TODO: Variadic printing. This is unsafe and crashes if infoLog contains e.g. %i
                 free(infoLog);
             }
             ALIVE_FATAL_ERROR();

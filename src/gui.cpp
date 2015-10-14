@@ -5,6 +5,25 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+#include <stdarg.h>
+
+#if defined(_MSC_VER) && _MSC_VER <= 1800 // MSVC 2013
+void sprintf_impl(char *buf, size_t count, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    _vsnprintf(buf, count, fmt, args);
+    va_end(args);
+
+    // Fix unsafeness of msvc _vsnprintf
+    if (count > 0)
+        buf[count - 1] = '\0';
+}
+
+#   define FMT_STR sprintf_impl
+#else
+#   define FMT_STR snprintf
+#endif
 
 #define MAX(a, b) ((a > b) ? (a) : (b))
 #define MIN(a, b) ((a < b) ? (a) : (b))
@@ -441,7 +460,7 @@ void gui_begin(GuiContext *ctx, const char *label, bool detached)
     new_turtle.layer = prev->layer + 1;
     new_turtle.detached = detached;
     new_turtle.inactive_dragdropdata = prev->inactive_dragdropdata;
-    snprintf(new_turtle.label, MAX_GUI_LABEL_SIZE, "%s", label);
+    FMT_STR(new_turtle.label, MAX_GUI_LABEL_SIZE, "%s", label);
     *cur = new_turtle;
 
     V2i size = gui_size(ctx, label, v2i(-1, -1));
@@ -460,7 +479,7 @@ void do_resize_handle(GuiContext *ctx, bool right_handle)
     //GuiId panel_id = gui_id(gui_turtle(ctx)->label);
 
     char handle_label[MAX_GUI_LABEL_SIZE];
-    snprintf(handle_label, ARRAY_COUNT(handle_label), "%ihandle_%s", right_handle ? 0 : 1, gui_turtle(ctx)->label);
+    FMT_STR(handle_label, ARRAY_COUNT(handle_label), "%ihandle_%s", right_handle ? 0 : 1, gui_turtle(ctx)->label);
     { gui_begin(ctx, handle_label);
     V2i handle_pos;
     V2i handle_size;
@@ -625,7 +644,7 @@ void do_skinning(GuiContext *ctx, const char *label, V2i pos, V2i size, Color co
         return;
 
     char buf[1024];
-    snprintf(buf, ARRAY_COUNT(buf), "skin_overlay_%s", label);
+    FMT_STR(buf, ARRAY_COUNT(buf), "skin_overlay_%s", label);
 
     ButtonAction action;
     bool down;
@@ -681,7 +700,7 @@ void do_skinning(GuiContext *ctx, const char *label, V2i pos, V2i size, Color co
                 Color newcol = col;
                 *skinning_mode_to_comp(&newcol, ctx->skinning_mode) = newcomp;
                 char str[128];
-                snprintf(str, ARRAY_COUNT(str), "(%.2f, %.2f, %.2f, %.2f)", newcol.r, newcol.g, newcol.b, newcol.a);
+                FMT_STR(str, ARRAY_COUNT(str), "(%.2f, %.2f, %.2f, %.2f)", newcol.r, newcol.g, newcol.b, newcol.a);
                 draw_text(gui_rendering(ctx), ctx->cursor_pos + V2i(0, -15), TextAlign_left, str);
                 set_tbl(GuiId, Color)(&ctx->skin.element_colors, gui_id(label), newcol);
             }
@@ -820,7 +839,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i min_size)
 
         // Dummy window background element. Makes clicking through window impossible.
         char bg_label[MAX_GUI_LABEL_SIZE];
-        snprintf(bg_label, ARRAY_COUNT(bg_label), "winbg_%s", label);
+        FMT_STR(bg_label, ARRAY_COUNT(bg_label), "winbg_%s", label);
         gui_button_logic(ctx, bg_label, win->pos, size, NULL, NULL, NULL, NULL);
 
         // Title bar logic
@@ -868,11 +887,11 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i min_size)
     {
         V2i client_start_pos = gui_turtle(ctx)->pos - V2i(0, win->scroll);
         char scroll_panel_label[MAX_GUI_LABEL_SIZE];
-        snprintf(scroll_panel_label, ARRAY_COUNT(scroll_panel_label), "winscrollpanel_%s", label);
+        FMT_STR(scroll_panel_label, ARRAY_COUNT(scroll_panel_label), "winscrollpanel_%s", label);
         gui_begin(ctx, scroll_panel_label, true); // Detach so that the scroll doesn't take part in window contents size
 
         char scroll_label[MAX_GUI_LABEL_SIZE];
-        snprintf(scroll_label, ARRAY_COUNT(scroll_label), "winscroll_%s", label);
+        FMT_STR(scroll_label, ARRAY_COUNT(scroll_label), "winscroll_%s", label);
         gui_turtle(ctx)->pos = win->pos + V2i(win->total_size.x - GUI_SCROLL_BAR_WIDTH, GUI_WINDOW_TITLE_BAR_HEIGHT);
 
         float scroll = 1.f*win->scroll;
@@ -994,7 +1013,7 @@ bool gui_knob(GuiContext *ctx, const char *label, float min, float max, float *v
                 const char *str = value_str;
                 char buf[128];
                 if (!str) {
-                    snprintf(buf, ARRAY_COUNT(buf), "%.3f", *value);
+                    FMT_STR(buf, ARRAY_COUNT(buf), "%.3f", *value);
                     str = buf;
                 }
             }
