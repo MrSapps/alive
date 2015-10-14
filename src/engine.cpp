@@ -183,7 +183,7 @@ void drawButton(void *void_rend, float x, float y, float w, float h, bool down, 
     rend->endLayer();
 }
 
-void drawCheckbox(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer)
+void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
@@ -209,6 +209,34 @@ void drawCheckbox(void *void_rend, float x, float y, float w, bool checked, bool
 
     rend->endLayer();
 }
+
+void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer)
+{
+    Renderer *rend = (Renderer*)void_rend;
+    rend->beginLayer(layer);
+
+    RenderPaint bg;
+
+    rend->beginPath();
+
+    if (checked)
+        bg = rend->radialGradient(x + w/2 + 1, y + w/2 + 1, w/2 - 2, w/2, Color{ 0.5f, 1.f, 0.5f, 92 / 255.f }, Color{ 0.5f, 1.f, 0.5f, 30/255.f });
+    else
+        bg = rend->radialGradient(x + w/2 + 1, y + w/2 + 1, w/2 - 2, w/2, Color{ 0.f, 0.f, 0.f, 30 / 255.f }, Color{ 0.f, 0.f, 0.f, 92/255.f });
+    rend->circle(x + w/2, y + w/2, w/2);
+    rend->fillPaint(bg);
+    rend->fill();
+
+    rend->strokeWidth(1.0f);
+    if (hover)
+        rend->strokeColor(Color{ 1.f, 1.f, 1.f, 0.3f });
+    else
+        rend->strokeColor(Color{ 0.f, 0.f, 0.f, 0.3f });
+    rend->stroke();
+
+    rend->endLayer();
+}
+
 
 static const float g_gui_font_size = 16.f;
 
@@ -307,7 +335,8 @@ void Engine::InitSubSystems()
         GuiCallbacks callbacks = { 0 };
         callbacks.user_data = mRenderer.get();
         callbacks.draw_button = drawButton;
-        callbacks.draw_checkbox = drawCheckbox;
+        callbacks.draw_checkbox = drawCheckBox;
+        callbacks.draw_radiobutton = drawRadioButton;
         callbacks.draw_text = drawText;
         callbacks.calc_text_size = calcTextSize;
         callbacks.draw_window = drawWindow;

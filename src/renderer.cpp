@@ -446,6 +446,7 @@ void Renderer::endFrame()
         case DrawCmdType_stroke: nvgStroke(mNanoVg); break;
         case DrawCmdType_roundedRect: nvgRoundedRect(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3], cmd.f[4]); break;
         case DrawCmdType_rect: nvgRect(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3]); break;
+        case DrawCmdType_circle: nvgCircle(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2]); break;
         case DrawCmdType_solidPathWinding: nvgPathWinding(mNanoVg, cmd.integer ? NVG_SOLID : NVG_HOLE); break;
         case DrawCmdType_fillPaint:
         {
@@ -673,6 +674,16 @@ void Renderer::rect(float x, float y, float w, float h)
     pushCmd(cmd);
 }
 
+void Renderer::circle(float x, float y, float r)
+{
+    DrawCmd cmd;
+    cmd.type = DrawCmdType_circle;
+    cmd.f[0] = x;
+    cmd.f[1] = y;
+    cmd.f[2] = r;
+    pushCmd(cmd);
+}
+
 void Renderer::solidPathWinding(bool b)
 {
     DrawCmd cmd;
@@ -725,6 +736,13 @@ RenderPaint Renderer::boxGradient(float x, float y, float w, float h,
                                   float r, float f, Color icol, Color ocol)
 {
     NVGpaint nvp = nvgBoxGradient(mNanoVg, x, y, w, h, r, f, nvgRGBAf(icol.r, icol.g, icol.b, icol.a), nvgRGBAf(ocol.r, ocol.g, ocol.b, ocol.a));
+    return NVGpaintToRenderPaint(nvp);
+}
+
+RenderPaint Renderer::radialGradient(float cx, float cy, float inr, float outr, Color icol, Color ocol)
+{
+    NVGpaint nvp = nvgRadialGradient(mNanoVg, cx, cy, inr, outr, 
+                      nvgRGBAf(icol.r, icol.g, icol.b, icol.a), nvgRGBAf(ocol.r, ocol.g, ocol.b, ocol.a));
     return NVGpaintToRenderPaint(nvp);
 }
 

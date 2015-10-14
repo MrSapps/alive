@@ -1097,7 +1097,7 @@ bool gui_button(GuiContext *ctx, const char *label)
     return went_up && hover;
 }
 
-bool gui_checkbox(GuiContext *ctx, const char *label, bool *value)
+bool gui_checkbox_ex(GuiContext *ctx, const char *label, bool *value, bool radio_button_visual)
 {
     gui_begin(ctx, label);
     V2i margin(5, 3);
@@ -1123,7 +1123,13 @@ bool gui_checkbox(GuiContext *ctx, const char *label, bool *value)
         V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
 
-        ctx->callbacks.draw_checkbox(ctx->callbacks.user_data, 1.f*px_pos.x + px_margin.x, 1.f*px_pos.y + px_margin.x, 1.f*px_box_width, *value, down, hover, gui_layer(ctx));
+        float x = 1.f*px_pos.x + px_margin.x;
+        float y = 1.f*px_pos.y + px_margin.x;
+        float w = 1.f*px_box_width;
+        if (radio_button_visual)
+            ctx->callbacks.draw_radiobutton(ctx->callbacks.user_data, x, y, w, *value, down, hover, gui_layer(ctx));
+        else
+            ctx->callbacks.draw_checkbox(ctx->callbacks.user_data, x, y, w, *value, down, hover, gui_layer(ctx));
         ctx->callbacks.draw_text(ctx->callbacks.user_data, px_pos.x + px_box_width + 2.f*px_margin.x, 1.f*px_pos.y + px_margin.y, gui_label_text(label), gui_layer(ctx));
     }
 
@@ -1137,10 +1143,13 @@ bool gui_checkbox(GuiContext *ctx, const char *label, bool *value)
     return went_up && hover;
 }
 
+bool gui_checkbox(GuiContext *ctx, const char *label, bool *value)
+{ return gui_checkbox_ex(ctx, label, value, false); }
+
 bool gui_radiobutton(GuiContext *ctx, const char *label, bool value)
 {
     bool v = value;
-    return gui_checkbox(ctx, label, &v); // @todo Proper radiobutton
+    return gui_checkbox_ex(ctx, label, &v, true); // @todo Proper radiobutton
 }
 
 void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max)

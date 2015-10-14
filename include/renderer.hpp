@@ -80,6 +80,7 @@ enum DrawCmdType {
     DrawCmdType_stroke,
     DrawCmdType_roundedRect,
     DrawCmdType_rect,
+    DrawCmdType_circle,
     DrawCmdType_solidPathWinding,
     DrawCmdType_fillPaint,
 };
@@ -137,6 +138,7 @@ public:
     void stroke();
     void roundedRect(float x, float y, float w, float h, float r);
     void rect(float x, float y, float w, float h);
+    void circle(float x, float y, float r);
     void solidPathWinding(bool b); // If false, then holes are created
 
     void fillPaint(RenderPaint p);
@@ -145,6 +147,7 @@ public:
     RenderPaint linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec);
     RenderPaint boxGradient(float x, float y, float w, float h,
                             float r, float f, Color icol, Color ocol);
+    RenderPaint radialGradient(float cx, float cy, float inr, float outr, Color icol, Color ocol);
     // TODO: Add fontsize param to make independent of "current state"
     void textBounds(int x, int y, const char *msg, float bounds[4]);
 

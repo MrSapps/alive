@@ -135,6 +135,7 @@ struct GuiContext_Window {
 
 typedef void (*DrawButtonFunc)(void *user_data, float x, float y, float w, float h, bool down, bool hover, int layer);
 typedef void (*DrawCheckBoxFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer);
+typedef void (*DrawRadioButtonFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer);
 typedef void (*DrawTextFunc)(void *user_data, float x, float y, const char *text, int layer);
 typedef void (*CalcTextSizeFunc)(float ret[2], void *user_data, const char *text, int layer);
 typedef void (*DrawWindowFunc)(void *user_data, float x, float y, float w, float h, float title_bar_height, const char *title, int layer);
@@ -145,6 +146,7 @@ struct GuiCallbacks {
     void *user_data;
     DrawButtonFunc draw_button;
     DrawCheckBoxFunc draw_checkbox;
+    DrawRadioButtonFunc draw_radiobutton;
     DrawTextFunc draw_text;
     CalcTextSizeFunc calc_text_size;
     DrawWindowFunc draw_window;
