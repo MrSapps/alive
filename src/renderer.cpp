@@ -8,7 +8,8 @@
 
 #include <algorithm>
 #include <cassert>
-#include "SDL_pixels.h""
+#include "SDL.h"
+#include "SDL_pixels.h"
 
 static GLuint fontTex;
 static GLuint       g_FontTexture = 0;
