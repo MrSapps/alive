@@ -187,7 +187,8 @@ GLuint createShader(GLenum type, const char *shaderSrc)
         {
             char* infoLog = (char*)malloc(sizeof(char) * infoLen);
             glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
-            LOG("Error compiling shader:\n%s\n", infoLog);
+            LOG_INFO("Error compiling shader:");
+            LOG_INFO(infoLog); // TODO: Variadic printing. This is unsafe and crashes if infoLog contains e.g. %i
             free(infoLog);
 
             ALIVE_FATAL_ERROR();
@@ -593,7 +594,8 @@ void Renderer::text(float x, float y, const char *msg)
     cmd.type = DrawCmdType_text;
     cmd.f[0] = x;
     cmd.f[1] = y;
-    snprintf(cmd.str, sizeof(cmd.str), "%s", msg);
+    strncpy(cmd.str, msg, sizeof(cmd.str));
+    cmd.str[sizeof(cmd.str) - 1] = '\0';
     pushCmd(cmd);
 }
 

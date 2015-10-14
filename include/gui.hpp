@@ -1,7 +1,8 @@
 #ifndef ALIVE_GUI_H
 #define ALIVE_GUI_H
 
-#include <cstdint>
+#include <stdint.h>
+#include <stddef.h>
 
 // Non-bloaty immediate mode gui
 
