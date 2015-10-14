@@ -338,19 +338,15 @@ void Renderer::beginFrame(int w, int h)
     assert(mDrawCmds.empty());
 }
 
-struct DrawCmdSort {
-    bool operator()(const DrawCmd& a, const DrawCmd& b) const
-    {
-        return a.layer < b.layer; 
-    }
-};
-
 void Renderer::endFrame()
 {
     assert(mLayerStack.empty());
 
     // This is the primary reason for buffering drawing command. Call order doesn't determine draw order, but layers do.
-    std::stable_sort(mDrawCmds.begin(), mDrawCmds.end(), DrawCmdSort());
+    std::stable_sort(mDrawCmds.begin(), mDrawCmds.end(), [](const DrawCmd& a, const DrawCmd& b)
+    {
+        return a.layer < b.layer;
+    });
 
     // Actual rendering
     nvgResetTransform(mNanoVg);
