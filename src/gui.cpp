@@ -353,14 +353,17 @@ GuiContext *create_gui(GuiCallbacks callbacks)
 
 void destroy_gui(GuiContext *ctx)
 {
-    //destroy_skin(&ctx->skin);
+    if (ctx)
+    {
+        //destroy_skin(&ctx->skin);
 
-    for (int i = MAX_GUI_WINDOW_COUNT - 1; i >= 0; --i) {
-        if (ctx->windows[i].id)
-            destroy_window(ctx, i);
+        for (int i = MAX_GUI_WINDOW_COUNT - 1; i >= 0; --i) {
+            if (ctx->windows[i].id)
+                destroy_window(ctx, i);
+        }
+
+        free(ctx);
     }
-
-    free(ctx);
 }
 
 void gui_set_hot(GuiContext *ctx, const char *label)
