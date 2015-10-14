@@ -186,11 +186,9 @@ GLuint createShader(GLenum type, const char *shaderSrc)
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
         if (infoLen > 1)
         {
-            char* infoLog = (char*)malloc(sizeof(char) * infoLen);
-            glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
-            LOG_INFO("Error compiling shader:");
-            LOG_INFO(infoLog); // TODO: Variadic printing. This is unsafe and crashes if infoLog contains e.g. %i
-            free(infoLog);
+            std::vector<char> infoLog(sizeof(char) * (infoLen+1));
+            glGetShaderInfoLog(shader, infoLen, NULL, infoLog.data());
+            LOG_INFO("Error compiling shader: " << infoLog.data());
 
             ALIVE_FATAL_ERROR();
         }
@@ -284,11 +282,9 @@ Renderer::Renderer(const char *fontPath)
 
             if (infoLen > 1)
             {
-                char* infoLog = (char*)malloc(sizeof(char) * infoLen);
-                glGetProgramInfoLog(mProgram, infoLen, NULL, infoLog);
-                LOG_INFO("Error linking program");
-                LOG_INFO(infoLog); // TODO: Variadic printing. This is unsafe and crashes if infoLog contains e.g. %i
-                free(infoLog);
+                std::vector<char> infoLog(sizeof(char) * (infoLen+1));
+                glGetProgramInfoLog(mProgram, infoLen, NULL, infoLog.data());
+                LOG_INFO("Error linking program " << infoLog.data());
             }
             ALIVE_FATAL_ERROR();
         }

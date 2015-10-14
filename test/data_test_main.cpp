@@ -8,18 +8,7 @@
 #include "filesystem.hpp"
 #include "logger.hpp"
 #include <functional>
-
-extern "C"
-{
-    // Hack to make SDL2 link
-    #if _MSC_VER == 1900
-    void *__iob_func()
-    {
-        static FILE f[] = { *stdin, *stdout, *stderr };
-        return f;
-    }
-    #endif
-}
+#include "msvc_sdl_link.hpp"
 
 class DataTest
 {

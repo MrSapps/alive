@@ -1,21 +1,13 @@
 #include "SDL.h"
 #include "engine.hpp"
 #include "logger.hpp"
+#include "msvc_sdl_link.hpp"
 
 extern "C"
 {
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
-
-    // Hack to make SDL2 link
-    #if _MSC_VER == 1900
-    void *__iob_func()
-    {
-        static FILE f[] = { *stdin, *stdout, *stderr };
-        return f;
-    }
-    #endif
 }
 
 int main(int /*argc*/, char** /*argv*/)

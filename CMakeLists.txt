@@ -143,6 +143,7 @@ SET_PROPERTY(TARGET luajit PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET minilua PROPERTY FOLDER "3rdparty")
 
 add_library(oddlib STATIC
+    include/msvc_sdl_link.hpp
     include/stdthread.h
     include/logger.hpp
     include/string_util.hpp

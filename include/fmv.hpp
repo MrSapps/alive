@@ -22,7 +22,7 @@ public:
     bool IsPlaying() const;
     void Stop();
     void Update();
-    virtual void Render(Renderer* rend, GuiContext *gui, int screenW, int screenH);
+    virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
 protected:
     GameData& mGameData;
     IAudioController& mAudioController;
@@ -36,8 +36,8 @@ class DebugFmv : public Fmv
 public:
     DebugFmv(GameData& gameData, IAudioController& audioController, FileSystem& fs);
     virtual ~DebugFmv();
-    virtual void Render(Renderer* rend, GuiContext *gui, int screenW, int screenH) override;
+    virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH) override;
 private:
-    void RenderVideoUi(GuiContext *gui);
+    void RenderVideoUi(GuiContext& gui);
     std::unique_ptr<class FmvUi> mFmvUi;
 };

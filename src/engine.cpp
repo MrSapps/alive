@@ -11,7 +11,8 @@
 #include "fmv.hpp"
 #include "sound.hpp"
 #include "gridmap.hpp"
-
+#include "renderer.hpp"
+#include "gui.hpp"
 
 extern "C"
 {
@@ -87,7 +88,7 @@ Engine::Engine()
 
 Engine::~Engine()
 {
-    destroy_gui(gui);
+    destroy_gui(mGui);
 
     mRenderer.reset();
 
@@ -310,7 +311,7 @@ void Engine::InitSubSystems()
         callbacks.draw_text = drawText;
         callbacks.calc_text_size = calcTextSize;
         callbacks.draw_window = drawWindow;
-        gui = create_gui(callbacks);
+        mGui = create_gui(callbacks);
     }
 }
 
@@ -328,9 +329,9 @@ void Engine::Update()
 {
     { // Reset gui input
         for (int i = 0; i < GUI_KEY_COUNT; ++i)
-            gui->key_state[i] = 0;
-        gui->cursor_pos.x = -1;
-        gui->cursor_pos.y = -1;
+            mGui->key_state[i] = 0;
+        mGui->cursor_pos.x = -1;
+        mGui->cursor_pos.y = -1;
     }
 
     SDL_Event event;
@@ -388,7 +389,7 @@ void Engine::Update()
 
             if (guiKey >= 0)
             {
-                  int state = gui->key_state[guiKey];
+                  int state = mGui->key_state[guiKey];
                   if (event.type == SDL_MOUSEBUTTONUP)
                   {
                       state |= GUI_KEYSTATE_RELEASED_BIT;
@@ -397,7 +398,7 @@ void Engine::Update()
                   {
                       state |= GUI_KEYSTATE_PRESSED_BIT;
                   }
-                  gui->key_state[GUI_KEY_LMB] = state;
+                  mGui->key_state[GUI_KEY_LMB] = state;
             }
 
         } break;
@@ -430,11 +431,11 @@ void Engine::Update()
 
         int mouse_x, mouse_y;
         SDL_GetMouseState(&mouse_x, &mouse_y);
-        gui->cursor_pos.x = mouse_x;
-        gui->cursor_pos.y = mouse_y;
+        mGui->cursor_pos.x = mouse_x;
+        mGui->cursor_pos.y = mouse_y;
 
         if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT))
-            gui->key_state[GUI_KEY_LMB] |= GUI_KEYSTATE_DOWN_BIT;
+            mGui->key_state[GUI_KEY_LMB] |= GUI_KEYSTATE_DOWN_BIT;
     }
 
     // TODO: Move into state machine
@@ -449,7 +450,7 @@ void Engine::Render()
     int w, h;
     SDL_GetWindowSize(mWindow, &w, &h);
     mRenderer->beginFrame(w, h);
-    gui_begin(gui, "background");
+    gui_begin(mGui, "background");
 
     DebugRender();
 
@@ -460,11 +461,11 @@ void Engine::Render()
         255, 0, 0,
     };
 
-    mFmv->Render(mRenderer.get(), gui, w, h);
-    mSound->Render(gui, w, h);
-    mLevel->Render(mRenderer.get(), gui, w, h);
+    mFmv->Render(*mRenderer, *mGui, w, h);
+    mSound->Render(mGui, w, h);
+    mLevel->Render(*mRenderer, *mGui, w, h);
 
-    gui_end(gui);
+    gui_end(mGui);
     mRenderer->endFrame();
 
     SDL_GL_SwapWindow(mWindow);

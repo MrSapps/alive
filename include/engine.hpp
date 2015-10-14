@@ -8,8 +8,6 @@
 #include <GL/glew.h>
 #include "SDL_opengl.h"
 #include "core/audiobuffer.hpp"
-#include "renderer.hpp"
-#include "gui.hpp"
 
 class Engine
 {
@@ -51,9 +49,9 @@ protected:
     SDL_Window* mWindow = nullptr;
     SDL_GLContext mContext = nullptr;
 
-    std::unique_ptr<Renderer> mRenderer;
+    std::unique_ptr<class Renderer> mRenderer;
     std::unique_ptr<class Fmv> mFmv;
     std::unique_ptr<class Sound> mSound;
     std::unique_ptr<class Level> mLevel;
-    GuiContext *gui = nullptr;
+    struct GuiContext *mGui = nullptr;
 };
