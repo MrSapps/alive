@@ -1,6 +1,6 @@
 #include "sound.hpp"
 #include "oddlib/audio/SequencePlayer.h"
-#include "imgui/imgui.h"
+#include "gui.hpp"
 #include "core/audiobuffer.hpp"
 #include "logger.hpp"
 #include "filesystem.hpp"
@@ -53,7 +53,7 @@ void Sound::Update()
     }
 }
 
-void Sound::Render(int /*w*/, int /*h*/)
+void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
 {
     static bool bSet = false;
     if (!bSet)
@@ -69,7 +69,6 @@ void Sound::Render(int /*w*/, int /*h*/)
             LOG_ERROR("Audio init failure: " << ex.what());
         }
 
-        ImGui::SetNextWindowPos(ImVec2(320, 250));
         bSet = true;
         auto themes = mAliveAudio.m_Config.get<jsonxx::Array>("themes");
         for (auto i = 0u; i < themes.size(); i++)
@@ -93,13 +92,14 @@ void Sound::Render(int /*w*/, int /*h*/)
         }
     }
 
-
-    ImGui::Begin("Sound", nullptr, ImVec2(250, 280), 1.0f, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
+    gui->next_window_pos = V2i(320, 250);
+    gui_begin_window(gui, "Sound", V2i(250, 400));
 
     static int selectedIndex = 0; 
     for (size_t i = 0; i < mThemes.size(); i++)
     {
-        if (ImGui::Selectable(mThemes[i].c_str(), static_cast<int>(i) == selectedIndex))
+        //if (ImGui::Selectable(mThemes[i].c_str(), static_cast<int>(i) == selectedIndex))
+        if (gui_button(gui, mThemes[i].c_str()))
         {
             selectedIndex = static_cast<int>(i);
             if (selectedIndex >= 0 && selectedIndex < static_cast<int>(mThemes.size()) && !mThemes.empty())
@@ -124,30 +124,27 @@ void Sound::Render(int /*w*/, int /*h*/)
             }
         }
     }
+    gui_end_window(gui);
 
-    ImGui::End();
+    gui->next_window_pos = V2i(50, 250);
+    { gui_begin_window(gui, "Audio output settings", V2i(250, 300));
+        gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.AntiAliasFilteringEnabled);
 
-    { ImGui::Begin("Audio output settings");
-        ImGui::Checkbox("Use antialiasing (not implemented)", &mAliveAudio.AntiAliasFilteringEnabled);
+        if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
+            mAliveAudio.Interpolation = AudioInterpolation_none;
 
-        { ImGui::BeginGroup();
-            if (ImGui::RadioButton("No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
-                mAliveAudio.Interpolation = AudioInterpolation_none;
+        if (gui_radiobutton(gui, "Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
+            mAliveAudio.Interpolation = AudioInterpolation_linear;
 
-            if (ImGui::RadioButton("Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
-                mAliveAudio.Interpolation = AudioInterpolation_linear;
+        if (gui_radiobutton(gui, "Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
+            mAliveAudio.Interpolation = AudioInterpolation_cubic;
 
-            if (ImGui::RadioButton("Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
-                mAliveAudio.Interpolation = AudioInterpolation_cubic;
+        if (gui_radiobutton(gui, "Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
+            mAliveAudio.Interpolation = AudioInterpolation_hermite;
 
-            if (ImGui::RadioButton("Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
-                mAliveAudio.Interpolation = AudioInterpolation_hermite;
+        gui_checkbox(gui, "Force reverb", &mAliveAudio.ForceReverb);
+        gui_slider(gui, "Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
 
-        ImGui::EndGroup(); }
-
-        ImGui::Checkbox("Force reverb", &mAliveAudio.ForceReverb);
-        ImGui::SliderFloat("Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
-
-        ImGui::Checkbox("Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
-    ImGui::End(); }
+        gui_checkbox(gui, "Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
+    gui_end_window(gui);  }
 }

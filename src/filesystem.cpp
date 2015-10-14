@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <fstream>
 #include "jsonxx/jsonxx.h"
-#include "imgui/imgui.h"
+//#include "imgui/imgui.h"
 
 #ifdef _WIN32
 const char kDirSeperator = '\\';
@@ -171,6 +171,7 @@ FileSystem::IResourcePathAbstraction* FileSystem::ResourceExists(const std::stri
 
 void FileSystem::DebugUi()
 {
+#if 0
     static bool bSet = false;
     if (!bSet)
     {
@@ -244,6 +245,7 @@ void FileSystem::DebugUi()
     }
 
     ImGui::End();
+#endif
 }
 
 void FileSystem::CopyPerUserFiles()

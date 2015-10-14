@@ -14,6 +14,7 @@ namespace Oddlib
         AoBitsPc(const AoBitsPc&) = delete;
         AoBitsPc& operator = (const AoBitsPc&) = delete;
         explicit AoBitsPc(IStream& stream);
+
         // Returns observing pointer to surface
         virtual SDL_Surface* GetSurface() const override;
     private:

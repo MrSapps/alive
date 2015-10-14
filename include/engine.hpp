@@ -8,6 +8,8 @@
 #include <GL/glew.h>
 #include "SDL_opengl.h"
 #include "core/audiobuffer.hpp"
+#include "renderer.hpp"
+#include "gui.hpp"
 
 class Engine
 {
@@ -21,9 +23,7 @@ private:
     void Render();
     bool InitSDL();
     int LoadNanoVgFonts(struct NVGcontext* vg);
-    void InitNanoVg();
     void InitGL();
-    void InitImGui();
     void RenderVideoUi();
     void ImGui_WindowResize();
 protected:
@@ -51,13 +51,9 @@ protected:
     SDL_Window* mWindow = nullptr;
     SDL_GLContext mContext = nullptr;
 
-
+    std::unique_ptr<Renderer> mRenderer;
     std::unique_ptr<class Fmv> mFmv;
     std::unique_ptr<class Sound> mSound;
     std::unique_ptr<class Level> mLevel;
-
-    struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;
-    struct NVGcontext* mNanoVg = nullptr;
-
-
+    GuiContext *gui = nullptr;
 };

@@ -1,8 +1,11 @@
 #include "gridmap.hpp"
-#include "imgui/imgui.h"
+#include "gui.hpp"
 #include "oddlib/lvlarchive.hpp"
+#include "renderer.hpp"
 #include "oddlib/path.hpp"
 #include "oddlib/bits_factory.hpp"
+
+#include <cassert>
 
 Level::Level(GameData& gameData, IAudioController& /*audioController*/, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
@@ -18,18 +21,19 @@ void Level::Update()
     }
 }
 
-void Level::Render(NVGcontext* ctx, int screenW, int screenH)
+void Level::Render(Renderer* rend, GuiContext *gui, int screenW, int screenH)
 {
-    RenderDebugPathSelection();
+    RenderDebugPathSelection(rend, gui);
     if (mMap)
     {
-        mMap->Render(ctx, screenW, screenH);
+        mMap->Render(rend, gui, screenW, screenH);
     }
 }
 
-void Level::RenderDebugPathSelection()
+void Level::RenderDebugPathSelection(Renderer *rend, GuiContext *gui)
 {
-    ImGui::Begin("Paths", nullptr, ImVec2(400, 200), 1.0f, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
+    gui->next_window_pos = V2i(600, 100);
+    gui_begin_window(gui, "Paths", V2i(300, 400));
 
     static std::vector<std::pair<std::string, const GameData::PathEntry*>> items;
     if (items.empty())
@@ -46,7 +50,7 @@ void Level::RenderDebugPathSelection()
 
     for (const auto& item : items)
     {
-        if (ImGui::Selectable(item.first.c_str()))
+        if (gui_button(gui, item.first.c_str()))
         {
             const GameData::PathEntry* entry = item.second;
             const std::string baseLvlName = item.first.substr(0, 2); // R1, MI etc
@@ -74,29 +78,47 @@ void Level::RenderDebugPathSelection()
                                           entry->mObjectDataOffset, 
                                           entry->mMapXSize, 
                                           entry->mMapYSize);
-                        mMap = std::make_unique<GridMap>(path, std::move(archive));
+                        mMap = std::make_unique<GridMap>(path, std::move(archive), rend);
                     }
                 }
             }
         }
     }
 
-    ImGui::End();
+    gui_end_window(gui);
 }
 
-GridScreen::GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive)
+GridScreen::GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive, Renderer *rend)
     : mFileName(fileName)
+    , mTexHandle(0)
+    , mRend(rend)
 {
     auto file = archive.FileByName(fileName);
     if (file)
     {
-        auto chunk = file->ChunkByType(Oddlib::MakeType('B','i','t','s'));
+        auto chunk = file->ChunkByType(Oddlib::MakeType('B', 'i', 't', 's'));
         auto stream = chunk->Stream();
+
         auto bits = Oddlib::MakeBits(*stream);
+
+        SDL_Surface *surf = bits->GetSurface();
+        SDL_Surface *converted = nullptr;
+        if (surf->format->format != SDL_PIXELFORMAT_RGB24)
+        {
+            converted = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGB24, 0);
+            surf = converted;
+        }
+        mTexHandle = mRend->createTexture(surf->pixels, surf->w, surf->h, PixelFormat_RGB24);
+        SDL_FreeSurface(converted);
     }
 }
 
-GridMap::GridMap(Oddlib::Path& path, std::unique_ptr<Oddlib::LvlArchive> archive)
+GridScreen::~GridScreen()
+{
+    mRend->destroyTexture(mTexHandle);
+}
+
+GridMap::GridMap(Oddlib::Path& path, std::unique_ptr<Oddlib::LvlArchive> archive, Renderer *rend)
     : mArchive(std::move(archive))
 {
     mScreens.resize(path.XSize());
@@ -109,7 +131,7 @@ GridMap::GridMap(Oddlib::Path& path, std::unique_ptr<Oddlib::LvlArchive> archive
     {
         for (Uint32 y = 0; y < path.YSize(); y++)
         {
-            mScreens[x][y] = std::make_unique<GridScreen>(path.CameraFileName(x,y), *mArchive);
+            mScreens[x][y] = std::make_unique<GridScreen>(path.CameraFileName(x,y), *mArchive, rend);
         }
     }
 }
@@ -119,15 +141,43 @@ void GridMap::Update()
 
 }
 
-void GridMap::Render(NVGcontext* ctx, int /*screenW*/, int /*screenH*/)
+void GridMap::Render(Renderer* rend, GuiContext *gui, int /*screenW*/, int /*screenH*/)
 {
+    gui->next_window_pos = V2i(950, 50);
+    gui_begin_window(gui, "GridMap", V2i(200, 500));
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[0].size(); y++)
         {
-            nvgResetTransform(ctx);
-            nvgText(ctx, 40.0f + (x*100.0f), 40.0f + (y * 20.0f), mScreens[x][y]->FileName().c_str(), nullptr);
+            if (gui_button(gui, mScreens[x][y]->FileName().c_str()))
+            {
+                mEditorScreenX = (int)x;
+                mEditorScreenY = (int)y;
+            }
         }
+    }
+    gui_end_window(gui);
+
+    if (mEditorScreenX >= (int)mScreens.size() || mEditorScreenY >= (int)mScreens.size())
+    {
+        mEditorScreenX = mEditorScreenY = -1;
+    }
+
+    if (mEditorScreenX >= 0 && mEditorScreenY >= 0)
+    {
+        GridScreen *screen = mScreens[mEditorScreenX][mEditorScreenY].get();
+
+        gui->next_window_pos = V2i(600, 600);
+
+        V2i size(300, 300);
+        gui_begin_window(gui, "CAM", size);
+
+        rend->beginLayer(gui_layer(gui));
+        V2i pos = gui_turtle_pos(gui);
+        rend->drawQuad(screen->getTexHandle(), 1.0f*pos.x, 1.0f*pos.y, 1.0f*size.x, 1.0f*size.y);
+        rend->endLayer();
+
+        gui_end_window(gui);
     }
 }
 
