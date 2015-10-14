@@ -2,33 +2,32 @@
 
 #include "gamedata.hpp"
 #include "filesystem.hpp"
-#include "fmv.hpp"
-#include "sound.hpp"
 #include <memory>
 #include "oddlib/masher.hpp"
-#include "core/audiobuffer.hpp"
 #include "SDL.h"
 #include <GL/glew.h>
 #include "SDL_opengl.h"
+#include "core/audiobuffer.hpp"
 
 class Engine
 {
 public:
     Engine();
-    ~Engine();
-    bool Init();
-    int Run();
+    virtual ~Engine();
+    virtual bool Init();
+    virtual int Run();
 private:
     void Update();
     void Render();
     bool InitSDL();
     int LoadNanoVgFonts(struct NVGcontext* vg);
-    void InitNanoVg();
     void InitGL();
-    void InitImGui();
     void RenderVideoUi();
     void ImGui_WindowResize();
-private:
+protected:
+    virtual void InitSubSystems();
+    virtual void DebugRender() { };
+
     enum eStates
     {
         eStarting,
@@ -50,10 +49,9 @@ private:
     SDL_Window* mWindow = nullptr;
     SDL_GLContext mContext = nullptr;
 
-
-    Fmv mFmv;
-    Sound mSound;
-
-    struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;
-    struct NVGcontext* mNanoVg = nullptr;
+    std::unique_ptr<class Renderer> mRenderer;
+    std::unique_ptr<class Fmv> mFmv;
+    std::unique_ptr<class Sound> mSound;
+    std::unique_ptr<class Level> mLevel;
+    struct GuiContext *mGui = nullptr;
 };

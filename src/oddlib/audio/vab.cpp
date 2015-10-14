@@ -37,7 +37,7 @@ void Vab::ReadVb(std::istream& aStream)
 
     if (streamSize > 5120) // HACK: No exoddus vb is greater than 5kb
     {
-        for (auto i = 0; i < iHeader->iNumVags; ++i)
+        for (auto i = 0; i < mHeader->iNumVags; ++i)
         {
             auto vag = std::make_unique<AoVag>();
             aStream.read((char*)&vag->iSize, sizeof(vag->iSize));
@@ -50,7 +50,7 @@ void Vab::ReadVb(std::istream& aStream)
     }
     else
     {
-        for (unsigned int i = 0; i < iHeader->iNumVags; i++)
+        for (unsigned int i = 0; i < mHeader->iNumVags; i++)
         {
             iOffs.emplace_back(std::make_unique<AEVh>(aStream));
         }
@@ -72,7 +72,7 @@ void Vab::LoadVhFile(std::string aFileName)
 
 void Vab::ReadVh(std::istream& aStream)
 {
-    iHeader = new VabHeader(aStream);
+    mHeader = std::make_unique<VabHeader>(aStream);
     int tones = 0;
     for (unsigned int i = 0; i < 128; i++) // 128 = max progs
     {
@@ -81,7 +81,7 @@ void Vab::ReadVh(std::istream& aStream)
         mProgs.emplace_back(std::move(progAttr));
     }
 
-    for (unsigned int i = 0; i < iHeader->iNumProgs; i++)
+    for (unsigned int i = 0; i < mHeader->iNumProgs; i++)
     {
         for (unsigned int j = 0; j < 16; j++) // 16 = max tones
         {

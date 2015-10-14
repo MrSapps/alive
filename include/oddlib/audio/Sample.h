@@ -1,12 +1,16 @@
 #pragma once
 
 #include "SDL_stdinc.h"
+#include "oddlib/audio/AudioInterpolation.h"
+#include <vector>
 
 class AliveAudioSample
 {
 public:
-    Uint16 * m_SampleBuffer;
-    unsigned int i_SampleSize;
+    AliveAudioSample() = default;
+    AliveAudioSample(const AliveAudioSample&) = delete;
+    AliveAudioSample& operator = (const AliveAudioSample&) = delete;
 
-    float GetSample(float sampleOffset, bool interpolation);
+    std::vector<Uint16> m_SampleBuffer;
+    unsigned int mSampleSize = 0;
 };

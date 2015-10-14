@@ -33,11 +33,6 @@ namespace Oddlib
         class FileChunk
         {
         public:
-            enum eTypes
-            {
-
-            };
-
             FileChunk& operator = (const FileChunk&) const = delete;
             FileChunk(const FileChunk&) = delete;
             FileChunk(IStream& stream, Uint32 type, Uint32 id, Uint32 dataSize)
@@ -48,6 +43,7 @@ namespace Oddlib
             Uint32 Id() const;
             Uint32 Type() const;
             std::vector<Uint8> ReadData() const;
+            std::unique_ptr<Oddlib::IStream> Stream() const;
         private:
             IStream& mStream;
             Uint32 mId = 0;
@@ -66,6 +62,7 @@ namespace Oddlib
             const std::string& FileName() const;
             FileChunk* ChunkById(Uint32 id);
             FileChunk* ChunkByIndex(Uint32 index) { return mChunks[index].get(); }
+            FileChunk* ChunkByType(Uint32 type);
             size_t ChunkCount() const { return mChunks.size(); }
             // Deugging feature
             void SaveChunks();
@@ -80,6 +77,7 @@ namespace Oddlib
         explicit LvlArchive(std::unique_ptr<IStream> stream);
 
         File* FileByName(const std::string& fileName);
+        File* FileByIndex(Uint32 index) { return mFiles[index].get(); }
         Uint32 FileCount() const { return static_cast<Uint32>(mFiles.size()); }
         struct FileRecord
         {

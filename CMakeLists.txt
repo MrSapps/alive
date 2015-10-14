@@ -73,6 +73,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest
     ${CMAKE_BINARY_DIR}/3rdParty/luajit
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/luajit/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/include
 )
 
 add_definitions(-DGLEW_STATIC)
@@ -83,6 +84,19 @@ SET(glew_src
 
 add_library(glew STATIC ${glew_src})
 SET_PROPERTY(TARGET glew PROPERTY FOLDER "3rdparty")
+
+SET(stk_src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/ADSR.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/BiQuad.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/Delay.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/OnePole.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/FreeVerb.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/Stk.cpp
+)
+
+add_library(stk STATIC ${stk_src})
+SET_PROPERTY(TARGET stk PROPERTY FOLDER "3rdparty")
+
 
 SET(imgui_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_rect_pack.h
@@ -129,6 +143,7 @@ SET_PROPERTY(TARGET luajit PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET minilua PROPERTY FOLDER "3rdparty")
 
 add_library(oddlib STATIC
+    include/msvc_sdl_link.hpp
     include/stdthread.h
     include/logger.hpp
     include/string_util.hpp
@@ -148,28 +163,84 @@ add_library(oddlib STATIC
     src/oddlib/PSXMDECDecoder.cpp
     src/oddlib/audio/ADSR.cpp
     src/oddlib/audio/AliveAudio.cpp
-    src/oddlib/audio/biquad.cpp
-    src/oddlib/audio/Helper.cpp
-    src/oddlib/audio/Program.cpp
-    src/oddlib/audio/Sample.cpp
     src/oddlib/audio/SequencePlayer.cpp
     src/oddlib/audio/Soundbank.cpp
-    src/oddlib/audio/Tone.cpp
     src/oddlib/audio/vab.cpp
     src/oddlib/audio/Voice.cpp
     include/oddlib/audio/ADSR.h
     include/oddlib/audio/AliveAudio.h
-    include/oddlib/audio/biquad.h
-    include/oddlib/audio/Helper.h
-    include/oddlib/audio/Program.h
+    include/oddlib/audio/AudioInterpolation.h
     include/oddlib/audio/Sample.h
     include/oddlib/audio/SequencePlayer.h
     include/oddlib/audio/Soundbank.h
-    include/oddlib/audio/Tone.h
     include/oddlib/audio/vab.hpp
     include/oddlib/audio/Voice.h
     include/oddlib/cdromfilesystem.hpp
+    src/oddlib/path.cpp
+    include/oddlib/path.hpp
+    src/oddlib/ao_bits_pc.cpp
+    include/oddlib/ao_bits_pc.hpp
+    src/oddlib/ae_bits_pc.cpp
+    include/oddlib/ae_bits_pc.hpp
+    src/oddlib/bits_factory.cpp
+    include/oddlib/bits_factory.hpp
 )
+
+add_library(AliveLib STATIC
+    include/core/audiobuffer.hpp
+    src/core/audiobuffer.cpp
+    include/fmv.hpp
+    src/fmv.cpp
+    include/sound.hpp
+    src/sound.cpp
+	include/renderer.hpp
+	src/renderer.cpp
+	include/gui.hpp
+	src/gui.cpp
+    include/engine.hpp
+    src/engine.cpp
+    include/gamedata.hpp
+    src/gamedata.cpp
+    include/filesystem.hpp
+    src/filesystem.cpp
+    include/gridmap.hpp
+    src/gridmap.cpp
+    include/gridobject.hpp
+    src/gridobject.cpp
+    include/subtitles.hpp
+    include/sdl_raii.hpp
+)
+
+if(WIN32)
+SET(WIN32_RESOURCES_SRC
+    rsc/Resource.rc
+    rsc/resource.h
+    rsc/app.ico)
+endif()
+
+add_executable(Alive MACOSX_BUNDLE
+    ${WIN32_RESOURCES_SRC}
+    src/main.cpp
+)
+
+SET(Alive_Libs  AliveLib jsonxx imgui oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
+
+#cotire(Alive)
+TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
+
+add_executable(IntegrationTest
+  ${WIN32_RESOURCES_SRC}
+  test/integration_main.cpp
+)
+TARGET_LINK_LIBRARIES(IntegrationTest ${Alive_Libs})
+
+add_executable(DataTest
+  ${WIN32_RESOURCES_SRC}
+  test/data_test_main.cpp
+)
+TARGET_LINK_LIBRARIES(DataTest ${Alive_Libs})
+
+
 
 #cotire(oddlib)
 
@@ -238,34 +309,6 @@ git_shorttag(GIT_SHORT_REV)
 set(ALIVE_VERSION "ALIVE v${ALIVE_VERSION_MAJOR}.${ALIVE_VERSION_MINOR}.${ALIVE_VERSION_PATCH} rev(${GIT_SHORT_REV})")
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/packaging/alive_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/packaging/alive_version.h)
 
-if(WIN32)
-SET(WIN32_ONLY_SRC
-    rsc/Resource.rc
-    rsc/resource.h
-    rsc/app.ico)
-endif()
-
-add_executable(Alive MACOSX_BUNDLE
-    ${WIN32_ONLY_SRC}
-    include/core/audiobuffer.hpp
-    src/core/audiobuffer.cpp
-    src/main.cpp
-    include/fmv.hpp
-    src/fmv.cpp
-    include/sound.hpp
-    src/sound.cpp
-    include/engine.hpp
-    src/engine.cpp
-    include/gamedata.hpp
-    src/gamedata.cpp
-    include/filesystem.hpp
-    src/filesystem.cpp
-    include/gridmap.hpp
-    src/gridmap.cpp
-    include/gridobject.hpp
-    src/gridobject.cpp
-    include/subtitles.hpp
-)
 
 SET(CPACK_PACKAGE_EXECUTABLES Alive "A.L.I.V.E")
 SET(CPACK_WIX_PROGRAM_MENU_FOLDER "Alive")
@@ -274,14 +317,10 @@ SET(CPACK_PACKAGE_VERSION_MAJOR ${ALIVE_VERSION_MAJOR})
 SET(CPACK_PACKAGE_VERSION_MINOR ${ALIVE_VERSION_MINOR})
 SET(CPACK_PACKAGE_VERSION_PATCH ${ALIVE_VERSION_PATCH})
 
-#cotire(Alive)
-TARGET_LINK_LIBRARIES(Alive jsonxx imgui oddlib NanoVg glew ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
 install(
     TARGETS Alive 
     BUNDLE DESTINATION .
     RUNTIME DESTINATION .)
-
-
 
 if (WIN32 AND MSVC)
    add_custom_command(TARGET Alive POST_BUILD
@@ -309,7 +348,7 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/videos.json" DESTINATION "${DATA
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/themes.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/sfx_list.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resource_paths.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/Roboto-Regular.ttf" DESTINATION "${DATA_DIR}")
 
 

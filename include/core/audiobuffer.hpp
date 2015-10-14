@@ -36,8 +36,6 @@ private:
     static void StaticAudioCallback(void *udata, Uint8 *stream, int len);
     void AudioCallback(Uint8 *stream, int len);
 private:
-    // This will overflow when playing roughly 10000 years worth of video.
-    std::atomic<Uint64> mPlayedSamples; 
     std::set<IAudioPlayer*> mAudioPlayers;
     int mDevice = 0;
 };

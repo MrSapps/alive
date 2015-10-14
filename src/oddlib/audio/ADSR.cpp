@@ -61,6 +61,7 @@ void PSXConvADSR(REAL_ADSR* realADSR,
 	uint8_t Am, uint8_t Ar, uint8_t Dr, uint8_t Sl,
 	uint8_t Sm, uint8_t Sd, uint8_t Sr, uint8_t Rm, uint8_t Rr, bool bPS2)
 {
+
 	// Make sure all the ADSR values are within the valid ranges
 	if (((Am & ~0x01) != 0) ||
 		((Ar & ~0x7F) != 0) ||
@@ -79,10 +80,10 @@ void PSXConvADSR(REAL_ADSR* realADSR,
 	double sampleRate = bPS2 ? 48000 : 44100;
 
 
-	int rateIncTable[8] = { 0, 4, 6, 8, 9, 10, 11, 12 };
+	//int rateIncTable[8] = { 0, 4, 6, 8, 9, 10, 11, 12 };
 	long envelope_level;
 	//long sustain_envelope_level;
-	double samples;
+	double samples = 0;
 	unsigned long rate;
 	unsigned long remainder;
 	double timeInSecs;
@@ -126,7 +127,7 @@ void PSXConvADSR(REAL_ADSR* realADSR,
 	envelope_level = 0x7FFFFFFF;
 
 	bool bSustainLevFound = false;
-	uint32_t realSustainLevel;
+	uint32_t realSustainLevel = 0;
 	for (l = 0; envelope_level > 0; l++)		//DLS decay rate value is to -96db (silence) not the sustain level
 	{
 		if (4 * (Dr ^ 0x1F) < 0x18)
@@ -175,8 +176,8 @@ void PSXConvADSR(REAL_ADSR* realADSR,
 				l = 0;
 				while (envelope_level > 0)		//DLS decay rate value is to -96db (silence) not the sustain level
 				{
-					long envelope_level_diff;
-					long envelope_level_target;
+					long envelope_level_diff = 1;
+					long envelope_level_target = 0;
 
 					switch ((envelope_level >> 28) & 0x7)
 					{
@@ -270,7 +271,6 @@ void PSXConvADSR(REAL_ADSR* realADSR,
 	//realADSR->decay_time = LinAmpDecayTimeToLinDBDecayTime(realADSR->decay_time, 0x800);	
 	//realADSR->sustain_time = LinAmpDecayTimeToLinDBDecayTime(realADSR->sustain_time, 0x800);
 	//realADSR->release_time = LinAmpDecayTimeToLinDBDecayTime(realADSR->release_time, 0x800);
-
 
 
 	//Calculations are done, so now add the articulation data

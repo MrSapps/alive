@@ -1,6 +1,11 @@
 #include "oddlib/audio/AliveAudio.h"
 #include "filesystem.hpp"
 
+static float RandFloat(float a, float b)
+{
+    return ((b - a)*((float)rand() / RAND_MAX)) + a;
+}
+
 void AliveAudio::LoadJsonConfig(std::string filePath, FileSystem& fs)
 {
     std::string jsonData = fs.Open(filePath)->LoadAllToString();
@@ -81,6 +86,12 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
 
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
 
+    // Reset buffers
+    for (int i = 0; i < StreamLength; ++i)
+    {
+        m_DryChannelBuffer[i] = 0;
+        m_ReverbChannelBuffer[i] = 0;
+    }
 
     const int voiceCount = m_Voices.size();
     /*
@@ -126,37 +137,67 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
             {
                 leftPan = 1.0f - abs(centerPan);
             }
-            
+
             if (centerPan < 0)
             {
                 rightPan = 1.0f - abs(centerPan);
             }
 
             // TODO FIX ME
-            float  s = voice->GetSample(Interpolation);
+            float  s = voice->GetSample(Interpolation, AntiAliasFilteringEnabled);
             float leftSample = (s * leftPan);
             float rightSample = (s * rightPan);
 
-            SDL_MixAudioFormat((Uint8 *)(AudioStream + i), (const Uint8*)&leftSample, AUDIO_F32, sizeof(float), 37); // Left Channel
-            SDL_MixAudioFormat((Uint8 *)(AudioStream + i + 1), (const Uint8*)&rightSample, AUDIO_F32, sizeof(float), 37); // Right Channel
+            if (voice->m_Tone->Reverbate || ForceReverb)
+            {
+                m_ReverbChannelBuffer[i] += leftSample;
+                m_ReverbChannelBuffer[i + 1] += rightSample;
+            }
+            else
+            {
+                m_DryChannelBuffer[i] += leftSample;
+                m_DryChannelBuffer[i + 1] += rightSample;
+            }
         }
 
         currentSampleIndex++;
     }
 
+    m_Reverb.setEffectMix(ReverbMix);
 
+    // TODO: Find a better way of feeding the data in
+    for (int i = 0; i < StreamLength; i += 2)
+    {
+        const float left = static_cast<float>(m_Reverb.tick(m_ReverbChannelBuffer[i], m_ReverbChannelBuffer[i + 1], 0));
+        const float right = static_cast<float>(m_Reverb.lastOut(1));
+        m_ReverbChannelBuffer[i] = left;
+        m_ReverbChannelBuffer[i + 1] = right;
+    }
+   
+    for (int i = 0; i < StreamLength; i += 2)
+    {
+        const float left = m_DryChannelBuffer[i] + m_ReverbChannelBuffer[i];
+        const float right = m_DryChannelBuffer[i + 1] + m_ReverbChannelBuffer[i + 1];
+        SDL_MixAudioFormat((Uint8 *)(AudioStream + i), (const Uint8*)&left, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
+        SDL_MixAudioFormat((Uint8 *)(AudioStream + i + 1), (const Uint8*)&right, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
+    }
 
     CleanVoices();
 }
 
+
 void AliveAudio::Play(Uint8* stream, Uint32 len)
 {
-    AliveRenderAudio(reinterpret_cast<float*>(stream), len / sizeof(float));
-
-    if (EQEnabled)
+    if (m_DryChannelBuffer.size() != len)
     {
-        AliveEQEffect(reinterpret_cast<float*>(stream), len / sizeof(float));
+        // Maybe it's ok to have some crackles when the buffer size changes.
+        // (This allocates memory, which you should never do in audio thread.)
+        m_DryChannelBuffer.resize(len);
+        m_ReverbChannelBuffer.resize(len);
     }
+
+
+    AliveRenderAudio(reinterpret_cast<float*>(stream), len / sizeof(float));
 }
 
 void AliveAudio::PlayOneShot(int program, int note, float volume, float pitch)
@@ -169,8 +210,9 @@ void AliveAudio::PlayOneShot(int program, int note, float volume, float pitch)
             AliveAudioVoice * voice = new AliveAudioVoice();
             voice->i_Note = note;
             voice->f_Velocity = volume;
-            voice->m_Tone = tone;
+            voice->m_Tone = tone.get();
             voice->f_Pitch = pitch;
+            voice->m_DebugDisableResampling = DebugDisableVoiceResampling;
             m_Voices.push_back(voice);
         }
     }
@@ -194,12 +236,12 @@ void AliveAudio::PlayOneShot(std::string soundID)
                 randB = (float)sndObj.get<jsonxx::Array>("pitchrand").get<jsonxx::Number>(1);
             }
 
-            PlayOneShot((int)sndObj.get<jsonxx::Number>("prog"), (int)sndObj.get<jsonxx::Number>("note"), 1.0f, AliveAudioHelper::RandFloat(randA, randB));
+            PlayOneShot((int)sndObj.get<jsonxx::Number>("prog"), (int)sndObj.get<jsonxx::Number>("note"), 1.0f, RandFloat(randA, randB));
         }
     }
 }
 
-void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, int trackID, float trackDelay)
+void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, int trackID, double trackDelay)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
     for (auto& tone : m_CurrentSoundbank->m_Programs[program]->m_Tones)
@@ -208,17 +250,18 @@ void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, i
         {
             AliveAudioVoice * voice = new AliveAudioVoice();
             voice->i_Note = note;
-            voice->m_Tone = tone;
+            voice->m_Tone = tone.get();
             voice->i_Program = program;
             voice->f_Velocity = velocity / 127.0f;
             voice->i_TrackID = trackID;
             voice->f_TrackDelay = trackDelay;
+            voice->m_DebugDisableResampling = DebugDisableVoiceResampling;
             m_Voices.push_back(voice);
         }
     }
 }
 
-void AliveAudio::NoteOn(int program, int note, char velocity, int trackID, float trackDelay)
+void AliveAudio::NoteOn(int program, int note, char velocity, int trackID, double trackDelay)
 {
     NoteOn(program, note, velocity, 0, trackID, trackDelay);
 }

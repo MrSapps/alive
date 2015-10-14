@@ -25,6 +25,7 @@
 #include "test.bin.g.h"
 #include "xa.bin.g.h"
 #include "subtitles.hpp"
+#include "msvc_sdl_link.hpp"
 
 int main(int argc, char** argv)
 {

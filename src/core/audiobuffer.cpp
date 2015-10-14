@@ -3,6 +3,7 @@
 #include "logger.hpp"
 #include <string>
 #include <sstream>
+#include "stk/include/Stk.h"
 
 #define AUDIO_BUFFER_CHANNELS 2
 //#define AUDIO_BUFFER_FORMAT AUDIO_S16
@@ -73,6 +74,8 @@ void SdlAudioWrapper::Open(Uint16 frameSize, int freq)
         }
     }
 
+    stk::Stk::setSampleRate(freq);
+
     // Start the call back
     SDL_PauseAudioDevice(mDevice, 0);
 }
@@ -96,7 +99,6 @@ void SdlAudioWrapper::SetAudioSpec(Uint16 frameSize, int freq)
     LOG_INFO("SetAudioSpec samples: " << frameSize << " freq " << freq);
     SdlAudioLocker audioLocker;
     Close();
-    mPlayedSamples = 0;
     Open(frameSize, freq);
 }
 

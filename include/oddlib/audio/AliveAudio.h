@@ -12,15 +12,13 @@
 #include "jsonxx/jsonxx.h"
 
 #include "Soundbank.h"
-#include "Helper.h"
-#include "Program.h"
-#include "Tone.h"
 #include "Voice.h"
 #include "Sample.h"
 #include "ADSR.h"
-#include "biquad.h"
 #include "core/audiobuffer.hpp"
 #include "stdthread.h"
+#include "AudioInterpolation.h"
+#include "stk/include/FreeVerb.h"
 
 const int AliveAudioSampleRate = 44100;
 
@@ -33,8 +31,8 @@ public:
     void PlayOneShot(int program, int note, float volume, float pitch = 0);
     void PlayOneShot(std::string soundID);
 
-    void NoteOn(int program, int note, char velocity, float pitch = 0, int trackID = 0, float trackDelay = 0);
-    void NoteOn(int program, int note, char velocity, int trackID = 0, float trackDelay = 0);
+    void NoteOn(int program, int note, char velocity, float pitch = 0, int trackID = 0, double trackDelay = 0);
+    void NoteOn(int program, int note, char velocity, int trackID = 0, double trackDelay = 0);
 
     void NoteOff(int program, int note, int trackID = 0);
     void NoteOffDelay(int program, int note, int trackID = 0, float trackDelay = 0);
@@ -50,52 +48,31 @@ public:
     void LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile, FileSystem& fs);
     void LoadAllFromLvl(Oddlib::LvlArchive& lvlArchive, std::string vabID, std::string seqFile);
 
-    biquad * AliveAudioEQBiQuad = nullptr;
-    std::mutex EQMutex;
 
-    AliveAudioSoundbank* m_CurrentSoundbank = nullptr;
     std::vector<std::vector<Uint8>> m_LoadedSeqData;
     std::recursive_mutex voiceListMutex;
-    std::vector<AliveAudioVoice *> m_Voices;
-    bool Interpolation = false;
-    bool EQEnabled = false;
-    Uint64 currentSampleIndex = 0;
     jsonxx::Object m_Config;
-
-    void AliveAudioSetEQ(float cutoff)
-    {
-        
-        EQMutex.lock();
-
-        if (AliveAudio::AliveAudioEQBiQuad != nullptr)
-            delete AliveAudioEQBiQuad;
-
-        AliveAudioEQBiQuad = BiQuad_new(PEQ, 8u, cutoff, AliveAudioSampleRate, 1u);
-        EQMutex.unlock();
-       
-    }
-
-    void AliveEQEffect(float* stream, int len)
-    {
-       
-        if (AliveAudioEQBiQuad == nullptr)
-        {
-            AliveAudioSetEQ(20500);
-        }
-
-        EQMutex.lock();
-
-        for (int i = 0; i < len; i++)
-        {
-            stream[i] = BiQuad(stream[i], AliveAudioEQBiQuad);
-        }
-
-        EQMutex.unlock();
-    }
+    Uint64 currentSampleIndex = 0;
 
     virtual void Play(Uint8* stream, Uint32 len) override;
     void AliveInitAudio(FileSystem& fs);
+
+	// Can be changed from outside class
+    AudioInterpolation Interpolation = AudioInterpolation_hermite;
+	bool AntiAliasFilteringEnabled = false;
+    bool ForceReverb = false;
+    float ReverbMix = 0.5f;
+    bool DebugDisableVoiceResampling = false;
+
 private:
+    AliveAudioSoundbank* m_CurrentSoundbank = nullptr;
+
+    std::vector<AliveAudioVoice *> m_Voices;
+    std::vector<float> m_DryChannelBuffer;
+    std::vector<float> m_ReverbChannelBuffer;
+
+    stk::FreeVerb m_Reverb;
+
     void CleanVoices();
     void AliveRenderAudio(float* AudioStream, int StreamLength);
 

@@ -4,18 +4,15 @@
 #include "oddlib/masher.hpp"
 #include "oddlib/exceptions.hpp"
 #include "logger.hpp"
-#include "imgui/imgui.h"
-#include "imgui/stb_rect_pack.h"
 #include "jsonxx/jsonxx.h"
 #include <fstream>
 #include "alive_version.h"
 #include "core/audiobuffer.hpp"
-
-
-#include "nanovg.h"
-#define NANOVG_GL3_IMPLEMENTATION
-#include "nanovg_gl.h"
-#include "nanovg_gl_utils.h"
+#include "fmv.hpp"
+#include "sound.hpp"
+#include "gridmap.hpp"
+#include "renderer.hpp"
+#include "gui.hpp"
 
 extern "C"
 {
@@ -55,7 +52,7 @@ void setWindowsIcon(SDL_Window *sdlWindow)
         if (hKernel32)
         {
             typedef BOOL(WINAPI *pSetConsoleIcon)(HICON icon);
-            pSetConsoleIcon setConsoleIcon = (pSetConsoleIcon)::GetProcAddress(hKernel32, "SetConsoleIcon");
+            pSetConsoleIcon setConsoleIcon = reinterpret_cast<pSetConsoleIcon>(::GetProcAddress(hKernel32, "SetConsoleIcon"));
             if (setConsoleIcon)
             {
                 setConsoleIcon(icon);
@@ -65,95 +62,7 @@ void setWindowsIcon(SDL_Window *sdlWindow)
 }
 #endif
 
-static GLuint fontTex;
 static bool mousePressed[4] = { false, false };
-static ImVec2 mousePosScale(1.0f, 1.0f);
-
-// This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
-// If text or lines are blurry when integrating ImGui in your engine:
-// - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
-// - try adjusting ImGui::GetIO().PixelCenterOffset to 0.5f or 0.375f
-static void ImImpl_RenderDrawLists(ImDrawList** const cmd_lists, int cmd_lists_count)
-{
-    if (cmd_lists_count == 0)
-        return;
-
-    // We are using the OpenGL fixed pipeline to make the example code simpler to read!
-    // A probable faster way to render would be to collate all vertices from all cmd_lists into a single vertex buffer.
-    // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers.
-    glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TRANSFORM_BIT);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_SCISSOR_TEST);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glEnable(GL_TEXTURE_2D);
-
-    //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context
-
-    // Setup orthographic projection matrix
-    const float width = ImGui::GetIO().DisplaySize.x;
-    const float height = ImGui::GetIO().DisplaySize.y;
-
-    //std::cout << "ON RENDER " << width << " " << height << std::endl;
-
-    glViewport(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0.0f, width, height, 0.0f, -1.0f, +1.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-
-    // Render command lists
-#define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
-    for (int n = 0; n < cmd_lists_count; n++)
-    {
-        const ImDrawList* cmd_list = cmd_lists[n];
-        const unsigned char* vtx_buffer = (const unsigned char*)&cmd_list->vtx_buffer.front();
-        glVertexPointer(2, GL_FLOAT, sizeof(ImDrawVert), (void*)(vtx_buffer + OFFSETOF(ImDrawVert, pos)));
-        glTexCoordPointer(2, GL_FLOAT, sizeof(ImDrawVert), (void*)(vtx_buffer + OFFSETOF(ImDrawVert, uv)));
-        glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(ImDrawVert), (void*)(vtx_buffer + OFFSETOF(ImDrawVert, col)));
-
-        int vtx_offset = 0;
-        for (size_t cmd_i = 0; cmd_i < cmd_list->commands.size(); cmd_i++)
-        {
-            const ImDrawCmd* pcmd = &cmd_list->commands[cmd_i];
-            if (pcmd->user_callback)
-            {
-                pcmd->user_callback(cmd_list, pcmd);
-            }
-            else
-            {
-                glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->texture_id);
-                glScissor((int)pcmd->clip_rect.x, (int)(height - pcmd->clip_rect.w), (int)(pcmd->clip_rect.z - pcmd->clip_rect.x), (int)(pcmd->clip_rect.w - pcmd->clip_rect.y));
-                glDrawArrays(GL_TRIANGLES, vtx_offset, pcmd->vtx_count);
-            }
-            vtx_offset += pcmd->vtx_count;
-        }
-    }
-
-#undef OFFSETOF
-
-    // Restore modified state
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glPopAttrib();
-}
-
-static GLuint       g_FontTexture = 0;
 
 void Engine::ImGui_WindowResize()
 {
@@ -161,67 +70,28 @@ void Engine::ImGui_WindowResize()
     int fb_w, fb_h;
     SDL_GetWindowSize(mWindow, &w, &h);
     SDL_GetWindowSize(mWindow, &fb_w, &fb_h); // Needs to be corrected for SDL Framebuffer
-    mousePosScale.x = (float)fb_w / w;
-    mousePosScale.y = (float)fb_h / h;
 
-    ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);  // Display size, in pixels. For clamping windows positions.
+    //ImGuiIO& io = ImGui::GetIO();
+    //io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);  // Display size, in pixels. For clamping windows positions.
 
-    std::cout << "ON RESIZE " << io.DisplaySize.x << " " << io.DisplaySize.y << std::endl;
+    //std::cout << "ON RESIZE " << io.DisplaySize.x << " " << io.DisplaySize.y << std::endl;
 
 
     //    io.PixelCenterOffset = 0.0f;                        // Align OpenGL texels
 
 }
 
-void UpdateImGui()
-{
-    ImGuiIO& io = ImGui::GetIO();
-
-    SDL_PumpEvents();
-
-    // Setup inputs
-    // (we already got mouse wheel, keyboard keys & characters from glfw callbacks polled in glfwPollEvents())
-    int mouse_x, mouse_y;
-    SDL_GetMouseState(&mouse_x, &mouse_y);
-
-    io.MousePos = ImVec2((float)mouse_x * mousePosScale.x, (float)mouse_y * mousePosScale.y);      // Mouse position, in pixels (set to -1,-1 if no mouse / on another screen, etc.)
-
-    io.MouseDown[0] = mousePressed[0] || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT));
-    io.MouseDown[1] = mousePressed[1] || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT));
-
-    // Start the frame
-    ImGui::NewFrame();
-}
-
 Engine::Engine()
-    : mFmv(mGameData, mAudioHandler, mFileSystem),
-      mSound(mGameData, mAudioHandler, mFileSystem)
 {
 
 }
 
 Engine::~Engine()
 {
+    destroy_gui(mGui);
 
-    if (g_FontTexture)
-    {
-        glDeleteTextures(1, &g_FontTexture);
-        ImGui::GetIO().Fonts->TexID = 0;
-        g_FontTexture = 0;
-    }
-    
-    if (mNanoVgFrameBuffer)
-    {
-        nvgluDeleteFramebuffer(mNanoVgFrameBuffer);
-    }
+    mRenderer.reset();
 
-    if (mNanoVg)
-    {
-        nvgDeleteGL3(mNanoVg);
-    }
-
-    ImGui::Shutdown();
     SDL_GL_DeleteContext(mContext);
     SDL_DestroyWindow(mWindow);
     SDL_Quit();
@@ -251,17 +121,197 @@ bool Engine::Init()
 
         InitGL();
 
-        InitNanoVg();
-
-        InitImGui();
 
         ToState(eRunning);
+
+        InitSubSystems();
+
         return true;
     }
     catch (const std::exception& ex)
     {
         LOG_ERROR("Caught error when trying to init: " << ex.what());
         return false;
+    }
+}
+
+// TODO: Move gui drawing to own file
+void drawButton(void *void_rend, float x, float y, float w, float h, bool down, bool hover, int layer)
+{
+    Renderer *rend = (Renderer*)void_rend;
+    rend->beginLayer(layer);
+
+    float cornerRadius = 4.0f;
+    Color gradBegin = { 1.f, 1.f, 1.f, 64/255.f };
+    Color gradEnd = { 0.f, 0.f, 0.f, 64/255.f };
+
+    Color bgColor = { 0.3f, 0.3f, 0.3f, 0.5f };
+
+    if (down)
+    {
+        Color begin = { 0.f, 0.f, 0.f, 64/255.f };
+        Color end = { 0.3f, 0.3f, 0.3f, 64/255.f };
+        gradBegin = begin;
+        gradEnd = end;
+    }
+
+    RenderPaint overlay = rend->linearGradient(x, y, x, y + h,
+                                              gradBegin,
+                                              gradEnd);
+
+    rend->beginPath();
+    rend->roundedRect(x + 1, y + 1, w - 2, h - 2, cornerRadius - 1);
+
+    rend->fillColor(bgColor);
+    rend->fill();
+
+    rend->fillPaint(overlay);
+    rend->fill();
+
+    Color outlineColor = Color{ 0, 0, 0, 0.3f };
+    if (hover && !down)
+    {
+        outlineColor.r = 1.f;
+        outlineColor.g = 1.f;
+        outlineColor.b = 1.f;
+    }
+    rend->beginPath();
+    rend->roundedRect(x + 0.5f, y + 0.5f, w - 1, h - 1, cornerRadius - 0.5f);
+    rend->strokeColor(outlineColor);
+    rend->stroke();
+
+    rend->endLayer();
+}
+
+void drawCheckbox(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer)
+{
+    Renderer *rend = (Renderer*)void_rend;
+    rend->beginLayer(layer);
+
+    RenderPaint bg;
+
+    rend->beginPath();
+
+    if (checked)
+        bg = rend->boxGradient(x + 2, y + 2, x + w - 2, x + w - 2, 3, 3, Color{ 0.5f, 1.f, 0.5f, 92 / 255.f }, Color{ 0.5f, 1.f, 0.5f, 30/255.f });
+    else
+        bg = rend->boxGradient(x + 2, y + 2, x + w - 2, x + w - 2, 3, 3, Color{ 0.f, 0.f, 0.f, 30 / 255.f }, Color{ 0.f, 0.f, 0.f, 92/255.f });
+    rend->roundedRect(x + 1, y + 1, w - 2, w - 2, 3);
+    rend->fillPaint(bg);
+    rend->fill();
+
+    rend->strokeWidth(1.0f);
+    if (hover)
+        rend->strokeColor(Color{ 1.f, 1.f, 1.f, 0.3f });
+    else
+        rend->strokeColor(Color{ 0.f, 0.f, 0.f, 0.3f });
+    rend->stroke();
+
+    rend->endLayer();
+}
+
+static const float g_gui_font_size = 16.f;
+
+void drawText(void *void_rend, float x, float y, const char *text, int layer)
+{
+    Renderer *rend = (Renderer*)void_rend;
+    rend->beginLayer(layer);
+
+    rend->fontSize(g_gui_font_size);
+    rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
+    rend->fontBlur(0);
+    rend->fillColor(Color{ 1.f, 1.f, 1.f, 160/255.f });
+    rend->text(x, y, text);
+
+    rend->endLayer();
+}
+
+void calcTextSize(float ret[2], void *void_rend, const char *text, int layer)
+{
+    Renderer *rend = (Renderer*)void_rend;
+    rend->beginLayer(layer);
+
+    rend->fontSize(g_gui_font_size);
+    rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
+    rend->fontBlur(0);
+    float bounds[4];
+    rend->textBounds(0, 0, text, bounds);
+    ret[0] = bounds[2] - bounds[0];
+    ret[1] = bounds[3] - bounds[1];
+
+    rend->endLayer();
+}
+
+void drawWindow(void *void_rend, float x, float y, float w, float h, float titleBarHeight, const char *title, int layer)
+{
+    Renderer *rend = (Renderer*)void_rend;
+
+    rend->beginLayer(layer); // Makes window reordering possible
+
+    float cornerRadius = 3.0f;
+    RenderPaint shadowPaint;
+    RenderPaint headerPaint;
+
+    // Window
+    rend->beginPath();
+    rend->roundedRect(x, y, w, h, cornerRadius);
+    rend->fillColor(Color{ 28/255.f, 30/255.f, 34/255.f, 192/255.f });
+    //	nvgFillColor(vg, nvgRGBA(0,0,0,128));
+    rend->fill();
+
+    // Drop shadow
+    shadowPaint = rend->boxGradient(x, y + 2, w, h, cornerRadius * 2, 10, Color{ 0.f, 0.f, 0.f, 128 / 255.f }, Color{ 0.f, 0.f, 0.f, 0.f });
+    rend->beginPath();
+    rend->rect(x - 10, y - 10, w + 20, h + 30);
+    rend->roundedRect(x, y, w, h, cornerRadius);
+    rend->solidPathWinding(false);
+    rend->fillPaint(shadowPaint);
+    rend->fill();
+    rend->solidPathWinding(true);
+
+    // Header
+    headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.f, 1.f, 1.f, 8 / 255.f }, Color{ 0.f, 0.f, 0.f, 16/255.f });
+    rend->beginPath();
+    rend->roundedRect(x + 1, y + 1, w - 2, titleBarHeight, cornerRadius - 1);
+    rend->fillPaint(headerPaint);
+    rend->fill();
+    rend->beginPath();
+    rend->moveTo(x + 0.5f, y + 0.5f + titleBarHeight);
+    rend->lineTo(x + 0.5f + w - 1, y + 0.5f + titleBarHeight);
+    rend->strokeColor(Color{ 0, 0, 0, 64/255.f });
+    rend->stroke();
+
+    rend->fontSize(18.0f);
+    rend->textAlign(TEXT_ALIGN_CENTER | TEXT_ALIGN_MIDDLE);
+    rend->fontBlur(3);
+    rend->fillColor(Color{ 0.f, 0.f, 0.f, 160/255.f });
+    rend->text(x + w / 2, y + 16 + 1, title);
+
+    rend->fontBlur(0);
+    rend->fillColor(Color{ 230/255.f, 230/255.f, 230/255.f, 200/255.f });
+    rend->text(x + w / 2, y + 16, title);
+
+    rend->fontSize(g_gui_font_size); // TODO: There's some problem with command order. This fixes incorrect text size calcs.
+
+    rend->endLayer();
+}
+
+void Engine::InitSubSystems()
+{
+    mRenderer = std::make_unique<Renderer>((mFileSystem.BasePath() + "/data/Roboto-Regular.ttf").c_str());
+    mFmv = std::make_unique<Fmv>(mGameData, mAudioHandler, mFileSystem);
+    mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem);
+    mLevel = std::make_unique<Level>(mGameData, mAudioHandler, mFileSystem);
+
+    { // Init gui system
+        GuiCallbacks callbacks = { 0 };
+        callbacks.user_data = mRenderer.get();
+        callbacks.draw_button = drawButton;
+        callbacks.draw_checkbox = drawCheckbox;
+        callbacks.draw_text = drawText;
+        callbacks.calc_text_size = calcTextSize;
+        callbacks.draw_window = drawWindow;
+        mGui = create_gui(callbacks);
     }
 }
 
@@ -277,9 +327,12 @@ int Engine::Run()
 
 void Engine::Update()
 {
-    ImGuiIO& io = ImGui::GetIO();
-    mousePressed[0] = mousePressed[1] = false;
-    io.MouseWheel = 0;
+    { // Reset gui input
+        for (int i = 0; i < GUI_KEY_COUNT; ++i)
+            mGui->key_state[i] = 0;
+        mGui->cursor_pos.x = -1;
+        mGui->cursor_pos.y = -1;
+    }
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -289,11 +342,11 @@ void Engine::Update()
         case SDL_MOUSEWHEEL:
             if (event.wheel.y < 0)
             {
-                ImGui::GetIO().MouseWheel = -1.0f;
+                //ImGui::GetIO().MouseWheel = -1.0f;
             }
             else
             {
-                ImGui::GetIO().MouseWheel = 1.0f;
+                //ImGui::GetIO().MouseWheel = 1.0f;
             }
             break;
 
@@ -310,11 +363,11 @@ void Engine::Update()
                 if (keycode >= 32 && keycode <= 255)
                 {
                     //printable ASCII characters
-                    ImGui::GetIO().AddInputCharacter((char)keycode);
+                    //ImGui::GetIO().AddInputCharacter((char)keycode);
                 }
             }
         }
-            break;
+        break;
 
         case SDL_WINDOWEVENT:
             switch (event.window.event)
@@ -322,128 +375,99 @@ void Engine::Update()
             case SDL_WINDOWEVENT_RESIZED:
             case SDL_WINDOWEVENT_MAXIMIZED:
             case SDL_WINDOWEVENT_RESTORED:
-                ImGui_WindowResize();
+                //ImGui_WindowResize();
 
                 break;
             }
             break;
+        case SDL_MOUSEBUTTONUP:
+        case SDL_MOUSEBUTTONDOWN:
+        {
+            int guiKey = -1;
+            if (event.button.button == SDL_BUTTON(SDL_BUTTON_LEFT))
+                guiKey = GUI_KEY_LMB;
 
+            if (guiKey >= 0)
+            {
+                  int state = mGui->key_state[guiKey];
+                  if (event.type == SDL_MOUSEBUTTONUP)
+                  {
+                      state |= GUI_KEYSTATE_RELEASED_BIT;
+                  }
+                  else
+                  {
+                      state |= GUI_KEYSTATE_PRESSED_BIT;
+                  }
+                  mGui->key_state[GUI_KEY_LMB] = state;
+            }
+
+        } break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:
         {
-            if (event.type == SDL_KEYDOWN)
+            if (event.key.keysym.sym == 13)
             {
-                if (event.key.keysym.sym == 13)
-                {
-                    const Uint32 windowFlags = SDL_GetWindowFlags(mWindow);
-                    bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
-                    SDL_SetWindowFullscreen(mWindow, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    ImGui_WindowResize();
-                }
-
+                const Uint32 windowFlags = SDL_GetWindowFlags(mWindow);
+                bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
+                SDL_SetWindowFullscreen(mWindow, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
+                //ImGui_WindowResize();
             }
 
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
             if (key == SDL_SCANCODE_ESCAPE)
             {
-                mFmv.Stop();
+                mFmv->Stop();
             }
 
-            if (key >= 0 && key < 512)
-            {
-                SDL_Keymod modstate = SDL_GetModState();
+            SDL_Keymod modstate = SDL_GetModState();
 
-                ImGuiIO& io = ImGui::GetIO();
-                io.KeysDown[key] = event.type == SDL_KEYDOWN;
-                io.KeyCtrl = (modstate & KMOD_CTRL) != 0;
-                io.KeyShift = (modstate & KMOD_SHIFT) != 0;
-            }
-        }
             break;
+        }
         }
     }
 
-    UpdateImGui();
+    { // Set rest of gui input state which wasn't set in event polling loop
+        SDL_PumpEvents();
+
+        int mouse_x, mouse_y;
+        SDL_GetMouseState(&mouse_x, &mouse_y);
+        mGui->cursor_pos.x = mouse_x;
+        mGui->cursor_pos.y = mouse_y;
+
+        if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT))
+            mGui->key_state[GUI_KEY_LMB] |= GUI_KEYSTATE_DOWN_BIT;
+    }
 
     // TODO: Move into state machine
     //mFmv.Play("INGRDNT.DDV");
-    mFmv.Update();
-    mSound.Update();
+    mFmv->Update();
+    mSound->Update();
+    mLevel->Update();
 }
-
 
 void Engine::Render()
 {
-    // Render main menu bar
-    static bool showAbout = false;
-    if (ImGui::BeginMainMenuBar())
-    {
-        /*
-        if (ImGui::BeginMenu("File"))
-        {
-            if (ImGui::MenuItem("Exit", "CTRL+Q")) { ToState(eShuttingDown); }
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Edit"))
-        {
-            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-            ImGui::Separator();
-            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-            ImGui::EndMenu();
-        }*/
-        if (ImGui::BeginMenu("Help"))
-        {
-            if (ImGui::MenuItem("About", "CTRL+H"))
-            {
-                showAbout = !showAbout;
-            }
-            ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-    }
-
-    //ImGui::ShowTestWindow();
-
-    // Render about screen
-    if (showAbout)
-    {
-        ImGui::Begin(ALIVE_VERSION_NAME_STR, nullptr, ImVec2(400, 100));
-        ImGui::Text("Open source ALIVE engine PaulsApps.com 2015");
-        ImGui::End();
-    }
-
-    // Clear screen
-    glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    
-    // Scaled vector rendering area
     int w, h;
     SDL_GetWindowSize(mWindow, &w, &h);
-    nvgBeginFrame(mNanoVg, w, h, 1.0f);
+    mRenderer->beginFrame(w, h);
+    gui_begin(mGui, "background");
 
-    nvgResetTransform(mNanoVg);
+    DebugRender();
 
-    mFmv.Render(mNanoVg, w, h);
-    mSound.Render(w, h);
+    uint8_t testPixels[4*3] = {
+        255, 0, 0,
+        0, 255, 0,
+        0, 255, 0,
+        255, 0, 0,
+    };
 
-    GLenum error = glGetError();
-    if (error != GL_NO_ERROR)
-    {
-        LOG_ERROR(gluErrorString(error));
-    }
+    mFmv->Render(*mRenderer, *mGui, w, h);
+    mSound->Render(mGui, w, h);
+    mLevel->Render(*mRenderer, *mGui, w, h);
 
-    nvgEndFrame(mNanoVg);
+    gui_end(mGui);
+    mRenderer->endFrame();
 
-    // Draw UI buffers
-    ImGui::Render();
-
-    // Flip the buffers
-    nvgluBindFramebuffer(nullptr);
-
- 
     SDL_GL_SwapWindow(mWindow);
 }
 
@@ -473,98 +497,6 @@ bool Engine::InitSDL()
 #endif
 
     return true;
-}
-
-int Engine::LoadNanoVgFonts(NVGcontext* vg)
-{
-    int font = nvgCreateFont(vg, "sans", (mFileSystem.BasePath() + "/data/Roboto-Regular.ttf").c_str());
-    if (font == -1)
-    {
-        LOG_ERROR("Could not add font regular");
-        return -1;
-    }
-
-    return 0;
-}
-
-void Engine::InitNanoVg()
-{
-    LOG_INFO("Creating nanovg context");
-    
-#ifdef _DEBUG
-    mNanoVg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-#else
-    mNanoVg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-#endif
-
-    if (!mNanoVg)
-    {
-        throw Oddlib::Exception("Couldn't create nanovg gl3 context");
-    }
-
-    LOG_INFO("Creating nanovg framebuffer");
-
-    // TODO: Should dynamic be set to the window size * 2
-    mNanoVgFrameBuffer = nvgluCreateFramebuffer(mNanoVg, 800*2, 600*2, 0);
-    if (!mNanoVgFrameBuffer)
-    {
-        throw Oddlib::Exception("Couldn't create nanovg framebuffer");
-    }
-
-    if (LoadNanoVgFonts(mNanoVg) != 0)
-    {
-        throw Oddlib::Exception("Failed to load fonts");
-    }
-
-    LOG_INFO("Nanovg initialized");
-}
-
-void Engine::InitImGui()
-{
-    ImGuiIO& io = ImGui::GetIO();
-    ImGui_WindowResize();
-    io.RenderDrawListsFn = ImImpl_RenderDrawLists;
-
-    // Build texture
-    unsigned char* pixels;
-    int width, height;
-    io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
-
-    // Create texture
-    glGenTextures(1, &g_FontTexture);
-    glBindTexture(GL_TEXTURE_2D, g_FontTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width, height, 0, GL_ALPHA, GL_UNSIGNED_BYTE, pixels);
-
-    // Store our identifier
-    io.Fonts->TexID = (void *)(intptr_t)g_FontTexture;
-
-    // Cleanup (don't clear the input data if you want to append new fonts later)
-    io.Fonts->ClearInputData();
-    io.Fonts->ClearTexData();
-
-    //
-    // setup SDL2 keymapping
-    //
-    io.KeyMap[ImGuiKey_Tab] = SDL_GetScancodeFromKey(SDLK_TAB);
-    io.KeyMap[ImGuiKey_LeftArrow] = SDL_GetScancodeFromKey(SDLK_LEFT);
-    io.KeyMap[ImGuiKey_RightArrow] = SDL_GetScancodeFromKey(SDLK_RIGHT);
-    io.KeyMap[ImGuiKey_UpArrow] = SDL_GetScancodeFromKey(SDLK_UP);
-    io.KeyMap[ImGuiKey_DownArrow] = SDL_GetScancodeFromKey(SDLK_DOWN);
-    io.KeyMap[ImGuiKey_Home] = SDL_GetScancodeFromKey(SDLK_HOME);
-    io.KeyMap[ImGuiKey_End] = SDL_GetScancodeFromKey(SDLK_END);
-    io.KeyMap[ImGuiKey_Delete] = SDL_GetScancodeFromKey(SDLK_DELETE);
-    io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
-    io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
-    io.KeyMap[ImGuiKey_Escape] = SDL_GetScancodeFromKey(SDLK_ESCAPE);
-    io.KeyMap[ImGuiKey_A] = SDLK_a;
-    io.KeyMap[ImGuiKey_C] = SDLK_c;
-    io.KeyMap[ImGuiKey_V] = SDLK_v;
-    io.KeyMap[ImGuiKey_X] = SDLK_x;
-    io.KeyMap[ImGuiKey_Y] = SDLK_y;
-    io.KeyMap[ImGuiKey_Z] = SDLK_z;
-
 }
 
 void Engine::InitGL()

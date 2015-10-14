@@ -1,0 +1,1682 @@
+{
+    "lvls": [
+        {
+            "file_name": "C1PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 0,
+                    "index": 840,
+                    "object": 816,
+                    "x": 10,
+                    "y": 10
+                }
+            ]
+        },
+        {
+            "file_name": "D1PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 176,
+                    "index": 2720,
+                    "object": 636,
+                    "x": 5,
+                    "y": 4
+                },
+                {
+                    "id": 2,
+                    "collision": 112,
+                    "index": 2580,
+                    "object": 912,
+                    "x": 3,
+                    "y": 4
+                },
+                {
+                    "id": 3,
+                    "collision": 48,
+                    "index": 2216,
+                    "object": 768,
+                    "x": 4,
+                    "y": 1
+                },
+                {
+                    "id": 4,
+                    "collision": 272,
+                    "index": 3016,
+                    "object": 1052,
+                    "x": 8,
+                    "y": 4
+                },
+                {
+                    "id": 6,
+                    "collision": 240,
+                    "index": 4644,
+                    "object": 1820,
+                    "x": 7,
+                    "y": 4
+                },
+                {
+                    "id": 7,
+                    "collision": 376,
+                    "index": 5344,
+                    "object": 2516,
+                    "x": 9,
+                    "y": 5
+                },
+                {
+                    "id": 8,
+                    "collision": 64,
+                    "index": 2464,
+                    "object": 604,
+                    "x": 8,
+                    "y": 2
+                },
+                {
+                    "id": 9,
+                    "collision": 136,
+                    "index": 2712,
+                    "object": 956,
+                    "x": 5,
+                    "y": 3
+                }
+            ]
+        },
+        {
+            "file_name": "D2PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 10,
+                    "collision": 136,
+                    "index": 2120,
+                    "object": 316,
+                    "x": 10,
+                    "y": 2
+                },
+                {
+                    "id": 1,
+                    "collision": 88,
+                    "index": 5636,
+                    "object": 2208,
+                    "x": 9,
+                    "y": 1
+                },
+                {
+                    "id": 2,
+                    "collision": 88,
+                    "index": 2404,
+                    "object": 948,
+                    "x": 3,
+                    "y": 3
+                },
+                {
+                    "id": 3,
+                    "collision": 112,
+                    "index": 3324,
+                    "object": 1252,
+                    "x": 4,
+                    "y": 3
+                },
+                {
+                    "id": 4,
+                    "collision": 136,
+                    "index": 2664,
+                    "object": 636,
+                    "x": 5,
+                    "y": 3
+                },
+                {
+                    "id": 5,
+                    "collision": 184,
+                    "index": 3312,
+                    "object": 1564,
+                    "x": 7,
+                    "y": 3
+                },
+                {
+                    "id": 6,
+                    "collision": 208,
+                    "index": 4240,
+                    "object": 1528,
+                    "x": 8,
+                    "y": 3
+                },
+                {
+                    "id": 7,
+                    "collision": 96,
+                    "index": 1808,
+                    "object": 496,
+                    "x": 5,
+                    "y": 2
+                },
+                {
+                    "id": 8,
+                    "collision": 144,
+                    "index": 4016,
+                    "object": 984,
+                    "x": 8,
+                    "y": 2
+                },
+                {
+                    "id": 9,
+                    "collision": 64,
+                    "index": 2408,
+                    "object": 664,
+                    "x": 2,
+                    "y": 3
+                }
+            ]
+        },
+        {
+            "file_name": "D7PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 11,
+                    "collision": 336,
+                    "index": 7232,
+                    "object": 2136,
+                    "x": 8,
+                    "y": 5
+                }
+            ]
+        },
+        {
+            "file_name": "BAPATH.BND",
+            "is_ao": 0,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 400,
+                    "index": 7628,
+                    "object": 2460,
+                    "x": 6,
+                    "y": 8
+                },
+                {
+                    "id": 2,
+                    "collision": 112,
+                    "index": 1552,
+                    "object": 352,
+                    "x": 3,
+                    "y": 4
+                },
+                {
+                    "id": 3,
+                    "collision": 176,
+                    "index": 4480,
+                    "object": 1836,
+                    "x": 4,
+                    "y": 5
+                },
+                {
+                    "id": 4,
+                    "collision": 88,
+                    "index": 5336,
+                    "object": 1788,
+                    "x": 3,
+                    "y": 3
+                },
+                {
+                    "id": 5,
+                    "collision": 1056,
+                    "index": 12236,
+                    "object": 5256,
+                    "x": 13,
+                    "y": 10
+                },
+                {
+                    "id": 7,
+                    "collision": 208,
+                    "index": 8240,
+                    "object": 2328,
+                    "x": 6,
+                    "y": 4
+                },
+                {
+                    "id": 9,
+                    "collision": 160,
+                    "index": 3024,
+                    "object": 980,
+                    "x": 6,
+                    "y": 3
+                },
+                {
+                    "id": 10,
+                    "collision": 184,
+                    "index": 8640,
+                    "object": 3864,
+                    "x": 7,
+                    "y": 3
+                },
+                {
+                    "id": 11,
+                    "collision": 352,
+                    "index": 5152,
+                    "object": 1152,
+                    "x": 6,
+                    "y": 7
+                },
+                {
+                    "id": 13,
+                    "collision": 64,
+                    "index": 1660,
+                    "object": 304,
+                    "x": 2,
+                    "y": 3
+                },
+                {
+                    "id": 14,
+                    "collision": 352,
+                    "index": 7496,
+                    "object": 4032,
+                    "x": 6,
+                    "y": 7
+                },
+                {
+                    "id": 15,
+                    "collision": 64,
+                    "index": 2980,
+                    "object": 384,
+                    "x": 2,
+                    "y": 3
+                },
+                {
+                    "id": 16,
+                    "collision": 32,
+                    "index": 952,
+                    "object": 172,
+                    "x": 2,
+                    "y": 1
+                }
+            ]
+        },
+        {
+            "file_name": "BMPATH.BND",
+            "is_ao": 0,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 576,
+                    "index": 8504,
+                    "object": 2576,
+                    "x": 7,
+                    "y": 10
+                }
+            ]
+        },
+        {
+            "file_name": "BRPATH.BND",
+            "is_ao": 0,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 272,
+                    "index": 6288,
+                    "object": 1852,
+                    "x": 8,
+                    "y": 4
+                },
+                {
+                    "id": 2,
+                    "collision": 688,
+                    "index": 5608,
+                    "object": 2528,
+                    "x": 12,
+                    "y": 7
+                },
+                {
+                    "id": 3,
+                    "collision": 304,
+                    "index": 4300,
+                    "object": 1784,
+                    "x": 9,
+                    "y": 4
+                },
+                {
+                    "id": 4,
+                    "collision": 576,
+                    "index": 5720,
+                    "object": 1396,
+                    "x": 10,
+                    "y": 7
+                },
+                {
+                    "id": 5,
+                    "collision": 376,
+                    "index": 4288,
+                    "object": 1216,
+                    "x": 9,
+                    "y": 5
+                },
+                {
+                    "id": 6,
+                    "collision": 408,
+                    "index": 5376,
+                    "object": 2568,
+                    "x": 7,
+                    "y": 7
+                },
+                {
+                    "id": 7,
+                    "collision": 160,
+                    "index": 4344,
+                    "object": 1360,
+                    "x": 6,
+                    "y": 3
+                },
+                {
+                    "id": 8,
+                    "collision": 128,
+                    "index": 2356,
+                    "object": 868,
+                    "x": 7,
+                    "y": 2
+                },
+                {
+                    "id": 9,
+                    "collision": 464,
+                    "index": 6288,
+                    "object": 3144,
+                    "x": 8,
+                    "y": 7
+                },
+                {
+                    "id": 10,
+                    "collision": 576,
+                    "index": 7272,
+                    "object": 1876,
+                    "x": 10,
+                    "y": 7
+                },
+                {
+                    "id": 11,
+                    "collision": 880,
+                    "index": 5344,
+                    "object": 2380,
+                    "x": 9,
+                    "y": 12
+                },
+                {
+                    "id": 12,
+                    "collision": 184,
+                    "index": 3360,
+                    "object": 784,
+                    "x": 7,
+                    "y": 3
+                },
+                {
+                    "id": 13,
+                    "collision": 80,
+                    "index": 2584,
+                    "object": 700,
+                    "x": 8,
+                    "y": 1
+                },
+                {
+                    "id": 14,
+                    "collision": 280,
+                    "index": 3944,
+                    "object": 1240,
+                    "x": 11,
+                    "y": 3
+                },
+                {
+                    "id": 15,
+                    "collision": 184,
+                    "index": 3068,
+                    "object": 764,
+                    "x": 7,
+                    "y": 3
+                },
+                {
+                    "id": 16,
+                    "collision": 256,
+                    "index": 2508,
+                    "object": 776,
+                    "x": 6,
+                    "y": 5
+                },
+                {
+                    "id": 17,
+                    "collision": 496,
+                    "index": 10672,
+                    "object": 2836,
+                    "x": 6,
+                    "y": 10
+                },
+                {
+                    "id": 18,
+                    "collision": 240,
+                    "index": 3792,
+                    "object": 840,
+                    "x": 7,
+                    "y": 4
+                },
+                {
+                    "id": 19,
+                    "collision": 208,
+                    "index": 5276,
+                    "object": 1728,
+                    "x": 6,
+                    "y": 4
+                },
+                {
+                    "id": 20,
+                    "collision": 400,
+                    "index": 4452,
+                    "object": 900,
+                    "x": 8,
+                    "y": 6
+                },
+                {
+                    "id": 21,
+                    "collision": 80,
+                    "index": 1300,
+                    "object": 320,
+                    "x": 4,
+                    "y": 2
+                },
+                {
+                    "id": 23,
+                    "collision": 112,
+                    "index": 1380,
+                    "object": 212,
+                    "x": 3,
+                    "y": 4
+                },
+                {
+                    "id": 24,
+                    "collision": 112,
+                    "index": 1772,
+                    "object": 492,
+                    "x": 3,
+                    "y": 4
+                },
+                {
+                    "id": 25,
+                    "collision": 112,
+                    "index": 1632,
+                    "object": 592,
+                    "x": 3,
+                    "y": 4
+                },
+                {
+                    "id": 26,
+                    "collision": 208,
+                    "index": 3944,
+                    "object": 728,
+                    "x": 6,
+                    "y": 4
+                },
+                {
+                    "id": 27,
+                    "collision": 592,
+                    "index": 2660,
+                    "object": 1092,
+                    "x": 6,
+                    "y": 2
+                },
+                {
+                    "id": 28,
+                    "collision": 80,
+                    "index": 1980,
+                    "object": 400,
+                    "x": 4,
+                    "y": 2
+                },
+                {
+                    "id": 29,
+                    "collision": 208,
+                    "index": 3300,
+                    "object": 568,
+                    "x": 8,
+                    "y": 3
+                }
+            ]
+        },
+        {
+            "file_name": "BWPATH.BND",
+            "is_ao": 0,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 576,
+                    "index": 4428,
+                    "object": 1836,
+                    "x": 10,
+                    "y": 6
+                },
+                {
+                    "id": 2,
+                    "collision": 656,
+                    "index": 9092,
+                    "object": 3176,
+                    "x": 10,
+                    "y": 8
+                },
+                {
+                    "id": 3,
+                    "collision": 416,
+                    "index": 7740,
+                    "object": 2836,
+                    "x": 10,
+                    "y": 5
+                },
+                {
+                    "id": 4,
+                    "collision": 592,
+                    "index": 9748,
+                    "object": 2712,
+                    "x": 9,
+                    "y": 8
+                },
+                {
+                    "id": 7,
+                    "collision": 448,
+                    "index": 6200,
+                    "object": 1528,
+                    "x": 9,
+                    "y": 6
+                },
+                {
+                    "id": 9,
+                    "collision": 240,
+                    "index": 4996,
+                    "object": 1380,
+                    "x": 7,
+                    "y": 4
+                },
+                {
+                    "id": 11,
+                    "collision": 96,
+                    "index": 1412,
+                    "object": 316,
+                    "x": 5,
+                    "y": 2
+                },
+                {
+                    "id": 12,
+                    "collision": 80,
+                    "index": 1120,
+                    "object": 260,
+                    "x": 4,
+                    "y": 2
+                },
+                {
+                    "id": 13,
+                    "collision": 80,
+                    "index": 2364,
+                    "object": 620,
+                    "x": 6,
+                    "y": 3
+                },
+                {
+                    "id": 14,
+                    "collision": 208,
+                    "index": 2196,
+                    "object": 848,
+                    "x": 8,
+                    "y": 3
+                }
+            ]
+        },
+        {
+            "file_name": "CRPATH.BND",
+            "is_ao": 0,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 0,
+                    "index": 608,
+                    "object": 576,
+                    "x": 14,
+                    "y": 5
+                },
+                {
+                    "id": 2,
+                    "collision": 0,
+                    "index": 432,
+                    "object": 416,
+                    "x": 10,
+                    "y": 5
+                }
+            ]
+        },
+        {
+            "file_name": "FDPATH.BND",
+            "is_ao": 0,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 400,
+                    "index": 4008,
+                    "object": 1140,
+                    "x": 8,
+                    "y": 6
+                },
+                {
+                    "id": 2,
+                    "collision": 528,
+                    "index": 7200,
+                    "object": 2388,
+                    "x": 8,
+                    "y": 8
+                },
+                {
+                    "id": 3,
+                    "collision": 736,
+                    "index": 7096,
+                    "object": 2936,
+                    "x": 9,
+                    "y": 10
+                },
+                {
+                    "id": 4,
+                    "collision": 576,
+                    "index": 8212,
+                    "object": 3216,
+                    "x": 10,
+                    "y": 7
+                },
+                {
+                    "id": 5,
+                    "collision": 464,
+                    "index": 5984,
+                    "object": 2324,
+                    "x": 8,
+                    "y": 7
+                },
+                {
+                    "id": 6,
+                    "collision": 80,
+                    "index": 1364,
+                    "object": 300,
+                    "x": 4,
+                    "y": 2
+                },
+                {
+                    "id": 7,
+                    "collision": 176,
+                    "index": 3696,
+                    "object": 1596,
+                    "x": 5,
+                    "y": 4
+                },
+                {
+                    "id": 8,
+                    "collision": 176,
+                    "index": 2956,
+                    "object": 976,
+                    "x": 5,
+                    "y": 4
+                },
+                {
+                    "id": 9,
+                    "collision": 256,
+                    "index": 3276,
+                    "object": 1256,
+                    "x": 6,
+                    "y": 5
+                },
+                {
+                    "id": 10,
+                    "collision": 176,
+                    "index": 2112,
+                    "object": 756,
+                    "x": 5,
+                    "y": 4
+                },
+                {
+                    "id": 11,
+                    "collision": 352,
+                    "index": 7164,
+                    "object": 2452,
+                    "x": 7,
+                    "y": 6
+                },
+                {
+                    "id": 12,
+                    "collision": 136,
+                    "index": 3700,
+                    "object": 1556,
+                    "x": 5,
+                    "y": 3
+                },
+                {
+                    "id": 13,
+                    "collision": 48,
+                    "index": 4332,
+                    "object": 1748,
+                    "x": 9,
+                    "y": 1
+                },
+                {
+                    "id": 14,
+                    "collision": 112,
+                    "index": 1272,
+                    "object": 412,
+                    "x": 4,
+                    "y": 3
+                }
+            ]
+        },
+        {
+            "file_name": "MIPATH.BND",
+            "is_ao": 0,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 1096,
+                    "index": 11812,
+                    "object": 2996,
+                    "x": 15,
+                    "y": 9
+                },
+                {
+                    "id": 2,
+                    "collision": 896,
+                    "index": 8788,
+                    "object": 3876,
+                    "x": 11,
+                    "y": 10
+                },
+                {
+                    "id": 3,
+                    "collision": 688,
+                    "index": 3668,
+                    "object": 1768,
+                    "x": 12,
+                    "y": 7
+                },
+                {
+                    "id": 4,
+                    "collision": 1360,
+                    "index": 15440,
+                    "object": 4420,
+                    "x": 12,
+                    "y": 14
+                },
+                {
+                    "id": 5,
+                    "collision": 400,
+                    "index": 5600,
+                    "object": 1400,
+                    "x": 12,
+                    "y": 4
+                },
+                {
+                    "id": 6,
+                    "collision": 744,
+                    "index": 5228,
+                    "object": 2064,
+                    "x": 13,
+                    "y": 7
+                },
+                {
+                    "id": 7,
+                    "collision": 256,
+                    "index": 3336,
+                    "object": 1336,
+                    "x": 6,
+                    "y": 5
+                },
+                {
+                    "id": 8,
+                    "collision": 376,
+                    "index": 6596,
+                    "object": 1296,
+                    "x": 9,
+                    "y": 5
+                },
+                {
+                    "id": 9,
+                    "collision": 352,
+                    "index": 3776,
+                    "object": 1552,
+                    "x": 7,
+                    "y": 6
+                },
+                {
+                    "id": 10,
+                    "collision": 304,
+                    "index": 4808,
+                    "object": 1604,
+                    "x": 9,
+                    "y": 4
+                },
+                {
+                    "id": 11,
+                    "collision": 176,
+                    "index": 2176,
+                    "object": 476,
+                    "x": 4,
+                    "y": 5
+                },
+                {
+                    "id": 12,
+                    "collision": 256,
+                    "index": 4832,
+                    "object": 1176,
+                    "x": 10,
+                    "y": 3
+                }
+            ]
+        },
+        {
+            "file_name": "NEPATH.BND",
+            "is_ao": 0,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 216,
+                    "index": 2284,
+                    "object": 756,
+                    "x": 5,
+                    "y": 5
+                },
+                {
+                    "id": 2,
+                    "collision": 400,
+                    "index": 5512,
+                    "object": 2420,
+                    "x": 6,
+                    "y": 8
+                },
+                {
+                    "id": 3,
+                    "collision": 976,
+                    "index": 4644,
+                    "object": 1716,
+                    "x": 12,
+                    "y": 10
+                },
+                {
+                    "id": 4,
+                    "collision": 336,
+                    "index": 3032,
+                    "object": 1036,
+                    "x": 5,
+                    "y": 8
+                },
+                {
+                    "id": 5,
+                    "collision": 520,
+                    "index": 3868,
+                    "object": 1460,
+                    "x": 9,
+                    "y": 7
+                },
+                {
+                    "id": 6,
+                    "collision": 272,
+                    "index": 3464,
+                    "object": 692,
+                    "x": 8,
+                    "y": 4
+                },
+                {
+                    "id": 7,
+                    "collision": 184,
+                    "index": 3372,
+                    "object": 604,
+                    "x": 6,
+                    "y": 1
+                }
+            ]
+        },
+        {
+            "file_name": "PVPATH.BND",
+            "is_ao": 0,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 688,
+                    "index": 6564,
+                    "object": 3208,
+                    "x": 14,
+                    "y": 6
+                },
+                {
+                    "id": 2,
+                    "collision": 48,
+                    "index": 788,
+                    "object": 228,
+                    "x": 9,
+                    "y": 1
+                },
+                {
+                    "id": 3,
+                    "collision": 400,
+                    "index": 3508,
+                    "object": 1400,
+                    "x": 8,
+                    "y": 6
+                },
+                {
+                    "id": 4,
+                    "collision": 176,
+                    "index": 3504,
+                    "object": 1556,
+                    "x": 5,
+                    "y": 4
+                },
+                {
+                    "id": 5,
+                    "collision": 184,
+                    "index": 3392,
+                    "object": 1584,
+                    "x": 7,
+                    "y": 3
+                },
+                {
+                    "id": 6,
+                    "collision": 96,
+                    "index": 2216,
+                    "object": 576,
+                    "x": 5,
+                    "y": 2
+                },
+                {
+                    "id": 7,
+                    "collision": 304,
+                    "index": 3584,
+                    "object": 1124,
+                    "x": 6,
+                    "y": 6
+                },
+                {
+                    "id": 8,
+                    "collision": 112,
+                    "index": 2048,
+                    "object": 752,
+                    "x": 4,
+                    "y": 3
+                },
+                {
+                    "id": 9,
+                    "collision": 208,
+                    "index": 3272,
+                    "object": 948,
+                    "x": 6,
+                    "y": 4
+                },
+                {
+                    "id": 10,
+                    "collision": 376,
+                    "index": 3424,
+                    "object": 1596,
+                    "x": 9,
+                    "y": 5
+                },
+                {
+                    "id": 11,
+                    "collision": 112,
+                    "index": 2712,
+                    "object": 592,
+                    "x": 6,
+                    "y": 2
+                },
+                {
+                    "id": 12,
+                    "collision": 160,
+                    "index": 3460,
+                    "object": 1120,
+                    "x": 3,
+                    "y": 6
+                },
+                {
+                    "id": 13,
+                    "collision": 976,
+                    "index": 6712,
+                    "object": 3076,
+                    "x": 12,
+                    "y": 10
+                },
+                {
+                    "id": 14,
+                    "collision": 112,
+                    "index": 3100,
+                    "object": 672,
+                    "x": 3,
+                    "y": 4
+                },
+                {
+                    "id": 15,
+                    "collision": 144,
+                    "index": 2144,
+                    "object": 664,
+                    "x": 4,
+                    "y": 4
+                }
+            ]
+        },
+        {
+            "file_name": "STPATH.BND",
+            "is_ao": 0,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 0,
+                    "index": 676,
+                    "object": 520,
+                    "x": 7,
+                    "y": 9
+                }
+            ]
+        },
+        {
+            "file_name": "SVPATH.BND",
+            "is_ao": 0,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 144,
+                    "index": 3092,
+                    "object": 784,
+                    "x": 8,
+                    "y": 2
+                },
+                {
+                    "id": 2,
+                    "collision": 208,
+                    "index": 5084,
+                    "object": 1888,
+                    "x": 4,
+                    "y": 6
+                },
+                {
+                    "id": 3,
+                    "collision": 136,
+                    "index": 3560,
+                    "object": 976,
+                    "x": 5,
+                    "y": 3
+                },
+                {
+                    "id": 4,
+                    "collision": 112,
+                    "index": 3068,
+                    "object": 792,
+                    "x": 6,
+                    "y": 2
+                },
+                {
+                    "id": 5,
+                    "collision": 176,
+                    "index": 5456,
+                    "object": 1736,
+                    "x": 4,
+                    "y": 5
+                },
+                {
+                    "id": 6,
+                    "collision": 688,
+                    "index": 8408,
+                    "object": 2548,
+                    "x": 12,
+                    "y": 7
+                },
+                {
+                    "id": 7,
+                    "collision": 256,
+                    "index": 4824,
+                    "object": 1216,
+                    "x": 6,
+                    "y": 5
+                },
+                {
+                    "id": 8,
+                    "collision": 176,
+                    "index": 4332,
+                    "object": 1436,
+                    "x": 4,
+                    "y": 5
+                },
+                {
+                    "id": 9,
+                    "collision": 256,
+                    "index": 3188,
+                    "object": 1316,
+                    "x": 6,
+                    "y": 5
+                },
+                {
+                    "id": 10,
+                    "collision": 136,
+                    "index": 3600,
+                    "object": 816,
+                    "x": 5,
+                    "y": 2
+                },
+                {
+                    "id": 11,
+                    "collision": 32,
+                    "index": 1040,
+                    "object": 172,
+                    "x": 7,
+                    "y": 1
+                },
+                {
+                    "id": 12,
+                    "collision": 48,
+                    "index": 1340,
+                    "object": 348,
+                    "x": 2,
+                    "y": 2
+                },
+                {
+                    "id": 13,
+                    "collision": 96,
+                    "index": 1716,
+                    "object": 536,
+                    "x": 5,
+                    "y": 2
+                },
+                {
+                    "id": 14,
+                    "collision": 160,
+                    "index": 3040,
+                    "object": 1220,
+                    "x": 6,
+                    "y": 3
+                }
+            ]
+        },
+        {
+            "file_name": "E1PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 160,
+                    "index": 5228,
+                    "object": 1440,
+                    "x": 6,
+                    "y": 3
+                },
+                {
+                    "id": 2,
+                    "collision": 112,
+                    "index": 6776,
+                    "object": 2712,
+                    "x": 6,
+                    "y": 7
+                },
+                {
+                    "id": 3,
+                    "collision": 96,
+                    "index": 6592,
+                    "object": 2816,
+                    "x": 5,
+                    "y": 2
+                },
+                {
+                    "id": 4,
+                    "collision": 184,
+                    "index": 5444,
+                    "object": 2064,
+                    "x": 7,
+                    "y": 8
+                },
+                {
+                    "id": 6,
+                    "collision": 160,
+                    "index": 7108,
+                    "object": 1720,
+                    "x": 6,
+                    "y": 3
+                }
+            ]
+        },
+        {
+            "file_name": "E2PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 2,
+                    "collision": 64,
+                    "index": 2044,
+                    "object": 344,
+                    "x": 3,
+                    "y": 2
+                },
+                {
+                    "id": 3,
+                    "collision": 96,
+                    "index": 2436,
+                    "object": 776,
+                    "x": 5,
+                    "y": 2
+                },
+                {
+                    "id": 4,
+                    "collision": 96,
+                    "index": 3112,
+                    "object": 1236,
+                    "x": 5,
+                    "y": 2
+                }
+            ]
+        },
+        {
+            "file_name": "F1PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 144,
+                    "index": 1712,
+                    "object": 324,
+                    "x": 4,
+                    "y": 4
+                },
+                {
+                    "id": 2,
+                    "collision": 160,
+                    "index": 2816,
+                    "object": 640,
+                    "x": 6,
+                    "y": 3
+                },
+                {
+                    "id": 5,
+                    "collision": 376,
+                    "index": 4332,
+                    "object": 976,
+                    "x": 9,
+                    "y": 5
+                },
+                {
+                    "id": 6,
+                    "collision": 48,
+                    "index": 1488,
+                    "object": 448,
+                    "x": 1,
+                    "y": 4
+                },
+                {
+                    "id": 7,
+                    "collision": 32,
+                    "index": 1072,
+                    "object": 332,
+                    "x": 1,
+                    "y": 2
+                },
+                {
+                    "id": 8,
+                    "collision": 112,
+                    "index": 1984,
+                    "object": 492,
+                    "x": 4,
+                    "y": 3
+                },
+                {
+                    "id": 9,
+                    "collision": 32,
+                    "index": 1188,
+                    "object": 132,
+                    "x": 2,
+                    "y": 1
+                }
+            ]
+        },
+        {
+            "file_name": "F2PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 176,
+                    "index": 3292,
+                    "object": 1456,
+                    "x": 5,
+                    "y": 4
+                },
+                {
+                    "id": 2,
+                    "collision": 376,
+                    "index": 5488,
+                    "object": 1816,
+                    "x": 9,
+                    "y": 5
+                },
+                {
+                    "id": 3,
+                    "collision": 64,
+                    "index": 2332,
+                    "object": 984,
+                    "x": 3,
+                    "y": 2
+                },
+                {
+                    "id": 4,
+                    "collision": 176,
+                    "index": 2524,
+                    "object": 836,
+                    "x": 5,
+                    "y": 4
+                },
+                {
+                    "id": 5,
+                    "collision": 136,
+                    "index": 1492,
+                    "object": 416,
+                    "x": 5,
+                    "y": 3
+                },
+                {
+                    "id": 6,
+                    "collision": 112,
+                    "index": 2944,
+                    "object": 692,
+                    "x": 2,
+                    "y": 6
+                },
+                {
+                    "id": 7,
+                    "collision": 56,
+                    "index": 2380,
+                    "object": 736,
+                    "x": 5,
+                    "y": 1
+                },
+                {
+                    "id": 8,
+                    "collision": 136,
+                    "index": 1728,
+                    "object": 276,
+                    "x": 4,
+                    "y": 5
+                }
+            ]
+        },
+        {
+            "file_name": "F4PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 9,
+                    "collision": 256,
+                    "index": 7108,
+                    "object": 2316,
+                    "x": 5,
+                    "y": 6
+                }
+            ]
+        },
+        {
+            "file_name": "L1PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 304,
+                    "index": 4808,
+                    "object": 1264,
+                    "x": 12,
+                    "y": 3
+                },
+                {
+                    "id": 2,
+                    "collision": 208,
+                    "index": 3100,
+                    "object": 968,
+                    "x": 8,
+                    "y": 3
+                },
+                {
+                    "id": 3,
+                    "collision": 64,
+                    "index": 596,
+                    "object": 124,
+                    "x": 3,
+                    "y": 2
+                },
+                {
+                    "id": 5,
+                    "collision": 64,
+                    "index": 1252,
+                    "object": 304,
+                    "x": 3,
+                    "y": 2
+                },
+                {
+                    "id": 6,
+                    "collision": 128,
+                    "index": 1964,
+                    "object": 368,
+                    "x": 8,
+                    "y": 3
+                }
+            ]
+        },
+        {
+            "file_name": "R1PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 15,
+                    "collision": 304,
+                    "index": 11764,
+                    "object": 1844,
+                    "x": 12,
+                    "y": 3
+                },
+                {
+                    "id": 16,
+                    "collision": 256,
+                    "index": 6116,
+                    "object": 876,
+                    "x": 10,
+                    "y": 3
+                },
+                {
+                    "id": 18,
+                    "collision": 232,
+                    "index": 6484,
+                    "object": 872,
+                    "x": 9,
+                    "y": 3
+                },
+                {
+                    "id": 19,
+                    "collision": 40,
+                    "index": 1048,
+                    "object": 120,
+                    "x": 3,
+                    "y": 1
+                },
+                {
+                    "id": 20,
+                    "collision": 88,
+                    "index": 3608,
+                    "object": 688,
+                    "x": 3,
+                    "y": 3
+                }
+            ]
+        },
+        {
+            "file_name": "R2PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 10,
+                    "collision": 136,
+                    "index": 2956,
+                    "object": 496,
+                    "x": 6,
+                    "y": 10
+                },
+                {
+                    "id": 11,
+                    "collision": 56,
+                    "index": 3096,
+                    "object": 376,
+                    "x": 5,
+                    "y": 1
+                },
+                {
+                    "id": 12,
+                    "collision": 40,
+                    "index": 2500,
+                    "object": 300,
+                    "x": 3,
+                    "y": 1
+                },
+                {
+                    "id": 13,
+                    "collision": 112,
+                    "index": 3528,
+                    "object": 632,
+                    "x": 3,
+                    "y": 4
+                },
+                {
+                    "id": 14,
+                    "collision": 64,
+                    "index": 2952,
+                    "object": 444,
+                    "x": 3,
+                    "y": 2
+                },
+                {
+                    "id": 15,
+                    "collision": 232,
+                    "index": 10660,
+                    "object": 1772,
+                    "x": 9,
+                    "y": 3
+                },
+                {
+                    "id": 16,
+                    "collision": 336,
+                    "index": 7780,
+                    "object": 1056,
+                    "x": 10,
+                    "y": 3
+                },
+                {
+                    "id": 18,
+                    "collision": 336,
+                    "index": 6456,
+                    "object": 1056,
+                    "x": 10,
+                    "y": 2
+                },
+                {
+                    "id": 19,
+                    "collision": 88,
+                    "index": 1216,
+                    "object": 168,
+                    "x": 7,
+                    "y": 2
+                },
+                {
+                    "id": 1,
+                    "collision": 112,
+                    "index": 2816,
+                    "object": 512,
+                    "x": 6,
+                    "y": 7
+                },
+                {
+                    "id": 20,
+                    "collision": 88,
+                    "index": 1452,
+                    "object": 328,
+                    "x": 3,
+                    "y": 13
+                },
+                {
+                    "id": 2,
+                    "collision": 128,
+                    "index": 4540,
+                    "object": 1268,
+                    "x": 7,
+                    "y": 7
+                },
+                {
+                    "id": 3,
+                    "collision": 80,
+                    "index": 2496,
+                    "object": 360,
+                    "x": 4,
+                    "y": 2
+                },
+                {
+                    "id": 4,
+                    "collision": 128,
+                    "index": 5308,
+                    "object": 528,
+                    "x": 7,
+                    "y": 7
+                },
+                {
+                    "id": 5,
+                    "collision": 64,
+                    "index": 2596,
+                    "object": 584,
+                    "x": 3,
+                    "y": 2
+                },
+                {
+                    "id": 7,
+                    "collision": 160,
+                    "index": 6572,
+                    "object": 1440,
+                    "x": 6,
+                    "y": 28
+                },
+                {
+                    "id": 8,
+                    "collision": 136,
+                    "index": 3020,
+                    "object": 456,
+                    "x": 5,
+                    "y": 10
+                },
+                {
+                    "id": 9,
+                    "collision": 112,
+                    "index": 3016,
+                    "object": 372,
+                    "x": 6,
+                    "y": 7
+                }
+            ]
+        },
+        {
+            "file_name": "R6PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 6,
+                    "collision": 160,
+                    "index": 6068,
+                    "object": 980,
+                    "x": 3,
+                    "y": 6
+                }
+            ]
+        },
+        {
+            "file_name": "S1PATH.BND",
+            "is_ao": 1,
+            "paths": [
+                {
+                    "id": 1,
+                    "collision": 0,
+                    "index": 540,
+                    "object": 336,
+                    "x": 8,
+                    "y": 5
+                }
+            ]
+        }
+    ]
+}

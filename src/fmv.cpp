@@ -1,5 +1,5 @@
 #include "fmv.hpp"
-#include "imgui/imgui.h"
+#include "gui.hpp"
 #include "core/audiobuffer.hpp"
 #include "oddlib/cdromfilesystem.hpp"
 #include "gamedata.hpp"
@@ -10,6 +10,7 @@
 #include "SDL_opengl.h"
 #include "nanovg.h"
 #include "stdthread.h"
+#include "renderer.hpp"
 
 class AutoMouseCursorHide
 {
@@ -30,18 +31,17 @@ static float Percent(float max, float percent)
     return (max / 100.0f) * percent;
 }
 
-static void RenderSubtitles(NVGcontext* ctx, const char* msg, int screenW, int screenH)
+static void RenderSubtitles(Renderer& rend, const char* msg, int screenW, int screenH)
 {
     float xpos = 0.0f;
     float ypos = static_cast<float>(screenH);
 
-    nvgFillColor(ctx, nvgRGBA(0, 0, 0, 255));
-    nvgFontSize(ctx, Percent(static_cast<float>(screenH), 6.7f));
-
-    nvgTextAlign(ctx, NVG_ALIGN_TOP);
+    rend.fillColor(Color{ 0, 0, 0, 1 });
+    rend.fontSize(Percent(static_cast<float>(screenH), 6.7f));
+    rend.textAlign(TEXT_ALIGN_TOP);
     
     float bounds[4];
-    nvgTextBounds(ctx, xpos, ypos, msg, nullptr, bounds);
+    rend.textBounds(static_cast<int>(xpos), static_cast<int>(ypos), msg, bounds);
 
     //float fontX = bounds[0];
     //float fontY = bounds[1];
@@ -54,12 +54,10 @@ static void RenderSubtitles(NVGcontext* ctx, const char* msg, int screenW, int s
     // Center XPos in the screenW
     xpos = (screenW / 2) - (fontW / 2);
 
-    nvgText(ctx, xpos, ypos, msg, nullptr);
-
-    nvgFillColor(ctx, nvgRGBA(255, 255, 255, 255));
+    rend.text(xpos, ypos, msg);
+    rend.fillColor(Color{ 1, 1, 1, 1 });
     float adjust = Percent(static_cast<float>(screenH), 0.3f);
-    nvgText(ctx, xpos - adjust, ypos - adjust, msg, nullptr);
-
+    rend.text(xpos - adjust, ypos - adjust, msg);
 }
 
 class IMovie : public IAudioPlayer
@@ -88,7 +86,7 @@ public:
     virtual void FillBuffers() = 0;
 
     // Main thread context
-    void OnRenderFrame(NVGcontext* ctx, int screenW, int screenH)
+    void OnRenderFrame(Renderer& rend, int screenW, int screenH)
     {
         // TODO: Populate mAudioBuffer and mVideoBuffer
         // for up to N buffered frames
@@ -125,12 +123,12 @@ public:
         if (mSubTitles)
         {
             // We assume the FPS is always 15, thus 1000/15=66.66 so frame number * 66 = number of msecs into the video
-            const auto& subs = mSubTitles->Find((videoFrameIndex * 66)+500); // audio has about 500msec latency, so fix it up to sync the subs
+            const auto& subs = mSubTitles->Find((videoFrameIndex * 66));
             if (!subs.empty())
             {
                 // TODO: Render all active subs, not just the first one
                 const char* msg = subs[0]->Text().c_str();
-                RenderSubtitles(ctx, msg, screenW, screenH);
+                RenderSubtitles(rend, msg, screenW, screenH);
                 if (subs.size() > 1)
                 {
                     LOG_WARNING("Too many active subtitles " << subs.size());
@@ -198,22 +196,26 @@ protected:
         std::lock_guard<std::mutex> lock(mAudioBufferMutex);
 
         // Consume mAudioBuffer and update the amount of consumed bytes
-        size_t have = mAudioBuffer.size();
-        size_t take = len;
-        if (len > have)
+        size_t have = mAudioBuffer.size()/sizeof(int16_t);
+        size_t take = len/sizeof(float);
+        if (take > have)
         {
             // Buffer underflow - we don't have enough data to fill the requested buffer
             // audio glitches ahoy!
-            LOG_ERROR("Audio buffer underflow want " << len << " bytes " << " have " << have << " bytes");
+            LOG_ERROR("Audio buffer underflow want " << take << " samples " << " have " << have << " samples");
             take = have;
         }
 
+        float *floatOutStream = reinterpret_cast<float*>(stream);
         for (auto i = 0u; i < take; i++)
         {
-            stream[i] = mAudioBuffer[i];
+            uint8_t low = mAudioBuffer[i*sizeof(int16_t)];
+            uint8_t high = mAudioBuffer[i*sizeof(int16_t) + 1];
+            int16_t fixed = (int16_t)(low | (high << 8));
+            floatOutStream[i] = fixed / 32768.0f;
         }
-        mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take);
-        mConsumedAudioBytes += take;
+        mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take*sizeof(int16_t));
+        mConsumedAudioBytes += take*sizeof(int16_t);
     }
 
     void RenderFrame(int width, int height, const GLvoid *pixels)
@@ -444,7 +446,7 @@ public:
                     // this happens in the AE PSX MI.MOV streams
                     pixelBuffer.resize(frameW * frameH* 4); // 4 bytes per pixel
 
-                    mMdec.DecodeFrameToABGR32((uint16_t*)pixelBuffer.data(), (uint16_t*)mDemuxBuffer.data(), frameW, frameH, false);
+                    mMdec.DecodeFrameToABGR32((uint16_t*)pixelBuffer.data(), (uint16_t*)mDemuxBuffer.data(), frameW, frameH);
                     mVideoBuffer.push_back(Frame{ mFrameCounter++, frameW, frameH, pixelBuffer });
 
                     return;
@@ -596,7 +598,7 @@ private:
     auto stream = resourceLocation->Open(targetName);
 
     // Try to open any corresponding subtitle file
-    const std::string subTitleFileName = "data/" + fmvName + ".SRT";
+    const std::string subTitleFileName = "data/subtitles/" + fmvName + ".SRT";
     std::unique_ptr<SubTitleParser> subTitles;
     if (fs.Exists(subTitleFileName))
     {
@@ -625,8 +627,8 @@ private:
 class FmvUi
 {
 private:
-    ImGuiTextFilter mFilter;
-    int listbox_item_current = 0;
+    //ImGuiTextFilter mFilter;
+    //int listbox_item_current = 0;
     std::vector<const char*> listbox_items;
     std::unique_ptr<class IMovie>& mFmv;
 public:
@@ -637,18 +639,19 @@ public:
     {
     }
 
-    void DrawVideoSelectionUi(const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
+    void DrawVideoSelectionUi(GuiContext& gui, const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
     {
+
         std::string name = "Video player";
         static bool bSet = false;
         if (!bSet)
         {
-            ImGui::SetNextWindowPos(ImVec2(720, 40));
+            gui.next_window_pos = V2i(720, 40);
             bSet = true;
         }
-        ImGui::Begin(name.c_str(), nullptr, ImVec2(550, 580), 1.0f, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
+        gui_begin_window(&gui, name.c_str(), V2i(300, 580));
 
-        mFilter.Draw();
+        //mFilter.Draw();
 
 
         listbox_items.clear();
@@ -656,35 +659,39 @@ public:
 
         for (const auto& fmv : allFmvs)
         {
-            if (mFilter.PassFilter(fmv.first.c_str()))
+            // TODO: Reimplement filtering
+            //if (mFilter.PassFilter(fmv.first.c_str()))
             {
                 listbox_items.emplace_back(fmv.first.c_str());
             }
         }
 
-        if (ImGui::ListBoxHeader("##", ImVec2(ImGui::GetWindowWidth() - 15, ImGui::GetWindowSize().y - 95)))
+        //if (ImGui::ListBoxHeader("##", ImVec2(ImGui::GetWindowWidth() - 15, ImGui::GetWindowSize().y - 95)))
+        int pressed = -1;
         {
-            if (listbox_item_current >= static_cast<int>(listbox_items.size()))
-            {
-                listbox_item_current = 0;
-            }
+            //if (listbox_item_current >= static_cast<int>(listbox_items.size()))
+            //{
+            //    listbox_item_current = 0;
+           // }
 
             for (size_t i = 0; i < listbox_items.size(); i++)
             {
-                if (ImGui::Selectable(listbox_items[i], static_cast<int>(i) == listbox_item_current))
+                //if (ImGui::Selectable(listbox_items[i], static_cast<int>(i) == listbox_item_current))
+                if (gui_button(&gui, listbox_items[i]))
                 {
-                    listbox_item_current = i;
+                    //listbox_item_current = i;
+                    pressed = i;
                 }
             }
-            ImGui::ListBoxFooter();
+            //ImGui::ListBoxFooter();
         }
 
 
-        if (ImGui::Button("Play", ImVec2(ImGui::GetWindowWidth(), 20)) && !listbox_items.empty())
+        if (pressed >= 0)
         {
             try
             {
-                const std::string fmvName = listbox_items[listbox_item_current];
+                const std::string fmvName = listbox_items[pressed];
                 mFmv = IMovie::Factory(fmvName, mAudioController, mFileSystem, allFmvs);
             }
             catch (const Oddlib::Exception& ex)
@@ -693,29 +700,19 @@ public:
             }
         }
 
-        ImGui::End();
+        gui_end_window(&gui);
     }
 private:
     IAudioController& mAudioController;
     FileSystem& mFileSystem;
 };
 
-void Fmv::RenderVideoUi()
-{
-    if (!mFmv)
-    {
-        if (!mFmvUi)
-        {
-            mFmvUi = std::make_unique<FmvUi>(mFmv, mAudioController, mFileSystem);
-        }
-        mFmvUi->DrawVideoSelectionUi(mGameData.Fmvs());
-    }
-}
 
 Fmv::Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs)
     : mGameData(gameData), mAudioController(audioController), mFileSystem(fs)
 {
-
+    // TODO: Should probably be handled by something else
+    glEnable(GL_TEXTURE_2D);
 }
 
 Fmv::~Fmv()
@@ -738,6 +735,11 @@ void Fmv::Play(const std::string& name)
     }
 }
 
+bool Fmv::IsPlaying() const
+{
+    return mFmv != nullptr;
+}
+
 void Fmv::Stop()
 {
     mFmv = nullptr;
@@ -754,18 +756,44 @@ void Fmv::Update()
     }
 }
 
-void Fmv::Render(NVGcontext* ctx, int screenW, int screenH)
+void Fmv::Render(Renderer& rend, GuiContext& , int screenW, int screenH)
 {
-    glEnable(GL_TEXTURE_2D);
-
-    RenderVideoUi();
-
     if (mFmv)
     {
-        mFmv->OnRenderFrame(ctx, screenW, screenH);
+        mFmv->OnRenderFrame(rend, screenW, screenH);
     }
-    else
+}
+
+DebugFmv::DebugFmv(GameData& gameData, IAudioController& audioController, FileSystem& fs) 
+    : Fmv(gameData, audioController, fs)
+{
+
+}
+
+DebugFmv::~DebugFmv()
+{
+
+}
+
+void DebugFmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
+{
+    Fmv::Render(rend, gui, screenW, screenH);
+
+    if (!mFmv)
     {
+        RenderVideoUi(gui);
         mFileSystem.DebugUi();
+    }
+}
+
+void DebugFmv::RenderVideoUi(GuiContext& gui)
+{
+    if (!mFmv)
+    {
+        if (!mFmvUi)
+        {
+            mFmvUi = std::make_unique<FmvUi>(mFmv, mAudioController, mFileSystem);
+        }
+        mFmvUi->DrawVideoSelectionUi(gui, mGameData.Fmvs());
     }
 }

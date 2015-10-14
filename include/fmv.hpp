@@ -10,22 +10,34 @@
 class GameData;
 class IAudioController;
 class FileSystem;
+class Renderer;
+struct GuiContext;
 
 class Fmv
 {
 public:
     Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs);
-    ~Fmv();
+    virtual ~Fmv();
     void Play(const std::string& name);
+    bool IsPlaying() const;
     void Stop();
     void Update();
-    void Render(struct NVGcontext* ctx, int screenW, int screenH);
-private:
-    void RenderVideoUi();
-private:
+    virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+protected:
     GameData& mGameData;
     IAudioController& mAudioController;
     FileSystem& mFileSystem;
     std::unique_ptr<class IMovie> mFmv;
+
+};
+
+class DebugFmv : public Fmv
+{
+public:
+    DebugFmv(GameData& gameData, IAudioController& audioController, FileSystem& fs);
+    virtual ~DebugFmv();
+    virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH) override;
+private:
+    void RenderVideoUi(GuiContext& gui);
     std::unique_ptr<class FmvUi> mFmvUi;
 };

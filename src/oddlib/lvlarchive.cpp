@@ -27,6 +27,11 @@ namespace Oddlib
         return r;
     }
 
+    std::unique_ptr<Oddlib::IStream> LvlArchive::FileChunk::Stream() const
+    {
+        return std::make_unique<Oddlib::Stream>(ReadData());
+    }
+
     const std::string& LvlArchive::File::FileName() const
     {
         return mFileName;
@@ -59,6 +64,16 @@ namespace Oddlib
         auto it = std::find_if(std::begin(mChunks), std::end(mChunks), [&] (std::unique_ptr<FileChunk>& chunk)
         {
             return chunk->Id() == id;
+        });
+        return it == std::end(mChunks) ? nullptr : it->get();
+    }
+
+    LvlArchive::FileChunk* LvlArchive::File::ChunkByType(Uint32 type)
+    {
+        LOG_INFO("Find chunk with type " << type);
+        auto it = std::find_if(std::begin(mChunks), std::end(mChunks), [&](std::unique_ptr<FileChunk>& chunk)
+        {
+            return chunk->Type() == type;
         });
         return it == std::end(mChunks) ? nullptr : it->get();
     }

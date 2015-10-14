@@ -37,10 +37,10 @@ static Uint32 _MidiReadVarLen(Oddlib::Stream& stream)
     return ret;
 }
 
-float SequencePlayer::MidiTimeToSample(int time)
+double SequencePlayer::MidiTimeToSample(int time)
 {
     // This may, or may not be correct. // TODO: Revise
-    return ((60 * time) / m_SongTempo) * (AliveAudioSampleRate / 500.0f);
+    return ((60 * time) / m_SongTempo) * (AliveAudioSampleRate / 500.0);
 }
 
 // TODO: This thread spin locks
@@ -65,19 +65,19 @@ void SequencePlayer::m_PlayerThreadFunction()
                     mAliveAudio.NoteOn(channels[m.Channel], m.Note, m.Velocity, m_TrackID, MidiTimeToSample(m.TimeOffset));
                     if (firstNote)
                     {
-                        m_SongBeginSample = mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset);
+                        m_SongBeginSample = static_cast<int>(mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset));
                         firstNote = false;
                     }
                     break;
                 case ALIVE_MIDI_NOTE_OFF:
-                    mAliveAudio.NoteOffDelay(channels[m.Channel], m.Note, m_TrackID, MidiTimeToSample(m.TimeOffset)); // Fix this. Make note off's have an offset in the voice timeline.
+                    mAliveAudio.NoteOffDelay(channels[m.Channel], m.Note, m_TrackID, static_cast<float>(MidiTimeToSample(m.TimeOffset))); // Fix this. Make note off's have an offset in the voice timeline.
                     break;
                 case ALIVE_MIDI_PROGRAM_CHANGE:
                     channels[m.Channel] = m.Special;
                     break;
                 case ALIVE_MIDI_ENDTRACK:
                     m_PlayerState = ALIVE_SEQUENCER_PLAYING;
-                    m_SongFinishSample = mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset);
+                    m_SongFinishSample = static_cast<Uint64>(mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset));
                     break;
                 }
 
@@ -90,25 +90,18 @@ void SequencePlayer::m_PlayerThreadFunction()
             m_PlayerState = ALIVE_SEQUENCER_FINISHED;
 
             // Give a quarter beat anyway
-            if (m_QuarterCallback != nullptr)
-            {
-                m_QuarterCallback();
-            }
+            DoQuaterCallback();
         }
 
         if (m_PlayerState == ALIVE_SEQUENCER_PLAYING)
         {
-            int quarterBeat = (m_SongFinishSample - m_SongBeginSample) / m_TimeSignatureBars;
-            int currentQuarterBeat = (int)(floor(GetPlaybackPositionSample() / quarterBeat));
+            const Uint64  quarterBeat = (m_SongFinishSample - m_SongBeginSample) / m_TimeSignatureBars;
+            const int currentQuarterBeat = (int)(floor(GetPlaybackPositionSample() / quarterBeat));
 
             if (m_PrevBar != currentQuarterBeat)
             {
                 m_PrevBar = currentQuarterBeat;
-
-                if (m_QuarterCallback != nullptr)
-                {
-                    m_QuarterCallback();
-                }
+                DoQuaterCallback();
             }
         }
     }
