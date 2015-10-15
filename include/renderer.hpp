@@ -151,7 +151,8 @@ private:
     // Vector rendering
     struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;
     struct NVGcontext* mNanoVg = nullptr;
-    int mW, mH;
+    int mW = 0;
+    int mH = 0;
 
     // Textured quad rendering
     GLuint mVs;

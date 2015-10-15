@@ -60,35 +60,36 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
     {
         try
         {
+            bSet = true;
+
             // Currently requires sounds.dat to be available from the get-go, so make
             // this failure non-fatal
             mAliveAudio.AliveInitAudio(mFs);
+
+            auto themes = mAliveAudio.m_Config.get<jsonxx::Array>("themes");
+            for (auto i = 0u; i < themes.size(); i++)
+            {
+                auto theme = themes.get<jsonxx::Object>(i);
+
+                const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".LVL";
+                auto res = mFs.ResourceExists(lvlFileName);
+                if (res)
+                {
+                    Oddlib::LvlArchive archive(res->Open(lvlFileName));
+                    auto vabName = theme.get<jsonxx::String>("vab", "null");
+                    auto bsqName = theme.get<jsonxx::String>("seq", "null");
+
+                    Oddlib::LvlArchive::File* file = archive.FileByName(bsqName);
+                    for (auto j = 0u; j < file->ChunkCount(); j++)
+                    {
+                        mThemes.push_back(lvlFileName + "!" + vabName + "!" + bsqName + "!" + std::to_string(j));
+                    }
+                }
+            }
         }
         catch (const std::exception& ex)
         {
             LOG_ERROR("Audio init failure: " << ex.what());
-        }
-
-        bSet = true;
-        auto themes = mAliveAudio.m_Config.get<jsonxx::Array>("themes");
-        for (auto i = 0u; i < themes.size(); i++)
-        {
-            auto theme = themes.get<jsonxx::Object>(i);
-
-            const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".LVL";
-            auto res = mFs.ResourceExists(lvlFileName);
-            if (res)
-            {
-                Oddlib::LvlArchive archive(res->Open(lvlFileName));
-                auto vabName = theme.get<jsonxx::String>("vab", "null");
-                auto bsqName = theme.get<jsonxx::String>("seq", "null");
-
-                Oddlib::LvlArchive::File* file = archive.FileByName(bsqName);
-                for (auto j = 0u; j < file->ChunkCount(); j++)
-                {
-                    mThemes.push_back(lvlFileName + "!" + vabName + "!" + bsqName + "!" + std::to_string(j));
-                }
-            }
         }
     }
 
