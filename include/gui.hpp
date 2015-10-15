@@ -111,8 +111,8 @@ struct GuiContext_Window {
 
 #define MAX_GUI_STACK_SIZE 32
 #define MAX_GUI_ELEMENT_COUNT 256 // @todo Remove limit
-#define MAX_GUI_WINDOW_COUNT 64
-#define GUI_FILENAME_SIZE MAX_PATH_SIZE
+#define MAX_GUI_WINDOW_COUNT 64 // @todo Remove limit
+#define GUI_FILENAME_SIZE MAX_PATH_SIZE // @todo Remove limit
 
 #define GUI_KEYSTATE_DOWN_BIT 0x1
 #define GUI_KEYSTATE_PRESSED_BIT 0x2
@@ -135,6 +135,7 @@ struct GuiContext_Window {
 
 typedef void (*DrawButtonFunc)(void *user_data, float x, float y, float w, float h, bool down, bool hover, int layer);
 typedef void (*DrawCheckBoxFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer);
+typedef void (*DrawRadioButtonFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer);
 typedef void (*DrawTextFunc)(void *user_data, float x, float y, const char *text, int layer);
 typedef void (*CalcTextSizeFunc)(float ret[2], void *user_data, const char *text, int layer);
 typedef void (*DrawWindowFunc)(void *user_data, float x, float y, float w, float h, float title_bar_height, const char *title, int layer);
@@ -145,6 +146,7 @@ struct GuiCallbacks {
     void *user_data;
     DrawButtonFunc draw_button;
     DrawCheckBoxFunc draw_checkbox;
+    DrawRadioButtonFunc draw_radiobutton;
     DrawTextFunc draw_text;
     CalcTextSizeFunc calc_text_size;
     DrawWindowFunc draw_window;
@@ -179,6 +181,7 @@ struct GuiContext {
     GuiId hot_id, last_hot_id;
     int hot_win_ix;
     GuiId active_id;
+    int active_win_ix;
 
     Skin skin;
     //SkinningMode skinning_mode;

@@ -56,11 +56,6 @@ void add_indices_to_vao(Vao *vao, MeshIndexType *indices, int count);
 void reset_vao_mesh(Vao *vao);
 void draw_vao(const Vao *vao);
 
-enum PixelFormat
-{
-    PixelFormat_RGB24 = 0
-};
-
 // Internal to Renderer
 enum DrawCmdType {
     DrawCmdType_quad,
@@ -80,6 +75,7 @@ enum DrawCmdType {
     DrawCmdType_stroke,
     DrawCmdType_roundedRect,
     DrawCmdType_rect,
+    DrawCmdType_circle,
     DrawCmdType_solidPathWinding,
     DrawCmdType_fillPaint,
 };
@@ -110,8 +106,7 @@ public:
     void beginLayer(int depth);
     void endLayer();
 
-    // Textures are rendered in endFrame, so don't destroy too soon
-    int createTexture(void *pixels, int width, int height, PixelFormat format);
+    int createTexture(GLenum internalFormat, int width, int height, GLenum inputFormat, GLenum colorDataType, const void *pixels);
     void destroyTexture(int handle);
 
     // Drawing commands, which will be buffered and issued at the end of the frame.
@@ -137,6 +132,7 @@ public:
     void stroke();
     void roundedRect(float x, float y, float w, float h, float r);
     void rect(float x, float y, float w, float h);
+    void circle(float x, float y, float r);
     void solidPathWinding(bool b); // If false, then holes are created
 
     void fillPaint(RenderPaint p);
@@ -145,6 +141,7 @@ public:
     RenderPaint linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec);
     RenderPaint boxGradient(float x, float y, float w, float h,
                             float r, float f, Color icol, Color ocol);
+    RenderPaint radialGradient(float cx, float cy, float inr, float outr, Color icol, Color ocol);
     // TODO: Add fontsize param to make independent of "current state"
     void textBounds(int x, int y, const char *msg, float bounds[4]);
 
@@ -172,6 +169,7 @@ private:
 
     std::vector<int> mLayerStack;
     std::vector<DrawCmd> mDrawCmds;
+    std::vector<int> mDestroyTextureList;
 };
 
 #endif
