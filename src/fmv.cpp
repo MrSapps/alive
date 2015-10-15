@@ -224,13 +224,14 @@ protected:
         int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
         gui_begin_window(&gui, "FMV", V2i(width, height));
-
         V2i pos = gui_turtle_pos(&gui);
+        V2i size = gui_window_client_size(&gui);
+
         rend.beginLayer(gui_layer(&gui));
-        rend.drawQuad(texhandle, pos.x, pos.y, width, height);
+        rend.drawQuad(texhandle, pos.x, pos.y, size.x, size.y);
 
         if (subtitles)
-            RenderSubtitles(rend, subtitles, pos.x, pos.y, width, height);
+            RenderSubtitles(rend, subtitles, pos.x, pos.y, size.x, size.y);
 
         rend.endLayer();
 
