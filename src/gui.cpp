@@ -268,7 +268,7 @@ GuiContext_Turtle *gui_turtle(GuiContext *ctx)
 
 GuiContext_Window *gui_window(GuiContext *ctx)
 {
-    return &ctx->windows[gui_turtle(ctx)->window_ix];
+    return gui_turtle(ctx)->window_ix >= 0 ? &ctx->windows[gui_turtle(ctx)->window_ix] : NULL;
 }
 
 bool gui_focused(GuiContext *ctx)
@@ -286,12 +286,19 @@ V2i gui_parent_turtle_start_pos(GuiContext *ctx)
 
 int gui_layer(GuiContext *ctx) { return gui_turtle(ctx)->layer; }
 
-bool gui_is_inside_window(GuiContext *ctx, V2i)
+GuiScissor *gui_scissor(GuiContext *ctx)
+{
+    GuiContext_Window * win = gui_window(ctx);
+    return win ? &win->scissor : NULL;
+}
+
+// Returns whether the current turtle with certain size is at least partially visible in the client area of the current window
+bool gui_is_inside_window(GuiContext *ctx, V2i size)
 {
     // TODO: Take size into account
     V2i pos = gui_turtle_pos(ctx);
     GuiContext_Window *win = gui_window(ctx);
-    if (pos.x < win->pos.x || pos.y < win->pos.y + GUI_WINDOW_TITLE_BAR_HEIGHT)
+    if (pos.x + size.x <= win->pos.x || pos.y + size.x <= win->pos.y + GUI_WINDOW_TITLE_BAR_HEIGHT)
         return false;
     if (pos.x >= win->pos.x + win->total_size.x || pos.y >= win->pos.y + win->total_size.y)
         return false;
@@ -780,7 +787,8 @@ void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, 
         { // Bg
             V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
             V2i px_size = pt_to_px(size, ctx->dpi_scale);
-            ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, false, false, gui_layer(ctx));
+            ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y,
+                                       false, false, gui_layer(ctx), gui_scissor(ctx));
         }
 
         { // Handle
@@ -792,7 +800,8 @@ void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, 
 
             V2i px_pos = pt_to_px(handle_pos, ctx->dpi_scale);
             V2i px_size = pt_to_px(handle_size, ctx->dpi_scale);
-            ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, down, hover, gui_layer(ctx));
+            ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y,
+                                       down, hover, gui_layer(ctx), gui_scissor(ctx));
         }
     }
 
@@ -887,6 +896,11 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
         win->pos.x = MAX(10 - size.x, win->pos.x);
         win->pos.y = MAX(10 - GUI_WINDOW_TITLE_BAR_HEIGHT, win->pos.y);
 
+        win->scissor.x = win->pos.x;
+        win->scissor.y = win->pos.y + GUI_WINDOW_TITLE_BAR_HEIGHT;
+        win->scissor.w = win->client_size.x;
+        win->scissor.h = win->client_size.y;
+
         V2i px_pos = pt_to_px(win->pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
         ctx->callbacks.draw_window(ctx->callbacks.user_data,
@@ -920,7 +934,8 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
 
         V2i px_pos = pt_to_px(handle_pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(handle_size, ctx->dpi_scale);
-        ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, down, hover, gui_layer(ctx));
+        ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y,
+                                   down, hover, gui_layer(ctx), gui_scissor(ctx));
 
         gui_end(ctx);
     }
@@ -1125,10 +1140,10 @@ bool gui_button(GuiContext *ctx, const char *label)
 
         V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
-        ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, down, hover, gui_layer(ctx));
+        ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, down, hover, gui_layer(ctx), gui_scissor(ctx));
 
         V2i px_margin = pt_to_px(margin, ctx->dpi_scale);
-        ctx->callbacks.draw_text(ctx->callbacks.user_data, 1.f*px_pos.x + px_margin.x, 1.f*px_pos.y + px_margin.y, gui_label_text(label), gui_layer(ctx));
+        ctx->callbacks.draw_text(ctx->callbacks.user_data, 1.f*px_pos.x + px_margin.x, 1.f*px_pos.y + px_margin.y, gui_label_text(label), gui_layer(ctx), gui_scissor(ctx));
     }
 
     gui_enlarge_bounding(ctx, pos + size);
@@ -1169,10 +1184,11 @@ bool gui_checkbox_ex(GuiContext *ctx, const char *label, bool *value, bool radio
         float y = 1.f*px_pos.y + px_margin.x;
         float w = 1.f*px_box_width;
         if (radio_button_visual)
-            ctx->callbacks.draw_radiobutton(ctx->callbacks.user_data, x, y, w, *value, down, hover, gui_layer(ctx));
+            ctx->callbacks.draw_radiobutton(ctx->callbacks.user_data, x, y, w, *value, down, hover, gui_layer(ctx), gui_scissor(ctx));
         else
-            ctx->callbacks.draw_checkbox(ctx->callbacks.user_data, x, y, w, *value, down, hover, gui_layer(ctx));
-        ctx->callbacks.draw_text(ctx->callbacks.user_data, px_pos.x + px_box_width + 2.f*px_margin.x, 1.f*px_pos.y + px_margin.y, gui_label_text(label), gui_layer(ctx));
+            ctx->callbacks.draw_checkbox(ctx->callbacks.user_data, x, y, w, *value, down, hover, gui_layer(ctx), gui_scissor(ctx));
+        ctx->callbacks.draw_text(ctx->callbacks.user_data, px_pos.x + px_box_width + 2.f*px_margin.x, 1.f*px_pos.y + px_margin.y,
+                                 gui_label_text(label), gui_layer(ctx), gui_scissor(ctx));
     }
 
     gui_enlarge_bounding(ctx, pos + size);

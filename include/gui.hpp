@@ -97,6 +97,8 @@ struct GuiContext_Turtle {
     DragDropData inactive_dragdropdata; // This is copied to gui context when actual dragging and dropping within this turtle starts
 };
 
+struct GuiScissor { float x, y, w, h; };
+
 struct Rendering;
 struct GuiContext_Window {
     GuiId id;
@@ -106,7 +108,9 @@ struct GuiContext_Window {
 
     V2i pos; // Top-left position
     V2i client_size; // Size, not taking account title bar or borders
-    V2i total_size; // Value depends from client_size
+
+    V2i total_size; // Value depends on client_size
+    GuiScissor scissor; // Depends on pos and sizes. Given to draw commands.
 };
 
 #define MAX_GUI_STACK_SIZE 32
@@ -133,10 +137,10 @@ struct GuiContext_Window {
 #define GUI_KEY_8 '8'
 #define GUI_KEY_9 '9'
 
-typedef void (*DrawButtonFunc)(void *user_data, float x, float y, float w, float h, bool down, bool hover, int layer);
-typedef void (*DrawCheckBoxFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer);
-typedef void (*DrawRadioButtonFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer);
-typedef void (*DrawTextFunc)(void *user_data, float x, float y, const char *text, int layer);
+typedef void (*DrawButtonFunc)(void *user_data, float x, float y, float w, float h, bool down, bool hover, int layer, GuiScissor *s);
+typedef void (*DrawCheckBoxFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer, GuiScissor *s);
+typedef void (*DrawRadioButtonFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer, GuiScissor *s);
+typedef void (*DrawTextFunc)(void *user_data, float x, float y, const char *text, int layer, GuiScissor *s);
 typedef void (*CalcTextSizeFunc)(float ret[2], void *user_data, const char *text, int layer);
 typedef void (*DrawWindowFunc)(void *user_data, float x, float y, float w, float h, float title_bar_height, const char *title, bool focus, int layer);
 

@@ -468,6 +468,8 @@ void Renderer::endFrame()
             nvp.image = p.image;
             nvgFillPaint(mNanoVg, nvp);
         } break;
+        case DrawCmdType_scissor: nvgScissor(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3]); break;
+        case DrawCmdType_resetScissor: nvgResetScissor(mNanoVg); break;
         default: assert(0 && "Unknown DrawCmdType");
         }
     }
@@ -704,6 +706,24 @@ void Renderer::fillPaint(RenderPaint p)
     DrawCmd cmd;
     cmd.type = DrawCmdType_fillPaint;
     cmd.paint = p;
+    pushCmd(cmd);
+}
+
+void Renderer::scissor(float x, float y, float w, float h)
+{
+    DrawCmd cmd;
+    cmd.type = DrawCmdType_scissor;
+    cmd.f[0] = x;
+    cmd.f[1] = y;
+    cmd.f[2] = w;
+    cmd.f[3] = h;
+    pushCmd(cmd);
+}
+
+void Renderer::resetScissor()
+{
+    DrawCmd cmd;
+    cmd.type = DrawCmdType_resetScissor;
     pushCmd(cmd);
 }
 
