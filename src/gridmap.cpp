@@ -4,7 +4,7 @@
 #include "renderer.hpp"
 #include "oddlib/path.hpp"
 #include "oddlib/bits_factory.hpp"
-
+#include "logger.hpp"
 #include <cassert>
 
 Level::Level(GameData& gameData, IAudioController& /*audioController*/, FileSystem& fs)
@@ -81,6 +81,10 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
                         mMap = std::make_unique<GridMap>(path, std::move(archive), rend);
                     }
                 }
+            }
+            else
+            {
+                LOG_ERROR("LVL not found");
             }
         }
     }
