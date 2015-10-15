@@ -638,7 +638,7 @@ public:
         static bool bSet = false;
         if (!bSet)
         {
-            gui.next_window_pos = V2i(720, 40);
+            gui.next_window_pos = V2i(920, 40);
             bSet = true;
         }
         gui_begin_window(&gui, name.c_str(), V2i(300, 580));
