@@ -32,6 +32,7 @@ void sprintf_impl(char *buf, size_t count, const char *fmt, ...)
 #define ABS(x) ((x) < 0 ? (-x) : x)
 #define GUI_WINDOW_TITLE_BAR_HEIGHT 25
 #define GUI_SCROLL_BAR_WIDTH 15
+#define GUI_LAYERS_PER_WINDOW 10000 // Maybe 10k layers inside a window is enough
 
 V2i v2i(int x, int y)
 {
@@ -480,6 +481,8 @@ void gui_begin(GuiContext *ctx, const char *label, bool detached)
 
 #define GUI_HANDLE_RIGHT_BIT 0x01
 #define GUI_HANDLE_BOTTOM_BIT 0x02
+
+#if 0
 // Resize handle for parent element
 void do_resize_handle(GuiContext *ctx, bool right_handle)
 {
@@ -508,7 +511,6 @@ void do_resize_handle(GuiContext *ctx, bool right_handle)
     if (went_down)
         ctx->drag_start_value = v2i_to_v2f(panel_size);
 
-#if 0
     if (down && ctx->dragging) {
         V2i new_size = v2f_to_v2i(ctx->drag_start_value) + px_to_pt(ctx->cursor_pos - ctx->drag_start_pos, ctx->dpi_scale);
         new_size.x = MAX(new_size.x, 10);
@@ -520,7 +522,6 @@ void do_resize_handle(GuiContext *ctx, bool right_handle)
         // @todo Resizing by user should maybe belong to somewhere else than skin?
         set_tbl(GuiId, V2i)(&ctx->skin.element_sizes, panel_id, new_size);
     }
-#endif
 
     // @todo Change cursor when hovering
 
@@ -529,6 +530,7 @@ void do_resize_handle(GuiContext *ctx, bool right_handle)
     //draw_rect(gui_rendering(ctx), pt_to_px(handle_pos, ctx->dpi_scale), pt_to_px(handle_size, ctx->dpi_scale), col);
     gui_end_ex(ctx, true, NULL); }
 }
+#endif
 
 void gui_end(GuiContext *ctx)
 {
@@ -743,7 +745,7 @@ void do_skinning(GuiContext *ctx, const char *label, V2i pos, V2i size, Color co
 #endif
 
 #define SELECT_COMP(v, h) ((h) ? (v.x) : (v.y))
-void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, float max, bool h)
+void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, float max, bool h, int make_shorter)
 {
     const int scroll_bar_width = GUI_SCROLL_BAR_WIDTH;
     const int scroll_handle_height = 10;
@@ -752,7 +754,7 @@ void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, 
 
     V2i pos = gui_turtle_pos(ctx);
     V2i size;
-    SELECT_COMP(size, h) = SELECT_COMP(gui_window(ctx)->client_size, h);
+    SELECT_COMP(size, h) = SELECT_COMP(gui_window(ctx)->client_size, h) - make_shorter;
     SELECT_COMP(size, !h) = scroll_bar_width;
 
     bool went_down, down, hover;
@@ -792,7 +794,7 @@ void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, 
     gui_end(ctx);
 }
 
-void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i min_size)
+void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
 {
     int win_handle = -1;
     { // Find/create platform window
@@ -812,8 +814,8 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i min_size)
             if (win_client_size.x < last_content_size.x || win_client_size.y < last_content_size.y) {
                 // Resize window so that content is fully shown
                 // @todo Implement minimum and maximum size to gui backend
-                min_size.x = MAX(min_size.x, MAX(win_client_size.x, last_content_size.x));
-                min_size.y = MAX(min_size.y, MAX(win_client_size.y, last_content_size.y));
+                default_size.x = MAX(default_size.x, MAX(win_client_size.x, last_content_size.x));
+                default_size.y = MAX(default_size.y, MAX(win_client_size.y, last_content_size.y));
                 ctx->windows[win_handle].client_size = min_size;
             }
 #endif
@@ -825,7 +827,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i min_size)
             assert(ctx->window_count < MAX_GUI_WINDOW_COUNT);
 
             ctx->windows[free_handle].id = gui_id(label);
-            ctx->windows[free_handle].client_size = min_size;
+            ctx->windows[free_handle].client_size = default_size;
             ctx->windows[free_handle].pos = ctx->next_window_pos;
             ctx->window_order[ctx->window_count++] = free_handle;
 
@@ -839,7 +841,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i min_size)
 
     gui_begin(ctx, label, true);
     gui_turtle(ctx)->window_ix = win_handle;
-    gui_turtle(ctx)->layer = 1337 + gui_window_order(ctx, win_handle) * 10000; // Maybe 10k layers inside a window is enough
+    gui_turtle(ctx)->layer = 1337 + gui_window_order(ctx, win_handle) * GUI_LAYERS_PER_WINDOW;
 
     { // Ordinary gui element logic
         V2i size = win->client_size + V2i(0, GUI_WINDOW_TITLE_BAR_HEIGHT);
@@ -892,6 +894,32 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i min_size)
         gui_turtle(ctx)->pos = content_pos;
     }
 
+    { // Corner resize handle
+        char resize_label[MAX_GUI_LABEL_SIZE];
+        FMT_STR(resize_label, ARRAY_COUNT(resize_label), "winresize_%s", label);
+        gui_begin(ctx, resize_label, true); // Detach so that the handle doesn't take part in window contents size
+        gui_turtle(ctx)->layer += GUI_LAYERS_PER_WINDOW/2; // Make topmost in window @todo Then should move this to end_window
+
+        V2i handle_size = v2i(GUI_SCROLL_BAR_WIDTH, GUI_SCROLL_BAR_WIDTH);
+        V2i handle_pos = win->pos + win->total_size - handle_size;
+        bool went_down, down, hover;
+        gui_button_logic(ctx, resize_label, handle_pos, handle_size, NULL, &went_down, &down, &hover);
+
+        if (went_down)
+            gui_start_dragging(ctx, v2i_to_v2f(win->client_size));
+
+        if (down)
+            win->client_size = v2f_to_v2i(ctx->drag_start_value) + ctx->cursor_pos - ctx->drag_start_pos;
+        win->client_size.x = MAX(win->client_size.x, 40);
+        win->client_size.y = MAX(win->client_size.y, 40);
+
+        V2i px_pos = pt_to_px(handle_pos, ctx->dpi_scale);
+        V2i px_size = pt_to_px(handle_size, ctx->dpi_scale);
+        ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, down, hover, gui_layer(ctx));
+
+        gui_end(ctx);
+    }
+
     // Scrollbar
     if (win->client_size.y < win->last_frame_bounding_size.y)
     {
@@ -899,13 +927,14 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i min_size)
         char scroll_panel_label[MAX_GUI_LABEL_SIZE];
         FMT_STR(scroll_panel_label, ARRAY_COUNT(scroll_panel_label), "winscrollpanel_%s", label);
         gui_begin(ctx, scroll_panel_label, true); // Detach so that the scroll doesn't take part in window contents size
+        gui_turtle(ctx)->layer += GUI_LAYERS_PER_WINDOW/2; // Make topmost in window @todo Then should move this to end_window
 
         char scroll_label[MAX_GUI_LABEL_SIZE];
         FMT_STR(scroll_label, ARRAY_COUNT(scroll_label), "winscroll_%s", label);
         gui_turtle(ctx)->pos = win->pos + V2i(win->total_size.x - GUI_SCROLL_BAR_WIDTH, GUI_WINDOW_TITLE_BAR_HEIGHT);
 
         float scroll = 1.f*win->scroll;
-        gui_slider_ex(ctx, scroll_label, &scroll, 0, 1.f*win->last_frame_bounding_size.y - win->client_size.y, false);
+        gui_slider_ex(ctx, scroll_label, &scroll, 0, 1.f*win->last_frame_bounding_size.y - win->client_size.y, false, GUI_SCROLL_BAR_WIDTH);
         win->scroll = (int)scroll;
         gui_end(ctx);
 
@@ -956,16 +985,19 @@ void gui_end_window_ex(GuiContext *ctx, bool * /*open*/)
     gui_end(ctx);
 }
 
-void gui_begin_window(GuiContext *ctx, const char *label, V2i min_size)
+void gui_begin_window(GuiContext *ctx, const char *label, V2i default_size)
 {
     //bool toplevel_turtle = (ctx->turtle_ix == 0);
-    gui_begin_window_ex(ctx, label, min_size);
+    gui_begin_window_ex(ctx, label, default_size);
 }
 
 void gui_end_window(GuiContext *ctx, bool *open)
 {
     gui_end_window_ex(ctx, open);
 }
+
+V2i gui_window_client_size(GuiContext *ctx)
+{ return gui_window(ctx)->client_size; }
 
 void gui_begin_contextmenu(GuiContext *ctx, const char *label)
 {
@@ -1154,7 +1186,7 @@ bool gui_radiobutton(GuiContext *ctx, const char *label, bool value)
 
 void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max)
 {
-    gui_slider_ex(ctx, label, value, min, max, true);
+    gui_slider_ex(ctx, label, value, min, max, true, 0);
     gui_next_row(ctx);
 }
 

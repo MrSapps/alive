@@ -158,7 +158,8 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scr
     }
     gui_end_window(&gui);
 
-    if (mEditorScreenX >= (int)mScreens.size() || mEditorScreenY >= (int)mScreens.size())
+    if (mEditorScreenX >= (int)mScreens.size() || // Invalid x check
+        (mEditorScreenX >= 0 && mEditorScreenY >= mScreens[mEditorScreenX].size())) // Invalid y check
     {
         mEditorScreenX = mEditorScreenY = -1;
     }
@@ -171,6 +172,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scr
 
         V2i size(640, 480);
         gui_begin_window(&gui, "CAM", size);
+        size = gui_window_client_size(&gui);
 
         rend.beginLayer(gui_layer(&gui));
         V2i pos = gui_turtle_pos(&gui);
