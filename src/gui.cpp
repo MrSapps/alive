@@ -399,9 +399,9 @@ void gui_set_active(GuiContext *ctx, const char *label)
     ctx->hot_id = 0; // Prevent the case where hot becomes assigned some different (overlapping) element than active
 }
 
-void gui_set_inactive(GuiContext *ctx, const char *label)
+void gui_set_inactive(GuiContext *ctx, GuiId id)
 {
-    if (ctx->active_id == gui_id(label)) {
+    if (ctx->active_id == id) {
         ctx->active_id = 0;
         ctx->active_win_ix = -1;
     }
@@ -426,7 +426,7 @@ void gui_button_logic(GuiContext *ctx, const char *label, V2i pos, V2i size, boo
         }
         else if (ctx->key_state[GUI_KEY_LMB] & GUI_KEYSTATE_RELEASED_BIT) {
             if (went_up) *went_up = true;
-            gui_set_inactive(ctx, label);
+            gui_set_inactive(ctx, gui_id(label));
             was_released = true;
         }
     }
@@ -621,10 +621,17 @@ void gui_end_ex(GuiContext *ctx, bool make_zero_size, DragDropData *dropdata)
         for (int i = 0; i < MAX_GUI_WINDOW_COUNT; ++i) {
             if (!ctx->windows[i].id)
                 continue;
+            
+            if (!ctx->windows[i].used) {
+                // Hide closed windows - don't destroy. Position etc. must be preserved.
+                //destroy_window(ctx, i);
 
-            // Hide closed windows - don't destroy. Position etc. must be preserved.
-            //if (!ctx->windows[i].used)
-            //    destroy_window(ctx, i);
+                if (ctx->active_win_ix == i) {
+                    // Stop interacting with an element in hidden window
+                    gui_set_inactive(ctx, ctx->active_id);
+                }
+            }
+
             ctx->windows[i].used = false;
         }
 
@@ -856,8 +863,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
         bool went_down, down, hover;
         gui_button_logic(ctx, label, win->pos, V2i(size.x, GUI_WINDOW_TITLE_BAR_HEIGHT), NULL, &went_down, &down, &hover);
 
-        if (ctx->active_win_ix == win_handle)
-        {
+        if (ctx->active_win_ix == win_handle) {
             // Lift window to top
             bool found = false;
             for (int i = 0; i < ctx->window_count; ++i) {
@@ -869,7 +875,6 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
                 }
             }
             ctx->window_order[ctx->window_count - 1] = win_handle;
-
         }
 
         if (went_down)
