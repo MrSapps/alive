@@ -566,6 +566,8 @@ void Renderer::strokeWidth(float size)
 
 void Renderer::fontSize(float s)
 {
+    nvgFontSize(mNanoVg, s); // Must call nanovg because affects text size query
+
     DrawCmd cmd;
     cmd.type = DrawCmdType_fontSize;
     cmd.f[0] = s;
@@ -574,6 +576,8 @@ void Renderer::fontSize(float s)
 
 void Renderer::fontBlur(float s)
 {
+    nvgFontBlur(mNanoVg, s); // Must call nanovg because affects text size query
+
     DrawCmd cmd;
     cmd.type = DrawCmdType_fontBlur;
     cmd.f[0] = s;
@@ -582,6 +586,8 @@ void Renderer::fontBlur(float s)
 
 void Renderer::textAlign(int align)
 {
+    nvgTextAlign(mNanoVg, align); // Must call nanovg because affects text size query
+
     DrawCmd cmd;
     cmd.type = DrawCmdType_textAlign;
     cmd.integer = align;
@@ -749,7 +755,6 @@ RenderPaint Renderer::radialGradient(float cx, float cy, float inr, float outr, 
 
 void Renderer::textBounds(int x, int y, const char *msg, float bounds[4])
 {
-    // TODO: Set current font settings before querying bounds
     nvgTextBounds(mNanoVg, x, y, msg, nullptr, bounds);
 }
 
