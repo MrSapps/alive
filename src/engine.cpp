@@ -432,7 +432,7 @@ void Engine::Update()
         case SDL_KEYDOWN:
         case SDL_KEYUP:
         {
-            if (event.key.keysym.sym == 13)
+            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == 13)
             {
                 const Uint32 windowFlags = SDL_GetWindowFlags(mWindow);
                 bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
