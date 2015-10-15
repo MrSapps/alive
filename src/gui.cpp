@@ -1106,15 +1106,16 @@ bool gui_button(GuiContext *ctx, const char *label)
     gui_begin(ctx, label);
     V2i margin(5, 3);
     V2i pos = gui_turtle(ctx)->pos;
-    V2i size = gui_size(ctx, label, V2i(50, 20)); // @todo Minimum size to skin
+    V2i size = gui_size(ctx, label, V2i(50, 21)); // @todo Minimum size to skin
 
     bool went_up = false, hover = false, down = false;
     if (gui_is_inside_window(ctx, size))
     {
+        // @todo Recalc size when text changes regardless if is in a window or not. Disabled size.y change because caused shaking with long lists.
         float text_size[2];
         ctx->callbacks.calc_text_size(text_size, ctx->callbacks.user_data, gui_label_text(label), gui_layer(ctx));
         size.x = MAX((int)text_size[0] + margin.x * 2, size.x);
-        size.y = MAX((int)text_size[1] + margin.y * 2, size.y);
+        //size.y = MAX((int)text_size[1] + margin.y * 2, size.y);
 
         gui_button_logic(ctx, label, pos, size, &went_up, NULL, &down, &hover);
 
