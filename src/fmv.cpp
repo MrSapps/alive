@@ -31,13 +31,13 @@ static float Percent(float max, float percent)
     return (max / 100.0f) * percent;
 }
 
-static void RenderSubtitles(Renderer& rend, const char* msg, int screenW, int screenH)
+static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w, int h)
 {
     float xpos = 0.0f;
-    float ypos = static_cast<float>(screenH);
+    float ypos = static_cast<float>(y + h);
 
     rend.fillColor(Color{ 0, 0, 0, 1 });
-    rend.fontSize(Percent(static_cast<float>(screenH), 6.7f));
+    rend.fontSize(Percent(static_cast<float>(h), 6.7f));
     rend.textAlign(TEXT_ALIGN_TOP);
     
     float bounds[4];
@@ -52,11 +52,11 @@ static void RenderSubtitles(Renderer& rend, const char* msg, int screenW, int sc
     ypos -= fontH + (fontH/2);
 
     // Center XPos in the screenW
-    xpos = (screenW / 2) - (fontW / 2);
+    xpos = x + (w / 2) - (fontW / 2);
 
     rend.text(xpos, ypos, msg);
     rend.fillColor(Color{ 1, 1, 1, 1 });
-    float adjust = Percent(static_cast<float>(screenH), 0.3f);
+    float adjust = Percent(static_cast<float>(h), 0.3f);
     rend.text(xpos - adjust, ypos - adjust, msg);
 }
 
@@ -120,6 +120,7 @@ public:
         
         const auto videoFrameIndex = mConsumedAudioBytes / mAudioBytesPerFrame;// 10063;
         //std::cout << "Total audio bytes is " << mConsumedAudioBytes << std::endl;
+        const char *current_subs = nullptr;
         if (mSubTitles)
         {
             // We assume the FPS is always 15, thus 1000/15=66.66 so frame number * 66 = number of msecs into the video
@@ -127,8 +128,7 @@ public:
             if (!subs.empty())
             {
                 // TODO: Render all active subs, not just the first one
-                const char* msg = subs[0]->Text().c_str();
-                RenderSubtitles(rend, msg, screenW, screenH);
+                current_subs = subs[0]->Text().c_str();
                 if (subs.size() > 1)
                 {
                     LOG_WARNING("Too many active subtitles " << subs.size());
@@ -149,7 +149,7 @@ public:
             if (f.mFrameNum == videoFrameIndex)
             {
                 mLast = f;
-                RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data());
+                RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
                 played = true;
                 break;
             }
@@ -159,13 +159,13 @@ public:
         if (!played && !mVideoBuffer.empty())
         {
             Frame& f = mVideoBuffer.front();
-            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data());
+            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
         }
 
         if (!played && mVideoBuffer.empty())
         {
             Frame& f = mLast;
-            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data());
+            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
         }
 
         while (NeedBuffer())
@@ -218,7 +218,7 @@ protected:
         mConsumedAudioBytes += take*sizeof(int16_t);
     }
 
-    void RenderFrame(Renderer &rend, GuiContext &gui, int width, int height, const GLvoid *pixels)
+    void RenderFrame(Renderer &rend, GuiContext &gui, int width, int height, const GLvoid *pixels, const char *subtitles)
     {
         // TODO: Optimize - should update 1 texture rather than creating per frame
         int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
@@ -228,6 +228,10 @@ protected:
         V2i pos = gui_turtle_pos(&gui);
         rend.beginLayer(gui_layer(&gui));
         rend.drawQuad(texhandle, pos.x, pos.y, width, height);
+
+        if (subtitles)
+            RenderSubtitles(rend, subtitles, pos.x, pos.y, width, height);
+
         rend.endLayer();
 
         gui_end_window(&gui);
