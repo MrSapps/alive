@@ -616,13 +616,13 @@ void gui_end_ex(GuiContext *ctx, bool make_zero_size, DragDropData *dropdata)
     }
 
     if (ctx->turtle_ix == 0) { // Root panel
-        // Destroy closed windows
         for (int i = 0; i < MAX_GUI_WINDOW_COUNT; ++i) {
             if (!ctx->windows[i].id)
                 continue;
 
-            if (!ctx->windows[i].used)
-                destroy_window(ctx, i);
+            // Hide closed windows - don't destroy. Position etc. must be preserved.
+            //if (!ctx->windows[i].used)
+            //    destroy_window(ctx, i);
             ctx->windows[i].used = false;
         }
 

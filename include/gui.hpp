@@ -111,8 +111,8 @@ struct GuiContext_Window {
 
 #define MAX_GUI_STACK_SIZE 32
 #define MAX_GUI_ELEMENT_COUNT 256 // @todo Remove limit
-#define MAX_GUI_WINDOW_COUNT 64
-#define GUI_FILENAME_SIZE MAX_PATH_SIZE
+#define MAX_GUI_WINDOW_COUNT 64 // @todo Remove limit
+#define GUI_FILENAME_SIZE MAX_PATH_SIZE // @todo Remove limit
 
 #define GUI_KEYSTATE_DOWN_BIT 0x1
 #define GUI_KEYSTATE_PRESSED_BIT 0x2
