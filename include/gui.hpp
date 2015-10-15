@@ -138,7 +138,7 @@ typedef void (*DrawCheckBoxFunc)(void *user_data, float x, float y, float w, boo
 typedef void (*DrawRadioButtonFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer);
 typedef void (*DrawTextFunc)(void *user_data, float x, float y, const char *text, int layer);
 typedef void (*CalcTextSizeFunc)(float ret[2], void *user_data, const char *text, int layer);
-typedef void (*DrawWindowFunc)(void *user_data, float x, float y, float w, float h, float title_bar_height, const char *title, int layer);
+typedef void (*DrawWindowFunc)(void *user_data, float x, float y, float w, float h, float title_bar_height, const char *title, bool focus, int layer);
 
 // User-supplied callbacks
 // TODO: Not sure if callbacks are better than providing an array containing all drawing commands of a frame.
@@ -156,12 +156,11 @@ struct GuiCallbacks {
 struct GuiContext {
     // Write to these to make gui work
     V2i cursor_pos; // Screen position, pixel coordinates
+    int mouse_scroll; // Typically +1 or -1
     uint8_t key_state[GUI_KEY_COUNT];
     V2i next_window_pos;
 
     // Internals
-
-    V2i cursor_delta;
 
     V2i drag_start_pos; // Pixel coordinates
     bool dragging;

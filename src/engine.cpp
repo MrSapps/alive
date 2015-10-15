@@ -268,7 +268,7 @@ void calcTextSize(float ret[2], void *void_rend, const char *text, int layer)
     rend->endLayer();
 }
 
-void drawWindow(void *void_rend, float x, float y, float w, float h, float titleBarHeight, const char *title, int layer)
+void drawWindow(void *void_rend, float x, float y, float w, float h, float titleBarHeight, const char *title, bool focus, int layer)
 {
     Renderer *rend = (Renderer*)void_rend;
 
@@ -281,7 +281,7 @@ void drawWindow(void *void_rend, float x, float y, float w, float h, float title
     // Window
     rend->beginPath();
     rend->roundedRect(x, y, w, h, cornerRadius);
-    rend->fillColor(Color{ 28/255.f, 30/255.f, 34/255.f, 192/255.f });
+    rend->fillColor(Color{ 28/255.f, 30/255.f, 34/255.f, 220/255.f });
     //	nvgFillColor(vg, nvgRGBA(0,0,0,128));
     rend->fill();
 
@@ -296,7 +296,10 @@ void drawWindow(void *void_rend, float x, float y, float w, float h, float title
     rend->solidPathWinding(true);
 
     // Header
-    headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.f, 1.f, 1.f, 8 / 255.f }, Color{ 0.f, 0.f, 0.f, 16/255.f });
+    if (focus)
+        headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.0f, 1.f, 1.0f, 16 / 255.f }, Color{ 0.f, 0.0f, 0.f, 32/255.f });
+    else
+        headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.f, 1.f, 1.f, 16 / 255.f }, Color{ 1.f, 1.f, 1.f, 16/255.f });
     rend->beginPath();
     rend->roundedRect(x + 1, y + 1, w - 2, titleBarHeight, cornerRadius - 1);
     rend->fillPaint(headerPaint);
@@ -367,11 +370,11 @@ void Engine::Update()
         case SDL_MOUSEWHEEL:
             if (event.wheel.y < 0)
             {
-                //ImGui::GetIO().MouseWheel = -1.0f;
+                mGui->mouse_scroll = -1;
             }
             else
             {
-                //ImGui::GetIO().MouseWheel = 1.0f;
+                mGui->mouse_scroll = 1;
             }
             break;
 

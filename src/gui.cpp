@@ -635,10 +635,10 @@ void gui_end_ex(GuiContext *ctx, bool make_zero_size, DragDropData *dropdata)
             ctx->windows[i].used = false;
         }
 
+        ctx->mouse_scroll = 0;
         ctx->last_hot_id = ctx->hot_id;
         ctx->hot_id = 0;
     }
-
 }
 
 #if 0
@@ -891,7 +891,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
         ctx->callbacks.draw_window(ctx->callbacks.user_data,
                                    1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, GUI_WINDOW_TITLE_BAR_HEIGHT,
-                                   gui_label_text(label), gui_layer(ctx));
+                                   gui_label_text(label), gui_focused(ctx), gui_layer(ctx));
 
         // Turtle to content area
         V2i content_pos = win->pos + V2i(0, GUI_WINDOW_TITLE_BAR_HEIGHT);
@@ -925,7 +925,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
         gui_end(ctx);
     }
 
-    // Scrollbar
+    // Scrolling
     if (win->client_size.y < win->last_frame_bounding_size.y)
     {
         V2i client_start_pos = gui_turtle(ctx)->pos - V2i(0, win->scroll);
@@ -937,6 +937,10 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
         char scroll_label[MAX_GUI_LABEL_SIZE];
         FMT_STR(scroll_label, ARRAY_COUNT(scroll_label), "winscroll_%s", label);
         gui_turtle(ctx)->pos = win->pos + V2i(win->total_size.x - GUI_SCROLL_BAR_WIDTH, GUI_WINDOW_TITLE_BAR_HEIGHT);
+
+        if (gui_focused(ctx) && ctx->mouse_scroll != 0) {
+            win->scroll -= ctx->mouse_scroll*64;
+        }
 
         float scroll = 1.f*win->scroll;
         gui_slider_ex(ctx, scroll_label, &scroll, 0, 1.f*win->last_frame_bounding_size.y - win->client_size.y, false, GUI_SCROLL_BAR_WIDTH);
