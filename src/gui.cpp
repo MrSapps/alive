@@ -348,6 +348,8 @@ GuiContext *create_gui(GuiCallbacks callbacks)
     GuiContext *ctx = (GuiContext*)calloc(1, sizeof(*ctx));
     ctx->dpi_scale = 1.0f;
     ctx->callbacks = callbacks;
+    ctx->hot_win_ix = -1;
+    ctx->active_win_ix = -1;
     return ctx;
 }
 
@@ -392,13 +394,16 @@ bool gui_is_hot(GuiContext *ctx, const char *label)
 void gui_set_active(GuiContext *ctx, const char *label)
 {
     ctx->active_id = gui_id(label);
+    ctx->active_win_ix = gui_turtle(ctx)->window_ix;
     ctx->hot_id = 0; // Prevent the case where hot becomes assigned some different (overlapping) element than active
 }
 
 void gui_set_inactive(GuiContext *ctx, const char *label)
 {
-    if (ctx->active_id == gui_id(label))
+    if (ctx->active_id == gui_id(label)) {
         ctx->active_id = 0;
+        ctx->active_win_ix = -1;
+    }
 }
 
 bool gui_is_active(GuiContext *ctx, const char *label)
@@ -611,13 +616,13 @@ void gui_end_ex(GuiContext *ctx, bool make_zero_size, DragDropData *dropdata)
     }
 
     if (ctx->turtle_ix == 0) { // Root panel
-        // Destroy closed windows
         for (int i = 0; i < MAX_GUI_WINDOW_COUNT; ++i) {
             if (!ctx->windows[i].id)
                 continue;
 
-            if (!ctx->windows[i].used)
-                destroy_window(ctx, i);
+            // Hide closed windows - don't destroy. Position etc. must be preserved.
+            //if (!ctx->windows[i].used)
+            //    destroy_window(ctx, i);
             ctx->windows[i].used = false;
         }
 
@@ -849,7 +854,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i min_size)
         bool went_down, down, hover;
         gui_button_logic(ctx, label, win->pos, V2i(size.x, GUI_WINDOW_TITLE_BAR_HEIGHT), NULL, &went_down, &down, &hover);
 
-        if (went_down)
+        if (ctx->active_win_ix == win_handle)
         {
             // Lift window to top
             bool found = false;
@@ -863,8 +868,10 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i min_size)
             }
             ctx->window_order[ctx->window_count - 1] = win_handle;
 
-            gui_start_dragging(ctx, v2i_to_v2f(win->pos));
         }
+
+        if (went_down)
+            gui_start_dragging(ctx, v2i_to_v2f(win->pos));
 
         V2i prev_value = win->pos;
         if (down && ctx->dragging)
@@ -1090,7 +1097,7 @@ bool gui_button(GuiContext *ctx, const char *label)
     return went_up && hover;
 }
 
-bool gui_checkbox(GuiContext *ctx, const char *label, bool *value)
+bool gui_checkbox_ex(GuiContext *ctx, const char *label, bool *value, bool radio_button_visual)
 {
     gui_begin(ctx, label);
     V2i margin(5, 3);
@@ -1116,7 +1123,13 @@ bool gui_checkbox(GuiContext *ctx, const char *label, bool *value)
         V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
 
-        ctx->callbacks.draw_checkbox(ctx->callbacks.user_data, 1.f*px_pos.x + px_margin.x, 1.f*px_pos.y + px_margin.x, 1.f*px_box_width, *value, down, hover, gui_layer(ctx));
+        float x = 1.f*px_pos.x + px_margin.x;
+        float y = 1.f*px_pos.y + px_margin.x;
+        float w = 1.f*px_box_width;
+        if (radio_button_visual)
+            ctx->callbacks.draw_radiobutton(ctx->callbacks.user_data, x, y, w, *value, down, hover, gui_layer(ctx));
+        else
+            ctx->callbacks.draw_checkbox(ctx->callbacks.user_data, x, y, w, *value, down, hover, gui_layer(ctx));
         ctx->callbacks.draw_text(ctx->callbacks.user_data, px_pos.x + px_box_width + 2.f*px_margin.x, 1.f*px_pos.y + px_margin.y, gui_label_text(label), gui_layer(ctx));
     }
 
@@ -1130,10 +1143,13 @@ bool gui_checkbox(GuiContext *ctx, const char *label, bool *value)
     return went_up && hover;
 }
 
+bool gui_checkbox(GuiContext *ctx, const char *label, bool *value)
+{ return gui_checkbox_ex(ctx, label, value, false); }
+
 bool gui_radiobutton(GuiContext *ctx, const char *label, bool value)
 {
     bool v = value;
-    return gui_checkbox(ctx, label, &v); // @todo Proper radiobutton
+    return gui_checkbox_ex(ctx, label, &v, true); // @todo Proper radiobutton
 }
 
 void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max)
