@@ -56,11 +56,6 @@ void add_indices_to_vao(Vao *vao, MeshIndexType *indices, int count);
 void reset_vao_mesh(Vao *vao);
 void draw_vao(const Vao *vao);
 
-enum PixelFormat
-{
-    PixelFormat_RGB24 = 0
-};
-
 // Internal to Renderer
 enum DrawCmdType {
     DrawCmdType_quad,
@@ -111,8 +106,7 @@ public:
     void beginLayer(int depth);
     void endLayer();
 
-    // Textures are rendered in endFrame, so don't destroy too soon
-    int createTexture(void *pixels, int width, int height, PixelFormat format);
+    int createTexture(GLenum internalFormat, int width, int height, GLenum inputFormat, GLenum colorDataType, const void *pixels);
     void destroyTexture(int handle);
 
     // Drawing commands, which will be buffered and issued at the end of the frame.
@@ -174,6 +168,7 @@ private:
 
     std::vector<int> mLayerStack;
     std::vector<DrawCmd> mDrawCmds;
+    std::vector<int> mDestroyTextureList;
 };
 
 #endif

@@ -86,7 +86,7 @@ public:
     virtual void FillBuffers() = 0;
 
     // Main thread context
-    void OnRenderFrame(Renderer& rend, int screenW, int screenH)
+    void OnRenderFrame(Renderer& rend, GuiContext &gui, int screenW, int screenH)
     {
         // TODO: Populate mAudioBuffer and mVideoBuffer
         // for up to N buffered frames
@@ -149,7 +149,7 @@ public:
             if (f.mFrameNum == videoFrameIndex)
             {
                 mLast = f;
-                RenderFrame(f.mW, f.mH, f.mPixels.data());
+                RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data());
                 played = true;
                 break;
             }
@@ -159,13 +159,13 @@ public:
         if (!played && !mVideoBuffer.empty())
         {
             Frame& f = mVideoBuffer.front();
-            RenderFrame(f.mW, f.mH, f.mPixels.data());
+            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data());
         }
 
         if (!played && mVideoBuffer.empty())
         {
             Frame& f = mLast;
-            RenderFrame(f.mW, f.mH, f.mPixels.data());
+            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data());
         }
 
         while (NeedBuffer())
@@ -218,33 +218,21 @@ protected:
         mConsumedAudioBytes += take*sizeof(int16_t);
     }
 
-    void RenderFrame(int width, int height, const GLvoid *pixels)
+    void RenderFrame(Renderer &rend, GuiContext &gui, int width, int height, const GLvoid *pixels)
     {
-        // TODO: Optimize - should use VBO's & update 1 texture rather than creating per frame
-        GLuint TextureID = 0;
-        glGenTextures(1, &TextureID);
-        glBindTexture(GL_TEXTURE_2D, TextureID);
+        // TODO: Optimize - should update 1 texture rather than creating per frame
+        int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        gui_begin_window(&gui, "FMV", V2i(width, height));
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        V2i pos = gui_turtle_pos(&gui);
+        rend.beginLayer(gui_layer(&gui));
+        rend.drawQuad(texhandle, pos.x, pos.y, width, height);
+        rend.endLayer();
 
+        gui_end_window(&gui);
 
-        // For Ortho mode, of course
-        GLfloat X = -1.0f;
-        GLfloat Y = -1.0f;
-        GLfloat Width = 2.0f;
-        GLfloat Height = 2.0f;
-
-        glBegin(GL_QUADS);
-        glTexCoord2f(0, 0); glVertex3f(X, Y, 0);
-        glTexCoord2f(1, 0); glVertex3f(X + Width, Y, 0);
-        glTexCoord2f(1, -1); glVertex3f(X + Width, Y + Height, 0);
-        glTexCoord2f(0, -1); glVertex3f(X, Y + Height, 0);
-        glEnd();
-
-        glDeleteTextures(1, &TextureID);
+        rend.destroyTexture(texhandle);
     }
 
 protected:
@@ -756,11 +744,11 @@ void Fmv::Update()
     }
 }
 
-void Fmv::Render(Renderer& rend, GuiContext& , int screenW, int screenH)
+void Fmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 {
     if (mFmv)
     {
-        mFmv->OnRenderFrame(rend, screenW, screenH);
+        mFmv->OnRenderFrame(rend, gui, screenW, screenH);
     }
 }
 

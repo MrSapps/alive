@@ -90,8 +90,6 @@ Engine::~Engine()
 {
     destroy_gui(mGui);
 
-    mRenderer.reset();
-
     SDL_GL_DeleteContext(mContext);
     SDL_DestroyWindow(mWindow);
     SDL_Quit();
@@ -327,7 +325,7 @@ void drawWindow(void *void_rend, float x, float y, float w, float h, float title
 void Engine::InitSubSystems()
 {
     mRenderer = std::make_unique<Renderer>((mFileSystem.BasePath() + "/data/Roboto-Regular.ttf").c_str());
-    mFmv = std::make_unique<Fmv>(mGameData, mAudioHandler, mFileSystem);
+    mFmv = std::make_unique<DebugFmv>(mGameData, mAudioHandler, mFileSystem);
     mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem);
     mLevel = std::make_unique<Level>(mGameData, mAudioHandler, mFileSystem);
 

@@ -108,7 +108,7 @@ GridScreen::GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive,
             converted = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGB24, 0);
             surf = converted;
         }
-        mTexHandle = mRend.createTexture(surf->pixels, surf->w, surf->h, PixelFormat_RGB24);
+        mTexHandle = mRend.createTexture(GL_RGB, surf->w, surf->h, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels);
         SDL_FreeSurface(converted);
     }
 }

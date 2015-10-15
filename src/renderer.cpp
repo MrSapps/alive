@@ -296,6 +296,7 @@ Renderer::Renderer(const char *fontPath)
     // These should be large enough so that no allocations are done during game
     mDrawCmds.reserve(1024 * 4);
     mLayerStack.reserve(64);
+    mDestroyTextureList.reserve(8);
 }
 
 Renderer::~Renderer()
@@ -478,6 +479,13 @@ void Renderer::endFrame()
         nvgEndFrame(mNanoVg);
     mDrawCmds.clear(); // Don't release memory, just reset count
 
+    for (size_t i = 0; i < mDestroyTextureList.size(); ++i)
+    {
+        GLuint tex = (GLuint)mDestroyTextureList[i];
+        glDeleteTextures(1, &tex);
+    }
+    mDestroyTextureList.clear();
+
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
     {
@@ -495,7 +503,7 @@ void Renderer::endLayer()
     mLayerStack.pop_back();
 }
 
-int Renderer::createTexture(void *pixels, int width, int height, PixelFormat format)
+int Renderer::createTexture(GLenum internalFormat, int width, int height, GLenum inputFormat, GLenum colorDataType, const void *pixels)
 {
     GLuint tex;
     glGenTextures(1, &tex);
@@ -505,13 +513,11 @@ int Renderer::createTexture(void *pixels, int width, int height, PixelFormat for
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-    assert(format == PixelFormat_RGB24 && "TODO: Support other pixel formats");
-
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(   GL_TEXTURE_2D, 0,
-                    GL_RGB, // Internal format
+                    internalFormat,
                     width, height, 0,
-                    GL_RGB, // Passed format
+                    inputFormat,
                     GL_UNSIGNED_BYTE, // Color component datatype
                     pixels);
 
@@ -522,8 +528,7 @@ void Renderer::destroyTexture(int handle)
 {
     if (handle)
     {
-        GLuint tex = (GLuint)handle;
-        glDeleteTextures(1, &tex);
+        mDestroyTextureList.push_back(handle); // Delay the deletion after drawing current frame
     }
 }
 
