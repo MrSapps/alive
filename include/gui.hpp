@@ -199,8 +199,9 @@ void destroy_gui(GuiContext *ctx);
 
 int gui_layer(GuiContext *ctx);
 
-void gui_begin_window(GuiContext *ctx, const char *label, V2i min_size);
+void gui_begin_window(GuiContext *ctx, const char *label, V2i default_size);
 void gui_end_window(GuiContext *ctx, bool *open = NULL);
+V2i gui_window_client_size(GuiContext *ctx);
 
 void gui_begin_contextmenu(GuiContext *ctx, const char *label);
 void gui_end_contextmenu(GuiContext *ctx, bool *open);

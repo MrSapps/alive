@@ -317,8 +317,6 @@ void drawWindow(void *void_rend, float x, float y, float w, float h, float title
     rend->fillColor(Color{ 230/255.f, 230/255.f, 230/255.f, 200/255.f });
     rend->text(x + w / 2, y + 16, title);
 
-    rend->fontSize(g_gui_font_size); // TODO: There's some problem with command order. This fixes incorrect text size calcs.
-
     rend->endLayer();
 }
 
