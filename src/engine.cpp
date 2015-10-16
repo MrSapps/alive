@@ -134,10 +134,14 @@ bool Engine::Init()
 }
 
 // TODO: Move gui drawing to own file
-void drawButton(void *void_rend, float x, float y, float w, float h, bool down, bool hover, int layer)
+void drawButton(void *void_rend, float x, float y, float w, float h, bool down, bool hover, int layer, GuiScissor *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
+    if (s)
+        rend->scissor(s->x, s->y, s->w, s->h);
+    else
+        rend->resetScissor();
 
     float cornerRadius = 4.0f;
     Color gradBegin = { 1.f, 1.f, 1.f, 64/255.f };
@@ -181,10 +185,14 @@ void drawButton(void *void_rend, float x, float y, float w, float h, bool down, 
     rend->endLayer();
 }
 
-void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer)
+void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer, GuiScissor *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
+    if (s)
+        rend->scissor(s->x, s->y, s->w, s->h);
+    else
+        rend->resetScissor();
 
     RenderPaint bg;
 
@@ -208,10 +216,14 @@ void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool
     rend->endLayer();
 }
 
-void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer)
+void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer, GuiScissor *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
+    if (s)
+        rend->scissor(s->x, s->y, s->w, s->h);
+    else
+        rend->resetScissor();
 
     RenderPaint bg;
 
@@ -238,10 +250,14 @@ void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, b
 
 static const float g_gui_font_size = 16.f;
 
-void drawText(void *void_rend, float x, float y, const char *text, int layer)
+void drawText(void *void_rend, float x, float y, const char *text, int layer, GuiScissor *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
+    if (s)
+        rend->scissor(s->x, s->y, s->w, s->h);
+    else
+        rend->resetScissor();
 
     rend->fontSize(g_gui_font_size);
     rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
@@ -268,11 +284,11 @@ void calcTextSize(float ret[2], void *void_rend, const char *text, int layer)
     rend->endLayer();
 }
 
-void drawWindow(void *void_rend, float x, float y, float w, float h, float titleBarHeight, const char *title, int layer)
+void drawWindow(void *void_rend, float x, float y, float w, float h, float titleBarHeight, const char *title, bool focus, int layer)
 {
     Renderer *rend = (Renderer*)void_rend;
-
     rend->beginLayer(layer); // Makes window reordering possible
+    rend->resetScissor();
 
     float cornerRadius = 3.0f;
     RenderPaint shadowPaint;
@@ -281,7 +297,7 @@ void drawWindow(void *void_rend, float x, float y, float w, float h, float title
     // Window
     rend->beginPath();
     rend->roundedRect(x, y, w, h, cornerRadius);
-    rend->fillColor(Color{ 28/255.f, 30/255.f, 34/255.f, 192/255.f });
+    rend->fillColor(Color{ 28/255.f, 30/255.f, 34/255.f, 220/255.f });
     //	nvgFillColor(vg, nvgRGBA(0,0,0,128));
     rend->fill();
 
@@ -296,7 +312,10 @@ void drawWindow(void *void_rend, float x, float y, float w, float h, float title
     rend->solidPathWinding(true);
 
     // Header
-    headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.f, 1.f, 1.f, 8 / 255.f }, Color{ 0.f, 0.f, 0.f, 16/255.f });
+    if (focus)
+        headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.0f, 1.f, 1.0f, 16 / 255.f }, Color{ 0.f, 0.0f, 0.f, 32/255.f });
+    else
+        headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.f, 1.f, 1.f, 16 / 255.f }, Color{ 1.f, 1.f, 1.f, 16/255.f });
     rend->beginPath();
     rend->roundedRect(x + 1, y + 1, w - 2, titleBarHeight, cornerRadius - 1);
     rend->fillPaint(headerPaint);
@@ -367,11 +386,11 @@ void Engine::Update()
         case SDL_MOUSEWHEEL:
             if (event.wheel.y < 0)
             {
-                //ImGui::GetIO().MouseWheel = -1.0f;
+                mGui->mouse_scroll = -1;
             }
             else
             {
-                //ImGui::GetIO().MouseWheel = 1.0f;
+                mGui->mouse_scroll = 1;
             }
             break;
 
