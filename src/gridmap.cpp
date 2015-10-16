@@ -153,7 +153,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scr
     {
         for (auto y = 0u; y < mScreens[0].size(); y++)
         {
-            if (gui_button(&gui, mScreens[x][y]->FileName().c_str()))
+            if (gui_button(&gui, gui_str(&gui, "cam_%i_%i|%s", (int)x, (int)y, mScreens[x][y]->FileName().c_str())))
             {
                 mEditorScreenX = (int)x;
                 mEditorScreenY = (int)y;

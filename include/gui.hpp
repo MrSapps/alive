@@ -156,6 +156,12 @@ struct GuiCallbacks {
     DrawWindowFunc draw_window;
 };
 
+struct GuiContext_MemBucket {
+    void *data;
+    int size;
+    int used;
+};
+
 // Handles the gui state
 struct GuiContext {
     // Write to these to make gui work
@@ -190,9 +196,15 @@ struct GuiContext {
     //SkinningMode skinning_mode;
 
     GuiCallbacks callbacks;
+
+#   define GUI_DEFAULT_MAX_FRAME_MEMORY (1024)
+    // List of buffers which are invalidated every frame. Used for temp strings.
+    GuiContext_MemBucket *framemem_buckets;
+    int framemem_bucket_count; // It's best to have just one bucket, but sometimes memory usage can peak and more memory is allocated.
 };
 
 const char *gui_label_text(const char *label);
+const char *gui_str(GuiContext *ctx, const char *fmt, ...); // Temporary string. These are cheap to make. Valid only this frame.
 
 // Startup and shutdown of GUI
 // @todo Size should be defined in gui_begin_window()

@@ -7,22 +7,31 @@
 #include <math.h>
 #include <stdarg.h>
 
+static void *frame_alloc(GuiContext *ctx, int size);
+
 #if defined(_MSC_VER) && _MSC_VER <= 1800 // MSVC 2013
+size_t v_sprintf_impl(char *buf, size_t count, const char *fmt, va_list args)
+{
+    size_t ret = _vsnprintf(buf, count, fmt, args);
+    // Fix unsafeness of msvc _vsnprintf
+    if (buf && count > 0)
+        buf[count - 1] = '\0';
+    return ret;
+}
+
 void sprintf_impl(char *buf, size_t count, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    _vsnprintf(buf, count, fmt, args);
+    v_sprintf_impl(buf, count, fmt, args);
     va_end(args);
-
-    // Fix unsafeness of msvc _vsnprintf
-    if (count > 0)
-        buf[count - 1] = '\0';
 }
 
 #   define FMT_STR sprintf_impl
+#   define V_FMT_STR v_sprintf_impl
 #else
 #   define FMT_STR snprintf
+#   define V_FMT_STR vsnprintf
 #endif
 
 #define MAX(a, b) ((a > b) ? (a) : (b))
@@ -255,6 +264,22 @@ const char *gui_label_text(const char *label)
     return label;
 }
 
+const char *gui_str(GuiContext *ctx, const char *fmt, ...)
+{
+    char *text = NULL;
+    va_list args;
+    va_list args_copy;
+
+    va_start(args, fmt);
+    va_copy(args_copy, args);
+    int size = (int)V_FMT_STR(NULL, 0, fmt, args) + 1;
+    text = (char*)frame_alloc(ctx, size);
+    V_FMT_STR(text, size, fmt, args_copy);
+    va_end(args_copy);
+    va_end(args);
+    return text;
+}
+
 void gui_set_turtle_pos(GuiContext *ctx, V2i pos)
 {
     ctx->turtles[ctx->turtle_ix].pos = pos;
@@ -351,6 +376,48 @@ V2i gui_size(GuiContext *, const char *, V2i size)
     //return override_col;
 //}
 
+static void *frame_alloc(GuiContext *ctx, int size)
+{
+    assert(ctx->framemem_bucket_count >= 1);
+    GuiContext_MemBucket *bucket = &ctx->framemem_buckets[ctx->framemem_bucket_count - 1];
+    if (bucket->used + size > bucket->size) {
+        // Need a new bucket :(
+        int new_bucket_count = ctx->framemem_bucket_count + 1;
+        ctx->framemem_buckets = (GuiContext_MemBucket*)realloc(ctx->framemem_buckets, sizeof(*ctx->framemem_buckets)*new_bucket_count);
+
+        int bucket_size = MAX(size, bucket->size * 2);
+        bucket = &ctx->framemem_buckets[ctx->framemem_bucket_count++];
+        bucket->data = malloc(bucket_size);
+        bucket->size = bucket_size;
+        bucket->used = 0;
+    }
+
+    char *mem = (char *)bucket->data + bucket->used; // @todo Alignment
+    bucket->used += size;
+    assert(bucket->used <= bucket->size);
+    return (void*)mem;
+}
+
+// Resize and clean frame memory
+static void refresh_framemem(GuiContext *ctx)
+{
+    if (ctx->framemem_bucket_count > 1) { // Merge buckets to one for next frame
+        int memory_size = ctx->framemem_buckets[0].size;
+        for (int i = 1; i < ctx->framemem_bucket_count; ++i) {
+            memory_size += ctx->framemem_buckets[i].size;
+            free(ctx->framemem_buckets[i].data);
+        }
+
+        ctx->framemem_buckets = (GuiContext_MemBucket*)realloc(ctx->framemem_buckets, sizeof(*ctx->framemem_buckets));
+        ctx->framemem_buckets[0].data = realloc(ctx->framemem_buckets[0].data, memory_size);
+        ctx->framemem_buckets[0].size = memory_size;
+
+        ctx->framemem_bucket_count = 1;
+    }
+
+    ctx->framemem_buckets[0].used = 0;
+}
+
 GuiContext *create_gui(GuiCallbacks callbacks)
 {
     GuiContext *ctx = (GuiContext*)calloc(1, sizeof(*ctx));
@@ -358,6 +425,13 @@ GuiContext *create_gui(GuiCallbacks callbacks)
     ctx->callbacks = callbacks;
     ctx->hot_win_ix = -1;
     ctx->active_win_ix = -1;
+
+    ctx->framemem_bucket_count = 1;
+    ctx->framemem_buckets = (GuiContext_MemBucket*)malloc(sizeof(*ctx->framemem_buckets));
+    ctx->framemem_buckets[0].data = malloc(GUI_DEFAULT_MAX_FRAME_MEMORY);
+    ctx->framemem_buckets[0].size = GUI_DEFAULT_MAX_FRAME_MEMORY;
+    ctx->framemem_buckets[0].used = 0;
+
     return ctx;
 }
 
@@ -365,6 +439,10 @@ void destroy_gui(GuiContext *ctx)
 {
     if (ctx)
     {
+        for (int i = 0; i < ctx->framemem_bucket_count; ++i)
+            free(ctx->framemem_buckets[i].data);
+        free(ctx->framemem_buckets);
+
         //destroy_skin(&ctx->skin);
 
         for (int i = MAX_GUI_WINDOW_COUNT - 1; i >= 0; --i) {
@@ -645,6 +723,8 @@ void gui_end_ex(GuiContext *ctx, bool make_zero_size, DragDropData *dropdata)
         ctx->mouse_scroll = 0;
         ctx->last_hot_id = ctx->hot_id;
         ctx->hot_id = 0;
+
+        refresh_framemem(ctx);
     }
 }
 
@@ -896,10 +976,10 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
         win->pos.x = MAX(10 - size.x, win->pos.x);
         win->pos.y = MAX(10 - GUI_WINDOW_TITLE_BAR_HEIGHT, win->pos.y);
 
-        win->scissor.x = win->pos.x;
-        win->scissor.y = win->pos.y + GUI_WINDOW_TITLE_BAR_HEIGHT;
-        win->scissor.w = win->client_size.x;
-        win->scissor.h = win->client_size.y;
+        win->scissor.x = 1.f*win->pos.x;
+        win->scissor.y = 1.f*win->pos.y + GUI_WINDOW_TITLE_BAR_HEIGHT;
+        win->scissor.w = 1.f*win->client_size.x;
+        win->scissor.h = 1.f*win->client_size.y;
 
         V2i px_pos = pt_to_px(win->pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
