@@ -6,6 +6,7 @@
 #include "oddlib/bits_factory.hpp"
 #include "logger.hpp"
 #include <cassert>
+#include "sdl_raii.hpp"
 
 Level::Level(GameData& gameData, IAudioController& /*audioController*/, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
@@ -79,31 +80,43 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
     gui_end_window(&gui);
 }
 
-GridScreen::GridScreen(const std::string& lvlName, const std::string& fileName, FileSystem& fs, Renderer& rend)
-    : mFileName(fileName)
-    , mTexHandle(0)
-    , mRend(rend)
+GridScreen::GridScreen(const std::string& lvlName, const std::string& fileName, Renderer& rend)
+    : mLvlName(lvlName),
+      mFileName(fileName)
+      , mTexHandle(0)
+      , mRend(rend)
 {
-    auto stream = fs.ResourcePaths().OpenLvlFileChunkByType(lvlName, fileName, Oddlib::MakeType('B', 'i', 't', 's'));
-    if (stream)
-    {
-        auto bits = Oddlib::MakeBits(*stream);
-
-        SDL_Surface *surf = bits->GetSurface();
-        SDL_Surface *converted = nullptr;
-        if (surf->format->format != SDL_PIXELFORMAT_RGB24)
-        {
-            converted = SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGB24, 0);
-            surf = converted;
-        }
-        mTexHandle = mRend.createTexture(GL_RGB, surf->w, surf->h, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels);
-        SDL_FreeSurface(converted);
-    }
+   
 }
 
 GridScreen::~GridScreen()
 {
     mRend.destroyTexture(mTexHandle);
+}
+
+int GridScreen::getTexHandle(FileSystem& fs)
+{
+    if (!mTexHandle)
+    {
+        auto stream = fs.ResourcePaths().OpenLvlFileChunkByType(mLvlName, mFileName, Oddlib::MakeType('B', 'i', 't', 's'));
+        if (stream)
+        {
+            auto bits = Oddlib::MakeBits(*stream);
+
+            SDL_Surface* surf = bits->GetSurface();
+            SDL_SurfacePtr converted;
+            if (surf->format->format != SDL_PIXELFORMAT_RGB24)
+            {
+                converted.reset(SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGB24, 0));
+                mTexHandle = mRend.createTexture(GL_RGB, converted->w, converted->h, GL_RGB, GL_UNSIGNED_BYTE, converted->pixels);
+            }
+            else
+            {
+                mTexHandle = mRend.createTexture(GL_RGB, surf->w, surf->h, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels);
+            }
+        }
+    }
+    return mTexHandle;
 }
 
 GridMap::GridMap(const std::string& lvlName, Oddlib::Path& path, FileSystem& fs, Renderer& rend)
@@ -119,7 +132,7 @@ GridMap::GridMap(const std::string& lvlName, Oddlib::Path& path, FileSystem& fs,
     {
         for (Uint32 y = 0; y < path.YSize(); y++)
         {
-            mScreens[x][y] = std::make_unique<GridScreen>(mLvlName, path.CameraFileName(x,y), fs, rend);
+            mScreens[x][y] = std::make_unique<GridScreen>(mLvlName, path.CameraFileName(x,y), rend);
         }
     }
 }
@@ -164,7 +177,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scr
 
         rend.beginLayer(gui_layer(&gui));
         V2i pos = gui_turtle_pos(&gui);
-        rend.drawQuad(screen->getTexHandle(), 1.0f*pos.x, 1.0f*pos.y, 1.0f*size.x, 1.0f*size.y);
+        rend.drawQuad(screen->getTexHandle(mFs), 1.0f*pos.x, 1.0f*pos.y, 1.0f*size.x, 1.0f*size.y);
         rend.endLayer();
 
         gui_end_window(&gui);

@@ -30,11 +30,12 @@ class GridScreen
 public:
     GridScreen(const GridScreen&) = delete;
     GridScreen& operator = (const GridScreen&) = delete;
-    GridScreen(const std::string& lvlName, const std::string& fileName, FileSystem& fs, Renderer& rend);
+    GridScreen(const std::string& lvlName, const std::string& fileName, Renderer& rend);
     ~GridScreen();
     const std::string& FileName() const { return mFileName; }
-    int getTexHandle() const { return mTexHandle; }
+    int getTexHandle(FileSystem& fs);
 private:
+    std::string mLvlName;
     std::string mFileName;
     int mTexHandle;
     Renderer& mRend;
