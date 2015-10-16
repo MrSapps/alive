@@ -78,6 +78,8 @@ enum DrawCmdType {
     DrawCmdType_circle,
     DrawCmdType_solidPathWinding,
     DrawCmdType_fillPaint,
+    DrawCmdType_scissor,
+    DrawCmdType_resetScissor,
 };
 struct DrawCmd {
     DrawCmdType type;
@@ -134,8 +136,9 @@ public:
     void rect(float x, float y, float w, float h);
     void circle(float x, float y, float r);
     void solidPathWinding(bool b); // If false, then holes are created
-
     void fillPaint(RenderPaint p);
+    void scissor(float x, float y, float w, float h);
+    void resetScissor();
 
     // Not drawing commands
     RenderPaint linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec);
