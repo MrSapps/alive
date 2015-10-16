@@ -839,10 +839,9 @@ void do_skinning(GuiContext *ctx, const char *label, V2i pos, V2i size, Color co
 #endif
 
 #define SELECT_COMP(v, h) ((h) ? (v.x) : (v.y))
-void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, float max, bool h, int make_shorter)
+void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, float max, float handle_rel_size, bool h, int make_shorter)
 {
     const int scroll_bar_width = GUI_SCROLL_BAR_WIDTH;
-    const int scroll_handle_height = 10;
 
     gui_begin(ctx, label);
 
@@ -850,6 +849,8 @@ void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, 
     V2i size;
     SELECT_COMP(size, h) = SELECT_COMP(gui_window(ctx)->client_size, h) - make_shorter;
     SELECT_COMP(size, !h) = scroll_bar_width;
+
+    const int scroll_handle_height = MAX((int)(handle_rel_size*SELECT_COMP(size, h)), 10);
 
     bool went_down, down, hover;
     gui_button_logic(ctx, label, pos, size, NULL, &went_down, &down, &hover);
@@ -1038,7 +1039,9 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
         }
 
         float scroll = 1.f*win->scroll;
-        gui_slider_ex(ctx, scroll_label, &scroll, 0, 1.f*win->last_frame_bounding_size.y - win->client_size.y, false, GUI_SCROLL_BAR_WIDTH);
+        float max_scroll = 1.f*win->last_frame_bounding_size.y - win->client_size.y;
+        float rel_shown_area = 1.f*win->client_size.y/win->last_frame_bounding_size.y;
+        gui_slider_ex(ctx, scroll_label, &scroll, 0, max_scroll, rel_shown_area, false, GUI_SCROLL_BAR_WIDTH);
         win->scroll = (int)scroll;
         gui_end(ctx);
 
@@ -1292,7 +1295,7 @@ bool gui_radiobutton(GuiContext *ctx, const char *label, bool value)
 
 void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max)
 {
-    gui_slider_ex(ctx, label, value, min, max, true, 0);
+    gui_slider_ex(ctx, label, value, min, max, 0.1f, true, 0);
     gui_next_row(ctx);
 }
 
