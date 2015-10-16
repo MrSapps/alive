@@ -28,17 +28,21 @@ public:
     DataTest(eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         : mType(eType)
     {
-        mFs.AddResourcePath(resourcePath, 1);
+        mFs.ResourcePaths().AddResourcePath(resourcePath, 1);
         for (const auto& lvl : lvls)
         {
-            Oddlib::LvlArchive archive(mFs.ResourceExists(lvl)->Open(lvl));
-            ReadFg1s(archive);
-            ReadFonts(archive);
-            ReadAllPaths(archive);
-            ReadAllCameras(archive);
-            ReadAllAnimations(archive);
+            auto stream = mFs.ResourcePaths().Open(lvl);
+            if (stream)
+            {
+                Oddlib::LvlArchive archive(std::move(stream));
+                ReadFg1s(archive);
+                ReadFonts(archive);
+                ReadAllPaths(archive);
+                ReadAllCameras(archive);
+                ReadAllAnimations(archive);
 
-            // TODO: Handle sounds/fmvs
+                // TODO: Handle sounds/fmvs
+            }
         }
     }
 

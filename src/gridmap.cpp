@@ -57,34 +57,21 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
             
             // Open the LVL
             const std::string lvlName = baseLvlName + ".LVL";
-            auto resource = mFs.ResourceExists(lvlName);
-            if (resource)
+
+            auto chunkStream = mFs.ResourcePaths().OpenLvlFileChunkById(lvlName, baseLvlName + "PATH.BND", entry->mPathChunkId);
+            if (chunkStream)
             {
-                auto archive = std::make_unique<Oddlib::LvlArchive>(resource->Open(lvlName));
-                
-                // Get the BND file from the LVL
-                auto file = archive->FileByName(baseLvlName + "PATH.BND");
-                if (file)
-                {
-                    // Get the chunk from the LVL
-                    auto chunk = file->ChunkById(entry->mPathChunkId);
-                    if (chunk)
-                    {
-                        // Then we can get a stream for the chunk
-                        auto chunkStream = chunk->Stream();
-                        Oddlib::Path path(*chunkStream, 
-                                          entry->mNumberOfCollisionItems, 
-                                          entry->mObjectIndexTableOffset,
-                                          entry->mObjectDataOffset, 
-                                          entry->mMapXSize, 
-                                          entry->mMapYSize);
-                        mMap = std::make_unique<GridMap>(path, std::move(archive), rend);
-                    }
-                }
+                Oddlib::Path path(*chunkStream,
+                    entry->mNumberOfCollisionItems,
+                    entry->mObjectIndexTableOffset,
+                    entry->mObjectDataOffset,
+                    entry->mMapXSize,
+                    entry->mMapYSize);
+                mMap = std::make_unique<GridMap>(lvlName, path, mFs, rend);
             }
             else
             {
-                LOG_ERROR("LVL not found");
+                LOG_ERROR("LVL or file in LVL not found");
             }
         }
     }
@@ -92,17 +79,14 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
     gui_end_window(&gui);
 }
 
-GridScreen::GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive, Renderer& rend)
+GridScreen::GridScreen(const std::string& lvlName, const std::string& fileName, FileSystem& fs, Renderer& rend)
     : mFileName(fileName)
     , mTexHandle(0)
     , mRend(rend)
 {
-    auto file = archive.FileByName(fileName);
-    if (file)
+    auto stream = fs.ResourcePaths().OpenLvlFileChunkByType(lvlName, fileName, Oddlib::MakeType('B', 'i', 't', 's'));
+    if (stream)
     {
-        auto chunk = file->ChunkByType(Oddlib::MakeType('B', 'i', 't', 's'));
-        auto stream = chunk->Stream();
-
         auto bits = Oddlib::MakeBits(*stream);
 
         SDL_Surface *surf = bits->GetSurface();
@@ -122,8 +106,8 @@ GridScreen::~GridScreen()
     mRend.destroyTexture(mTexHandle);
 }
 
-GridMap::GridMap(Oddlib::Path& path, std::unique_ptr<Oddlib::LvlArchive> archive, Renderer& rend)
-    : mArchive(std::move(archive))
+GridMap::GridMap(const std::string& lvlName, Oddlib::Path& path, FileSystem& fs, Renderer& rend)
+    : mFs(fs), mLvlName(lvlName)
 {
     mScreens.resize(path.XSize());
     for (auto& col : mScreens)
@@ -135,7 +119,7 @@ GridMap::GridMap(Oddlib::Path& path, std::unique_ptr<Oddlib::LvlArchive> archive
     {
         for (Uint32 y = 0; y < path.YSize(); y++)
         {
-            mScreens[x][y] = std::make_unique<GridScreen>(path.CameraFileName(x,y), *mArchive, rend);
+            mScreens[x][y] = std::make_unique<GridScreen>(mLvlName, path.CameraFileName(x,y), fs, rend);
         }
     }
 }

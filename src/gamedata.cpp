@@ -18,7 +18,7 @@ GameData::~GameData()
 
 bool GameData::LoadFmvData(FileSystem& fs)
 {
-    auto stream = fs.Open("data/videos.json");
+    auto stream = fs.GameData().Open("data/videos.json");
     std::string jsonFileContents = stream->LoadAllToString();
 
     jsonxx::Object rootJsonObject;
@@ -87,9 +87,20 @@ bool GameData::LoadFmvData(FileSystem& fs)
     return true;
 }
 
+void GameData::AddPcToPsxFmvNameMappings(FileSystem& fs)
+{
+    for (const auto& fmvData : mFmvData)
+    {
+        for (const FmvSection& fmvSection : fmvData.second)
+        {
+            fs.ResourcePaths().AddPcToPsxMapping(fmvData.first, fmvSection.mPsxFileName);
+        }
+    }
+}
+
 bool GameData::LoadPathDb(FileSystem& fs)
 {
-    auto stream = fs.Open("data/pathdb.json");
+    auto stream = fs.GameData().Open("data/pathdb.json");
     std::string jsonFileContents = stream->LoadAllToString();
 
     jsonxx::Object rootJsonObject;
@@ -128,6 +139,8 @@ bool GameData::Init(FileSystem& fs)
     {
         return false;
     }
+
+    AddPcToPsxFmvNameMappings(fs);
 
     if (!LoadPathDb(fs))
     {

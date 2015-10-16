@@ -3,25 +3,56 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <map>
 #include "SDL_stdinc.h"
+#include "oddlib/lvlarchive.hpp"
+#include "logger.hpp"
 
 namespace Oddlib
 {
     class IStream;
 }
 
-class FileSystem
+class UserSettingsFs
 {
 public:
-    FileSystem();
-    ~FileSystem();
-    bool Init();
-    void AddResourcePath(const std::string& path, int priority);
-    
-    // TODO: Make more common - also need FS for user data such as saves and configured res paths
-    bool Exists(const std::string& name) const;
-    std::unique_ptr<Oddlib::IStream> Open(const std::string& name);
+    std::unique_ptr<Oddlib::IStream> Open(const std::string& /*name*/)
+    {
+        LOG_ERROR("UserSettings file not implemented");
+        throw Oddlib::Exception("Not implemented");
+    }
 
+    std::unique_ptr<Oddlib::IStream> Save(const std::string& /*name*/)
+    {
+        LOG_ERROR("UserSettings file not implemented");
+        throw Oddlib::Exception("Not implemented");
+    }
+    
+    bool Init() { return true; }
+};
+
+class GameDataFs
+{
+public:
+    GameDataFs() = default;
+    std::unique_ptr<Oddlib::IStream> Open(const std::string& name);
+    std::string BasePath() const { return mBasePath; }
+    bool Init() { InitBasePath(); return true; }
+private:
+    void InitBasePath();
+    std::string mBasePath;
+};
+
+class ResourcePathAndModsFs
+{
+public:
+    void AddResourcePath(const std::string& path, int priority);
+    void AddPcToPsxMapping(const std::string& pcName, const std::string& psxName);
+    std::unique_ptr<Oddlib::IStream> Open(const std::string& name);
+    std::unique_ptr<Oddlib::IStream> OpenFmv(const std::string& name, bool pickBiggest = false);
+    std::unique_ptr<Oddlib::IStream> OpenLvlFileChunkById(const std::string& lvl, const std::string& name, Uint32 id);
+    std::unique_ptr<Oddlib::IStream> OpenLvlFileChunkByType(const std::string& lvl, const std::string& name, Uint32 type);
+private:
     class IResourcePathAbstraction
     {
     public:
@@ -38,16 +69,6 @@ public:
         std::string mPath;
         int mPriority = 0;
     };
-
-    IResourcePathAbstraction* ResourceExists(const std::string& name, int& priority, bool pickBiggestFile = false) const;
-    IResourcePathAbstraction* ResourceExists(const std::string& name, bool pickBiggestFile = false) const;
-
-    void DebugUi();
-    std::string BasePath() const { return mBasePath; }
-private:
-    void CopyPerUserFiles();
-    void SortPaths();
-
 
     std::unique_ptr<IResourcePathAbstraction> MakeResourcePath(std::string path, int priority);
 
@@ -69,9 +90,28 @@ private:
         std::unique_ptr<class RawCdImage> mCdImage;
     };
 
-    void InitBasePath();
+    void SortPaths();
+
+    IResourcePathAbstraction* FindFile(const std::string& name, bool pickBiggest);
+    std::unique_ptr<Oddlib::IStream> FindFile(const std::vector<std::string>& names, bool pickBiggestOfSameName);
+
+private:
+    std::vector<std::unique_ptr<IResourcePathAbstraction>> mResourcePaths;
+    std::map<std::string, std::string> mPcToPsxMappings;
+};
+
+class FileSystem
+{
+public:
+    FileSystem() = default;
+    bool Init();
+    UserSettingsFs& UserSettings() {  return mUserSettingsFs; }
+    GameDataFs& GameData() { return mGameDataFs; }
+    ResourcePathAndModsFs& ResourcePaths() { return mResourceandModsFs; }
+private:
     void InitResourcePaths();
 private:
-    std::string mBasePath;
-    std::vector<std::unique_ptr<IResourcePathAbstraction>> mResourcePaths;
+    UserSettingsFs mUserSettingsFs;
+    GameDataFs mGameDataFs;
+    ResourcePathAndModsFs mResourceandModsFs;
 };

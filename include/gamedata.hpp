@@ -49,6 +49,7 @@ public:
 
 private:
     bool LoadFmvData(FileSystem& fs);
+    void AddPcToPsxFmvNameMappings(FileSystem& fs);
     bool LoadPathDb(FileSystem& fs);
 private:
 
