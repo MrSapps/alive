@@ -16,9 +16,9 @@ GameData::~GameData()
 
 }
 
-bool GameData::LoadFmvData(FileSystem& fs)
+bool GameData::LoadFmvDb(FileSystem& fs)
 {
-    auto stream = fs.GameData().Open("data/videos.json");
+    auto stream = fs.GameData().Open("data/fmvdb.json");
     std::string jsonFileContents = stream->LoadAllToString();
 
     jsonxx::Object rootJsonObject;
@@ -42,11 +42,11 @@ bool GameData::LoadFmvData(FileSystem& fs)
                 {
                     // Just a file name
                     pcFileName = ar.get<jsonxx::String>(i);
-                    auto it = mFmvData.find(pcFileName);
-                    if (it == std::end(mFmvData))
+                    auto it = mFmvDb.find(pcFileName);
+                    if (it == std::end(mFmvDb))
                     {
-                        mFmvData[pcFileName] = std::vector<FmvSection>();
-                        it = mFmvData.find(pcFileName);
+                        mFmvDb[pcFileName] = std::vector<FmvSection>();
+                        it = mFmvDb.find(pcFileName);
                     }
                 }
                 else if (ar.has<jsonxx::Object>(i))
@@ -67,11 +67,11 @@ bool GameData::LoadFmvData(FileSystem& fs)
                         section.mNumberOfSectors = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("number_of_sectors"));
 
                         // Grab a vector for the fmv name e.g "whatever.ddv"
-                        auto it = mFmvData.find(pcFileName);
-                        if (it == std::end(mFmvData))
+                        auto it = mFmvDb.find(pcFileName);
+                        if (it == std::end(mFmvDb))
                         {
-                            mFmvData[pcFileName] = std::vector<FmvSection>();
-                            it = mFmvData.find(pcFileName);
+                            mFmvDb[pcFileName] = std::vector<FmvSection>();
+                            it = mFmvDb.find(pcFileName);
                         }
 
                         it->second.emplace_back(section);
@@ -89,7 +89,7 @@ bool GameData::LoadFmvData(FileSystem& fs)
 
 void GameData::AddPcToPsxFmvNameMappings(FileSystem& fs)
 {
-    for (const auto& fmvData : mFmvData)
+    for (const auto& fmvData : mFmvDb)
     {
         for (const FmvSection& fmvSection : fmvData.second)
         {
@@ -135,7 +135,7 @@ bool GameData::LoadPathDb(FileSystem& fs)
 
 bool GameData::Init(FileSystem& fs)
 {
-    if (!LoadFmvData(fs))
+    if (!LoadFmvDb(fs))
     {
         return false;
     }

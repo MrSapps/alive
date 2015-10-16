@@ -23,7 +23,7 @@ public:
         Uint32 mNumberOfSectors;
     };  
 
-    typedef std::map<std::string, std::vector<FmvSection>> FmvData;
+    typedef std::map<std::string, std::vector<FmvSection>> FmvDb;
 
     struct PathEntry
     {
@@ -37,9 +37,9 @@ public:
 
     typedef std::map<std::string, std::vector<PathEntry>> PathDb;
 
-    const FmvData Fmvs() const
+    const FmvDb Fmvs() const
     {
-        return mFmvData;
+        return mFmvDb;
     }
 
     const PathDb& Paths() const
@@ -48,11 +48,11 @@ public:
     }
 
 private:
-    bool LoadFmvData(FileSystem& fs);
+    bool LoadFmvDb(FileSystem& fs);
     void AddPcToPsxFmvNameMappings(FileSystem& fs);
     bool LoadPathDb(FileSystem& fs);
 private:
 
-    FmvData mFmvData;
+    FmvDb mFmvDb;
     PathDb mPathDb;
 };
