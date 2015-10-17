@@ -47,6 +47,7 @@ class ResourcePathAndModsFs
 {
 public:
     void AddResourcePath(const std::string& path, int priority);
+    void ClearAllResourcePaths();
     void AddPcToPsxMapping(const std::string& pcName, const std::string& psxName);
     std::unique_ptr<Oddlib::IStream> Open(const std::string& name);
     std::unique_ptr<Oddlib::IStream> OpenFmv(const std::string& name, bool pickBiggest = false);

@@ -9,6 +9,7 @@
 #include "logger.hpp"
 #include <functional>
 #include "msvc_sdl_link.hpp"
+#include "gamedata.hpp"
 
 class DataTest
 {
@@ -28,7 +29,16 @@ public:
     DataTest(eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         : mType(eType)
     {
+        mFs.Init();
+        
+        // Clear out the ones loaded from resource paths json
+        mFs.ResourcePaths().ClearAllResourcePaths();
+
+        mGameData.Init(mFs);
+        
+        // Add the only one we're interested in
         mFs.ResourcePaths().AddResourcePath(resourcePath, 1);
+
         for (const auto& lvl : lvls)
         {
             auto stream = mFs.ResourcePaths().Open(lvl);
@@ -136,6 +146,7 @@ public:
 
 private:
     eDataType mType;
+    GameData mGameData;
     FileSystem mFs;
 };
 
@@ -160,8 +171,8 @@ int main(int /*argc*/, char** /*argv*/)
         "d2.lvl",
         "c1.lvl"
     };
-    DataTest aoPc(DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee", aoLvls);
-    //DataTest aoPsx(DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin", aoLvls);
+    //DataTest aoPc(DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee", aoLvls);
+    DataTest aoPsx(DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin", aoLvls);
 
     const std::vector<std::string> aeLvls =
     {
@@ -177,7 +188,7 @@ int main(int /*argc*/, char** /*argv*/)
         "st.lvl",
         "sv.lvl"
     };
-    DataTest aePc(DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus", aeLvls);
+    //DataTest aePc(DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus", aeLvls);
 
     /* TODO: Check all other data
  
