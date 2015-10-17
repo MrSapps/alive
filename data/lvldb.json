@@ -1,0 +1,155 @@
+{
+    "lvls": [
+        {
+            "name": "c1.lvl",
+            "alt_names": [
+                "P2\C1.LVL"
+            ]
+        },
+        {
+            "name": "d1.lvl",
+             "alt_names": [
+                "P2\D1.LVL"
+            ]
+        },
+        {
+            "name": "d2.lvl",
+            "alt_names": [
+                "P2\D1.LVL"
+            ]
+        },
+        {
+            "name": "d7.lvl",
+            "alt_names": [
+                "P2\D7.LVL"
+            ]
+        },
+        {
+            "name": "e1.lvl",
+            "alt_names": [
+                "E1.LVL"
+            ]
+        },
+        {
+            "name": "e2.lvl",
+            "alt_names": [
+                "P2\E2.LVL"
+            ]
+        },
+        {
+            "name": "f1.lvl",
+            "alt_names": [
+                "F1.LVL"
+            ]
+        },
+        {
+            "name": "f2.lvl",
+            "alt_names": [
+                "F2.LVL"
+            ]
+        },
+        {
+            "name": "f4.lvl",
+            "alt_names": [
+                "F4.LVL"
+            ]
+        },
+        {
+            "name": "l1.lvl",
+            "alt_names": [
+                "L1.LVL"
+            ]
+        },
+        {
+            "name": "r1.lvl",
+            "alt_names": [
+                "R1.LVL"
+            ]
+        },
+        {
+            "name": "r2.lvl",
+            "alt_names": [
+                "P2\R2.LVL"
+            ]
+        },
+        {
+            "name": "r6.lvl",
+            "alt_names": [
+                "P2\R6.LVL"
+            ]
+        },
+        {
+            "name": "s1.lvl",
+            "alt_names": [
+                "S1.LVL"
+            ]
+        },
+
+        {
+            "name": "ba.lvl",
+            "alt_names": [
+                "BA\BA.LVL"
+            ]
+        },
+        {
+            "name": "bm.lvl",
+            "alt_names": [
+                "BM\BM.LVL"
+            ]
+        },
+        {
+            "name": "br.lvl",
+            "alt_names": [
+                "BR\BR.LVL"
+            ]
+        },
+        {
+            "name": "bw.lvl",
+            "alt_names": [
+                "BW\BW.LVL"
+            ]
+        },
+        {
+            "name": "cr.lvl",
+            "alt_names": [
+                "CR\CR.LVL"
+            ]
+        },
+        {
+            "name": "fd.lvl",
+            "alt_names": [
+                "FD\FD.LVL"
+            ]
+        },
+        {
+            "name": "mi.lvl",
+            "alt_names": [
+                "MI\MI.LVL"
+            ]
+        },
+        {
+            "name": "ne.lvl",
+            "alt_names": [
+                "NE\NE.LVL"
+            ]
+        },
+        {
+            "name": "pv.lvl",
+            "alt_names": [
+                "PV\PV.LVL"
+            ]
+        },
+        {
+            "name": "st.lvl",
+            "alt_names": [
+                "ST\ST.LVL"
+            ]
+        },
+        {
+            "name": "sv.lvl",
+             "alt_names": [
+                "SV\SV.LVL"
+            ]
+        }
+    ]
+}

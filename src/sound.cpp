@@ -25,8 +25,12 @@ void Sound::ChangeTheme(FileSystem& fs, const std::deque<std::string>& parts)
     try
     {
         const std::string lvlFileName = parts[0];
-        Oddlib::LvlArchive archive(fs.ResourceExists(lvlFileName)->Open(lvlFileName));
-        mAliveAudio.LoadAllFromLvl(archive, parts[1], parts[2]); // vab, bsq
+        auto stream = fs.ResourcePaths().Open(lvlFileName);
+        if (stream)
+        {
+            Oddlib::LvlArchive archive(std::move(stream));
+            mAliveAudio.LoadAllFromLvl(archive, parts[1], parts[2]); // vab, bsq
+        }
     }
     catch (const std::exception& ex)
     {
@@ -72,10 +76,10 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
                 auto theme = themes.get<jsonxx::Object>(i);
 
                 const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".LVL";
-                auto res = mFs.ResourceExists(lvlFileName);
-                if (res)
+                auto stream = mFs.ResourcePaths().Open(lvlFileName);
+                if (stream)
                 {
-                    Oddlib::LvlArchive archive(res->Open(lvlFileName));
+                    Oddlib::LvlArchive archive(std::move(stream));
                     auto vabName = theme.get<jsonxx::String>("vab", "null");
                     auto bsqName = theme.get<jsonxx::String>("seq", "null");
 

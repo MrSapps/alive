@@ -549,53 +549,31 @@ private:
 {
     TRACE_ENTRYEXIT;
 
+    // TODO: UI will pass in PSX name of "BA\\BA.MOV" which is wrong, once json mapping is done
+    // only PC names should be passed in here which might result in BA.MOV being opened instead
+
     // TODO: PSX fmv seems to have a lot of "black" at the end - probably json data is incorrect or needs tweaking?
-    std::string targetName = fmvName;
-    Uint32 startSector = 0;
-    Uint32 numberOfSectors = 0;
-
-    // Check the PC name
-    int pcFmvPriority = 0;
-    auto resourceLocation = fs.ResourceExists(fmvName, pcFmvPriority);
-
-    // Find the mapping of PSX -> PC fmv names from the json data
-    auto fmvData = allFmvs.find(fmvName);
-    if (fmvData != std::end(allFmvs))
-    {
-        // Check if the PSX file containing the FMV exists
-        const std::vector<GameData::FmvSection>& sections = fmvData->second;
-        for (const GameData::FmvSection& section : sections)
-        {
-            // For BR.MOV there is a slight hack to pick the biggest file because BR.MOV on CD1 isn't 0 bytes for some reason
-            // and we always want the CD2 BR.MOV which is bigger.
-            int psxFmvPriority = 0;
-            auto tmpResourceLocation = fs.ResourceExists(section.mPsxFileName, psxFmvPriority, section.mPsxFileName == "BR\\BR.MOV");
-            // Only pick PSX FMV over the PC version when either its the only thing we have
-            // or when we have both but the PSX data is marked higher priority than the PC data.
-            if (tmpResourceLocation && (!resourceLocation || (resourceLocation && psxFmvPriority > pcFmvPriority)))
-            {
-                resourceLocation = tmpResourceLocation;
-                targetName = section.mPsxFileName;
-                startSector = section.mStartSector;
-                numberOfSectors = section.mNumberOfSectors;
-                break;
-            }
-        }
-    }
-   
-    if (!resourceLocation)
+    auto stream = fs.ResourcePaths().OpenFmv(fmvName, true);
+    if (!stream)
     {
         throw Oddlib::Exception("FMV not found");
     }
 
-    auto stream = resourceLocation->Open(targetName);
-
     // Try to open any corresponding subtitle file
     const std::string subTitleFileName = "data/subtitles/" + fmvName + ".SRT";
     std::unique_ptr<SubTitleParser> subTitles;
-    if (fs.Exists(subTitleFileName))
+
+    // Look in game data so mods can override it first
+    auto subsStream = fs.ResourcePaths().Open(subTitleFileName);
+    if (!subsStream)
     {
-        subTitles = std::make_unique<SubTitleParser>(fs.Open(subTitleFileName));
+        // Fall back to the ones shipped with the engine
+        subsStream = fs.GameData().Open(subTitleFileName);
+    }
+
+    if (subsStream)
+    {
+        subTitles = std::make_unique<SubTitleParser>(std::move(subsStream));
     }
 
     char idBuffer[4] = {};
@@ -612,8 +590,21 @@ private:
     }
     else
     {
-        // Only PSX FMV's have many in a single file
-        return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), startSector, numberOfSectors);
+        auto fmvData = allFmvs.find(fmvName);
+        if (fmvData != std::end(allFmvs))
+        {
+            // Check if the PSX file containing the FMV exists
+            const std::vector<GameData::FmvSection>& sections = fmvData->second;
+            for (const GameData::FmvSection& section : sections)
+            {
+
+                // Only PSX FMV's have many in a single file
+                return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), section.mStartSector, section.mNumberOfSectors);
+            }
+        }
+
+        LOG_ERROR("Failed to find sectors info for PSX FMV in game data - all of it will be played");
+        return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), 0, 0);
     }
 }
 
@@ -775,7 +766,7 @@ void DebugFmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     if (!mFmv)
     {
         RenderVideoUi(gui);
-        mFileSystem.DebugUi();
+        //mFileSystem.DebugUi();
     }
 }
 
