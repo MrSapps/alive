@@ -139,7 +139,7 @@ void drawButton(void *void_rend, float x, float y, float w, float h, bool down, 
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(s->x, s->y, s->w, s->h);
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
     else
         rend->resetScissor();
 
@@ -190,7 +190,7 @@ void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(s->x, s->y, s->w, s->h);
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
     else
         rend->resetScissor();
 
@@ -221,7 +221,7 @@ void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, b
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(s->x, s->y, s->w, s->h);
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
     else
         rend->resetScissor();
 
@@ -247,6 +247,31 @@ void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, b
     rend->endLayer();
 }
 
+void drawTextBox(void *void_rend, float x, float y, float w, float h, bool active, bool hover, int layer, GuiScissor *s)
+{
+    Renderer *rend = (Renderer*)void_rend;
+    rend->beginLayer(layer);
+    if (s)
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
+    else
+        rend->resetScissor();
+
+    RenderPaint bg = rend->boxGradient(x+1,y+1+1.5f, w-2,h-2, 3,4, Color{1.f,1.f,1.f,32/255.f}, Color{32/255.f,32/255.f,32/255.f,32/255.f});
+    rend->beginPath();
+    rend->roundedRect(x+1,y+1, w-2,h-2, 4-1);
+    rend->fillPaint(bg);
+    rend->fill();
+
+    rend->beginPath();
+    rend->roundedRect(x+0.5f,y+0.5f, w-1,h-1, 4-0.5f);
+    if (hover || active)
+        rend->strokeColor(Color{ 1.f, 1.f, 1.f, 0.3f });
+    else
+        rend->strokeColor(Color{ 0.f, 0.f, 0.f, 48/255.f });
+    rend->stroke();
+
+    rend->endLayer();
+}
 
 static const float g_gui_font_size = 16.f;
 
@@ -255,7 +280,7 @@ void drawText(void *void_rend, float x, float y, const char *text, int layer, Gu
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(s->x, s->y, s->w, s->h);
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
     else
         rend->resetScissor();
 
@@ -352,6 +377,7 @@ void Engine::InitSubSystems()
         callbacks.draw_button = drawButton;
         callbacks.draw_checkbox = drawCheckBox;
         callbacks.draw_radiobutton = drawRadioButton;
+        callbacks.draw_textbox = drawTextBox;
         callbacks.draw_text = drawText;
         callbacks.calc_text_size = calcTextSize;
         callbacks.draw_window = drawWindow;
@@ -377,7 +403,6 @@ void Engine::Update()
         mGui->cursor_pos.x = -1;
         mGui->cursor_pos.y = -1;
     }
-
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -404,10 +429,10 @@ void Engine::Update()
             for (size_t i = 0; i < len; i++)
             {
                 uint32_t keycode = event.text.text[i];
-                if (keycode >= 32 && keycode <= 255)
+                if (keycode >= 10 && keycode <= 255)
                 {
                     //printable ASCII characters
-                    //ImGui::GetIO().AddInputCharacter((char)keycode);
+                    gui_write_char(mGui, (char)keycode);
                 }
             }
         }
@@ -433,7 +458,7 @@ void Engine::Update()
 
             if (guiKey >= 0)
             {
-                  int state = mGui->key_state[guiKey];
+                  uint8_t state = mGui->key_state[guiKey];
                   if (event.type == SDL_MOUSEBUTTONUP)
                   {
                       state |= GUI_KEYSTATE_RELEASED_BIT;
@@ -457,11 +482,14 @@ void Engine::Update()
                 //ImGui_WindowResize();
             }
 
+
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
             if (key == SDL_SCANCODE_ESCAPE)
             {
                 mFmv->Stop();
             }
+            if (event.type == SDL_KEYDOWN && key == SDL_SCANCODE_BACKSPACE)
+                gui_write_char(mGui, '\b'); // Note that this is called in case of repeated backspace key also
 
             SDL_Keymod modstate = SDL_GetModState();
 
@@ -497,13 +525,6 @@ void Engine::Render()
     gui_begin(mGui, "background");
 
     DebugRender();
-
-    uint8_t testPixels[4*3] = {
-        255, 0, 0,
-        0, 255, 0,
-        0, 255, 0,
-        255, 0, 0,
-    };
 
     mFmv->Render(*mRenderer, *mGui, w, h);
     mSound->Render(mGui, w, h);

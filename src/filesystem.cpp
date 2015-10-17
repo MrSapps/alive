@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <fstream>
 #include "jsonxx/jsonxx.h"
-//#include "imgui/imgui.h"
+#include "gui.hpp"
 
 #ifdef _WIN32
 const char kDirSeperator = '\\';
@@ -312,6 +312,73 @@ bool FileSystem::Init()
     mUserSettingsFs.Init();
     InitResourcePaths();
     return true;
+}
+
+void FileSystem::DebugUi(GuiContext &gui)
+{
+    static bool bSet = false;
+    if (!bSet)
+    {
+        gui.next_window_pos = v2i(10, 40);
+        bSet = true;
+    }
+    gui_begin_window(&gui, "Resource paths", v2i(700, 200));
+
+    //ImGui::GetStyle().WindowMinSize = ImVec2(260, 200);
+    //ImGui::GetStyle().WindowTitleAlign = ImGuiAlign_Center;
+    static int idx = -1;
+    static std::vector<const char*> items;
+    if (items.empty())
+    {
+        for (size_t i = 0; i < mResourceandModsFs.mResourcePaths.size(); i++)
+        {
+            items.push_back(mResourceandModsFs.mResourcePaths[i]->Path().c_str());
+        }
+    }
+    static char pathBuffer[255] = {};
+    static char priorityBuffer[255] = {};
+    gui_begin_listbox(&gui, "path_listbox");//, ImVec2(ImGui::GetWindowWidth()-15, ImGui::GetWindowSize().y - 137)))
+    {
+        for (size_t i = 0; i < items.size(); i++)
+        {
+            if (gui_selectable(&gui, items[i], static_cast<int>(i) == idx))
+            {
+                idx = i;
+                memset(pathBuffer, 0, sizeof(pathBuffer));
+                strncpy(pathBuffer, items[i], sizeof(pathBuffer));
+                memset(priorityBuffer, 0, sizeof(priorityBuffer));
+                strncpy(priorityBuffer, std::to_string(mResourceandModsFs.mResourcePaths[i]->Priority()).c_str(), sizeof(priorityBuffer));
+            }
+        }
+    }
+    gui_end_listbox(&gui);
+
+    gui_textfield(&gui, "Path", pathBuffer, sizeof(pathBuffer));
+    gui_textfield(&gui, "Priority", priorityBuffer, sizeof(priorityBuffer));
+
+    if (gui_button(&gui, "Add/Update"))//, v2i(gui_window_client_size(&gui).x, 20)))
+    {
+
+        try
+        {
+            const std::string resPath = pathBuffer;
+            const int priority = std::stoi(priorityBuffer);
+            mResourceandModsFs.AddResourcePath(resPath, priority);
+            items.clear();
+        }
+        catch (const std::exception&)
+        {
+        }
+    }
+    if (gui_button(&gui, "Delete selected")) //ImVec2(ImGui::GetWindowWidth(), 20)))
+    {
+        if (idx >= 0 && idx < static_cast<int>(mResourceandModsFs.mResourcePaths.size()))
+        {
+            mResourceandModsFs.mResourcePaths.erase(mResourceandModsFs.mResourcePaths.begin() + idx);
+        }
+        items.clear();
+    }
+    gui_end_window(&gui);
 }
 
 void FileSystem::InitResourcePaths()

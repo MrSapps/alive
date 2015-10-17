@@ -97,14 +97,13 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
         }
     }
 
-    gui->next_window_pos = V2i(320, 250);
-    gui_begin_window(gui, "Sound", V2i(250, 400));
+    gui->next_window_pos = v2i(320, 250);
+    gui_begin_window(gui, "Sound", v2i(250, 400));
 
     static int selectedIndex = 0; 
     for (size_t i = 0; i < mThemes.size(); i++)
     {
-        //if (ImGui::Selectable(mThemes[i].c_str(), static_cast<int>(i) == selectedIndex))
-        if (gui_button(gui, mThemes[i].c_str()))
+        if (gui_selectable(gui, mThemes[i].c_str(), static_cast<int>(i) == selectedIndex))
         {
             selectedIndex = static_cast<int>(i);
             if (selectedIndex >= 0 && selectedIndex < static_cast<int>(mThemes.size()) && !mThemes.empty())
@@ -131,8 +130,8 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
     }
     gui_end_window(gui);
 
-    gui->next_window_pos = V2i(50, 250);
-    { gui_begin_window(gui, "Audio output settings", V2i(250, 300));
+    gui->next_window_pos = v2i(50, 250);
+    { gui_begin_window(gui, "Audio output settings", v2i(250, 300));
         gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.AntiAliasFilteringEnabled);
 
         if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
