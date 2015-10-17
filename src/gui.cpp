@@ -280,6 +280,13 @@ const char *gui_str(GuiContext *ctx, const char *fmt, ...)
     return text;
 }
 
+void gui_write_char(GuiContext *ctx, char ch)
+{
+    if (ctx->written_char_count >= sizeof(ctx->written_text_buf))
+        return;
+    ctx->written_text_buf[ctx->written_char_count++] = ch;
+}
+
 void gui_set_turtle_pos(GuiContext *ctx, V2i pos)
 {
     ctx->turtles[ctx->turtle_ix].pos = pos;
@@ -723,7 +730,7 @@ void gui_end_ex(GuiContext *ctx, bool make_zero_size, DragDropData *dropdata)
         ctx->mouse_scroll = 0;
         ctx->last_hot_id = ctx->hot_id;
         ctx->hot_id = 0;
-
+        ctx->written_char_count = 0;
         refresh_framemem(ctx);
     }
 }
@@ -1297,6 +1304,52 @@ void gui_slider(GuiContext *ctx, const char *label, float *value, float min, flo
 {
     gui_slider_ex(ctx, label, value, min, max, 0.1f, true, 0);
     gui_next_row(ctx);
+}
+
+bool gui_textfield(GuiContext *ctx, const char *label, char *buf, int buf_size)
+{
+    assert(buf && buf_size > 0);
+    bool changed = false;
+    int char_count = strlen(buf);
+    for (int i = 0; i < ctx->written_char_count; ++i) {
+        if (char_count >= buf_size)
+            break;
+        char ch = ctx->written_text_buf[i];
+        if (ch == '\b') {
+            if (char_count > 0)
+                buf[--char_count] = '\0';
+        } else {
+            buf[char_count++] = ch;
+        }
+        changed = true;
+    }
+    char_count = MIN(char_count, buf_size - 1);
+    buf[char_count] = '\0';
+
+    gui_begin(ctx, label);
+    V2i margin(5, 3);
+    V2i pos = gui_turtle(ctx)->pos;
+    V2i size = gui_size(ctx, label, V2i(50, 21)); // @todo Minimum size to skin
+
+    bool went_up = false, hover = false, down = false;
+    if (gui_is_inside_window(ctx, size))
+    {
+        gui_button_logic(ctx, label, pos, size, &went_up, NULL, &down, &hover);
+
+        V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
+        V2i px_size = pt_to_px(size, ctx->dpi_scale);
+        //ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, down, hover, gui_layer(ctx), gui_scissor(ctx));
+
+        V2i px_margin = pt_to_px(margin, ctx->dpi_scale);
+        ctx->callbacks.draw_text(ctx->callbacks.user_data, 1.f*px_pos.x + px_margin.x, 1.f*px_pos.y + px_margin.y, buf, gui_layer(ctx), gui_scissor(ctx));
+    }
+
+    gui_enlarge_bounding(ctx, pos + size);
+    gui_end(ctx);
+
+    gui_next_row(ctx);
+
+    return changed;
 }
 
 void gui_next_row(GuiContext *ctx)

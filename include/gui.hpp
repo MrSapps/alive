@@ -122,6 +122,8 @@ struct GuiContext_Window {
 #define GUI_KEYSTATE_PRESSED_BIT 0x2
 #define GUI_KEYSTATE_RELEASED_BIT 0x4
 
+#define GUI_WRITTEN_TEXT_BUF_SIZE 32
+
 #define GUI_KEY_COUNT 256
 #define GUI_KEY_LMB 0
 #define GUI_KEY_MMB 1
@@ -177,6 +179,9 @@ struct GuiContext {
     V2f drag_start_value; // Knob value, or xy position, or ...
     DragDropData dragdropdata; // Data from gui component which is currently dragged
 
+    char written_text_buf[GUI_WRITTEN_TEXT_BUF_SIZE]; // Modified by gui_write_char
+    int written_char_count;
+
     GuiContext_Turtle turtles[MAX_GUI_STACK_SIZE];
     int turtle_ix;
 
@@ -206,6 +211,9 @@ struct GuiContext {
 const char *gui_label_text(const char *label);
 const char *gui_str(GuiContext *ctx, const char *fmt, ...); // Temporary string. These are cheap to make. Valid only this frame.
 
+// Supply characters that should be written to e.g. text field
+void gui_write_char(GuiContext *ctx, char ch);
+
 // Startup and shutdown of GUI
 // @todo Size should be defined in gui_begin_window()
 // @note skin_source_file contents is not copied
@@ -233,6 +241,7 @@ bool gui_button(GuiContext *ctx, const char *label);
 bool gui_checkbox(GuiContext *ctx, const char *label, bool *value);
 bool gui_radiobutton(GuiContext *ctx, const char *label, bool value);
 void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max);
+bool gui_textfield(GuiContext *ctx, const char *label, char *buf, int buf_size);
 
 void gui_begin(GuiContext *ctx, const char *label, bool detached = false);
 void gui_end(GuiContext *ctx);

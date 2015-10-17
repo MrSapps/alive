@@ -404,10 +404,10 @@ void Engine::Update()
             for (size_t i = 0; i < len; i++)
             {
                 uint32_t keycode = event.text.text[i];
-                if (keycode >= 32 && keycode <= 255)
+                if (keycode >= 10 && keycode <= 255)
                 {
                     //printable ASCII characters
-                    //ImGui::GetIO().AddInputCharacter((char)keycode);
+                    gui_write_char(mGui, (char)keycode);
                 }
             }
         }
@@ -508,6 +508,11 @@ void Engine::Render()
     mFmv->Render(*mRenderer, *mGui, w, h);
     mSound->Render(mGui, w, h);
     mLevel->Render(*mRenderer, *mGui, w, h);
+
+    gui_begin_window(mGui, "Just testing", V2i(300, 300));
+    static char buf[8] = { 0 };
+    gui_textfield(mGui, "Write here", buf, sizeof(buf));
+    gui_end_window(mGui);
 
     gui_end(mGui);
     mRenderer->endFrame();
