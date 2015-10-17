@@ -608,12 +608,19 @@ private:
     }
 }
 
+static bool guiStringFilter(const char *haystack, const char *needle)
+{
+    if (needle[0] == '\0')
+        return true;
+    return strstr(haystack, needle);
+}
+
 class FmvUi
 {
 private:
-    //ImGuiTextFilter mFilter;
-    //int listbox_item_current = 0;
-    std::vector<const char*> listbox_items;
+    char mFilterString[64];
+    size_t mListBoxSelectedItem = (size_t)-1;
+    std::vector<const char*> mListBoxItems;
     std::unique_ptr<class IMovie>& mFmv;
 public:
     FmvUi(const FmvUi&) = delete;
@@ -621,6 +628,7 @@ public:
     FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController, FileSystem& fs)
         : mFmv(fmv), mAudioController(audioController), mFileSystem(fs)
     {
+        mFilterString[0] = '\0';
     }
 
     void DrawVideoSelectionUi(GuiContext& gui, const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
@@ -635,48 +643,38 @@ public:
         }
         gui_begin_window(&gui, name.c_str(), v2i(300, 580));
 
-        //mFilter.Draw();
+        gui_textfield(&gui, "Filter", mFilterString, sizeof(mFilterString));
 
-
-        listbox_items.clear();
-        listbox_items.reserve(allFmvs.size());
+        mListBoxItems.clear();
+        mListBoxItems.reserve(allFmvs.size());
 
         for (const auto& fmv : allFmvs)
         {
-            // TODO: Reimplement filtering
-            //if (mFilter.PassFilter(fmv.first.c_str()))
+            if (guiStringFilter(fmv.first.c_str(), mFilterString))
             {
-                listbox_items.emplace_back(fmv.first.c_str());
+                mListBoxItems.emplace_back(fmv.first.c_str());
             }
         }
 
         //if (ImGui::ListBoxHeader("##", ImVec2(ImGui::GetWindowWidth() - 15, ImGui::GetWindowSize().y - 95)))
-        int pressed = -1;
         {
-            //if (listbox_item_current >= static_cast<int>(listbox_items.size()))
-            //{
-            //    listbox_item_current = 0;
-           // }
-
-            for (size_t i = 0; i < listbox_items.size(); i++)
+            for (size_t i = 0; i < mListBoxItems.size(); i++)
             {
-                //if (ImGui::Selectable(listbox_items[i], static_cast<int>(i) == listbox_item_current))
-                if (gui_button(&gui, listbox_items[i]))
+                if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
                 {
-                    //listbox_item_current = i;
-                    pressed = i;
+                    mListBoxSelectedItem = i;
                 }
             }
             //ImGui::ListBoxFooter();
         }
 
-
-        if (pressed >= 0)
+        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < mListBoxItems.size())
         {
             try
             {
-                const std::string fmvName = listbox_items[pressed];
+                const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
                 mFmv = IMovie::Factory(fmvName, mAudioController, mFileSystem, allFmvs);
+                mListBoxSelectedItem = (size_t)-1;
             }
             catch (const Oddlib::Exception& ex)
             {
