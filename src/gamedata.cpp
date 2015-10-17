@@ -133,6 +133,31 @@ bool GameData::LoadPathDb(FileSystem& fs)
     return true;
 }
 
+bool GameData::LoadLvlDb(FileSystem& fs)
+{
+    auto stream = fs.GameData().Open("data/lvldb.json");
+    std::string jsonFileContents = stream->LoadAllToString();
+
+    jsonxx::Object rootJsonObject;
+    rootJsonObject.parse(jsonFileContents);
+    if (rootJsonObject.has<jsonxx::Array>("lvls"))
+    {
+        const auto& lvls = rootJsonObject.get<jsonxx::Array>("lvls");
+        for (size_t i = 0; i < lvls.size(); i++)
+        {
+            const auto lvlObj = lvls.get<jsonxx::Object>(i);
+            const auto pcName = lvlObj.get<jsonxx::String>("name");
+            const auto altNames = lvlObj.get<jsonxx::Array>("alt_names");
+            for (size_t j = 0; j < altNames.size(); j++)
+            {
+                const auto altName = altNames.get<jsonxx::String>(j);
+                fs.ResourcePaths().AddPcToPsxMapping(pcName, altName);
+            }
+        }
+    }
+    return true;
+}
+
 bool GameData::Init(FileSystem& fs)
 {
     if (!LoadFmvDb(fs))
@@ -143,6 +168,11 @@ bool GameData::Init(FileSystem& fs)
     AddPcToPsxFmvNameMappings(fs);
 
     if (!LoadPathDb(fs))
+    {
+        return false;
+    }
+
+    if (!LoadLvlDb(fs))
     {
         return false;
     }

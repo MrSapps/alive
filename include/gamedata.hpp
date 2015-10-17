@@ -51,6 +51,7 @@ private:
     bool LoadFmvDb(FileSystem& fs);
     void AddPcToPsxFmvNameMappings(FileSystem& fs);
     bool LoadPathDb(FileSystem& fs);
+    bool LoadLvlDb(FileSystem& fs);
 private:
 
     FmvDb mFmvDb;
