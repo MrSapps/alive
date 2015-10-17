@@ -43,6 +43,14 @@ void sprintf_impl(char *buf, size_t count, const char *fmt, ...)
 #define GUI_SCROLL_BAR_WIDTH 15
 #define GUI_LAYERS_PER_WINDOW 10000 // Maybe 10k layers inside a window is enough
 
+static void *check_ptr(void *ptr)
+{
+    if (!ptr) {
+        abort();
+    }
+    return ptr;
+}
+
 V2i v2i(int x, int y)
 {
     V2i v = { x, y };
@@ -360,11 +368,11 @@ static void *frame_alloc(GuiContext *ctx, int size)
     if (bucket->used + size > bucket->size) {
         // Need a new bucket :(
         int new_bucket_count = ctx->framemem_bucket_count + 1;
-        ctx->framemem_buckets = (GuiContext_MemBucket*)realloc(ctx->framemem_buckets, sizeof(*ctx->framemem_buckets)*new_bucket_count);
+        ctx->framemem_buckets = (GuiContext_MemBucket*)check_ptr(realloc(ctx->framemem_buckets, sizeof(*ctx->framemem_buckets)*new_bucket_count));
 
         int bucket_size = MAX(size, bucket->size * 2);
         bucket = &ctx->framemem_buckets[ctx->framemem_bucket_count++];
-        bucket->data = malloc(bucket_size);
+        bucket->data = check_ptr(malloc(bucket_size));
         bucket->size = bucket_size;
         bucket->used = 0;
     }
@@ -385,8 +393,8 @@ static void refresh_framemem(GuiContext *ctx)
             free(ctx->framemem_buckets[i].data);
         }
 
-        ctx->framemem_buckets = (GuiContext_MemBucket*)realloc(ctx->framemem_buckets, sizeof(*ctx->framemem_buckets));
-        ctx->framemem_buckets[0].data = realloc(ctx->framemem_buckets[0].data, memory_size);
+        ctx->framemem_buckets = (GuiContext_MemBucket*)check_ptr(realloc(ctx->framemem_buckets, sizeof(*ctx->framemem_buckets)));
+        ctx->framemem_buckets[0].data = check_ptr(realloc(ctx->framemem_buckets[0].data, memory_size));
         ctx->framemem_buckets[0].size = memory_size;
 
         ctx->framemem_bucket_count = 1;
@@ -404,8 +412,8 @@ GuiContext *create_gui(GuiCallbacks callbacks)
     ctx->active_win_ix = -1;
 
     ctx->framemem_bucket_count = 1;
-    ctx->framemem_buckets = (GuiContext_MemBucket*)malloc(sizeof(*ctx->framemem_buckets));
-    ctx->framemem_buckets[0].data = malloc(GUI_DEFAULT_MAX_FRAME_MEMORY);
+    ctx->framemem_buckets = (GuiContext_MemBucket*)check_ptr(malloc(sizeof(*ctx->framemem_buckets)));
+    ctx->framemem_buckets[0].data = check_ptr(malloc(GUI_DEFAULT_MAX_FRAME_MEMORY));
     ctx->framemem_buckets[0].size = GUI_DEFAULT_MAX_FRAME_MEMORY;
     ctx->framemem_buckets[0].used = 0;
 
