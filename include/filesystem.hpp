@@ -12,6 +12,7 @@ namespace Oddlib
 {
     class IStream;
 }
+struct GuiContext;
 
 class UserSettingsFs
 {
@@ -43,6 +44,7 @@ private:
     std::string mBasePath;
 };
 
+class FileSystem;
 class ResourcePathAndModsFs
 {
 public:
@@ -96,6 +98,7 @@ private:
     std::unique_ptr<Oddlib::IStream> FindFile(const std::vector<std::string>& names, bool pickBiggestOfSameName);
 
 private:
+    friend class FileSystem;
     std::vector<std::unique_ptr<IResourcePathAbstraction>> mResourcePaths;
     std::map<std::string, std::string> mPcToPsxMappings;
 };
@@ -108,6 +111,7 @@ public:
     UserSettingsFs& UserSettings() {  return mUserSettingsFs; }
     GameDataFs& GameData() { return mGameDataFs; }
     ResourcePathAndModsFs& ResourcePaths() { return mResourceandModsFs; }
+    void DebugUi(GuiContext &gui);
 private:
     void InitResourcePaths();
 private:

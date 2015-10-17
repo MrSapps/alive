@@ -1211,7 +1211,7 @@ void gui_label(GuiContext *ctx, const char *label)
     gui_end(ctx);
 }
 
-bool gui_button(GuiContext *ctx, const char *label)
+bool gui_button_ex(GuiContext *ctx, const char *label, bool force_down)
 {
     gui_begin(ctx, label);
     V2i margin(5, 3);
@@ -1231,7 +1231,7 @@ bool gui_button(GuiContext *ctx, const char *label)
 
         V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
-        ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, down, hover, gui_layer(ctx), gui_scissor(ctx));
+        ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, down || force_down, hover, gui_layer(ctx), gui_scissor(ctx));
 
         V2i px_margin = pt_to_px(margin, ctx->dpi_scale);
         ctx->callbacks.draw_text(ctx->callbacks.user_data, 1.f*px_pos.x + px_margin.x, 1.f*px_pos.y + px_margin.y, gui_label_text(label), gui_layer(ctx), gui_scissor(ctx));
@@ -1244,6 +1244,12 @@ bool gui_button(GuiContext *ctx, const char *label)
 
     return went_up && hover;
 }
+
+bool gui_button(GuiContext *ctx, const char *label)
+{ return gui_button_ex(ctx, label, false); }
+
+bool gui_selectable(GuiContext *ctx, const char *label, bool selected)
+{ return gui_button_ex(ctx, label, selected); }
 
 bool gui_checkbox_ex(GuiContext *ctx, const char *label, bool *value, bool radio_button_visual)
 {
@@ -1285,7 +1291,7 @@ bool gui_checkbox_ex(GuiContext *ctx, const char *label, bool *value, bool radio
     gui_enlarge_bounding(ctx, pos + size);
     gui_end(ctx);
 
-    gui_next_row(ctx);
+    gui_next_row(ctx); // @todo Layouting
 
     if (value && went_up && hover)
         *value = !*value;
@@ -1304,7 +1310,7 @@ bool gui_radiobutton(GuiContext *ctx, const char *label, bool value)
 void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max)
 {
     gui_slider_ex(ctx, label, value, min, max, 0.1f, true, 0);
-    gui_next_row(ctx);
+    gui_next_row(ctx); // @todo Layouting
 }
 
 bool gui_textfield(GuiContext *ctx, const char *label, char *buf, int buf_size)
@@ -1314,7 +1320,20 @@ bool gui_textfield(GuiContext *ctx, const char *label, char *buf, int buf_size)
     gui_begin(ctx, label);
     V2i margin(5, 3);
     V2i pos = gui_turtle(ctx)->pos;
-    V2i size = gui_size(ctx, label, V2i(150, 21)); // @todo Minimum size to skin
+    V2i size = gui_size(ctx, label, V2i(300, 21)); // @todo Minimum size to skin
+    V2i box_size = size;
+    V2i label_size = v2i(0, 0);
+    bool has_label = (strlen(gui_label_text(label)) > 0);
+    if (has_label)
+    {
+        float label_size_f[2];
+        ctx->callbacks.calc_text_size(label_size_f, ctx->callbacks.user_data, gui_label_text(label), gui_layer(ctx));
+        label_size.x = label_size_f[0] + margin.x*2;
+        label_size.y = label_size_f[1] + margin.y*2;
+
+        size.x += label_size.x;
+        box_size.x -= label_size.x;
+    }
 
     bool went_down = false, hover = false;
     if (gui_is_inside_window(ctx, size))
@@ -1341,21 +1360,42 @@ bool gui_textfield(GuiContext *ctx, const char *label, char *buf, int buf_size)
             buf[char_count] = '\0';
         }
 
-        V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
-        V2i px_size = pt_to_px(size, ctx->dpi_scale);
-        // @todo down --> active
-        ctx->callbacks.draw_textbox(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, active, hover, gui_layer(ctx), gui_scissor(ctx));
-
         V2i px_margin = pt_to_px(margin, ctx->dpi_scale);
-        ctx->callbacks.draw_text(ctx->callbacks.user_data, 1.f*px_pos.x + px_margin.x, 1.f*px_pos.y + px_margin.y, buf, gui_layer(ctx), gui_scissor(ctx));
+        if (has_label) { // Draw label
+            V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
+            ctx->callbacks.draw_text(ctx->callbacks.user_data, 1.f*px_pos.x + px_margin.x, 1.f*px_pos.y, gui_label_text(label), gui_layer(ctx), gui_scissor(ctx));
+        }
+
+        { // Draw textbox
+            V2i px_pos = pt_to_px(pos + v2i(label_size.x, 0), ctx->dpi_scale);
+            V2i px_size = pt_to_px(box_size, ctx->dpi_scale);
+            // @todo down --> active
+            ctx->callbacks.draw_textbox(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, active, hover, gui_layer(ctx), gui_scissor(ctx));
+
+            ctx->callbacks.draw_text(ctx->callbacks.user_data, 1.f*px_pos.x + px_margin.x, 1.f*px_pos.y + px_margin.y, buf, gui_layer(ctx), gui_scissor(ctx));
+        }
+
     }
 
     gui_enlarge_bounding(ctx, pos + size);
     gui_end(ctx);
 
-    gui_next_row(ctx);
+    gui_next_row(ctx); // @todo Layouting
 
     return content_changed;
+}
+
+void gui_begin_listbox(GuiContext *ctx, const char *label)
+{
+    gui_begin(ctx, label);
+    // @todo Clipping and scrollbar
+}
+
+void gui_end_listbox(GuiContext *ctx)
+{
+    gui_end(ctx);
+
+    gui_next_row(ctx); // @todo Layouting
 }
 
 void gui_next_row(GuiContext *ctx)

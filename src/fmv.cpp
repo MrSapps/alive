@@ -766,7 +766,7 @@ void DebugFmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     if (!mFmv)
     {
         RenderVideoUi(gui);
-        //mFileSystem.DebugUi();
+        mFileSystem.DebugUi(gui);
     }
 }
 

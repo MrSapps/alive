@@ -241,10 +241,14 @@ bool gui_knob(GuiContext *ctx, const char *label, float min, float max, float *v
 void gui_label(GuiContext *ctx, const char *label);
 
 bool gui_button(GuiContext *ctx, const char *label);
+bool gui_selectable(GuiContext *ctx, const char *label, bool selected);
 bool gui_checkbox(GuiContext *ctx, const char *label, bool *value);
 bool gui_radiobutton(GuiContext *ctx, const char *label, bool value);
 void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max);
 bool gui_textfield(GuiContext *ctx, const char *label, char *buf, int buf_size);
+
+void gui_begin_listbox(GuiContext *ctx, const char *label);
+void gui_end_listbox(GuiContext *ctx);
 
 void gui_begin(GuiContext *ctx, const char *label, bool detached = false);
 void gui_end(GuiContext *ctx);

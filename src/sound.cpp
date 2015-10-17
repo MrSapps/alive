@@ -103,8 +103,7 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
     static int selectedIndex = 0; 
     for (size_t i = 0; i < mThemes.size(); i++)
     {
-        //if (ImGui::Selectable(mThemes[i].c_str(), static_cast<int>(i) == selectedIndex))
-        if (gui_button(gui, mThemes[i].c_str()))
+        if (gui_selectable(gui, mThemes[i].c_str(), static_cast<int>(i) == selectedIndex))
         {
             selectedIndex = static_cast<int>(i);
             if (selectedIndex >= 0 && selectedIndex < static_cast<int>(mThemes.size()) && !mThemes.empty())
