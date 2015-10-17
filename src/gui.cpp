@@ -487,6 +487,7 @@ bool gui_is_hot(GuiContext *ctx, const char *label)
 void gui_set_active(GuiContext *ctx, const char *label)
 {
     ctx->active_id = gui_id(label);
+    ctx->last_active_id = ctx->active_id;
     ctx->active_win_ix = gui_turtle(ctx)->window_ix;
     ctx->hot_id = 0; // Prevent the case where hot becomes assigned some different (overlapping) element than active
 }
@@ -1308,37 +1309,42 @@ void gui_slider(GuiContext *ctx, const char *label, float *value, float min, flo
 
 bool gui_textfield(GuiContext *ctx, const char *label, char *buf, int buf_size)
 {
-    assert(buf && buf_size > 0);
-    bool changed = false;
-    int char_count = strlen(buf);
-    for (int i = 0; i < ctx->written_char_count; ++i) {
-        if (char_count >= buf_size)
-            break;
-        char ch = ctx->written_text_buf[i];
-        if (ch == '\b') {
-            if (char_count > 0)
-                buf[--char_count] = '\0';
-        } else {
-            buf[char_count++] = ch;
-        }
-        changed = true;
-    }
-    char_count = MIN(char_count, buf_size - 1);
-    buf[char_count] = '\0';
+    bool content_changed = false;
 
     gui_begin(ctx, label);
     V2i margin(5, 3);
     V2i pos = gui_turtle(ctx)->pos;
-    V2i size = gui_size(ctx, label, V2i(50, 21)); // @todo Minimum size to skin
+    V2i size = gui_size(ctx, label, V2i(150, 21)); // @todo Minimum size to skin
 
-    bool went_up = false, hover = false, down = false;
+    bool went_down = false, hover = false;
     if (gui_is_inside_window(ctx, size))
     {
-        gui_button_logic(ctx, label, pos, size, &went_up, NULL, &down, &hover);
+        gui_button_logic(ctx, label, pos, size, NULL, &went_down, NULL, &hover);
+        bool active = (ctx->last_active_id == gui_id(label));
+
+        if (active) {
+            assert(buf && buf_size > 0);
+            int char_count = strlen(buf);
+            for (int i = 0; i < ctx->written_char_count; ++i) {
+                if (char_count >= buf_size)
+                    break;
+                char ch = ctx->written_text_buf[i];
+                if (ch == '\b') {
+                    if (char_count > 0)
+                        buf[--char_count] = '\0';
+                } else {
+                    buf[char_count++] = ch;
+                }
+                content_changed = true;
+            }
+            char_count = MIN(char_count, buf_size - 1);
+            buf[char_count] = '\0';
+        }
 
         V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
-        //ctx->callbacks.draw_button(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, down, hover, gui_layer(ctx), gui_scissor(ctx));
+        // @todo down --> active
+        ctx->callbacks.draw_textbox(ctx->callbacks.user_data, 1.f*px_pos.x, 1.f*px_pos.y, 1.f*px_size.x, 1.f*px_size.y, active, hover, gui_layer(ctx), gui_scissor(ctx));
 
         V2i px_margin = pt_to_px(margin, ctx->dpi_scale);
         ctx->callbacks.draw_text(ctx->callbacks.user_data, 1.f*px_pos.x + px_margin.x, 1.f*px_pos.y + px_margin.y, buf, gui_layer(ctx), gui_scissor(ctx));
@@ -1349,7 +1355,7 @@ bool gui_textfield(GuiContext *ctx, const char *label, char *buf, int buf_size)
 
     gui_next_row(ctx);
 
-    return changed;
+    return content_changed;
 }
 
 void gui_next_row(GuiContext *ctx)

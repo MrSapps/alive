@@ -142,6 +142,7 @@ struct GuiContext_Window {
 typedef void (*DrawButtonFunc)(void *user_data, float x, float y, float w, float h, bool down, bool hover, int layer, GuiScissor *s);
 typedef void (*DrawCheckBoxFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer, GuiScissor *s);
 typedef void (*DrawRadioButtonFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer, GuiScissor *s);
+typedef void (*DrawTextBoxFunc)(void *user_data, float x, float y, float w, float h, bool active, bool hover, int layer, GuiScissor *s);
 typedef void (*DrawTextFunc)(void *user_data, float x, float y, const char *text, int layer, GuiScissor *s);
 typedef void (*CalcTextSizeFunc)(float ret[2], void *user_data, const char *text, int layer);
 typedef void (*DrawWindowFunc)(void *user_data, float x, float y, float w, float h, float title_bar_height, const char *title, bool focus, int layer);
@@ -153,6 +154,7 @@ struct GuiCallbacks {
     DrawButtonFunc draw_button;
     DrawCheckBoxFunc draw_checkbox;
     DrawRadioButtonFunc draw_radiobutton;
+    DrawTextBoxFunc draw_textbox;
     DrawTextFunc draw_text;
     CalcTextSizeFunc calc_text_size;
     DrawWindowFunc draw_window;
@@ -194,7 +196,7 @@ struct GuiContext {
 
     GuiId hot_id, last_hot_id;
     int hot_win_ix;
-    GuiId active_id;
+    GuiId active_id, last_active_id;
     int active_win_ix;
 
     Skin skin;
@@ -211,7 +213,8 @@ struct GuiContext {
 const char *gui_label_text(const char *label);
 const char *gui_str(GuiContext *ctx, const char *fmt, ...); // Temporary string. These are cheap to make. Valid only this frame.
 
-// Supply characters that should be written to e.g. text field
+// Supply characters that should be written to e.g. text field.
+// Use '\b' for erasing.
 void gui_write_char(GuiContext *ctx, char ch);
 
 // Startup and shutdown of GUI

@@ -247,6 +247,31 @@ void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, b
     rend->endLayer();
 }
 
+void drawTextBox(void *void_rend, float x, float y, float w, float h, bool active, bool hover, int layer, GuiScissor *s)
+{
+    Renderer *rend = (Renderer*)void_rend;
+    rend->beginLayer(layer);
+    if (s)
+        rend->scissor(s->x, s->y, s->w, s->h);
+    else
+        rend->resetScissor();
+
+    RenderPaint bg = rend->boxGradient(x+1,y+1+1.5f, w-2,h-2, 3,4, Color{1.f,1.f,1.f,32/255.f}, Color{32/255.f,32/255.f,32/255.f,32/255.f});
+    rend->beginPath();
+    rend->roundedRect(x+1,y+1, w-2,h-2, 4-1);
+    rend->fillPaint(bg);
+    rend->fill();
+
+    rend->beginPath();
+    rend->roundedRect(x+0.5f,y+0.5f, w-1,h-1, 4-0.5f);
+    if (hover || active)
+        rend->strokeColor(Color{ 1.f, 1.f, 1.f, 0.3f });
+    else
+        rend->strokeColor(Color{ 0.f, 0.f, 0.f, 48/255.f });
+    rend->stroke();
+
+    rend->endLayer();
+}
 
 static const float g_gui_font_size = 16.f;
 
@@ -352,6 +377,7 @@ void Engine::InitSubSystems()
         callbacks.draw_button = drawButton;
         callbacks.draw_checkbox = drawCheckBox;
         callbacks.draw_radiobutton = drawRadioButton;
+        callbacks.draw_textbox = drawTextBox;
         callbacks.draw_text = drawText;
         callbacks.calc_text_size = calcTextSize;
         callbacks.draw_window = drawWindow;
@@ -377,7 +403,6 @@ void Engine::Update()
         mGui->cursor_pos.x = -1;
         mGui->cursor_pos.y = -1;
     }
-
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -457,11 +482,14 @@ void Engine::Update()
                 //ImGui_WindowResize();
             }
 
+
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
             if (key == SDL_SCANCODE_ESCAPE)
             {
                 mFmv->Stop();
             }
+            if (event.type == SDL_KEYDOWN && key == SDL_SCANCODE_BACKSPACE)
+                gui_write_char(mGui, '\b'); // Note that this is called in case of repeated backspace key also
 
             SDL_Keymod modstate = SDL_GetModState();
 
@@ -498,21 +526,9 @@ void Engine::Render()
 
     DebugRender();
 
-    uint8_t testPixels[4*3] = {
-        255, 0, 0,
-        0, 255, 0,
-        0, 255, 0,
-        255, 0, 0,
-    };
-
     mFmv->Render(*mRenderer, *mGui, w, h);
     mSound->Render(mGui, w, h);
     mLevel->Render(*mRenderer, *mGui, w, h);
-
-    gui_begin_window(mGui, "Just testing", V2i(300, 300));
-    static char buf[8] = { 0 };
-    gui_textfield(mGui, "Write here", buf, sizeof(buf));
-    gui_end_window(mGui);
 
     gui_end(mGui);
     mRenderer->endFrame();
