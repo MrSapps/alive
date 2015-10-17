@@ -139,7 +139,7 @@ void drawButton(void *void_rend, float x, float y, float w, float h, bool down, 
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(s->x, s->y, s->w, s->h);
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
     else
         rend->resetScissor();
 
@@ -190,7 +190,7 @@ void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(s->x, s->y, s->w, s->h);
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
     else
         rend->resetScissor();
 
@@ -221,7 +221,7 @@ void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, b
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(s->x, s->y, s->w, s->h);
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
     else
         rend->resetScissor();
 
@@ -252,7 +252,7 @@ void drawTextBox(void *void_rend, float x, float y, float w, float h, bool activ
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(s->x, s->y, s->w, s->h);
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
     else
         rend->resetScissor();
 
@@ -280,7 +280,7 @@ void drawText(void *void_rend, float x, float y, const char *text, int layer, Gu
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(s->x, s->y, s->w, s->h);
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
     else
         rend->resetScissor();
 
@@ -458,7 +458,7 @@ void Engine::Update()
 
             if (guiKey >= 0)
             {
-                  int state = mGui->key_state[guiKey];
+                  uint8_t state = mGui->key_state[guiKey];
                   if (event.type == SDL_MOUSEBUTTONUP)
                   {
                       state |= GUI_KEYSTATE_RELEASED_BIT;

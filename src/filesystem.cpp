@@ -319,10 +319,10 @@ void FileSystem::DebugUi(GuiContext &gui)
     static bool bSet = false;
     if (!bSet)
     {
-        gui.next_window_pos = V2i(10, 40);
+        gui.next_window_pos = v2i(10, 40);
         bSet = true;
     }
-    gui_begin_window(&gui, "Resource paths", V2i(700, 200));
+    gui_begin_window(&gui, "Resource paths", v2i(700, 200));
 
     //ImGui::GetStyle().WindowMinSize = ImVec2(260, 200);
     //ImGui::GetStyle().WindowTitleAlign = ImGuiAlign_Center;
@@ -356,7 +356,7 @@ void FileSystem::DebugUi(GuiContext &gui)
     gui_textfield(&gui, "Path", pathBuffer, sizeof(pathBuffer));
     gui_textfield(&gui, "Priority", priorityBuffer, sizeof(priorityBuffer));
 
-    if (gui_button(&gui, "Add/Update"))//, V2i(gui_window_client_size(&gui).x, 20)))
+    if (gui_button(&gui, "Add/Update"))//, v2i(gui_window_client_size(&gui).x, 20)))
     {
 
         try

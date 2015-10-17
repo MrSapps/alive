@@ -10,9 +10,6 @@ typedef uint32_t GuiId;
 
 struct V2i {
     int x, y;
-
-    V2i() : x(0), y(0) {}
-    V2i(int x, int y) : x(x), y(y) {}
 };
 
 V2i v2i(int x, int y);
@@ -27,10 +24,8 @@ V2i rounded_to_grid(V2i v, int grid);
 
 struct V2f {
     float x, y;
-
-    V2f() : x(0), y(0) {}
-    V2f(float x, float y) : x(x), y(y) {}
 };
+V2f v2f(float x, float y);
 V2f operator+(V2f a, V2f b);
 V2f operator*(V2f a, float m);
 V2f v2i_to_v2f(V2i v);
@@ -85,6 +80,7 @@ struct DragDropData {
     int ix;
 };
 
+struct GuiScissor { V2i pos, size; };
 struct GuiContext_Turtle {
     V2i pos; // Output "cursor
     V2i start_pos;
@@ -95,9 +91,10 @@ struct GuiContext_Turtle {
     int layer; // Graphical layer
     bool detached; // If true, moving of this turtle doesn't affect parent bounding boxes etc.
     DragDropData inactive_dragdropdata; // This is copied to gui context when actual dragging and dropping within this turtle starts
+
+    GuiScissor scissor; // Depends on window/panel/whatever pos and sizes. Given to draw commands. Zero == unused.
 };
 
-struct GuiScissor { float x, y, w, h; };
 
 struct Rendering;
 struct GuiContext_Window {
@@ -110,7 +107,6 @@ struct GuiContext_Window {
     V2i client_size; // Size, not taking account title bar or borders
 
     V2i total_size; // Value depends on client_size
-    GuiScissor scissor; // Depends on pos and sizes. Given to draw commands.
 };
 
 #define MAX_GUI_STACK_SIZE 32
@@ -195,7 +191,7 @@ struct GuiContext {
     float dpi_scale; // 1.0: pixels == points, 2.0: pixels == 2.0*points (gui size is doubled). 
 
     GuiId hot_id, last_hot_id;
-    int hot_win_ix;
+    int hot_layer;
     GuiId active_id, last_active_id;
     int active_win_ix;
 
@@ -213,15 +209,15 @@ struct GuiContext {
 const char *gui_label_text(const char *label);
 const char *gui_str(GuiContext *ctx, const char *fmt, ...); // Temporary string. These are cheap to make. Valid only this frame.
 
-// Supply characters that should be written to e.g. text field.
-// Use '\b' for erasing.
-void gui_write_char(GuiContext *ctx, char ch);
-
 // Startup and shutdown of GUI
 // @todo Size should be defined in gui_begin_window()
 // @note skin_source_file contents is not copied
 GuiContext *create_gui(GuiCallbacks callbacks);
 void destroy_gui(GuiContext *ctx);
+
+// Supply characters that should be written to e.g. text field.
+// Use '\b' for erasing.
+void gui_write_char(GuiContext *ctx, char ch);
 
 int gui_layer(GuiContext *ctx);
 

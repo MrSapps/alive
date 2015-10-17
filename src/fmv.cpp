@@ -223,7 +223,7 @@ protected:
         // TODO: Optimize - should update 1 texture rather than creating per frame
         int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-        gui_begin_window(&gui, "FMV", V2i(width, height));
+        gui_begin_window(&gui, "FMV", v2i(width, height));
         V2i pos = gui_turtle_pos(&gui);
         V2i size = gui_window_client_size(&gui);
 
@@ -630,10 +630,10 @@ public:
         static bool bSet = false;
         if (!bSet)
         {
-            gui.next_window_pos = V2i(920, 40);
+            gui.next_window_pos = v2i(920, 40);
             bSet = true;
         }
-        gui_begin_window(&gui, name.c_str(), V2i(300, 580));
+        gui_begin_window(&gui, name.c_str(), v2i(300, 580));
 
         //mFilter.Draw();
 
