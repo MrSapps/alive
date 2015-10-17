@@ -33,8 +33,8 @@ void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 
 void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
 {
-    gui.next_window_pos = V2i(600, 100);
-    gui_begin_window(&gui, "Paths", V2i(300, 400));
+    gui.next_window_pos = v2i(600, 100);
+    gui_begin_window(&gui, "Paths", v2i(300, 400));
 
     static std::vector<std::pair<std::string, const GameData::PathEntry*>> items;
     if (items.empty())
@@ -144,13 +144,13 @@ void GridMap::Update()
 
 void GridMap::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*screenH*/)
 {
-    gui.next_window_pos = V2i(950, 50);
-    gui_begin_window(&gui, "GridMap", V2i(200, 500));
+    gui.next_window_pos = v2i(950, 50);
+    gui_begin_window(&gui, "GridMap", v2i(200, 500));
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[0].size(); y++)
         {
-            if (gui_button(&gui, mScreens[x][y]->FileName().c_str()))
+            if (gui_button(&gui, gui_str(&gui, "cam_%i_%i|%s", (int)x, (int)y, mScreens[x][y]->FileName().c_str())))
             {
                 mEditorScreenX = (int)x;
                 mEditorScreenY = (int)y;
@@ -169,9 +169,9 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scr
     {
         GridScreen *screen = mScreens[mEditorScreenX][mEditorScreenY].get();
 
-        gui.next_window_pos = V2i(600, 600);
+        gui.next_window_pos = v2i(600, 600);
 
-        V2i size(640, 480);
+        V2i size = v2i(640, 480);
         gui_begin_window(&gui, "CAM", size);
         size = gui_window_client_size(&gui);
 

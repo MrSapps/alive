@@ -10,9 +10,6 @@ typedef uint32_t GuiId;
 
 struct V2i {
     int x, y;
-
-    V2i() : x(0), y(0) {}
-    V2i(int x, int y) : x(x), y(y) {}
 };
 
 V2i v2i(int x, int y);
@@ -27,10 +24,8 @@ V2i rounded_to_grid(V2i v, int grid);
 
 struct V2f {
     float x, y;
-
-    V2f() : x(0), y(0) {}
-    V2f(float x, float y) : x(x), y(y) {}
 };
+V2f v2f(float x, float y);
 V2f operator+(V2f a, V2f b);
 V2f operator*(V2f a, float m);
 V2f v2i_to_v2f(V2i v);
@@ -85,6 +80,7 @@ struct DragDropData {
     int ix;
 };
 
+struct GuiScissor { V2i pos, size; };
 struct GuiContext_Turtle {
     V2i pos; // Output "cursor
     V2i start_pos;
@@ -95,9 +91,10 @@ struct GuiContext_Turtle {
     int layer; // Graphical layer
     bool detached; // If true, moving of this turtle doesn't affect parent bounding boxes etc.
     DragDropData inactive_dragdropdata; // This is copied to gui context when actual dragging and dropping within this turtle starts
+
+    GuiScissor scissor; // Depends on window/panel/whatever pos and sizes. Given to draw commands. Zero == unused.
 };
 
-struct GuiScissor { float x, y, w, h; };
 
 struct Rendering;
 struct GuiContext_Window {
@@ -110,7 +107,6 @@ struct GuiContext_Window {
     V2i client_size; // Size, not taking account title bar or borders
 
     V2i total_size; // Value depends on client_size
-    GuiScissor scissor; // Depends on pos and sizes. Given to draw commands.
 };
 
 #define MAX_GUI_STACK_SIZE 32
@@ -121,6 +117,8 @@ struct GuiContext_Window {
 #define GUI_KEYSTATE_DOWN_BIT 0x1
 #define GUI_KEYSTATE_PRESSED_BIT 0x2
 #define GUI_KEYSTATE_RELEASED_BIT 0x4
+
+#define GUI_WRITTEN_TEXT_BUF_SIZE 32
 
 #define GUI_KEY_COUNT 256
 #define GUI_KEY_LMB 0
@@ -140,6 +138,7 @@ struct GuiContext_Window {
 typedef void (*DrawButtonFunc)(void *user_data, float x, float y, float w, float h, bool down, bool hover, int layer, GuiScissor *s);
 typedef void (*DrawCheckBoxFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer, GuiScissor *s);
 typedef void (*DrawRadioButtonFunc)(void *user_data, float x, float y, float w, bool checked, bool down, bool hover, int layer, GuiScissor *s);
+typedef void (*DrawTextBoxFunc)(void *user_data, float x, float y, float w, float h, bool active, bool hover, int layer, GuiScissor *s);
 typedef void (*DrawTextFunc)(void *user_data, float x, float y, const char *text, int layer, GuiScissor *s);
 typedef void (*CalcTextSizeFunc)(float ret[2], void *user_data, const char *text, int layer);
 typedef void (*DrawWindowFunc)(void *user_data, float x, float y, float w, float h, float title_bar_height, const char *title, bool focus, int layer);
@@ -151,9 +150,16 @@ struct GuiCallbacks {
     DrawButtonFunc draw_button;
     DrawCheckBoxFunc draw_checkbox;
     DrawRadioButtonFunc draw_radiobutton;
+    DrawTextBoxFunc draw_textbox;
     DrawTextFunc draw_text;
     CalcTextSizeFunc calc_text_size;
     DrawWindowFunc draw_window;
+};
+
+struct GuiContext_MemBucket {
+    void *data;
+    int size;
+    int used;
 };
 
 // Handles the gui state
@@ -171,6 +177,9 @@ struct GuiContext {
     V2f drag_start_value; // Knob value, or xy position, or ...
     DragDropData dragdropdata; // Data from gui component which is currently dragged
 
+    char written_text_buf[GUI_WRITTEN_TEXT_BUF_SIZE]; // Modified by gui_write_char
+    int written_char_count;
+
     GuiContext_Turtle turtles[MAX_GUI_STACK_SIZE];
     int turtle_ix;
 
@@ -182,23 +191,33 @@ struct GuiContext {
     float dpi_scale; // 1.0: pixels == points, 2.0: pixels == 2.0*points (gui size is doubled). 
 
     GuiId hot_id, last_hot_id;
-    int hot_win_ix;
-    GuiId active_id;
+    int hot_layer;
+    GuiId active_id, last_active_id;
     int active_win_ix;
 
     Skin skin;
     //SkinningMode skinning_mode;
 
     GuiCallbacks callbacks;
+
+#   define GUI_DEFAULT_MAX_FRAME_MEMORY (1024)
+    // List of buffers which are invalidated every frame. Used for temp strings.
+    GuiContext_MemBucket *framemem_buckets;
+    int framemem_bucket_count; // It's best to have just one bucket, but sometimes memory usage can peak and more memory is allocated.
 };
 
 const char *gui_label_text(const char *label);
+const char *gui_str(GuiContext *ctx, const char *fmt, ...); // Temporary string. These are cheap to make. Valid only this frame.
 
 // Startup and shutdown of GUI
 // @todo Size should be defined in gui_begin_window()
 // @note skin_source_file contents is not copied
 GuiContext *create_gui(GuiCallbacks callbacks);
 void destroy_gui(GuiContext *ctx);
+
+// Supply characters that should be written to e.g. text field.
+// Use '\b' for erasing.
+void gui_write_char(GuiContext *ctx, char ch);
 
 int gui_layer(GuiContext *ctx);
 
@@ -218,9 +237,14 @@ bool gui_knob(GuiContext *ctx, const char *label, float min, float max, float *v
 void gui_label(GuiContext *ctx, const char *label);
 
 bool gui_button(GuiContext *ctx, const char *label);
+bool gui_selectable(GuiContext *ctx, const char *label, bool selected);
 bool gui_checkbox(GuiContext *ctx, const char *label, bool *value);
 bool gui_radiobutton(GuiContext *ctx, const char *label, bool value);
 void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max);
+bool gui_textfield(GuiContext *ctx, const char *label, char *buf, int buf_size);
+
+void gui_begin_listbox(GuiContext *ctx, const char *label);
+void gui_end_listbox(GuiContext *ctx);
 
 void gui_begin(GuiContext *ctx, const char *label, bool detached = false);
 void gui_end(GuiContext *ctx);
