@@ -88,7 +88,7 @@ struct DrawCmd {
         struct {
             int integer;
             float f[5];
-            char str[64]; // TODO: Allocate dynamically from cheap frame allocator
+            char str[128]; // TODO: Allocate dynamically from cheap frame allocator
         };
         RenderPaint paint;
     };
@@ -108,7 +108,7 @@ public:
     void beginLayer(int depth);
     void endLayer();
 
-    int createTexture(GLenum internalFormat, int width, int height, GLenum inputFormat, GLenum colorDataType, const void *pixels);
+    int createTexture(GLenum internalFormat, int width, int height, GLenum inputFormat, GLenum colorDataType, const void *pixels, bool interpolation);
     void destroyTexture(int handle);
 
     // Drawing commands, which will be buffered and issued at the end of the frame.

@@ -108,12 +108,36 @@ int GridScreen::getTexHandle(FileSystem& fs)
             if (surf->format->format != SDL_PIXELFORMAT_RGB24)
             {
                 converted.reset(SDL_ConvertSurfaceFormat(surf, SDL_PIXELFORMAT_RGB24, 0));
-                mTexHandle = mRend.createTexture(GL_RGB, converted->w, converted->h, GL_RGB, GL_UNSIGNED_BYTE, converted->pixels);
+                surf = converted.get();
             }
-            else
-            {
-                mTexHandle = mRend.createTexture(GL_RGB, surf->w, surf->h, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels);
+
+#if 0
+            SDL_SurfacePtr scaled;
+            { // Scale the surface
+                assert(surf->w == 640);
+                assert(surf->h == 240);
+
+                scaled.reset(SDL_CreateRGBSurface(0, 640, 480, 24, 0xFF, 0x00FF, 0x0000FF, 0));
+                uint8_t *src = static_cast<uint8_t*>(surf->pixels);
+                uint8_t *dst = static_cast<uint8_t*>(scaled->pixels);
+                for (int y = 0; y < scaled->h; ++y) {
+                    const int src_y = min(y, surf->h);
+                    for (int x = 0; x < scaled->w; ++x) {
+                        const int src_x = min(x, surf->w);
+
+                        const int dst_ix = x*3 + scaled->pitch*y;
+                        const int src_ix = src_x*3 + surf->pitch*src_y;
+
+                        dst[dst_ix + 0] = src[src_ix + 0];
+                        dst[dst_ix + 1] = src[src_ix + 1];
+                        dst[dst_ix + 2] = src[src_ix + 2];
+                    }
+                }
             }
+            mTexHandle = mRend.createTexture(GL_RGB, scaled->w, scaled->h, GL_RGB, GL_UNSIGNED_BYTE, scaled->pixels, false);
+#else
+            mTexHandle = mRend.createTexture(GL_RGB, surf->w, surf->h, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels, false);
+#endif
         }
     }
     return mTexHandle;
@@ -169,7 +193,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scr
     {
         GridScreen *screen = mScreens[mEditorScreenX][mEditorScreenY].get();
 
-        gui.next_window_pos = v2i(600, 600);
+        gui.next_window_pos = v2i(100, 100);
 
         V2i size = v2i(640, 480);
         gui_begin_window(&gui, "CAM", size);
