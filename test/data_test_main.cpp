@@ -54,6 +54,10 @@ public:
     
                 // TODO: Handle sounds/fmvs
             }
+            else
+            {
+                LOG_WARNING("LVL not found: " << lvl);
+            }
         }
     }
 
@@ -120,8 +124,24 @@ public:
                 ptr = dynamic_cast<Oddlib::AeBitsPc*>(bits.get());
                 break;
 
+            case eAePsx:
+            {
+                auto tmp = dynamic_cast<Oddlib::PsxBits*>(bits.get());
+                if (tmp->IncludeLength())
+                {
+                    ptr = tmp;
+                }
+            }
+                break;
+
             case eAoPsx:
-                ptr = dynamic_cast<Oddlib::PsxBits*>(bits.get());
+            {
+                auto tmp = dynamic_cast<Oddlib::PsxBits*>(bits.get());
+                if (!tmp->IncludeLength())
+                {
+                    ptr = tmp;
+                }
+            }
                 break;
 
             default:
@@ -174,8 +194,8 @@ int main(int /*argc*/, char** /*argv*/)
         "d2.lvl",
         "c1.lvl"
     };
-    //DataTest aoPc(DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee", aoLvls);
-   // DataTest aoPsx(DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin", aoLvls);
+    DataTest aoPc(DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee", aoLvls);
+    DataTest aoPsx(DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin", aoLvls);
 
     const std::vector<std::string> aeLvls =
     {
@@ -191,15 +211,15 @@ int main(int /*argc*/, char** /*argv*/)
         "st.lvl",
         "sv.lvl"
     };
-    //DataTest aePc(DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus", aeLvls);
+    DataTest aePc(DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus", aeLvls);
 
     DataTest aePsxCd1(DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin", aeLvls);
+    DataTest aePsxCd2(DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin", aeLvls);
 
     /* TODO: Check all other data
  
     // AE PC/PSX
 
-     DataTest aePsxCd2("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin");
 
     // AO Demo PC/PSX
 

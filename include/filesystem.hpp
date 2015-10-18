@@ -56,6 +56,8 @@ public:
     std::unique_ptr<Oddlib::IStream> OpenLvlFileChunkById(const std::string& lvl, const std::string& name, Uint32 id);
     std::unique_ptr<Oddlib::IStream> OpenLvlFileChunkByType(const std::string& lvl, const std::string& name, Uint32 type);
 private:
+    std::vector<std::string> GetAlternateNames(const std::string& name);
+
     class IResourcePathAbstraction
     {
     public:

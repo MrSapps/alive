@@ -10,7 +10,8 @@ namespace Oddlib
     const auto green_mask = 0x7E0;
     const auto blue_mask = 0x1F;
 
-    PsxBits::PsxBits(IStream& stream)
+    PsxBits::PsxBits(IStream& stream, bool includeLengthInStripSize)
+        : mIncludeLengthInStripSize(includeLengthInStripSize)
     {
         mSurface.reset(SDL_CreateRGBSurface(0, 368, 240, 16, red_mask, green_mask, blue_mask, 0));
         GenerateImage(stream);
@@ -52,7 +53,12 @@ namespace Oddlib
             Uint16 len = 0;
             stream.ReadUInt16(len);
 
-       
+            if (mIncludeLengthInStripSize)
+            {
+                Uint16 dummy = 0;
+                stream.ReadUInt16(dummy);
+            }
+
             std::vector<Uint8> buffer(len);
             stream.ReadBytes(buffer.data(), buffer.size());
             buffer.resize(buffer.size()*2 );
@@ -66,6 +72,7 @@ namespace Oddlib
             dstRect.w = w;
             dstRect.h = 240;
             SDL_BlitSurface(strip.get(), NULL, mSurface.get(), &dstRect);
+
         }
 
         /*

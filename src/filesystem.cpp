@@ -192,15 +192,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::Open(const std::string& 
         throw Oddlib::Exception("No resource paths configured");
     }
 
-    std::vector<std::string> names;
-    names.emplace_back(name);
-    auto psxName = mPcToPsxMappings.find(name);
-    if (psxName != std::end(mPcToPsxMappings))
-    {
-        names.emplace_back(psxName->second);
-    }
-
-    return FindFile(names, false);
+    return FindFile(GetAlternateNames(name), false);
 }
 
 std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenFmv(const std::string& name, bool pickBiggest /*= false*/)
@@ -209,18 +201,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenFmv(const std::strin
     {
         throw Oddlib::Exception("No resource paths configured");
     }
-
-    std::vector<std::string> names;
-    names.emplace_back(name);
-    auto psxName = mPcToPsxMappings.find(name);
-    if (psxName != std::end(mPcToPsxMappings))
-    {
-        names.emplace_back(psxName->second);
-    }
-
-    // TODO: Derive mod(s) name/path
-
-    return FindFile(names, pickBiggest);
+    return FindFile(GetAlternateNames(name), pickBiggest);
 }
 
 ResourcePathAndModsFs::IResourcePathAbstraction* ResourcePathAndModsFs::FindFile(const std::string& name, bool pickBiggest)
@@ -290,7 +271,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::FindFile(const std::vect
 // TODO: Change LVL archive interface so we can keep it open/cached here
 std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkById(const std::string& lvl, const std::string& name, Uint32 id)
 {
-    auto stream = FindFile(std::vector<std::string> {lvl}, false);
+    auto stream = FindFile(GetAlternateNames(lvl), true);
     if (stream)
     {
         Oddlib::LvlArchive lvlArchive(std::move(stream));
@@ -306,7 +287,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkById(con
 
 std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkByType(const std::string& lvl, const std::string& name, Uint32 type)
 {
-    auto stream = FindFile(std::vector<std::string> {lvl}, false);
+    auto stream = FindFile(GetAlternateNames(lvl), true);
     if (stream)
     {
         Oddlib::LvlArchive lvlArchive(std::move(stream));
@@ -318,6 +299,31 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkByType(c
         }
     }
     return nullptr;
+}
+
+std::vector<std::string> ResourcePathAndModsFs::GetAlternateNames(const std::string& name)
+{
+    std::vector<std::string> ret{ name };
+    auto psxName = mPcToPsxMappings.find(name);
+    if (psxName != std::end(mPcToPsxMappings))
+    {
+        ret.emplace_back(psxName->second);
+    }
+    else
+    {
+        // Check for a match using lowercase copy of the name
+        std::string nameCopy = name;
+        std::transform(nameCopy.begin(), nameCopy.end(), nameCopy.begin(), string_util::c_tolower);
+        psxName = mPcToPsxMappings.find(nameCopy);
+        if (psxName != std::end(mPcToPsxMappings))
+        {
+            ret.emplace_back(psxName->second);
+        }
+    }
+
+    // TODO: Derive mod(s) name/path
+
+    return ret;
 }
 
 // FileSystem
