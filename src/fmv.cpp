@@ -612,7 +612,28 @@ static bool guiStringFilter(const char *haystack, const char *needle)
 {
     if (needle[0] == '\0')
         return true;
-    return strstr(haystack, needle);
+
+    // Case-insensitive substring search
+    size_t haystack_len = strlen(haystack);
+    size_t needle_len = strlen(needle);
+    bool matched = false;
+    for (size_t i = 0; i + needle_len < haystack_len + 1; ++i)
+    {
+        matched = true;
+        for (size_t k = 0; k < needle_len; ++k)
+        {
+            assert(k < needle_len);
+            assert(i + k < haystack_len);
+            if (tolower(needle[k]) != tolower(haystack[i + k]))
+            {
+                matched = false;
+                break;
+            }
+        }
+        if (matched)
+            break;
+    }
+    return matched;
 }
 
 class FmvUi
