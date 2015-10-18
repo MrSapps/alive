@@ -342,12 +342,12 @@ void drawWindow(void *void_rend, float x, float y, float w, float h, float title
     else
         headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.f, 1.f, 1.f, 16 / 255.f }, Color{ 1.f, 1.f, 1.f, 16/255.f });
     rend->beginPath();
-    rend->roundedRect(x + 1, y + 1, w - 2, titleBarHeight, cornerRadius - 1);
+    rend->roundedRect(x + 1, y, w - 2, titleBarHeight, cornerRadius - 1);
     rend->fillPaint(headerPaint);
     rend->fill();
     rend->beginPath();
-    rend->moveTo(x + 0.5f, y + 0.5f + titleBarHeight);
-    rend->lineTo(x + 0.5f + w - 1, y + 0.5f + titleBarHeight);
+    rend->moveTo(x + 0.5f, y - 0.5f + titleBarHeight);
+    rend->lineTo(x + 0.5f + w - 1, y - 0.5f + titleBarHeight);
     rend->strokeColor(Color{ 0, 0, 0, 64/255.f });
     rend->stroke();
 
