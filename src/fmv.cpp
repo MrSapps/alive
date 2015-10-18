@@ -221,7 +221,7 @@ protected:
     void RenderFrame(Renderer &rend, GuiContext &gui, int width, int height, const GLvoid *pixels, const char *subtitles)
     {
         // TODO: Optimize - should update 1 texture rather than creating per frame
-        int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
 
         gui_begin_window(&gui, "FMV", v2i(width, height));
         V2i pos = gui_turtle_pos(&gui);
