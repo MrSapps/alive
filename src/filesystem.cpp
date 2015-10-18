@@ -260,7 +260,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::FindFile(const std::vect
     }
    
     // Open the file from the lowest priority resource path
-    if (lowestPriority != std::end(resourcePaths))
+    if (lowestPriority != resourcePaths.end())
     {
         return lowestPriority->first->Open(lowestPriority->second);
     }
