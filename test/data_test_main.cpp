@@ -4,11 +4,13 @@
 #include "oddlib/bits_factory.hpp"
 #include "oddlib/ao_bits_pc.hpp"
 #include "oddlib/ae_bits_pc.hpp"
+#include "oddlib/psx_bits.hpp"
 #include "oddlib/anim.hpp"
 #include "filesystem.hpp"
 #include "logger.hpp"
 #include <functional>
 #include "msvc_sdl_link.hpp"
+#include "gamedata.hpp"
 
 class DataTest
 {
@@ -28,19 +30,28 @@ public:
     DataTest(eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         : mType(eType)
     {
+        mFs.Init();
+        
+        // Clear out the ones loaded from resource paths json
+        mFs.ResourcePaths().ClearAllResourcePaths();
+
+        mGameData.Init(mFs);
+        
+        // Add the only one we're interested in
         mFs.ResourcePaths().AddResourcePath(resourcePath, 1);
+
         for (const auto& lvl : lvls)
         {
             auto stream = mFs.ResourcePaths().Open(lvl);
             if (stream)
             {
                 Oddlib::LvlArchive archive(std::move(stream));
+                ReadAllAnimations(archive);
                 ReadFg1s(archive);
                 ReadFonts(archive);
                 ReadAllPaths(archive);
                 ReadAllCameras(archive);
-                ReadAllAnimations(archive);
-
+    
                 // TODO: Handle sounds/fmvs
             }
         }
@@ -98,30 +109,32 @@ public:
         ForChunksOfType(archive, Oddlib::MakeType('B', 'i', 't', 's'), [&](Oddlib::LvlArchive::FileChunk& chunk)
         {
             auto bits = Oddlib::MakeBits(*chunk.Stream());
-            if (mType == eAoPc)
+            Oddlib::IBits* ptr = nullptr;
+            switch (mType)
             {
-                Oddlib::IBits* ptr = nullptr;
-                switch (mType)
-                {
-                case eAoPc:
-                    ptr = dynamic_cast<Oddlib::AoBitsPc*>(bits.get());
-                    break;
+            case eAoPc:
+                ptr = dynamic_cast<Oddlib::AoBitsPc*>(bits.get());
+                break;
 
-                case eAePc:
-                    ptr = dynamic_cast<Oddlib::AeBitsPc*>(bits.get());
-                    break;
+            case eAePc:
+                ptr = dynamic_cast<Oddlib::AeBitsPc*>(bits.get());
+                break;
 
-                default:
-                    abort();
-                }
+            case eAoPsx:
+                ptr = dynamic_cast<Oddlib::PsxBits*>(bits.get());
+                break;
 
-
-                if (!ptr)
-                {
-                    LOG_ERROR("Wrong camera type constructed");
-                    abort();
-                }
+            default:
+                abort();
             }
+
+
+            if (!ptr)
+            {
+                LOG_ERROR("Wrong camera type constructed");
+                abort();
+            }
+
         });
     }
 
@@ -136,6 +149,7 @@ public:
 
 private:
     eDataType mType;
+    GameData mGameData;
     FileSystem mFs;
 };
 
@@ -160,8 +174,8 @@ int main(int /*argc*/, char** /*argv*/)
         "d2.lvl",
         "c1.lvl"
     };
-    DataTest aoPc(DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee", aoLvls);
-    //DataTest aoPsx(DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin", aoLvls);
+    //DataTest aoPc(DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee", aoLvls);
+   // DataTest aoPsx(DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin", aoLvls);
 
     const std::vector<std::string> aeLvls =
     {
@@ -177,14 +191,15 @@ int main(int /*argc*/, char** /*argv*/)
         "st.lvl",
         "sv.lvl"
     };
-    DataTest aePc(DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus", aeLvls);
+    //DataTest aePc(DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus", aeLvls);
+
+    DataTest aePsxCd1(DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin", aeLvls);
 
     /* TODO: Check all other data
  
     // AE PC/PSX
 
-    DataTest aePsxCd1("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin");
-    DataTest aePsxCd2("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin");
+     DataTest aePsxCd2("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin");
 
     // AO Demo PC/PSX
 

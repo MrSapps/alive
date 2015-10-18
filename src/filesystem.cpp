@@ -71,7 +71,8 @@ ResourcePathAndModsFs::RawCdImagePath::RawCdImagePath(const std::string& path, i
 
 std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::RawCdImagePath::Open(const std::string& fileName)
 {
-    return mCdImage->ReadFile(fileName, true);
+    // Only PSX FMV's need raw sector reading, everything else is a "normal" file
+    return mCdImage->ReadFile(fileName, string_util::ends_with(fileName, ".MOV", false));
 }
 
 Sint64 ResourcePathAndModsFs::RawCdImagePath::Exists(const std::string& fileName) const
@@ -152,6 +153,11 @@ void ResourcePathAndModsFs::AddResourcePath(const std::string& path, int priorit
     }
 }
 
+void ResourcePathAndModsFs::ClearAllResourcePaths()
+{
+    mResourcePaths.clear();
+}
+
 void ResourcePathAndModsFs::AddPcToPsxMapping(const std::string& pcName, const std::string& psxName)
 {
     mPcToPsxMappings[pcName] = psxName;
@@ -185,7 +191,16 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::Open(const std::string& 
     {
         throw Oddlib::Exception("No resource paths configured");
     }
-    return FindFile(std::vector<std::string> { name }, false);
+
+    std::vector<std::string> names;
+    names.emplace_back(name);
+    auto psxName = mPcToPsxMappings.find(name);
+    if (psxName != std::end(mPcToPsxMappings))
+    {
+        names.emplace_back(psxName->second);
+    }
+
+    return FindFile(names, false);
 }
 
 std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenFmv(const std::string& name, bool pickBiggest /*= false*/)
