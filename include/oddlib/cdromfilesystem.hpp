@@ -4,6 +4,7 @@
 #include "string_util.hpp"
 #include "oddlib/exceptions.hpp"
 #include "oddlib/exceptions.hpp"
+#include <cassert>
 
 class InvalidCdImageException : public Oddlib::Exception
 {
@@ -327,6 +328,8 @@ public:
             : mDr(dr), mName(name), mStream(stream.Clone()), mIncludeSubHeader(includeSubHeaders)
         {
             mSector = mDr.location.little;
+            mStream->Seek(mSector * kRawSectorSize);
+            mSector = 0;
         }
 
         virtual Oddlib::IStream* Clone() override
@@ -375,26 +378,93 @@ public:
 
         virtual void ReadBytes(Uint8* pDest, size_t destSize) override
         {
-            // TODO: Will always move up by 1 raw sector currently
-            mStream->Seek((mSector * kRawSectorSize) + 16);
-            mSector++;
-
-            char subHeader[8] = {};
-            mStream->ReadBytes(reinterpret_cast<Sint8*>(subHeader), sizeof(subHeader));
-            //const int sectorDataSize = (IsMode2Form2(subHeader)) ? 2336 : 2048;
-
-            mPos += 2048;
-
+            // Raw CD sector reading mode is only used for FMV's we assume that
+            // a full sector will be read for each read. This is slightly hacky but it works
             if (mIncludeSubHeader)
             {
-                mStream->Seek(mStream->Pos() - sizeof(subHeader));
-            }
+                mStream->Seek((mSector * kRawSectorSize) + 16);
+                mSector++;
 
-            mStream->ReadBytes(pDest, destSize);
+                char subHeader[8] = {};
+                mStream->ReadBytes(reinterpret_cast<Sint8*>(subHeader), sizeof(subHeader));
+
+                mPos += 2048;
+                mStream->Seek(mStream->Pos() - sizeof(subHeader));
+                mStream->ReadBytes(pDest, destSize);
+            }
+            else
+            {
+                // Otherwise we need to handle reading of "normal" files
+                for (;;)
+                {
+                    size_t posWithinSector = mStream->Pos() % (kRawSectorSize);
+                 
+                    // Skip raw header
+                    if (posWithinSector == 0)
+                    {
+                        char subHeader[24] = {};
+                        mStream->ReadBytes(reinterpret_cast<Sint8*>(subHeader), sizeof(subHeader));
+                    }
+                    else if (posWithinSector >= 24)
+                    {
+                        posWithinSector -= 24;
+                    }
+
+                    assert(posWithinSector <= 2048);
+
+                    // If what we will read is more than the remaining data in this sector
+                    if (posWithinSector + destSize > 2048)
+                    {
+                        int spaceLeft = 2048 - posWithinSector;
+                        assert(spaceLeft >= 0);
+
+                        int dataLeftAfterRead = destSize - spaceLeft;
+                        assert(dataLeftAfterRead >= 0);
+
+                        mPos += spaceLeft;
+                        mStream->ReadBytes(pDest, spaceLeft);
+                        pDest += spaceLeft;
+                        destSize = dataLeftAfterRead;
+
+
+                        // Span to next sector
+                        mSector++;
+                        mStream->Seek((mSector + mDr.location.little) * kRawSectorSize);
+                        mPos = mSector * 2048;
+                        continue;
+                    }
+                    else if (destSize)
+                    {
+                        mPos += destSize;
+                        mSector = (mStream->Pos() / kRawSectorSize);
+                        mSector -= mDr.location.little;
+                        assert(mSector >= 0);
+                        mStream->ReadBytes(pDest, destSize);
+                    }
+
+                    break;
+                }
+            }
         }
 
         virtual void Seek(size_t pos) override
         {
+            if (!mIncludeSubHeader)
+            {
+                // Figure out what sector we should be on
+                mSector = pos / 2048;
+
+                // The real file pos must be in raw sector sizes, plus the starting sector
+                mStream->Seek(((mSector + mDr.location.little) * kRawSectorSize)+24);
+
+
+                int subSeek = (pos % 2048);
+                mStream->Seek(mStream->Pos() + subSeek);
+
+                mPos = pos;
+                return;
+            }
+
             if (pos == 0)
             {
                 mSector = mDr.location.little;
@@ -416,6 +486,10 @@ public:
 
         virtual size_t Pos() const override
         {
+            if (!mIncludeSubHeader)
+            {
+                return mPos;
+            }
             throw std::runtime_error("Pos() not implemented");
         }
 

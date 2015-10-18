@@ -71,7 +71,8 @@ ResourcePathAndModsFs::RawCdImagePath::RawCdImagePath(const std::string& path, i
 
 std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::RawCdImagePath::Open(const std::string& fileName)
 {
-    return mCdImage->ReadFile(fileName, true);
+    // Only PSX FMV's need raw sector reading, everything else is a "normal" file
+    return mCdImage->ReadFile(fileName, string_util::ends_with(fileName, ".MOV", false));
 }
 
 Sint64 ResourcePathAndModsFs::RawCdImagePath::Exists(const std::string& fileName) const

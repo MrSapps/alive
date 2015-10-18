@@ -45,12 +45,12 @@ public:
             if (stream)
             {
                 Oddlib::LvlArchive archive(std::move(stream));
+                ReadAllAnimations(archive);
                 ReadFg1s(archive);
                 ReadFonts(archive);
                 ReadAllPaths(archive);
                 ReadAllCameras(archive);
-                ReadAllAnimations(archive);
-
+    
                 // TODO: Handle sounds/fmvs
             }
         }
