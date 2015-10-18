@@ -238,11 +238,12 @@ Renderer::Renderer(const char *fontPath)
 
     { // Textured quad rendering init
         const char vsString[] =
+            "#version 120\n"
             "attribute vec2 a_pos;        \n"
             "attribute vec2 a_uv;         \n"
             "attribute vec4 a_color;      \n"
-            "out vec2 v_uv;               \n"
-            "out vec4 v_color;            \n"
+            "varying vec2 v_uv;               \n"
+            "varying vec4 v_color;            \n"
             "void main()                  \n"
             "{                            \n"
             "    v_uv = a_uv;             \n"
@@ -250,10 +251,11 @@ Renderer::Renderer(const char *fontPath)
             "    gl_Position = vec4(a_pos, 0, 1); \n"
             "}                            \n";
         const char fsString[] =
-            "uniform sampler2D u_tex;\n"
-            "in vec2 v_uv; \n"
-            "in vec4 v_color; \n"
+            "#version 120\n"
             "precision mediump float;\n"
+            "uniform sampler2D u_tex;\n"
+            "varying vec2 v_uv; \n"
+            "varying vec4 v_color; \n"
             "void main()                                  \n"
             "{                                            \n"
             "  gl_FragColor = v_color*texture2D(u_tex, v_uv);\n"
