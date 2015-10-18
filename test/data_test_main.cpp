@@ -4,6 +4,7 @@
 #include "oddlib/bits_factory.hpp"
 #include "oddlib/ao_bits_pc.hpp"
 #include "oddlib/ae_bits_pc.hpp"
+#include "oddlib/psx_bits.hpp"
 #include "oddlib/anim.hpp"
 #include "filesystem.hpp"
 #include "logger.hpp"
@@ -108,30 +109,32 @@ public:
         ForChunksOfType(archive, Oddlib::MakeType('B', 'i', 't', 's'), [&](Oddlib::LvlArchive::FileChunk& chunk)
         {
             auto bits = Oddlib::MakeBits(*chunk.Stream());
-            if (mType == eAoPc)
+            Oddlib::IBits* ptr = nullptr;
+            switch (mType)
             {
-                Oddlib::IBits* ptr = nullptr;
-                switch (mType)
-                {
-                case eAoPc:
-                    ptr = dynamic_cast<Oddlib::AoBitsPc*>(bits.get());
-                    break;
+            case eAoPc:
+                ptr = dynamic_cast<Oddlib::AoBitsPc*>(bits.get());
+                break;
 
-                case eAePc:
-                    ptr = dynamic_cast<Oddlib::AeBitsPc*>(bits.get());
-                    break;
+            case eAePc:
+                ptr = dynamic_cast<Oddlib::AeBitsPc*>(bits.get());
+                break;
 
-                default:
-                    abort();
-                }
+            case eAoPsx:
+                ptr = dynamic_cast<Oddlib::PsxBits*>(bits.get());
+                break;
 
-
-                if (!ptr)
-                {
-                    LOG_ERROR("Wrong camera type constructed");
-                    abort();
-                }
+            default:
+                abort();
             }
+
+
+            if (!ptr)
+            {
+                LOG_ERROR("Wrong camera type constructed");
+                abort();
+            }
+
         });
     }
 
@@ -172,7 +175,7 @@ int main(int /*argc*/, char** /*argv*/)
         "c1.lvl"
     };
     //DataTest aoPc(DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee", aoLvls);
-    DataTest aoPsx(DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin", aoLvls);
+   // DataTest aoPsx(DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin", aoLvls);
 
     const std::vector<std::string> aeLvls =
     {
@@ -190,12 +193,13 @@ int main(int /*argc*/, char** /*argv*/)
     };
     //DataTest aePc(DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus", aeLvls);
 
+    DataTest aePsxCd1(DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin", aeLvls);
+
     /* TODO: Check all other data
  
     // AE PC/PSX
 
-    DataTest aePsxCd1("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin");
-    DataTest aePsxCd2("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin");
+     DataTest aePsxCd2("C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin");
 
     // AO Demo PC/PSX
 

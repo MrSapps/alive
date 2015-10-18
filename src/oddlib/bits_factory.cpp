@@ -11,58 +11,44 @@ namespace Oddlib
 {
     std::unique_ptr<IBits> MakeBits(IStream& stream)
     {
-        bool allStripsAreMdecHeader = true;
         bool allStripsAreAoSize = true;
+        bool hasFullAmountOfStrips = true;
         const auto aoStripSize = 16 * 240 * 2;
         const auto kNumStrips = 640 / 16;
-        std::array<Uint8, 4> mdecHeader;
 
-        std::vector<Uint8> b(stream.Size());
-        stream.ReadBytes(b.data(), b.size());
-
-        std::ofstream o("debug.dat", std::ios::binary);
-        o.write((const char*)b.data(), b.size());
-        o.close();
-
+        const auto streamSize = stream.Size();
         for (auto i = 0; i < kNumStrips; i++)
         {
-            Uint16 stripSize = 0;
-            stream.ReadUInt16(stripSize);
-            auto previousPos = stream.Pos();
-
-            // If we found a strip isn't an mdec header then don't check the rest of them
-            if (allStripsAreMdecHeader)
+            // PSX cams are half the resolution, so if we bail before getting to kNumStrips
+            // then must be PSX data.
+            if (stream.Pos() >= streamSize)
             {
-                // Look for a pattern of [XX XX] [00 38] 
-                // if this is found then assume its an mdec header
-                stream.ReadBytes(mdecHeader.data(), mdecHeader.size());
-                if (mdecHeader[2] != 0x0 || mdecHeader[3] != 0x38 )
-                {
-                    allStripsAreMdecHeader = false;
-                }
+                hasFullAmountOfStrips = false;
+                break;
             }
 
+            Uint16 stripSize = 0;
+            stream.ReadUInt16(stripSize);
             if (stripSize != aoStripSize)
             {
                 allStripsAreAoSize = false;
             }
 
-            stream.Seek(previousPos + stripSize);
+            stream.Seek(stream.Pos() + stripSize);
         }
-
+       
         stream.Seek(0);
-        if (allStripsAreMdecHeader)
+
+        if (!hasFullAmountOfStrips)
         {
             LOG_INFO("PSX mdec camera detected");
             return std::make_unique<PsxBits>(stream);
         }
         else if (allStripsAreAoSize)
         {
-            abort();
             LOG_INFO("AO PC camera detected");
             return std::make_unique<AoBitsPc>(stream);
         }
-        abort();
         LOG_INFO("AE PC camera detected");
         return std::make_unique<AeBitsPc>(stream);
     }
