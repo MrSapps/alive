@@ -246,23 +246,23 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::FindFile(const std::vect
         }
     }
 
-    // Grab the resource path with the highest priority
-    std::vector<std::pair<IResourcePathAbstraction*, std::string>>::iterator highestPriority = resourcePaths.end();
+    // Grab the resource path with the lowest (i.e the highest) priority
+    std::vector<std::pair<IResourcePathAbstraction*, std::string>>::iterator lowestPriority = resourcePaths.end();
     if (!resourcePaths.empty())
     {
         for (auto resPathResult = resourcePaths.begin(); resPathResult != resourcePaths.end(); resPathResult++)
         {
-            if (highestPriority == std::end(resourcePaths) || resPathResult->second > highestPriority->second)
+            if (lowestPriority == std::end(resourcePaths) || resPathResult->first->Priority() < lowestPriority->first->Priority())
             {
-                highestPriority = resPathResult;
+                lowestPriority = resPathResult;
             }
         }
     }
    
-    // Open the file from the highest priority resource path
-    if (highestPriority != std::end(resourcePaths))
+    // Open the file from the lowest priority resource path
+    if (lowestPriority != std::end(resourcePaths))
     {
-        return highestPriority->first->Open(highestPriority->second);
+        return lowestPriority->first->Open(lowestPriority->second);
     }
 
     return nullptr;
