@@ -9,6 +9,39 @@
 
 namespace Oddlib
 {
+    static bool IsAePsxCam(IStream& stream)
+    {
+        Uint16 size = 0;
+        stream.ReadUInt16(size);
+
+        Uint16 nulls = 0;
+        stream.ReadUInt16(nulls);
+        if (nulls != 0)
+        {
+            return false;
+        }
+
+        Uint16 temp = 0;
+        stream.ReadUInt16(temp);
+
+        // [00 38] [xx xx] [02 00]
+        stream.ReadUInt16(temp);
+        if (temp != 0x3800)
+        {
+            return false;
+        }
+
+        stream.ReadUInt16(temp);
+
+        stream.ReadUInt16(temp);
+        if (temp != 0x0002)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     std::unique_ptr<IBits> MakeBits(IStream& stream)
     {
         bool allStripsAreAoSize = true;
@@ -17,6 +50,15 @@ namespace Oddlib
         const auto kNumStrips = 640 / 16;
 
         const auto streamSize = stream.Size();
+
+        if (IsAePsxCam(stream))
+        {
+            stream.Seek(0);
+            LOG_INFO("AE PSX mdec camera detected");
+            return std::make_unique<PsxBits>(stream, true);
+        }
+
+        stream.Seek(0);
         for (auto i = 0; i < kNumStrips; i++)
         {
             // PSX cams are half the resolution, so if we bail before getting to kNumStrips
@@ -41,8 +83,8 @@ namespace Oddlib
 
         if (!hasFullAmountOfStrips)
         {
-            LOG_INFO("PSX mdec camera detected");
-            return std::make_unique<PsxBits>(stream);
+            LOG_INFO("AO PSX mdec camera detected");
+            return std::make_unique<PsxBits>(stream, false);
         }
         else if (allStripsAreAoSize)
         {
