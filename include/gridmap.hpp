@@ -30,11 +30,12 @@ class GridScreen
 public:
     GridScreen(const GridScreen&) = delete;
     GridScreen& operator = (const GridScreen&) = delete;
-    GridScreen(const std::string& fileName, Oddlib::LvlArchive& archive, Renderer& rend);
+    GridScreen(const std::string& lvlName, const std::string& fileName, Renderer& rend);
     ~GridScreen();
     const std::string& FileName() const { return mFileName; }
-    int getTexHandle() const { return mTexHandle; }
+    int getTexHandle(FileSystem& fs);
 private:
+    std::string mLvlName;
     std::string mFileName;
     int mTexHandle;
     Renderer& mRend;
@@ -43,7 +44,9 @@ private:
 class GridMap
 {
 public:
-    GridMap(Oddlib::Path& path, std::unique_ptr<Oddlib::LvlArchive> archive, Renderer& rend);
+    GridMap(const GridMap&) = delete;
+    GridMap& operator = (const GridMap&) = delete;
+    GridMap(const std::string& lvlName, Oddlib::Path& path, FileSystem& fs, Renderer& rend);
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
 private:
@@ -51,6 +54,7 @@ private:
     int mEditorScreenX = -1;
     int mEditorScreenY = -1;
 
-    // TODO: Should be owned and ref counted by something else
-    std::unique_ptr<Oddlib::LvlArchive> mArchive;
+
+    FileSystem& mFs;
+    std::string mLvlName;
 };

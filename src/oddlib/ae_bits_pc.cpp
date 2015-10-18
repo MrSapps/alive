@@ -144,8 +144,7 @@ namespace Oddlib
             }
         }
 
-        // TODO FIX ME should only be using a 640x240 buffer
-        mSurface.reset(SDL_CreateRGBSurfaceFrom(g_vram, 1024, 512, 16, 1024 * sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+        mSurface.reset(SDL_CreateRGBSurfaceFrom(g_vram, 640, 240, 16, 640 * sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
 
         //SDL_SaveBMP(mSurface.get(), "testing.bmp");
     }
@@ -318,16 +317,28 @@ namespace Oddlib
     void AeBitsPc::write_4_pixel_block(const BitsLogic& aR, const BitsLogic& aG, const BitsLogic& aB, int aVramX, int aVramY)
     {
         // BL
-        g_vram[aVramY][aVramX]          = g_red_table[aR.param1] | g_green_table[aG.param1] | g_blue_table[aB.param1];
+        if (aVramY < 240 && aVramX < 640)
+        {
+            g_vram[aVramY][aVramX] = g_red_table[aR.param1] | g_green_table[aG.param1] | g_blue_table[aB.param1];
+        }
 
         // TR
-        g_vram[aVramY][aVramX + 1]      = g_red_table[aR.param2] | g_green_table[aG.param2] | g_blue_table[aB.param2];
+        if (aVramY < 240 && aVramX+1 < 640)
+        {
+            g_vram[aVramY][aVramX + 1] = g_red_table[aR.param2] | g_green_table[aG.param2] | g_blue_table[aB.param2];
+        }
 
         // BL
-        g_vram[aVramY + 1][aVramX]      = g_red_table[aR.param3] | g_green_table[aG.param3] | g_blue_table[aB.param3];
+        if (aVramY+1 < 240 && aVramX < 640)
+        {
+            g_vram[aVramY + 1][aVramX] = g_red_table[aR.param3] | g_green_table[aG.param3] | g_blue_table[aB.param3];
+        }
 
         // BR
-        g_vram[aVramY + 1][aVramX + 1]  = g_red_table[aR.param4] | g_green_table[aG.param4] | g_blue_table[aB.param4];
+        if (aVramY+1 < 240 && aVramX+1 < 640)
+        {
+            g_vram[aVramY + 1][aVramX + 1] = g_red_table[aR.param4] | g_green_table[aG.param4] | g_blue_table[aB.param4];
+        }
     }
 
 }

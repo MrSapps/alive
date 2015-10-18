@@ -90,8 +90,6 @@ Engine::~Engine()
 {
     destroy_gui(mGui);
 
-    mRenderer.reset();
-
     SDL_GL_DeleteContext(mContext);
     SDL_DestroyWindow(mWindow);
     SDL_Quit();
@@ -136,10 +134,14 @@ bool Engine::Init()
 }
 
 // TODO: Move gui drawing to own file
-void drawButton(void *void_rend, float x, float y, float w, float h, bool down, bool hover, int layer)
+void drawButton(void *void_rend, float x, float y, float w, float h, bool down, bool hover, int layer, GuiScissor *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
+    if (s)
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
+    else
+        rend->resetScissor();
 
     float cornerRadius = 4.0f;
     Color gradBegin = { 1.f, 1.f, 1.f, 64/255.f };
@@ -183,10 +185,14 @@ void drawButton(void *void_rend, float x, float y, float w, float h, bool down, 
     rend->endLayer();
 }
 
-void drawCheckbox(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer)
+void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer, GuiScissor *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
+    if (s)
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
+    else
+        rend->resetScissor();
 
     RenderPaint bg;
 
@@ -210,12 +216,73 @@ void drawCheckbox(void *void_rend, float x, float y, float w, bool checked, bool
     rend->endLayer();
 }
 
-static const float g_gui_font_size = 16.f;
-
-void drawText(void *void_rend, float x, float y, const char *text, int layer)
+void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer, GuiScissor *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
+    if (s)
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
+    else
+        rend->resetScissor();
+
+    RenderPaint bg;
+
+    rend->beginPath();
+
+    if (checked)
+        bg = rend->radialGradient(x + w/2 + 1, y + w/2 + 1, w/2 - 2, w/2, Color{ 0.5f, 1.f, 0.5f, 92 / 255.f }, Color{ 0.5f, 1.f, 0.5f, 30/255.f });
+    else
+        bg = rend->radialGradient(x + w/2 + 1, y + w/2 + 1, w/2 - 2, w/2, Color{ 0.f, 0.f, 0.f, 30 / 255.f }, Color{ 0.f, 0.f, 0.f, 92/255.f });
+    rend->circle(x + w/2, y + w/2, w/2);
+    rend->fillPaint(bg);
+    rend->fill();
+
+    rend->strokeWidth(1.0f);
+    if (hover)
+        rend->strokeColor(Color{ 1.f, 1.f, 1.f, 0.3f });
+    else
+        rend->strokeColor(Color{ 0.f, 0.f, 0.f, 0.3f });
+    rend->stroke();
+
+    rend->endLayer();
+}
+
+void drawTextBox(void *void_rend, float x, float y, float w, float h, bool active, bool hover, int layer, GuiScissor *s)
+{
+    Renderer *rend = (Renderer*)void_rend;
+    rend->beginLayer(layer);
+    if (s)
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
+    else
+        rend->resetScissor();
+
+    RenderPaint bg = rend->boxGradient(x+1,y+1+1.5f, w-2,h-2, 3,4, Color{1.f,1.f,1.f,32/255.f}, Color{32/255.f,32/255.f,32/255.f,32/255.f});
+    rend->beginPath();
+    rend->roundedRect(x+1,y+1, w-2,h-2, 4-1);
+    rend->fillPaint(bg);
+    rend->fill();
+
+    rend->beginPath();
+    rend->roundedRect(x+0.5f,y+0.5f, w-1,h-1, 4-0.5f);
+    if (hover || active)
+        rend->strokeColor(Color{ 1.f, 1.f, 1.f, 0.3f });
+    else
+        rend->strokeColor(Color{ 0.f, 0.f, 0.f, 48/255.f });
+    rend->stroke();
+
+    rend->endLayer();
+}
+
+static const float g_gui_font_size = 16.f;
+
+void drawText(void *void_rend, float x, float y, const char *text, int layer, GuiScissor *s)
+{
+    Renderer *rend = (Renderer*)void_rend;
+    rend->beginLayer(layer);
+    if (s)
+        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
+    else
+        rend->resetScissor();
 
     rend->fontSize(g_gui_font_size);
     rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
@@ -242,11 +309,11 @@ void calcTextSize(float ret[2], void *void_rend, const char *text, int layer)
     rend->endLayer();
 }
 
-void drawWindow(void *void_rend, float x, float y, float w, float h, float titleBarHeight, const char *title, int layer)
+void drawWindow(void *void_rend, float x, float y, float w, float h, float titleBarHeight, const char *title, bool focus, int layer)
 {
     Renderer *rend = (Renderer*)void_rend;
-
     rend->beginLayer(layer); // Makes window reordering possible
+    rend->resetScissor();
 
     float cornerRadius = 3.0f;
     RenderPaint shadowPaint;
@@ -255,7 +322,7 @@ void drawWindow(void *void_rend, float x, float y, float w, float h, float title
     // Window
     rend->beginPath();
     rend->roundedRect(x, y, w, h, cornerRadius);
-    rend->fillColor(Color{ 28/255.f, 30/255.f, 34/255.f, 192/255.f });
+    rend->fillColor(Color{ 28/255.f, 30/255.f, 34/255.f, 220/255.f });
     //	nvgFillColor(vg, nvgRGBA(0,0,0,128));
     rend->fill();
 
@@ -270,14 +337,17 @@ void drawWindow(void *void_rend, float x, float y, float w, float h, float title
     rend->solidPathWinding(true);
 
     // Header
-    headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.f, 1.f, 1.f, 8 / 255.f }, Color{ 0.f, 0.f, 0.f, 16/255.f });
+    if (focus)
+        headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.0f, 1.f, 1.0f, 16 / 255.f }, Color{ 0.f, 0.0f, 0.f, 32/255.f });
+    else
+        headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.f, 1.f, 1.f, 16 / 255.f }, Color{ 1.f, 1.f, 1.f, 16/255.f });
     rend->beginPath();
-    rend->roundedRect(x + 1, y + 1, w - 2, titleBarHeight, cornerRadius - 1);
+    rend->roundedRect(x + 1, y, w - 2, titleBarHeight, cornerRadius - 1);
     rend->fillPaint(headerPaint);
     rend->fill();
     rend->beginPath();
-    rend->moveTo(x + 0.5f, y + 0.5f + titleBarHeight);
-    rend->lineTo(x + 0.5f + w - 1, y + 0.5f + titleBarHeight);
+    rend->moveTo(x + 0.5f, y - 0.5f + titleBarHeight);
+    rend->lineTo(x + 0.5f + w - 1, y - 0.5f + titleBarHeight);
     rend->strokeColor(Color{ 0, 0, 0, 64/255.f });
     rend->stroke();
 
@@ -291,15 +361,13 @@ void drawWindow(void *void_rend, float x, float y, float w, float h, float title
     rend->fillColor(Color{ 230/255.f, 230/255.f, 230/255.f, 200/255.f });
     rend->text(x + w / 2, y + 16, title);
 
-    rend->fontSize(g_gui_font_size); // TODO: There's some problem with command order. This fixes incorrect text size calcs.
-
     rend->endLayer();
 }
 
 void Engine::InitSubSystems()
 {
-    mRenderer = std::make_unique<Renderer>((mFileSystem.BasePath() + "/data/Roboto-Regular.ttf").c_str());
-    mFmv = std::make_unique<Fmv>(mGameData, mAudioHandler, mFileSystem);
+    mRenderer = std::make_unique<Renderer>((mFileSystem.GameData().BasePath() + "/data/Roboto-Regular.ttf").c_str());
+    mFmv = std::make_unique<DebugFmv>(mGameData, mAudioHandler, mFileSystem);
     mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem);
     mLevel = std::make_unique<Level>(mGameData, mAudioHandler, mFileSystem);
 
@@ -307,7 +375,9 @@ void Engine::InitSubSystems()
         GuiCallbacks callbacks = { 0 };
         callbacks.user_data = mRenderer.get();
         callbacks.draw_button = drawButton;
-        callbacks.draw_checkbox = drawCheckbox;
+        callbacks.draw_checkbox = drawCheckBox;
+        callbacks.draw_radiobutton = drawRadioButton;
+        callbacks.draw_textbox = drawTextBox;
         callbacks.draw_text = drawText;
         callbacks.calc_text_size = calcTextSize;
         callbacks.draw_window = drawWindow;
@@ -333,7 +403,6 @@ void Engine::Update()
         mGui->cursor_pos.x = -1;
         mGui->cursor_pos.y = -1;
     }
-
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -342,11 +411,11 @@ void Engine::Update()
         case SDL_MOUSEWHEEL:
             if (event.wheel.y < 0)
             {
-                //ImGui::GetIO().MouseWheel = -1.0f;
+                mGui->mouse_scroll = -1;
             }
             else
             {
-                //ImGui::GetIO().MouseWheel = 1.0f;
+                mGui->mouse_scroll = 1;
             }
             break;
 
@@ -360,10 +429,10 @@ void Engine::Update()
             for (size_t i = 0; i < len; i++)
             {
                 uint32_t keycode = event.text.text[i];
-                if (keycode >= 32 && keycode <= 255)
+                if (keycode >= 10 && keycode <= 255)
                 {
                     //printable ASCII characters
-                    //ImGui::GetIO().AddInputCharacter((char)keycode);
+                    gui_write_char(mGui, (char)keycode);
                 }
             }
         }
@@ -389,7 +458,7 @@ void Engine::Update()
 
             if (guiKey >= 0)
             {
-                  int state = mGui->key_state[guiKey];
+                  uint8_t state = mGui->key_state[guiKey];
                   if (event.type == SDL_MOUSEBUTTONUP)
                   {
                       state |= GUI_KEYSTATE_RELEASED_BIT;
@@ -405,7 +474,7 @@ void Engine::Update()
         case SDL_KEYDOWN:
         case SDL_KEYUP:
         {
-            if (event.key.keysym.sym == 13)
+            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == 13)
             {
                 const Uint32 windowFlags = SDL_GetWindowFlags(mWindow);
                 bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
@@ -413,11 +482,14 @@ void Engine::Update()
                 //ImGui_WindowResize();
             }
 
+
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
             if (key == SDL_SCANCODE_ESCAPE)
             {
                 mFmv->Stop();
             }
+            if (event.type == SDL_KEYDOWN && key == SDL_SCANCODE_BACKSPACE)
+                gui_write_char(mGui, '\b'); // Note that this is called in case of repeated backspace key also
 
             SDL_Keymod modstate = SDL_GetModState();
 
@@ -453,13 +525,6 @@ void Engine::Render()
     gui_begin(mGui, "background");
 
     DebugRender();
-
-    uint8_t testPixels[4*3] = {
-        255, 0, 0,
-        0, 255, 0,
-        0, 255, 0,
-        255, 0, 0,
-    };
 
     mFmv->Render(*mRenderer, *mGui, w, h);
     mSound->Render(mGui, w, h);

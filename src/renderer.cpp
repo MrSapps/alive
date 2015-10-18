@@ -238,11 +238,12 @@ Renderer::Renderer(const char *fontPath)
 
     { // Textured quad rendering init
         const char vsString[] =
+            "#version 120\n"
             "attribute vec2 a_pos;        \n"
             "attribute vec2 a_uv;         \n"
             "attribute vec4 a_color;      \n"
-            "out vec2 v_uv;               \n"
-            "out vec4 v_color;            \n"
+            "varying vec2 v_uv;               \n"
+            "varying vec4 v_color;            \n"
             "void main()                  \n"
             "{                            \n"
             "    v_uv = a_uv;             \n"
@@ -250,10 +251,11 @@ Renderer::Renderer(const char *fontPath)
             "    gl_Position = vec4(a_pos, 0, 1); \n"
             "}                            \n";
         const char fsString[] =
-            "uniform sampler2D u_tex;\n"
-            "in vec2 v_uv; \n"
-            "in vec4 v_color; \n"
+            "#version 120\n"
             "precision mediump float;\n"
+            "uniform sampler2D u_tex;\n"
+            "varying vec2 v_uv; \n"
+            "varying vec4 v_color; \n"
             "void main()                                  \n"
             "{                                            \n"
             "  gl_FragColor = v_color*texture2D(u_tex, v_uv);\n"
@@ -296,6 +298,7 @@ Renderer::Renderer(const char *fontPath)
     // These should be large enough so that no allocations are done during game
     mDrawCmds.reserve(1024 * 4);
     mLayerStack.reserve(64);
+    mDestroyTextureList.reserve(8);
 }
 
 Renderer::~Renderer()
@@ -338,21 +341,18 @@ void Renderer::beginFrame(int w, int h)
     assert(mDrawCmds.empty());
 }
 
-struct DrawCmdSort {
-    bool operator()(const DrawCmd& a, const DrawCmd& b) const
-    {
-        return a.layer < b.layer; 
-    }
-};
-
 void Renderer::endFrame()
 {
     assert(mLayerStack.empty());
 
     // This is the primary reason for buffering drawing command. Call order doesn't determine draw order, but layers do.
-    std::stable_sort(mDrawCmds.begin(), mDrawCmds.end(), DrawCmdSort());
+    std::stable_sort(mDrawCmds.begin(), mDrawCmds.end(), [](const DrawCmd& a, const DrawCmd& b)
+    {
+        return a.layer < b.layer;
+    });
 
     // Actual rendering
+    glViewport(0, 0, mW, mH);
     nvgResetTransform(mNanoVg);
     bool vectorModeOn = false;
     for (size_t i = 0; i < mDrawCmds.size(); ++i)
@@ -445,17 +445,18 @@ void Renderer::endFrame()
         case DrawCmdType_stroke: nvgStroke(mNanoVg); break;
         case DrawCmdType_roundedRect: nvgRoundedRect(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3], cmd.f[4]); break;
         case DrawCmdType_rect: nvgRect(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3]); break;
+        case DrawCmdType_circle: nvgCircle(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2]); break;
         case DrawCmdType_solidPathWinding: nvgPathWinding(mNanoVg, cmd.integer ? NVG_SOLID : NVG_HOLE); break;
         case DrawCmdType_fillPaint:
         {
             RenderPaint p = cmd.paint;
             NVGpaint nvp = { 0 };
 
-            assert(sizeof(p.xform) == sizeof(nvp.xform));
-            assert(sizeof(p.extent) == sizeof(nvp.extent));
+            static_assert(sizeof(p.xform) == sizeof(nvp.xform), "wrong size");
+            static_assert(sizeof(p.extent) == sizeof(nvp.extent), "wrong size");
 
             memcpy(nvp.xform, p.xform, sizeof(p.xform));
-            memcpy(nvp.extent, p.extent, sizeof(p.xform));
+            memcpy(nvp.extent, p.extent, sizeof(p.extent));
             nvp.radius = p.radius;
             nvp.feather = p.feather;
             nvp.innerColor.r = p.innerColor.r;
@@ -469,12 +470,21 @@ void Renderer::endFrame()
             nvp.image = p.image;
             nvgFillPaint(mNanoVg, nvp);
         } break;
+        case DrawCmdType_scissor: nvgScissor(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3]); break;
+        case DrawCmdType_resetScissor: nvgResetScissor(mNanoVg); break;
         default: assert(0 && "Unknown DrawCmdType");
         }
     }
     if (vectorModeOn)
         nvgEndFrame(mNanoVg);
     mDrawCmds.clear(); // Don't release memory, just reset count
+
+    for (size_t i = 0; i < mDestroyTextureList.size(); ++i)
+    {
+        GLuint tex = (GLuint)mDestroyTextureList[i];
+        glDeleteTextures(1, &tex);
+    }
+    mDestroyTextureList.clear();
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
@@ -493,23 +503,21 @@ void Renderer::endLayer()
     mLayerStack.pop_back();
 }
 
-int Renderer::createTexture(void *pixels, int width, int height, PixelFormat format)
+int Renderer::createTexture(GLenum internalFormat, int width, int height, GLenum inputFormat, GLenum colorDataType, const void *pixels, bool interpolation)
 {
     GLuint tex;
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolation ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolation ? GL_LINEAR : GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-    assert(format == PixelFormat_RGB24 && "TODO: Support other pixel formats");
-
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(   GL_TEXTURE_2D, 0,
-                    GL_RGB, // Internal format
+                    internalFormat,
                     width, height, 0,
-                    GL_RGB, // Passed format
+                    inputFormat,
                     GL_UNSIGNED_BYTE, // Color component datatype
                     pixels);
 
@@ -520,8 +528,7 @@ void Renderer::destroyTexture(int handle)
 {
     if (handle)
     {
-        GLuint tex = (GLuint)handle;
-        glDeleteTextures(1, &tex);
+        mDestroyTextureList.push_back(handle); // Delay the deletion after drawing current frame
     }
 }
 
@@ -563,6 +570,8 @@ void Renderer::strokeWidth(float size)
 
 void Renderer::fontSize(float s)
 {
+    nvgFontSize(mNanoVg, s); // Must call nanovg because affects text size query
+
     DrawCmd cmd;
     cmd.type = DrawCmdType_fontSize;
     cmd.f[0] = s;
@@ -571,6 +580,8 @@ void Renderer::fontSize(float s)
 
 void Renderer::fontBlur(float s)
 {
+    nvgFontBlur(mNanoVg, s); // Must call nanovg because affects text size query
+
     DrawCmd cmd;
     cmd.type = DrawCmdType_fontBlur;
     cmd.f[0] = s;
@@ -579,6 +590,8 @@ void Renderer::fontBlur(float s)
 
 void Renderer::textAlign(int align)
 {
+    nvgTextAlign(mNanoVg, align); // Must call nanovg because affects text size query
+
     DrawCmd cmd;
     cmd.type = DrawCmdType_textAlign;
     cmd.integer = align;
@@ -672,6 +685,16 @@ void Renderer::rect(float x, float y, float w, float h)
     pushCmd(cmd);
 }
 
+void Renderer::circle(float x, float y, float r)
+{
+    DrawCmd cmd;
+    cmd.type = DrawCmdType_circle;
+    cmd.f[0] = x;
+    cmd.f[1] = y;
+    cmd.f[2] = r;
+    pushCmd(cmd);
+}
+
 void Renderer::solidPathWinding(bool b)
 {
     DrawCmd cmd;
@@ -688,17 +711,35 @@ void Renderer::fillPaint(RenderPaint p)
     pushCmd(cmd);
 }
 
+void Renderer::scissor(float x, float y, float w, float h)
+{
+    DrawCmd cmd;
+    cmd.type = DrawCmdType_scissor;
+    cmd.f[0] = x;
+    cmd.f[1] = y;
+    cmd.f[2] = w;
+    cmd.f[3] = h;
+    pushCmd(cmd);
+}
+
+void Renderer::resetScissor()
+{
+    DrawCmd cmd;
+    cmd.type = DrawCmdType_resetScissor;
+    pushCmd(cmd);
+}
+
 // Not rendering commands
 
 static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
 {
     RenderPaint p = { 0 };
 
-    assert(sizeof(p.xform) == sizeof(nvp.xform));
-    assert(sizeof(p.extent) == sizeof(nvp.extent));
+    static_assert(sizeof(p.xform) == sizeof(nvp.xform), "wrong size");
+    static_assert(sizeof(p.extent) == sizeof(nvp.extent), "wrong size");
 
 	memcpy(p.xform, nvp.xform, sizeof(p.xform));
-	memcpy(p.extent, nvp.extent, sizeof(p.xform));
+	memcpy(p.extent, nvp.extent, sizeof(p.extent));
     p.radius = nvp.radius;
     p.feather = nvp.feather;
     p.innerColor.r = nvp.innerColor.r;
@@ -727,9 +768,15 @@ RenderPaint Renderer::boxGradient(float x, float y, float w, float h,
     return NVGpaintToRenderPaint(nvp);
 }
 
+RenderPaint Renderer::radialGradient(float cx, float cy, float inr, float outr, Color icol, Color ocol)
+{
+    NVGpaint nvp = nvgRadialGradient(mNanoVg, cx, cy, inr, outr, 
+                      nvgRGBAf(icol.r, icol.g, icol.b, icol.a), nvgRGBAf(ocol.r, ocol.g, ocol.b, ocol.a));
+    return NVGpaintToRenderPaint(nvp);
+}
+
 void Renderer::textBounds(int x, int y, const char *msg, float bounds[4])
 {
-    // TODO: Set current font settings before querying bounds
     nvgTextBounds(mNanoVg, x, y, msg, nullptr, bounds);
 }
 

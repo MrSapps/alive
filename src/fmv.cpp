@@ -31,13 +31,13 @@ static float Percent(float max, float percent)
     return (max / 100.0f) * percent;
 }
 
-static void RenderSubtitles(Renderer& rend, const char* msg, int screenW, int screenH)
+static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w, int h)
 {
     float xpos = 0.0f;
-    float ypos = static_cast<float>(screenH);
+    float ypos = static_cast<float>(y + h);
 
     rend.fillColor(Color{ 0, 0, 0, 1 });
-    rend.fontSize(Percent(static_cast<float>(screenH), 6.7f));
+    rend.fontSize(Percent(static_cast<float>(h), 6.7f));
     rend.textAlign(TEXT_ALIGN_TOP);
     
     float bounds[4];
@@ -52,11 +52,11 @@ static void RenderSubtitles(Renderer& rend, const char* msg, int screenW, int sc
     ypos -= fontH + (fontH/2);
 
     // Center XPos in the screenW
-    xpos = (screenW / 2) - (fontW / 2);
+    xpos = x + (w / 2) - (fontW / 2);
 
     rend.text(xpos, ypos, msg);
     rend.fillColor(Color{ 1, 1, 1, 1 });
-    float adjust = Percent(static_cast<float>(screenH), 0.3f);
+    float adjust = Percent(static_cast<float>(h), 0.3f);
     rend.text(xpos - adjust, ypos - adjust, msg);
 }
 
@@ -86,7 +86,7 @@ public:
     virtual void FillBuffers() = 0;
 
     // Main thread context
-    void OnRenderFrame(Renderer& rend, int screenW, int screenH)
+    void OnRenderFrame(Renderer& rend, GuiContext &gui, int screenW, int screenH)
     {
         // TODO: Populate mAudioBuffer and mVideoBuffer
         // for up to N buffered frames
@@ -120,6 +120,7 @@ public:
         
         const auto videoFrameIndex = mConsumedAudioBytes / mAudioBytesPerFrame;// 10063;
         //std::cout << "Total audio bytes is " << mConsumedAudioBytes << std::endl;
+        const char *current_subs = nullptr;
         if (mSubTitles)
         {
             // We assume the FPS is always 15, thus 1000/15=66.66 so frame number * 66 = number of msecs into the video
@@ -127,8 +128,7 @@ public:
             if (!subs.empty())
             {
                 // TODO: Render all active subs, not just the first one
-                const char* msg = subs[0]->Text().c_str();
-                RenderSubtitles(rend, msg, screenW, screenH);
+                current_subs = subs[0]->Text().c_str();
                 if (subs.size() > 1)
                 {
                     LOG_WARNING("Too many active subtitles " << subs.size());
@@ -149,7 +149,7 @@ public:
             if (f.mFrameNum == videoFrameIndex)
             {
                 mLast = f;
-                RenderFrame(f.mW, f.mH, f.mPixels.data());
+                RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
                 played = true;
                 break;
             }
@@ -159,13 +159,13 @@ public:
         if (!played && !mVideoBuffer.empty())
         {
             Frame& f = mVideoBuffer.front();
-            RenderFrame(f.mW, f.mH, f.mPixels.data());
+            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
         }
 
         if (!played && mVideoBuffer.empty())
         {
             Frame& f = mLast;
-            RenderFrame(f.mW, f.mH, f.mPixels.data());
+            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
         }
 
         while (NeedBuffer())
@@ -218,33 +218,26 @@ protected:
         mConsumedAudioBytes += take*sizeof(int16_t);
     }
 
-    void RenderFrame(int width, int height, const GLvoid *pixels)
+    void RenderFrame(Renderer &rend, GuiContext &gui, int width, int height, const GLvoid *pixels, const char *subtitles)
     {
-        // TODO: Optimize - should use VBO's & update 1 texture rather than creating per frame
-        GLuint TextureID = 0;
-        glGenTextures(1, &TextureID);
-        glBindTexture(GL_TEXTURE_2D, TextureID);
+        // TODO: Optimize - should update 1 texture rather than creating per frame
+        int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        gui_begin_window(&gui, "FMV", v2i(width, height));
+        V2i pos = gui_turtle_pos(&gui);
+        V2i size = gui_window_client_size(&gui);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        rend.beginLayer(gui_layer(&gui));
+        rend.drawQuad(texhandle, pos.x, pos.y, size.x, size.y);
 
+        if (subtitles)
+            RenderSubtitles(rend, subtitles, pos.x, pos.y, size.x, size.y);
 
-        // For Ortho mode, of course
-        GLfloat X = -1.0f;
-        GLfloat Y = -1.0f;
-        GLfloat Width = 2.0f;
-        GLfloat Height = 2.0f;
+        rend.endLayer();
 
-        glBegin(GL_QUADS);
-        glTexCoord2f(0, 0); glVertex3f(X, Y, 0);
-        glTexCoord2f(1, 0); glVertex3f(X + Width, Y, 0);
-        glTexCoord2f(1, -1); glVertex3f(X + Width, Y + Height, 0);
-        glTexCoord2f(0, -1); glVertex3f(X, Y + Height, 0);
-        glEnd();
+        gui_end_window(&gui);
 
-        glDeleteTextures(1, &TextureID);
+        rend.destroyTexture(texhandle);
     }
 
 protected:
@@ -556,53 +549,31 @@ private:
 {
     TRACE_ENTRYEXIT;
 
+    // TODO: UI will pass in PSX name of "BA\\BA.MOV" which is wrong, once json mapping is done
+    // only PC names should be passed in here which might result in BA.MOV being opened instead
+
     // TODO: PSX fmv seems to have a lot of "black" at the end - probably json data is incorrect or needs tweaking?
-    std::string targetName = fmvName;
-    Uint32 startSector = 0;
-    Uint32 numberOfSectors = 0;
-
-    // Check the PC name
-    int pcFmvPriority = 0;
-    auto resourceLocation = fs.ResourceExists(fmvName, pcFmvPriority);
-
-    // Find the mapping of PSX -> PC fmv names from the json data
-    auto fmvData = allFmvs.find(fmvName);
-    if (fmvData != std::end(allFmvs))
-    {
-        // Check if the PSX file containing the FMV exists
-        const std::vector<GameData::FmvSection>& sections = fmvData->second;
-        for (const GameData::FmvSection& section : sections)
-        {
-            // For BR.MOV there is a slight hack to pick the biggest file because BR.MOV on CD1 isn't 0 bytes for some reason
-            // and we always want the CD2 BR.MOV which is bigger.
-            int psxFmvPriority = 0;
-            auto tmpResourceLocation = fs.ResourceExists(section.mPsxFileName, psxFmvPriority, section.mPsxFileName == "BR\\BR.MOV");
-            // Only pick PSX FMV over the PC version when either its the only thing we have
-            // or when we have both but the PSX data is marked higher priority than the PC data.
-            if (tmpResourceLocation && (!resourceLocation || (resourceLocation && psxFmvPriority > pcFmvPriority)))
-            {
-                resourceLocation = tmpResourceLocation;
-                targetName = section.mPsxFileName;
-                startSector = section.mStartSector;
-                numberOfSectors = section.mNumberOfSectors;
-                break;
-            }
-        }
-    }
-   
-    if (!resourceLocation)
+    auto stream = fs.ResourcePaths().OpenFmv(fmvName, true);
+    if (!stream)
     {
         throw Oddlib::Exception("FMV not found");
     }
 
-    auto stream = resourceLocation->Open(targetName);
-
     // Try to open any corresponding subtitle file
     const std::string subTitleFileName = "data/subtitles/" + fmvName + ".SRT";
     std::unique_ptr<SubTitleParser> subTitles;
-    if (fs.Exists(subTitleFileName))
+
+    // Look in game data so mods can override it first
+    auto subsStream = fs.ResourcePaths().Open(subTitleFileName);
+    if (!subsStream)
     {
-        subTitles = std::make_unique<SubTitleParser>(fs.Open(subTitleFileName));
+        // Fall back to the ones shipped with the engine
+        subsStream = fs.GameData().Open(subTitleFileName);
+    }
+
+    if (subsStream)
+    {
+        subTitles = std::make_unique<SubTitleParser>(std::move(subsStream));
     }
 
     char idBuffer[4] = {};
@@ -619,17 +590,58 @@ private:
     }
     else
     {
-        // Only PSX FMV's have many in a single file
-        return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), startSector, numberOfSectors);
+        auto fmvData = allFmvs.find(fmvName);
+        if (fmvData != std::end(allFmvs))
+        {
+            // Check if the PSX file containing the FMV exists
+            const std::vector<GameData::FmvSection>& sections = fmvData->second;
+            for (const GameData::FmvSection& section : sections)
+            {
+
+                // Only PSX FMV's have many in a single file
+                return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), section.mStartSector, section.mNumberOfSectors);
+            }
+        }
+
+        LOG_ERROR("Failed to find sectors info for PSX FMV in game data - all of it will be played");
+        return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), 0, 0);
     }
+}
+
+static bool guiStringFilter(const char *haystack, const char *needle)
+{
+    if (needle[0] == '\0')
+        return true;
+
+    // Case-insensitive substring search
+    size_t haystack_len = strlen(haystack);
+    size_t needle_len = strlen(needle);
+    bool matched = false;
+    for (size_t i = 0; i + needle_len < haystack_len + 1; ++i)
+    {
+        matched = true;
+        for (size_t k = 0; k < needle_len; ++k)
+        {
+            assert(k < needle_len);
+            assert(i + k < haystack_len);
+            if (tolower(needle[k]) != tolower(haystack[i + k]))
+            {
+                matched = false;
+                break;
+            }
+        }
+        if (matched)
+            break;
+    }
+    return matched;
 }
 
 class FmvUi
 {
 private:
-    //ImGuiTextFilter mFilter;
-    //int listbox_item_current = 0;
-    std::vector<const char*> listbox_items;
+    char mFilterString[64];
+    size_t mListBoxSelectedItem = (size_t)-1;
+    std::vector<const char*> mListBoxItems;
     std::unique_ptr<class IMovie>& mFmv;
 public:
     FmvUi(const FmvUi&) = delete;
@@ -637,6 +649,7 @@ public:
     FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController, FileSystem& fs)
         : mFmv(fmv), mAudioController(audioController), mFileSystem(fs)
     {
+        mFilterString[0] = '\0';
     }
 
     void DrawVideoSelectionUi(GuiContext& gui, const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
@@ -646,53 +659,43 @@ public:
         static bool bSet = false;
         if (!bSet)
         {
-            gui.next_window_pos = V2i(720, 40);
+            gui.next_window_pos = v2i(920, 40);
             bSet = true;
         }
-        gui_begin_window(&gui, name.c_str(), V2i(300, 580));
+        gui_begin_window(&gui, name.c_str(), v2i(300, 580));
 
-        //mFilter.Draw();
+        gui_textfield(&gui, "Filter", mFilterString, sizeof(mFilterString));
 
-
-        listbox_items.clear();
-        listbox_items.reserve(allFmvs.size());
+        mListBoxItems.clear();
+        mListBoxItems.reserve(allFmvs.size());
 
         for (const auto& fmv : allFmvs)
         {
-            // TODO: Reimplement filtering
-            //if (mFilter.PassFilter(fmv.first.c_str()))
+            if (guiStringFilter(fmv.first.c_str(), mFilterString))
             {
-                listbox_items.emplace_back(fmv.first.c_str());
+                mListBoxItems.emplace_back(fmv.first.c_str());
             }
         }
 
         //if (ImGui::ListBoxHeader("##", ImVec2(ImGui::GetWindowWidth() - 15, ImGui::GetWindowSize().y - 95)))
-        int pressed = -1;
         {
-            //if (listbox_item_current >= static_cast<int>(listbox_items.size()))
-            //{
-            //    listbox_item_current = 0;
-           // }
-
-            for (size_t i = 0; i < listbox_items.size(); i++)
+            for (size_t i = 0; i < mListBoxItems.size(); i++)
             {
-                //if (ImGui::Selectable(listbox_items[i], static_cast<int>(i) == listbox_item_current))
-                if (gui_button(&gui, listbox_items[i]))
+                if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
                 {
-                    //listbox_item_current = i;
-                    pressed = i;
+                    mListBoxSelectedItem = i;
                 }
             }
             //ImGui::ListBoxFooter();
         }
 
-
-        if (pressed >= 0)
+        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < mListBoxItems.size())
         {
             try
             {
-                const std::string fmvName = listbox_items[pressed];
+                const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
                 mFmv = IMovie::Factory(fmvName, mAudioController, mFileSystem, allFmvs);
+                mListBoxSelectedItem = (size_t)-1;
             }
             catch (const Oddlib::Exception& ex)
             {
@@ -756,11 +759,11 @@ void Fmv::Update()
     }
 }
 
-void Fmv::Render(Renderer& rend, GuiContext& , int screenW, int screenH)
+void Fmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 {
     if (mFmv)
     {
-        mFmv->OnRenderFrame(rend, screenW, screenH);
+        mFmv->OnRenderFrame(rend, gui, screenW, screenH);
     }
 }
 
@@ -782,7 +785,7 @@ void DebugFmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     if (!mFmv)
     {
         RenderVideoUi(gui);
-        mFileSystem.DebugUi();
+        mFileSystem.DebugUi(gui);
     }
 }
 

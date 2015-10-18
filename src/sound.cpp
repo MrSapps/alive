@@ -25,8 +25,12 @@ void Sound::ChangeTheme(FileSystem& fs, const std::deque<std::string>& parts)
     try
     {
         const std::string lvlFileName = parts[0];
-        Oddlib::LvlArchive archive(fs.ResourceExists(lvlFileName)->Open(lvlFileName));
-        mAliveAudio.LoadAllFromLvl(archive, parts[1], parts[2]); // vab, bsq
+        auto stream = fs.ResourcePaths().Open(lvlFileName);
+        if (stream)
+        {
+            Oddlib::LvlArchive archive(std::move(stream));
+            mAliveAudio.LoadAllFromLvl(archive, parts[1], parts[2]); // vab, bsq
+        }
     }
     catch (const std::exception& ex)
     {
@@ -60,46 +64,46 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
     {
         try
         {
+            bSet = true;
+
             // Currently requires sounds.dat to be available from the get-go, so make
             // this failure non-fatal
             mAliveAudio.AliveInitAudio(mFs);
+
+            auto themes = mAliveAudio.m_Config.get<jsonxx::Array>("themes");
+            for (auto i = 0u; i < themes.size(); i++)
+            {
+                auto theme = themes.get<jsonxx::Object>(i);
+
+                const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".LVL";
+                auto stream = mFs.ResourcePaths().Open(lvlFileName);
+                if (stream)
+                {
+                    Oddlib::LvlArchive archive(std::move(stream));
+                    auto vabName = theme.get<jsonxx::String>("vab", "null");
+                    auto bsqName = theme.get<jsonxx::String>("seq", "null");
+
+                    Oddlib::LvlArchive::File* file = archive.FileByName(bsqName);
+                    for (auto j = 0u; j < file->ChunkCount(); j++)
+                    {
+                        mThemes.push_back(lvlFileName + "!" + vabName + "!" + bsqName + "!" + std::to_string(j));
+                    }
+                }
+            }
         }
         catch (const std::exception& ex)
         {
             LOG_ERROR("Audio init failure: " << ex.what());
         }
-
-        bSet = true;
-        auto themes = mAliveAudio.m_Config.get<jsonxx::Array>("themes");
-        for (auto i = 0u; i < themes.size(); i++)
-        {
-            auto theme = themes.get<jsonxx::Object>(i);
-
-            const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".LVL";
-            auto res = mFs.ResourceExists(lvlFileName);
-            if (res)
-            {
-                Oddlib::LvlArchive archive(res->Open(lvlFileName));
-                auto vabName = theme.get<jsonxx::String>("vab", "null");
-                auto bsqName = theme.get<jsonxx::String>("seq", "null");
-
-                Oddlib::LvlArchive::File* file = archive.FileByName(bsqName);
-                for (auto j = 0u; j < file->ChunkCount(); j++)
-                {
-                    mThemes.push_back(lvlFileName + "!" + vabName + "!" + bsqName + "!" + std::to_string(j));
-                }
-            }
-        }
     }
 
-    gui->next_window_pos = V2i(320, 250);
-    gui_begin_window(gui, "Sound", V2i(250, 400));
+    gui->next_window_pos = v2i(320, 250);
+    gui_begin_window(gui, "Sound", v2i(250, 400));
 
     static int selectedIndex = 0; 
     for (size_t i = 0; i < mThemes.size(); i++)
     {
-        //if (ImGui::Selectable(mThemes[i].c_str(), static_cast<int>(i) == selectedIndex))
-        if (gui_button(gui, mThemes[i].c_str()))
+        if (gui_selectable(gui, mThemes[i].c_str(), static_cast<int>(i) == selectedIndex))
         {
             selectedIndex = static_cast<int>(i);
             if (selectedIndex >= 0 && selectedIndex < static_cast<int>(mThemes.size()) && !mThemes.empty())
@@ -126,8 +130,8 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
     }
     gui_end_window(gui);
 
-    gui->next_window_pos = V2i(50, 250);
-    { gui_begin_window(gui, "Audio output settings", V2i(250, 300));
+    gui->next_window_pos = v2i(50, 250);
+    { gui_begin_window(gui, "Audio output settings", v2i(250, 300));
         gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.AntiAliasFilteringEnabled);
 
         if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))

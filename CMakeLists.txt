@@ -182,6 +182,8 @@ add_library(oddlib STATIC
     include/oddlib/ao_bits_pc.hpp
     src/oddlib/ae_bits_pc.cpp
     include/oddlib/ae_bits_pc.hpp
+     src/oddlib/psx_bits.cpp
+    include/oddlib/psx_bits.hpp
     src/oddlib/bits_factory.cpp
     include/oddlib/bits_factory.hpp
 )
@@ -344,7 +346,9 @@ ELSE()
     SET(DATA_DIR ./data)
 ENDIF()
 
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/videos.json" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/lvldb.json" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/pathdb.json" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fmvdb.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/themes.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/sfx_list.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resource_paths.json" DESTINATION "${DATA_DIR}")

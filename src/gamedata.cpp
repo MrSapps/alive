@@ -16,9 +16,9 @@ GameData::~GameData()
 
 }
 
-bool GameData::LoadFmvData(FileSystem& fs)
+bool GameData::LoadFmvDb(FileSystem& fs)
 {
-    auto stream = fs.Open("data/videos.json");
+    auto stream = fs.GameData().Open("data/fmvdb.json");
     std::string jsonFileContents = stream->LoadAllToString();
 
     jsonxx::Object rootJsonObject;
@@ -42,11 +42,11 @@ bool GameData::LoadFmvData(FileSystem& fs)
                 {
                     // Just a file name
                     pcFileName = ar.get<jsonxx::String>(i);
-                    auto it = mFmvData.find(pcFileName);
-                    if (it == std::end(mFmvData))
+                    auto it = mFmvDb.find(pcFileName);
+                    if (it == std::end(mFmvDb))
                     {
-                        mFmvData[pcFileName] = std::vector<FmvSection>();
-                        it = mFmvData.find(pcFileName);
+                        mFmvDb[pcFileName] = std::vector<FmvSection>();
+                        it = mFmvDb.find(pcFileName);
                     }
                 }
                 else if (ar.has<jsonxx::Object>(i))
@@ -67,11 +67,11 @@ bool GameData::LoadFmvData(FileSystem& fs)
                         section.mNumberOfSectors = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("number_of_sectors"));
 
                         // Grab a vector for the fmv name e.g "whatever.ddv"
-                        auto it = mFmvData.find(pcFileName);
-                        if (it == std::end(mFmvData))
+                        auto it = mFmvDb.find(pcFileName);
+                        if (it == std::end(mFmvDb))
                         {
-                            mFmvData[pcFileName] = std::vector<FmvSection>();
-                            it = mFmvData.find(pcFileName);
+                            mFmvDb[pcFileName] = std::vector<FmvSection>();
+                            it = mFmvDb.find(pcFileName);
                         }
 
                         it->second.emplace_back(section);
@@ -87,9 +87,20 @@ bool GameData::LoadFmvData(FileSystem& fs)
     return true;
 }
 
+void GameData::AddPcToPsxFmvNameMappings(FileSystem& fs)
+{
+    for (const auto& fmvData : mFmvDb)
+    {
+        for (const FmvSection& fmvSection : fmvData.second)
+        {
+            fs.ResourcePaths().AddPcToPsxMapping(fmvData.first, fmvSection.mPsxFileName);
+        }
+    }
+}
+
 bool GameData::LoadPathDb(FileSystem& fs)
 {
-    auto stream = fs.Open("data/pathdb.json");
+    auto stream = fs.GameData().Open("data/pathdb.json");
     std::string jsonFileContents = stream->LoadAllToString();
 
     jsonxx::Object rootJsonObject;
@@ -122,14 +133,46 @@ bool GameData::LoadPathDb(FileSystem& fs)
     return true;
 }
 
+bool GameData::LoadLvlDb(FileSystem& fs)
+{
+    auto stream = fs.GameData().Open("data/lvldb.json");
+    std::string jsonFileContents = stream->LoadAllToString();
+
+    jsonxx::Object rootJsonObject;
+    rootJsonObject.parse(jsonFileContents);
+    if (rootJsonObject.has<jsonxx::Array>("lvls"))
+    {
+        const auto& lvls = rootJsonObject.get<jsonxx::Array>("lvls");
+        for (size_t i = 0; i < lvls.size(); i++)
+        {
+            const auto lvlObj = lvls.get<jsonxx::Object>(i);
+            const auto pcName = lvlObj.get<jsonxx::String>("name");
+            const auto altNames = lvlObj.get<jsonxx::Array>("alt_names");
+            for (size_t j = 0; j < altNames.size(); j++)
+            {
+                const auto altName = altNames.get<jsonxx::String>(j);
+                fs.ResourcePaths().AddPcToPsxMapping(pcName, altName);
+            }
+        }
+    }
+    return true;
+}
+
 bool GameData::Init(FileSystem& fs)
 {
-    if (!LoadFmvData(fs))
+    if (!LoadFmvDb(fs))
     {
         return false;
     }
 
+    AddPcToPsxFmvNameMappings(fs);
+
     if (!LoadPathDb(fs))
+    {
+        return false;
+    }
+
+    if (!LoadLvlDb(fs))
     {
         return false;
     }

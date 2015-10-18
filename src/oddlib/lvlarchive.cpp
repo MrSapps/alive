@@ -93,7 +93,7 @@ namespace Oddlib
 
     void LvlArchive::File::LoadChunks(IStream& stream, Uint32 fileSize)
     {
-        while (stream.Pos() < stream.Pos() + fileSize)
+        while (stream.Pos() < (stream.Pos() + fileSize))
         {
             ChunkHeader header;
             stream.ReadUInt32(header.iSize);

@@ -46,7 +46,7 @@ double SequencePlayer::MidiTimeToSample(int time)
 // TODO: This thread spin locks
 void SequencePlayer::m_PlayerThreadFunction()
 {
-    int channels[16];
+    int channels[16] = {};
 
     //while (!m_KillThread)
     {

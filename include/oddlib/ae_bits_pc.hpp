@@ -27,7 +27,7 @@ namespace Oddlib
         unsigned short int* g_pointer_to_vlc_buffer = nullptr;
         int g_right25_array = 0;
         int g_vram_writes_count = 0;
-        unsigned short int g_vram[512][1024];
+        unsigned short int g_vram[240][640];
 
         friend struct BitsLogic;
 
