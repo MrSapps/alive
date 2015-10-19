@@ -86,9 +86,6 @@ private:
     void BSRoundTableInit();
     void IQTableInit();
     void IDCT(int16_t *, uint8_t);
-    void YUV2BGR24(int16_t *arg_blk,
-        uint8_t arg_image[][3],
-        bool arg_no_color);
     void YUVfunction1(uint8_t arg_image[][4], int index, int r0, int g0, int b0, int y);
     void YUV2BGRA32(int16_t *arg_blk,
         uint8_t arg_image[][4]);
