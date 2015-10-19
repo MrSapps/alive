@@ -6,7 +6,7 @@
 #include <vector>
 #include "oddlib/stream.hpp"
 #include "oddlib/audio/AliveAudio.h"
-#include <functional>
+#include "stdthread.h"
 
 struct SeqHeader
 {

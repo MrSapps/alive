@@ -27,7 +27,7 @@ extern "C"
 #include <windows.h>
 #include "../rsc/resource.h"
 #include "SDL_syswm.h"
-#include <functional>
+#include "stdthread.h"
 
 
 void setWindowsIcon(SDL_Window *sdlWindow)
