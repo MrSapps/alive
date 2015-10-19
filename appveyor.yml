@@ -13,7 +13,6 @@ before_build:
  - mkdir build
  - cd build
  - call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%
- - cmake --help
  - echo %platform%
  - if %platform%==X64 (cmake .. -G "Visual Studio 12 2013 Win64")
  - if %platform%==x86 (cmake .. -G "Visual Studio 12 2013")
@@ -21,7 +20,6 @@ before_build:
 build_script:
  - cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
  # Gotta use the full path to cpack because chocolatey replaces cpack with itself!
- - call "C:\Program Files (x86)\cmake\bin\cpack" --help
  - call "C:\Program Files (x86)\cmake\bin\cpack" -G WIX -C %configuration%
  - ctest -VV -C %configuration%
 
@@ -34,3 +32,5 @@ install:
 artifacts:
  - path: build\*.msi
    name: Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
+
+test: off
