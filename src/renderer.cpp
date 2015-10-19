@@ -380,11 +380,11 @@ void Renderer::endFrame()
         {
         case DrawCmdType_quad:
         {
-            int texHandle = cmd.integer;
-            float x = cmd.f[0];
-            float y = cmd.f[1];
-            float w = cmd.f[2];
-            float h = cmd.f[3];
+            int texHandle = cmd.s.integer;
+            float x = cmd.s.f[0];
+            float y = cmd.s.f[1];
+            float w = cmd.s.f[2];
+            float h = cmd.s.f[3];
 
             float white[4] = { 1, 1, 1, 1 };
 
@@ -428,24 +428,24 @@ void Renderer::endFrame()
 
             unbind_vao();
         } break;
-        case DrawCmdType_fillColor: nvgFillColor(mNanoVg, nvgRGBAf(cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3])); break;
-        case DrawCmdType_strokeColor: nvgStrokeColor(mNanoVg, nvgRGBAf(cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3])); break;
-        case DrawCmdType_strokeWidth: nvgStrokeWidth(mNanoVg, cmd.f[0]); break;
-        case DrawCmdType_fontSize: nvgFontSize(mNanoVg, cmd.f[0]); break;
-        case DrawCmdType_fontBlur: nvgFontBlur(mNanoVg, cmd.f[0]); break;
-        case DrawCmdType_textAlign: nvgTextAlign(mNanoVg, cmd.integer); break;
-        case DrawCmdType_text: nvgText(mNanoVg, cmd.f[0], cmd.f[1], cmd.str, nullptr); break;
+        case DrawCmdType_fillColor: nvgFillColor(mNanoVg, nvgRGBAf(cmd.s.f[0], cmd.s.f[1], cmd.s.f[2], cmd.s.f[3])); break;
+        case DrawCmdType_strokeColor: nvgStrokeColor(mNanoVg, nvgRGBAf(cmd.s.f[0], cmd.s.f[1], cmd.s.f[2], cmd.s.f[3])); break;
+        case DrawCmdType_strokeWidth: nvgStrokeWidth(mNanoVg, cmd.s.f[0]); break;
+        case DrawCmdType_fontSize: nvgFontSize(mNanoVg, cmd.s.f[0]); break;
+        case DrawCmdType_fontBlur: nvgFontBlur(mNanoVg, cmd.s.f[0]); break;
+        case DrawCmdType_textAlign: nvgTextAlign(mNanoVg, cmd.s.integer); break;
+        case DrawCmdType_text: nvgText(mNanoVg, cmd.s.f[0], cmd.s.f[1], cmd.s.str, nullptr); break;
         case DrawCmdType_resetTransform: nvgResetTransform(mNanoVg); break;
         case DrawCmdType_beginPath: nvgBeginPath(mNanoVg); break;
-        case DrawCmdType_moveTo: nvgMoveTo(mNanoVg, cmd.f[0], cmd.f[1]); break;
-        case DrawCmdType_lineTo: nvgLineTo(mNanoVg, cmd.f[0], cmd.f[1]); break;
+        case DrawCmdType_moveTo: nvgMoveTo(mNanoVg, cmd.s.f[0], cmd.s.f[1]); break;
+        case DrawCmdType_lineTo: nvgLineTo(mNanoVg, cmd.s.f[0], cmd.s.f[1]); break;
         case DrawCmdType_closePath: nvgClosePath(mNanoVg); break;
         case DrawCmdType_fill: nvgFill(mNanoVg); break;
         case DrawCmdType_stroke: nvgStroke(mNanoVg); break;
-        case DrawCmdType_roundedRect: nvgRoundedRect(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3], cmd.f[4]); break;
-        case DrawCmdType_rect: nvgRect(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3]); break;
-        case DrawCmdType_circle: nvgCircle(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2]); break;
-        case DrawCmdType_solidPathWinding: nvgPathWinding(mNanoVg, cmd.integer ? NVG_SOLID : NVG_HOLE); break;
+        case DrawCmdType_roundedRect: nvgRoundedRect(mNanoVg, cmd.s.f[0], cmd.s.f[1], cmd.s.f[2], cmd.s.f[3], cmd.s.f[4]); break;
+        case DrawCmdType_rect: nvgRect(mNanoVg, cmd.s.f[0], cmd.s.f[1], cmd.s.f[2], cmd.s.f[3]); break;
+        case DrawCmdType_circle: nvgCircle(mNanoVg, cmd.s.f[0], cmd.s.f[1], cmd.s.f[2]); break;
+        case DrawCmdType_solidPathWinding: nvgPathWinding(mNanoVg, cmd.s.integer ? NVG_SOLID : NVG_HOLE); break;
         case DrawCmdType_fillPaint:
         {
             RenderPaint p = cmd.paint;
@@ -469,7 +469,7 @@ void Renderer::endFrame()
             nvp.image = p.image;
             nvgFillPaint(mNanoVg, nvp);
         } break;
-        case DrawCmdType_scissor: nvgScissor(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3]); break;
+        case DrawCmdType_scissor: nvgScissor(mNanoVg, cmd.s.f[0], cmd.s.f[1], cmd.s.f[2], cmd.s.f[3]); break;
         case DrawCmdType_resetScissor: nvgResetScissor(mNanoVg); break;
         default: assert(0 && "Unknown DrawCmdType");
         }
@@ -517,7 +517,7 @@ int Renderer::createTexture(GLenum internalFormat, int width, int height, GLenum
                     internalFormat,
                     width, height, 0,
                     inputFormat,
-                    GL_UNSIGNED_BYTE, // Color component datatype
+                    colorDataType,
                     pixels);
 
     return tex;
@@ -535,11 +535,11 @@ void Renderer::drawQuad(int texHandle, float x, float y, float w, float h)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_quad;
-    cmd.integer = texHandle;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = w;
-    cmd.f[3] = h;
+    cmd.s.integer = texHandle;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
+    cmd.s.f[2] = w;
+    cmd.s.f[3] = h;
     pushCmd(cmd);
 }
 
@@ -547,7 +547,7 @@ void Renderer::fillColor(Color c)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_fillColor;
-    memcpy(cmd.f, &c, sizeof(c));
+    memcpy(cmd.s.f, &c, sizeof(c));
     pushCmd(cmd);
 }
 
@@ -555,7 +555,7 @@ void Renderer::strokeColor(Color c)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_strokeColor;
-    memcpy(cmd.f, &c, sizeof(c));
+    memcpy(cmd.s.f, &c, sizeof(c));
     pushCmd(cmd);
 }
 
@@ -563,7 +563,7 @@ void Renderer::strokeWidth(float size)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_strokeWidth;
-    cmd.f[0] = size;
+    cmd.s.f[0] = size;
     pushCmd(cmd);
 }
 
@@ -573,7 +573,7 @@ void Renderer::fontSize(float s)
 
     DrawCmd cmd;
     cmd.type = DrawCmdType_fontSize;
-    cmd.f[0] = s;
+    cmd.s.f[0] = s;
     pushCmd(cmd);
 }
 
@@ -583,7 +583,7 @@ void Renderer::fontBlur(float s)
 
     DrawCmd cmd;
     cmd.type = DrawCmdType_fontBlur;
-    cmd.f[0] = s;
+    cmd.s.f[0] = s;
     pushCmd(cmd);
 }
 
@@ -593,7 +593,7 @@ void Renderer::textAlign(int align)
 
     DrawCmd cmd;
     cmd.type = DrawCmdType_textAlign;
-    cmd.integer = align;
+    cmd.s.integer = align;
     pushCmd(cmd);
 }
 
@@ -601,10 +601,10 @@ void Renderer::text(float x, float y, const char *msg)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_text;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    strncpy(cmd.str, msg, sizeof(cmd.str));
-    cmd.str[sizeof(cmd.str) - 1] = '\0';
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
+    strncpy(cmd.s.str, msg, sizeof(cmd.s.str));
+    cmd.s.str[sizeof(cmd.s.str) - 1] = '\0';
     pushCmd(cmd);
 }
 
@@ -626,8 +626,8 @@ void Renderer::moveTo(float x, float y)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_moveTo;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
     pushCmd(cmd);
 }
 
@@ -635,8 +635,8 @@ void Renderer::lineTo(float x, float y)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_lineTo;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
     pushCmd(cmd);
 }
 
@@ -665,11 +665,11 @@ void Renderer::roundedRect(float x, float y, float w, float h, float r)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_roundedRect;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = w;
-    cmd.f[3] = h;
-    cmd.f[4] = r;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
+    cmd.s.f[2] = w;
+    cmd.s.f[3] = h;
+    cmd.s.f[4] = r;
     pushCmd(cmd);
 }
 
@@ -677,10 +677,10 @@ void Renderer::rect(float x, float y, float w, float h)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_rect;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = w;
-    cmd.f[3] = h;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
+    cmd.s.f[2] = w;
+    cmd.s.f[3] = h;
     pushCmd(cmd);
 }
 
@@ -688,9 +688,9 @@ void Renderer::circle(float x, float y, float r)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_circle;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = r;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
+    cmd.s.f[2] = r;
     pushCmd(cmd);
 }
 
@@ -698,7 +698,7 @@ void Renderer::solidPathWinding(bool b)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_solidPathWinding;
-    cmd.integer = b;
+    cmd.s.integer = b;
     pushCmd(cmd);
 }
 
@@ -714,10 +714,10 @@ void Renderer::scissor(float x, float y, float w, float h)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_scissor;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = w;
-    cmd.f[3] = h;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
+    cmd.s.f[2] = w;
+    cmd.s.f[3] = h;
     pushCmd(cmd);
 }
 
@@ -776,7 +776,7 @@ RenderPaint Renderer::radialGradient(float cx, float cy, float inr, float outr, 
 
 void Renderer::textBounds(int x, int y, const char *msg, float bounds[4])
 {
-    nvgTextBounds(mNanoVg, x, y, msg, nullptr, bounds);
+    nvgTextBounds(mNanoVg, 1.f*x, 1.f*y, msg, nullptr, bounds);
 }
 
 void Renderer::pushCmd(DrawCmd cmd)

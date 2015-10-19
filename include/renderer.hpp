@@ -89,7 +89,7 @@ struct DrawCmd {
             int integer;
             float f[5];
             char str[128]; // TODO: Allocate dynamically from cheap frame allocator
-        };
+        } s;
         RenderPaint paint;
     };
 };

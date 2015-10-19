@@ -841,7 +841,7 @@ void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, 
     gui_begin(ctx, label);
 
     V2i pos = gui_turtle_pos(ctx);
-    V2i size;
+    V2i size = v2i(0, 0);
     SELECT_COMP(size, h) = SELECT_COMP(gui_window(ctx)->client_size, h) - make_shorter;
     SELECT_COMP(size, !h) = scroll_bar_width;
 
