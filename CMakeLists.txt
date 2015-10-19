@@ -98,15 +98,6 @@ add_library(stk STATIC ${stk_src})
 SET_PROPERTY(TARGET stk PROPERTY FOLDER "3rdparty")
 
 
-SET(imgui_src 
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_rect_pack.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_textedit.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_truetype.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imconfig.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imgui.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imgui.cpp
-)
-
 SET(nanovg_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/fontstash.h
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/nanovg.c
@@ -118,9 +109,6 @@ SET(nanovg_src
 )
 add_library(NanoVg STATIC ${nanovg_src})
 SET_PROPERTY(TARGET NanoVg PROPERTY FOLDER "3rdparty")
-
-add_library(imgui STATIC ${imgui_src})
-SET_PROPERTY(TARGET imgui PROPERTY FOLDER "3rdparty")
 
 SET(gmock_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/src/gmock-all.cc
@@ -225,7 +213,7 @@ add_executable(Alive MACOSX_BUNDLE
     src/main.cpp
 )
 
-SET(Alive_Libs  AliveLib jsonxx imgui oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
+SET(Alive_Libs  AliveLib jsonxx oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
 
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})

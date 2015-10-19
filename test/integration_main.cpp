@@ -3,7 +3,6 @@
 #include "logger.hpp"
 #include "fmv.hpp"
 #include "alive_version.h"
-#include "imgui/imgui.h"
 #include "sound.hpp"
 #include "msvc_sdl_link.hpp"
 
