@@ -86,7 +86,7 @@ public:
     virtual void FillBuffers() = 0;
 
     // Main thread context
-    void OnRenderFrame(Renderer& rend, GuiContext &gui, int screenW, int screenH)
+    void OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int /*screenH*/)
     {
         // TODO: Populate mAudioBuffer and mVideoBuffer
         // for up to N buffered frames
@@ -229,7 +229,7 @@ protected:
         V2i size = gui_window_client_size(&gui);
 
         rend.beginLayer(gui_layer(&gui));
-        rend.drawQuad(texhandle, pos.x, pos.y, size.x, size.y);
+        rend.drawQuad(texhandle, static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(size.x), static_cast<float>(size.y));
 
         if (subtitles)
             RenderSubtitles(rend, subtitles, pos.x, pos.y, size.x, size.y);
@@ -690,7 +690,7 @@ public:
             //ImGui::ListBoxFooter();
         }
 
-        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < mListBoxItems.size())
+        if (mListBoxSelectedItem > 0 && mListBoxSelectedItem < mListBoxItems.size())
         {
             try
             {

@@ -47,7 +47,7 @@ namespace Oddlib
         {
             PSXMDECDecoder mdec;
 
-            int w = 0;
+            Uint16 w = 0;
             if (singleSlice)
             {
                 w = 368;
@@ -62,7 +62,7 @@ namespace Oddlib
             Uint16 len = 0;
             if (singleSlice)
             {
-                len = stream.Size();
+                len = static_cast<Uint16>(stream.Size());
             }
             else
             {

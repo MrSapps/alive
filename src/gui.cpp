@@ -965,7 +965,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
         if (went_down)
             gui_start_dragging(ctx, v2i_to_v2f(win->pos));
 
-        V2i prev_value = win->pos;
+        //V2i prev_value = win->pos;
         if (down && ctx->dragging)
             win->pos = v2f_to_v2i(ctx->drag_start_value) - ctx->drag_start_pos + ctx->cursor_pos;
 
@@ -1264,7 +1264,7 @@ bool gui_checkbox_ex(GuiContext *ctx, const char *label, bool *value, bool radio
         gui_button_logic(ctx, label, pos, size, &went_up, NULL, &down, &hover);
 
         V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
-        V2i px_size = pt_to_px(size, ctx->dpi_scale);
+        //V2i px_size = pt_to_px(size, ctx->dpi_scale);
 
         float x = 1.f*px_pos.x + px_margin.x;
         float y = 1.f*px_pos.y + px_margin.x;

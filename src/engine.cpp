@@ -52,7 +52,12 @@ void setWindowsIcon(SDL_Window *sdlWindow)
         if (hKernel32)
         {
             typedef BOOL(WINAPI *pSetConsoleIcon)(HICON icon);
+#pragma warning(push)
+            // C4191: 'reinterpret_cast' : unsafe conversion from 'FARPROC' to 'pSetConsoleIcon'
+            // This is a "feature" of GetProcAddress, so ignore.
+#pragma warning(disable:4191)
             pSetConsoleIcon setConsoleIcon = reinterpret_cast<pSetConsoleIcon>(::GetProcAddress(hKernel32, "SetConsoleIcon"));
+#pragma warning(pop)
             if (setConsoleIcon)
             {
                 setConsoleIcon(icon);
@@ -185,7 +190,7 @@ void drawButton(void *void_rend, float x, float y, float w, float h, bool down, 
     rend->endLayer();
 }
 
-void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer, GuiScissor *s)
+void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool /*down*/, bool hover, int layer, GuiScissor *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
@@ -216,7 +221,7 @@ void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool
     rend->endLayer();
 }
 
-void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, bool down, bool hover, int layer, GuiScissor *s)
+void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, bool /*down*/, bool hover, int layer, GuiScissor *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
