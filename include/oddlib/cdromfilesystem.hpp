@@ -438,7 +438,6 @@ public:
                         mPos += destSize;
                         mSector = (mStream->Pos() / kRawSectorSize);
                         mSector -= mDr.location.little;
-                        assert(mSector > 0);
                         mStream->ReadBytes(pDest, destSize);
                     }
 
