@@ -10,11 +10,11 @@ namespace Oddlib
     const auto green_mask = 0x7E0;
     const auto blue_mask = 0x1F;
 
-    PsxBits::PsxBits(IStream& stream, bool includeLengthInStripSize)
+    PsxBits::PsxBits(IStream& stream, bool includeLengthInStripSize, bool singleSlice)
         : mIncludeLengthInStripSize(includeLengthInStripSize)
     {
         mSurface.reset(SDL_CreateRGBSurface(0, 368, 240, 16, red_mask, green_mask, blue_mask, 0));
-        GenerateImage(stream);
+        GenerateImage(stream, singleSlice);
     }
 
     SDL_Surface* PsxBits::GetSurface() const
@@ -22,7 +22,7 @@ namespace Oddlib
         return mSurface.get();
     }
 
-    void PsxBits::GenerateImage(IStream& stream)
+    void PsxBits::GenerateImage(IStream& stream, bool singleSlice)
     {
 
         Uint32 rmask, gmask, bmask, amask;
@@ -47,16 +47,31 @@ namespace Oddlib
         {
             PSXMDECDecoder mdec;
 
-            int w = (u == numSlices-1) ? 16 : 32;
+            int w = 0;
+            if (singleSlice)
+            {
+                w = 368;
+            }
+            else
+            {
+                w = (u == numSlices - 1) ? 16 : 32;
+            }
+
             SDL_SurfacePtr strip(SDL_CreateRGBSurface(0, w, 240, 32, rmask, gmask, bmask, amask));
 
             Uint16 len = 0;
-            stream.ReadUInt16(len);
-
-            if (mIncludeLengthInStripSize)
+            if (singleSlice)
             {
-                Uint16 dummy = 0;
-                stream.ReadUInt16(dummy);
+                len = stream.Size();
+            }
+            else
+            {
+                stream.ReadUInt16(len);
+                if (mIncludeLengthInStripSize)
+                {
+                    Uint16 dummy = 0;
+                    stream.ReadUInt16(dummy);
+                }
             }
 
             std::vector<Uint8> buffer(len);
@@ -64,7 +79,7 @@ namespace Oddlib
             buffer.resize(buffer.size()*2 );
 
 
-            mdec.DecodeFrameToABGR32((uint16_t*)strip->pixels, (uint16_t*)(buffer.data()), (u < 11) ?  32 : 16, 240);
+            mdec.DecodeFrameToABGR32((uint16_t*)strip->pixels, (uint16_t*)(buffer.data()),w, 240);
 
             SDL_Rect dstRect = {};
             dstRect.x = 32 * u;
@@ -73,12 +88,10 @@ namespace Oddlib
             dstRect.h = 240;
             SDL_BlitSurface(strip.get(), NULL, mSurface.get(), &dstRect);
 
-        }
-
-        /*
-        static int i = 1;
-        SDL_SaveBMP(mSurface.get(), ("testing_" + std::to_string(i) + ".bmp").c_str());
-        i++;
-        */
+            if (singleSlice)
+            {
+                break;
+            }
+        } 
     }
 }

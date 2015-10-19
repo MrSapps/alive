@@ -124,24 +124,44 @@ public:
                 ptr = dynamic_cast<Oddlib::AeBitsPc*>(bits.get());
                 break;
 
+            case eAePsxDemo:
             case eAePsx:
             {
                 auto tmp = dynamic_cast<Oddlib::PsxBits*>(bits.get());
-                if (tmp->IncludeLength())
+                if (tmp && tmp->IncludeLength())
                 {
                     ptr = tmp;
                 }
             }
                 break;
 
+            case eAoPsxDemo:
             case eAoPsx:
             {
                 auto tmp = dynamic_cast<Oddlib::PsxBits*>(bits.get());
-                if (!tmp->IncludeLength())
+                if (tmp && !tmp->IncludeLength())
                 {
                     ptr = tmp;
                 }
             }
+                break;
+
+            case eAoPcDemo:
+                ptr = dynamic_cast<Oddlib::AoBitsPc*>(bits.get());
+                break;
+
+            case eAePcDemo:
+                ptr = dynamic_cast<Oddlib::AoBitsPc*>(bits.get());
+                if (!ptr)
+                {
+                    // Very strange, AE PC demo contains "half" cameras of random old PSX
+                    // cameras, even half of the anti piracy screen is in here
+                    auto tmp = dynamic_cast<Oddlib::PsxBits*>(bits.get());
+                    if (tmp && tmp->IncludeLength())
+                    {
+                        ptr = tmp;
+                    }
+                }
                 break;
 
             default:
@@ -153,6 +173,10 @@ public:
             {
                 LOG_ERROR("Wrong camera type constructed");
                 abort();
+            }
+            else
+            {
+                ptr->Save();
             }
 
         });
@@ -212,19 +236,43 @@ int main(int /*argc*/, char** /*argv*/)
         "sv.lvl"
     };
     DataTest aePc(DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus", aeLvls);
-
     DataTest aePsxCd1(DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin", aeLvls);
     DataTest aePsxCd2(DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin", aeLvls);
+    
+    const std::vector<std::string> aoDemoLvls =
+    {
+        "c1.lvl",
+        "r1.lvl",
+        "s1.lvl"
+    };
+    DataTest aoDemoPc(DataTest::eAoPcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\abeodd", aoDemoLvls);
 
-    /* TODO: Check all other data
- 
-    // AE PC/PSX
+    const std::vector<std::string> aeDemoLvls =
+    {
+        "cr.lvl",
+        "mi.lvl",
+        "st.lvl"
+    };
+    DataTest aeDemoPc(DataTest::eAePcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo", aeDemoLvls);
 
+    const std::vector<std::string> aoDemoPsxLvls =
+    {
+        "ABESODSE\\C1.LVL",
+        "ABESODSE\\E1.LVL",
+        "ABESODSE\\R1.LVL",
+        "ABESODSE\\S1.LVL"
+    };
 
-    // AO Demo PC/PSX
+    DataTest aoDemoPsx(DataTest::eAoPsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin", aoDemoPsxLvls);
 
-    // AE demo PC/PSX
-    */
+    const std::vector<std::string> aeDemoPsxLvls =
+    {
+        "ABE2\\CR.LVL",
+        "ABE2\\MI.LVL",
+        "ABE2\\ST.LVL"
+    };
+
+    DataTest aeDemoPsx(DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin", aeDemoPsxLvls);
 
     return 0;
 }

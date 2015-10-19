@@ -42,6 +42,22 @@ namespace Oddlib
         return true;
     }
 
+    static bool IsAoDemoPsxCam(IStream& stream)
+    {
+        // Look for a pattern of [00 38]
+        Uint16 size = 0;
+        stream.ReadUInt16(size);
+
+        Uint16 temp = 0;
+        stream.ReadUInt16(temp);
+        if (temp != 0x3800)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     std::unique_ptr<IBits> MakeBits(IStream& stream)
     {
         bool allStripsAreAoSize = true;
@@ -51,11 +67,20 @@ namespace Oddlib
 
         const auto streamSize = stream.Size();
 
+        if (IsAoDemoPsxCam(stream))
+        {
+            LOG_INFO("AO PSX demo mdec camera detected");
+            stream.Seek(0);
+            return std::make_unique<PsxBits>(stream, false, true);
+        }
+
+        stream.Seek(0);
+
         if (IsAePsxCam(stream))
         {
             stream.Seek(0);
             LOG_INFO("AE PSX mdec camera detected");
-            return std::make_unique<PsxBits>(stream, true);
+            return std::make_unique<PsxBits>(stream, true, false);
         }
 
         stream.Seek(0);
@@ -84,7 +109,7 @@ namespace Oddlib
         if (!hasFullAmountOfStrips)
         {
             LOG_INFO("AO PSX mdec camera detected");
-            return std::make_unique<PsxBits>(stream, false);
+            return std::make_unique<PsxBits>(stream, false, false);
         }
         else if (allStripsAreAoSize)
         {
