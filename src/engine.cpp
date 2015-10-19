@@ -526,9 +526,36 @@ void Engine::Render()
 
     DebugRender();
 
-    mFmv->Render(*mRenderer, *mGui, w, h);
-    mSound->Render(mGui, w, h);
-    mLevel->Render(*mRenderer, *mGui, w, h);
+    { // Editor user interface
+        // When this gets bigger it can be moved to a separate class etc.
+        struct EditorUi
+        {
+            bool resPathsOpen;
+            bool fmvBrowserOpen;
+            bool soundBrowserOpen;
+            bool levelBrowserOpen;
+        };
+        static EditorUi editor;
+
+        mGui->next_window_pos = v2i(50, 50);
+        gui_begin_window(mGui, "Browsers", v2i(200, 100));
+        gui_checkbox(mGui, "resPathsOpen|Resource paths", &editor.resPathsOpen);
+        gui_checkbox(mGui, "fmvBrowserOpen|FMV browser", &editor.fmvBrowserOpen);
+        gui_checkbox(mGui, "soundBrowserOpen|Sound browser", &editor.soundBrowserOpen);
+        gui_checkbox(mGui, "levelBrowserOpen|Level browser", &editor.levelBrowserOpen);
+        gui_end_window(mGui);
+
+        mGui->next_window_pos = v2i(300, 50);
+
+        if (editor.resPathsOpen)
+            mFileSystem.DebugUi(*mGui);
+        if (editor.fmvBrowserOpen)
+            mFmv->Render(*mRenderer, *mGui, w, h);
+        if (editor.soundBrowserOpen)
+            mSound->Render(mGui, w, h);
+        if (editor.levelBrowserOpen)
+            mLevel->Render(*mRenderer, *mGui, w, h);
+    }
 
     gui_end(mGui);
     mRenderer->endFrame();
@@ -602,3 +629,4 @@ void Engine::ToState(Engine::eStates newState)
         mState = newState;
     }
 }
+

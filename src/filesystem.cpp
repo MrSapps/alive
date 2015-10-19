@@ -337,12 +337,6 @@ bool FileSystem::Init()
 
 void FileSystem::DebugUi(GuiContext &gui)
 {
-    static bool bSet = false;
-    if (!bSet)
-    {
-        gui.next_window_pos = v2i(10, 40);
-        bSet = true;
-    }
     gui_begin_window(&gui, "Resource paths", v2i(700, 200));
 
     //ImGui::GetStyle().WindowMinSize = ImVec2(260, 200);
