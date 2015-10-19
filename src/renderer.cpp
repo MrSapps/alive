@@ -11,7 +11,7 @@
 #include "SDL.h"
 #include "SDL_pixels.h"
 
-static GLuint fontTex;
+//static GLuint fontTex;
 static GLuint       g_FontTexture = 0;
 
 // TODO: Error message
@@ -31,7 +31,7 @@ typedef struct VertexAttrib
     GLenum type;
     bool floating; // False for integer attribs
     GLboolean normalized;
-    int offset;
+    size_t offset;
 } VertexAttrib;
 
 void vertex_attributes(const VertexAttrib **attribs, int *count)
@@ -252,7 +252,6 @@ Renderer::Renderer(const char *fontPath)
             "}                            \n";
         const char fsString[] =
             "#version 120\n"
-            "precision mediump float;\n"
             "uniform sampler2D u_tex;\n"
             "varying vec2 v_uv; \n"
             "varying vec4 v_color; \n"
@@ -756,7 +755,7 @@ static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
 
 RenderPaint Renderer::linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec)
 {
-    RenderPaint p = { 0 };
+    //RenderPaint p = { 0 };
     NVGpaint nvp = nvgLinearGradient(mNanoVg, sx, sy, ex, ey, nvgRGBAf(sc.r, sc.g, sc.b, sc.a), nvgRGBAf(ec.r, ec.g, ec.b, ec.a));
     return NVGpaintToRenderPaint(nvp);
 }

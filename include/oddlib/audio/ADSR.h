@@ -12,8 +12,8 @@
 
 class DLSArt;
 
-static unsigned long RateTable[160];
-static bool bRateTableInitialized = 0;
+//static unsigned long RateTable[160];
+//static bool bRateTableInitialized = 0;
 
 // This next function converts seconds to full attenuation in a linear amplitude decay scale
 // and approximates the time to full attenuation in a linear DB decay scale.
@@ -61,7 +61,7 @@ typedef struct _VAGBlk							//Sample Block
 */
 
 //InitADSR is shamelessly ripped from P.E.Op.S. cause I'm lazy
-static void InitADSR(void);
+//static void InitADSR(void);
 
 inline int RoundToZero(int val)
 {

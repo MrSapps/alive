@@ -694,7 +694,12 @@ namespace Oddlib
                 int ypos = y + yoff;
                 if (xpos < width && ypos < height)
                 {
-                    SetElement(xpos, ypos, width, pixelBuffer, *(Uint32*)&Macroblock_RGB[x][y].Red);
+                    Uint32 pixelValue = 0;
+                    pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Red;
+                    pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Green;
+                    pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Blue;
+                    pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].A;
+                    SetElement(xpos, ypos, width, pixelBuffer, pixelValue);
                 }
             }
         }

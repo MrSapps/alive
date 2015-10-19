@@ -97,11 +97,12 @@ public:
             FillBuffers();
         }
 
+        /*
         int num = -1;
         if (!mVideoBuffer.empty())
         {
             num = mVideoBuffer.begin()->mFrameNum;
-        }
+        }*/
 
         //        std::cout << "Playing frame num " << mVideoFrameIndex << " first buffered frame is " << num << " samples played " << (size_t)mConsumedAudioBytes << std::endl;
 
@@ -681,7 +682,7 @@ public:
         {
             for (size_t i = 0; i < mListBoxItems.size(); i++)
             {
-                if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
+                if (gui_selectable(&gui, mListBoxItems[i], i == mListBoxSelectedItem))
                 {
                     mListBoxSelectedItem = i;
                 }

@@ -62,7 +62,7 @@ void setWindowsIcon(SDL_Window *sdlWindow)
 }
 #endif
 
-static bool mousePressed[4] = { false, false };
+//static bool mousePressed[4] = { false, false };
 
 void Engine::ImGui_WindowResize()
 {
@@ -491,7 +491,7 @@ void Engine::Update()
             if (event.type == SDL_KEYDOWN && key == SDL_SCANCODE_BACKSPACE)
                 gui_write_char(mGui, '\b'); // Note that this is called in case of repeated backspace key also
 
-            SDL_Keymod modstate = SDL_GetModState();
+            //SDL_Keymod modstate = SDL_GetModState();
 
             break;
         }
@@ -545,7 +545,7 @@ bool Engine::InitSDL()
     }
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     //SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG ); // May be a performance booster in *nix?
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
@@ -589,6 +589,7 @@ void Engine::InitGL()
     }
     else
     {
+        LOG_INFO("glewInit failure");
         throw Oddlib::Exception(reinterpret_cast<const char*>(glewGetErrorString(err)));
     }
 }
