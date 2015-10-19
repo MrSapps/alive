@@ -3,7 +3,15 @@
 #include "logger.hpp"
 #include "nanovg.h"
 #define NANOVG_GLES2_IMPLEMENTATION
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4201) // nonstandard extension used : nameless struct/union
+#pragma warning(disable:4244) //  conversion from 'int' to 'float', possible loss of data
+#endif
 #include "nanovg_gl.h"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 #include "nanovg_gl_utils.h"
 
 #include <algorithm>

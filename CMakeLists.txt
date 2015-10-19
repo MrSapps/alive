@@ -77,9 +77,6 @@ include_directories(
 )
 
 add_definitions(-DGLEW_STATIC)
-if (MSVC)
-add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-endif()
 
 SET(glew_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glew-1.11.0/src/glew.c
@@ -133,10 +130,7 @@ SET_PROPERTY(TARGET liblua PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET luajit PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET minilua PROPERTY FOLDER "3rdparty")
 
-
-
-
-add_library(oddlib STATIC
+SET(oddlib_src
     include/msvc_sdl_link.hpp
     include/stdthread.h
     include/logger.hpp
@@ -176,13 +170,17 @@ add_library(oddlib STATIC
     include/oddlib/ao_bits_pc.hpp
     src/oddlib/ae_bits_pc.cpp
     include/oddlib/ae_bits_pc.hpp
-     src/oddlib/psx_bits.cpp
+    src/oddlib/psx_bits.cpp
     include/oddlib/psx_bits.hpp
     src/oddlib/bits_factory.cpp
     include/oddlib/bits_factory.hpp
 )
 
-add_library(AliveLib STATIC
+add_library(oddlib STATIC
+    ${oddlib_src}
+)
+
+SET(alivelib_src
     include/core/audiobuffer.hpp
     src/core/audiobuffer.cpp
     include/fmv.hpp
@@ -205,6 +203,10 @@ add_library(AliveLib STATIC
     src/gridobject.cpp
     include/subtitles.hpp
     include/sdl_raii.hpp
+)
+
+add_library(AliveLib STATIC
+    ${alivelib_src}
 )
 
 if(WIN32)
@@ -353,10 +355,13 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/Roboto-Regular.ttf" DESTINATION 
 if (MSVC)
     # Build cpp files on all cores
     SET(OLD_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826 /wd4127 /wd4711 /wd4738")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826 /wd4127 /wd4711 /wd4738 /WX")
     # Use default flags on 3rd party things that generate warnings on max levels
     set_source_files_properties(${stk_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018")
     set_source_files_properties(${jsonxx_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS}")
+    set_source_files_properties(${oddlib_src} PROPERTIES COMPILE_FLAGSS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
+    set_source_files_properties(${alivelib_src} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
+    set_source_files_properties(${nanovg_src} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS /wd4005")
 else()
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # C++14 by default
