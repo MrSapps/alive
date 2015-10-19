@@ -77,6 +77,9 @@ include_directories(
 )
 
 add_definitions(-DGLEW_STATIC)
+if (MSVC)
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
 
 SET(glew_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glew-1.11.0/src/glew.c
