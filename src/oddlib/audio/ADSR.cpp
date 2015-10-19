@@ -17,6 +17,7 @@ double LinAmpDecayTimeToLinDBDecayTime(double secondsToFullAtten, int linearVolu
 }
 
 //InitADSR is shamelessly ripped from P.E.Op.S. cause I'm lazy
+/*
 static void InitADSR(void)                                    // INIT ADSR
 {
 	unsigned long r, rs, rd; int i;
@@ -37,7 +38,9 @@ static void InitADSR(void)                                    // INIT ADSR
 		RateTable[i] = r;
 	}
 }
+*/
 
+/*
 void PSXConvADSR(REAL_ADSR* realADSR, unsigned short ADSR1, unsigned short ADSR2, bool bPS2)
 {
 
@@ -199,7 +202,7 @@ void PSXConvADSR(REAL_ADSR* realADSR,
 
 			}
 			timeInSecs = samples / sampleRate;
-			realADSR->sustain_time = /*Sm ? timeInSecs : */LinAmpDecayTimeToLinDBDecayTime(timeInSecs, 0x800);
+            realADSR->sustain_time = LinAmpDecayTimeToLinDBDecayTime(timeInSecs, 0x800);
 		}
 	}
 
@@ -261,7 +264,7 @@ void PSXConvADSR(REAL_ADSR* realADSR,
 	//if (Rm == 0) // if it's linear
 	//	timeInSecs *=  LINEAR_RELEASE_COMPENSATION;
 
-	realADSR->release_time = /*Rm ? timeInSecs : */LinAmpDecayTimeToLinDBDecayTime(timeInSecs, 0x800);
+    realADSR->release_time = LinAmpDecayTimeToLinDBDecayTime(timeInSecs, 0x800);
 
 	// We need to compensate the decay and release times to represent them as the time from full vol to -100db 
 	// where the drop in db is a fixed amount per time unit (SoundFont2 spec for vol envelopes, pg44.)
@@ -277,3 +280,4 @@ void PSXConvADSR(REAL_ADSR* realADSR,
 	//artic->AddADSR(attack_time, Am, decay_time, sustain_lev, release_time, 0);
 	return;
 }
+*/

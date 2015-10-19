@@ -299,11 +299,11 @@ public:
 
         do
         {
-            auto sizeToRead = dataSize;
+            //auto sizeToRead = dataSize;
             Sector sector(dataSector++, mStream);
             //if (sizeToRead > sector.DataLength())
             {
-                sizeToRead = sector.DataLength();
+                //sizeToRead = sector.DataLength();
                 dataSize -= sector.DataLength();
             }
 
@@ -325,7 +325,7 @@ public:
         Stream& operator = (const Stream&) = delete;
 
         Stream(const directory_record& dr, std::string name, Oddlib::IStream& stream, bool includeSubHeaders)
-            : mDr(dr), mName(name), mStream(stream.Clone()), mIncludeSubHeader(includeSubHeaders)
+            : mIncludeSubHeader(includeSubHeaders), mDr(dr), mName(name), mStream(stream.Clone())
         {
             mSector = mDr.location.little;
             mStream->Seek(mSector * kRawSectorSize);

@@ -79,8 +79,8 @@ void AliveAudio::CleanVoices()
 
 void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
 {
-    static float tick = 0;
-    static int note = 0;
+    //static float tick = 0;
+    //static int note = 0;
 
     //AliveAudioSoundbank * currentSoundbank = AliveAudio::m_CurrentSoundbank;
 

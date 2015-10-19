@@ -36,7 +36,6 @@ bool GameData::LoadFmvDb(FileSystem& fs)
             {
                 // Read out the record
                 FmvSection section = {};
-                bool isSubEntry = false;
                 std::string pcFileName;
                 if (ar.has<jsonxx::String>(i))
                 {
@@ -51,8 +50,6 @@ bool GameData::LoadFmvDb(FileSystem& fs)
                 }
                 else if (ar.has<jsonxx::Object>(i))
                 {
-                    isSubEntry = true;
-
                     // Maps a PSX file name to a PC file name - and what part of the PSX
                     // file contains the PC file. As PSX movies are many movies in one file.
                     const jsonxx::Object& subFmvObj = ar.get<jsonxx::Object>(i);

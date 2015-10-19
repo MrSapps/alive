@@ -247,11 +247,11 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
                 //std::cout << "Temp change" << std::endl;
                 // TODO: Not sure if this is correct
                 Uint8 tempoByte = 0;
-                int t = 0;
+                //int t = 0;
                 for (int i = 0; i < 3; i++)
                 {
                     stream.ReadUInt8(tempoByte);
-                    t = tempoByte << 8 * i;
+                    //t = tempoByte << 8 * i;
                 }
             }
             break;

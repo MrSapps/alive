@@ -45,9 +45,7 @@ namespace Oddlib
             dstRect.w = kStripSize;
             dstRect.h = 240;
             SDL_BlitSurface(strip.get(), NULL, mSurface.get(), &dstRect);
-        }
-
-        //SDL_SaveBMP(mSurface.get(), "testing.bmp");
+        } 
     }
 
 }

@@ -183,8 +183,8 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scr
     }
     gui_end_window(&gui);
 
-    if (mEditorScreenX >= (int)mScreens.size() || // Invalid x check
-        (mEditorScreenX >= 0 && mEditorScreenY >= mScreens[mEditorScreenX].size())) // Invalid y check
+    if (mEditorScreenX >= static_cast<int>(mScreens.size()) || // Invalid x check
+        (mEditorScreenX >= 0 && mEditorScreenY >= static_cast<int>(mScreens[mEditorScreenX].size()))) // Invalid y check
     {
         mEditorScreenX = mEditorScreenY = -1;
     }
