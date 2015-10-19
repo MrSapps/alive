@@ -695,10 +695,12 @@ namespace Oddlib
                 if (xpos < width && ypos < height)
                 {
                     Uint32 pixelValue = 0;
-                    pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Red;
-                    pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Green;
                     pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Blue;
-                    pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].A;
+                    pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Green;
+                    pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Red;
+
+                    // Actually is no alpha in FMVs
+                    // pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].A
                     SetElement(xpos, ypos, width, pixelBuffer, pixelValue);
                 }
             }
