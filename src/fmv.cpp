@@ -86,7 +86,7 @@ public:
     virtual void FillBuffers() = 0;
 
     // Main thread context
-    void OnRenderFrame(Renderer& rend, GuiContext &gui, int screenW, int screenH)
+    void OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int /*screenH*/)
     {
         // TODO: Populate mAudioBuffer and mVideoBuffer
         // for up to N buffered frames
@@ -229,7 +229,7 @@ protected:
         V2i size = gui_window_client_size(&gui);
 
         rend.beginLayer(gui_layer(&gui));
-        rend.drawQuad(texhandle, pos.x, pos.y, size.x, size.y);
+        rend.drawQuad(texhandle, static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(size.x), static_cast<float>(size.y));
 
         if (subtitles)
             RenderSubtitles(rend, subtitles, pos.x, pos.y, size.x, size.y);
@@ -594,13 +594,26 @@ private:
         auto fmvData = allFmvs.find(fmvName);
         if (fmvData != std::end(allFmvs))
         {
-            // Check if the PSX file containing the FMV exists
-            const std::vector<GameData::FmvSection>& sections = fmvData->second;
-            for (const GameData::FmvSection& section : sections)
+            if (!fmvData->second.empty())
             {
+                if (fmvData->second.size() > 1)
+                {
+                    LOG_ERROR("More than one FMV mapping");
+                    assert(false);
+                }
+                auto section = fmvData->second[0];
 
-                // Only PSX FMV's have many in a single file
-                return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), section.mStartSector, section.mNumberOfSectors);
+                // TODO FIX ME: Should this always be a 1:1 mapping? If yes remove vector
+                // else here we need to know which one to pick.
+
+                // Check if the PSX file containing the FMV exists
+                //const std::vector<GameData::FmvSection>& sections = fmvData->second;
+                //for (const GameData::FmvSection& section : sections)
+                {
+
+                    // Only PSX FMV's have many in a single file
+                    return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), section.mStartSector, section.mNumberOfSectors);
+                }
             }
         }
 
@@ -641,7 +654,7 @@ class FmvUi
 {
 private:
     char mFilterString[64];
-    size_t mListBoxSelectedItem = (size_t)-1;
+    int mListBoxSelectedItem = -1;
     std::vector<const char*> mListBoxItems;
     std::unique_ptr<class IMovie>& mFmv;
 public:
@@ -682,7 +695,7 @@ public:
         {
             for (size_t i = 0; i < mListBoxItems.size(); i++)
             {
-                if (gui_selectable(&gui, mListBoxItems[i], i == mListBoxSelectedItem))
+                if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
                 {
                     mListBoxSelectedItem = i;
                 }
@@ -690,7 +703,7 @@ public:
             //ImGui::ListBoxFooter();
         }
 
-        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < mListBoxItems.size())
+        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
         {
             try
             {
