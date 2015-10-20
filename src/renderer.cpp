@@ -35,6 +35,21 @@ static GLuint       g_FontTexture = 0;
 // TODO: Error message
 #define ALIVE_FATAL_ERROR() abort()
 
+#ifdef NDEBUG
+#   define GL(x) x
+#else
+static void assertOnGlError(const char *msg)
+{
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR)
+    {
+        LOG_ERROR("GL ERROR: " << error << ", " << msg); 
+        assert(0 && "GL ERROR");
+    }
+}
+#   define GL(x) do { assertOnGlError("before " #x); x; assertOnGlError("after " #x); } while(0)
+#endif
+
 struct TriMeshVertex
 {
     float pos[2];
@@ -77,38 +92,38 @@ Vao create_vao(int max_v_count, int max_i_count)
     vao.v_capacity = max_v_count;
     vao.i_capacity = max_i_count;
 
-    glGenVertexArrays(1, &vao.vao_id);
-    glGenBuffers(1, &vao.vbo_id);
-    glGenBuffers(1, &vao.ibo_id);
+    GL(glGenVertexArrays(1, &vao.vao_id));
+    GL(glGenBuffers(1, &vao.vbo_id));
+    GL(glGenBuffers(1, &vao.ibo_id));
 
     bind_vao(&vao);
 
     for (int i = 0; i < attrib_count; ++i) {
-        glEnableVertexAttribArray(i);
+        GL(glEnableVertexAttribArray(i));
         if (attribs[i].floating) {
-            glVertexAttribPointer(
+            GL(glVertexAttribPointer(
                 i,
                 attribs[i].size,
                 attribs[i].type,
                 attribs[i].normalized,
                 vao.v_size,
-                (const GLvoid*)attribs[i].offset);
+                (const GLvoid*)attribs[i].offset));
         }
         else
         {
-            glVertexAttribIPointer(
+            GL(glVertexAttribIPointer(
                 i,
                 attribs[i].size,
                 attribs[i].type,
                 vao.v_size,
-                (const GLvoid*)attribs[i].offset);
+                (const GLvoid*)attribs[i].offset));
         }
     }
 
-    glBufferData(GL_ARRAY_BUFFER, vao.v_size*max_v_count, NULL, GL_STATIC_DRAW);
+    GL(glBufferData(GL_ARRAY_BUFFER, vao.v_size*max_v_count, NULL, GL_STATIC_DRAW));
     if (vao.ibo_id)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-            sizeof(MeshIndexType)*max_i_count, NULL, GL_STATIC_DRAW);
+        GL(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+            sizeof(MeshIndexType)*max_i_count, NULL, GL_STATIC_DRAW));
     return vao;
 }
 
@@ -121,40 +136,40 @@ void destroy_vao(Vao *vao)
     int attrib_count;
     vertex_attributes(NULL, &attrib_count);
     for (int i = 0; i < attrib_count; ++i)
-        glDisableVertexAttribArray(i);
+        GL(glDisableVertexAttribArray(i));
 
     unbind_vao();
 
-    glDeleteVertexArrays(1, &vao->vao_id);
-    glDeleteBuffers(1, &vao->vbo_id);
+    GL(glDeleteVertexArrays(1, &vao->vao_id));
+    GL(glDeleteBuffers(1, &vao->vbo_id));
     if (vao->ibo_id)
-        glDeleteBuffers(1, &vao->ibo_id);
+        GL(glDeleteBuffers(1, &vao->ibo_id));
     vao->vao_id = vao->vbo_id = vao->ibo_id = 0;
 }
 
 void bind_vao(const Vao *vao)
 {
     assert(vao && vao->vao_id);
-    glBindVertexArray(vao->vao_id);
-    glBindBuffer(GL_ARRAY_BUFFER, vao->vbo_id);
+    GL(glBindVertexArray(vao->vao_id));
+    GL(glBindBuffer(GL_ARRAY_BUFFER, vao->vbo_id));
     if (vao->ibo_id)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vao->ibo_id);
+        GL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vao->ibo_id));
 }
 
 void unbind_vao()
 {
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    GL(glBindVertexArray(0));
+    GL(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    GL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 }
 
 void add_vertices_to_vao(Vao *vao, void *vertices, int count)
 {
     assert(vao->v_count + count <= vao->v_capacity);
-    glBufferSubData(GL_ARRAY_BUFFER,
+    GL(glBufferSubData(GL_ARRAY_BUFFER,
         vao->v_size*vao->v_count,
         vao->v_size*count,
-        vertices);
+        vertices));
     vao->v_count += count;
 }
 
@@ -162,10 +177,10 @@ void add_indices_to_vao(Vao *vao, MeshIndexType *indices, int count)
 {
     assert(vao->ibo_id);
     assert(vao->i_count + count <= vao->i_capacity);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
+    GL(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
         sizeof(MeshIndexType)*vao->i_count,
         sizeof(MeshIndexType)*count,
-        indices);
+        indices));
     vao->i_count += count;
 }
 
@@ -177,11 +192,11 @@ void reset_vao_mesh(Vao *vao)
 void draw_vao(const Vao *vao)
 {
     if (vao->ibo_id) {
-        glDrawRangeElements(GL_TRIANGLES,
-            0, vao->i_count, vao->i_count, MESH_INDEX_GL_TYPE, 0);
+        GL(glDrawRangeElements(GL_TRIANGLES,
+            0, vao->i_count, vao->i_count, MESH_INDEX_GL_TYPE, 0));
     }
     else {
-        glDrawArrays(GL_POINTS, 0, vao->v_count);
+        GL(glDrawArrays(GL_POINTS, 0, vao->v_count));
     }
 }
 
@@ -190,22 +205,22 @@ GLuint createShader(GLenum type, const char *shaderSrc)
     GLuint shader;
     GLint compiled;
 
-    shader = glCreateShader(type);
+    GL(shader = glCreateShader(type));
     if (shader == 0)
         return 0;
 
-    glShaderSource(shader, 1, &shaderSrc, NULL);
-    glCompileShader(shader);
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+    GL(glShaderSource(shader, 1, &shaderSrc, NULL));
+    GL(glCompileShader(shader));
+    GL(glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled));
 
     if (!compiled)
     {
         GLint infoLen = 0;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
+        GL(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen));
         if (infoLen > 1)
         {
             std::vector<char> infoLog(sizeof(char) * (infoLen+1));
-            glGetShaderInfoLog(shader, infoLen, NULL, infoLog.data());
+            GL(glGetShaderInfoLog(shader, infoLen, NULL, infoLog.data()));
             LOG_INFO("Error compiling shader: " << infoLog.data());
 
             ALIVE_FATAL_ERROR();
@@ -280,29 +295,29 @@ Renderer::Renderer(const char *fontPath)
 
         mVs = createShader(GL_VERTEX_SHADER, vsString);
         mFs = createShader(GL_FRAGMENT_SHADER, fsString);
-        mProgram = glCreateProgram();
+        GL(mProgram = glCreateProgram());
 
         if (mProgram == 0)
             ALIVE_FATAL_ERROR();
 
-        glAttachShader(mProgram, mVs);
-        glAttachShader(mProgram, mFs);
+        GL(glAttachShader(mProgram, mVs));
+        GL(glAttachShader(mProgram, mFs));
 
-        glBindAttribLocation(mProgram, 0, "v_pos");
-        glLinkProgram(mProgram);
+        GL(glBindAttribLocation(mProgram, 0, "v_pos"));
+        GL(glLinkProgram(mProgram));
 
         GLint linked;
-        glGetProgramiv(mProgram, GL_LINK_STATUS, &linked);
+        GL(glGetProgramiv(mProgram, GL_LINK_STATUS, &linked));
         if (!linked)
         {
             GLint infoLen = 0;
 
-            glGetProgramiv(mProgram, GL_INFO_LOG_LENGTH, &infoLen);
+            GL(glGetProgramiv(mProgram, GL_INFO_LOG_LENGTH, &infoLen));
 
             if (infoLen > 1)
             {
                 std::vector<char> infoLog(sizeof(char) * (infoLen+1));
-                glGetProgramInfoLog(mProgram, infoLen, NULL, infoLog.data());
+                GL(glGetProgramInfoLog(mProgram, infoLen, NULL, infoLog.data()));
                 LOG_INFO("Error linking program " << infoLog.data());
             }
             ALIVE_FATAL_ERROR();
@@ -323,7 +338,7 @@ Renderer::~Renderer()
     { // Delete vector rendering
         if (g_FontTexture)
         {
-            glDeleteTextures(1, &g_FontTexture);
+            GL(glDeleteTextures(1, &g_FontTexture));
             g_FontTexture = 0;
         }
 
@@ -341,16 +356,16 @@ Renderer::~Renderer()
     { // Delete textured quad rendering
         destroy_vao(&mQuadVao);
 
-        glDeleteShader(mVs);
-        glDeleteShader(mFs);
-        glDeleteProgram(mProgram);
+        GL(glDeleteShader(mVs));
+        GL(glDeleteShader(mFs));
+        GL(glDeleteProgram(mProgram));
     }
 }
 
 void Renderer::beginFrame(int w, int h)
 {
-    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    GL(glClearColor(0.4f, 0.4f, 0.4f, 1.0f));
+    GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 
     mW = w;
     mH = h;
@@ -369,7 +384,7 @@ void Renderer::endFrame()
     });
 
     // Actual rendering
-    glViewport(0, 0, mW, mH);
+    GL(glViewport(0, 0, mW, mH));
     nvgResetTransform(mNanoVg);
     bool vectorModeOn = false;
     for (size_t i = 0; i < mDrawCmds.size(); ++i)
@@ -382,14 +397,14 @@ void Renderer::endFrame()
 
         if (vectorModeOn && cmd.type == DrawCmdType_quad)
         { // Start game rendering batch
-            glDisable(GL_DEPTH_TEST);
-            glDisable(GL_STENCIL_TEST);
-            glDisable(GL_CULL_FACE);
-            glDisable(GL_SCISSOR_TEST);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glEnable(GL_TEXTURE_2D);
-            glDisable(GL_ALPHA_TEST);
+            GL(glDisable(GL_DEPTH_TEST));
+            GL(glDisable(GL_STENCIL_TEST));
+            GL(glDisable(GL_CULL_FACE));
+            GL(glDisable(GL_SCISSOR_TEST));
+            GL(glEnable(GL_BLEND));
+            GL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+            GL(glEnable(GL_TEXTURE_2D));
+            GL(glDisable(GL_ALPHA_TEST));
         }
 
         vectorModeOn = (cmd.type != DrawCmdType_quad);
@@ -439,9 +454,9 @@ void Renderer::endFrame()
             add_vertices_to_vao(&mQuadVao, vert, 4);
             add_indices_to_vao(&mQuadVao, ind, 6);
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, texHandle);
-            glUseProgram(mProgram);
+            GL(glActiveTexture(GL_TEXTURE0));
+            GL(glBindTexture(GL_TEXTURE_2D, texHandle));
+            GL(glUseProgram(mProgram));
             draw_vao(&mQuadVao);
 
             unbind_vao();
@@ -499,7 +514,7 @@ void Renderer::endFrame()
     for (size_t i = 0; i < mDestroyTextureList.size(); ++i)
     {
         GLuint tex = (GLuint)mDestroyTextureList[i];
-        glDeleteTextures(1, &tex);
+        GL(glDeleteTextures(1, &tex));
     }
     mDestroyTextureList.clear();
 
@@ -526,20 +541,20 @@ void Renderer::endLayer()
 int Renderer::createTexture(GLenum internalFormat, int width, int height, GLenum inputFormat, GLenum colorDataType, const void *pixels, bool interpolation)
 {
     GLuint tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolation ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolation ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    GL(glGenTextures(1, &tex));
+    GL(glBindTexture(GL_TEXTURE_2D, tex));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolation ? GL_LINEAR : GL_NEAREST));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolation ? GL_LINEAR : GL_NEAREST));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP));
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(   GL_TEXTURE_2D, 0,
+    GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    GL(glTexImage2D(   GL_TEXTURE_2D, 0,
                     internalFormat,
                     width, height, 0,
                     inputFormat,
                     colorDataType,
-                    pixels);
+                    pixels));
 
     return tex;
 }

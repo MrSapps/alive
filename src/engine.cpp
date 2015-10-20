@@ -95,6 +95,11 @@ Engine::~Engine()
 {
     destroy_gui(mGui);
 
+    mFmv.reset();
+    mSound.reset();
+    mLevel.reset();
+    mRenderer.reset();
+
     SDL_GL_DeleteContext(mContext);
     SDL_DestroyWindow(mWindow);
     SDL_Quit();

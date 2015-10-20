@@ -728,8 +728,6 @@ private:
 Fmv::Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs)
     : mGameData(gameData), mAudioController(audioController), mFileSystem(fs)
 {
-    // TODO: Should probably be handled by something else
-    glEnable(GL_TEXTURE_2D);
 }
 
 Fmv::~Fmv()
