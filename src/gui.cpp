@@ -972,7 +972,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
         win->pos.x = MAX(10 - size.x, win->pos.x);
         win->pos.y = MAX(10 - GUI_WINDOW_TITLE_BAR_HEIGHT, win->pos.y);
 
-        GuiScissor scissor = { 0 };
+        GuiScissor scissor = {};
         scissor.pos.x = win->pos.x;
         scissor.pos.y = win->pos.y + GUI_WINDOW_TITLE_BAR_HEIGHT;
         scissor.size.x = win->client_size.x;

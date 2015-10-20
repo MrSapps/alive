@@ -460,7 +460,7 @@ void Renderer::endFrame()
         case DrawCmdType_fillPaint:
         {
             RenderPaint p = cmd.paint;
-            NVGpaint nvp = { 0 };
+            NVGpaint nvp = {};
 
             static_assert(sizeof(p.xform) == sizeof(nvp.xform), "wrong size");
             static_assert(sizeof(p.extent) == sizeof(nvp.extent), "wrong size");
@@ -743,7 +743,7 @@ void Renderer::resetScissor()
 
 static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
 {
-    RenderPaint p = { 0 };
+    RenderPaint p = {};
 
     static_assert(sizeof(p.xform) == sizeof(nvp.xform), "wrong size");
     static_assert(sizeof(p.extent) == sizeof(nvp.extent), "wrong size");
@@ -766,7 +766,6 @@ static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
 
 RenderPaint Renderer::linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec)
 {
-    //RenderPaint p = { 0 };
     NVGpaint nvp = nvgLinearGradient(mNanoVg, sx, sy, ex, ey, nvgRGBAf(sc.r, sc.g, sc.b, sc.a), nvgRGBAf(ec.r, ec.g, ec.b, ec.a));
     return NVGpaintToRenderPaint(nvp);
 }

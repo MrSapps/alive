@@ -94,7 +94,7 @@ public:
 
 private:
     std::vector<AliveAudioMidiMessage> m_MessageList;
-    std::thread * m_SequenceThread = nullptr;
+    //std::thread * m_SequenceThread = nullptr;
     std::mutex m_MessageListMutex;
     std::mutex m_PlayerStateMutex;
     AliveAudio& mAliveAudio;
