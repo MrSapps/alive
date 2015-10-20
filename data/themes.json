@@ -48,11 +48,17 @@
          "vab":"OPTSNDFX",
          "seq":"S1SEQ.BSQ",
       },
-	  {// Scrabania
-		 "name":"Scrabania",
-         "lvl":"d1",
-         "vab":"D1SNDFX",
-         "seq":"D1SEQ.BSQ",
+        { // Scrabania
+            "name": "Scrabania",
+            "lvl": "d1",
+            "vab": "D1SNDFX",
+            "seq": "D1SEQ.BSQ",
+        },
+          {// M lines
+		 "name":"lines",
+         "lvl":"l1",
+         "vab":"MLSNDFX",
+         "seq":"L1SEQ.BSQ",
       },
 	  {// ?
 		 "name":"Scrabania 2",
