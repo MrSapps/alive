@@ -1334,7 +1334,7 @@ bool gui_radiobutton(GuiContext *ctx, const char *label, bool value)
 
 void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max)
 {
-    gui_slider_ex(ctx, label, value, min, max, 0.1f, true, 0);
+    gui_slider_ex(ctx, label, value, min, max, 0.1f, true, gui_window(ctx)->client_size.x);
     gui_next_row(ctx); // @todo Layouting
 }
 
