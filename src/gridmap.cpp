@@ -33,7 +33,6 @@ void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 
 void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
 {
-    gui.next_window_pos = v2i(600, 100);
     gui_begin_window(&gui, "Paths", v2i(300, 400));
 
     static std::vector<std::pair<std::string, const GameData::PathEntry*>> items;

@@ -97,7 +97,6 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
         }
     }
 
-    gui->next_window_pos = v2i(320, 250);
     gui_begin_window(gui, "Sound", v2i(250, 400));
 
     static int selectedIndex = 0; 
