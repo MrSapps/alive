@@ -8,7 +8,7 @@
 #include "oddlib/anim.hpp"
 #include "filesystem.hpp"
 #include "logger.hpp"
-#include <functional>
+#include "stdthread.h"
 #include "msvc_sdl_link.hpp"
 #include "gamedata.hpp"
 

@@ -36,10 +36,9 @@ const uint32_t PSXADPCMDecoder::K1[4] =
 
 
 
-PSXADPCMDecoder::PSXADPCMDecoder() :
-t1(0), t2(0), t1_x(0), t2_x(0)
+PSXADPCMDecoder::PSXADPCMDecoder()
 {
-    ;
+    
 }
 
 

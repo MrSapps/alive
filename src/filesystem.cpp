@@ -358,7 +358,7 @@ void FileSystem::DebugUi(GuiContext &gui)
         {
             if (gui_selectable(&gui, items[i], static_cast<int>(i) == idx))
             {
-                idx = i;
+                idx = static_cast<int>(i);
                 memset(pathBuffer, 0, sizeof(pathBuffer));
                 strncpy(pathBuffer, items[i], sizeof(pathBuffer));
                 memset(priorityBuffer, 0, sizeof(priorityBuffer));
@@ -411,7 +411,7 @@ void FileSystem::InitResourcePaths()
 
         for (size_t i = 0; i < resourcePaths.size(); i++)
         {
-            const jsonxx::Object& pathAndPriority = resourcePaths.get<jsonxx::Object>(i);
+            const jsonxx::Object& pathAndPriority = resourcePaths.get<jsonxx::Object>(static_cast<Uint32>(i));
 
             const auto& path = pathAndPriority.get<jsonxx::String>("path");
             const auto& priority = pathAndPriority.get<jsonxx::Number>("priority");

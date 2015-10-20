@@ -18,7 +18,15 @@
 #include "core/audiobuffer.hpp"
 #include "stdthread.h"
 #include "AudioInterpolation.h"
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4267) //  'return' : conversion from 'size_t' to 'unsigned long', possible loss of data
+#endif
 #include "stk/include/FreeVerb.h"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 const int AliveAudioSampleRate = 44100;
 

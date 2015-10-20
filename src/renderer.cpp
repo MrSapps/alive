@@ -1,18 +1,28 @@
 #include "renderer.hpp"
 #include "oddlib/exceptions.hpp"
 #include "logger.hpp"
-#include "nanovg.h"
+#include "proxy_nanovg.h"
 #define NANOVG_GLES2_IMPLEMENTATION
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4201) // nonstandard extension used : nameless struct/union
-#pragma warning(disable:4244) //  conversion from 'int' to 'float', possible loss of data
+#pragma warning(disable:4244) // conversion from 'int' to 'float', possible loss of data
+#if _MSC_VER >= 1900
+#pragma warning(disable:4459) // declaration of 'defaultFBO' hides global declaration
+#endif
+#endif
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 #include "nanovg_gl.h"
+#include "nanovg_gl_utils.h"
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
-#include "nanovg_gl_utils.h"
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #include <algorithm>
 #include <cassert>
@@ -457,7 +467,7 @@ void Renderer::endFrame()
         case DrawCmdType_fillPaint:
         {
             RenderPaint p = cmd.paint;
-            NVGpaint nvp = { 0 };
+            NVGpaint nvp = {};
 
             static_assert(sizeof(p.xform) == sizeof(nvp.xform), "wrong size");
             static_assert(sizeof(p.extent) == sizeof(nvp.extent), "wrong size");
@@ -496,7 +506,10 @@ void Renderer::endFrame()
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
     {
-        LOG_ERROR(gluErrorString(error));
+        // TODO: Make our own gluErrorString alike function as its marked deprecated on OSX
+        // it only needs to stringify about 6 error codes
+       // LOG_ERROR(gluErrorString(error));
+        LOG_ERROR("glGetError:" << error);
     }
 }
 
@@ -740,7 +753,7 @@ void Renderer::resetScissor()
 
 static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
 {
-    RenderPaint p = { 0 };
+    RenderPaint p = {};
 
     static_assert(sizeof(p.xform) == sizeof(nvp.xform), "wrong size");
     static_assert(sizeof(p.extent) == sizeof(nvp.extent), "wrong size");
@@ -763,7 +776,6 @@ static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
 
 RenderPaint Renderer::linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec)
 {
-    //RenderPaint p = { 0 };
     NVGpaint nvp = nvgLinearGradient(mNanoVg, sx, sy, ex, ey, nvgRGBAf(sc.r, sc.g, sc.b, sc.a), nvgRGBAf(ec.r, ec.g, ec.b, ec.a));
     return NVGpaintToRenderPaint(nvp);
 }
