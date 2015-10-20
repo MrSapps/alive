@@ -499,7 +499,10 @@ void Renderer::endFrame()
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
     {
-        LOG_ERROR(gluErrorString(error));
+        // TODO: Make our own gluErrorString alike function as its marked deprecated on OSX
+        // it only needs to stringify about 6 error codes
+       // LOG_ERROR(gluErrorString(error));
+        LOG_ERROR("glGetError:" << error);
     }
 }
 
