@@ -75,7 +75,7 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
             {
                 auto theme = themes.get<jsonxx::Object>(i);
 
-                const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".LVL";
+                const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".lvl";
                 auto stream = mFs.ResourcePaths().Open(lvlFileName);
                 if (stream)
                 {
