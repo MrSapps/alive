@@ -32,7 +32,7 @@ bool GameData::LoadFmvDb(FileSystem& fs)
             //const std::string& gameName = v.first;
 
             const jsonxx::Array& ar = fmvObj.get<jsonxx::Array>(v.first);
-            for (size_t i = 0; i < ar.size(); i++)
+            for (Uint32 i = 0; i < static_cast<Uint32>(ar.size()); i++)
             {
                 // Read out the record
                 FmvSection section = {};
@@ -56,7 +56,7 @@ bool GameData::LoadFmvDb(FileSystem& fs)
                     section.mPsxFileName = subFmvObj.get<jsonxx::String>("file");
                     const jsonxx::Array& containsArray = subFmvObj.get<jsonxx::Array>("contains");
 
-                    for (size_t j = 0; j < containsArray.size(); j++)
+                    for (Uint32 j = 0; j < static_cast<Uint32>(containsArray.size()); j++)
                     {
                         const jsonxx::Object& subFmvSettings = containsArray.get<jsonxx::Object>(j);;
                         pcFileName  = subFmvSettings.get<jsonxx::String>("name");
@@ -105,13 +105,13 @@ bool GameData::LoadPathDb(FileSystem& fs)
     if (rootJsonObject.has<jsonxx::Array>("lvls"))
     {
         const auto& lvls = rootJsonObject.get<jsonxx::Array>("lvls");
-        for (size_t i = 0; i < lvls.size(); i++)
+        for (Uint32 i = 0; i < static_cast<Uint32>(lvls.size()); i++)
         {
             const auto lvlEntry = lvls.get<jsonxx::Object>(i);
             const auto pathBndFileName = lvlEntry.get<jsonxx::String>("file_name");
             auto& pathDbIterator = mPathDb[pathBndFileName];
             const auto paths = lvlEntry.get<jsonxx::Array>("paths");
-            for (size_t j = 0; j < paths.size(); j++)
+            for (Uint32 j = 0; j < static_cast<Uint32>(paths.size()); j++)
             {
                 const auto pathObj = paths.get<jsonxx::Object>(j);
                 pathDbIterator.emplace_back(PathEntry
@@ -140,12 +140,12 @@ bool GameData::LoadLvlDb(FileSystem& fs)
     if (rootJsonObject.has<jsonxx::Array>("lvls"))
     {
         const auto& lvls = rootJsonObject.get<jsonxx::Array>("lvls");
-        for (size_t i = 0; i < lvls.size(); i++)
+        for (Uint32 i = 0; i < static_cast<Uint32>(lvls.size()); i++)
         {
             const auto lvlObj = lvls.get<jsonxx::Object>(i);
             const auto pcName = lvlObj.get<jsonxx::String>("name");
             const auto altNames = lvlObj.get<jsonxx::Array>("alt_names");
-            for (size_t j = 0; j < altNames.size(); j++)
+            for (Uint32 j = 0; j < static_cast<Uint32>(altNames.size()); j++)
             {
                 const auto altName = altNames.get<jsonxx::String>(j);
                 fs.ResourcePaths().AddPcToPsxMapping(pcName, altName);

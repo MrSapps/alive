@@ -145,7 +145,7 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antial
             if (baseOffset >= static_cast<int>(sampleBuffer.size()))
             {
                 LOG_ERROR("Sample buffer index out of bounds (interpolated)");
-                baseOffset = nextOffset = sampleBuffer.size() - 1;
+                baseOffset = nextOffset = static_cast<int>(sampleBuffer.size() - 1);
             }
             sample = SampleSint16ToFloat(static_cast<Sint16>(Lerp<Sint16>(sampleBuffer[baseOffset], sampleBuffer[nextOffset], static_cast<float>(f_SampleOffset - baseOffset))));
         }
@@ -153,7 +153,7 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antial
         {
             int offsets[4] = { (int)floor(f_SampleOffset) - 1, 0, 0, 0 };
             if (offsets[0] < 0)
-                offsets[0] += sampleBuffer.size();
+                offsets[0] += static_cast<int>(sampleBuffer.size());
             for (int i = 1; i < 4; ++i)
             {
                 offsets[i] = (offsets[i - 1] + 1) % sampleBuffer.size(); // TODO: Don't assume looping

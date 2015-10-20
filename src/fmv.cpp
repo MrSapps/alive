@@ -293,7 +293,7 @@ public:
         mAudioController.SetAudioSpec(kSampleRate / kFps, kSampleRate);
 
         // TODO: Check the correctness of this
-        int numFrames = (mFmvStream->Size()/10) / 2048;
+        int numFrames = static_cast<int>((mFmvStream->Size()/10) / 2048);
         mAudioBytesPerFrame = (4 * kSampleRate)*(numFrames / kFps) / numFrames;
 
         mPsx = true;
@@ -697,7 +697,7 @@ public:
             {
                 if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
                 {
-                    mListBoxSelectedItem = i;
+                    mListBoxSelectedItem = static_cast<int>(i);
                 }
             }
             //ImGui::ListBoxFooter();
@@ -709,7 +709,7 @@ public:
             {
                 const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
                 mFmv = IMovie::Factory(fmvName, mAudioController, mFileSystem, allFmvs);
-                mListBoxSelectedItem = (size_t)-1;
+                mListBoxSelectedItem = -1;
             }
             catch (const Oddlib::Exception& ex)
             {

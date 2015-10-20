@@ -93,7 +93,7 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
         m_ReverbChannelBuffer[i] = 0;
     }
 
-    const int voiceCount = m_Voices.size();
+    const size_t voiceCount = m_Voices.size();
     /*
     if (voiceCount == 0)
     {
@@ -107,7 +107,7 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
 
     for (int i = 0; i < StreamLength; i += 2)
     {
-        for (int v = 0; v < voiceCount; v++)
+        for (size_t v = 0; v < voiceCount; v++)
         {
             AliveAudioVoice * voice = rawPointer[v]; // Raw pointer skips all that vector bottleneck crap
 
@@ -224,7 +224,7 @@ void AliveAudio::PlayOneShot(std::string soundID)
 
     for (size_t i = 0; i < soundList.size(); i++)
     {
-        jsonxx::Object sndObj = soundList.get<jsonxx::Object>(i);
+        jsonxx::Object sndObj = soundList.get<jsonxx::Object>(static_cast<unsigned int>(i));
         if (sndObj.get<jsonxx::String>("id") == soundID)
         {
             float randA = 0;
@@ -401,6 +401,6 @@ void AliveAudio::LoadAllFromLvl(Oddlib::LvlArchive& archive, std::string vabID, 
     SetSoundbank(new AliveAudioSoundbank(archive, vabID, *this));
     for (size_t i = 0; i < archive.FileByName(seqFile)->ChunkCount(); i++)
     {
-        m_LoadedSeqData.push_back(archive.FileByName(seqFile)->ChunkByIndex(i)->ReadData());
+        m_LoadedSeqData.push_back(archive.FileByName(seqFile)->ChunkByIndex(static_cast<Uint32>(i))->ReadData());
     }
 }
