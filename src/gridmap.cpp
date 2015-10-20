@@ -53,12 +53,16 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
         if (gui_button(&gui, item.first.c_str()))
         {
             const GameData::PathEntry* entry = item.second;
-            const std::string baseLvlName = item.first.substr(0, 2); // R1, MI etc
-            
-            // Open the LVL
-            const std::string lvlName = baseLvlName + ".LVL";
+            const std::string baseLvlNameUpper = item.first.substr(0, 2); // R1, MI etc
+            std::string baseLvlNameLower = baseLvlNameUpper;
 
-            auto chunkStream = mFs.ResourcePaths().OpenLvlFileChunkById(lvlName, baseLvlName + "PATH.BND", entry->mPathChunkId);
+            // Open the LVL
+            std::transform(baseLvlNameLower.begin(), baseLvlNameLower.end(), baseLvlNameLower.begin(), string_util::c_tolower);
+            const std::string lvlName = baseLvlNameLower + ".lvl";
+
+            LOG_INFO("Looking for LVL " << lvlName);
+
+            auto chunkStream = mFs.ResourcePaths().OpenLvlFileChunkById(lvlName, baseLvlNameUpper + "PATH.BND", entry->mPathChunkId);
             if (chunkStream)
             {
                 Oddlib::Path path(*chunkStream,

@@ -516,22 +516,22 @@ namespace Oddlib
                 
                 if (blockNumberQ & 3)
                 {
-                    blockNumberQ++;
-                   // output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ++]] = 0;
+                    //blockNumberQ++;
+                    output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ++]] = 0;
                     if (blockNumberQ & 3)
                     {
-                        blockNumberQ++;
-                        //output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ++]] = 0;
+                       // blockNumberQ++;
+                        output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ++]] = 0;
                         if (blockNumberQ & 3)
                         {
-                            blockNumberQ++;
-                            //output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ++]] = 0;
+                           // blockNumberQ++;
+                            output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ++]] = 0;
                         }
                     }
                 }
                 
 
-                while (blockNumberQ < 64)              // 63 AC values?
+                while (blockNumberQ != 64)              // 63 AC values?
                 {
                     index1 = g_block_related_1_dword_42B0C8[blockNumberQ];
                     index2 = g_block_related_2_dword_42B0CC[blockNumberQ];
@@ -541,7 +541,7 @@ namespace Oddlib
                     output_q[index2] = 0;
                     output_q[index3] = 0;
                     blockNumberQ += 4;
-                    // blockNumberQ++;
+                    //blockNumberQ++;
                 }
             }
             else

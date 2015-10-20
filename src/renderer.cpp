@@ -2,7 +2,7 @@
 #include "oddlib/exceptions.hpp"
 #include "logger.hpp"
 #include "proxy_nanovg.h"
-#define NANOVG_GLES2_IMPLEMENTATION
+#define NANOVG_GL3_IMPLEMENTATION
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4201) // nonstandard extension used : nameless struct/union
@@ -235,9 +235,9 @@ Renderer::Renderer(const char *fontPath)
         LOG_INFO("Creating nanovg context");
 
 #ifdef _DEBUG
-        mNanoVg = nvgCreateGLES2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+        mNanoVg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
 #else
-        mNanoVg = nvgCreateGLES2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+        mNanoVg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 #endif
 
         if (!mNanoVg)
@@ -349,7 +349,7 @@ Renderer::~Renderer()
 
         if (mNanoVg)
         {
-            nvgDeleteGLES2(mNanoVg);
+            nvgDeleteGL3(mNanoVg);
         }
     }
 
@@ -403,8 +403,6 @@ void Renderer::endFrame()
             GL(glDisable(GL_SCISSOR_TEST));
             GL(glEnable(GL_BLEND));
             GL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-            GL(glEnable(GL_TEXTURE_2D));
-            GL(glDisable(GL_ALPHA_TEST));
         }
 
         vectorModeOn = (cmd.type != DrawCmdType_quad);
@@ -545,8 +543,8 @@ int Renderer::createTexture(GLenum internalFormat, int width, int height, GLenum
     GL(glBindTexture(GL_TEXTURE_2D, tex));
     GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolation ? GL_LINEAR : GL_NEAREST));
     GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolation ? GL_LINEAR : GL_NEAREST));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
     GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
     GL(glTexImage2D(   GL_TEXTURE_2D, 0,
