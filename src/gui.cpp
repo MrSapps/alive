@@ -441,7 +441,7 @@ void destroy_gui(GuiContext *ctx)
 
 void gui_write_char(GuiContext *ctx, char ch)
 {
-    if (ctx->written_char_count >= sizeof(ctx->written_text_buf))
+    if (ctx->written_char_count >= (int)sizeof(ctx->written_text_buf))
         return;
     ctx->written_text_buf[ctx->written_char_count++] = ch;
 }
