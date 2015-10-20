@@ -6,7 +6,7 @@
 #include "core/audiobuffer.hpp"
 #include "gamedata.hpp"
 #include "filesystem.hpp"
-#include "nanovg.h"
+#include "proxy_nanovg.h"
 
 struct GuiContext;
 class Renderer;
