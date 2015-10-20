@@ -8,7 +8,7 @@
 #include "subtitles.hpp"
 #include <GL/glew.h>
 #include "SDL_opengl.h"
-#include "nanovg.h"
+#include "proxy_nanovg.h"
 #include "stdthread.h"
 #include "renderer.hpp"
 

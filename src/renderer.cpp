@@ -1,7 +1,7 @@
 #include "renderer.hpp"
 #include "oddlib/exceptions.hpp"
 #include "logger.hpp"
-#include "nanovg.h"
+#include "proxy_nanovg.h"
 #define NANOVG_GLES2_IMPLEMENTATION
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -11,10 +11,17 @@
 #pragma warning(disable:4459) // declaration of 'defaultFBO' hides global declaration
 #endif
 #endif
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 #ifdef _MSC_VER
 #pragma warning(pop)
+#endif
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
 #endif
 
 #include <algorithm>
