@@ -142,6 +142,19 @@ int GridScreen::getTexHandle(FileSystem& fs)
     return mTexHandle;
 }
 
+bool GridScreen::hasTexture() const
+{
+    bool onlySpaces = true;
+    for (size_t i = 0; i < mFileName.size(); ++i) {
+        if (mFileName[i] != ' ' && mFileName[i] != '\0')
+        {
+            onlySpaces = false;
+            break;
+        }
+    }
+    return !onlySpaces;
+}
+
 GridMap::GridMap(const std::string& lvlName, Oddlib::Path& path, FileSystem& fs, Renderer& rend)
     : mFs(fs), mLvlName(lvlName)
 {
@@ -165,8 +178,9 @@ void GridMap::Update()
 
 }
 
-void GridMap::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*screenH*/)
+void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 {
+#if 0 // List of cams
     gui.next_window_pos = v2i(950, 50);
     gui_begin_window(&gui, "GridMap", v2i(200, 500));
     for (auto x = 0u; x < mScreens.size(); x++)
@@ -205,5 +219,26 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scr
 
         gui_end_window(&gui);
     }
+#else // Proper editor gui
+
+    const V2i camSize = v2i(1280, 960);
+    gui_begin_frame(&gui, "camArea", v2i(0, 0), v2i(screenW, screenH));
+    rend.beginLayer(gui_layer(&gui));
+    for (auto x = 0u; x < mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mScreens[x].size(); y++)
+        {
+            GridScreen *screen = mScreens[x][y].get();
+            if (!screen->hasTexture())
+                continue;
+
+            V2i pos = gui_turtle_pos(&gui) + v2i(camSize.x*x, camSize.y*y);
+            rend.drawQuad(screen->getTexHandle(mFs), 1.0f*pos.x, 1.0f*pos.y, 1.0f*camSize.x, 1.0f*camSize.y);
+            gui_enlarge_bounding(&gui, pos + camSize);
+        }
+    }
+    rend.endLayer();
+    gui_end_frame(&gui);
+#endif
 }
 

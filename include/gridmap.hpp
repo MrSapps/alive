@@ -34,6 +34,7 @@ public:
     ~GridScreen();
     const std::string& FileName() const { return mFileName; }
     int getTexHandle(FileSystem& fs);
+    bool hasTexture() const;
 private:
     std::string mLvlName;
     std::string mFileName;
