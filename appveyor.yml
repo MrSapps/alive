@@ -17,6 +17,7 @@ before_build:
  - if %platform%==x86 (set compiler=2013)
  - echo %platform%
  - echo %compiler%
+ - call set_compiler.bat
  - cmake ..
 # - if %platform%==X64 (cmake .. -G "Visual Studio 12 2013 Win64")
 # - if %platform%==x86 (cmake .. -G "Visual Studio 12 2013")
@@ -30,7 +31,6 @@ build_script:
 
 install:
 # Make compiler command line tools available
- - call set_compiler.bat
  - git submodule update --init --recursive
  - ps: Start-FileDownload 'https://www.libsdl.org/release/SDL2-devel-2.0.3-VC.zip'
  - 7z x SDL2-devel-2.0.3-VC.zip
