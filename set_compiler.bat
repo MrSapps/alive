@@ -1,7 +1,7 @@
-@echo off
-
 :: Now we declare a scope
 Setlocal EnableDelayedExpansion EnableExtensions
+
+echo %compiler%
 
 if not defined compiler set compiler=2015
 
