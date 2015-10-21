@@ -8,6 +8,7 @@
 #include <cassert>
 #include "sdl_raii.hpp"
 #include <algorithm> // min/max
+#include <cmath>
 
 Level::Level(GameData& gameData, IAudioController& /*audioController*/, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
@@ -237,8 +238,8 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
         zoomChanged = (gui.mouse_scroll != 0);
     }
     const float zoomBase = 1.2f;
-    const float oldZoomMul = std::powf(zoomBase, 1.f*mZoomLevel - gui.mouse_scroll);
-    const float zoomMul = std::powf(zoomBase, 1.f*mZoomLevel);
+    const float oldZoomMul = std::pow(zoomBase, 1.f*mZoomLevel - gui.mouse_scroll);
+    const float zoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
     // Use oldZoom because gui_set_frame_scroll below doesn't change scrolling in current frame. Could be changed though.
     const V2i camSize = v2i((int)(1440*oldZoomMul), (int)(1080*oldZoomMul)); // TODO: Native reso should be constant somewhere
     const int gap = (int)(20*oldZoomMul);
