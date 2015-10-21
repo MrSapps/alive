@@ -24,7 +24,7 @@ before_build:
  - if %build_type%==x64_Debug (cmake .. -G "Visual Studio 14 2015 Win64")
 
 build_script:
- - %cmake% --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+ - %%cmake%% --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
  # Gotta use the full path to cpack because chocolatey replaces cpack with itself!
  - call "C:\Program Files (x86)\cmake\bin\cpack" -G WIX -C %configuration%
  - ctest -VV -C %configuration%
