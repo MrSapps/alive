@@ -16,6 +16,7 @@
 enum colour { DARKBLUE = 1, DARKGREEN, DARKTEAL, DARKRED, DARKPINK, DARKYELLOW, GRAY, DARKGRAY, BLUE, GREEN, TEAL, RED, PINK, YELLOW, WHITE };
 
 #ifdef _WIN32
+#define NOMINMAX
 #include <windows.h>
 static void* gConsoleHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
 

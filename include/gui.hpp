@@ -27,6 +27,7 @@ struct V2f {
 };
 V2f v2f(float x, float y);
 V2f operator+(V2f a, V2f b);
+V2f operator-(V2f a, V2f b);
 V2f operator*(V2f a, float m);
 V2f v2i_to_v2f(V2i v);
 V2i v2f_to_v2i(V2f v);
@@ -108,6 +109,7 @@ struct Rendering;
 struct GuiContext_Window {
     GuiId id;
     bool used;
+    bool used_in_last_frame;
 
     int frame_ix; // Corresponding GuiContext_Frame
 
@@ -133,6 +135,7 @@ struct GuiContext_Window {
 #define GUI_KEY_LMB 0
 #define GUI_KEY_MMB 1
 #define GUI_KEY_RMB 2
+#define GUI_KEY_LCTRL 3
 #define GUI_KEY_0 '0'
 #define GUI_KEY_1 '1'
 #define GUI_KEY_2 '2'
@@ -197,6 +200,7 @@ struct GuiContext {
 
     GuiContext_Window windows[MAX_GUI_WINDOW_COUNT];
     int window_order[MAX_GUI_WINDOW_COUNT];
+    int focused_win_ix; // Not necessarily window_order[window_count - 1] because nothing is focused when clicking background
     int window_count;
 
     // This is used at mouse input and render dimensions. All gui calculations are done in pt.
@@ -236,6 +240,8 @@ int gui_layer(GuiContext *ctx);
 // Scrolling area
 void gui_begin_frame(GuiContext *ctx, const char *label, V2i pos, V2i size);
 void gui_end_frame(GuiContext *ctx);
+void gui_set_frame_scroll(GuiContext *ctx, V2i scroll); // Move frame contents
+V2i gui_frame_scroll(GuiContext *ctx);
 
 void gui_begin_window(GuiContext *ctx, const char *label, V2i default_size);
 void gui_end_window(GuiContext *ctx, bool *open = NULL);

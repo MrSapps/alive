@@ -55,4 +55,7 @@ private:
 
     FileSystem& mFs;
     std::string mLvlName;
+
+    // Editor stuff
+    int mZoomLevel = -10; // 0 is native reso
 };

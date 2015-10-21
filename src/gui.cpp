@@ -42,7 +42,10 @@ void sprintf_impl(char *buf, size_t count, const char *fmt, ...)
 #define GUI_WINDOW_TITLE_BAR_HEIGHT 25
 #define GUI_SCROLL_BAR_WIDTH 15
 #define GUI_LAYERS_PER_WINDOW 10000 // Maybe 10k layers inside a window is enough
-#define SELECT_COMP(v, h) ((h) ? (v.x) : (v.y))
+#define SELECT_COMP(v, h) ((h) ? ((v).x) : ((v).y))
+
+#define GUI_NONE_WINDOW_IX (-2)
+#define GUI_BG_WINDOW_IX (-1)
 
 static void *check_ptr(void *ptr)
 {
@@ -81,6 +84,8 @@ V2f v2f(float x, float y)
 }
 V2f operator+(V2f a, V2f b)
 { return v2f(a.x + b.x, a.y + b.y); }
+V2f operator-(V2f a, V2f b)
+{ return v2f(a.x - b.x, a.y - b.y); }
 V2f operator*(V2f a, float m)
 { return v2f(a.x*m, a.y*m); }
 
@@ -271,17 +276,22 @@ GuiContext_Turtle *gui_turtle(GuiContext *ctx)
 
 GuiContext_Frame *gui_frame(GuiContext *ctx)
 {
+    assert(gui_turtle(ctx)->frame_ix < ctx->frame_count);
     return gui_turtle(ctx)->frame_ix >= 0 ? &ctx->frames[gui_turtle(ctx)->frame_ix] : NULL;
 }
 
 GuiContext_Window *gui_window(GuiContext *ctx)
 {
+    assert(gui_turtle(ctx)->window_ix < ctx->window_count);
     return gui_turtle(ctx)->window_ix >= 0 ? &ctx->windows[gui_turtle(ctx)->window_ix] : NULL;
 }
 
+// @note Change of focus is delayed by one frame (similar to activation)
 bool gui_focused(GuiContext *ctx)
 {
-    return ctx->window_count == 0 || gui_turtle(ctx)->window_ix == ctx->window_order[ctx->window_count - 1];
+    if (ctx->window_count == 0)
+        return true;
+    return gui_turtle(ctx)->window_ix == ctx->focused_win_ix;
 }
 
 V2i gui_turtle_pos(GuiContext *ctx) { return gui_turtle(ctx)->pos; }
@@ -405,7 +415,12 @@ GuiContext *create_gui(GuiCallbacks callbacks)
     ctx->dpi_scale = 1.0f;
     ctx->callbacks = callbacks;
     ctx->hot_layer = -1;
-    ctx->active_win_ix = -1;
+    ctx->active_win_ix = GUI_NONE_WINDOW_IX;
+    ctx->focused_win_ix = -1;
+
+    // "Null" turtle
+    gui_turtle(ctx)->window_ix = GUI_BG_WINDOW_IX;
+    gui_turtle(ctx)->frame_ix = -1;
 
     ctx->framemem_bucket_count = 1;
     ctx->framemem_buckets = (GuiContext_MemBucket*)check_ptr(malloc(sizeof(*ctx->framemem_buckets)));
@@ -472,6 +487,7 @@ void gui_set_active(GuiContext *ctx, const char *label)
     ctx->active_id = gui_id(label);
     ctx->last_active_id = ctx->active_id;
     ctx->active_win_ix = gui_turtle(ctx)->window_ix;
+    ctx->focused_win_ix = gui_turtle(ctx)->window_ix;
     ctx->hot_id = 0; // Prevent the case where hot becomes assigned some different (overlapping) element than active
 }
 
@@ -479,7 +495,7 @@ void gui_set_inactive(GuiContext *ctx, GuiId id)
 {
     if (ctx->active_id == id) {
         ctx->active_id = 0;
-        ctx->active_win_ix = -1;
+        ctx->active_win_ix = GUI_NONE_WINDOW_IX;
     }
 }
 
@@ -532,9 +548,8 @@ void gui_begin(GuiContext *ctx, const char *label, bool detached)
         ctx->turtle_ix = 0; // Failsafe
 
     GuiContext_Turtle *prev = &ctx->turtles[ctx->turtle_ix];
-    GuiContext_Turtle *cur = &ctx->turtles[ctx->turtle_ix + 1];
+    GuiContext_Turtle *cur = &ctx->turtles[++ctx->turtle_ix];
 
-    ++ctx->turtle_ix;
     GuiContext_Turtle new_turtle = {};
     new_turtle.pos = detached ? v2i(0, 0) : gui_pos(ctx, label, prev->pos);
     new_turtle.start_pos = new_turtle.pos;
@@ -709,6 +724,7 @@ void gui_end_ex(GuiContext *ctx, bool make_zero_size, DragDropData *dropdata)
                 }
             }
 
+            ctx->windows[i].used_in_last_frame = ctx->windows[i].used;
             ctx->windows[i].used = false;
         }
 
@@ -901,6 +917,7 @@ void gui_begin_frame(GuiContext *ctx, const char *label, V2i pos, V2i size)
             assert(ctx->frame_count < MAX_GUI_FRAME_COUNT);
 
             ctx->frames[free_handle].id = gui_id(label);
+            ++ctx->frame_count;
             frame_handle = free_handle;
         }
     }
@@ -922,6 +939,10 @@ void gui_begin_frame(GuiContext *ctx, const char *label, V2i pos, V2i size)
     gui_button_logic(ctx, label, pos, size, NULL, NULL, NULL, NULL);
 
     { // Scrolling
+        V2i max_scroll = frame->last_bounding_size - size;
+        max_scroll.x = MAX(max_scroll.x, 0);
+        max_scroll.y = MAX(max_scroll.y, 0);
+
         char scroll_panel_label[MAX_GUI_LABEL_SIZE];
         FMT_STR(scroll_panel_label, ARRAY_COUNT(scroll_panel_label), "framescrollpanel_%s", label);
         gui_begin(ctx, scroll_panel_label, true); // Detach so that the scroll doesn't take part in window contents size
@@ -933,17 +954,33 @@ void gui_begin_frame(GuiContext *ctx, const char *label, V2i pos, V2i size)
                 gui_turtle(ctx)->pos = pos;
                 SELECT_COMP(gui_turtle(ctx)->pos, !h) += SELECT_COMP(size, !h) - GUI_SCROLL_BAR_WIDTH;
 
-                if (h == 0 && gui_focused(ctx) && ctx->mouse_scroll != 0)
+                if (    h == 0 && // Vertical
+                        gui_focused(ctx) &&
+                        ctx->mouse_scroll != 0 && // Scrolling mouse wheel
+                        !(ctx->key_state[GUI_KEY_LCTRL] & GUI_KEYSTATE_DOWN_BIT)) // Not holding ctrl
                     SELECT_COMP(frame->scroll, h) -= ctx->mouse_scroll*64;
 
+                // Scroll by dragging
+                if (    gui_turtle(ctx)->window_ix == ctx->active_win_ix &&
+                        (ctx->key_state[GUI_KEY_LCTRL] & GUI_KEYSTATE_DOWN_BIT) &&
+                        (ctx->key_state[GUI_KEY_LMB] & GUI_KEYSTATE_DOWN_BIT)) {
+                    if (!ctx->dragging)
+                        gui_start_dragging(ctx, v2i_to_v2f(frame->scroll));
+                    else
+                        SELECT_COMP(frame->scroll, h) = SELECT_COMP(v2f_to_v2i(ctx->drag_start_value) + ctx->drag_start_pos - ctx->cursor_pos, h);
+                }
+
                 float scroll = 1.f*SELECT_COMP(frame->scroll, h);
-                float max_scroll = 1.f*SELECT_COMP(frame->last_bounding_size, h) - SELECT_COMP(size, h);
                 float rel_shown_area = 1.f*SELECT_COMP(size, h)/SELECT_COMP(frame->last_bounding_size, h);
-                gui_slider_ex(ctx, scroll_label, &scroll, 0, max_scroll, rel_shown_area, !!h, SELECT_COMP(size, h) - GUI_SCROLL_BAR_WIDTH);
+                float max_comp_scroll = 1.f*SELECT_COMP(max_scroll, h);
+                gui_slider_ex(ctx, scroll_label, &scroll, 0, max_comp_scroll, rel_shown_area, !!h, SELECT_COMP(size, h) - GUI_SCROLL_BAR_WIDTH);
                 SELECT_COMP(frame->scroll, h) = (int)scroll;
             }
         }
         gui_end(ctx);
+
+        frame->scroll.x = CLAMP(frame->scroll.x, 0, max_scroll.x);
+        frame->scroll.y = CLAMP(frame->scroll.y, 0, max_scroll.y);
 
         // Scroll client area
         V2i client_start_pos = gui_turtle(ctx)->pos - frame->scroll;
@@ -957,6 +994,12 @@ void gui_end_frame(GuiContext *ctx)
     gui_frame(ctx)->last_bounding_size = gui_turtle(ctx)->bounding_max - gui_turtle(ctx)->start_pos;
     gui_end(ctx);
 }
+
+void gui_set_frame_scroll(GuiContext *ctx, V2i scroll)
+{ gui_frame(ctx)->scroll = scroll; }
+
+V2i gui_frame_scroll(GuiContext *ctx)
+{ return gui_frame(ctx)->scroll; }
 
 void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
 {
@@ -983,8 +1026,7 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
                 ctx->windows[win_handle].client_size = min_size;
             }
 #endif
-        }
-        else {
+        } else {
             assert(free_handle >= 0);
             // Create new window
             //bool toplevel_turtle = (ctx->turtle_ix == 0);
@@ -1002,6 +1044,8 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
     GuiContext_Window *win = &ctx->windows[win_handle];
     assert(!win->used && "Same window used twice in a frame");
     win->used = true;
+    if (!win->used_in_last_frame)
+        ctx->focused_win_ix = win_handle; // Appearing window will be focused
 
     gui_begin(ctx, label, true);
     gui_turtle(ctx)->window_ix = win_handle;
@@ -1017,8 +1061,10 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
         gui_button_logic(ctx, bg_label, win->pos, size, NULL, NULL, NULL, NULL);
 
         // Title bar logic
+        char bar_label[MAX_GUI_LABEL_SIZE];
+        FMT_STR(bar_label, ARRAY_COUNT(bar_label), "winbar_%s", label);
         bool went_down, down, hover;
-        gui_button_logic(ctx, label, win->pos, v2i(size.x, GUI_WINDOW_TITLE_BAR_HEIGHT), NULL, &went_down, &down, &hover);
+        gui_button_logic(ctx, bar_label, win->pos, v2i(size.x, GUI_WINDOW_TITLE_BAR_HEIGHT), NULL, &went_down, &down, &hover);
 
         if (ctx->active_win_ix == win_handle) {
             // Lift window to top
