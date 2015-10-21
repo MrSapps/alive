@@ -87,6 +87,7 @@ struct GuiContext_Turtle {
     V2i bounding_max;
     V2i last_bounding_max; // Most recently added gui element
     char label[MAX_GUI_LABEL_SIZE]; // Label of the gui_begin
+    int frame_ix;
     int window_ix;
     int layer; // Graphical layer
     bool detached; // If true, moving of this turtle doesn't affect parent bounding boxes etc.
@@ -95,13 +96,20 @@ struct GuiContext_Turtle {
     GuiScissor scissor; // Depends on window/panel/whatever pos and sizes. Given to draw commands. Zero == unused.
 };
 
+// Stored data for frame elements
+struct GuiContext_Frame {
+    GuiId id;
+    V2i last_bounding_size;
+    V2i scroll; // Translation in pt. Cannot be relative, because adding content shouldn't cause translation to change.
+};
 
 struct Rendering;
+// Stored data for window elements
 struct GuiContext_Window {
     GuiId id;
     bool used;
-    V2i last_frame_bounding_size;
-    int scroll; // Translation in pt. Cannot be relative, because adding content shouldn't cause translation to change.
+
+    int frame_ix; // Corresponding GuiContext_Frame
 
     V2i pos; // Top-left position
     V2i client_size; // Size, not taking account title bar or borders
@@ -112,6 +120,7 @@ struct GuiContext_Window {
 #define MAX_GUI_STACK_SIZE 32
 #define MAX_GUI_ELEMENT_COUNT 256 // @todo Remove limit
 #define MAX_GUI_WINDOW_COUNT 64 // @todo Remove limit
+#define MAX_GUI_FRAME_COUNT 64 // @todo Remove limit
 #define GUI_FILENAME_SIZE MAX_PATH_SIZE // @todo Remove limit
 
 #define GUI_KEYSTATE_DOWN_BIT 0x1
@@ -183,6 +192,9 @@ struct GuiContext {
     GuiContext_Turtle turtles[MAX_GUI_STACK_SIZE];
     int turtle_ix;
 
+    GuiContext_Frame frames[MAX_GUI_FRAME_COUNT];
+    int frame_count;
+
     GuiContext_Window windows[MAX_GUI_WINDOW_COUNT];
     int window_order[MAX_GUI_WINDOW_COUNT];
     int window_count;
@@ -221,6 +233,10 @@ void gui_write_char(GuiContext *ctx, char ch);
 
 int gui_layer(GuiContext *ctx);
 
+// Scrolling area
+void gui_begin_frame(GuiContext *ctx, const char *label, V2i pos, V2i size);
+void gui_end_frame(GuiContext *ctx);
+
 void gui_begin_window(GuiContext *ctx, const char *label, V2i default_size);
 void gui_end_window(GuiContext *ctx, bool *open = NULL);
 V2i gui_window_client_size(GuiContext *ctx);
@@ -255,6 +271,7 @@ void gui_set_turtle_pos(GuiContext *ctx, V2i pos);
 V2i gui_turtle_pos(GuiContext *ctx);
 void gui_next_row(GuiContext *ctx);
 void gui_next_col(GuiContext *ctx);
+void gui_enlarge_bounding(GuiContext *ctx, V2i pos);
 
 void gui_ver_space(GuiContext *ctx);
 void gui_hor_space(GuiContext *ctx);

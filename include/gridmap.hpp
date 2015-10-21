@@ -34,6 +34,7 @@ public:
     ~GridScreen();
     const std::string& FileName() const { return mFileName; }
     int getTexHandle(FileSystem& fs);
+    bool hasTexture() const;
 private:
     std::string mLvlName;
     std::string mFileName;
@@ -51,9 +52,6 @@ public:
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
 private:
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
-    int mEditorScreenX = -1;
-    int mEditorScreenY = -1;
-
 
     FileSystem& mFs;
     std::string mLvlName;
