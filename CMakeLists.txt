@@ -86,8 +86,6 @@ add_library(glew STATIC ${glew_src})
 SET_PROPERTY(TARGET glew PROPERTY FOLDER "3rdparty")
 
 SET(stk_src 
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/ADSR.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/BiQuad.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/Delay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/OnePole.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/FreeVerb.cpp
@@ -150,13 +148,11 @@ SET(oddlib_src
     include/oddlib/PSXADPCMDecoder.h
     src/oddlib/PSXADPCMDecoder.cpp
     src/oddlib/PSXMDECDecoder.cpp
-    src/oddlib/audio/ADSR.cpp
     src/oddlib/audio/AliveAudio.cpp
     src/oddlib/audio/SequencePlayer.cpp
     src/oddlib/audio/Soundbank.cpp
     src/oddlib/audio/vab.cpp
     src/oddlib/audio/Voice.cpp
-    include/oddlib/audio/ADSR.h
     include/oddlib/audio/AliveAudio.h
     include/oddlib/audio/AudioInterpolation.h
     include/oddlib/audio/Sample.h
