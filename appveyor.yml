@@ -12,13 +12,14 @@ clone_folder: c:\alive
 before_build:
  - mkdir build
  - cd build
- - cmake
+ - cmake --help
  - if %platform%==X64 (set compiler=2015)
  - if %platform%==x86 (set compiler=2013)
  - echo %platform%
  - echo %compiler%
- - if %compiler%=="2013" (call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%)
- - if %compiler%=="2015" (call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %platform%)
+ - if %compiler%=="2013" (cmake .. -G "Visual Studio 12 2013")
+ - if %compiler%=="2015" (cmake .. -G "Visual Studio 12 2015")
+
  - cmake ..
 # - if %platform%==X64 (cmake .. -G "Visual Studio 12 2013 Win64")
 # - if %platform%==x86 (cmake .. -G "Visual Studio 12 2013")
