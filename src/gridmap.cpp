@@ -34,7 +34,8 @@ void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 
 void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
 {
-    gui_begin_window(&gui, "Paths", v2i(300, 400));
+    gui.next_window_pos = v2i(10, 300);
+    gui_begin_window(&gui, "Paths", v2i(150, 400));
 
     static std::vector<std::pair<std::string, const GameData::PathEntry*>> items;
     if (items.empty())
@@ -229,20 +230,31 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     gui_begin_frame(&gui, "camArea", v2i(0, 0), v2i(screenW, screenH));
     rend.beginLayer(gui_layer(&gui));
 
+    bool zoomChanged = false;
     if (gui.key_state[GUI_KEY_LCTRL] & GUI_KEYSTATE_DOWN_BIT)
+    {
         mZoomLevel += gui.mouse_scroll;
-    const float zoomBase = 1.1f;
-    //const float oldZoomMul = std::powf(zoomBase, 1.f*mZoomLevel - gui.mouse_scroll);
+        zoomChanged = (gui.mouse_scroll != 0);
+    }
+    const float zoomBase = 1.2f;
+    const float oldZoomMul = std::powf(zoomBase, 1.f*mZoomLevel - gui.mouse_scroll);
     const float zoomMul = std::powf(zoomBase, 1.f*mZoomLevel);
-    const V2i camSize = v2i((int)(1440*zoomMul), (int)(1080*zoomMul)); // TODO: Native reso should be constant somewhere
-    const int gap = (int)(20*zoomMul);
+    // Use oldZoom because gui_set_frame_scroll below doesn't change scrolling in current frame. Could be changed though.
+    const V2i camSize = v2i((int)(1440*oldZoomMul), (int)(1080*oldZoomMul)); // TODO: Native reso should be constant somewhere
+    const int gap = (int)(20*oldZoomMul);
+    const V2i margin = v2i((int)(2000*oldZoomMul), (int)(2000*oldZoomMul));
 
     // Zoom around cursor
-    /*V2i offset = (gui.cursor_pos + gui_frame_scroll(&gui))*gui.mouse_scroll*(-1);
-    offset.x = (int)(offset.x*zoomMul/oldZoomMul);
-    offset.y = (int)(offset.y*zoomMul/oldZoomMul);
-    gui_offset_frame(&gui, offset);
-    */
+    if (zoomChanged)
+    {
+        V2f scaledCursorPos = v2i_to_v2f(gui.cursor_pos)*2 - v2f(screenW/2.f, screenH/2.f);
+        V2f oldClientPos = v2i_to_v2f(gui_frame_scroll(&gui)) + scaledCursorPos;
+        V2f worldPos = oldClientPos*(1.f/oldZoomMul);
+        V2f newClientPos = worldPos*zoomMul;
+        V2f newScreenPos = newClientPos - scaledCursorPos;
+
+        gui_set_frame_scroll(&gui, v2f_to_v2i(newScreenPos));
+    }
 
     for (auto x = 0u; x < mScreens.size(); x++)
     {
@@ -252,9 +264,9 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
             if (!screen->hasTexture())
                 continue;
 
-            V2i pos = gui_turtle_pos(&gui) + v2i((camSize.x + gap)*x, (camSize.y + gap)*y);
+            V2i pos = gui_turtle_pos(&gui) + v2i((camSize.x + gap)*x, (camSize.y + gap)*y) + margin;
             rend.drawQuad(screen->getTexHandle(mFs), 1.0f*pos.x, 1.0f*pos.y, 1.0f*camSize.x, 1.0f*camSize.y);
-            gui_enlarge_bounding(&gui, pos + camSize);
+            gui_enlarge_bounding(&gui, pos + camSize + margin*2);
         }
     }
     rend.endLayer();

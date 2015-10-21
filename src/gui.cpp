@@ -84,6 +84,8 @@ V2f v2f(float x, float y)
 }
 V2f operator+(V2f a, V2f b)
 { return v2f(a.x + b.x, a.y + b.y); }
+V2f operator-(V2f a, V2f b)
+{ return v2f(a.x - b.x, a.y - b.y); }
 V2f operator*(V2f a, float m)
 { return v2f(a.x*m, a.y*m); }
 
@@ -938,6 +940,8 @@ void gui_begin_frame(GuiContext *ctx, const char *label, V2i pos, V2i size)
 
     { // Scrolling
         V2i max_scroll = frame->last_bounding_size - size;
+        max_scroll.x = MAX(max_scroll.x, 0);
+        max_scroll.y = MAX(max_scroll.y, 0);
 
         char scroll_panel_label[MAX_GUI_LABEL_SIZE];
         FMT_STR(scroll_panel_label, ARRAY_COUNT(scroll_panel_label), "framescrollpanel_%s", label);
@@ -975,10 +979,8 @@ void gui_begin_frame(GuiContext *ctx, const char *label, V2i pos, V2i size)
         }
         gui_end(ctx);
 
-        if (max_scroll.x > 0)
-            frame->scroll.x = CLAMP(frame->scroll.x, 0, max_scroll.x);
-        if (max_scroll.y > 0)
-            frame->scroll.y = CLAMP(frame->scroll.y, 0, max_scroll.y);
+        frame->scroll.x = CLAMP(frame->scroll.x, 0, max_scroll.x);
+        frame->scroll.y = CLAMP(frame->scroll.y, 0, max_scroll.y);
 
         // Scroll client area
         V2i client_start_pos = gui_turtle(ctx)->pos - frame->scroll;
@@ -993,8 +995,8 @@ void gui_end_frame(GuiContext *ctx)
     gui_end(ctx);
 }
 
-void gui_offset_frame(GuiContext *ctx, V2i offset)
-{ gui_frame(ctx)->scroll = gui_frame(ctx)->scroll - offset; }
+void gui_set_frame_scroll(GuiContext *ctx, V2i scroll)
+{ gui_frame(ctx)->scroll = scroll; }
 
 V2i gui_frame_scroll(GuiContext *ctx)
 { return gui_frame(ctx)->scroll; }

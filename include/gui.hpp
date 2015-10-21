@@ -27,6 +27,7 @@ struct V2f {
 };
 V2f v2f(float x, float y);
 V2f operator+(V2f a, V2f b);
+V2f operator-(V2f a, V2f b);
 V2f operator*(V2f a, float m);
 V2f v2i_to_v2f(V2i v);
 V2i v2f_to_v2i(V2f v);
@@ -239,7 +240,7 @@ int gui_layer(GuiContext *ctx);
 // Scrolling area
 void gui_begin_frame(GuiContext *ctx, const char *label, V2i pos, V2i size);
 void gui_end_frame(GuiContext *ctx);
-void gui_offset_frame(GuiContext *ctx, V2i offset); // Move frame contents
+void gui_set_frame_scroll(GuiContext *ctx, V2i scroll); // Move frame contents
 V2i gui_frame_scroll(GuiContext *ctx);
 
 void gui_begin_window(GuiContext *ctx, const char *label, V2i default_size);

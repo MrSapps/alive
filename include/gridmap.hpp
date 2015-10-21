@@ -57,5 +57,5 @@ private:
     std::string mLvlName;
 
     // Editor stuff
-    int mZoomLevel = -8; // 0 is native reso
+    int mZoomLevel = -10; // 0 is native reso
 };
