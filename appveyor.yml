@@ -15,16 +15,14 @@ before_build:
  - cmake --help
  - set build_type=%platform%_%configuration%
  - echo %build_type%
- - set cmake="C:\Program Files (x86)\cmake\bin\cmake"
- - echo %cmake%
  - if %build_type%==x64_Release (cmake .. -G "Visual Studio 12 2013 Win64")
  - if %build_type%==x86_Release (cmake .. -G "Visual Studio 12 2013")
- - if %build_type%==x86_Debug (set PATH=c:\mingw\bin)
- - if %build_type%==x86_Debug (%cmake% .. -G "MinGW Makefiles")
+ - if %build_type%==x86_Debug (set PATH="c:\mingw\bin;C:\Program Files (x86)\cmake\bin\cmake")
+ - if %build_type%==x86_Debug (cmake .. -G "MinGW Makefiles")
  - if %build_type%==x64_Debug (cmake .. -G "Visual Studio 14 2015 Win64")
 
 build_script:
- - start "%cmake% --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll""
+ - cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll""
  # Gotta use the full path to cpack because chocolatey replaces cpack with itself!
  - call "C:\Program Files (x86)\cmake\bin\cpack" -G WIX -C %configuration%
  - ctest -VV -C %configuration%
