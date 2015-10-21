@@ -52,9 +52,6 @@ public:
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
 private:
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
-    int mEditorScreenX = -1;
-    int mEditorScreenY = -1;
-
 
     FileSystem& mFs;
     std::string mLvlName;
