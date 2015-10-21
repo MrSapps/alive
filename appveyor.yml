@@ -19,7 +19,7 @@ before_build:
  - if %build_type%==x86_Release (cmake .. -G "Visual Studio 12 2013")
  - if %build_type%==x86_Debug (set PATH=c:\mingw\bin)
  - if %build_type%==x86_Debug ("C:\Program Files (x86)\cmake\bin\cmake" .. -G "MinGW Makefiles")
- - if %build_type%==x64_Debug (cmake .. -G "Visual Studio 12 2015 Win64")
+ - if %build_type%==x64_Debug (cmake .. -G "Visual Studio 14 2015 Win64")
 
 build_script:
  - cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
