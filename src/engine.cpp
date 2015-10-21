@@ -24,6 +24,7 @@ extern "C"
 
 
 #ifdef _WIN32
+#define NOMINMAX
 #include <windows.h>
 #include "../rsc/resource.h"
 #include "SDL_syswm.h"
@@ -480,6 +481,16 @@ void Engine::Update()
                   mGui->key_state[GUI_KEY_LMB] = state;
             }
 
+            // TODO: Enable SDL_CaptureMouse when sdl supports it.
+            if (event.type == SDL_MOUSEBUTTONDOWN)
+            {
+                //SDL_CaptureMouse(SDL_TRUE);
+            }
+            else
+            {
+                //SDL_CaptureMouse(SDL_FALSE);
+            }
+
         } break;
         case SDL_KEYDOWN:
         case SDL_KEYUP:
@@ -501,6 +512,14 @@ void Engine::Update()
             if (event.type == SDL_KEYDOWN && key == SDL_SCANCODE_BACKSPACE)
                 gui_write_char(mGui, '\b'); // Note that this is called in case of repeated backspace key also
 
+            if (key == SDL_SCANCODE_LCTRL)
+            {
+                if (event.type == SDL_KEYDOWN)
+                    mGui->key_state[GUI_KEY_LCTRL] |= GUI_KEYSTATE_PRESSED_BIT;
+                else
+                    mGui->key_state[GUI_KEY_LCTRL] |= GUI_KEYSTATE_RELEASED_BIT;
+            }
+
             //SDL_Keymod modstate = SDL_GetModState();
 
             break;
@@ -518,6 +537,9 @@ void Engine::Update()
 
         if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT))
             mGui->key_state[GUI_KEY_LMB] |= GUI_KEYSTATE_DOWN_BIT;
+
+        if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LCTRL])
+            mGui->key_state[GUI_KEY_LCTRL] |= GUI_KEYSTATE_DOWN_BIT;
     }
 
     // TODO: Move into state machine
@@ -614,6 +636,7 @@ void Engine::InitGL()
 
 
     mContext = SDL_GL_CreateContext(mWindow);
+    SDL_GL_SetSwapInterval(0); // No vsync for gui, for responsiveness
 
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();

@@ -7,6 +7,7 @@
 #include "logger.hpp"
 #include <cassert>
 #include "sdl_raii.hpp"
+#include <algorithm> // min/max
 
 Level::Level(GameData& gameData, IAudioController& /*audioController*/, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
@@ -225,9 +226,24 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     }
 #else // Proper editor gui
 
-    const V2i camSize = v2i(1280, 960);
     gui_begin_frame(&gui, "camArea", v2i(0, 0), v2i(screenW, screenH));
     rend.beginLayer(gui_layer(&gui));
+
+    if (gui.key_state[GUI_KEY_LCTRL] & GUI_KEYSTATE_DOWN_BIT)
+        mZoomLevel += gui.mouse_scroll;
+    const float zoomBase = 1.1f;
+    //const float oldZoomMul = std::powf(zoomBase, 1.f*mZoomLevel - gui.mouse_scroll);
+    const float zoomMul = std::powf(zoomBase, 1.f*mZoomLevel);
+    const V2i camSize = v2i((int)(1440*zoomMul), (int)(1080*zoomMul)); // TODO: Native reso should be constant somewhere
+    const int gap = (int)(20*zoomMul);
+
+    // Zoom around cursor
+    /*V2i offset = (gui.cursor_pos + gui_frame_scroll(&gui))*gui.mouse_scroll*(-1);
+    offset.x = (int)(offset.x*zoomMul/oldZoomMul);
+    offset.y = (int)(offset.y*zoomMul/oldZoomMul);
+    gui_offset_frame(&gui, offset);
+    */
+
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
@@ -236,7 +252,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
             if (!screen->hasTexture())
                 continue;
 
-            V2i pos = gui_turtle_pos(&gui) + v2i(camSize.x*x, camSize.y*y);
+            V2i pos = gui_turtle_pos(&gui) + v2i((camSize.x + gap)*x, (camSize.y + gap)*y);
             rend.drawQuad(screen->getTexHandle(mFs), 1.0f*pos.x, 1.0f*pos.y, 1.0f*camSize.x, 1.0f*camSize.y);
             gui_enlarge_bounding(&gui, pos + camSize);
         }
