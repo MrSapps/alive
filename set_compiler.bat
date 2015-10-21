@@ -7,10 +7,6 @@ if not defined compiler set compiler=2015
 
 if "%compiler%"=="MinGW" ( goto :mingw )
 
-set arch=x86
-
-if "%platform%" EQU "X64" ( set arch=x86_amd64 )
-
 if "%compiler%"=="2015" (
 	set SET_VS_ENV="C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
 )
@@ -32,9 +28,13 @@ if "%compiler%"=="2008" (
 )
 
 :: Visual Studio detected
-endlocal & call %SET_VS_ENV% %arch%
+endlocal
+echo %SET_VS_ENV%
+echo "set vsvars"
+call %SET_VS_ENV% %platform%
 goto :eof
 
 :: MinGW detected
 :mingw
+echo "set minGW vars"
 endlocal & set PATH=c:\mingw\bin;%PATH%
