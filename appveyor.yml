@@ -18,10 +18,6 @@ before_build:
  - if %platform%==x86 and %configuration%==Debug (cmake .. -G "MinGW Makefiles")
  - if %platform%==X64 and %configuration%==Debug (cmake .. -G "Visual Studio 12 2015 Win64")
 
- - cmake ..
-# - if %platform%==X64 (cmake .. -G "Visual Studio 12 2013 Win64")
-# - if %platform%==x86 (cmake .. -G "Visual Studio 12 2013")
-
 build_script:
  - cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
  # Gotta use the full path to cpack because chocolatey replaces cpack with itself!
