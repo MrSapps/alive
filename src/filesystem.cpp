@@ -271,7 +271,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::FindFile(const std::vect
 // TODO: Change LVL archive interface so we can keep it open/cached here
 std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkById(const std::string& lvl, const std::string& name, Uint32 id)
 {
-    auto stream = FindFile(GetAlternateNames(lvl), true);
+    auto stream = FindFile(GetAlternateNames(lvl), false);
     if (stream)
     {
         Oddlib::LvlArchive lvlArchive(std::move(stream));
@@ -287,7 +287,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkById(con
 
 std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkByType(const std::string& lvl, const std::string& name, Uint32 type)
 {
-    auto stream = FindFile(GetAlternateNames(lvl), true);
+    auto stream = FindFile(GetAlternateNames(lvl), false);
     if (stream)
     {
         Oddlib::LvlArchive lvlArchive(std::move(stream));
