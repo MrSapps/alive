@@ -16,6 +16,7 @@ before_build:
  - set build_type=%platform%_%configuration%
  - echo %build_type%
  - if %build_type%==x86_Debug (del "C:/Program Files (x86)/Git/bin/sh.exe")
+ - if %build_type%==x86_Debug (PATH="c:\mingw\bin;%PATH%")
  - echo %path%
  - if %build_type%==x86_Debug (cmake .. -G "MinGW Makefiles")
  - if %build_type%==x64_Debug (cmake .. -G "Visual Studio 14 2015 Win64")
