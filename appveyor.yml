@@ -23,8 +23,10 @@ before_build:
  - echo %path%
 
 build_script:
- - if %build_type%!=x86_Debug cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
- - if %build_type%==x86_Debug cmake --build . --config %configuration%
+ - if %build_type%==x64_Release (cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll")
+ - if %build_type%==x86_Release (cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll")
+ - if %build_type%==x64_Debug (cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll")
+ - if %build_type%==x86_Debug ("C:\Program Files (x86)\cmake\bin\cmake" --build . --config %configuration%)
 
  # Gotta use the full path to cpack because chocolatey replaces cpack with itself!
  - call "C:\Program Files (x86)\cmake\bin\cpack" -G WIX -C %configuration%
