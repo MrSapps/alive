@@ -239,11 +239,14 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
         mZoomLevel += gui.mouse_scroll;
         zoomChanged = (gui.mouse_scroll != 0);
     }
+    // Cap zooming so that things don't clump in the upper left corner
+    mZoomLevel = std::max(mZoomLevel, -12);
+
     const float zoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
     // Use oldZoom because gui_set_frame_scroll below doesn't change scrolling in current frame. Could be changed though.
     const V2i camSize = v2i((int)(1440*oldZoomMul), (int)(1080*oldZoomMul)); // TODO: Native reso should be constant somewhere
     const int gap = (int)(20*oldZoomMul);
-    const V2i margin = v2i((int)(2000*oldZoomMul), (int)(2000*oldZoomMul));
+    const V2i margin = v2i((int)(3000*oldZoomMul), (int)(3000*oldZoomMul));
 
     // Zoom around cursor
     if (zoomChanged)
