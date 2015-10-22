@@ -1292,15 +1292,15 @@ bool gui_button_ex(GuiContext *ctx, const char *label, bool force_down)
     V2i pos = gui_turtle(ctx)->pos;
     V2i size = gui_size(ctx, label, v2i(50, 21)); // @todo Minimum size to skin
 
+    // @todo Recalc size only when text changes
+    float text_size[2];
+    ctx->callbacks.calc_text_size(text_size, ctx->callbacks.user_data, gui_label_text(label), gui_layer(ctx));
+    size.x = MAX((int)text_size[0] + margin.x * 2, size.x);
+    size.y = MAX((int)text_size[1] + margin.y * 2, size.y);
+
     bool went_up = false, hover = false, down = false;
     if (gui_is_inside_window(ctx, size))
     {
-        // @todo Recalc size when text changes regardless if is in a window or not. Disabled size.y change because caused shaking with long lists.
-        float text_size[2];
-        ctx->callbacks.calc_text_size(text_size, ctx->callbacks.user_data, gui_label_text(label), gui_layer(ctx));
-        size.x = MAX((int)text_size[0] + margin.x * 2, size.x);
-        //size.y = MAX((int)text_size[1] + margin.y * 2, size.y);
-
         gui_button_logic(ctx, label, pos, size, &went_up, NULL, &down, &hover);
 
         V2i px_pos = pt_to_px(pos, ctx->dpi_scale);
@@ -1332,14 +1332,14 @@ bool gui_checkbox_ex(GuiContext *ctx, const char *label, bool *value, bool radio
     V2i pos = gui_turtle(ctx)->pos;
     V2i size = gui_size(ctx, label, v2i(20, 20)); // @todo Minimum size to skin
 
+    float text_size[2];
+    ctx->callbacks.calc_text_size(text_size, ctx->callbacks.user_data, gui_label_text(label), gui_layer(ctx));
+    size.x = MAX((int)text_size[0] + margin.x * 2, size.x);
+    size.y = MAX((int)text_size[1] + margin.y * 2, size.y);
+
     bool went_up = false, hover = false, down = false;
     if (gui_is_inside_window(ctx, size))
     {
-        float text_size[2];
-        ctx->callbacks.calc_text_size(text_size, ctx->callbacks.user_data, gui_label_text(label), gui_layer(ctx));
-        size.x = MAX((int)text_size[0] + margin.x * 2, size.x);
-        size.y = MAX((int)text_size[1] + margin.y * 2, size.y);
-
         V2i px_margin = pt_to_px(margin, ctx->dpi_scale);
         int box_width = size.y;
         float px_box_width = pt_to_px(v2i(0, box_width), ctx->dpi_scale).y - px_margin.y*2.f;
@@ -1383,7 +1383,7 @@ bool gui_radiobutton(GuiContext *ctx, const char *label, bool value)
 
 void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max)
 {
-    gui_slider_ex(ctx, label, value, min, max, 0.1f, true, gui_window(ctx)->client_size.x);
+    gui_slider_ex(ctx, label, value, min, max, 0.1f, true, MAX(100, gui_frame(ctx)->last_bounding_size.x));
     gui_next_row(ctx); // @todo Layouting
 }
 
@@ -1398,8 +1398,7 @@ bool gui_textfield(GuiContext *ctx, const char *label, char *buf, int buf_size)
     V2i box_size = size;
     V2i label_size = v2i(0, 0);
     bool has_label = (strlen(gui_label_text(label)) > 0);
-    if (has_label)
-    {
+    if (has_label) {
         float label_size_f[2];
         ctx->callbacks.calc_text_size(label_size_f, ctx->callbacks.user_data, gui_label_text(label), gui_layer(ctx));
         label_size.x = (int)label_size_f[0] + margin.x*2;
@@ -1410,8 +1409,7 @@ bool gui_textfield(GuiContext *ctx, const char *label, char *buf, int buf_size)
     }
 
     bool went_down = false, hover = false;
-    if (gui_is_inside_window(ctx, size))
-    {
+    if (gui_is_inside_window(ctx, size)) {
         gui_button_logic(ctx, label, pos, size, NULL, &went_down, NULL, &hover);
         bool active = (ctx->last_active_id == gui_id(label));
 
