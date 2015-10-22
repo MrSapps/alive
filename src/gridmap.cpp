@@ -257,7 +257,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
         V2f newClientPos = worldPos*zoomMul;
         V2f newScreenPos = newClientPos - scaledCursorPos;
 
-        gui_set_frame_scroll(&gui, v2f_to_v2i(newScreenPos));
+        gui_set_frame_scroll(&gui, v2f_to_v2i(newScreenPos + v2f(0.5f, 0.5f)));
     }
 
     for (auto x = 0u; x < mScreens.size(); x++)
