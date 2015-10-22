@@ -231,14 +231,14 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     gui_begin_frame(&gui, "camArea", v2i(0, 0), v2i(screenW, screenH));
     rend.beginLayer(gui_layer(&gui));
 
+    const float zoomBase = 1.2f;
+    const float oldZoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
     bool zoomChanged = false;
     if (gui.key_state[GUI_KEY_LCTRL] & GUI_KEYSTATE_DOWN_BIT)
     {
         mZoomLevel += gui.mouse_scroll;
         zoomChanged = (gui.mouse_scroll != 0);
     }
-    const float zoomBase = 1.2f;
-    const float oldZoomMul = std::pow(zoomBase, 1.f*mZoomLevel - gui.mouse_scroll);
     const float zoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
     // Use oldZoom because gui_set_frame_scroll below doesn't change scrolling in current frame. Could be changed though.
     const V2i camSize = v2i((int)(1440*oldZoomMul), (int)(1080*oldZoomMul)); // TODO: Native reso should be constant somewhere
