@@ -665,7 +665,8 @@ void gui_end_ex(GuiContext *ctx, bool make_zero_size, DragDropData *dropdata)
 #endif
 
     { // Dragging stop logic
-        if (!ctx->key_state[GUI_KEY_LMB] & GUI_KEYSTATE_DOWN_BIT) {
+        if (    !ctx->key_state[GUI_KEY_LMB] & GUI_KEYSTATE_DOWN_BIT || // Mouse released
+                (ctx->key_state[GUI_KEY_LCTRL] & GUI_KEYSTATE_DOWN_BIT && ctx->mouse_scroll)) { // Scrolling when xy dragging
             if (ctx->dragdropdata.tag && dropdata) {
                 V2i pos = gui_turtle(ctx)->start_pos;
                 V2i size = gui_turtle(ctx)->bounding_max - pos;
