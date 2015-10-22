@@ -15,13 +15,12 @@ before_build:
  - cmake --help
  - set build_type=%platform%_%configuration%
  - echo %build_type%
- - if %build_type%==x64_Release (cmake .. -G "Visual Studio 12 2013 Win64")
- - if %build_type%==x86_Release (cmake .. -G "Visual Studio 12 2013")
- - if %build_type%==x86_Debug (del sh)
+ - if %build_type%==x86_Debug (del sh.exe)
  - echo %path%
  - if %build_type%==x86_Debug (cmake" .. -G "MinGW Makefiles")
  - if %build_type%==x64_Debug (cmake .. -G "Visual Studio 14 2015 Win64")
-
+ - if %build_type%==x64_Release (cmake .. -G "Visual Studio 12 2013 Win64")
+ - if %build_type%==x86_Release (cmake .. -G "Visual Studio 12 2013")
 
 build_script:
  - if %build_type%==x64_Release (cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll")
