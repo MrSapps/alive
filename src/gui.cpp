@@ -417,6 +417,7 @@ GuiContext *create_gui(GuiCallbacks callbacks)
     ctx->hot_layer = -1;
     ctx->active_win_ix = GUI_NONE_WINDOW_IX;
     ctx->focused_win_ix = -1;
+    ctx->host_win_size = v2i(800, 600);
 
     // "Null" turtle
     gui_turtle(ctx)->window_ix = GUI_BG_WINDOW_IX;
@@ -1088,8 +1089,9 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, V2i default_size)
         if (down && ctx->dragging)
             win->pos = v2f_to_v2i(ctx->drag_start_value) - ctx->drag_start_pos + ctx->cursor_pos;
 
-        win->pos.x = MAX(10 - size.x, win->pos.x);
-        win->pos.y = MAX(10 - GUI_WINDOW_TITLE_BAR_HEIGHT, win->pos.y);
+        const int margin = 20;
+        win->pos.x = CLAMP(win->pos.x, margin - size.x, ctx->host_win_size.x - margin);
+        win->pos.y = CLAMP(win->pos.y, margin - GUI_WINDOW_TITLE_BAR_HEIGHT, ctx->host_win_size.y - margin);
 
         V2i px_pos = pt_to_px(win->pos, ctx->dpi_scale);
         V2i px_size = pt_to_px(size, ctx->dpi_scale);
