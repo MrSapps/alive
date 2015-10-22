@@ -374,7 +374,7 @@ else()
     else()
         # Enable C++14, you may need to use -std=c++0x if using an older gcc compiler
         if (MINGW)
-            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -Wall -pedantic -Werror")
+            SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -Werror")
         else()
             SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fPIC -Wall -pedantic -Werror")
         endif()
