@@ -15,7 +15,7 @@ before_build:
  - cmake --help
  - set build_type=%platform%_%configuration%
  - echo %build_type%
- - if %build_type%==x86_Debug (SET PATH="c:\mingw\bin;C:\Program Files (x86)\cmake\bin")
+ - cmd: if %build_type%==x86_Debug (SET PATH=c:\mingw\bin;C:\Program Files (x86)\cmake\bin)
  - echo %path%
  - if %build_type%==x86_Debug (cmake .. -G "MinGW Makefiles")
  - if %build_type%==x64_Debug (cmake .. -G "Visual Studio 14 2015 Win64")
