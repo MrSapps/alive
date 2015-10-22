@@ -248,7 +248,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     // Zoom around cursor
     if (zoomChanged)
     {
-        V2f scaledCursorPos = v2i_to_v2f(gui.cursor_pos)*2 - v2f(screenW/2.f, screenH/2.f);
+        V2f scaledCursorPos = v2i_to_v2f(gui.cursor_pos);// - v2f(screenW/2.f, screenH/2.f);
         V2f oldClientPos = v2i_to_v2f(gui_frame_scroll(&gui)) + scaledCursorPos;
         V2f worldPos = oldClientPos*(1.f/oldZoomMul);
         V2f newClientPos = worldPos*zoomMul;
