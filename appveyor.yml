@@ -39,7 +39,7 @@ install:
  - ps: Start-FileDownload 'https://www.libsdl.org/release/SDL2-devel-2.0.3-mingw.tar.gz'
  - 7z e SDL2-devel-2.0.3-mingw.tar.gz
  - 7z x SDL2-devel-2.0.3-mingw.tar
- - set SDL2DIR=C:\alive\SDL2-devel-2.0.3-mingw
+ - set SDL2DIR=C:\alive\SDL2-devel-2.0.3-mingw\i686-w64-mingw32
 
 artifacts:
  - path: build\*.msi
