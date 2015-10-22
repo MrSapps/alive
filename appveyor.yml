@@ -36,9 +36,10 @@ build_script:
 install:
 # Make compiler command line tools available
  - git submodule update --init --recursive
- - ps: Start-FileDownload 'https://www.libsdl.org/release/SDL2-devel-2.0.3-VC.zip'
- - 7z x SDL2-devel-2.0.3-VC.zip
- - set SDL2DIR=C:\alive\SDL2-2.0.3
+ - ps: Start-FileDownload 'https://www.libsdl.org/release/SDL2-devel-2.0.3-mingw.tar.gz'
+ - 7z e SDL2-devel-2.0.3-mingw.tar.gz
+ - 7z x SDL2-devel-2.0.3-mingw.tar
+ - set SDL2DIR=C:\alive\SDL2-devel-2.0.3-mingw
 
 artifacts:
  - path: build\*.msi
