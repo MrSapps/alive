@@ -200,6 +200,8 @@ SET(alivelib_src
     src/gridobject.cpp
     include/subtitles.hpp
     include/sdl_raii.hpp
+    include/script.hpp
+    src/script.cpp
 )
 
 add_library(AliveLib STATIC

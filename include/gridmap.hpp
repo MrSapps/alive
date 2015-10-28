@@ -7,6 +7,7 @@
 #include "gamedata.hpp"
 #include "filesystem.hpp"
 #include "proxy_nanovg.h"
+#include "script.hpp"
 
 struct GuiContext;
 class Renderer;
@@ -19,8 +20,8 @@ public:
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
 private:
     void RenderDebugPathSelection(Renderer& rend, GuiContext& gui);
-
     std::unique_ptr<class GridMap> mMap;
+    std::unique_ptr<Script> mScript;
     GameData& mGameData;
     FileSystem& mFs;
 };
