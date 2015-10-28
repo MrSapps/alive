@@ -177,6 +177,7 @@ struct GuiContext_MemBucket {
 // Handles the gui state
 struct GuiContext {
     // Write to these to make gui work
+    V2i host_win_size;
     V2i cursor_pos; // Screen position, pixel coordinates
     int mouse_scroll; // Typically +1 or -1
     uint8_t key_state[GUI_KEY_COUNT];

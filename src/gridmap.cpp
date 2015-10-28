@@ -240,19 +240,22 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     gui_begin_frame(&gui, "camArea", v2i(0, 0), v2i(screenW, screenH));
     rend.beginLayer(gui_layer(&gui));
 
+    const float zoomBase = 1.2f;
+    const float oldZoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
     bool zoomChanged = false;
     if (gui.key_state[GUI_KEY_LCTRL] & GUI_KEYSTATE_DOWN_BIT)
     {
         mZoomLevel += gui.mouse_scroll;
         zoomChanged = (gui.mouse_scroll != 0);
     }
-    const float zoomBase = 1.2f;
-    const float oldZoomMul = std::pow(zoomBase, 1.f*mZoomLevel - gui.mouse_scroll);
+    // Cap zooming so that things don't clump in the upper left corner
+    mZoomLevel = std::max(mZoomLevel, -12);
+
     const float zoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
     // Use oldZoom because gui_set_frame_scroll below doesn't change scrolling in current frame. Could be changed though.
     const V2i camSize = v2i((int)(1440*oldZoomMul), (int)(1080*oldZoomMul)); // TODO: Native reso should be constant somewhere
     const int gap = (int)(20*oldZoomMul);
-    const V2i margin = v2i((int)(2000*oldZoomMul), (int)(2000*oldZoomMul));
+    const V2i margin = v2i((int)(3000*oldZoomMul), (int)(3000*oldZoomMul));
 
     // Zoom around cursor
     if (zoomChanged)
@@ -263,7 +266,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
         V2f newClientPos = worldPos*zoomMul;
         V2f newScreenPos = newClientPos - scaledCursorPos;
 
-        gui_set_frame_scroll(&gui, v2f_to_v2i(newScreenPos));
+        gui_set_frame_scroll(&gui, v2f_to_v2i(newScreenPos + v2f(0.5f, 0.5f)));
     }
 
     for (auto x = 0u; x < mScreens.size(); x++)

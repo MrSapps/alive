@@ -70,23 +70,6 @@ void setWindowsIcon(SDL_Window *sdlWindow)
 
 //static bool mousePressed[4] = { false, false };
 
-void Engine::ImGui_WindowResize()
-{
-    int w, h;
-    int fb_w, fb_h;
-    SDL_GetWindowSize(mWindow, &w, &h);
-    SDL_GetWindowSize(mWindow, &fb_w, &fb_h); // Needs to be corrected for SDL Framebuffer
-
-    //ImGuiIO& io = ImGui::GetIO();
-    //io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);  // Display size, in pixels. For clamping windows positions.
-
-    //std::cout << "ON RESIZE " << io.DisplaySize.x << " " << io.DisplaySize.y << std::endl;
-
-
-    //    io.PixelCenterOffset = 0.0f;                        // Align OpenGL texels
-
-}
-
 Engine::Engine()
 {
 
@@ -455,7 +438,6 @@ void Engine::Update()
             case SDL_WINDOWEVENT_RESIZED:
             case SDL_WINDOWEVENT_MAXIMIZED:
             case SDL_WINDOWEVENT_RESTORED:
-                //ImGui_WindowResize();
 
                 break;
             }
@@ -500,7 +482,7 @@ void Engine::Update()
                 const Uint32 windowFlags = SDL_GetWindowFlags(mWindow);
                 bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
                 SDL_SetWindowFullscreen(mWindow, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
-                //ImGui_WindowResize();
+                //OnWindowResize();
             }
 
 
@@ -553,6 +535,8 @@ void Engine::Render()
 {
     int w, h;
     SDL_GetWindowSize(mWindow, &w, &h);
+    mGui->host_win_size = v2i(w, h);
+
     mRenderer->beginFrame(w, h);
     gui_begin(mGui, "background");
 
