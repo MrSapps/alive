@@ -7,6 +7,7 @@
 #include "logger.hpp"
 #include <cassert>
 #include "sdl_raii.hpp"
+#include "stb_image.h"
 #include <algorithm> // min/max
 #include <cmath>
 
@@ -117,33 +118,112 @@ int GridScreen::getTexHandle(FileSystem& fs)
                 surf = converted.get();
             }
 
-#if 0
-            SDL_SurfacePtr scaled;
-            { // Scale the surface
+            { // Create upscaled "hd" image
                 assert(surf->w == 640);
                 assert(surf->h == 240);
 
-                scaled.reset(SDL_CreateRGBSurface(0, 640, 480, 24, 0xFF, 0x00FF, 0x0000FF, 0));
-                uint8_t *src = static_cast<uint8_t*>(surf->pixels);
-                uint8_t *dst = static_cast<uint8_t*>(scaled->pixels);
-                for (int y = 0; y < scaled->h; ++y) {
-                    const int src_y = min(y, surf->h);
-                    for (int x = 0; x < scaled->w; ++x) {
-                        const int src_x = min(x, surf->w);
+#if 0
+                { // Test image
+                    uint8_t *src = static_cast<uint8_t*>(surf->pixels);
+                    for (int y = 0; y < surf->h; ++y)
+                    {
+                        for (int x = 0; x < surf->w; ++x)
+                        {
+                            const int ix = x*3 + surf->pitch*y;
 
-                        const int dst_ix = x*3 + scaled->pitch*y;
-                        const int src_ix = src_x*3 + surf->pitch*src_y;
-
-                        dst[dst_ix + 0] = src[src_ix + 0];
-                        dst[dst_ix + 1] = src[src_ix + 1];
-                        dst[dst_ix + 2] = src[src_ix + 2];
+                            if (x == 0 || y == 0 || x == surf->w - 1 || y == surf->h - 1)
+                            {
+                                src[ix + 0] = 0;
+                                src[ix + 1] = 0;
+                                src[ix + 2] = 0;
+                            }
+                            else
+                            {
+                                src[ix + 0] = 255;
+                                src[ix + 1] = 255;
+                                src[ix + 2] = 255;
+                            }
+                        }
                     }
                 }
-            }
-            mTexHandle = mRend.createTexture(GL_RGB, scaled->w, scaled->h, GL_RGB, GL_UNSIGNED_BYTE, scaled->pixels, false);
-#else
-            mTexHandle = mRend.createTexture(GL_RGB, surf->w, surf->h, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels, false);
 #endif
+
+                // TODO: Use resource system
+                // This will look files named like "R1P15C01.CAM"
+                std::string path = std::string("../data/deltas/") + mFileName;
+                int w, h;
+                int bpp;
+                uint8_t *dst = static_cast<uint8_t*>(stbi_load(path.c_str(), &w, &h, &bpp, STBI_rgb));
+                if (dst)
+                {
+                    uint8_t *src = static_cast<uint8_t*>(surf->pixels);
+                    // Apply delta image over linearly interpolated game cam image
+                    for (int y = 0; y < h; ++y)
+                    {
+                        const float src_rel_y = 1.f*y/(h - 1); // 0..1
+                        for (int x = 0; x < w; ++x)
+                        {
+                            const float src_rel_x = 1.f*x/(w - 1); // 0..1
+
+                            int src_x = (int)floor(src_rel_x*surf->w - 0.5f);
+                            int src_y = (int)floor(src_rel_y*surf->h - 0.5f);
+
+                            int src_x_plus = src_x + 1;
+                            int src_y_plus = src_y + 1;
+
+                            float lerp_x = src_rel_x*surf->w - (src_x + 0.5f);
+                            float lerp_y = src_rel_y*surf->h - (src_y + 0.5f);
+                            assert(lerp_x >= 0.0f);
+                            assert(lerp_x <= 1.0f);
+                            assert(lerp_y >= 0.0f);
+                            assert(lerp_y <= 1.0f);
+
+                            // Limit source pixels inside image
+                            src_x = std::max(src_x, 0);
+                            src_y = std::max(src_y, 0);
+                            src_x_plus = std::min(src_x_plus, surf->w - 1);
+                            src_y_plus = std::min(src_y_plus, surf->h - 1);
+
+                            // Indices to four neighbouring pixels
+                            const int src_indices[4] =
+                            {
+                                src_x*3 +      surf->pitch*src_y,
+                                src_x_plus*3 + surf->pitch*src_y,
+                                src_x*3 +      surf->pitch*src_y_plus,
+                                src_x_plus*3 + surf->pitch*src_y_plus
+                            };
+
+                            const int dst_ix = (x + w*y)*3;
+
+                            for (int comp = 0; comp < 3; ++comp)
+                            {
+                                // 4 neighbouring texels
+                                float a = src[src_indices[0] + comp]/255.f;
+                                float b = src[src_indices[1] + comp]/255.f;
+                                float c = src[src_indices[2] + comp]/255.f;
+                                float d = src[src_indices[3] + comp]/255.f;
+
+                                // 2d linear interpolation
+                                float orig = (a*(1 - lerp_x) + b*lerp_x)*(1 - lerp_y) + (c*(1 - lerp_x) + d*lerp_x)*lerp_y;
+                                float delta = dst[dst_ix + comp]/255.f;
+
+                                // "Grain extract" has been used in creating the delta image
+                                float merged = orig + delta - 0.5f;
+                                dst[dst_ix + comp] = (uint8_t)(std::max(std::min(merged*255 + 0.5f, 255.f), 0.0f));
+                            }
+                        }
+                    }
+                    SDL_SurfacePtr scaled;
+                    scaled.reset(SDL_CreateRGBSurfaceFrom(dst, w, h, 24, 0, 0xFF, 0x00FF, 0x0000FF, 0));
+                    mTexHandle = mRend.createTexture(GL_RGB, scaled->w, scaled->h, GL_RGB, GL_UNSIGNED_BYTE, scaled->pixels, true);
+                }
+                else
+                {
+                    //printf("Delta load failed: %s\n", stbi_failure_reason());
+                    mTexHandle = mRend.createTexture(GL_RGB, surf->w, surf->h, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels, true);
+                }
+                stbi_image_free(dst);
+            }
         }
     }
     return mTexHandle;
