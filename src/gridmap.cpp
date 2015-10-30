@@ -14,7 +14,11 @@
 Level::Level(GameData& gameData, IAudioController& /*audioController*/, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
 {
-
+    mScript = std::make_unique<Script>();
+    if (!mScript->Init(fs))
+    {
+        LOG_ERROR("Script init failed");
+    }
 }
 
 void Level::Update()
@@ -22,6 +26,11 @@ void Level::Update()
     if (mMap)
     {
         mMap->Update();
+    }
+
+    if (mScript)
+    {
+        mScript->Update();
     }
 }
 
