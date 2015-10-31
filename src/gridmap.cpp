@@ -7,9 +7,18 @@
 #include "logger.hpp"
 #include <cassert>
 #include "sdl_raii.hpp"
-#include "stb_image.h"
 #include <algorithm> // min/max
 #include <cmath>
+
+#ifdef _CRT_SECURE_NO_WARNINGS
+#   undef _CRT_SECURE_NO_WARNINGS // stb_image.h might redefine _CRT_SECURE_NO_WARNINGS
+#   include "stb_image.h"
+#   ifndef _CRT_SECURE_NO_WARNINGS
+#       define _CRT_SECURE_NO_WARNINGS
+#   endif
+#else
+#   include "stb_image.h"
+#endif
 
 Level::Level(GameData& gameData, IAudioController& /*audioController*/, FileSystem& fs)
     : mGameData(gameData), mFs(fs)
