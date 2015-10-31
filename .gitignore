@@ -56,3 +56,6 @@ bin/*
 
 # Generated headers
 test/sample_files/generated_headers/*.h
+
+# Delta images (for now)
+data/deltas/*
