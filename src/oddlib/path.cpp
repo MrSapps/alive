@@ -108,13 +108,14 @@ namespace Oddlib
             if (objectsOffset != 0xFFFFFFFF)
             {
                 stream.Seek(collisionEnd + objectsOffset);
-                Uint16 lastFlags = 0;
-              //  do
-              //  {
+                for (;;)
+                {
                     MapObject mapObject;
                     stream.ReadUInt16(mapObject.mFlags);
                     stream.ReadUInt16(mapObject.mLength);
                     stream.ReadUInt16(mapObject.mType);
+
+                    LOG_INFO("Object TLV: " << mapObject.mType << " " << mapObject.mLength << " " << mapObject.mLength);
 
                     // TODO: Fix reading - not the same between AO and AE 
                     // plus data structure is slightly wrong
@@ -124,16 +125,22 @@ namespace Oddlib
                     stream.ReadUInt16(mapObject.mRectBottomRight.mX);
                     stream.ReadUInt16(mapObject.mRectBottomRight.mY);
 
-                    if (mapObject.mLength > 64)
+                    if (mapObject.mLength > 512)
                     {
                         LOG_ERROR("Map object data length " << mapObject.mLength << " is larger than fixed size");
                     }
 
-                    stream.ReadBytes(mapObject.mData.data(), mapObject.mLength);
-                    lastFlags = mapObject.mFlags;
+                    if (mapObject.mLength > 0)
+                    {
+                        const Uint32 len = mapObject.mLength - (sizeof(Uint16) * 7);
+                        stream.ReadBytes(mapObject.mData.data(), len);
+                    }
 
-               // } while (!(lastFlags & 0x4));
-                    
+                    if (mapObject.mFlags & 0x4)
+                    {
+                        break;
+                    }
+                }
             }
         }
 

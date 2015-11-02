@@ -62,7 +62,7 @@ namespace Oddlib
 
             // TODO: Set to biggest known size
             // Assume 64 bytes is the biggest length for now
-            std::array<Uint8, 64> mData;
+            std::array<Uint8, 512> mData;
         };
 
         void ReadCollisionItems(IStream& stream, Uint32 numberOfCollisionItems);
