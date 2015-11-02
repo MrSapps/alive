@@ -3,6 +3,7 @@
 #include "SDL.h"
 #include <string>
 #include <vector>
+#include <array>
 
 namespace Oddlib
 {
@@ -29,20 +30,43 @@ namespace Oddlib
 
         void ReadCameraMap(IStream& stream);
 
+        struct Point
+        {
+            Uint16 mX;
+            Uint16 mY;
+        };
+        static_assert(sizeof(Point) == 4, "Wrong point size");
+
         struct CollisionItem
         {
-            Uint16 mX1;
-            Uint16 mY1;
-            Uint16 mX2;
-            Uint16 mY2;
+            Point mP1;
+            Point mP2;
             Uint16 mType;
             // TODO Actually contains links to previous/next collision
-            // item link depending on the type and the line length
-            Uint16 mUnknown[5];
+            // item link depending on the type 
+            Uint16 mUnknown[4];
+            Uint16 mLineLength;
         };
         static_assert(sizeof(CollisionItem) == 20, "Wrong collision item size");
 
+        struct MapObject
+        {
+            // TLV
+            Uint16 mFlags;
+            Uint16 mLength;
+            Uint16 mType;
+
+            // RECT
+            Point mRectTopLeft;
+            Point mRectBottomRight;
+
+            // TODO: Set to biggest known size
+            // Assume 64 bytes is the biggest length for now
+            std::array<Uint8, 64> mData;
+        };
+
         void ReadCollisionItems(IStream& stream, Uint32 numberOfCollisionItems);
+        void ReadMapObjects(IStream& stream, Uint32 objectIndexTableOffset);
 
         std::vector<std::string> mCameras;
 
