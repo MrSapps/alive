@@ -65,10 +65,22 @@ namespace Oddlib
             std::array<Uint8, 512> mData;
         };
 
+        class Camera
+        {
+        public:
+            explicit Camera(const std::string& name)
+                : mName(name)
+            {
+
+            }
+            std::string mName;
+            std::vector<MapObject> mObjects;
+        };
+
         void ReadCollisionItems(IStream& stream, Uint32 numberOfCollisionItems);
         void ReadMapObjects(IStream& stream, Uint32 objectIndexTableOffset);
 
-        std::vector<std::string> mCameras;
+        std::vector<Camera> mCameras;
 
         std::vector<CollisionItem> mCollisionItems;
     };

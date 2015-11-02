@@ -42,7 +42,7 @@ namespace Oddlib
                 << std::to_string(XSize()) << " " << std::to_string(YSize()));
         }
 
-        return mCameras[(y * XSize()) + x];
+        return mCameras[(y * XSize()) + x].mName;
     }
 
     void Path::ReadCameraMap(IStream& stream)
@@ -59,7 +59,7 @@ namespace Oddlib
             {
                 tmpStr += ".CAM";
             }
-            mCameras.emplace_back(std::move(tmpStr));
+            mCameras.emplace_back(Camera(std::move(tmpStr)));
         }
     }
 
@@ -100,11 +100,12 @@ namespace Oddlib
             stream.ReadUInt32(offset);
             cameraObjectOffsets.push_back(offset);
         }
-
+        
         // Now load the objects for each camera
-        for (const Uint32 objectsOffset : cameraObjectOffsets)
+        for (auto i = 0u; i < cameraObjectOffsets.size(); i++)
         {
             // If max Uint32/-1 then it means there are no objects for this camera
+            const auto objectsOffset = cameraObjectOffsets[i];
             if (objectsOffset != 0xFFFFFFFF)
             {
                 stream.Seek(collisionEnd + objectsOffset);
@@ -117,24 +118,23 @@ namespace Oddlib
 
                     LOG_INFO("Object TLV: " << mapObject.mType << " " << mapObject.mLength << " " << mapObject.mLength);
 
-                    // TODO: Fix reading - not the same between AO and AE 
-                    // plus data structure is slightly wrong
-
                     stream.ReadUInt16(mapObject.mRectTopLeft.mX);
                     stream.ReadUInt16(mapObject.mRectTopLeft.mY);
                     stream.ReadUInt16(mapObject.mRectBottomRight.mX);
                     stream.ReadUInt16(mapObject.mRectBottomRight.mY);
 
-                    if (mapObject.mLength > 512)
-                    {
-                        LOG_ERROR("Map object data length " << mapObject.mLength << " is larger than fixed size");
-                    }
-
                     if (mapObject.mLength > 0)
                     {
                         const Uint32 len = mapObject.mLength - (sizeof(Uint16) * 7);
+                        if (len > 512)
+                        {
+                            LOG_ERROR("Map object data length " << mapObject.mLength << " is larger than fixed size");
+                            abort();
+                        }
                         stream.ReadBytes(mapObject.mData.data(), len);
                     }
+
+                    mCameras[i].mObjects.emplace_back(mapObject);
 
                     if (mapObject.mFlags & 0x4)
                     {
@@ -143,7 +143,5 @@ namespace Oddlib
                 }
             }
         }
-
     }
-
 }
