@@ -14,7 +14,7 @@ namespace Oddlib
         Path(const Path&) = delete;
         Path& operator = (const Path&) = delete;
         Path(IStream& pathChunkStream, 
-             Uint32 numberOfCollisionItems,
+             Uint32 collisionDataOffset,
              Uint32 objectIndexTableOffset, 
              Uint32 objectDataOffset,
              Uint32 mapXSize, 
@@ -29,6 +29,22 @@ namespace Oddlib
 
         void ReadCameraMap(IStream& stream);
 
+        struct CollisionItem
+        {
+            Uint16 mX1;
+            Uint16 mY1;
+            Uint16 mX2;
+            Uint16 mY2;
+            Uint16 mType;
+            // TODO Actually contains links to previous/next collision
+            // item link depending on the type and the line length
+            Uint16 mUnknown[5];
+        };
+
+        void ReadCollisionItems(IStream& stream, Uint32 numberOfCollisionItems);
+
         std::vector<std::string> mCameras;
+
+        std::vector<CollisionItem> mCollisionItems;
     };
 }

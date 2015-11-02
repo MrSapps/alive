@@ -6,14 +6,20 @@
 namespace Oddlib
 {
     Path::Path( IStream& pathChunkStream,
-                Uint32 /*numberOfCollisionItems*/,
+                Uint32 collisionDataOffset,
                 Uint32 /*objectIndexTableOffset*/,
-                Uint32 /*objectDataOffset*/,
+                Uint32 objectDataOffset,
                 Uint32 mapXSize, Uint32 mapYSize)
      : mXSize(mapXSize), mYSize(mapYSize)
     {
         TRACE_ENTRYEXIT;
         ReadCameraMap(pathChunkStream);
+        if (collisionDataOffset != 0)
+        {
+            const auto numCollisionDataBytes = objectDataOffset - collisionDataOffset;
+            const auto numCollisionItems = numCollisionDataBytes / sizeof(CollisionItem);
+            ReadCollisionItems(pathChunkStream, numCollisionItems);
+        }
     }
 
     Uint32 Path::XSize() const
@@ -55,4 +61,23 @@ namespace Oddlib
             mCameras.emplace_back(std::move(tmpStr));
         }
     }
+
+    void Path::ReadCollisionItems(IStream& stream, Uint32 numberOfCollisionItems)
+    {
+        for (Uint32 i = 0; i < numberOfCollisionItems; i++)
+        {
+            CollisionItem tmp = {};
+            stream.ReadUInt16(tmp.mX1);
+            stream.ReadUInt16(tmp.mY1);
+            stream.ReadUInt16(tmp.mX2);
+            stream.ReadUInt16(tmp.mY2);
+            stream.ReadUInt16(tmp.mType);
+            for (int j = 0; j < 5; j++)
+            {
+                stream.ReadUInt16(tmp.mUnknown[j]);
+            }
+            mCollisionItems.emplace_back(tmp);
+        }
+    }
+
 }

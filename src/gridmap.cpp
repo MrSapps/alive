@@ -78,7 +78,7 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
             if (chunkStream)
             {
                 Oddlib::Path path(*chunkStream,
-                    entry->mNumberOfCollisionItems,
+                    entry->mCollisionDataOffset,
                     entry->mObjectIndexTableOffset,
                     entry->mObjectDataOffset,
                     entry->mMapXSize,

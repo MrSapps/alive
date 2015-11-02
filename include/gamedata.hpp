@@ -28,7 +28,7 @@ public:
     struct PathEntry
     {
         Uint32 mPathChunkId;
-        Uint32 mNumberOfCollisionItems;
+        Uint32 mCollisionDataOffset;
         Uint32 mObjectIndexTableOffset;
         Uint32 mObjectDataOffset;
         Uint32 mMapXSize;

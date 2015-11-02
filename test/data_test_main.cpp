@@ -100,7 +100,7 @@ public:
             // TODO: Load the game data json for the required hard coded data to load the path
             /*
             Oddlib::Path path(*chunk.Stream(),
-                entry->mNumberOfCollisionItems,
+                entry->mCollisionDataOffset,
                 entry->mObjectIndexTableOffset,
                 entry->mObjectDataOffset,
                 entry->mMapXSize,
