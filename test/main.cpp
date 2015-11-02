@@ -1877,31 +1877,6 @@ TEST(Logger, Indentation)
     LOG_ERROR("Error test");
 }
 
-/*
-TEST(LvlArchive, DISABLED_Integration)
-{
-// Load AE lvl
-Oddlib::LvlArchive lvl("MI.LVL");
-
-const auto file = lvl.FileByName("FLYSLIG.BND");
-ASSERT_NE(nullptr, file);
-
-
-const auto chunk = file->ChunkById(450);
-ASSERT_NE(nullptr, chunk);
-
-ASSERT_EQ(450u, chunk->Id());
-
-const auto data = chunk->ReadData();
-ASSERT_FALSE(data.empty());
-
-Oddlib::LvlArchive lvl2("R1.LVL");
-
-std::vector<std::unique_ptr<Oddlib::Animation>> animations = Oddlib::AnimationFactory::Create(lvl2, "ROPES.BAN", 1000);
-
-}
-*/
-
 TEST(string_util, endsWith)
 {
     std::string t1 = "LOLrofl";
@@ -2053,4 +2028,29 @@ TEST(SubTitleParser, Parse)
         ASSERT_EQ("Fool2", p.Find(45296801u)[0]->Text());
         ASSERT_EQ(0u, p.Find(1).size());
     }
+}
+
+TEST(LvlArchive, Integration)
+{
+    // Load AE lvl
+    Oddlib::LvlArchive lvl("MI.LVL");
+
+    const auto file = lvl.FileByName("FLYSLIG.BND");
+    ASSERT_NE(nullptr, file);
+
+
+    const auto chunk = file->ChunkById(450);
+    ASSERT_NE(nullptr, chunk);
+
+    ASSERT_EQ(450u, chunk->Id());
+
+    const auto data = chunk->ReadData();
+    ASSERT_FALSE(data.empty());
+
+    Oddlib::LvlArchive lvl2("R1.LVL");
+
+    std::vector<std::unique_ptr<Oddlib::Animation>> animations = Oddlib::AnimationFactory::Create(lvl, "FLYSLIG.BND", 450);
+
+
+
 }

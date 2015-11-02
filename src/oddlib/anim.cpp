@@ -7,20 +7,20 @@ namespace Oddlib
     AnimSerializer::AnimSerializer(IStream& stream)
     {
         // Read the header
-        stream.ReadUInt16(h.iMaxW);
-        stream.ReadUInt16(h.iMaxH);
-        stream.ReadUInt32(h.iFrameTableOffSet);
-        stream.ReadUInt32(h.iPaltSize);
-        if (h.iPaltSize == 0)
+        stream.ReadUInt16(h.mMaxW);
+        stream.ReadUInt16(h.mMaxH);
+        stream.ReadUInt32(h.mFrameTableOffSet);
+        stream.ReadUInt32(h.mPaltSize);
+        if (h.mPaltSize == 0)
         {
             // Assume its an Ae file if the palt size is zero, in this case the next Uint32 is
             // actually the palt size.
             mbIsAoFile = false;
-            stream.ReadUInt32(h.iPaltSize);
+            stream.ReadUInt32(h.mPaltSize);
         }
 
         // Read the palette
-        for (auto i = 0u; i < h.iPaltSize; i++)
+        for (auto i = 0u; i < h.mPaltSize; i++)
         {
             // TODO Palt obj
             Uint16 tmp = 0;
@@ -28,7 +28,7 @@ namespace Oddlib
         }
 
         // Seek to frame table offset
-        stream.Seek(h.iFrameTableOffSet);
+        stream.Seek(h.mFrameTableOffSet);
 
         ParseAnimationSets(stream);
     }
@@ -37,14 +37,14 @@ namespace Oddlib
     {
         // Collect all animation sets
         auto hdr = std::make_unique<AnimationHeader>();
-        stream.ReadUInt16(hdr->iFps);
-        stream.ReadUInt16(hdr->iNumFrames);
-        stream.ReadUInt16(hdr->iLoopStartFrame);
-        stream.ReadUInt16(hdr->iFlags);
+        stream.ReadUInt16(hdr->mFps);
+        stream.ReadUInt16(hdr->mNumFrames);
+        stream.ReadUInt16(hdr->mLoopStartFrame);
+        stream.ReadUInt16(hdr->mFlags);
         
         // Read the offsets to each frame info
-        hdr->iFrameInfoOffsets.resize(hdr->iNumFrames);
-        for (auto& offset : hdr->iFrameInfoOffsets)
+        hdr->mFrameInfoOffsets.resize(hdr->mNumFrames);
+        for (auto& offset : hdr->mFrameInfoOffsets)
         {
             stream.ReadUInt32(offset);
         }
@@ -56,7 +56,7 @@ namespace Oddlib
         // of each set so far and use the one nearest to the EOF.
         if (stream.AtEnd())
         {
-            if (hdr->iFrameInfoOffsets.empty())
+            if (hdr->mFrameInfoOffsets.empty())
             {
                 // Handle a very strange case seen in AO ROPES.BAN, we have a set header that says there are
                 // zero frames, then we have a single frame offset *before* the start of the animation!
@@ -67,15 +67,15 @@ namespace Oddlib
             else
             {
                 // As we said above move to the last frame info offset
-                auto offset = hdr->iFrameInfoOffsets.back();
+                auto offset = hdr->mFrameInfoOffsets.back();
                 stream.Seek(offset);
 
                 // Now we want to seek to the end of the frame info where we hope the FrameSet data
                 // *really* starts (and why we'll end up where we started after parsing down this list)
                 auto frmHdr = std::make_unique<FrameInfoHeader>();
 
-                stream.ReadUInt32(frmHdr->iFrameHeaderOffset);
-                stream.ReadUInt32(frmHdr->iMagic);
+                stream.ReadUInt32(frmHdr->mFrameHeaderOffset);
+                stream.ReadUInt32(frmHdr->mMagic);
                 // stream.ReadUInt16(frmHdr->points);
                 // stream.ReadUInt16(frmHdr->triggers);
 
@@ -85,7 +85,7 @@ namespace Oddlib
                     //  abort();
                 }
                 Uint32 headerDataToSkipSize = 0;
-                switch (frmHdr->iMagic)
+                switch (frmHdr->mMagic)
                 {
                     // Always this for AO frames, and almost always this for AE frames
                 case 0x3:
@@ -113,7 +113,7 @@ namespace Oddlib
 
         mAnimationHeaders.emplace_back(std::move(hdr));
 
-        if (stream.Pos() != h.iFrameTableOffSet)
+        if (stream.Pos() != h.mFrameTableOffSet)
         {
             ParseAnimationSets(stream);
         }
