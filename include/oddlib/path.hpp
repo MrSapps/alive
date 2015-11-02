@@ -40,6 +40,7 @@ namespace Oddlib
             // item link depending on the type and the line length
             Uint16 mUnknown[5];
         };
+        static_assert(sizeof(CollisionItem) == 20, "Wrong collision item size");
 
         void ReadCollisionItems(IStream& stream, Uint32 numberOfCollisionItems);
 
