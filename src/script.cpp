@@ -91,7 +91,10 @@ void Script::Update()
     if (mScript == 0)
     {
         int ret = execute_program(mState);
-        LOG_INFO("ret is " << ret);
-        report_errors(mState, mScript);
+        if (ret != 2)
+        {
+            LOG_INFO("ret is " << ret);
+            report_errors(mState, mScript);
+        }
     }
 }
