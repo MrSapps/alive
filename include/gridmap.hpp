@@ -8,10 +8,11 @@
 #include "filesystem.hpp"
 #include "proxy_nanovg.h"
 #include "script.hpp"
+#include "oddlib/path.hpp"
 
 struct GuiContext;
 class Renderer;
-namespace Oddlib { class Path; class LvlArchive; }
+namespace Oddlib { class LvlArchive; }
 class Level
 {
 public:
@@ -31,16 +32,20 @@ class GridScreen
 public:
     GridScreen(const GridScreen&) = delete;
     GridScreen& operator = (const GridScreen&) = delete;
-    GridScreen(const std::string& lvlName, const std::string& fileName, Renderer& rend);
+    GridScreen(const std::string& lvlName, const Oddlib::Path::Camera& camera, Renderer& rend);
     ~GridScreen();
     const std::string& FileName() const { return mFileName; }
     int getTexHandle(FileSystem& fs);
     bool hasTexture() const;
+    const Oddlib::Path::Camera &getCamera() const { return mCamera; }
 private:
     std::string mLvlName;
     std::string mFileName;
     int mTexHandle;
     Renderer& mRend;
+
+    // TODO: This is not the in-game format
+    Oddlib::Path::Camera mCamera;
 };
 
 class GridMap

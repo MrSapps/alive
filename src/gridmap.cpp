@@ -105,11 +105,12 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
     gui_end_window(&gui);
 }
 
-GridScreen::GridScreen(const std::string& lvlName, const std::string& fileName, Renderer& rend)
-    : mLvlName(lvlName),
-      mFileName(fileName)
-      , mTexHandle(0)
-      , mRend(rend)
+GridScreen::GridScreen(const std::string& lvlName, const Oddlib::Path::Camera& camera, Renderer& rend)
+    : mLvlName(lvlName)
+    , mFileName(camera.mName)
+    , mTexHandle(0)
+    , mRend(rend)
+    , mCamera(camera)
 {
    
 }
@@ -273,7 +274,7 @@ GridMap::GridMap(const std::string& lvlName, Oddlib::Path& path, FileSystem& fs,
     {
         for (Uint32 y = 0; y < path.YSize(); y++)
         {
-            mScreens[x][y] = std::make_unique<GridScreen>(mLvlName, path.CameraFileName(x,y), rend);
+            mScreens[x][y] = std::make_unique<GridScreen>(mLvlName, path.CameraByPosition(x,y), rend);
         }
     }
 }
@@ -358,6 +359,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
         gui_set_frame_scroll(&gui, v2f_to_v2i(newScreenPos + v2f(0.5f, 0.5f)));
     }
 
+    // Draw cam backgrounds
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
@@ -371,6 +373,43 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
             gui_enlarge_bounding(&gui, pos + camSize + margin*2);
         }
     }
+
+    // Draw objects
+    for (auto x = 0u; x < mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mScreens[x].size(); y++)
+        {
+            GridScreen *screen = mScreens[x][y].get();
+            if (!screen->hasTexture())
+                continue;
+
+            V2i pos = gui_turtle_pos(&gui) + v2i((camSize.x + gap)*x, (camSize.y + gap)*y) + margin;
+            const Oddlib::Path::Camera& cam = screen->getCamera();
+            for (size_t i = 0; i < cam.mObjects.size(); ++i)
+            {
+                Oddlib::Path::MapObject obj = cam.mObjects[i];
+                /*
+                obj.mRectTopLeft.mX = 10;
+                obj.mRectTopLeft.mY = 30;
+                obj.mRectBottomRight.mX = 100;
+                obj.mRectBottomRight.mY = 50;
+                */
+                V2i frameSize = v2i(375, 260); // TODO: Detect which game, and use corresponding reso. 1024x512 for AO, 375x260 for AE
+                V2i bgSize = v2i(368, 240); // Size of cam background in object coordinate system
+                V2i objPos = v2i((int)(1.f * (obj.mRectTopLeft.mX - (frameSize.x - bgSize.x)*0.5f) * camSize.x / frameSize.x),
+                                 (int)(1.f * (obj.mRectTopLeft.mY - (frameSize.y - bgSize.y)*0.5f) * camSize.y / frameSize.y));
+                V2i objSize = v2i((int)(1.f * (obj.mRectBottomRight.mX - obj.mRectTopLeft.mX) * camSize.x / frameSize.x),
+                                  (int)(1.f * (obj.mRectBottomRight.mY - obj.mRectTopLeft.mY) * camSize.y / frameSize.y));
+
+                rend.beginPath();
+                rend.rect(pos.x + 1.f*objPos.x, pos.y + 1.f*objPos.y, 1.f*objSize.x, 1.f*objSize.y);
+                rend.strokeColor(Color{1, 1, 1, 1});
+                rend.strokeWidth(1.0f);
+                rend.stroke();
+            }
+        }
+    }
+
     rend.endLayer();
     gui_end_frame(&gui);
 #endif
