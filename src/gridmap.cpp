@@ -345,8 +345,12 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     const float zoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
     // Use oldZoom because gui_set_frame_scroll below doesn't change scrolling in current frame. Could be changed though.
     const V2i camSize = v2i((int)(1440*oldZoomMul), (int)(1080*oldZoomMul)); // TODO: Native reso should be constant somewhere
-    const int gap = (int)(20*oldZoomMul);
     const V2i margin = v2i((int)(3000*oldZoomMul), (int)(3000*oldZoomMul));
+
+    V2i worldFrameSize = v2i(375, 260); // TODO: Detect which game, and use corresponding reso. 1024x512 for AO, 375x260 for AE
+    V2i worldCamSize = v2i(368, 240); // Size of cam background in object coordinate system
+    V2f frameSize = v2f(1.f * worldFrameSize.x/worldCamSize.x * camSize.x,
+                        1.f * worldFrameSize.y/worldCamSize.y * camSize.y);
 
     // Zoom around cursor
     if (zoomChanged)
@@ -369,7 +373,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
             if (!screen->hasTexture())
                 continue;
 
-            V2i pos = gui_turtle_pos(&gui) + v2i((camSize.x + gap)*x, (camSize.y + gap)*y) + margin;
+            V2i pos = gui_turtle_pos(&gui) + v2i((int)(frameSize.x * x), (int)(frameSize.y * y)) + margin;
             rend.drawQuad(screen->getTexHandle(mFs), 1.0f*pos.x, 1.0f*pos.y, 1.0f*camSize.x, 1.0f*camSize.y);
             gui_enlarge_bounding(&gui, pos + camSize + margin*2);
         }
@@ -384,23 +388,15 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
             if (!screen->hasTexture())
                 continue;
 
-            V2i pos = gui_turtle_pos(&gui) + v2i((camSize.x + gap)*x, (camSize.y + gap)*y) + margin;
+            V2i pos = gui_turtle_pos(&gui) + margin;
             const Oddlib::Path::Camera& cam = screen->getCamera();
             for (size_t i = 0; i < cam.mObjects.size(); ++i)
             {
                 Oddlib::Path::MapObject obj = cam.mObjects[i];
-                /*
-                obj.mRectTopLeft.mX = 10;
-                obj.mRectTopLeft.mY = 30;
-                obj.mRectBottomRight.mX = 100;
-                obj.mRectBottomRight.mY = 50;
-                */
-                V2i frameSize = v2i(375, 260); // TODO: Detect which game, and use corresponding reso. 1024x512 for AO, 375x260 for AE
-                V2i bgSize = v2i(368, 240); // Size of cam background in object coordinate system
-                V2i objPos = v2i((int)(1.f * (obj.mRectTopLeft.mX - (frameSize.x - bgSize.x)*0.5f) * camSize.x / frameSize.x),
-                                 (int)(1.f * (obj.mRectTopLeft.mY - (frameSize.y - bgSize.y)*0.5f) * camSize.y / frameSize.y));
-                V2i objSize = v2i((int)(1.f * (obj.mRectBottomRight.mX - obj.mRectTopLeft.mX) * camSize.x / frameSize.x),
-                                  (int)(1.f * (obj.mRectBottomRight.mY - obj.mRectTopLeft.mY) * camSize.y / frameSize.y));
+                V2i objPos = v2i((int)(1.f * obj.mRectTopLeft.mX * frameSize.x / worldFrameSize.x),
+                                 (int)(1.f * obj.mRectTopLeft.mY * frameSize.y / worldFrameSize.y));
+                V2i objSize = v2i((int)(1.f * (obj.mRectBottomRight.mX - obj.mRectTopLeft.mX) * frameSize.x / worldFrameSize.x),
+                                  (int)(1.f * (obj.mRectBottomRight.mY - obj.mRectTopLeft.mY) * frameSize.y / worldFrameSize.y));
 
                 rend.beginPath();
                 rend.rect(pos.x + 1.f*objPos.x, pos.y + 1.f*objPos.y, 1.f*objSize.x, 1.f*objSize.y);
