@@ -33,7 +33,7 @@ namespace Oddlib
         return mYSize;
     }
 
-    const std::string& Path::CameraFileName(Uint32 x, Uint32 y) const
+    const Path::Camera& Path::CameraByPosition(Uint32 x, Uint32 y) const
     {
         if (x >= XSize() || y >= YSize())
         {
@@ -42,7 +42,7 @@ namespace Oddlib
                 << std::to_string(XSize()) << " " << std::to_string(YSize()));
         }
 
-        return mCameras[(y * XSize()) + x].mName;
+        return mCameras[(y * XSize()) + x];
     }
 
     void Path::ReadCameraMap(IStream& stream)
