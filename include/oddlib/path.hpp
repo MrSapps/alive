@@ -48,6 +48,18 @@ namespace Oddlib
             std::vector<MapObject> mObjects;
         };
 
+        struct CollisionItem
+        {
+            Point mP1;
+            Point mP2;
+            Uint16 mType;
+            // TODO Actually contains links to previous/next collision
+            // item link depending on the type 
+            Uint16 mUnknown[4];
+            Uint16 mLineLength;
+        };
+        static_assert(sizeof(CollisionItem) == 20, "Wrong collision item size");
+
         Path(const Path&) = delete;
         Path& operator = (const Path&) = delete;
         Path(IStream& pathChunkStream, 
@@ -61,23 +73,12 @@ namespace Oddlib
         Uint32 XSize() const;
         Uint32 YSize() const;
         const Camera& CameraByPosition(Uint32 x, Uint32 y) const;
+        const std::vector<CollisionItem>& CollisionItems() const { return mCollisionItems; }
     private:
         Uint32 mXSize = 0;
         Uint32 mYSize = 0;
 
         void ReadCameraMap(IStream& stream);
-
-        struct CollisionItem
-        {
-            Point mP1;
-            Point mP2;
-            Uint16 mType;
-            // TODO Actually contains links to previous/next collision
-            // item link depending on the type 
-            Uint16 mUnknown[4];
-            Uint16 mLineLength;
-        };
-        static_assert(sizeof(CollisionItem) == 20, "Wrong collision item size");
 
         void ReadCollisionItems(IStream& stream, Uint32 numberOfCollisionItems);
         void ReadMapObjects(IStream& stream, Uint32 objectIndexTableOffset, bool isAo);
