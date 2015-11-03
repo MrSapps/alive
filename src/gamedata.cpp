@@ -109,6 +109,8 @@ bool GameData::LoadPathDb(FileSystem& fs)
         {
             const auto lvlEntry = lvls.get<jsonxx::Object>(i);
             const auto pathBndFileName = lvlEntry.get<jsonxx::String>("file_name");
+            const bool isAo = lvlEntry.get<jsonxx::Number>("is_ao") > 0;
+
             auto& pathDbIterator = mPathDb[pathBndFileName];
             const auto paths = lvlEntry.get<jsonxx::Array>("paths");
             for (Uint32 j = 0; j < static_cast<Uint32>(paths.size()); j++)
@@ -121,7 +123,8 @@ bool GameData::LoadPathDb(FileSystem& fs)
                     static_cast<Uint32>(pathObj.get<jsonxx::Number>("index")),
                     static_cast<Uint32>(pathObj.get<jsonxx::Number>("object")),
                     static_cast<Uint32>(pathObj.get<jsonxx::Number>("x")),
-                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("y"))
+                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("y")),
+                    isAo
                 });
             }
         }

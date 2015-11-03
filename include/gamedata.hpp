@@ -33,6 +33,7 @@ public:
         Uint32 mObjectDataOffset;
         Uint32 mMapXSize;
         Uint32 mMapYSize;
+        bool mIsAo;
     };
 
     typedef std::map<std::string, std::vector<PathEntry>> PathDb;

@@ -92,7 +92,8 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
                     entry->mObjectIndexTableOffset,
                     entry->mObjectDataOffset,
                     entry->mMapXSize,
-                    entry->mMapYSize);
+                    entry->mMapYSize,
+                    entry->mIsAo);
                 mMap = std::make_unique<GridMap>(lvlName, path, mFs, rend);
             }
             else

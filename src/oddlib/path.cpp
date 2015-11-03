@@ -9,7 +9,8 @@ namespace Oddlib
                 Uint32 collisionDataOffset,
                 Uint32 objectIndexTableOffset,
                 Uint32 objectDataOffset,
-                Uint32 mapXSize, Uint32 mapYSize)
+                Uint32 mapXSize, Uint32 mapYSize,
+                bool isAo)
      : mXSize(mapXSize), mYSize(mapYSize)
     {
         TRACE_ENTRYEXIT;
@@ -19,7 +20,7 @@ namespace Oddlib
             const auto numCollisionDataBytes = objectDataOffset - collisionDataOffset;
             const auto numCollisionItems = numCollisionDataBytes / sizeof(CollisionItem);
             ReadCollisionItems(pathChunkStream, numCollisionItems);
-            ReadMapObjects(pathChunkStream, objectIndexTableOffset);
+            ReadMapObjects(pathChunkStream, objectIndexTableOffset, isAo);
         }
     }
 
@@ -82,7 +83,7 @@ namespace Oddlib
         }
     }
 
-    void Path::ReadMapObjects(IStream& stream, Uint32 objectIndexTableOffset)
+    void Path::ReadMapObjects(IStream& stream, Uint32 objectIndexTableOffset, bool isAo)
     {
         const size_t collisionEnd = stream.Pos();
 
@@ -114,18 +115,34 @@ namespace Oddlib
                     MapObject mapObject;
                     stream.ReadUInt16(mapObject.mFlags);
                     stream.ReadUInt16(mapObject.mLength);
-                    stream.ReadUInt16(mapObject.mType);
+                    stream.ReadUInt32(mapObject.mType);
 
                     LOG_INFO("Object TLV: " << mapObject.mType << " " << mapObject.mLength << " " << mapObject.mLength);
+                   
+                    if (isAo)
+                    {
+                        // Don't know what this is for
+                        Uint32 unknownData = 0;
+                        stream.ReadUInt32(unknownData);
+                    }
+
 
                     stream.ReadUInt16(mapObject.mRectTopLeft.mX);
                     stream.ReadUInt16(mapObject.mRectTopLeft.mY);
+
+                    // Ao duplicated the first two parts of data for some reason
+                    if (isAo)
+                    {
+                        Uint32 duplicatedXY = 0;
+                        stream.ReadUInt32(duplicatedXY);
+                    }
+
                     stream.ReadUInt16(mapObject.mRectBottomRight.mX);
                     stream.ReadUInt16(mapObject.mRectBottomRight.mY);
 
                     if (mapObject.mLength > 0)
                     {
-                        const Uint32 len = mapObject.mLength - (sizeof(Uint16) * 7);
+                        const Uint32 len = mapObject.mLength - (sizeof(Uint16) * (isAo ? 12 : 8));
                         if (len > 512)
                         {
                             LOG_ERROR("Map object data length " << mapObject.mLength << " is larger than fixed size");

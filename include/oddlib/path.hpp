@@ -25,7 +25,7 @@ namespace Oddlib
             // TLV
             Uint16 mFlags;
             Uint16 mLength;
-            Uint16 mType;
+            Uint32 mType;
 
             // RECT
             Point mRectTopLeft;
@@ -55,7 +55,8 @@ namespace Oddlib
              Uint32 objectIndexTableOffset, 
              Uint32 objectDataOffset,
              Uint32 mapXSize, 
-             Uint32 mapYSize);
+             Uint32 mapYSize,
+             bool isAo);
 
         Uint32 XSize() const;
         Uint32 YSize() const;
@@ -79,7 +80,7 @@ namespace Oddlib
         static_assert(sizeof(CollisionItem) == 20, "Wrong collision item size");
 
         void ReadCollisionItems(IStream& stream, Uint32 numberOfCollisionItems);
-        void ReadMapObjects(IStream& stream, Uint32 objectIndexTableOffset);
+        void ReadMapObjects(IStream& stream, Uint32 objectIndexTableOffset, bool isAo);
 
         std::vector<Camera> mCameras;
 
