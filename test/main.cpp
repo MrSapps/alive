@@ -2030,7 +2030,7 @@ TEST(SubTitleParser, Parse)
     }
 }
 
-TEST(LvlArchive, Integration)
+TEST(LvlArchive, DISABLED_Integration)
 {
     // Load AE lvl
     Oddlib::LvlArchive lvl("MI.LVL");
