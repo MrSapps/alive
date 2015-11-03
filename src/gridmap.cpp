@@ -265,6 +265,8 @@ bool GridScreen::hasTexture() const
 GridMap::GridMap(const std::string& lvlName, Oddlib::Path& path, FileSystem& fs, Renderer& rend)
     : mFs(fs), mLvlName(lvlName), mCollisionItems(path.CollisionItems())
 {
+    mIsAo = path.IsAo();
+
     mScreens.resize(path.XSize());
     for (auto& col : mScreens)
     {
@@ -347,7 +349,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     const V2i camSize = v2i((int)(1440*oldZoomMul), (int)(1080*oldZoomMul)); // TODO: Native reso should be constant somewhere
     const V2i margin = v2i((int)(3000*oldZoomMul), (int)(3000*oldZoomMul));
 
-    V2i worldFrameSize = v2i(375, 260); // TODO: Detect which game, and use corresponding reso. 1024x512 for AO, 375x260 for AE
+    V2i worldFrameSize = mIsAo ? v2i(1024, 512) : v2i(375, 260);
     V2i worldCamSize = v2i(368, 240); // Size of cam background in object coordinate system
     V2f frameSize = v2f(1.f * worldFrameSize.x/worldCamSize.x * camSize.x,
                         1.f * worldFrameSize.y/worldCamSize.y * camSize.y);

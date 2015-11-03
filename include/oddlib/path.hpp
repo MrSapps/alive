@@ -74,6 +74,7 @@ namespace Oddlib
         Uint32 YSize() const;
         const Camera& CameraByPosition(Uint32 x, Uint32 y) const;
         const std::vector<CollisionItem>& CollisionItems() const { return mCollisionItems; }
+        bool IsAo() const { return mIsAo; }
     private:
         Uint32 mXSize = 0;
         Uint32 mYSize = 0;
@@ -81,10 +82,11 @@ namespace Oddlib
         void ReadCameraMap(IStream& stream);
 
         void ReadCollisionItems(IStream& stream, Uint32 numberOfCollisionItems);
-        void ReadMapObjects(IStream& stream, Uint32 objectIndexTableOffset, bool isAo);
+        void ReadMapObjects(IStream& stream, Uint32 objectIndexTableOffset);
 
         std::vector<Camera> mCameras;
 
         std::vector<CollisionItem> mCollisionItems;
+        bool mIsAo = false;
     };
 }

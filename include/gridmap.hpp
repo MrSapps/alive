@@ -67,4 +67,5 @@ private:
 
     // TODO: This is not the in-game format
     std::vector<Oddlib::Path::CollisionItem> mCollisionItems;
+    bool mIsAo = false;
 };

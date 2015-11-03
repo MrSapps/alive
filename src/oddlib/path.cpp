@@ -11,7 +11,7 @@ namespace Oddlib
                 Uint32 objectDataOffset,
                 Uint32 mapXSize, Uint32 mapYSize,
                 bool isAo)
-     : mXSize(mapXSize), mYSize(mapYSize)
+     : mXSize(mapXSize), mYSize(mapYSize), mIsAo(isAo)
     {
         TRACE_ENTRYEXIT;
         ReadCameraMap(pathChunkStream);
@@ -20,7 +20,7 @@ namespace Oddlib
             const auto numCollisionDataBytes = objectDataOffset - collisionDataOffset;
             const auto numCollisionItems = numCollisionDataBytes / sizeof(CollisionItem);
             ReadCollisionItems(pathChunkStream, numCollisionItems);
-            ReadMapObjects(pathChunkStream, objectIndexTableOffset, isAo);
+            ReadMapObjects(pathChunkStream, objectIndexTableOffset);
         }
     }
 
@@ -83,7 +83,7 @@ namespace Oddlib
         }
     }
 
-    void Path::ReadMapObjects(IStream& stream, Uint32 objectIndexTableOffset, bool isAo)
+    void Path::ReadMapObjects(IStream& stream, Uint32 objectIndexTableOffset)
     {
         const size_t collisionEnd = stream.Pos();
 
@@ -119,7 +119,7 @@ namespace Oddlib
 
                     LOG_INFO("Object TLV: " << mapObject.mType << " " << mapObject.mLength << " " << mapObject.mLength);
                    
-                    if (isAo)
+                    if (mIsAo)
                     {
                         // Don't know what this is for
                         Uint32 unknownData = 0;
@@ -131,7 +131,7 @@ namespace Oddlib
                     stream.ReadUInt16(mapObject.mRectTopLeft.mY);
 
                     // Ao duplicated the first two parts of data for some reason
-                    if (isAo)
+                    if (mIsAo)
                     {
                         Uint32 duplicatedXY = 0;
                         stream.ReadUInt32(duplicatedXY);
@@ -142,7 +142,7 @@ namespace Oddlib
 
                     if (mapObject.mLength > 0)
                     {
-                        const Uint32 len = mapObject.mLength - (sizeof(Uint16) * (isAo ? 12 : 8));
+                        const Uint32 len = mapObject.mLength - (sizeof(Uint16) * (mIsAo ? 12 : 8));
                         if (len > 512)
                         {
                             LOG_ERROR("Map object data length " << mapObject.mLength << " is larger than fixed size");
