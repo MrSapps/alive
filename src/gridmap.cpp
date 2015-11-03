@@ -263,7 +263,7 @@ bool GridScreen::hasTexture() const
 }
 
 GridMap::GridMap(const std::string& lvlName, Oddlib::Path& path, FileSystem& fs, Renderer& rend)
-    : mFs(fs), mLvlName(lvlName)
+    : mFs(fs), mLvlName(lvlName), mCollisionItems(path.CollisionItems())
 {
     mScreens.resize(path.XSize());
     for (auto& col : mScreens)
@@ -379,30 +379,50 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
         }
     }
 
-    // Draw objects
-    for (auto x = 0u; x < mScreens.size(); x++)
+    // Draw collision lines
     {
-        for (auto y = 0u; y < mScreens[x].size(); y++)
+        rend.strokeColor(Color{0, 0, 1, 1});
+        rend.strokeWidth(2.f);
+        V2i pos = gui_turtle_pos(&gui) + margin;
+        for (size_t i = 0; i < mCollisionItems.size(); ++i)
         {
-            GridScreen *screen = mScreens[x][y].get();
-            if (!screen->hasTexture())
-                continue;
+            const Oddlib::Path::CollisionItem& item = mCollisionItems[i];
+            V2i p1 = v2i((int)(1.f * item.mP1.mX * frameSize.x / worldFrameSize.x),
+                         (int)(1.f * item.mP1.mY * frameSize.y / worldFrameSize.y));
+            V2i p2 = v2i((int)(1.f * item.mP2.mX * frameSize.x / worldFrameSize.x),
+                         (int)(1.f * item.mP2.mY * frameSize.y / worldFrameSize.y));
+            rend.beginPath();
+            rend.moveTo(pos.x + p1.x + 0.5f, pos.y + p1.y + 0.5f);
+            rend.lineTo(pos.x + p2.x + 0.5f, pos.y + p2.y + 0.5f);
+            rend.stroke();
+        }
+    }
 
-            V2i pos = gui_turtle_pos(&gui) + margin;
-            const Oddlib::Path::Camera& cam = screen->getCamera();
-            for (size_t i = 0; i < cam.mObjects.size(); ++i)
+    { // Draw objects
+        rend.strokeColor(Color{1, 1, 1, 1});
+        rend.strokeWidth(1.f);
+        for (auto x = 0u; x < mScreens.size(); x++)
+        {
+            for (auto y = 0u; y < mScreens[x].size(); y++)
             {
-                Oddlib::Path::MapObject obj = cam.mObjects[i];
-                V2i objPos = v2i((int)(1.f * obj.mRectTopLeft.mX * frameSize.x / worldFrameSize.x),
-                                 (int)(1.f * obj.mRectTopLeft.mY * frameSize.y / worldFrameSize.y));
-                V2i objSize = v2i((int)(1.f * (obj.mRectBottomRight.mX - obj.mRectTopLeft.mX) * frameSize.x / worldFrameSize.x),
-                                  (int)(1.f * (obj.mRectBottomRight.mY - obj.mRectTopLeft.mY) * frameSize.y / worldFrameSize.y));
+                GridScreen *screen = mScreens[x][y].get();
+                if (!screen->hasTexture())
+                    continue;
 
-                rend.beginPath();
-                rend.rect(pos.x + 1.f*objPos.x, pos.y + 1.f*objPos.y, 1.f*objSize.x, 1.f*objSize.y);
-                rend.strokeColor(Color{1, 1, 1, 1});
-                rend.strokeWidth(1.0f);
-                rend.stroke();
+                V2i pos = gui_turtle_pos(&gui) + margin;
+                const Oddlib::Path::Camera& cam = screen->getCamera();
+                for (size_t i = 0; i < cam.mObjects.size(); ++i)
+                {
+                    const Oddlib::Path::MapObject& obj = cam.mObjects[i];
+                    V2i objPos = v2i((int)(1.f * obj.mRectTopLeft.mX * frameSize.x / worldFrameSize.x),
+                                     (int)(1.f * obj.mRectTopLeft.mY * frameSize.y / worldFrameSize.y));
+                    V2i objSize = v2i((int)(1.f * (obj.mRectBottomRight.mX - obj.mRectTopLeft.mX) * frameSize.x / worldFrameSize.x),
+                                      (int)(1.f * (obj.mRectBottomRight.mY - obj.mRectTopLeft.mY) * frameSize.y / worldFrameSize.y));
+
+                    rend.beginPath();
+                    rend.rect(pos.x + 1.f*objPos.x + 0.5f, pos.y + 1.f*objPos.y + 0.5f, 1.f*objSize.x, 1.f*objSize.y);
+                    rend.stroke();
+                }
             }
         }
     }

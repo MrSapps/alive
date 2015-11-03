@@ -64,4 +64,7 @@ private:
 
     // Editor stuff
     int mZoomLevel = -10; // 0 is native reso
+
+    // TODO: This is not the in-game format
+    std::vector<Oddlib::Path::CollisionItem> mCollisionItems;
 };
