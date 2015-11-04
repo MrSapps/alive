@@ -349,7 +349,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     const V2i camSize = v2i((int)(1440*oldZoomMul), (int)(1080*oldZoomMul)); // TODO: Native reso should be constant somewhere
     const V2i margin = v2i((int)(3000*oldZoomMul), (int)(3000*oldZoomMul));
 
-    V2i worldFrameSize = mIsAo ? v2i(1024, 512) : v2i(375, 260);
+    V2i worldFrameSize = mIsAo ? v2i(1024, 480) : v2i(375, 260);
     V2i worldCamSize = v2i(368, 240); // Size of cam background in object coordinate system
     V2f frameSize = v2f(1.f * worldFrameSize.x/worldCamSize.x * camSize.x,
                         1.f * worldFrameSize.y/worldCamSize.y * camSize.y);
@@ -367,6 +367,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     }
 
     // Draw cam backgrounds
+    V2f offset = mIsAo ? v2f(257.f * camSize.x / worldCamSize.x, 114.f * camSize.y / worldCamSize.y) : v2f(0, 0);
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
@@ -375,7 +376,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
             if (!screen->hasTexture())
                 continue;
 
-            V2i pos = gui_turtle_pos(&gui) + v2i((int)(frameSize.x * x), (int)(frameSize.y * y)) + margin;
+            V2i pos = gui_turtle_pos(&gui) + v2i((int)(frameSize.x * x + offset.x), (int)(frameSize.y * y + offset.y)) + margin;
             rend.drawQuad(screen->getTexHandle(mFs), 1.0f*pos.x, 1.0f*pos.y, 1.0f*camSize.x, 1.0f*camSize.y);
             gui_enlarge_bounding(&gui, pos + camSize + margin*2);
         }
