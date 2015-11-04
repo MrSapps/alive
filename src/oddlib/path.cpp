@@ -17,8 +17,8 @@ namespace Oddlib
         ReadCameraMap(pathChunkStream);
         if (collisionDataOffset != 0)
         {
-            const auto numCollisionDataBytes = objectDataOffset - collisionDataOffset;
-            const auto numCollisionItems = numCollisionDataBytes / sizeof(CollisionItem);
+            const Uint32 numCollisionDataBytes = objectDataOffset - collisionDataOffset;
+            const Uint32 numCollisionItems = numCollisionDataBytes / sizeof(CollisionItem);
             ReadCollisionItems(pathChunkStream, numCollisionItems);
             ReadMapObjects(pathChunkStream, objectIndexTableOffset);
         }
