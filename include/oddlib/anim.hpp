@@ -2,19 +2,36 @@
 
 #include <vector>
 #include <memory>
+#include <set>
 #include "SDL.h"
 
 namespace Oddlib
 {
     class LvlArchive;
     class IStream;
-
+    /*
+    * Typical animation file structure :
+    * ResHeader
+    * Offset to table of AnimSets
+    * Max frame W
+    * Max frame H
+    * Palt size
+    * Palt data
+    * Frames(FrameHeader + data)
+    * AnimSets - an array of offsets / pointers to FrameInfos
+    * FrameInfos - offsets / pointers to FrameHeaders
+    * EOF
+    */
     class AnimSerializer
     {
     public:
-        AnimSerializer(IStream& stream);
+        explicit AnimSerializer(IStream& stream);
     private:
         void ParseAnimationSets(IStream& stream);
+        void ParseFrameInfoHeaders(IStream& stream);
+        void GatherUniqueFrameOffsets();
+        void DebugDecodeAllFrames(IStream& stream);
+        std::vector<Uint8> DecodeFrame(IStream& stream, Uint32 frameOffset);
 
         struct BanHeader
         {
@@ -35,7 +52,13 @@ namespace Oddlib
             // If loop flag set then this is the frame to loop back to
             Uint16 mLoopStartFrame = 0;
             
-            // Bit flags, bit 1 = never unload?, bit 2 = loop
+            enum eFlags
+            {
+                eFlipXFlag = 0x4,
+                eFlipYFlag = 0x8,
+                eNeverUnload = 0x1,
+                eLoopFlag = 0x2
+            };
             Uint16 mFlags = 0;
 
             // Offset to each frame, can be duplicated across sets if two animations share the same frame
@@ -43,6 +66,9 @@ namespace Oddlib
 
             std::vector<std::unique_ptr<FrameInfoHeader>> mFrameInfos;
         };
+
+        // Unique combination of frames from all animations, as each animation can reuse any number of frames
+        std::set< Uint32 > mUniqueFrameHeaderOffsets;
 
         struct FrameInfoHeader
         {
@@ -64,12 +90,17 @@ namespace Oddlib
             Sint16 mOffx = 0;
             Sint16 mOffy = 0;
 
-            std::vector<Uint32> mTriggers;
+            //std::vector<Uint32> mTriggers;
         };
 
         struct FrameHeader
         {
-
+            Uint32 mMagic;          // Always 0x8 for AO and AE also is the offset to palt/clut?
+            Uint8 mWidth;
+            Uint8 mHeight;
+            Uint8 mColourDepth;
+            Uint8 mCompressionType;
+            Uint32 mFrameDataSize; // Actually 2 Uint16's in AE for W/H again
         };
 
         std::vector<std::unique_ptr<AnimationHeader>> mAnimationHeaders;

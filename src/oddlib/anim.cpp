@@ -1,6 +1,7 @@
 #include "oddlib/anim.hpp"
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/stream.hpp"
+#include <assert.h>
 
 namespace Oddlib
 {
@@ -31,6 +32,9 @@ namespace Oddlib
         stream.Seek(h.mFrameTableOffSet);
 
         ParseAnimationSets(stream);
+        ParseFrameInfoHeaders(stream);
+        GatherUniqueFrameOffsets();
+        DebugDecodeAllFrames(stream);
     }
 
     void AnimSerializer::ParseAnimationSets(IStream& stream)
@@ -117,6 +121,122 @@ namespace Oddlib
         {
             ParseAnimationSets(stream);
         }
+    }
+
+    void AnimSerializer::ParseFrameInfoHeaders(IStream& stream)
+    {
+        for (const std::unique_ptr<AnimationHeader>& animationHeader : mAnimationHeaders)
+        {
+            for (const Uint32 frameInfoOffset : animationHeader->mFrameInfoOffsets)
+            {
+                stream.Seek(frameInfoOffset);
+
+                auto frameInfo = std::make_unique<FrameInfoHeader>();
+
+                stream.ReadUInt32(frameInfo->mFrameHeaderOffset);
+                stream.ReadUInt32(frameInfo->mMagic);
+
+                stream.ReadSInt16(frameInfo->mColx);
+                stream.ReadSInt16(frameInfo->mColy);
+
+                stream.ReadSInt16(frameInfo->mColw);
+                stream.ReadSInt16(frameInfo->mColh);
+
+                stream.ReadSInt16(frameInfo->mOffx);
+                stream.ReadSInt16(frameInfo->mOffy);
+
+                animationHeader->mFrameInfos.emplace_back(std::move(frameInfo));
+            }
+        }
+    }
+
+    void AnimSerializer::GatherUniqueFrameOffsets()
+    {
+        for (const std::unique_ptr<AnimationHeader>& animationHeader : mAnimationHeaders)
+        {
+            for (const std::unique_ptr<FrameInfoHeader>& frameInfo : animationHeader->mFrameInfos)
+            {
+                mUniqueFrameHeaderOffsets.insert(frameInfo->mFrameHeaderOffset);
+            }
+        }
+    }
+
+    void AnimSerializer::DebugDecodeAllFrames(IStream& stream)
+    {
+        for (const Uint32 frameHeaderOffset : mUniqueFrameHeaderOffsets)
+        {
+            DecodeFrame(stream, frameHeaderOffset);
+        }
+    }
+
+    std::vector<Uint8> AnimSerializer::DecodeFrame(IStream& stream, Uint32 frameOffset)
+    {
+        stream.Seek(frameOffset);
+
+        FrameHeader frameHeader;
+        stream.ReadUInt32(frameHeader.mMagic);
+        stream.ReadUInt8(frameHeader.mWidth);
+        stream.ReadUInt8(frameHeader.mHeight);
+        stream.ReadUInt8(frameHeader.mColourDepth);
+        stream.ReadUInt8(frameHeader.mCompressionType);
+        stream.ReadUInt32(frameHeader.mFrameDataSize);
+
+        Uint32 nTextureWidth = 0;
+        if (frameHeader.mColourDepth == 8)
+        {
+            nTextureWidth = ((frameHeader.mWidth + 3) / 2) & ~1;
+        }
+        else if (frameHeader.mColourDepth == 16)
+        {
+            nTextureWidth = ((frameHeader.mWidth + 1)) & ~1;
+        }
+        else
+        {
+            // 4?
+            assert(frameHeader.mColourDepth == 4);
+            nTextureWidth = ((frameHeader.mWidth + 7) / 4)&~1;
+        }
+
+        // TODO: Decompressors
+
+        switch (frameHeader.mCompressionType)
+        {
+        case 0:
+            // Used in AE and AO (seems to mean "no compression"?)
+            break;
+
+        // Run length encoding compression type
+        case 1:
+            // In AE but never used, used for AO
+            break;
+
+        case 2:
+            // In AE but never used, used for AO
+            break;
+
+        case 3:
+            break;
+
+        case 4:
+        case 5:
+            // Both AO and AE
+            break;
+
+        case 6:
+            // AE, never seems to get hit for sprites
+            abort();
+            break;
+
+        case 7:
+        case 8:
+            // AE, also never seems to be used
+            abort();
+            break;
+        }
+
+        // TODO: Apply pallete to decompressed frame
+
+        return std::vector<Uint8>();
     }
 
     // ==================================================
