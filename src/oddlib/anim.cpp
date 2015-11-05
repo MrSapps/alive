@@ -1,6 +1,7 @@
 #include "oddlib/anim.hpp"
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/stream.hpp"
+#include "logger.hpp"
 #include <assert.h>
 
 namespace Oddlib
@@ -196,6 +197,8 @@ namespace Oddlib
             assert(frameHeader.mColourDepth == 4);
             nTextureWidth = ((frameHeader.mWidth + 7) / 4)&~1;
         }
+
+        LOG_INFO("TextreWidth is " << nTextureWidth);
 
         // TODO: Decompressors
 
