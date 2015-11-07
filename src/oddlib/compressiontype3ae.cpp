@@ -40,18 +40,17 @@ static void ReadNextSource(Oddlib::IStream& stream, int& control_byte, T& dstInd
 
 namespace Oddlib
 {
-    std::vector<Uint8> CompressionType3Ae::Decompress(IStream& stream, Uint32 size, Uint32 w, Uint32 h)
+    std::vector<Uint8> CompressionType3Ae::Decompress(IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 /*dataSize*/)
     {
-        LOG_INFO("Data size is " << size);
-
-        // TODO: Shouldn't need to be * 4
-        std::vector< unsigned char > buffer(w*h * 4);
+        std::vector<Uint8> buffer(finalW*h);
         
+        //const auto streamStart = stream.Pos();
+
         int dstPos = 0;
         int control_byte = 0;
 
-        int width = ReadUint16(stream);
-        int height = ReadUint16(stream);
+        int width = w;
+        int height = h;
         if (height > 0)
         {
             unsigned int dstIndex = 0;
@@ -103,6 +102,9 @@ namespace Oddlib
                 }
             } while (height-- != 1);
         }
+
+        //const auto readSize = (stream.Pos() - streamStart);
+        //assert(readSize <= dataSize);
 
         return buffer;
     }

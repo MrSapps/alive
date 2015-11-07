@@ -277,8 +277,7 @@ namespace Oddlib
         case 3:
         {
             CompressionType3Ae d;
-            stream.Seek(stream.Pos() - sizeof(Uint32));
-            auto decompressedData = d.Decompress(stream, frameDataSize-sizeof(Uint32), nTextureWidth, frameHeader.mHeight);
+            auto decompressedData = d.Decompress(stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
             DebugSaveFrame(frameHeader, actualWidth, decompressedData);
         }
             break;
