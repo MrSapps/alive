@@ -3,6 +3,7 @@
 #include "oddlib/stream.hpp"
 #include "oddlib/compressiontype3ae.hpp"
 #include "logger.hpp"
+#include "sdl_raii.hpp"
 #include <assert.h>
 #include <fstream>
 
@@ -200,6 +201,26 @@ namespace Oddlib
         }
     }
 
+    void AnimSerializer::DebugSaveFrame(AnimSerializer::FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData)
+    {
+        // Apply the pallete
+        std::vector<Uint16> convertedBuffer;
+        for (auto v : decompressedData)
+        {
+            convertedBuffer.push_back(mPalt[v]);
+        }
+
+        // Create an SDL surface
+        const auto red_mask = 0xF800;
+        const auto green_mask = 0x7E0;
+        const auto blue_mask = 0x1F;
+        SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(convertedBuffer.data(), realWidth, header.mHeight, 16, realWidth*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+
+        // Save surface to disk
+        static int i = 1;
+        SDL_SaveBMP(surface.get(), ("frame" + std::to_string(i++) + ".bmp").c_str());
+    }
+
     std::vector<Uint8> AnimSerializer::DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize)
     {
         stream.Seek(frameOffset);
@@ -213,19 +234,23 @@ namespace Oddlib
         stream.ReadUInt32(frameHeader.mFrameDataSize);
 
         Uint32 nTextureWidth = 0;
+        Uint32 actualWidth = 0;
         if (frameHeader.mColourDepth == 8)
         {
             nTextureWidth = ((frameHeader.mWidth + 3) / 2) & ~1;
+            actualWidth = nTextureWidth * 2;
         }
         else if (frameHeader.mColourDepth == 16)
         {
             nTextureWidth = ((frameHeader.mWidth + 1)) & ~1;
+            actualWidth = nTextureWidth;
         }
         else
         {
             // 4?
             assert(frameHeader.mColourDepth == 4);
             nTextureWidth = ((frameHeader.mWidth + 7) / 4)&~1;
+            actualWidth = nTextureWidth * 4; // TODO: Check me
         }
 
         LOG_INFO("TextreWidth is " << nTextureWidth);
@@ -253,17 +278,8 @@ namespace Oddlib
         {
             CompressionType3Ae d;
             stream.Seek(stream.Pos() - sizeof(Uint32));
-            auto buffer = d.Decompress(stream, frameDataSize-sizeof(Uint32), nTextureWidth, frameHeader.mHeight);
-
-            std::vector<Uint16> convertedBuffer;
-            for (auto v : buffer)
-            {
-                convertedBuffer.push_back(mPalt[v]);
-            }
-
-            std::ofstream b;
-            b.open("Frame.dat", std::ios::binary);
-            b.write(reinterpret_cast<const char*>(convertedBuffer.data()), convertedBuffer.size());
+            auto decompressedData = d.Decompress(stream, frameDataSize-sizeof(Uint32), nTextureWidth, frameHeader.mHeight);
+            DebugSaveFrame(frameHeader, actualWidth, decompressedData);
         }
             break;
 
