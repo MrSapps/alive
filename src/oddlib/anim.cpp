@@ -290,7 +290,8 @@ namespace Oddlib
 
         case 6:
             // AE, never seems to get hit for sprites
-            abort();
+            // TODO: Actually does get hit, or hit because of some other parsing failure
+            //abort();
             break;
 
         case 7:

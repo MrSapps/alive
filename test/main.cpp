@@ -1942,26 +1942,26 @@ TEST(CdFs, Read_FileSystemLimits)
 
     ASSERT_GT(img.FileExists("LEVEL1\\LVL1.TXT"), 0);
     ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LVL2.TXT"), 0);
-    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LVL3.TXT"), 0);
-    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LVL4.TXT"), 0);
-    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LVL5.TXT"), 0);
-    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LVL6.TXT"), 0);
-    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL7.TXT"), 0);
-    ASSERT_EQ(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL77.TXT"), -1);
+ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LVL3.TXT"), 0);
+ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LVL4.TXT"), 0);
+ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LVL5.TXT"), 0);
+ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LVL6.TXT"), 0);
+ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL7.TXT"), 0);
+ASSERT_EQ(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL77.TXT"), -1);
 
-    ASSERT_GT(img.FileExists("TEST\\SECTORS1\\EXAMPLE.TXT"), 0);
-    ASSERT_GT(img.FileExists("TEST\\SECTORS2\\BIG.TXT"), 0);
-    ASSERT_GT(img.FileExists("TEST\\XA1\\SMALL.TXT"), 0);
-    ASSERT_GT(img.FileExists("TEST\\XA1\\BIG.TXT"), 0);
+ASSERT_GT(img.FileExists("TEST\\SECTORS1\\EXAMPLE.TXT"), 0);
+ASSERT_GT(img.FileExists("TEST\\SECTORS2\\BIG.TXT"), 0);
+ASSERT_GT(img.FileExists("TEST\\XA1\\SMALL.TXT"), 0);
+ASSERT_GT(img.FileExists("TEST\\XA1\\BIG.TXT"), 0);
 
-    auto data = img.ReadFile("TEST\\SECTORS1\\EXAMPLE.TXT", false);
+auto data = img.ReadFile("TEST\\SECTORS1\\EXAMPLE.TXT", false);
 
-    const std::string expected = "dir entries go over 1 sector size";
-    std::vector<Uint8> buffer(expected.size());
-    data->ReadBytes(buffer.data(), buffer.size());
+const std::string expected = "dir entries go over 1 sector size";
+std::vector<Uint8> buffer(expected.size());
+data->ReadBytes(buffer.data(), buffer.size());
 
-    std::string strData(reinterpret_cast<char*>(buffer.data()), buffer.size());
-    ASSERT_EQ(expected, strData);
+std::string strData(reinterpret_cast<char*>(buffer.data()), buffer.size());
+ASSERT_EQ(expected, strData);
 }
 
 TEST(CdFs, Read_XaSectors)
@@ -2013,7 +2013,7 @@ TEST(SubTitleParser, Parse)
         ASSERT_EQ(0u, p.Find(45296791u).size());
         ASSERT_EQ(0u, p.Find(1).size());
     }
-    
+
     // Test finding overlapping subtitle
     {
         SubTitleParser p("1\r\n12:34:56,789 --> 12:34:56,800\r\nFool1\r\n2\r\n12:34:56,789 --> 12:34:56,810\r\nFool2\r\n");
@@ -2035,6 +2035,23 @@ TEST(LvlArchive, DISABLED_Integration)
     // Load AE lvl
     Oddlib::LvlArchive lvl("MI.LVL");
 
+    for (Uint32 i = 0; i < lvl.FileCount(); i++)
+    {
+        Oddlib::LvlArchive::File* file = lvl.FileByIndex(i);
+        for (Uint32 j = 0; j < file->ChunkCount(); j++)
+        {
+            Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
+            if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
+            {
+                Oddlib::Stream stream(chunk->ReadData());
+                Oddlib::AnimSerializer anim(stream);
+            }
+        }
+    }
+
+
+
+    /*
     const auto file = lvl.FileByName("FLYSLIG.BND");
     ASSERT_NE(nullptr, file);
 
@@ -2050,7 +2067,7 @@ TEST(LvlArchive, DISABLED_Integration)
     Oddlib::LvlArchive lvl2("R1.LVL");
 
     std::vector<std::unique_ptr<Oddlib::Animation>> animations = Oddlib::AnimationFactory::Create(lvl, "FLYSLIG.BND", 450);
-
+    */
 
 
 }
