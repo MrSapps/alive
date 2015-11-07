@@ -31,7 +31,7 @@ namespace Oddlib
         void ParseFrameInfoHeaders(IStream& stream);
         void GatherUniqueFrameOffsets();
         void DebugDecodeAllFrames(IStream& stream);
-        std::vector<Uint8> DecodeFrame(IStream& stream, Uint32 frameOffset);
+        std::vector<Uint8> DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize);
 
         struct BanHeader
         {
@@ -102,8 +102,10 @@ namespace Oddlib
             Uint8 mCompressionType;
             Uint32 mFrameDataSize; // Actually 2 Uint16's in AE for W/H again
         };
+        static_assert(sizeof(FrameHeader) == 12, "Wrong frame header size");
 
         std::vector<std::unique_ptr<AnimationHeader>> mAnimationHeaders;
+        std::vector<Uint16> mPalt;
 
         bool mbIsAoFile = true;
     };

@@ -1,8 +1,10 @@
 #include "oddlib/anim.hpp"
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/stream.hpp"
+#include "oddlib/compressiontype3ae.hpp"
 #include "logger.hpp"
 #include <assert.h>
+#include <fstream>
 
 namespace Oddlib
 {
@@ -22,11 +24,30 @@ namespace Oddlib
         }
 
         // Read the palette
+        mPalt.reserve(h.mPaltSize);
         for (auto i = 0u; i < h.mPaltSize; i++)
         {
-            // TODO Palt obj
             Uint16 tmp = 0;
             stream.ReadUInt16(tmp);
+
+
+            unsigned int oldPixel = tmp;
+
+            // RGB555
+            unsigned short int green = (((oldPixel >> 5) & 0x1F) << 6);
+            unsigned short int blue = (((oldPixel >> 10) & 0x1F) << 0);
+            unsigned short int red = (((oldPixel >> 0) & 0x1F) << 11);
+
+            oldPixel = (static_cast<unsigned short int> (oldPixel) >> 15) & 0xffff; // Checking transparent bit?
+            if (oldPixel)
+            {
+                LOG_INFO("Transparent");
+            }
+
+            unsigned short int newPixel = red | blue | green;
+
+
+            mPalt.push_back(newPixel);
         }
 
         // Seek to frame table offset
@@ -35,6 +56,7 @@ namespace Oddlib
         ParseAnimationSets(stream);
         ParseFrameInfoHeaders(stream);
         GatherUniqueFrameOffsets();
+        mUniqueFrameHeaderOffsets.insert(h.mFrameTableOffSet);
         DebugDecodeAllFrames(stream);
     }
 
@@ -164,13 +186,21 @@ namespace Oddlib
 
     void AnimSerializer::DebugDecodeAllFrames(IStream& stream)
     {
-        for (const Uint32 frameHeaderOffset : mUniqueFrameHeaderOffsets)
+        auto endIt = mUniqueFrameHeaderOffsets.end();
+        std::advance(endIt, -2);
+
+        for (auto it = mUniqueFrameHeaderOffsets.begin(); it != endIt; it++)
         {
-            DecodeFrame(stream, frameHeaderOffset);
+            const Uint32 frameOffset = *it;
+            auto itCopy = it;
+            itCopy++;
+            const Uint32 nextFrameOffset = *itCopy;
+            const Uint32 frameDataSize = (nextFrameOffset - frameOffset) - sizeof(FrameHeader);
+            DecodeFrame(stream, frameOffset, frameDataSize);
         }
     }
 
-    std::vector<Uint8> AnimSerializer::DecodeFrame(IStream& stream, Uint32 frameOffset)
+    std::vector<Uint8> AnimSerializer::DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize)
     {
         stream.Seek(frameOffset);
 
@@ -202,6 +232,8 @@ namespace Oddlib
 
         // TODO: Decompressors
 
+        LOG_INFO("Compression type " << static_cast<Uint32>(frameHeader.mCompressionType));
+
         switch (frameHeader.mCompressionType)
         {
         case 0:
@@ -218,6 +250,21 @@ namespace Oddlib
             break;
 
         case 3:
+        {
+            CompressionType3Ae d;
+            stream.Seek(stream.Pos() - sizeof(Uint32));
+            auto buffer = d.Decompress(stream, frameDataSize-sizeof(Uint32), nTextureWidth, frameHeader.mHeight);
+
+            std::vector<Uint16> convertedBuffer;
+            for (auto v : buffer)
+            {
+                convertedBuffer.push_back(mPalt[v]);
+            }
+
+            std::ofstream b;
+            b.open("Frame.dat", std::ios::binary);
+            b.write(reinterpret_cast<const char*>(convertedBuffer.data()), convertedBuffer.size());
+        }
             break;
 
         case 4:

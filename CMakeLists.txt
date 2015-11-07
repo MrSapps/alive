@@ -171,6 +171,8 @@ SET(oddlib_src
     include/oddlib/psx_bits.hpp
     src/oddlib/bits_factory.cpp
     include/oddlib/bits_factory.hpp
+    include/oddlib/compressiontype3ae.hpp
+    src/oddlib/compressiontype3ae.cpp
 )
 
 add_library(oddlib STATIC
