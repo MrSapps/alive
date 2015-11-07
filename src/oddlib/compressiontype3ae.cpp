@@ -46,22 +46,19 @@ namespace Oddlib
 
         // TODO: Shouldn't need to be * 4
         std::vector< unsigned char > buffer(w*h * 4);
-
-        unsigned char *aDbufPtr = &buffer[0];
-        int dstIndex; // edx@2
-        unsigned char *dstPtr; // edi@2
-   
+        
+        int dstPos = 0;
         int control_byte = 0;
+
         int width = ReadUint16(stream);
         int height = ReadUint16(stream);
         if (height > 0)
         {
-            dstIndex = 0;// (int)aDbufPtr;
-            dstPtr = aDbufPtr;
+            int dstIndex = 0;
             do
             {
-                int count = 0;
-                while (count < width)
+                int columnNumber = 0;
+                while (columnNumber < width)
                 {
                     ReadNextSource(stream, control_byte, dstIndex);
 
@@ -70,18 +67,20 @@ namespace Oddlib
                      unsigned int srcByte = (unsigned int)dstIndex >> 6;
 
 
-                    const int bytesToWrite = blackBytes + count;
+                    const int bytesToWrite = blackBytes + columnNumber;
                     if (blackBytes > 0)
                     {
                         const unsigned int doubleBBytes = (unsigned int)blackBytes >> 2;
-                        memset(dstPtr, 0, 4 * doubleBBytes);
-                        unsigned char* dstBlackBytesPtr = &dstPtr[4 * doubleBBytes];
+                        for (auto i = 0u; i < 4 * doubleBBytes; i++)
+                        {
+                            buffer[dstPos + i] = 0;
+                        }
+
                         for (int i = blackBytes & 3; i; --i)
                         {
-                            *dstBlackBytesPtr++ = 0;
+                            buffer[(dstPos + 4 * doubleBBytes) + i] = 0;
                         }
-                        dstPtr = &aDbufPtr[blackBytes];
-                        aDbufPtr += blackBytes;
+                        dstPos += blackBytes;
                     }
 
                     ReadNextSource(stream, control_byte, srcByte);
@@ -89,7 +88,7 @@ namespace Oddlib
                     const unsigned char bytes = srcByte & 0x3F;
                     dstIndex = srcByte >> 6;
 
-                    count = bytes + bytesToWrite;
+                    columnNumber = bytes + bytesToWrite;
                     if (bytes > 0)
                     {
                         int byteCount = bytes;
@@ -100,20 +99,19 @@ namespace Oddlib
                             const char dstByte = dstIndex & 0x3F;
                             dstIndex = (unsigned int)dstIndex >> 6;
 
-                            *dstPtr++ = dstByte;
+                            buffer[dstPos] = dstByte;
+                            dstPos++;
                             --byteCount;
                         } while (byteCount);
-                        aDbufPtr = dstPtr;
                     }
                 }
-                if (count & 3)
+                if (columnNumber & 3)
                 {
                     do
                     {
-                        ++dstPtr;
-                        ++count;
-                    } while (count & 3);
-                    aDbufPtr = dstPtr;
+                        ++dstPos;
+                        ++columnNumber;
+                    } while (columnNumber & 3);
                 }
             } while (height-- != 1);
         }
