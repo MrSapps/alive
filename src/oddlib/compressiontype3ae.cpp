@@ -56,21 +56,19 @@ namespace Oddlib
         unsigned char blackBytes; // al@8
         unsigned int srcByte; // edx@8
         int bytesToWrite; // ebx@8
-        int control_byte_sub6; // esi@8
         int i; // ecx@9
         unsigned char *dstBlackBytesPtr; // edi@9
         unsigned int doubleBBytes; // ecx@9
         int byteCount; // ecx@18
         char dstByte; // al@23
-        int v18; // [sp+8h] [bp-14h]@1
-        int v19; // [sp+8h] [bp-14h]@8
+
         int width; // [sp+10h] [bp-Ch]@1
         int height; // [sp+14h] [bp-8h]@2
         unsigned char bytes; // [sp+20h] [bp+4h]@17
 
         control_byte = 0;
         width = ReadUint16(stream);
-        v18 = 0;
+
         height = ReadUint16(stream);
         if (height > 0)
         {
@@ -84,10 +82,10 @@ namespace Oddlib
                     ReadNextSource(stream, control_byte, dstIndex);
 
                     blackBytes = dstIndex & 0x3F;
-                    control_byte_sub6 = control_byte - 6;
+                    control_byte = control_byte - 6;
                     srcByte = (unsigned int)dstIndex >> 6;
 
-                    v19 = v18 - 1;
+
                     bytesToWrite = blackBytes + count;
                     if (blackBytes > 0)
                     {
@@ -102,18 +100,17 @@ namespace Oddlib
                         aDbufPtr += blackBytes;
                     }
 
-                    ReadNextSource(stream, control_byte_sub6, srcByte);
+                    ReadNextSource(stream, control_byte, srcByte);
 
-                    control_byte = control_byte_sub6 - 6;
+                    control_byte = control_byte - 6;
                     bytes = srcByte & 0x3F;
                     dstIndex = srcByte >> 6;
 
-                    v18 = v19 - 1;
                     count = bytes + bytesToWrite;
                     if ((signed int)bytes > 0)
                     {
                         byteCount = bytes;
-                        v18 -= bytes;
+    
                         do
                         {
                             ReadNextSource(stream, control_byte, dstIndex);
