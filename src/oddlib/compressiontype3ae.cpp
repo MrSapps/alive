@@ -54,7 +54,7 @@ namespace Oddlib
         int height = ReadUint16(stream);
         if (height > 0)
         {
-            int dstIndex = 0;
+            unsigned int dstIndex = 0;
             do
             {
                 int columnNumber = 0;
@@ -63,26 +63,14 @@ namespace Oddlib
                     ReadNextSource(stream, control_byte, dstIndex);
 
                     const unsigned char blackBytes = dstIndex & 0x3F;
-                   
-                     unsigned int srcByte = (unsigned int)dstIndex >> 6;
+                    unsigned int srcByte = dstIndex >> 6;
 
-
+                    // Here the "black" bytes would be written, since our buffers are inited to zeros we
+                    // don't have to worry about getting this bit correct
                     const int bytesToWrite = blackBytes + columnNumber;
-                    if (blackBytes > 0)
-                    {
-                        const unsigned int doubleBBytes = (unsigned int)blackBytes >> 2;
-                        for (auto i = 0u; i < 4 * doubleBBytes; i++)
-                        {
-                            buffer[dstPos + i] = 0;
-                        }
-
-                        for (int i = blackBytes & 3; i; --i)
-                        {
-                            buffer[(dstPos + 4 * doubleBBytes) + i] = 0;
-                        }
-                        dstPos += blackBytes;
-                    }
-
+          
+                    // Pretend we just blacked out an area
+                    dstPos += blackBytes;
                     ReadNextSource(stream, control_byte, srcByte);
 
                     const unsigned char bytes = srcByte & 0x3F;
@@ -97,7 +85,7 @@ namespace Oddlib
                             ReadNextSource(stream, control_byte, dstIndex);
                           
                             const char dstByte = dstIndex & 0x3F;
-                            dstIndex = (unsigned int)dstIndex >> 6;
+                            dstIndex = dstIndex >> 6;
 
                             buffer[dstPos] = dstByte;
                             dstPos++;
