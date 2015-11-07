@@ -34,6 +34,7 @@ static void ReadNextSource(Oddlib::IStream& stream, int& control_byte, T& dstInd
         dstIndex = ReadUint32(stream);
         control_byte = 0x20u;
     }
+    control_byte -= 6;
 }
 
 
@@ -43,56 +44,39 @@ namespace Oddlib
     {
         LOG_INFO("Data size is " << size);
 
-
         // TODO: Shouldn't need to be * 4
         std::vector< unsigned char > buffer(w*h * 4);
 
         unsigned char *aDbufPtr = &buffer[0];
-
-        int control_byte; // esi@1
         int dstIndex; // edx@2
         unsigned char *dstPtr; // edi@2
-        int count; // ebx@3
-        unsigned char blackBytes; // al@8
-        unsigned int srcByte; // edx@8
-        int bytesToWrite; // ebx@8
-        int i; // ecx@9
-        unsigned char *dstBlackBytesPtr; // edi@9
-        unsigned int doubleBBytes; // ecx@9
-        int byteCount; // ecx@18
-        char dstByte; // al@23
-
-        int width; // [sp+10h] [bp-Ch]@1
-        int height; // [sp+14h] [bp-8h]@2
-        unsigned char bytes; // [sp+20h] [bp+4h]@17
-
-        control_byte = 0;
-        width = ReadUint16(stream);
-
-        height = ReadUint16(stream);
+   
+        int control_byte = 0;
+        int width = ReadUint16(stream);
+        int height = ReadUint16(stream);
         if (height > 0)
         {
             dstIndex = 0;// (int)aDbufPtr;
             dstPtr = aDbufPtr;
             do
             {
-                count = 0;
+                int count = 0;
                 while (count < width)
                 {
                     ReadNextSource(stream, control_byte, dstIndex);
 
-                    blackBytes = dstIndex & 0x3F;
-                    control_byte = control_byte - 6;
-                    srcByte = (unsigned int)dstIndex >> 6;
+                    const unsigned char blackBytes = dstIndex & 0x3F;
+                   
+                     unsigned int srcByte = (unsigned int)dstIndex >> 6;
 
 
-                    bytesToWrite = blackBytes + count;
+                    const int bytesToWrite = blackBytes + count;
                     if (blackBytes > 0)
                     {
-                        doubleBBytes = (unsigned int)blackBytes >> 2;
+                        const unsigned int doubleBBytes = (unsigned int)blackBytes >> 2;
                         memset(dstPtr, 0, 4 * doubleBBytes);
-                        dstBlackBytesPtr = &dstPtr[4 * doubleBBytes];
-                        for (i = blackBytes & 3; i; --i)
+                        unsigned char* dstBlackBytesPtr = &dstPtr[4 * doubleBBytes];
+                        for (int i = blackBytes & 3; i; --i)
                         {
                             *dstBlackBytesPtr++ = 0;
                         }
@@ -102,21 +86,18 @@ namespace Oddlib
 
                     ReadNextSource(stream, control_byte, srcByte);
 
-                    control_byte = control_byte - 6;
-                    bytes = srcByte & 0x3F;
+                    const unsigned char bytes = srcByte & 0x3F;
                     dstIndex = srcByte >> 6;
 
                     count = bytes + bytesToWrite;
-                    if ((signed int)bytes > 0)
+                    if (bytes > 0)
                     {
-                        byteCount = bytes;
-    
+                        int byteCount = bytes;
                         do
                         {
                             ReadNextSource(stream, control_byte, dstIndex);
-
-                            control_byte -= 6;
-                            dstByte = dstIndex & 0x3F;
+                          
+                            const char dstByte = dstIndex & 0x3F;
                             dstIndex = (unsigned int)dstIndex >> 6;
 
                             *dstPtr++ = dstByte;
