@@ -18,36 +18,37 @@ static Uint32 ReadUint32(Oddlib::IStream& stream)
     return ret;
 }
 
+template<typename T>
+static void ReadNextSource(Oddlib::IStream& stream, int& control_byte, T& dstIndex)
+{
+    if (control_byte)
+    {
+        if (control_byte == 0xE)
+        {
+            control_byte = 0x1Eu;
+            dstIndex |= ReadUint16(stream) << 14;
+        }
+    }
+    else
+    {
+        dstIndex = ReadUint32(stream);
+        control_byte = 0x20u;
+    }
+}
+
+
 namespace Oddlib
 {
     std::vector<Uint8> CompressionType3Ae::Decompress(IStream& stream, Uint32 size, Uint32 w, Uint32 h)
     {
-        std::vector<Uint8> ret;
-
         LOG_INFO("Data size is " << size);
 
-        //Uint32 unknown = 0;
-        //stream.ReadUInt32(unknown);
-        //assert(unknown == size);
-        /*
-        std::vector<Uint8> tmp(size);
-        stream.ReadBytes(tmp.data(), tmp.size());
-        tmp.resize(tmp.size());
 
-        // QByteArray d = aFrame.iFrameData.mid(4);
-        unsigned char* aAnimDataPtr = (unsigned char*)tmp.data(); // (unsigned char*)d.data();
-
-        unsigned short int *aFramePtr = (unsigned short int *)aAnimDataPtr;
-        */
-
-        std::vector< unsigned char > buffer;
-
-        buffer.resize(w*h*4);  // Ensure big enough via a guess!
+        // TODO: Shouldn't need to be * 4
+        std::vector< unsigned char > buffer(w*h * 4);
 
         unsigned char *aDbufPtr = &buffer[0];
 
-        int height_copy; // eax@1
-       // unsigned short int *srcPtr; // ebp@1
         int control_byte; // esi@1
         int dstIndex; // edx@2
         unsigned char *dstPtr; // edi@2
@@ -70,61 +71,43 @@ namespace Oddlib
         control_byte = 0;
         width = ReadUint16(stream);
         v18 = 0;
-        height_copy = ReadUint16(stream);
-        if (height_copy > 0)
+        height = ReadUint16(stream);
+        if (height > 0)
         {
-            dstIndex = (int)aDbufPtr;
+            dstIndex = 0;// (int)aDbufPtr;
             dstPtr = aDbufPtr;
-            height = height_copy;
             do
             {
                 count = 0;
                 while (count < width)
                 {
-                    if (control_byte)
-                    {
-                        if (control_byte == 0xE)
-                        {
-                            control_byte = 0x1Eu;
-                            dstIndex |= ReadUint16(stream) << 14;
-                        }
-                    }
-                    else
-                    {
-                        dstIndex = ReadUint32(stream);
-                        control_byte = 0x20u;
-                    }
+                    ReadNextSource(stream, control_byte, dstIndex);
+
                     blackBytes = dstIndex & 0x3F;
                     control_byte_sub6 = control_byte - 6;
                     srcByte = (unsigned int)dstIndex >> 6;
+
                     v19 = v18 - 1;
                     bytesToWrite = blackBytes + count;
-                    if ((signed int)blackBytes > 0)
+                    if (blackBytes > 0)
                     {
                         doubleBBytes = (unsigned int)blackBytes >> 2;
                         memset(dstPtr, 0, 4 * doubleBBytes);
                         dstBlackBytesPtr = &dstPtr[4 * doubleBBytes];
                         for (i = blackBytes & 3; i; --i)
+                        {
                             *dstBlackBytesPtr++ = 0;
+                        }
                         dstPtr = &aDbufPtr[blackBytes];
                         aDbufPtr += blackBytes;
                     }
-                    if (control_byte_sub6)
-                    {
-                        if (control_byte_sub6 == 0xE)
-                        {
-                            control_byte_sub6 = 0x1Eu;
-                            srcByte |= ReadUint16(stream) << 14;
-                        }
-                    }
-                    else
-                    {
-                        srcByte = ReadUint32(stream);
-                        control_byte_sub6 = 0x20u;
-                    }
+
+                    ReadNextSource(stream, control_byte_sub6, srcByte);
+
                     control_byte = control_byte_sub6 - 6;
                     bytes = srcByte & 0x3F;
                     dstIndex = srcByte >> 6;
+
                     v18 = v19 - 1;
                     count = bytes + bytesToWrite;
                     if ((signed int)bytes > 0)
@@ -133,22 +116,12 @@ namespace Oddlib
                         v18 -= bytes;
                         do
                         {
-                            if (control_byte)
-                            {
-                                if (control_byte == 0xE)
-                                {
-                                    control_byte = 0x1Eu;
-                                    dstIndex |= ReadUint16(stream) << 14;
-                                }
-                            }
-                            else
-                            {
-                                dstIndex = ReadUint32(stream);
-                                control_byte = 0x20u;
-                            }
+                            ReadNextSource(stream, control_byte, dstIndex);
+
                             control_byte -= 6;
                             dstByte = dstIndex & 0x3F;
                             dstIndex = (unsigned int)dstIndex >> 6;
+
                             *dstPtr++ = dstByte;
                             --byteCount;
                         } while (byteCount);
@@ -164,7 +137,6 @@ namespace Oddlib
                     } while (count & 3);
                     aDbufPtr = dstPtr;
                 }
-                height_copy = height - 1;
             } while (height-- != 1);
         }
 
