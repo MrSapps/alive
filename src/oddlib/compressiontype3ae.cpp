@@ -4,24 +4,18 @@
 #include <vector>
 #include <cassert>
 
-void commonLogic1(int& control_byte_sub6, unsigned int& srcByte, unsigned short int*& srcPtr)
+static Uint16 ReadUint16(Oddlib::IStream& stream)
 {
-    if (control_byte_sub6)
-    {
-        if (control_byte_sub6 == 0xE)
-        {
-            control_byte_sub6 = 0x1Eu;
-            srcByte |= *srcPtr << 14;
-            ++srcPtr;
-        }
-    }
-    else
-    {
-        srcByte = *(unsigned int *)srcPtr;
-        control_byte_sub6 = 0x20u;
-        srcPtr += 2;
-    }
-    control_byte_sub6 -= 6;
+    Uint16 ret = 0;
+    stream.ReadUInt16(ret);
+    return ret;
+}
+
+static Uint32 ReadUint32(Oddlib::IStream& stream)
+{
+    Uint32 ret = 0;
+    stream.ReadUInt32(ret);
+    return ret;
 }
 
 namespace Oddlib
@@ -35,6 +29,7 @@ namespace Oddlib
         //Uint32 unknown = 0;
         //stream.ReadUInt32(unknown);
         //assert(unknown == size);
+        /*
         std::vector<Uint8> tmp(size);
         stream.ReadBytes(tmp.data(), tmp.size());
         tmp.resize(tmp.size());
@@ -43,7 +38,7 @@ namespace Oddlib
         unsigned char* aAnimDataPtr = (unsigned char*)tmp.data(); // (unsigned char*)d.data();
 
         unsigned short int *aFramePtr = (unsigned short int *)aAnimDataPtr;
-
+        */
 
         std::vector< unsigned char > buffer;
 
@@ -52,7 +47,7 @@ namespace Oddlib
         unsigned char *aDbufPtr = &buffer[0];
 
         int height_copy; // eax@1
-        unsigned short int *srcPtr; // ebp@1
+       // unsigned short int *srcPtr; // ebp@1
         int control_byte; // esi@1
         int dstIndex; // edx@2
         unsigned char *dstPtr; // edi@2
@@ -73,15 +68,14 @@ namespace Oddlib
         unsigned char bytes; // [sp+20h] [bp+4h]@17
 
         control_byte = 0;
-        width = *aFramePtr;                           // Byte 0 is W
+        width = ReadUint16(stream);
         v18 = 0;
-        height_copy = aFramePtr[1];                   // Byte 1 is H
-        srcPtr = aFramePtr + 2;                       // Data after W/H
+        height_copy = ReadUint16(stream);
         if (height_copy > 0)
         {
             dstIndex = (int)aDbufPtr;
             dstPtr = aDbufPtr;
-            height = aFramePtr[1];
+            height = height_copy;
             do
             {
                 count = 0;
@@ -92,15 +86,13 @@ namespace Oddlib
                         if (control_byte == 0xE)
                         {
                             control_byte = 0x1Eu;
-                            dstIndex |= *srcPtr << 14;
-                            ++srcPtr;
+                            dstIndex |= ReadUint16(stream) << 14;
                         }
                     }
                     else
                     {
-                        dstIndex = *(unsigned int *)srcPtr;
+                        dstIndex = ReadUint32(stream);
                         control_byte = 0x20u;
-                        srcPtr += 2;
                     }
                     blackBytes = dstIndex & 0x3F;
                     control_byte_sub6 = control_byte - 6;
@@ -122,15 +114,13 @@ namespace Oddlib
                         if (control_byte_sub6 == 0xE)
                         {
                             control_byte_sub6 = 0x1Eu;
-                            srcByte |= *srcPtr << 14;
-                            ++srcPtr;
+                            srcByte |= ReadUint16(stream) << 14;
                         }
                     }
                     else
                     {
-                        srcByte = *(unsigned int *)srcPtr;
+                        srcByte = ReadUint32(stream);
                         control_byte_sub6 = 0x20u;
-                        srcPtr += 2;
                     }
                     control_byte = control_byte_sub6 - 6;
                     bytes = srcByte & 0x3F;
@@ -148,15 +138,13 @@ namespace Oddlib
                                 if (control_byte == 0xE)
                                 {
                                     control_byte = 0x1Eu;
-                                    dstIndex |= *srcPtr << 14;
-                                    ++srcPtr;
+                                    dstIndex |= ReadUint16(stream) << 14;
                                 }
                             }
                             else
                             {
-                                dstIndex = *(unsigned int *)srcPtr;
+                                dstIndex = ReadUint32(stream);
                                 control_byte = 0x20u;
-                                srcPtr += 2;
                             }
                             control_byte -= 6;
                             dstByte = dstIndex & 0x3F;
