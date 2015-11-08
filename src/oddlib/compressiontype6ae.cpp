@@ -61,20 +61,6 @@ namespace Oddlib
                     srcByteBits = ReadNibble(stream, bReadLow, srcByte);
                     bReadLowNibble = !bReadLow;
 
-                    /*
-                    if (bReadLow)
-                    {
-                        srcByteBits = srcByte >> 4;
-                        bReadLowNibble = 0;
-                    }
-                    else
-                    {
-                        bReadLowNibble = 1;
-                        srcByte = ReadUInt8(stream);
-                        srcByteBits = srcByte & 0xF;
-                    }
-                    */
-
                     cnt = srcByteBits;
                     bits_and_byte_count = srcByteBits + byteCounter;
                     if (srcByteBits > 0)
@@ -95,17 +81,8 @@ namespace Oddlib
                         } while (cnt);
                     }
 
-                    if (bReadLowNibble)
-                    {
-                        srcByteBits2 = srcByte >> 4;
-                        bReadLow = 0;
-                    }
-                    else
-                    {
-                        bReadLow = 1;
-                        srcByte = ReadUInt8(stream);
-                        srcByteBits2 = srcByte & 0xF;
-                    }
+                    srcByteBits2 = ReadNibble(stream, bReadLowNibble, srcByte);
+                    bReadLow = !bReadLowNibble;
 
                     byteCounter = srcByteBits2 + bits_and_byte_count;
                     if (srcByteBits2 > 0)
@@ -113,17 +90,9 @@ namespace Oddlib
                         bitCount = srcByteBits2;
                         do
                         {
-                            if (bReadLow)
-                            {
-                                dstByte.b[0] = srcByte >> 4;
-                                bReadLow = 0;
-                            }
-                            else
-                            {
-                                bReadLow = 1;
-                                srcByte = ReadUInt8(stream);
-                                dstByte.b[0] = srcByte & 0xF;
-                            }
+                            dstByte.b[0] = ReadNibble(stream, bReadLow, srcByte);
+                            bReadLow = !bReadLow;
+
 
                             if (bBitsWriten)
                             {
