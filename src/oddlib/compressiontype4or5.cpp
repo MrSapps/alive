@@ -5,6 +5,7 @@ namespace Oddlib
 {
     // 0xxx xxxx = string of literals (1 to 128)
     // 1xxx xxyy yyyy yyyy = copy from y bytes back, x bytes
+    // Function 0x004ABAB0 in AE
     std::vector<Uint8> CompressionType4Or5::Decompress(IStream& stream, Uint32 /*finalW*/, Uint32 /*w*/, Uint32 /*h*/, Uint32 /*dataSize*/)
     {
         stream.Seek(stream.Pos() - 4);

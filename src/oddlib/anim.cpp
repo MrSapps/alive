@@ -256,7 +256,7 @@ namespace Oddlib
 
         // TODO: Decompressors
 
-        if (frameHeader.mCompressionType != 3)
+        if (frameHeader.mCompressionType != 3 && frameHeader.mCompressionType != 0 && frameHeader.mCompressionType != 4)
         {
             LOG_INFO("Compression type " << static_cast<Uint32>(frameHeader.mCompressionType));
         }
@@ -277,15 +277,16 @@ namespace Oddlib
 
         // Run length encoding compression type
         case 1:
-            // In AE but never used, used for AO
+            // In AE but never used, used for AO, same algorithm, 0x0040A610 in AE
             break;
 
         case 2:
-            // In AE but never used, used for AO
+            // In AE but never used, used for AO, same algorithm, 0x0040AA50 in AE
             break;
 
         case 3:
         {
+            // Not the same algo in AO?
             CompressionType3Ae d;
             auto decompressedData = d.Decompress(stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
             //DebugSaveFrame(frameHeader, actualWidth, decompressedData);
@@ -298,7 +299,7 @@ namespace Oddlib
         {
             CompressionType4Or5 d;
             auto decompressedData = d.Decompress(stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
-            DebugSaveFrame(frameHeader, actualWidth, decompressedData);
+            //DebugSaveFrame(frameHeader, actualWidth, decompressedData);
         }
             break;
 
@@ -306,6 +307,7 @@ namespace Oddlib
             // AE, never seems to get hit for sprites
             // TODO: Actually does get hit, or hit because of some other parsing failure
             //abort();
+            LOG_INFO("Type 6");
             break;
 
         case 7:
