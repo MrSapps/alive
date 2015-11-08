@@ -3,6 +3,7 @@
 #include "oddlib/stream.hpp"
 #include "oddlib/compressiontype3ae.hpp"
 #include "oddlib/compressiontype4or5.hpp"
+#include "oddlib/compressiontype6ae.hpp"
 #include "logger.hpp"
 #include "sdl_raii.hpp"
 #include <assert.h>
@@ -206,20 +207,50 @@ namespace Oddlib
     {
         // Apply the pallete
         std::vector<Uint16> convertedBuffer;
-        for (auto v : decompressedData)
+        if (header.mColourDepth == 8)
         {
-            convertedBuffer.push_back(mPalt[v]);
+            for (auto v : decompressedData)
+            {
+                convertedBuffer.push_back(mPalt[v]);
+            }
+            // Create an SDL surface
+            const auto red_mask = 0xF800;
+            const auto green_mask = 0x7E0;
+            const auto blue_mask = 0x1F;
+            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(convertedBuffer.data(), realWidth, header.mHeight, 16, realWidth*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+
+            // Save surface to disk
+            static int i = 1;
+            SDL_SaveBMP(surface.get(), ("frame" + std::to_string(i++) + ".bmp").c_str());
+        }
+        else if (header.mColourDepth == 4)
+        {
+#define HI_NIBBLE(b) (((b) >> 4) & 0x0F)
+#define LO_NIBBLE(b) ((b) & 0x0F)
+
+            for (auto v : decompressedData)
+            {
+                convertedBuffer.push_back(mPalt[LO_NIBBLE(v)]);
+                convertedBuffer.push_back(mPalt[HI_NIBBLE(v)]);
+            
+            }
+
+            // Create an SDL surface
+            const auto red_mask = 0xF800;
+            const auto green_mask = 0x7E0;
+            const auto blue_mask = 0x1F;
+            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(convertedBuffer.data(), realWidth, header.mHeight, 16, realWidth*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+
+            // Save surface to disk
+            static int i = 1;
+            SDL_SaveBMP(surface.get(), ("frame" + std::to_string(i++) + ".bmp").c_str());
+        }
+        else
+        {
+            abort();
         }
 
-        // Create an SDL surface
-        const auto red_mask = 0xF800;
-        const auto green_mask = 0x7E0;
-        const auto blue_mask = 0x1F;
-        SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(convertedBuffer.data(), realWidth, header.mHeight, 16, realWidth*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
-
-        // Save surface to disk
-        static int i = 1;
-        SDL_SaveBMP(surface.get(), ("frame" + std::to_string(i++) + ".bmp").c_str());
+    
     }
 
     std::vector<Uint8> AnimSerializer::DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize)
@@ -303,11 +334,13 @@ namespace Oddlib
         }
             break;
 
+        // AO cases end at 5
         case 6:
-            // AE, never seems to get hit for sprites
-            // TODO: Actually does get hit, or hit because of some other parsing failure
-            //abort();
-            LOG_INFO("Type 6");
+        {
+            CompressionType6Ae d;
+            auto decompressedData = d.Decompress(stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
+            DebugSaveFrame(frameHeader, actualWidth, decompressedData);
+        }
             break;
 
         case 7:
