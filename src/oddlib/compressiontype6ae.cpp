@@ -6,15 +6,17 @@
 
 namespace Oddlib
 {
-    static Uint8 ReadNibble(IStream& stream, bool readLo, Uint8& srcByte)
+    static Uint8 NextNibble(IStream& stream, bool& readLo, Uint8& srcByte)
     {
         if (readLo)
         {
+            readLo = !readLo;
             return srcByte >> 4;
         }
         else
         {
             srcByte = ReadUInt8(stream);
+            readLo = !readLo;
             return srcByte & 0xF;
         }
     }
@@ -24,13 +26,6 @@ namespace Oddlib
     {
         std::vector<Uint8> out(finalW*h);
 
-        Uint8 srcByte; // edx@2
-
-        Uint32 byteCounter; // eax@3
-        bool bNibbleToRead = false; // ebp@5
-        Sint32 bits_and_byte_count; // eax@7
-        Sint32 cnt; // ecx@7
-        Sint32 bitCount; // eax@16
 
         union intUni
         {
@@ -39,25 +34,23 @@ namespace Oddlib
         } dstByte;
 
 
-        const Sint32 height = h;
+        bool bNibbleToRead = false; // ebp@5
         bool bBitsWriten = false;
         
         Uint32 dstPos = 0;
 
-        if (height > 0)
+        if (h > 0)
         {
-            srcByte = 0;
-            Sint32 heightCounter = height;
+            Uint8 srcByte = 0;
+            Sint32 heightCounter = h;
             do
             {
-                byteCounter = 0;
+                Uint32 byteCounter = 0;
                 while (byteCounter < w)
                 {
-                    Uint8 nibble = ReadNibble(stream, bNibbleToRead, srcByte);
-                    bNibbleToRead = !bNibbleToRead;
+                    Uint8 nibble = NextNibble(stream, bNibbleToRead, srcByte);
+                    byteCounter += nibble;
 
-                    cnt = nibble;
-                    bits_and_byte_count = nibble + byteCounter;
                     if (nibble > 0)
                     {
                         do
@@ -71,22 +64,19 @@ namespace Oddlib
                                 out[dstPos] = 0;
                             }
                             bBitsWriten = !bBitsWriten;
-                            --cnt;
-                        } while (cnt);
+                            --nibble;
+                        } while (nibble);
                     }
 
-                    nibble = ReadNibble(stream, bNibbleToRead, srcByte);
-                    bNibbleToRead = !bNibbleToRead;
+                    nibble = NextNibble(stream, bNibbleToRead, srcByte);
+                    byteCounter += nibble;
 
-                    byteCounter = nibble + bits_and_byte_count;
                     if (nibble > 0)
                     {
-                        bitCount = nibble;
                         do
                         {
-                            dstByte.b[0] = ReadNibble(stream, bNibbleToRead, srcByte);
-                            bNibbleToRead = !bNibbleToRead;
-
+                            dstByte.b[0] = NextNibble(stream, bNibbleToRead, srcByte);
+                         
 
                             if (bBitsWriten)
                             {
@@ -98,7 +88,7 @@ namespace Oddlib
                                 out[dstPos] = dstByte.b[0];
                                 bBitsWriten = 1;
                             }
-                        } while (--bitCount);
+                        } while (--nibble);
                     }
                 }
 
