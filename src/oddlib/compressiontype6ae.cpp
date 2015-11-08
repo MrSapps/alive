@@ -12,7 +12,7 @@ namespace Oddlib
     {
         std::vector<Uint8> out(finalW*h);
 
-        Uint32 srcByte; // edx@2
+        Uint8 srcByte; // edx@2
 
         Sint32 byteCounter; // eax@3
         Sint32 bReadLowNibble; // ebp@5
@@ -49,7 +49,7 @@ namespace Oddlib
 
                     if (bReadLow)
                     {
-                        srcByteBits = static_cast<Uint8>(srcByte >> 4);
+                        srcByteBits = srcByte >> 4;
                         bReadLowNibble = 0;
                     }
                     else
@@ -81,7 +81,7 @@ namespace Oddlib
 
                     if (bReadLowNibble)
                     {
-                        srcByteBits2 = static_cast<Uint8>(srcByte >> 4);
+                        srcByteBits2 = srcByte >> 4;
                         bReadLow = 0;
                     }
                     else
@@ -99,24 +99,24 @@ namespace Oddlib
                         {
                             if (bReadLow)
                             {
-                                dstByte.i = srcByte >> 4;
+                                dstByte.b[0] = srcByte >> 4;
                                 bReadLow = 0;
                             }
                             else
                             {
                                 bReadLow = 1;
                                 srcByte = ReadUInt8(stream);
-                                dstByte.b[0] = static_cast<Uint8>(srcByte & 0xF);
+                                dstByte.b[0] = srcByte & 0xF;
                             }
 
                             if (bBitsWriten)
                             {
-                                out[dstPos++] |= 16 * (Uint8)dstByte.i;
+                                out[dstPos++] |= 16 * dstByte.b[0];
                                 bBitsWriten = 0;
                             }
                             else
                             {
-                                out[dstPos] = static_cast<Uint8>(dstByte.i);
+                                out[dstPos] = dstByte.b[0];
                                 bBitsWriten = 1;
                             }
                         } while (--bitCount);
