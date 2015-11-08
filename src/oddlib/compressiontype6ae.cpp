@@ -26,17 +26,8 @@ namespace Oddlib
     {
         std::vector<Uint8> out(finalW*h);
 
-
-        union intUni
-        {
-            Uint8 b[4];
-            int i;
-        } dstByte;
-
-
-        bool bNibbleToRead = false; // ebp@5
-        bool bBitsWriten = false;
-        
+        bool bNibbleToRead = false;
+        bool bSkip = false;
         Uint32 dstPos = 0;
 
         if (h > 0)
@@ -45,17 +36,17 @@ namespace Oddlib
             Sint32 heightCounter = h;
             do
             {
-                Uint32 byteCounter = 0;
-                while (byteCounter < w)
+                Uint32 widthCounter = 0;
+                while (widthCounter < w)
                 {
                     Uint8 nibble = NextNibble(stream, bNibbleToRead, srcByte);
-                    byteCounter += nibble;
+                    widthCounter += nibble;
 
                     if (nibble > 0)
                     {
                         do
                         {
-                            if (bBitsWriten)
+                            if (bSkip)
                             {
                                 dstPos++;
                             }
@@ -63,38 +54,36 @@ namespace Oddlib
                             {
                                 out[dstPos] = 0;
                             }
-                            bBitsWriten = !bBitsWriten;
+                            bSkip = !bSkip;
                             --nibble;
                         } while (nibble);
                     }
 
                     nibble = NextNibble(stream, bNibbleToRead, srcByte);
-                    byteCounter += nibble;
+                    widthCounter += nibble;
 
                     if (nibble > 0)
                     {
                         do
                         {
-                            dstByte.b[0] = NextNibble(stream, bNibbleToRead, srcByte);
-                         
-
-                            if (bBitsWriten)
+                            const Uint8 data = NextNibble(stream, bNibbleToRead, srcByte);
+                            if (bSkip)
                             {
-                                out[dstPos++] |= 16 * dstByte.b[0];
-                                bBitsWriten = 0;
+                                out[dstPos++] |= 16 * data;
+                                bSkip = 0;
                             }
                             else
                             {
-                                out[dstPos] = dstByte.b[0];
-                                bBitsWriten = 1;
+                                out[dstPos] = data;
+                                bSkip = 1;
                             }
                         } while (--nibble);
                     }
                 }
 
-                for (; byteCounter & 7; ++byteCounter)
+                for (; widthCounter & 7; ++widthCounter)
                 {
-                    if (bBitsWriten)
+                    if (bSkip)
                     {
                         dstPos++;
                     }
@@ -102,7 +91,7 @@ namespace Oddlib
                     {
                         out[dstPos] = 0;
                     }
-                    bBitsWriten = !bBitsWriten;
+                    bSkip = !bSkip;
                 }
 
             } while (heightCounter-- != 1);
