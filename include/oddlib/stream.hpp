@@ -27,6 +27,27 @@ namespace Oddlib
         virtual std::string LoadAllToString() = 0;
     };
 
+    inline Uint16 ReadUint16(IStream& stream)
+    {
+        Uint16 ret = 0;
+        stream.ReadUInt16(ret);
+        return ret;
+    }
+
+    inline Uint32 ReadUint32(IStream& stream)
+    {
+        Uint32 ret = 0;
+        stream.ReadUInt32(ret);
+        return ret;
+    }
+
+    inline Uint8 ReadUInt8(IStream& stream)
+    {
+        Uint8 ret = 0;
+        stream.ReadUInt8(ret);
+        return ret;
+    }
+
     class Stream : public IStream
     {
     public:

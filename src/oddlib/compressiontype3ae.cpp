@@ -4,20 +4,6 @@
 #include <vector>
 #include <cassert>
 
-static Uint16 ReadUint16(Oddlib::IStream& stream)
-{
-    Uint16 ret = 0;
-    stream.ReadUInt16(ret);
-    return ret;
-}
-
-static Uint32 ReadUint32(Oddlib::IStream& stream)
-{
-    Uint32 ret = 0;
-    stream.ReadUInt32(ret);
-    return ret;
-}
-
 template<typename T>
 static void ReadNextSource(Oddlib::IStream& stream, int& control_byte, T& dstIndex)
 {

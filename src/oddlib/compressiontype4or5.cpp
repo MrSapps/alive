@@ -17,9 +17,8 @@ namespace Oddlib
         Uint32 dstPos = 0;
         while (dstPos < nDestinationLength)
         {
-            // HACK is, 0x1, 0xF where 0xf is the "real" byte we want to copy!
-            unsigned char c = 0;
-            stream.ReadUInt8(c); // get code byte
+            // get code byte
+            const Uint8 c = ReadUInt8(stream);
 
             // 0x80 = 0b10000000 = RLE flag
             // 0xc7 = 0b01111100 = bytes to use for length
@@ -27,35 +26,27 @@ namespace Oddlib
             if (c & 0x80)
             {
                 // Figure out how many bytes to copy.
-                const unsigned int nCopyLength = ((c & 0x7C) >> 2) + 3;
+                const Uint32 nCopyLength = ((c & 0x7C) >> 2) + 3;
 
                 // The last 2 bits plus the next byte gives us the destination of the copy
-                unsigned char c1 = 0;
-                stream.ReadUInt8(c1);
-                const unsigned int nPosition = ((c & 0x03) << 8) + c1 + 1;
-
+                const Uint8 c1 = ReadUInt8(stream);
+                const Uint32 nPosition = ((c & 0x03) << 8) + c1 + 1;
                 const Uint32 startIndex = dstPos - nPosition;
-                const Uint32 endIndex = dstPos + nCopyLength;
-                for (Uint32 i = startIndex; i < endIndex; i++)
+
+                for (Uint32 i = 0; i < nCopyLength; i++)
                 {
-                    // TODO FIX ME
-                    // decompressedData[dstPos++] = decompressedData[i];
+                    decompressedData[dstPos++] = decompressedData[startIndex+i];
                 }
-                dstPos += nCopyLength;
             }
             else
             {
                 // Here the value is the number of literals to copy
                 for (int i = 0; i < c + 1; i++)
                 {
-                    Uint8 tmp = 0;
-                    stream.ReadUInt8(tmp);
-                    decompressedData[dstPos] = tmp;
-                    dstPos++;
+                    decompressedData[dstPos++] = ReadUInt8(stream);
                 }
             }
         }
-
         return decompressedData;
     }
 }
