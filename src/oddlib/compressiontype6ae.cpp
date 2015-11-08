@@ -6,6 +6,18 @@
 
 namespace Oddlib
 {
+    static Uint8 ReadNibble(IStream& stream, bool readLo, Uint8& srcByte)
+    {
+        if (readLo)
+        {
+            return srcByte >> 4;
+        }
+        else
+        {
+            srcByte = ReadUInt8(stream);
+            return srcByte & 0xF;
+        }
+    }
 
     // Function 0x0040A8A0 in AE
     std::vector<Uint8> CompressionType6Ae::Decompress(IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 /*dataSize*/)
@@ -15,7 +27,7 @@ namespace Oddlib
         Uint8 srcByte; // edx@2
 
         Sint32 byteCounter; // eax@3
-        Sint32 bReadLowNibble; // ebp@5
+        bool bReadLowNibble = false; // ebp@5
         Sint32 bits_and_byte_count; // eax@7
         Sint32 cnt; // ecx@7
         Sint32 bitCount; // eax@16
@@ -31,7 +43,7 @@ namespace Oddlib
         Uint8 srcByteBits2; // [sp+1Ch] [bp+8h]@13
 
         const Sint32 width = w;
-        Sint32 bReadLow = 0;
+        bool bReadLow = false;
         const Sint32 height = h;
         Sint32 bBitsWriten = 0;
         
@@ -46,7 +58,10 @@ namespace Oddlib
                 byteCounter = 0;
                 while (byteCounter < width)
                 {
+                    srcByteBits = ReadNibble(stream, bReadLow, srcByte);
+                    bReadLowNibble = !bReadLow;
 
+                    /*
                     if (bReadLow)
                     {
                         srcByteBits = srcByte >> 4;
@@ -58,6 +73,7 @@ namespace Oddlib
                         srcByte = ReadUInt8(stream);
                         srcByteBits = srcByte & 0xF;
                     }
+                    */
 
                     cnt = srcByteBits;
                     bits_and_byte_count = srcByteBits + byteCounter;
