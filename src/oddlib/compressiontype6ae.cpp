@@ -26,8 +26,8 @@ namespace Oddlib
 
         Uint8 srcByte; // edx@2
 
-        Sint32 byteCounter; // eax@3
-        bool bReadLowNibble = false; // ebp@5
+        Uint32 byteCounter; // eax@3
+        bool bNibbleToRead = false; // ebp@5
         Sint32 bits_and_byte_count; // eax@7
         Sint32 cnt; // ecx@7
         Sint32 bitCount; // eax@16
@@ -38,60 +38,54 @@ namespace Oddlib
             int i;
         } dstByte;
 
-        Sint32 heightCounter; // [sp+Ch] [bp-8h]@2
-        Uint8 srcByteBits; // [sp+1Ch] [bp+8h]@5
-        Uint8 srcByteBits2; // [sp+1Ch] [bp+8h]@13
 
-        const Sint32 width = w;
-        bool bReadLow = false;
         const Sint32 height = h;
-        Sint32 bBitsWriten = 0;
+        bool bBitsWriten = false;
         
         Uint32 dstPos = 0;
 
         if (height > 0)
         {
             srcByte = 0;
-            heightCounter = height;
+            Sint32 heightCounter = height;
             do
             {
                 byteCounter = 0;
-                while (byteCounter < width)
+                while (byteCounter < w)
                 {
-                    srcByteBits = ReadNibble(stream, bReadLow, srcByte);
-                    bReadLowNibble = !bReadLow;
+                    Uint8 nibble = ReadNibble(stream, bNibbleToRead, srcByte);
+                    bNibbleToRead = !bNibbleToRead;
 
-                    cnt = srcByteBits;
-                    bits_and_byte_count = srcByteBits + byteCounter;
-                    if (srcByteBits > 0)
+                    cnt = nibble;
+                    bits_and_byte_count = nibble + byteCounter;
+                    if (nibble > 0)
                     {
                         do
                         {
                             if (bBitsWriten)
                             {
                                 dstPos++;
-                                bBitsWriten = 0;
                             }
                             else
                             {
                                 out[dstPos] = 0;
-                                bBitsWriten = 1;
                             }
+                            bBitsWriten = !bBitsWriten;
                             --cnt;
                         } while (cnt);
                     }
 
-                    srcByteBits2 = ReadNibble(stream, bReadLowNibble, srcByte);
-                    bReadLow = !bReadLowNibble;
+                    nibble = ReadNibble(stream, bNibbleToRead, srcByte);
+                    bNibbleToRead = !bNibbleToRead;
 
-                    byteCounter = srcByteBits2 + bits_and_byte_count;
-                    if (srcByteBits2 > 0)
+                    byteCounter = nibble + bits_and_byte_count;
+                    if (nibble > 0)
                     {
-                        bitCount = srcByteBits2;
+                        bitCount = nibble;
                         do
                         {
-                            dstByte.b[0] = ReadNibble(stream, bReadLow, srcByte);
-                            bReadLow = !bReadLow;
+                            dstByte.b[0] = ReadNibble(stream, bNibbleToRead, srcByte);
+                            bNibbleToRead = !bNibbleToRead;
 
 
                             if (bBitsWriten)
@@ -113,13 +107,12 @@ namespace Oddlib
                     if (bBitsWriten)
                     {
                         dstPos++;
-                        bBitsWriten = 0;
                     }
                     else
                     {
                         out[dstPos] = 0;
-                        bBitsWriten = 1;
                     }
+                    bBitsWriten = !bBitsWriten;
                 }
 
             } while (heightCounter-- != 1);
