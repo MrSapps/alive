@@ -6,10 +6,11 @@
 namespace Oddlib
 {
     class IStream;
-    class CompressionType3Ae
+    class CompressionType4Or5
     {
     public:
-        CompressionType3Ae() = default;
+        CompressionType4Or5() = default;
         std::vector<Uint8> Decompress(IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 dataSize);
     };
 }
+

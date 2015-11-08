@@ -2,6 +2,7 @@
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/stream.hpp"
 #include "oddlib/compressiontype3ae.hpp"
+#include "oddlib/compressiontype4or5.hpp"
 #include "logger.hpp"
 #include "sdl_raii.hpp"
 #include <assert.h>
@@ -42,7 +43,7 @@ namespace Oddlib
             oldPixel = (static_cast<unsigned short int> (oldPixel) >> 15) & 0xffff; // Checking transparent bit?
             if (oldPixel)
             {
-                LOG_INFO("Transparent");
+                //LOG_INFO("Transparent");
             }
 
             unsigned short int newPixel = red | blue | green;
@@ -253,16 +254,25 @@ namespace Oddlib
             actualWidth = nTextureWidth * 4; // TODO: Check me
         }
 
-        LOG_INFO("TextreWidth is " << nTextureWidth);
-
         // TODO: Decompressors
 
-        LOG_INFO("Compression type " << static_cast<Uint32>(frameHeader.mCompressionType));
+        if (frameHeader.mCompressionType != 3)
+        {
+            LOG_INFO("Compression type " << static_cast<Uint32>(frameHeader.mCompressionType));
+        }
+
+        const auto pos = stream.Pos();
 
         switch (frameHeader.mCompressionType)
         {
         case 0:
             // Used in AE and AO (seems to mean "no compression"?)
+        {
+            // TODO: Frame widths are wrong for some AE PC demo frames
+            std::vector<Uint8> data(frameDataSize+4);
+            stream.ReadBytes(data.data(), data.size());
+            //DebugSaveFrame(frameHeader, actualWidth, data);
+        }
             break;
 
         // Run length encoding compression type
@@ -278,13 +288,18 @@ namespace Oddlib
         {
             CompressionType3Ae d;
             auto decompressedData = d.Decompress(stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
-            DebugSaveFrame(frameHeader, actualWidth, decompressedData);
+            //DebugSaveFrame(frameHeader, actualWidth, decompressedData);
         }
             break;
 
         case 4:
         case 5:
             // Both AO and AE
+        {
+            CompressionType4Or5 d;
+            auto decompressedData = d.Decompress(stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
+            DebugSaveFrame(frameHeader, actualWidth, decompressedData);
+        }
             break;
 
         case 6:
@@ -301,6 +316,8 @@ namespace Oddlib
         }
 
         // TODO: Apply pallete to decompressed frame
+
+        stream.Seek(pos);
 
         return std::vector<Uint8>();
     }

@@ -173,6 +173,8 @@ SET(oddlib_src
     include/oddlib/bits_factory.hpp
     include/oddlib/compressiontype3ae.hpp
     src/oddlib/compressiontype3ae.cpp
+    include/oddlib/compressiontype4or5.hpp
+    src/oddlib/compressiontype4or5.cpp
 )
 
 add_library(oddlib STATIC
