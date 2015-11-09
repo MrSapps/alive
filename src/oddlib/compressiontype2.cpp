@@ -44,7 +44,7 @@ namespace Oddlib
             } while (dwords_left);
         }
 
-        // TODO: Branch not tested
+        // TODO: Branch not tested - copies remainder bytes directly into output
         while (remainder)
         {
             remainder--;
