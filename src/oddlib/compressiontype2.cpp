@@ -4,17 +4,19 @@
 
 namespace Oddlib
 {
-    static bool ExpandElement(Sint32& remainingCount, Uint8*& src, Uint32*& dst)
+    static bool Expand3To4Bytes(Sint32& remainingCount, IStream& stream, std::vector<Uint8>& ret, Uint32& dstPos)
     {
         if (!remainingCount)
         {
             return false;
         }
-        const Sint32 src_word = *src | (*(Uint16 *)(src + 1) << 8);
-        ++dst;
-        src += 3;
+        const Sint32 src3Bytes = ReadUInt8(stream) | (ReadUint16(stream) << 8);
         remainingCount--;
-        *(dst - 1) = 4 * (Uint16)src_word & 0x3F00 | src_word & 0x3F | 16 * src_word & 0x3F0000 | 4 * (16 * src_word & 0xFC00000);
+
+        // TODO: Should write each byte by itself
+        const Uint32 value = 4 * (Uint16)src3Bytes & 0x3F00 | src3Bytes & 0x3F | 16 * src3Bytes & 0x3F0000 | 4 * (16 * src3Bytes & 0xFC00000);
+        *reinterpret_cast<Uint32*>(&ret[dstPos]) = value;
+        dstPos += 4;
 
         return true;
     }
@@ -24,24 +26,17 @@ namespace Oddlib
     {
         std::vector<Uint8> ret(finalW*h);
 
-        std::vector<Uint8> s(dataSize);
-        stream.ReadBytes(s.data(), s.size());
-
         Sint32 dwords_left = dataSize / 4;
         Sint32 remainder = dataSize % 4;
 
-        Uint32 *dst = (Uint32*)ret.data();
-        Uint8 *src = s.data();
-
+        Uint32 dstPos = 0;
         if (dwords_left > 0)
         {
-            dst = (Uint32*)ret.data();
-            src = s.data();
             do
             {
                 for (int i = 0; i < 4; i++)
                 {
-                    if (!ExpandElement(dwords_left, src, dst))
+                    if (!Expand3To4Bytes(dwords_left, stream, ret, dstPos))
                     {
                         break;
                     }
@@ -49,12 +44,11 @@ namespace Oddlib
             } while (dwords_left);
         }
 
+        // TODO: Branch not tested
         while (remainder)
         {
             remainder--;
-            *(Uint8 *)dst = *src;
-            dst = (Uint32 *)((char *)dst + 1);
-            ++src;
+            ret[dstPos++] = ReadUInt8(stream);
         }
 
         return ret;
