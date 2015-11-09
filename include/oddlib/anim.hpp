@@ -32,7 +32,8 @@ namespace Oddlib
         void GatherUniqueFrameOffsets();
         void DebugDecodeAllFrames(IStream& stream);
         std::vector<Uint8> DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize);
- 
+        
+
         struct BanHeader
         {
             Uint16 mMaxW = 0;       // Max frame W
@@ -108,6 +109,9 @@ namespace Oddlib
         std::vector<Uint16> mPalt;
 
         bool mbIsAoFile = true;
+
+        template<class T>
+        std::vector<Uint8> Decompress(FrameHeader& header, IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 dataSize);
 
         void DebugSaveFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData);
     };

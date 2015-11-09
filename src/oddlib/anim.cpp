@@ -1,6 +1,9 @@
 #include "oddlib/anim.hpp"
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/stream.hpp"
+#include "oddlib/compressiontype1.hpp"
+#include "oddlib/compressiontype2.hpp"
+#include "oddlib/compressiontype3.hpp"
 #include "oddlib/compressiontype3ae.hpp"
 #include "oddlib/compressiontype4or5.hpp"
 #include "oddlib/compressiontype6ae.hpp"
@@ -203,12 +206,23 @@ namespace Oddlib
         }
     }
 
+    template<class T>
+    std::vector<Uint8> AnimSerializer::Decompress(AnimSerializer::FrameHeader& header, IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 dataSize)
+    {
+        T decompressor;
+        auto decompressedData = decompressor.Decompress(stream, finalW, w, h, dataSize);
+        DebugSaveFrame(header, finalW, decompressedData);
+        return decompressedData;
+    }
+
     void AnimSerializer::DebugSaveFrame(AnimSerializer::FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData)
     {
         // Apply the pallete
         std::vector<Uint16> convertedBuffer;
         if (header.mColourDepth == 8)
         {
+            // TODO: Could recycle buffer
+            convertedBuffer.reserve(decompressedData.size());
             for (auto v : decompressedData)
             {
                 convertedBuffer.push_back(mPalt[v]);
@@ -228,6 +242,7 @@ namespace Oddlib
 #define HI_NIBBLE(b) (((b) >> 4) & 0x0F)
 #define LO_NIBBLE(b) ((b) & 0x0F)
 
+            convertedBuffer.reserve(decompressedData.size() * 2);
             for (auto v : decompressedData)
             {
                 convertedBuffer.push_back(mPalt[LO_NIBBLE(v)]);
@@ -249,8 +264,6 @@ namespace Oddlib
         {
             abort();
         }
-
-    
     }
 
     std::vector<Uint8> AnimSerializer::DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize)
@@ -277,17 +290,19 @@ namespace Oddlib
             nTextureWidth = ((frameHeader.mWidth + 1)) & ~1;
             actualWidth = nTextureWidth;
         }
+        else if (frameHeader.mColourDepth == 4)
+        {
+            nTextureWidth = ((frameHeader.mWidth + 7) / 4)&~1;
+            actualWidth = nTextureWidth * 4;
+        }
         else
         {
-            // 4?
-            assert(frameHeader.mColourDepth == 4);
-            nTextureWidth = ((frameHeader.mWidth + 7) / 4)&~1;
-            actualWidth = nTextureWidth * 4; // TODO: Check me
+            abort();
         }
 
         // TODO: Decompressors
 
-        if (frameHeader.mCompressionType != 3 && frameHeader.mCompressionType != 0 && frameHeader.mCompressionType != 4)
+        if (frameHeader.mCompressionType != 3 && frameHeader.mCompressionType != 0 && frameHeader.mCompressionType != 4 && frameHeader.mCompressionType != 6)
         {
             LOG_INFO("Compression type " << static_cast<Uint32>(frameHeader.mCompressionType));
         }
@@ -302,45 +317,41 @@ namespace Oddlib
             // TODO: Frame widths are wrong for some AE PC demo frames
             std::vector<Uint8> data(frameDataSize+4);
             stream.ReadBytes(data.data(), data.size());
-            //DebugSaveFrame(frameHeader, actualWidth, data);
+            DebugSaveFrame(frameHeader, actualWidth, data);
         }
             break;
 
         // Run length encoding compression type
         case 1:
             // In AE but never used, used for AO, same algorithm, 0x0040A610 in AE
+            Decompress<CompressionType1>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
             break;
 
         case 2:
             // In AE but never used, used for AO, same algorithm, 0x0040AA50 in AE
+            Decompress<CompressionType2>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
             break;
 
         case 3:
-        {
-            // Not the same algo in AO?
-            CompressionType3Ae d;
-            auto decompressedData = d.Decompress(stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
-            //DebugSaveFrame(frameHeader, actualWidth, decompressedData);
-        }
+            if (frameHeader.mMagic == 0x8)
+            {
+                Decompress<CompressionType3>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
+            }
+            else
+            {
+                Decompress<CompressionType3Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
+            }
             break;
 
         case 4:
         case 5:
             // Both AO and AE
-        {
-            CompressionType4Or5 d;
-            auto decompressedData = d.Decompress(stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
-            //DebugSaveFrame(frameHeader, actualWidth, decompressedData);
-        }
+            Decompress<CompressionType4Or5>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
             break;
 
         // AO cases end at 5
         case 6:
-        {
-            CompressionType6Ae d;
-            auto decompressedData = d.Decompress(stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
-            DebugSaveFrame(frameHeader, actualWidth, decompressedData);
-        }
+            Decompress<CompressionType6Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
             break;
 
         case 7:
@@ -349,8 +360,6 @@ namespace Oddlib
             abort();
             break;
         }
-
-        // TODO: Apply pallete to decompressed frame
 
         stream.Seek(pos);
 

@@ -177,6 +177,12 @@ SET(oddlib_src
     src/oddlib/compressiontype4or5.cpp
     include/oddlib/compressiontype6ae.hpp
     src/oddlib/compressiontype6ae.cpp
+    include/oddlib/compressiontype3.hpp
+    src/oddlib/compressiontype3.cpp
+    include/oddlib/compressiontype2.hpp
+    src/oddlib/compressiontype2.cpp
+    include/oddlib/compressiontype1.hpp
+    src/oddlib/compressiontype1.cpp
 )
 
 add_library(oddlib STATIC
