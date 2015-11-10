@@ -3,9 +3,10 @@
 
 namespace Oddlib
 {
-    // Function  in AE
-    std::vector<Uint8> CompressionType1::Decompress(IStream& stream, Uint32 /*finalW*/, Uint32 /*w*/, Uint32 /*h*/, Uint32 /*dataSize*/)
+    // Function 0x0040A610 in AE
+    std::vector<Uint8> CompressionType1::Decompress(IStream& /*stream*/, Uint32 /*finalW*/, Uint32 /*w*/, Uint32 /*h*/, Uint32 /*dataSize*/)
     {
-        
+        abort();
+        //return std::vector<Uint8>();
     }
 }
