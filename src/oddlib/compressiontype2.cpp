@@ -14,7 +14,7 @@ namespace Oddlib
         remainingCount--;
 
         // TODO: Should write each byte by itself
-        const Uint32 value = 4 * (Uint16)src3Bytes & 0x3F00 | src3Bytes & 0x3F | 16 * src3Bytes & 0x3F0000 | 4 * (16 * src3Bytes & 0xFC00000);
+        const Uint32 value = (4 * (Uint16)src3Bytes & 0x3F00) | (src3Bytes & 0x3F) | (16 * src3Bytes & 0x3F0000) | (4 * (16 * src3Bytes & 0xFC00000));
         *reinterpret_cast<Uint32*>(&ret[dstPos]) = value;
         dstPos += 4;
 
