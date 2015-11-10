@@ -5,58 +5,46 @@
 
 namespace Oddlib
 {
-    static unsigned char Next6Bits(signed int& magic, unsigned int& src_data, unsigned int& frame_data_index, unsigned short int* frame_data)
+    static void Next6Bits(signed int& magic, unsigned int& src_data, unsigned int& frame_data_index, unsigned short int* frame_data)
     {
         if (magic > 0) // Always zero the first time
         {
             if (magic == 14)
             {
                 magic = 30;
-                src_data = (frame_data[frame_data_index] << 14) | src_data;
+                src_data = (frame_data[frame_data_index] << 14) | src_data; // ReadUint16
                 frame_data_index++;
             }
         }
         else
         {
             magic = 32;
-            src_data = frame_data[frame_data_index] | (frame_data[frame_data_index + 1] << 16);
+            src_data = frame_data[frame_data_index] | (frame_data[frame_data_index + 1] << 16); // read uint32
             frame_data_index += 2;
         }
         magic -= 6;
-        unsigned char next_byte_to_write = src_data & 0x3F;
-        src_data = src_data >> 6;
-        return next_byte_to_write;
     }
 
     // Function 0x004031E0 in AO
-    std::vector<Uint8> CompressionType3::Decompress(IStream& stream, Uint32 /*finalW*/, Uint32 w, Uint32 h, Uint32 dataSize)
+    std::vector<Uint8> CompressionType3::Decompress(IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 dataSize)
     {
-       // stream.Seek(stream.Pos() + 8 + 4);
-
         // Params
-        const unsigned int whSize = w*h;// aFrame.FrameHeader().Unknown(); //  aFrame->iUnknown2; - after height, before type
-
+        const unsigned int whSize = w*h;
         std::vector<Uint8> input(dataSize);
         stream.ReadBytes(input.data(), input.size());
-        input.resize(input.size() * 9);
+        input.resize(input.size() * 4); // TODO: Why do we sometimes read past the end? Because reading in / sizeof(Uint32)'s?
 
-       // QByteArray d = aFrame.Data().mid(8 + 4);
         unsigned char* aAnimDataPtr = (unsigned char*)input.data();
 
-        unsigned int aSize = (input.size() / 9 ); // Don't exactly know what this is, just pray its big enough for now!
-
-        if (aSize == 0)
-        {
-           // return QByteArray();// Frame data fectching bug?
-        }
+        unsigned int aSize = (input.size() /2 ); // Don't exactly know what this is, just pray its big enough for now!
 
         std::vector<unsigned char> buffer;
-        buffer.resize(aSize * 4000);
+        buffer.resize(finalW*h*4);
 
         // Locals
         int sizeInBytes; // eax@1
         unsigned short int *frame_data; // ebx@1
-        unsigned char *srcPtr; // ebp@1
+        //unsigned char *srcPtr; // ebp@1
         int numBytesInFrameCnt; // edi@1
         signed int bitCounter; // esi@1
         unsigned char *pDst; // edx@3
@@ -66,7 +54,9 @@ namespace Oddlib
         for_counter = whSize & 3;
         frame_data = (unsigned short int*)aAnimDataPtr; // Convert poiner type, ok!
         bitCounter = 0;
-        srcPtr = &aAnimDataPtr[6 * numBytesInFrameCnt / 8];
+
+//        const Uint32 kOtherStart = 6 * (numBytesInFrameCnt / 8);
+//        srcPtr = &input[kOtherStart];
         sizeInBytes = (aSize + 3) / 4;
 
         pDst = &buffer[0];
@@ -76,10 +66,14 @@ namespace Oddlib
             unsigned int src_data = 0;
             do
             {
-                unsigned char bits = Next6Bits(bitCounter, src_data, frame_data_index, frame_data);
+                Next6Bits(bitCounter, src_data, frame_data_index, frame_data);
+                unsigned char bits = src_data & 0x3F;
+                src_data = src_data >> 6;
                 --numBytesInFrameCnt;
                 if (bits & 0x20)
                 {
+                    // 0x20= 0b100000
+                    // 0x3F= 0b111111
                     int numberOfBytes = (bits & 0x1F) + 1;
                     if (numberOfBytes)
                     {
@@ -87,13 +81,15 @@ namespace Oddlib
                         {
                             if (numBytesInFrameCnt)
                             { 
-                                bits = Next6Bits(bitCounter, src_data, frame_data_index, frame_data);
+                                Next6Bits(bitCounter, src_data, frame_data_index, frame_data);
+                                bits = src_data & 0x3F;
+                                src_data = src_data >> 6;
                                 --numBytesInFrameCnt;
                             }
                             else
                             {
                                 // 6 bits from "other" source
-                                bits = *srcPtr++ & 0x3F;
+                                bits = 0;// *srcPtr++ & 0x3F;
                                 --for_counter;
                             }
                             *pDst++ = bits;
@@ -108,7 +104,7 @@ namespace Oddlib
             } while (numBytesInFrameCnt);
         }
 
-        
+        /*
         // Some sort of "remainder" handling using 8bits instead of 6?
         int result; // eax@23
         unsigned char curByte; // al@24
@@ -121,7 +117,7 @@ namespace Oddlib
         {
             for (result = for_counter; for_counter; result = for_counter)
             {
-                curByte = *srcPtr++ & 0x3F;
+                curByte = 0;// *srcPtr++ & 0x3F;
                 curByteCopy = curByte;
                 --for_counter;
                 if (curByte & 0x20)
@@ -132,7 +128,7 @@ namespace Oddlib
                         bytes_to_copy = amount;
                         do
                         {
-                            byte = *srcPtr++ & 0x3F;
+                            byte = 0;// *srcPtr++ & 0x3F;
                             *pDst++ = byte;
                             --bytes_to_copy;
                             --for_counter;
@@ -146,7 +142,7 @@ namespace Oddlib
                 }
             }
         }
-        
+        */
 
         return buffer;
     }
