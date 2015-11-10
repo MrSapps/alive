@@ -1,7 +1,6 @@
 #include "oddlib/compressiontype3.hpp"
 #include "oddlib/stream.hpp"
 #include "logger.hpp"
-#include <windows.h>
 
 namespace Oddlib
 {
@@ -32,7 +31,7 @@ namespace Oddlib
         std::vector<unsigned char> buffer;
         buffer.resize(finalW*h);
 
-        int numBytesInFrameCnt = dataSize & 0xFFFFFFFC;
+        int numBytesInFrameCnt = (dataSize /4) *4;
         if (numBytesInFrameCnt > 0)
         {
             unsigned int src_data = 0;
