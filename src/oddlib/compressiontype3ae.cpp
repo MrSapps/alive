@@ -9,16 +9,16 @@ static void ReadNextSource(Oddlib::IStream& stream, int& control_byte, T& dstInd
 {
     if (control_byte)
     {
-        if (control_byte == 0xE)
+        if (control_byte == 0xE) // Or 14
         {
-            control_byte = 0x1Eu;
+            control_byte = 0x1Eu; // Or 30
             dstIndex |= ReadUint16(stream) << 14;
         }
     }
     else
     {
         dstIndex = ReadUint32(stream);
-        control_byte = 0x20u;
+        control_byte = 0x20u; // 32
     }
     control_byte -= 6;
 }
