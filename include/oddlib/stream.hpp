@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <memory>
+#include <fstream>
 #include "SDL.h"
 
 namespace Oddlib
@@ -25,6 +26,27 @@ namespace Oddlib
         virtual bool AtEnd() const = 0;
         virtual const std::string& Name() const = 0;
         virtual std::string LoadAllToString() = 0;
+        
+        // Debug helper to write all of the stream to a file as a binary blob
+        bool BinaryDump(const std::string& fileName)
+        {
+            std::ofstream s;
+            s.open(fileName.c_str(), std::ios::binary);
+            if (!s.is_open())
+            {
+                return false;
+            }
+            const auto pos = Pos();
+            Seek(0);
+            const auto size = Size();
+
+            std::vector<Uint8> allStreamBytes(size);
+            ReadBytes(allStreamBytes.data(), allStreamBytes.size());
+            Seek(pos);
+
+            s.write(reinterpret_cast<const char*>(allStreamBytes.data()), allStreamBytes.size());
+            return true;
+        }
     };
 
     inline Uint16 ReadUint16(IStream& stream)
