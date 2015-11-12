@@ -4,6 +4,7 @@
 #include <memory>
 #include <set>
 #include "SDL.h"
+#include "sdl_raii.hpp"
 
 namespace Oddlib
 {
@@ -42,7 +43,7 @@ namespace Oddlib
             Uint32 mPaltSize = 0;         // Number of palt words
 
         };
-        BanHeader h;
+        BanHeader mHeader;
 
         struct FrameInfoHeader;
         struct AnimationHeader
@@ -113,7 +114,17 @@ namespace Oddlib
         template<class T>
         std::vector<Uint8> Decompress(FrameHeader& header, IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 dataSize);
 
+        // TODO: Put this stuff into its own object
+        void BeginFrames(int w, int h, int count);
+        void AddFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData);
+        void EndFrames();
         void DebugSaveFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData);
+        SDL_SurfacePtr MakeFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint16>& pixels);
+        SDL_SurfacePtr mSpriteSheet;
+        int mSpritesX = 0;
+        int mSpritesY = 0;
+        int mSpriteX = 0;
+        int mSpriteY = 0;
     };
 
     class Frame
