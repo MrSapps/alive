@@ -47,10 +47,10 @@ public:
             {
                 Oddlib::LvlArchive archive(std::move(stream));
                 ReadAllAnimations(archive);
-                ReadFg1s(archive);
-                ReadFonts(archive);
-                ReadAllPaths(archive);
-                ReadAllCameras(archive);
+                //ReadFg1s(archive);
+                //ReadFonts(archive);
+                //ReadAllPaths(archive);
+                //ReadAllCameras(archive);
     
                 // TODO: Handle sounds/fmvs
             }
@@ -71,7 +71,45 @@ public:
                 auto chunk = file->ChunkByIndex(j);
                 if (chunk->Type() == type)
                 {
-                    cb(*chunk);
+                    // For AE PSX varients these files need parsing checking/fixing as they seem
+                    // to be some slightly changed Anim format
+                    bool bBroken =
+                    (file->FileName() == "SLIG.BND" && chunk->Id() == 360) ||
+                    (file->FileName() == "DUST.BAN" && chunk->Id() == 303) ||
+                    (file->FileName() == "METAL.BAN" && chunk->Id() == 365) ||
+                    (file->FileName() == "VAPOR.BAN" && chunk->Id() == 305) ||
+                    (file->FileName() == "DEADFLR.BAN" && chunk->Id() == 349) ||
+                    (file->FileName() == "DEBRIS00.BAN" && chunk->Id() == 1105) ||
+                    (file->FileName() == "DOVBASIC.BAN" && chunk->Id() == 60) ||
+                    (file->FileName() == "DRPROCK.BAN" && chunk->Id() == 357) || 
+                    (file->FileName() == "DRPSPRK.BAN" && chunk->Id() == 357) ||
+                    (file->FileName() == "EVILFART.BAN" && chunk->Id() == 6017) ||
+                    (file->FileName() == "OMMFLARE.BAN" && chunk->Id() == 312) ||
+                    (file->FileName() == "SHELL.BAN" && chunk->Id() == 360) ||
+                    (file->FileName() == "LANDMINE.BAN" && chunk->Id() == 1036) ||
+                    (file->FileName() == "SLURG.BAN" && chunk->Id() == 306) ||
+                    (file->FileName() == "SQBSMK.BAN" && chunk->Id() == 354) ||
+                    (file->FileName() == "STICK.BAN" && chunk->Id() == 358) ||
+                    (file->FileName() == "TBOMB.BAN" && chunk->Id() == 1037) ||
+                    (file->FileName() == "WELLLEAF.BAN" && chunk->Id() == 341) ||
+                    (file->FileName() == "BOMB.BND" && chunk->Id() == 1005) ||
+                    (file->FileName() == "MINE.BND" && chunk->Id() == 1036) ||
+                    (file->FileName() == "UXB.BND" && chunk->Id() == 1037) ||
+                    (file->FileName() == "EXPLODE.BND" && chunk->Id() == 1105) ||
+                    (file->FileName() == "TRAPDOOR.BAN" && chunk->Id() == 1004) ||
+                    (file->FileName() == "SLAM.BAN" && chunk->Id() == 2020) ||
+                    (file->FileName() == "SLAMVLTS.BAN" && chunk->Id() == 2020) ||
+                    (file->FileName() == "BOMB.BAN" && chunk->Id() == 1005);
+
+                    if (bBroken && (mType != eAePsx && mType != eAePsxDemo))
+                    {
+                        bBroken = false;
+                    }
+
+                    if (!bBroken)
+                    {
+                        cb(*chunk);
+                    }
                 }
             }
         }
@@ -201,6 +239,24 @@ int main(int /*argc*/, char** /*argv*/)
 {
     // TODO: Set path/type via command line and setup automated test with valgrind enabled
 
+    const std::vector<std::string> aeLvls =
+    {
+        "mi.lvl",
+        "ba.lvl",
+        "bm.lvl",
+        "br.lvl",
+        "bw.lvl",
+        "cr.lvl",
+        "fd.lvl",
+        "ne.lvl",
+        "pv.lvl",
+        "st.lvl",
+        "sv.lvl"
+    };
+    DataTest aePsxCd1(DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin", aeLvls);
+    DataTest aePsxCd2(DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin", aeLvls);
+    DataTest aePc(DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus", aeLvls);
+
     // AO PC/PSX
     const std::vector<std::string> aoLvls = 
     {
@@ -221,24 +277,6 @@ int main(int /*argc*/, char** /*argv*/)
     DataTest aoPc(DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee", aoLvls);
     DataTest aoPsx(DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin", aoLvls);
 
-    const std::vector<std::string> aeLvls =
-    {
-        "mi.lvl",
-        "ba.lvl",
-        "bm.lvl",
-        "br.lvl",
-        "bw.lvl",
-        "cr.lvl",
-        "fd.lvl",
-        "ne.lvl",
-        "pv.lvl",
-        "st.lvl",
-        "sv.lvl"
-    };
-    DataTest aePc(DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus", aeLvls);
-    DataTest aePsxCd1(DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin", aeLvls);
-    DataTest aePsxCd2(DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin", aeLvls);
-    
     const std::vector<std::string> aoDemoLvls =
     {
         "c1.lvl",
