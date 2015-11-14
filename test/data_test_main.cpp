@@ -18,12 +18,12 @@ public:
     enum eDataType
     {
         eAoPc,
-        eAoPsx,
-        eAePc,
-        eAePsx,
         eAoPcDemo,
+        eAoPsx,
         eAoPsxDemo,
+        eAePc,
         eAePcDemo,
+        eAePsx,
         eAePsxDemo
     };
 
@@ -237,28 +237,7 @@ private:
 
 int main(int /*argc*/, char** /*argv*/)
 {
-    // TODO: Set path/type via command line and setup automated test with valgrind enabled
-
-    const std::vector<std::string> aeLvls =
-    {
-        "mi.lvl",
-        "ba.lvl",
-        "bm.lvl",
-        "br.lvl",
-        "bw.lvl",
-        "cr.lvl",
-        "fd.lvl",
-        "ne.lvl",
-        "pv.lvl",
-        "st.lvl",
-        "sv.lvl"
-    };
-    DataTest aePsxCd1(DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin", aeLvls);
-    DataTest aePsxCd2(DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin", aeLvls);
-    DataTest aePc(DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus", aeLvls);
-
-    // AO PC/PSX
-    const std::vector<std::string> aoLvls = 
+    const std::vector<std::string> aoLvls =
     {
         "s1.lvl",
         "r6.lvl",
@@ -274,8 +253,6 @@ int main(int /*argc*/, char** /*argv*/)
         "d2.lvl",
         "c1.lvl"
     };
-    DataTest aoPc(DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee", aoLvls);
-    DataTest aoPsx(DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin", aoLvls);
 
     const std::vector<std::string> aoDemoLvls =
     {
@@ -283,15 +260,6 @@ int main(int /*argc*/, char** /*argv*/)
         "r1.lvl",
         "s1.lvl"
     };
-    DataTest aoDemoPc(DataTest::eAoPcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\abeodd", aoDemoLvls);
-
-    const std::vector<std::string> aeDemoLvls =
-    {
-        "cr.lvl",
-        "mi.lvl",
-        "st.lvl"
-    };
-    DataTest aeDemoPc(DataTest::eAePcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo", aeDemoLvls);
 
     const std::vector<std::string> aoDemoPsxLvls =
     {
@@ -301,7 +269,27 @@ int main(int /*argc*/, char** /*argv*/)
         "ABESODSE\\S1.LVL"
     };
 
-    DataTest aoDemoPsx(DataTest::eAoPsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin", aoDemoPsxLvls);
+    const std::vector<std::string> aeLvls =
+    {
+        "mi.lvl",
+        "ba.lvl",
+        "bm.lvl",
+        "br.lvl",
+        "bw.lvl",
+        "cr.lvl",
+        "fd.lvl",
+        "ne.lvl",
+        "pv.lvl",
+        "st.lvl",
+        "sv.lvl"
+    };
+
+    const std::vector<std::string> aeDemoLvls =
+    {
+        "cr.lvl",
+        "mi.lvl",
+        "st.lvl"
+    };
 
     const std::vector<std::string> aeDemoPsxLvls =
     {
@@ -310,7 +298,42 @@ int main(int /*argc*/, char** /*argv*/)
         "ABE2\\ST.LVL"
     };
 
-    DataTest aeDemoPsx(DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin", aeDemoPsxLvls);
+    const std::map<DataTest::eDataType, const std::vector<std::string>*> DataTypeLvlMap =
+    {
+        { DataTest::eAoPc, &aoLvls },
+        { DataTest::eAoPsx, &aoLvls },
+        { DataTest::eAePc, &aeLvls },
+        { DataTest::eAePsx, &aeLvls },
+        { DataTest::eAoPcDemo, &aoDemoLvls },
+        { DataTest::eAoPsxDemo, &aoDemoPsxLvls },
+        { DataTest::eAePcDemo, &aeDemoLvls},
+        { DataTest::eAePsxDemo, &aeDemoPsxLvls }
+    };
+
+    const std::map<DataTest::eDataType, std::string> datas =
+    {
+        
+        { DataTest::eAePc,      "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus" },
+        { DataTest::eAePcDemo,  "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo" },
+        { DataTest::eAePsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
+        { DataTest::eAePsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
+        { DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
+        { DataTest::eAoPc,      "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee" },
+        { DataTest::eAoPcDemo,  "C:\\Users\\paul\\Desktop\\alive\\all_data\\abeodd" },
+        { DataTest::eAoPsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
+        { DataTest::eAoPsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
+    };
+
+    for (const auto& data : datas)
+    {
+        const auto it = DataTypeLvlMap.find(data.first);
+        if (it == std::end(DataTypeLvlMap))
+        {
+            // Defined struct is wrong
+            abort();
+        }
+        DataTest dataDecoder(data.first, data.second, *it->second);
+    }
 
     return 0;
 }
