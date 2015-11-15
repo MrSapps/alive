@@ -12,6 +12,113 @@
 #include "msvc_sdl_link.hpp"
 #include "gamedata.hpp"
 
+class LvlFileReducer
+{
+public:
+    LvlFileReducer(const LvlFileReducer&) = delete;
+    LvlFileReducer& operator = (const LvlFileReducer&) = delete;
+    LvlFileReducer(const std::string& resourcePath, const std::vector<std::string>& lvlFiles)
+        : mLvlFiles(lvlFiles)
+    {
+        mFs.Init();
+
+        // Clear out the ones loaded from resource paths json
+        mFs.ResourcePaths().ClearAllResourcePaths();
+
+        mGameData.Init(mFs);
+
+        // Add the only one we're interested in
+        mFs.ResourcePaths().AddResourcePath(resourcePath, 1);
+
+        for (const auto& lvl : mLvlFiles)
+        {
+            auto stream = mFs.ResourcePaths().Open(lvl);
+            if (stream)
+            {
+                Reduce(std::make_unique<Oddlib::LvlArchive>(std::move(stream)));
+            }
+            else
+            {
+                LOG_WARNING("LVL not found: " << lvl);
+            }
+        }
+    }
+
+    const std::vector<Oddlib::LvlArchive::File*>& Files() const
+    {
+        return mFiles;
+    }
+
+private:
+    void Reduce(std::unique_ptr<Oddlib::LvlArchive> lvl)
+    {
+        bool filesTaken = false;
+        for (auto i = 0u; i < lvl->FileCount(); i++)
+        {
+            auto file = lvl->FileByIndex(i);
+            if (!FileExists(*file))
+            {
+                AddFile(file);
+                filesTaken = true;
+            }
+        }
+        if (filesTaken)
+        {
+            AddLvl(std::move(lvl));
+        }
+    }
+
+    bool FileExists(Oddlib::LvlArchive::File& fileToCheck)
+    {
+        for (auto& file : mFiles)
+        {
+            // First there has to be a match on the file names
+            if (file->FileName() != fileToCheck.FileName())
+            {
+                continue;
+            }
+
+            if (file->ChunkCount() != fileToCheck.ChunkCount())
+            {
+                continue;
+            }
+
+            // Could just check chunk Ids but we have to compare data to be sure
+            bool chunksMatch = true;
+            for (auto i = 0u; i < file->ChunkCount(); i++)
+            {
+                if (*file->ChunkByIndex(i) != *fileToCheck.ChunkByIndex(i))
+                {
+                    chunksMatch = false;
+                    break;
+                }
+            }
+            if (chunksMatch)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void AddLvl(std::unique_ptr<Oddlib::LvlArchive> lvl)
+    {
+        mLvls.emplace_back(std::move(lvl));
+    }
+
+    void AddFile(Oddlib::LvlArchive::File* file)
+    {
+        mFiles.push_back(file);
+    }
+
+    const std::vector<std::string>& mLvlFiles;
+    GameData mGameData;
+    FileSystem mFs;
+
+    std::vector<Oddlib::LvlArchive::File*> mFiles;
+    std::vector<std::unique_ptr<Oddlib::LvlArchive>> mLvls;
+};
+
 class DataTest
 {
 public:
@@ -28,50 +135,26 @@ public:
     };
 
     DataTest(eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
-        : mType(eType)
+        : mType(eType), mReducer(resourcePath, lvls)
     {
-        mFs.Init();
-        
-        // Clear out the ones loaded from resource paths json
-        mFs.ResourcePaths().ClearAllResourcePaths();
-
-        mGameData.Init(mFs);
-        
-        // Add the only one we're interested in
-        mFs.ResourcePaths().AddResourcePath(resourcePath, 1);
-
-        for (const auto& lvl : lvls)
-        {
-            auto stream = mFs.ResourcePaths().Open(lvl);
-            if (stream)
-            {
-                Oddlib::LvlArchive archive(std::move(stream));
-                ReadAllAnimations(archive);
-                //ReadFg1s(archive);
-                //ReadFonts(archive);
-                //ReadAllPaths(archive);
-                //ReadAllCameras(archive);
-    
-                // TODO: Handle sounds/fmvs
-            }
-            else
-            {
-                LOG_WARNING("LVL not found: " << lvl);
-            }
-        }
+        ReadAllAnimations();
+        //ReadFg1s();
+        //ReadFonts();
+        //ReadAllPaths();
+        //ReadAllCameras();
+        // TODO: Handle sounds/fmvs
     }
 
-    void ForChunksOfType(Oddlib::LvlArchive& archive, Uint32 type, std::function<void(Oddlib::LvlArchive::FileChunk&)> cb)
+    void ForChunksOfType(Uint32 type, std::function<void(Oddlib::LvlArchive::FileChunk&)> cb)
     {
-        for (auto i = 0u; i < archive.FileCount(); i++)
+        for (auto file : mReducer.Files())
         {
-            auto file = archive.FileByIndex(i);
             for (auto j = 0u; j < file->ChunkCount(); j++)
             {
                 auto chunk = file->ChunkByIndex(j);
                 if (chunk->Type() == type)
                 {
-                    // For AE PSX varients these files need parsing checking/fixing as they seem
+                    // For AE PSX variants these files need parsing checking/fixing as they seem
                     // to be some slightly changed Anim format
                     bool bBroken =
                     (file->FileName() == "SLIG.BND" && chunk->Id() == 360) ||
@@ -115,25 +198,25 @@ public:
         }
     }
 
-    void ReadFg1s(Oddlib::LvlArchive& archive)
+    void ReadFg1s()
     {
-        ForChunksOfType(archive, Oddlib::MakeType('F', 'G', '1', ' '), [&](Oddlib::LvlArchive::FileChunk&)
+        ForChunksOfType(Oddlib::MakeType('F', 'G', '1', ' '), [&](Oddlib::LvlArchive::FileChunk&)
         {
             // TODO: FG1 parsing
         });
     }
 
-    void ReadFonts(Oddlib::LvlArchive& archive)
+    void ReadFonts()
     {
-        ForChunksOfType(archive, Oddlib::MakeType('F', 'o', 'n', 't'), [&](Oddlib::LvlArchive::FileChunk&)
+        ForChunksOfType(Oddlib::MakeType('F', 'o', 'n', 't'), [&](Oddlib::LvlArchive::FileChunk&)
         {
             // TODO: Font parsing
         });
     }
 
-    void ReadAllPaths(Oddlib::LvlArchive& archive)
+    void ReadAllPaths()
     {
-        ForChunksOfType(archive, Oddlib::MakeType('P', 'a', 't', 'h'), [&](Oddlib::LvlArchive::FileChunk&)
+        ForChunksOfType(Oddlib::MakeType('P', 'a', 't', 'h'), [&](Oddlib::LvlArchive::FileChunk&)
         {
             // TODO: Load the game data json for the required hard coded data to load the path
             /*
@@ -146,9 +229,9 @@ public:
         });
     }
 
-    void ReadAllCameras(Oddlib::LvlArchive& archive)
+    void ReadAllCameras()
     {
-        ForChunksOfType(archive, Oddlib::MakeType('B', 'i', 't', 's'), [&](Oddlib::LvlArchive::FileChunk& chunk)
+        ForChunksOfType(Oddlib::MakeType('B', 'i', 't', 's'), [&](Oddlib::LvlArchive::FileChunk& chunk)
         {
             auto bits = Oddlib::MakeBits(*chunk.Stream());
             Oddlib::IBits* ptr = nullptr;
@@ -220,9 +303,9 @@ public:
         });
     }
 
-    void ReadAllAnimations(Oddlib::LvlArchive& archive)
+    void ReadAllAnimations()
     {
-        ForChunksOfType(archive, Oddlib::MakeType('A', 'n', 'i', 'm'), [&](Oddlib::LvlArchive::FileChunk& chunk)
+        ForChunksOfType(Oddlib::MakeType('A', 'n', 'i', 'm'), [&](Oddlib::LvlArchive::FileChunk& chunk)
         {
             Oddlib::AnimSerializer anim(*chunk.Stream());
 
@@ -231,8 +314,7 @@ public:
 
 private:
     eDataType mType;
-    GameData mGameData;
-    FileSystem mFs;
+    LvlFileReducer mReducer;
 };
 
 int main(int /*argc*/, char** /*argv*/)
@@ -312,7 +394,6 @@ int main(int /*argc*/, char** /*argv*/)
 
     const std::map<DataTest::eDataType, std::string> datas =
     {
-        
         { DataTest::eAePc,      "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus" },
         { DataTest::eAePcDemo,  "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo" },
         { DataTest::eAePsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
