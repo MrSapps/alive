@@ -2032,8 +2032,7 @@ TEST(SubTitleParser, Parse)
 
 TEST(LvlArchive, DISABLED_Integration)
 {
-    // Load AE lvl
-    Oddlib::LvlArchive lvl("MI.LVL");
+    Oddlib::LvlArchive lvl("s1.LVL");
 
     for (Uint32 i = 0; i < lvl.FileCount(); i++)
     {
@@ -2044,7 +2043,7 @@ TEST(LvlArchive, DISABLED_Integration)
             if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
             {
                 Oddlib::Stream stream(chunk->ReadData());
-                Oddlib::AnimSerializer anim(stream);
+                Oddlib::AnimSerializer anim(file->FileName(), stream);
             }
         }
     }
