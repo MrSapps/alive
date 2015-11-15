@@ -44,56 +44,39 @@ public:
         }
     }
 
-    const std::vector<Oddlib::LvlArchive::File*>& Files() const
+    const std::vector<std::pair<Oddlib::LvlArchive::FileChunk*, std::string>>& Chunks() const
     {
-        return mFiles;
+        return mChunks;
     }
 
 private:
     void Reduce(std::unique_ptr<Oddlib::LvlArchive> lvl)
     {
-        bool filesTaken = false;
+        bool chunkTaken = false;
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
-            if (!FileExists(*file))
+            for (auto j = 0u; j < file->ChunkCount(); j++)
             {
-                AddFile(file);
-                filesTaken = true;
+                auto chunk = file->ChunkByIndex(j);
+                if (!ChunkExists(*chunk))
+                {
+                    AddChunk(chunk, file->FileName());
+                    chunkTaken = true;
+                }
             }
         }
-        if (filesTaken)
+        if (chunkTaken)
         {
             AddLvl(std::move(lvl));
         }
     }
 
-    bool FileExists(Oddlib::LvlArchive::File& fileToCheck)
+    bool ChunkExists(Oddlib::LvlArchive::FileChunk& chunkToCheck)
     {
-        for (auto& file : mFiles)
+        for (auto& chunk : mChunks)
         {
-            // First there has to be a match on the file names
-            if (file->FileName() != fileToCheck.FileName())
-            {
-                continue;
-            }
-
-            if (file->ChunkCount() != fileToCheck.ChunkCount())
-            {
-                continue;
-            }
-
-            // Could just check chunk Ids but we have to compare data to be sure
-            bool chunksMatch = true;
-            for (auto i = 0u; i < file->ChunkCount(); i++)
-            {
-                if (*file->ChunkByIndex(i) != *fileToCheck.ChunkByIndex(i))
-                {
-                    chunksMatch = false;
-                    break;
-                }
-            }
-            if (chunksMatch)
+            if (*chunk.first == chunkToCheck)
             {
                 return true;
             }
@@ -106,16 +89,16 @@ private:
         mLvls.emplace_back(std::move(lvl));
     }
 
-    void AddFile(Oddlib::LvlArchive::File* file)
+    void AddChunk(Oddlib::LvlArchive::FileChunk* chunk, const std::string& fileName)
     {
-        mFiles.push_back(file);
+        mChunks.push_back(std::make_pair(chunk, fileName));
     }
 
     const std::vector<std::string>& mLvlFiles;
     GameData mGameData;
     FileSystem mFs;
 
-    std::vector<Oddlib::LvlArchive::File*> mFiles;
+    std::vector<std::pair<Oddlib::LvlArchive::FileChunk*, std::string>> mChunks;
     std::vector<std::unique_ptr<Oddlib::LvlArchive>> mLvls;
 };
 
@@ -147,52 +130,50 @@ public:
 
     void ForChunksOfType(Uint32 type, std::function<void(Oddlib::LvlArchive::FileChunk&)> cb)
     {
-        for (auto file : mReducer.Files())
+        for (auto chunkPair : mReducer.Chunks())
         {
-            for (auto j = 0u; j < file->ChunkCount(); j++)
+            auto chunk = chunkPair.first;
+            auto fileName = chunkPair.second;
+            if (chunk->Type() == type)
             {
-                auto chunk = file->ChunkByIndex(j);
-                if (chunk->Type() == type)
+                // For AE PSX variants these files need parsing checking/fixing as they seem
+                // to be some slightly changed Anim format
+                bool bBroken =
+                    (fileName == "SLIG.BND" && chunk->Id() == 360) ||
+                    (fileName == "DUST.BAN" && chunk->Id() == 303) ||
+                    (fileName == "METAL.BAN" && chunk->Id() == 365) ||
+                    (fileName == "VAPOR.BAN" && chunk->Id() == 305) ||
+                    (fileName == "DEADFLR.BAN" && chunk->Id() == 349) ||
+                    (fileName == "DEBRIS00.BAN" && chunk->Id() == 1105) ||
+                    (fileName == "DOVBASIC.BAN" && chunk->Id() == 60) ||
+                    (fileName == "DRPROCK.BAN" && chunk->Id() == 357) ||
+                    (fileName == "DRPSPRK.BAN" && chunk->Id() == 357) ||
+                    (fileName == "EVILFART.BAN" && chunk->Id() == 6017) ||
+                    (fileName == "OMMFLARE.BAN" && chunk->Id() == 312) ||
+                    (fileName == "SHELL.BAN" && chunk->Id() == 360) ||
+                    (fileName == "LANDMINE.BAN" && chunk->Id() == 1036) ||
+                    (fileName == "SLURG.BAN" && chunk->Id() == 306) ||
+                    (fileName == "SQBSMK.BAN" && chunk->Id() == 354) ||
+                    (fileName == "STICK.BAN" && chunk->Id() == 358) ||
+                    (fileName == "TBOMB.BAN" && chunk->Id() == 1037) ||
+                    (fileName == "WELLLEAF.BAN" && chunk->Id() == 341) ||
+                    (fileName == "BOMB.BND" && chunk->Id() == 1005) ||
+                    (fileName == "MINE.BND" && chunk->Id() == 1036) ||
+                    (fileName == "UXB.BND" && chunk->Id() == 1037) ||
+                    (fileName == "EXPLODE.BND" && chunk->Id() == 1105) ||
+                    (fileName == "TRAPDOOR.BAN" && chunk->Id() == 1004) ||
+                    (fileName == "SLAM.BAN" && chunk->Id() == 2020) ||
+                    (fileName == "SLAMVLTS.BAN" && chunk->Id() == 2020) ||
+                    (fileName == "BOMB.BAN" && chunk->Id() == 1005);
+
+                if (bBroken && (mType != eAePsx && mType != eAePsxDemo))
                 {
-                    // For AE PSX variants these files need parsing checking/fixing as they seem
-                    // to be some slightly changed Anim format
-                    bool bBroken =
-                    (file->FileName() == "SLIG.BND" && chunk->Id() == 360) ||
-                    (file->FileName() == "DUST.BAN" && chunk->Id() == 303) ||
-                    (file->FileName() == "METAL.BAN" && chunk->Id() == 365) ||
-                    (file->FileName() == "VAPOR.BAN" && chunk->Id() == 305) ||
-                    (file->FileName() == "DEADFLR.BAN" && chunk->Id() == 349) ||
-                    (file->FileName() == "DEBRIS00.BAN" && chunk->Id() == 1105) ||
-                    (file->FileName() == "DOVBASIC.BAN" && chunk->Id() == 60) ||
-                    (file->FileName() == "DRPROCK.BAN" && chunk->Id() == 357) || 
-                    (file->FileName() == "DRPSPRK.BAN" && chunk->Id() == 357) ||
-                    (file->FileName() == "EVILFART.BAN" && chunk->Id() == 6017) ||
-                    (file->FileName() == "OMMFLARE.BAN" && chunk->Id() == 312) ||
-                    (file->FileName() == "SHELL.BAN" && chunk->Id() == 360) ||
-                    (file->FileName() == "LANDMINE.BAN" && chunk->Id() == 1036) ||
-                    (file->FileName() == "SLURG.BAN" && chunk->Id() == 306) ||
-                    (file->FileName() == "SQBSMK.BAN" && chunk->Id() == 354) ||
-                    (file->FileName() == "STICK.BAN" && chunk->Id() == 358) ||
-                    (file->FileName() == "TBOMB.BAN" && chunk->Id() == 1037) ||
-                    (file->FileName() == "WELLLEAF.BAN" && chunk->Id() == 341) ||
-                    (file->FileName() == "BOMB.BND" && chunk->Id() == 1005) ||
-                    (file->FileName() == "MINE.BND" && chunk->Id() == 1036) ||
-                    (file->FileName() == "UXB.BND" && chunk->Id() == 1037) ||
-                    (file->FileName() == "EXPLODE.BND" && chunk->Id() == 1105) ||
-                    (file->FileName() == "TRAPDOOR.BAN" && chunk->Id() == 1004) ||
-                    (file->FileName() == "SLAM.BAN" && chunk->Id() == 2020) ||
-                    (file->FileName() == "SLAMVLTS.BAN" && chunk->Id() == 2020) ||
-                    (file->FileName() == "BOMB.BAN" && chunk->Id() == 1005);
+                    bBroken = false;
+                }
 
-                    if (bBroken && (mType != eAePsx && mType != eAePsxDemo))
-                    {
-                        bBroken = false;
-                    }
-
-                    if (!bBroken)
-                    {
-                        cb(*chunk);
-                    }
+                if (!bBroken)
+                {
+                    cb(*chunk);
                 }
             }
         }
@@ -395,6 +376,7 @@ int main(int /*argc*/, char** /*argv*/)
     const std::map<DataTest::eDataType, std::string> datas =
     {
         { DataTest::eAePc,      "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus" },
+        /*
         { DataTest::eAePcDemo,  "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo" },
         { DataTest::eAePsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
         { DataTest::eAePsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
@@ -403,6 +385,7 @@ int main(int /*argc*/, char** /*argv*/)
         { DataTest::eAoPcDemo,  "C:\\Users\\paul\\Desktop\\alive\\all_data\\abeodd" },
         { DataTest::eAoPsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
         { DataTest::eAoPsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
+        */
     };
 
     for (const auto& data : datas)
