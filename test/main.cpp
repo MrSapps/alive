@@ -2043,7 +2043,7 @@ TEST(LvlArchive, DISABLED_Integration)
             if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
             {
                 Oddlib::Stream stream(chunk->ReadData());
-                Oddlib::AnimSerializer anim(file->FileName(), stream);
+                Oddlib::AnimSerializer anim(file->FileName(), chunk->Id(), stream);
             }
         }
     }

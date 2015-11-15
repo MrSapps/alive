@@ -160,32 +160,32 @@ public:
                 // For AE PSX variants these files need parsing checking/fixing as they seem
                 // to be some slightly changed Anim format
                 bool bBroken =
-                    (fileName == "SLIG.BND" && chunk->Id() == 360) ||
-                    (fileName == "DUST.BAN" && chunk->Id() == 303) ||
-                    (fileName == "METAL.BAN" && chunk->Id() == 365) ||
-                    (fileName == "VAPOR.BAN" && chunk->Id() == 305) ||
-                    (fileName == "DEADFLR.BAN" && chunk->Id() == 349) ||
-                    (fileName == "DEBRIS00.BAN" && chunk->Id() == 1105) ||
-                    (fileName == "DOVBASIC.BAN" && chunk->Id() == 60) ||
-                    (fileName == "DRPROCK.BAN" && chunk->Id() == 357) ||
-                    (fileName == "DRPSPRK.BAN" && chunk->Id() == 357) ||
-                    (fileName == "EVILFART.BAN" && chunk->Id() == 6017) ||
-                    (fileName == "OMMFLARE.BAN" && chunk->Id() == 312) ||
-                    (fileName == "SHELL.BAN" && chunk->Id() == 360) ||
-                    (fileName == "LANDMINE.BAN" && chunk->Id() == 1036) ||
-                    (fileName == "SLURG.BAN" && chunk->Id() == 306) ||
-                    (fileName == "SQBSMK.BAN" && chunk->Id() == 354) ||
-                    (fileName == "STICK.BAN" && chunk->Id() == 358) ||
-                    (fileName == "TBOMB.BAN" && chunk->Id() == 1037) ||
-                    (fileName == "WELLLEAF.BAN" && chunk->Id() == 341) ||
-                    (fileName == "BOMB.BND" && chunk->Id() == 1005) ||
-                    (fileName == "MINE.BND" && chunk->Id() == 1036) ||
-                    (fileName == "UXB.BND" && chunk->Id() == 1037) ||
-                    (fileName == "EXPLODE.BND" && chunk->Id() == 1105) ||
-                    (fileName == "TRAPDOOR.BAN" && chunk->Id() == 1004) ||
-                    (fileName == "SLAM.BAN" && chunk->Id() == 2020) ||
-                    (fileName == "SLAMVLTS.BAN" && chunk->Id() == 2020) ||
-                    (fileName == "BOMB.BAN" && chunk->Id() == 1005);
+                    (fileName == "SLIG.BND" && chunk->Id() == 360) ||           // [1C 00 00 00] 30 05 [04] [06] [31 00 00 00] // 40 = Abs offset to frame?
+                    (fileName == "DUST.BAN" && chunk->Id() == 303) ||           // [1C 00 00 00] 78 4D [04] [06] [36 07 00 00] // 40
+                    (fileName == "METAL.BAN" && chunk->Id() == 365) ||          // [1C 00 00 00] 78 3A [04] [06] [37 04 00 00] // 40
+                    (fileName == "VAPOR.BAN" && chunk->Id() == 305) ||          // [1C 00 00 00] 78 73 [04] [06] [AB 08 00 00] // 40
+                    (fileName == "DEADFLR.BAN" && chunk->Id() == 349) ||        // [1C 00 00 00] 7C CC [08] [07] [3C 16 00 00] // A0
+                    (fileName == "DEBRIS00.BAN" && chunk->Id() == 1105) ||      // [1C 00 00 00] 78 5F [04] [06] [07 0A 00 00] // 40
+                    (fileName == "DOVBASIC.BAN" && chunk->Id() == 60) ||        // [1C 00 00 00] 80 43 [08] [07] [0C 0A 00 00] // A0
+                    (fileName == "DRPROCK.BAN" && chunk->Id() == 357) ||        // [1C 00 00 00] 18 04 [04] [06] [1F 00 00 00] // 40
+                    (fileName == "DRPSPRK.BAN" && chunk->Id() == 357) ||        // [1C 00 00 00] 18 04 [04] [06] [1C 00 00 00] // 40
+                    (fileName == "EVILFART.BAN" && chunk->Id() == 6017) ||      // [1C 00 00 00] 68 44 [04] [06] [F6 05 00 00] // 40
+                    (fileName == "OMMFLARE.BAN" && chunk->Id() == 312) ||       // [1C 00 00 00] 64 15 [08] [07] [56 03 00 00] // A0
+                    (fileName == "SHELL.BAN" && chunk->Id() == 360) ||          // [1C 00 00 00] 30 05 [04] [06] [31 00 00 00] // 40
+                    (fileName == "LANDMINE.BAN" && chunk->Id() == 1036) ||      // [1C 00 00 00] 30 0C [08] [07] [31 01 00 00] // A0
+                    (fileName == "SLURG.BAN" && chunk->Id() == 306) ||          // [1C 00 00 00] 80 27 [08] [07] [74 07 00 00] // A0
+                    (fileName == "SQBSMK.BAN" && chunk->Id() == 354) ||         // [1C 00 00 00] 78 73 [04] [06] [AB 08 00 00] // 40
+                    (fileName == "STICK.BAN" && chunk->Id() == 358) ||          // [1C 00 00 00] 68 2C [04] [06] [2D 03 00 00] // 40
+                    (fileName == "TBOMB.BAN" && chunk->Id() == 1037) ||         // [1C 00 00 00] 80 49 [08] [07] [BC 12 00 00] // A0
+                    (fileName == "WELLLEAF.BAN" && chunk->Id() == 341) ||       // [1C 00 00 00] 40 0B [04] [06] [A0 00 00 00] // 40
+                    (fileName == "BOMB.BND" && chunk->Id() == 1005) ||          // [1C 00 00 00] 28 11 [08] [07] [4E 01 00 00] // A0
+                    (fileName == "MINE.BND" && chunk->Id() == 1036) ||          // [1C 00 00 00] 30 0C [08] [07] [31 01 00 00] // A0
+                    (fileName == "UXB.BND" && chunk->Id() == 1037) ||           // [1C 00 00 00] 80 49 [08] [07] [BC 12 00 00] // A0
+                    (fileName == "EXPLODE.BND" && chunk->Id() == 1105) ||       // [1C 00 00 00] 78 5F [04] [06] [07 0A 00 00] // 40
+                    (fileName == "TRAPDOOR.BAN" && chunk->Id() == 1004) ||      // [1C 00 00 00] 7C 46 [08] [07] [7A 0B 00 00] // A0
+                    (fileName == "SLAM.BAN" && chunk->Id() == 2020) ||          // [1C 00 00 00] 28 44 [08] [07] [9F 06 00 00] // A0
+                    (fileName == "SLAMVLTS.BAN" && chunk->Id() == 2020) ||      // [1C 00 00 00] 24 44 [08] [07] [E0 05 00 00] // A0
+                    (fileName == "BOMB.BAN" && chunk->Id() == 1005);            // [1C 00 00 00] 28 11 [08] [07] [4E 01 00 00] // A0
 
                 if (bBroken && (mType != eAePsx && mType != eAePsxDemo))
                 {
@@ -310,7 +310,7 @@ public:
     {
         ForChunksOfType(Oddlib::MakeType('A', 'n', 'i', 'm'), [&](const std::string& fileName, Oddlib::LvlArchive::FileChunk& chunk)
         {
-            Oddlib::AnimSerializer anim(fileName, *chunk.Stream());
+            Oddlib::AnimSerializer anim(fileName, chunk.Id(), *chunk.Stream());
 
         });
     }
@@ -398,26 +398,59 @@ int main(int /*argc*/, char** /*argv*/)
     const std::map<DataTest::eDataType, std::string> datas =
     {
         
-        { DataTest::eAePc,      "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus" },
-        { DataTest::eAePcDemo,  "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo" },
+       // { DataTest::eAePc,      "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus" },
         
-        { DataTest::eAePsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
-        { DataTest::eAePsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
-        { DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
-       
 
+        /*
+        { DataTest::eAePcDemo,  "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo" },
+        */
+        { DataTest::eAePsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
+       // { DataTest::eAePsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
+        //{ DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
+       
+        /*
         { DataTest::eAoPc,      "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee" },
         { DataTest::eAoPcDemo,  "C:\\Users\\paul\\Desktop\\alive\\all_data\\abeodd" },
         { DataTest::eAoPsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
         { DataTest::eAoPsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
-        
+        */
     };
 
     std::vector<std::string> fileFilter;
-    //fileFilter.push_back("EMOANGRY.BAN");
+    /*
+    fileFilter.push_back("SLIG.BND");
+    fileFilter.push_back("DUST.BAN");
+    fileFilter.push_back("METAL.BAN");
+    fileFilter.push_back("VAPOR.BAN");
+    fileFilter.push_back("DEADFLR.BAN");
+    fileFilter.push_back("DEBRIS00.BAN");
+    fileFilter.push_back("DOVBASIC.BAN");
+    fileFilter.push_back("DRPROCK.BAN");
+    fileFilter.push_back("DRPSPRK.BAN");
+    fileFilter.push_back("EVILFART.BAN");
+    fileFilter.push_back("OMMFLARE.BAN");
+    */
+    fileFilter.push_back("EXPLODE.BND");
+    /*
+    fileFilter.push_back("LANDMINE.BAN");
+    fileFilter.push_back("SLURG.BAN");
+    fileFilter.push_back("SQBSMK.BAN");
+    fileFilter.push_back("STICK.BAN");
+    fileFilter.push_back("TBOMB.BAN");
+    fileFilter.push_back("WELLLEAF.BAN");
+    fileFilter.push_back("BOMB.BND");
+    fileFilter.push_back("MINE.BND");
+    fileFilter.push_back("UXB.BND");
+    fileFilter.push_back("EXPLODE.BND");
+    fileFilter.push_back("TRAPDOOR.BAN");
+    fileFilter.push_back("SLAM.BAN");
+    fileFilter.push_back("SLAMVLTS.BAN");
+    fileFilter.push_back("BOMB.BAN");
+    */
 
     // FALLROCK.BAN corrupted frames?
     // ABEHOIST.BAN and some other ABE sprites have blue pixel patches appearing - maybe decompression issue or palt byte swapping?
+    // AE broken frames - could it be 1 big image and each offset is a rect within it?
 
     for (const auto& data : datas)
     {

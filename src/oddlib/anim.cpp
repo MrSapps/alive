@@ -16,15 +16,18 @@
 namespace Oddlib
 {
 
-    AnimSerializer::AnimSerializer(const std::string& fileName, IStream& stream)
+    AnimSerializer::AnimSerializer(const std::string& fileName, Uint32 /*id*/, IStream& stream)
         : mFileName(fileName)
     {
-        //stream.BinaryDump("Broken.dat");
+        //stream.BinaryDump(fileName + "_" + std::to_string(id));
 
+        
         // Read the header
         stream.ReadUInt16(mHeader.mMaxW);
         stream.ReadUInt16(mHeader.mMaxH);
         stream.ReadUInt32(mHeader.mFrameTableOffSet);
+        ///stream.Seek(0x1c);
+
         stream.ReadUInt32(mHeader.mPaltSize);
         if (mHeader.mPaltSize == 0)
         {
@@ -68,6 +71,11 @@ namespace Oddlib
         ParseFrameInfoHeaders(stream);
         GatherUniqueFrameOffsets();
         mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
+
+        //mUniqueFrameHeaderOffsets.clear();
+        //mUniqueFrameHeaderOffsets.insert(0x40);
+        //mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
+
         DebugDecodeAllFrames(stream);
     }
 
@@ -387,6 +395,9 @@ namespace Oddlib
         stream.ReadUInt8(frameHeader.mCompressionType);
         stream.ReadUInt32(frameHeader.mFrameDataSize);
 
+        //frameHeader.mWidth = 48/4;
+        //frameHeader.mHeight = 26;
+
         Uint32 nTextureWidth = 0;
         Uint32 actualWidth = 0;
         if (frameHeader.mColourDepth == 8)
@@ -412,6 +423,7 @@ namespace Oddlib
         }
 
        // LOG_INFO("Compression type " << static_cast<Uint32>(frameHeader.mCompressionType));
+        //frameHeader.mCompressionType = 4;
 
         switch (frameHeader.mCompressionType)
         {
@@ -481,7 +493,7 @@ namespace Oddlib
 
         // AO cases end at 5
         case 6:
-            Decompress<CompressionType6Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mMagic == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
+            Decompress<CompressionType6Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
             break;
 
         case 7:
@@ -502,7 +514,7 @@ namespace Oddlib
         std::vector < std::unique_ptr<Animation> > r;
 
         Stream stream(archive.FileByName(fileName)->ChunkById(resourceId)->ReadData());
-        AnimSerializer anim(fileName, stream);
+        AnimSerializer anim(fileName, resourceId, stream);
 
         return r;
     }
