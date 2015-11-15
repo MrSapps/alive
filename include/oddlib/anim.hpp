@@ -31,6 +31,7 @@ namespace Oddlib
         void ParseAnimationSets(IStream& stream);
         void ParseFrameInfoHeaders(IStream& stream);
         void GatherUniqueFrameOffsets();
+        Uint32 DataSize(std::set<Uint32>::iterator it);
         void DebugDecodeAllFrames(IStream& stream);
         std::vector<Uint8> DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize);
         

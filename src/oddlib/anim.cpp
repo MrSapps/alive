@@ -194,8 +194,33 @@ namespace Oddlib
         }
     }
 
+    Uint32 AnimSerializer::DataSize(std::set<Uint32>::iterator it)
+    {
+        auto nextIt = it;
+        nextIt++;
+        if (nextIt == mUniqueFrameHeaderOffsets.end())
+        {
+            // TODO Since we added mHeader.mFrameTableOffSet to mUniqueFrameHeaderOffsets
+            // can't happen?
+            return mHeader.mFrameTableOffSet - *it;
+        }
+        else
+        {
+            return *nextIt - *it;
+        }
+    }
+
     void AnimSerializer::DebugDecodeAllFrames(IStream& stream)
     {
+        auto endIt = mUniqueFrameHeaderOffsets.end();
+        std::advance(endIt, -1);
+
+        for (auto it = mUniqueFrameHeaderOffsets.begin(); it != endIt; it++)
+        {
+            DecodeFrame(stream, *it, DataSize(it));
+        }
+
+        /*
         auto endIt = mUniqueFrameHeaderOffsets.end();
         std::advance(endIt, -2);
 
@@ -210,6 +235,7 @@ namespace Oddlib
             DecodeFrame(stream, frameOffset, frameDataSize);
         }
         EndFrames();
+        */
     }
 
     template<class T>
@@ -253,11 +279,16 @@ namespace Oddlib
 
     void AnimSerializer::AddFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData)
     {
+
+        DebugSaveFrame(header, realWidth, decompressedData);
+
+        /*
         int xpos = mSpriteX * mHeader.mMaxW;
         int ypos = mSpriteY * mHeader.mMaxH;
 
         std::vector<Uint16> pixels;
         auto frame = MakeFrame(header, realWidth, decompressedData, pixels);
+
 
         SDL_Rect dstRect;
         dstRect.x = xpos;
@@ -272,6 +303,7 @@ namespace Oddlib
             mSpriteX = 0;
             mSpriteY++;
         }
+        */
     }
 
     void AnimSerializer::EndFrames()
@@ -339,7 +371,7 @@ namespace Oddlib
 
         // Save surface to disk
         static int i = 1;
-        SDL_SaveBMP(surface.get(), ("frame" + std::to_string(i++) + ".bmp").c_str());
+        SDL_SaveBMP(surface.get(), (mFileName + std::to_string(i++) + ".bmp").c_str());
     }
 
     std::vector<Uint8> AnimSerializer::DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize)
@@ -384,12 +416,35 @@ namespace Oddlib
         {
         case 0:
             // Used in AE and AO (seems to mean "no compression"?)
-        {
-            // TODO: Frame widths are wrong for some AE PC demo frames
-            std::vector<Uint8> data(frameDataSize+4);
-            stream.ReadBytes(data.data(), data.size());
-            AddFrame(frameHeader, actualWidth, data);
-        }
+            {
+                std::vector<Uint8> data;
+
+                // The frame size field isn't used in this case, its actually part of the frame pixel data
+                stream.Seek(stream.Pos() - 4);
+
+                if (frameHeader.mColourDepth == 4)
+                {
+                    data.resize((actualWidth*frameHeader.mHeight) / 2);
+                }
+                else if (frameHeader.mColourDepth == 8)
+                {
+                    data.resize(actualWidth*frameHeader.mHeight);
+                }
+                else
+                {
+                    abort();
+                }
+
+                if (!data.empty())
+                {
+                    stream.ReadBytes(data.data(), data.size());
+                    AddFrame(frameHeader, actualWidth, data);
+                }
+                else
+                {
+                    LOG_WARNING("Empty frame data");
+                }
+            }
             break;
 
         // Run length encoding compression type
@@ -402,35 +457,36 @@ namespace Oddlib
 
         case 2:
             // In AE but never used, used for AO, same algorithm, 0x0040AA50 in AE
-            Decompress<CompressionType2>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
+            Decompress<CompressionType2>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mMagic == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
             break;
 
         case 3:
             if (frameHeader.mMagic == 0x8)
             {
+                // The size is the header seems to be half the size of the calculated frameDataSize, give or take 3 bytes
                 Decompress<CompressionType3>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             else
             {
-                Decompress<CompressionType3Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
+                Decompress<CompressionType3Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mMagic == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
             }
             break;
 
         case 4:
         case 5:
             // Both AO and AE
-            Decompress<CompressionType4Or5>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
+            Decompress<CompressionType4Or5>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mMagic == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
             break;
 
         // AO cases end at 5
         case 6:
-            Decompress<CompressionType6Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
+            Decompress<CompressionType6Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mMagic == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
             break;
 
         case 7:
         case 8:
             // AE, also never seems to be used
-            //abort();
+            abort();
           //  LOG_ERROR("TYPE 7 or 8");
             break;
         }

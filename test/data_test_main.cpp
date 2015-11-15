@@ -17,8 +17,8 @@ class LvlFileReducer
 public:
     LvlFileReducer(const LvlFileReducer&) = delete;
     LvlFileReducer& operator = (const LvlFileReducer&) = delete;
-    LvlFileReducer(const std::string& resourcePath, const std::vector<std::string>& lvlFiles)
-        : mLvlFiles(lvlFiles)
+    LvlFileReducer(const std::string& resourcePath, const std::vector<std::string>& lvlFiles, std::vector<std::string> fileFilter = std::vector<std::string>())
+        : mLvlFiles(lvlFiles), mFileFilter(fileFilter)
     {
         mFs.Init();
 
@@ -56,13 +56,31 @@ private:
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
-            for (auto j = 0u; j < file->ChunkCount(); j++)
+
+            bool bUseFile = true;
+            if (!mFileFilter.empty())
             {
-                auto chunk = file->ChunkByIndex(j);
-                if (!ChunkExists(*chunk))
+                bUseFile = false;
+                for (const auto& includedFile : mFileFilter)
                 {
-                    AddChunk(chunk, file->FileName());
-                    chunkTaken = true;
+                    if (includedFile == file->FileName())
+                    {
+                        bUseFile = true;
+                        break;
+                    }
+                }
+            }
+
+            if (bUseFile)
+            {
+                for (auto j = 0u; j < file->ChunkCount(); j++)
+                {
+                    auto chunk = file->ChunkByIndex(j);
+                    if (!ChunkExists(*chunk))
+                    {
+                        AddChunk(chunk, file->FileName());
+                        chunkTaken = true;
+                    }
                 }
             }
         }
@@ -95,6 +113,8 @@ private:
     }
 
     const std::vector<std::string>& mLvlFiles;
+    std::vector<std::string> mFileFilter;
+
     GameData mGameData;
     FileSystem mFs;
 
@@ -117,8 +137,8 @@ public:
         eAePsxDemo
     };
 
-    DataTest(eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
-        : mType(eType), mReducer(resourcePath, lvls)
+    DataTest(eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls, const std::vector<std::string>& fileFilter)
+        : mType(eType), mReducer(resourcePath, lvls, fileFilter)
     {
         ReadAllAnimations();
         //ReadFg1s();
@@ -136,6 +156,7 @@ public:
             auto fileName = chunkPair.second;
             if (chunk->Type() == type)
             {
+                /*
                 // For AE PSX variants these files need parsing checking/fixing as they seem
                 // to be some slightly changed Anim format
                 bool bBroken =
@@ -170,8 +191,9 @@ public:
                 {
                     bBroken = false;
                 }
+                */
 
-                if (!bBroken)
+                //if (!bBroken)
                 {
                     cb(fileName, *chunk);
                 }
@@ -375,18 +397,27 @@ int main(int /*argc*/, char** /*argv*/)
 
     const std::map<DataTest::eDataType, std::string> datas =
     {
+        
         { DataTest::eAePc,      "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus" },
-        /*
         { DataTest::eAePcDemo,  "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo" },
+        
         { DataTest::eAePsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
         { DataTest::eAePsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
         { DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
+       
+
         { DataTest::eAoPc,      "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee" },
         { DataTest::eAoPcDemo,  "C:\\Users\\paul\\Desktop\\alive\\all_data\\abeodd" },
         { DataTest::eAoPsx,     "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
         { DataTest::eAoPsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
-        */
+        
     };
+
+    std::vector<std::string> fileFilter;
+    //fileFilter.push_back("EMOANGRY.BAN");
+
+    // FALLROCK.BAN corrupted frames?
+    // ABEHOIST.BAN and some other ABE sprites have blue pixel patches appearing - maybe decompression issue or palt byte swapping?
 
     for (const auto& data : datas)
     {
@@ -396,7 +427,7 @@ int main(int /*argc*/, char** /*argv*/)
             // Defined struct is wrong
             abort();
         }
-        DataTest dataDecoder(data.first, data.second, *it->second);
+        DataTest dataDecoder(data.first, data.second, *it->second, fileFilter);
     }
 
     return 0;
