@@ -37,6 +37,7 @@ namespace Oddlib
         std::vector<Uint8> DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize);
         
         std::string mFileName;
+        Uint32 mId = 0;
 
         struct BanHeader
         {

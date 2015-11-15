@@ -15,17 +15,21 @@
 namespace Oddlib
 {
 
-    AnimSerializer::AnimSerializer(const std::string& fileName, Uint32 /*id*/, IStream& stream)
-        : mFileName(fileName)
+    AnimSerializer::AnimSerializer(const std::string& fileName, Uint32 id, IStream& stream)
+        : mFileName(fileName), mId(id)
     {
-        //stream.BinaryDump(fileName + "_" + std::to_string(id));
+        //stream.BinaryDump(fileName + "_" + std::to_string(mId));
 
         
         // Read the header
         stream.ReadUInt16(mHeader.mMaxW);
         stream.ReadUInt16(mHeader.mMaxH);
         stream.ReadUInt32(mHeader.mFrameTableOffSet);
-        ///stream.Seek(0x1c);
+
+        Uint32 frameStart = 0;
+        stream.ReadUInt32(frameStart);
+
+        stream.Seek(0x1c);
 
         stream.ReadUInt32(mHeader.mPaltSize);
         if (mHeader.mPaltSize == 0)
@@ -71,9 +75,9 @@ namespace Oddlib
         GatherUniqueFrameOffsets();
         mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
 
-        //mUniqueFrameHeaderOffsets.clear();
-        //mUniqueFrameHeaderOffsets.insert(0x40);
-        //mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
+        mUniqueFrameHeaderOffsets.clear();
+        mUniqueFrameHeaderOffsets.insert(frameStart);
+        mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
 
         DebugDecodeAllFrames(stream);
     }
@@ -379,7 +383,7 @@ namespace Oddlib
 
         // Save surface to disk
         static int i = 1;
-        SDL_SaveBMP(surface.get(), (mFileName + std::to_string(i++) + ".bmp").c_str());
+        SDL_SaveBMP(surface.get(), (mFileName + "_id_" + std::to_string(mId) + "_" + std::to_string(i++) + ".bmp").c_str());
     }
 
     std::vector<Uint8> AnimSerializer::DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize)
@@ -394,8 +398,8 @@ namespace Oddlib
         stream.ReadUInt8(frameHeader.mCompressionType);
         stream.ReadUInt32(frameHeader.mFrameDataSize);
 
-        //frameHeader.mWidth = 48/4;
-        //frameHeader.mHeight = 26;
+        frameHeader.mWidth = 120;
+        frameHeader.mHeight = 95-28;
 
         Uint32 nTextureWidth = 0;
         Uint32 actualWidth = 0;

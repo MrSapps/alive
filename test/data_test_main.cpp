@@ -76,10 +76,13 @@ private:
                 for (auto j = 0u; j < file->ChunkCount(); j++)
                 {
                     auto chunk = file->ChunkByIndex(j);
-                    if (!ChunkExists(*chunk))
+                  //  if (chunk->Id() == 360)
                     {
-                        AddChunk(chunk, file->FileName());
-                        chunkTaken = true;
+                        if (!ChunkExists(*chunk))
+                        {
+                            AddChunk(chunk, file->FileName());
+                            chunkTaken = true;
+                        }
                     }
                 }
             }
@@ -161,27 +164,67 @@ public:
                 // to be some slightly changed Anim format
                 bool bBroken =
                     (fileName == "SLIG.BND" && chunk->Id() == 360) ||           // [1C 00 00 00] 30 05 [04] [06] [31 00 00 00] // 40 = Abs offset to frame?
+
+                    //[1]	0x[03][03][0000]
+                    //[5]	0x[05][03][0008]
+                    //[3]	0x[04][02][0010]
+                    //[6]	0x[05][03][0018]
+                    //[4]	0x[04][02][0020]
+                    //[2]	0x[03][03][0028]
+
                     (fileName == "DUST.BAN" && chunk->Id() == 303) ||           // [1C 00 00 00] 78 4D [04] [06] [36 07 00 00] // 40
                     (fileName == "METAL.BAN" && chunk->Id() == 365) ||          // [1C 00 00 00] 78 3A [04] [06] [37 04 00 00] // 40
                     (fileName == "VAPOR.BAN" && chunk->Id() == 305) ||          // [1C 00 00 00] 78 73 [04] [06] [AB 08 00 00] // 40
-                    (fileName == "DEADFLR.BAN" && chunk->Id() == 349) ||        // [1C 00 00 00] 7C CC [08] [07] [3C 16 00 00] // A0
                     (fileName == "DEBRIS00.BAN" && chunk->Id() == 1105) ||      // [1C 00 00 00] 78 5F [04] [06] [07 0A 00 00] // 40
-                    (fileName == "DOVBASIC.BAN" && chunk->Id() == 60) ||        // [1C 00 00 00] 80 43 [08] [07] [0C 0A 00 00] // A0
+                    //         78 5F = 120,95
+                    //[0]	0x[18,22][00,50] 
+                    //[1]	0x[1b,22][00,28]
+                    //[2]	0x[1c,27][42,00]
+                    //[3]	0x[1d,29][42,28]
+                    //[4]	0x[1e,28][00,00]
+                    //[5]	0x[21,22][1e,00]
+                    //[6]	0x[23,20][1e,48]
+                    //[7]	0x[24,1f][1e,28]
+
+                    //[0]	0x[18,22][00,50] 50,00,22,18 | 80, 0, 34 (64), 24
+                    //[1]	0x[1b,22][00,28] 28,00,22,1b | 40, 0, 34 (64), 27
+                    //[2]	0x[1c,27][42,00] 00,42,27,1c | 0,  66, 39 (78), 28
+                    //[3]	0x[1d,29][42,28] 28,42,29,1d | 40, 66, 41 (82), 29
+                    //[4]	0x[1e,28][00,00] 00,00,28,1e | 0, 0, 40 (80), 30
+                    //[5]	0x[21,22][1e,00] 00,1e,22,21 |       34 (64), 33
+                    //[6]	0x[23,20][1e,48] 48,1e,20,23 |       32 (64),  35
+                    //[7]	0x[24,1f][1e,28] 28,1e,1f,24 |        31 (62)  36
+
+                    //[2] 64x24 // 0
+                    //[1] 64x27 // 1
+                    //[6] 72x28 // 2
+                    //[7] 72x29 // 3
+                    //[0] 72x30 // 4
+                    //[3] 64x33 // 5
+                    //[5] 56x35 // 6
+                    //[4] 56x36 // 7
+
+                    // Seems to be xoff, yoff, w,h
+
+
                     (fileName == "DRPROCK.BAN" && chunk->Id() == 357) ||        // [1C 00 00 00] 18 04 [04] [06] [1F 00 00 00] // 40
                     (fileName == "DRPSPRK.BAN" && chunk->Id() == 357) ||        // [1C 00 00 00] 18 04 [04] [06] [1C 00 00 00] // 40
                     (fileName == "EVILFART.BAN" && chunk->Id() == 6017) ||      // [1C 00 00 00] 68 44 [04] [06] [F6 05 00 00] // 40
-                    (fileName == "OMMFLARE.BAN" && chunk->Id() == 312) ||       // [1C 00 00 00] 64 15 [08] [07] [56 03 00 00] // A0
                     (fileName == "SHELL.BAN" && chunk->Id() == 360) ||          // [1C 00 00 00] 30 05 [04] [06] [31 00 00 00] // 40
-                    (fileName == "LANDMINE.BAN" && chunk->Id() == 1036) ||      // [1C 00 00 00] 30 0C [08] [07] [31 01 00 00] // A0
-                    (fileName == "SLURG.BAN" && chunk->Id() == 306) ||          // [1C 00 00 00] 80 27 [08] [07] [74 07 00 00] // A0
                     (fileName == "SQBSMK.BAN" && chunk->Id() == 354) ||         // [1C 00 00 00] 78 73 [04] [06] [AB 08 00 00] // 40
                     (fileName == "STICK.BAN" && chunk->Id() == 358) ||          // [1C 00 00 00] 68 2C [04] [06] [2D 03 00 00] // 40
-                    (fileName == "TBOMB.BAN" && chunk->Id() == 1037) ||         // [1C 00 00 00] 80 49 [08] [07] [BC 12 00 00] // A0
                     (fileName == "WELLLEAF.BAN" && chunk->Id() == 341) ||       // [1C 00 00 00] 40 0B [04] [06] [A0 00 00 00] // 40
+                    (fileName == "EXPLODE.BND" && chunk->Id() == 1105) ||       // [1C 00 00 00] 78 5F [04] [06] [07 0A 00 00] // 40
+
+                    (fileName == "DEADFLR.BAN" && chunk->Id() == 349) ||        // [1C 00 00 00] 7C CC [08] [07] [3C 16 00 00] // A0
+                    (fileName == "DOVBASIC.BAN" && chunk->Id() == 60) ||        // [1C 00 00 00] 80 43 [08] [07] [0C 0A 00 00] // A0
+                    (fileName == "OMMFLARE.BAN" && chunk->Id() == 312) ||       // [1C 00 00 00] 64 15 [08] [07] [56 03 00 00] // A0
+                    (fileName == "LANDMINE.BAN" && chunk->Id() == 1036) ||      // [1C 00 00 00] 30 0C [08] [07] [31 01 00 00] // A0
+                    (fileName == "SLURG.BAN" && chunk->Id() == 306) ||          // [1C 00 00 00] 80 27 [08] [07] [74 07 00 00] // A0
+                    (fileName == "TBOMB.BAN" && chunk->Id() == 1037) ||         // [1C 00 00 00] 80 49 [08] [07] [BC 12 00 00] // A0
                     (fileName == "BOMB.BND" && chunk->Id() == 1005) ||          // [1C 00 00 00] 28 11 [08] [07] [4E 01 00 00] // A0
                     (fileName == "MINE.BND" && chunk->Id() == 1036) ||          // [1C 00 00 00] 30 0C [08] [07] [31 01 00 00] // A0
                     (fileName == "UXB.BND" && chunk->Id() == 1037) ||           // [1C 00 00 00] 80 49 [08] [07] [BC 12 00 00] // A0
-                    (fileName == "EXPLODE.BND" && chunk->Id() == 1105) ||       // [1C 00 00 00] 78 5F [04] [06] [07 0A 00 00] // 40
                     (fileName == "TRAPDOOR.BAN" && chunk->Id() == 1004) ||      // [1C 00 00 00] 7C 46 [08] [07] [7A 0B 00 00] // A0
                     (fileName == "SLAM.BAN" && chunk->Id() == 2020) ||          // [1C 00 00 00] 28 44 [08] [07] [9F 06 00 00] // A0
                     (fileName == "SLAMVLTS.BAN" && chunk->Id() == 2020) ||      // [1C 00 00 00] 24 44 [08] [07] [E0 05 00 00] // A0
@@ -417,36 +460,18 @@ int main(int /*argc*/, char** /*argv*/)
     };
 
     std::vector<std::string> fileFilter;
-    /*
-    fileFilter.push_back("SLIG.BND");
-    fileFilter.push_back("DUST.BAN");
-    fileFilter.push_back("METAL.BAN");
-    fileFilter.push_back("VAPOR.BAN");
-    fileFilter.push_back("DEADFLR.BAN");
+    //fileFilter.push_back("DUST.BAN");
+    //fileFilter.push_back("METAL.BAN");
+    //fileFilter.push_back("VAPOR.BAN");
     fileFilter.push_back("DEBRIS00.BAN");
-    fileFilter.push_back("DOVBASIC.BAN");
-    fileFilter.push_back("DRPROCK.BAN");
-    fileFilter.push_back("DRPSPRK.BAN");
-    fileFilter.push_back("EVILFART.BAN");
-    fileFilter.push_back("OMMFLARE.BAN");
-    */
-    fileFilter.push_back("EXPLODE.BND");
-    /*
-    fileFilter.push_back("LANDMINE.BAN");
-    fileFilter.push_back("SLURG.BAN");
-    fileFilter.push_back("SQBSMK.BAN");
-    fileFilter.push_back("STICK.BAN");
-    fileFilter.push_back("TBOMB.BAN");
-    fileFilter.push_back("WELLLEAF.BAN");
-    fileFilter.push_back("BOMB.BND");
-    fileFilter.push_back("MINE.BND");
-    fileFilter.push_back("UXB.BND");
-    fileFilter.push_back("EXPLODE.BND");
-    fileFilter.push_back("TRAPDOOR.BAN");
-    fileFilter.push_back("SLAM.BAN");
-    fileFilter.push_back("SLAMVLTS.BAN");
-    fileFilter.push_back("BOMB.BAN");
-    */
+    //fileFilter.push_back("DRPROCK.BAN");
+    //fileFilter.push_back("DRPSPRK.BAN");
+   // fileFilter.push_back("EVILFART.BAN");
+   // fileFilter.push_back("SHELL.BAN");
+   // fileFilter.push_back("SQBSMK.BAN");
+   // fileFilter.push_back("WELLLEAF.BAN");
+    //fileFilter.push_back("EXPLODE.BND");
+
 
     // FALLROCK.BAN corrupted frames?
     // ABEHOIST.BAN and some other ABE sprites have blue pixel patches appearing - maybe decompression issue or palt byte swapping?
