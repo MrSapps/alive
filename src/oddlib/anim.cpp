@@ -11,7 +11,6 @@
 #include "sdl_raii.hpp"
 #include <assert.h>
 #include <fstream>
-#include <string>
 
 namespace Oddlib
 {

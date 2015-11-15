@@ -5,6 +5,7 @@
 #include <set>
 #include "SDL.h"
 #include "sdl_raii.hpp"
+#include <string>
 
 namespace Oddlib
 {
