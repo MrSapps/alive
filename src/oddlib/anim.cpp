@@ -11,6 +11,7 @@
 #include "sdl_raii.hpp"
 #include <assert.h>
 #include <fstream>
+#include <string>
 
 namespace Oddlib
 {
@@ -18,7 +19,7 @@ namespace Oddlib
     AnimSerializer::AnimSerializer(const std::string& fileName, IStream& stream)
         : mFileName(fileName)
     {
-//        stream.BinaryDump("Broken.dat");
+        //stream.BinaryDump("Broken.dat");
 
         // Read the header
         stream.ReadUInt16(mHeader.mMaxW);
@@ -486,7 +487,7 @@ namespace Oddlib
         case 7:
         case 8:
             // AE, also never seems to be used
-            abort();
+            //abort();
           //  LOG_ERROR("TYPE 7 or 8");
             break;
         }
