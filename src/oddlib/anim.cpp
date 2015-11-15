@@ -15,7 +15,8 @@
 namespace Oddlib
 {
 
-    AnimSerializer::AnimSerializer(IStream& stream)
+    AnimSerializer::AnimSerializer(const std::string& fileName, IStream& stream)
+        : mFileName(fileName)
     {
 //        stream.BinaryDump("Broken.dat");
 
@@ -277,7 +278,7 @@ namespace Oddlib
     {
         // Save surface to disk
         static int i = 1;
-        SDL_SaveBMP(mSpriteSheet.get(), ("sprites_" + std::to_string(i++) + ".bmp").c_str());
+        SDL_SaveBMP(mSpriteSheet.get(), (mFileName + std::to_string(i++) + ".bmp").c_str());
     }
 
     SDL_SurfacePtr AnimSerializer::MakeFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint16>& pixels)
@@ -444,7 +445,7 @@ namespace Oddlib
         std::vector < std::unique_ptr<Animation> > r;
 
         Stream stream(archive.FileByName(fileName)->ChunkById(resourceId)->ReadData());
-        AnimSerializer anim(stream);
+        AnimSerializer anim(fileName, stream);
 
         return r;
     }

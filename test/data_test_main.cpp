@@ -128,7 +128,7 @@ public:
         // TODO: Handle sounds/fmvs
     }
 
-    void ForChunksOfType(Uint32 type, std::function<void(Oddlib::LvlArchive::FileChunk&)> cb)
+    void ForChunksOfType(Uint32 type, std::function<void(const std::string&, Oddlib::LvlArchive::FileChunk&)> cb)
     {
         for (auto chunkPair : mReducer.Chunks())
         {
@@ -173,7 +173,7 @@ public:
 
                 if (!bBroken)
                 {
-                    cb(*chunk);
+                    cb(fileName, *chunk);
                 }
             }
         }
@@ -181,7 +181,7 @@ public:
 
     void ReadFg1s()
     {
-        ForChunksOfType(Oddlib::MakeType('F', 'G', '1', ' '), [&](Oddlib::LvlArchive::FileChunk&)
+        ForChunksOfType(Oddlib::MakeType('F', 'G', '1', ' '), [&](const std::string&, Oddlib::LvlArchive::FileChunk&)
         {
             // TODO: FG1 parsing
         });
@@ -189,7 +189,7 @@ public:
 
     void ReadFonts()
     {
-        ForChunksOfType(Oddlib::MakeType('F', 'o', 'n', 't'), [&](Oddlib::LvlArchive::FileChunk&)
+        ForChunksOfType(Oddlib::MakeType('F', 'o', 'n', 't'), [&](const std::string&, Oddlib::LvlArchive::FileChunk&)
         {
             // TODO: Font parsing
         });
@@ -197,7 +197,7 @@ public:
 
     void ReadAllPaths()
     {
-        ForChunksOfType(Oddlib::MakeType('P', 'a', 't', 'h'), [&](Oddlib::LvlArchive::FileChunk&)
+        ForChunksOfType(Oddlib::MakeType('P', 'a', 't', 'h'), [&](const std::string&, Oddlib::LvlArchive::FileChunk&)
         {
             // TODO: Load the game data json for the required hard coded data to load the path
             /*
@@ -212,7 +212,7 @@ public:
 
     void ReadAllCameras()
     {
-        ForChunksOfType(Oddlib::MakeType('B', 'i', 't', 's'), [&](Oddlib::LvlArchive::FileChunk& chunk)
+        ForChunksOfType(Oddlib::MakeType('B', 'i', 't', 's'), [&](const std::string&, Oddlib::LvlArchive::FileChunk& chunk)
         {
             auto bits = Oddlib::MakeBits(*chunk.Stream());
             Oddlib::IBits* ptr = nullptr;
@@ -286,9 +286,9 @@ public:
 
     void ReadAllAnimations()
     {
-        ForChunksOfType(Oddlib::MakeType('A', 'n', 'i', 'm'), [&](Oddlib::LvlArchive::FileChunk& chunk)
+        ForChunksOfType(Oddlib::MakeType('A', 'n', 'i', 'm'), [&](const std::string& fileName, Oddlib::LvlArchive::FileChunk& chunk)
         {
-            Oddlib::AnimSerializer anim(*chunk.Stream());
+            Oddlib::AnimSerializer anim(fileName, *chunk.Stream());
 
         });
     }

@@ -26,7 +26,7 @@ namespace Oddlib
     class AnimSerializer
     {
     public:
-        explicit AnimSerializer(IStream& stream);
+        explicit AnimSerializer(const std::string& fileName, IStream& stream);
     private:
         void ParseAnimationSets(IStream& stream);
         void ParseFrameInfoHeaders(IStream& stream);
@@ -34,6 +34,7 @@ namespace Oddlib
         void DebugDecodeAllFrames(IStream& stream);
         std::vector<Uint8> DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize);
         
+        std::string mFileName;
 
         struct BanHeader
         {
