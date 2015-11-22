@@ -26,11 +26,8 @@ namespace Oddlib
     template<Uint32 BitsSize>
     std::vector<Uint8> CompressionType6or7AePsx<BitsSize>::Decompress(IStream& stream, Uint32 finalW, Uint32 /*w*/, Uint32 h, Uint32 dataSize)
     {
-        unsigned int kInputSize = (BitsSize * dataSize) >> 3;
-
-        std::vector<Uint8> out(finalW*h * 2);
-
         Uint32 outputPos = 0;
+        std::vector<Uint8> out(finalW*h * 2);
 
         unsigned char tmp1[256] = {};
         unsigned char tmp2[256] = {};
@@ -40,9 +37,10 @@ namespace Oddlib
         const unsigned int v36 = ((unsigned int)(kFixedMask) >> 1) - 1;
 
         unsigned int bitCounter = 0;
-
         unsigned int srcWorkBits = 0; // Must live for as long as the outer most loop/scope
+
         const auto kStartPos = stream.Pos();
+        const unsigned int kInputSize = (BitsSize * dataSize) >> 3;
         while (stream.Pos() < kStartPos+kInputSize)
         {
             unsigned int count = 0;
