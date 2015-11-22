@@ -6,8 +6,8 @@
 
 namespace Oddlib
 {
-    template<Uint32 BitsSize, typename OutType>
-    void NextBits(IStream& stream, unsigned int& bitCounter, unsigned int& srcWorkBits, const signed int kFixedMask, OutType& maskedSrcBits1)
+    template<Uint32 BitsSize>
+    Uint32 NextBits(IStream& stream, unsigned int& bitCounter, unsigned int& srcWorkBits, const signed int kFixedMask)
     {
         if (bitCounter < 16)
         {
@@ -17,8 +17,9 @@ namespace Oddlib
         }
 
         bitCounter -= BitsSize;
-        maskedSrcBits1 = static_cast<OutType>(srcWorkBits & (kFixedMask - 1));
+        const Uint32 ret = srcWorkBits & (kFixedMask - 1);
         srcWorkBits >>= BitsSize;
+        return ret;
     }
 
     // Function 0x004ABB90 in AE, function 0x8005B09C in AE PSX demo
@@ -44,11 +45,10 @@ namespace Oddlib
         const auto kStartPos = stream.Pos();
         while (stream.Pos() < kStartPos+kInputSize)
         {
-            int count = 0;
+            unsigned int count = 0;
             do
             {
-                unsigned int maskedSrcBits1 = 0;
-                NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, maskedSrcBits1);
+                const unsigned int maskedSrcBits1 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
 
                 int maskedSrcBits1Copy = maskedSrcBits1;
 
@@ -75,16 +75,14 @@ namespace Oddlib
                     break;
                 }
 
-                int count2 = maskedSrcBits1Copy + 1;
+                unsigned int count2 = maskedSrcBits1Copy + 1;
                 for (;;)
                 {
-                    int v14 = 0;
-                    NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, v14);
+                    const unsigned int v14 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
                     *(&tmp1[count] + (tmp2 - tmp1)) = static_cast<char>(v14);
                     if (count != v14)
                     {
-                        char v16; // TODO: int?
-                        NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, v16);
+                        const unsigned int v16 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
                         tmp1[count] = static_cast<unsigned char>(v16); 
                     }
                     ++count;
@@ -96,18 +94,16 @@ namespace Oddlib
                 }
             } while (count != kFixedMask);
 
-            int v19 = 0;
-            NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, v19);
+            unsigned int v19 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
             v19 = v19 << BitsSize; // Extra
 
-            int v33 = 0;
-            NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, v33);
+            unsigned int v33 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
             v33 = v33 + v19; // Extra
 
             int v23 = 0;
             for (;;)
             {
-                int v24 = 0;
+                unsigned int v24 = 0;
                 if (v23)
                 {
                     --v23;
@@ -120,10 +116,10 @@ namespace Oddlib
                         break;
                     }
 
-                    NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, v24);
+                    v24 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
                 }
 
-                for (int i = tmp2[v24]; v24 != i; i = tmp2[i])
+                for (unsigned int i = tmp2[v24]; v24 != i; i = tmp2[i])
                 {
                     unsigned char v28 = tmp1[v24];
                     v24 = i;
