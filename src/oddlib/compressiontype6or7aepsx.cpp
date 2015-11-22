@@ -43,14 +43,9 @@ namespace Oddlib
         unsigned int srcWorkBits = 0; // esi@1
         int count = 0; // eax@2
         unsigned int maskedSrcBits1 = 0; // ebx@5
-        int v14 = 0; // ebx@15
-        char v16 = 0; // bl@18
         char bLastByte = 0; // zf@19
-        int v19 = 0; // eax@23
-        int v23 = 0; // eax@25
-        int v24 = 0; // ebx@27
-        int v25 = 0; // ebx@28
-        int i = 0; // ebp@32
+        char v16 = 0; // bl@18
+
         unsigned char v28 = 0; // cl@33
 
         int count2 = 0; // [sp+10h] [bp-318h]@11
@@ -99,6 +94,7 @@ namespace Oddlib
                 count2 = maskedSrcBits1Copy + 1;
                 for (;;)
                 {
+                    int v14 = 0;
                     NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, v14);
                     *(&tmp1[count] + (tmp2 - tmp1)) = static_cast<char>(v14);
                     if (count != v14)
@@ -118,13 +114,15 @@ namespace Oddlib
                 pSrc1 = pSrcCopy; // dead?
             } while (count != kFixedMask);
 
+            int v19 = 0;
             NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, v19);
             v19 = v19 << BitsSize; // Extra
 
             NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, v33);
-
             v33 = v33 + v19; // Extra
-            v23 = 0;
+
+            int v23 = 0;
+            int v24 = 0;
             for (;;)
             {
                 if (v23)
@@ -134,7 +132,7 @@ namespace Oddlib
                 }
                 else
                 {
-                    v25 = v33--;
+                    const int v25 = v33--;
                     if (!v25)
                     {
                         break;
@@ -143,7 +141,7 @@ namespace Oddlib
                     NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, v24);
                 }
 
-                for (i = tmp2[v24]; v24 != i; i = tmp2[i])
+                for (int i = tmp2[v24]; v24 != i; i = tmp2[i])
                 {
                     v28 = tmp1[v24];
                     v24 = i;
