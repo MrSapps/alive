@@ -36,12 +36,12 @@ namespace Oddlib
         int whDWORD = dataSize;
 
         unsigned int bitCounter = 0; // edx@1
-        Uint16 *pSrc1 = 0; // ebp@1
+        Uint16 *pSrc1 = pInput; // ebp@1
+        Uint16 *pSrcCopy = pInput; // [sp+Ch] [bp-31Ch]@1
+
         unsigned int srcWorkBits = 0; // esi@1
         int count = 0; // eax@2
         unsigned int maskedSrcBits1 = 0; // ebx@5
-        int remainder = 0; // ebx@6
-        int remainderCopy = 0; // ecx@7
         int v14 = 0; // ebx@15
         char v16 = 0; // bl@18
         char bLastByte = 0; // zf@19
@@ -51,22 +51,18 @@ namespace Oddlib
         int v25 = 0; // ebx@28
         int i = 0; // ebp@32
         unsigned char v28 = 0; // cl@33
-        Uint16 *pSrcCopy = 0; // [sp+Ch] [bp-31Ch]@1
-        int maskedSrcBits1Copy = 0; // [sp+10h] [bp-318h]@5
+
         int count2 = 0; // [sp+10h] [bp-318h]@11
         int v33 = 0; // [sp+10h] [bp-318h]@25
-        signed int kFixedMask = 0; // [sp+14h] [bp-314h]@1
-        unsigned int v36 = 0; // [sp+24h] [bp-304h]@1
-        char tmp1[256] = {}; // [sp+28h] [bp-300h]@15
-        char tmp2[256] = {}; // [sp+128h] [bp-200h]@8
+
+        unsigned char tmp1[256] = {}; // [sp+28h] [bp-300h]@15
+        unsigned char tmp2[256] = {}; // [sp+128h] [bp-200h]@8
         unsigned char tmp3[256] = {}; // [sp+228h] [bp-100h]@27
 
-        srcWorkBits = 0;
-        bitCounter = 0;
-        pSrc1 = pInput;
-        pSrcCopy = pInput;
-        kFixedMask = 1 << BitsSize;                      // could have been the bit depth?
-        v36 = ((unsigned int)(1 << BitsSize) >> 1) - 1;
+        const signed int kFixedMask = 1 << BitsSize;
+        
+        const unsigned int v36 = ((unsigned int)(kFixedMask) >> 1) - 1;
+
         while (pSrc1 < (Uint16 *)((char *)pInput + ((unsigned int)(BitsSize * whDWORD) >> 3)))// could be the first dword of the frame which is usually the size?
         {
             count = 0;
@@ -74,15 +70,15 @@ namespace Oddlib
             {
                 NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, maskedSrcBits1);
 
-                maskedSrcBits1Copy = maskedSrcBits1;
+                int maskedSrcBits1Copy = maskedSrcBits1;
 
                 if (maskedSrcBits1 > v36)
                 {
-                    remainder = maskedSrcBits1 - v36;
+                    int remainder = maskedSrcBits1 - v36;
                     maskedSrcBits1Copy = remainder;
                     if (remainder)
                     {
-                        remainderCopy = remainder;
+                        int remainderCopy = remainder;
                         do
                         {
                             tmp2[count] = static_cast<char>(count);
@@ -93,6 +89,7 @@ namespace Oddlib
                         maskedSrcBits1Copy = remainder;
                     }
                 }
+
                 if (count == kFixedMask)
                 {
                     break;
@@ -145,7 +142,7 @@ namespace Oddlib
                     NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, v24);
                 }
 
-                for (i = (unsigned char)tmp2[v24]; v24 != i; i = (unsigned char)tmp2[i])
+                for (i = tmp2[v24]; v24 != i; i = tmp2[i])
                 {
                     v28 = tmp1[v24];
                     v24 = i;
