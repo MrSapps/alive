@@ -1,7 +1,7 @@
 Build  | Status
 ------------- | -------------
 Windows |[![Build status](https://ci.appveyor.com/api/projects/status/r7k50qbfx8wynbd2?svg=true)](https://ci.appveyor.com/project/paulsapps/alive)
-Linux/OSX | [![Build Status](https://travis-ci.org/paulsapps/alive.svg?branch=master)](https://travis-ci.org/paulsapps/alive)
+Linux/OSX | [![Build Status](https://travis-ci.org/paulsapps/alive.svg?branch=dev)](https://travis-ci.org/paulsapps/alive)
 Coverage  |[![Coverage status](https://coveralls.io/repos/paulsapps/alive/badge.svg)](https://coveralls.io/r/paulsapps/alive)
 Coverity  | [![Coverity status](https://scan.coverity.com/projects/5367/badge.svg)](https://scan.coverity.com/projects/5367)
 
