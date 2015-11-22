@@ -188,7 +188,7 @@ namespace Oddlib
                     tmp3[v23++] = v28;
                 }
                 pSrc1 = pSrcCopy;
-                *pOutput++ = static_cast<BYTE>(v24);
+                *pOutput++ = static_cast<Uint8>(v24);
             }
         }
         // return pOutput - pOutputStart;
