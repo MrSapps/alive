@@ -11,7 +11,7 @@ namespace Oddlib
     {
         if (bitCounter < 16)
         {
-            const int srcBits = *pSrc1 << bitCounter; // TODO: Bit counter cast to char here?
+            const int srcBits = *pSrc1 << bitCounter;
             bitCounter += 16;
             srcWorkBits |= srcBits;
             ++pSrc1;
@@ -34,7 +34,6 @@ namespace Oddlib
         Uint16* pInput = (Uint16*)in.data();
         Uint8* pOutput = (Uint8*)out.data();
         int whDWORD = dataSize;
-       // const int b8or6 = 6;// 8;// w == 8 ? 8 : 6;
 
         unsigned int bitCounter = 0; // edx@1
         Uint16 *pSrc1 = 0; // ebp@1
@@ -47,8 +46,6 @@ namespace Oddlib
         char v16 = 0; // bl@18
         char bLastByte = 0; // zf@19
         int v19 = 0; // eax@23
- //       unsigned int v20 = 0; // edx@23
-//        unsigned int v21 = 0; // esi@23
         int v23 = 0; // eax@25
         int v24 = 0; // ebx@27
         int v25 = 0; // ebx@28
@@ -59,13 +56,11 @@ namespace Oddlib
         int count2 = 0; // [sp+10h] [bp-318h]@11
         int v33 = 0; // [sp+10h] [bp-318h]@25
         signed int kFixedMask = 0; // [sp+14h] [bp-314h]@1
-       // Uint8 *pOutputStart = 0; // [sp+1Ch] [bp-30Ch]@1
         unsigned int v36 = 0; // [sp+24h] [bp-304h]@1
         char tmp1[256] = {}; // [sp+28h] [bp-300h]@15
         char tmp2[256] = {}; // [sp+128h] [bp-200h]@8
         unsigned char tmp3[256] = {}; // [sp+228h] [bp-100h]@27
 
-//        pOutputStart = pOutput;
         srcWorkBits = 0;
         bitCounter = 0;
         pSrc1 = pInput;
@@ -78,22 +73,6 @@ namespace Oddlib
             do
             {
                 NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, maskedSrcBits1);
-                /*
-                if (bitCounter < 0x10)
-                {
-                    srcBits = *pSrc1 << bitCounter;
-                    bitCounter += 16;
-                    srcWorkBits |= srcBits;
-                    ++pSrc1;
-                    pSrcCopy = pSrc1;
-                }
-                */
-
-                /*
-                bitCounter -= BitsSize;
-                maskedSrcBits1 = srcWorkBits & (kFixedMask - 1);
-                srcWorkBits >>= BitsSize;
-                */
 
                 maskedSrcBits1Copy = maskedSrcBits1;
 
@@ -120,41 +99,13 @@ namespace Oddlib
                 }
 
                 count2 = maskedSrcBits1Copy + 1;
-                while (1)
+                for (;;)
                 {
                     NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, v14);
-                    /*
-                    if (bitCounter < 0x10)
-                    {
-                        v12 = *pSrc1 << bitCounter;
-                        bitCounter += 16;
-                        srcWorkBits |= v12;
-                        pSrcCopy = pSrc1 + 1;
-                    }
-                    */
-                    /*
-                    bitCounter -= BitsSize;
-                    v14 = srcWorkBits & (kFixedMask - 1);
-                    srcWorkBits >>= BitsSize;
-                    */
                     *(&tmp1[count] + (tmp2 - tmp1)) = static_cast<char>(v14);
                     if (count != v14)
                     {
                         NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, v16);
-                        /*
-                        if (bitCounter < 0x10)
-                        {
-                            v15 = *pSrcCopy << bitCounter;
-                            bitCounter += 16;
-                            srcWorkBits |= v15;
-                            ++pSrcCopy;
-                        }
-                        */
-                        /*
-                        v16 = static_cast<char>(srcWorkBits & (kFixedMask - 1));
-                        bitCounter -= BitsSize;
-                        srcWorkBits >>= BitsSize;
-                        */
                         tmp1[count] = static_cast<unsigned char>(v16); 
                     }
                     ++count;
@@ -170,43 +121,13 @@ namespace Oddlib
             } while (count != kFixedMask);
 
             NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, v19);
-            /*
-            if (bitCounter < 0x10)
-            {
-                v18 = static_cast<char>(bitCounter);
-                bitCounter += 16;
-                srcWorkBits |= *pSrc1 << v18;
-                ++pSrc1;
-                pSrcCopy = pSrc1;
-            }
-            */
-            /*
-            v20 = bitCounter - BitsSize;
-            v19 = (srcWorkBits & (kFixedMask - 1)) << BitsSize;
-            v21 = srcWorkBits >> BitsSize;
-            */
             v19 = v19 << BitsSize; // Extra
-           // v21 = srcWorkBits;
 
             NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, v33);
-            /*
-            if (v20 < 0x10)
-            {
-                v22 = static_cast<char>(v20);
-                v20 += 16;
-                v21 |= *pSrc1 << v22;
-                ++pSrc1;
-                pSrcCopy = pSrc1;
-            }
-            */
-            /*
-            bitCounter = v20 - BitsSize;
-            v33 = (v21 & (kFixedMask - 1)) + v19;
-            srcWorkBits = v21 >> BitsSize;
-            */
+
             v33 = v33 + v19; // Extra
             v23 = 0;
-            while (1)
+            for (;;)
             {
                 if (v23)
                 {
@@ -221,20 +142,7 @@ namespace Oddlib
                 }
 
                 NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, v24);
-                /*
-                if (bitCounter < 0x10)
-                {
-                    v26 = *pSrc1 << bitCounter;
-                    bitCounter += 16;
-                    srcWorkBits |= v26;
-                    pSrcCopy = pSrc1 + 1;
-                }
-                */
-                /*
-                bitCounter -= BitsSize;
-                v24 = srcWorkBits & (kFixedMask - 1);
-                srcWorkBits >>= BitsSize;
-                */
+
             LABEL_32:
                 for (i = (unsigned char)tmp2[v24]; v24 != i; i = (unsigned char)tmp2[i])
                 {
@@ -246,7 +154,7 @@ namespace Oddlib
                 *pOutput++ = static_cast<Uint8>(v24);
             }
         }
-        // return pOutput - pOutputStart;
+
         return out;
        
     }
