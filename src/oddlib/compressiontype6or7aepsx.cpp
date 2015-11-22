@@ -27,14 +27,15 @@ namespace Oddlib
     template<Uint32 BitsSize>
     std::vector<Uint8> CompressionType6or7AePsx<BitsSize>::Decompress(IStream& stream, Uint32 finalW, Uint32 /*w*/, Uint32 h, Uint32 dataSize)
     {
-        std::vector<Uint8> out(finalW*h * 400);
-        std::vector<Uint8> in(dataSize);
+        unsigned int kInputSize = (BitsSize * dataSize) >> 3;
+
+        std::vector<Uint8> out(finalW*h * 4);
+        std::vector<Uint8> in(kInputSize);
         stream.ReadBytes(in.data(), in.size());
 
         Uint16* pInput = (Uint16*)in.data();
         Uint8* pOutput = (Uint8*)out.data();
-        int whDWORD = dataSize;
-
+  
         unsigned int bitCounter = 0; // edx@1
         Uint16 *pSrc1 = pInput; // ebp@1
         Uint16 *pSrcCopy = pInput; // [sp+Ch] [bp-31Ch]@1
@@ -63,7 +64,7 @@ namespace Oddlib
         
         const unsigned int v36 = ((unsigned int)(kFixedMask) >> 1) - 1;
 
-        while (pSrc1 < (Uint16 *)((char *)pInput + ((unsigned int)(BitsSize * whDWORD) >> 3)))// could be the first dword of the frame which is usually the size?
+        while (pSrc1 < (Uint16 *)( ((char *)pInput) + kInputSize))// could be the first dword of the frame which is usually the size?
         {
             count = 0;
             do
@@ -154,7 +155,6 @@ namespace Oddlib
         }
 
         return out;
-       
     }
 
     // Explicit template instantiation
