@@ -41,7 +41,8 @@ namespace Oddlib
         unsigned int bitCounter = 0;
 
         unsigned int srcWorkBits = 0; // Must live for as long as the outer most loop/scope
-        while (stream.Pos() < kInputSize)
+        const auto kStartPos = stream.Pos();
+        while (stream.Pos() < kStartPos+kInputSize)
         {
             int count = 0;
             do
