@@ -7,12 +7,11 @@
 namespace Oddlib
 {
     template<Uint32 BitsSize, typename OutType>
-    void NextBits(unsigned int& bitCounter, unsigned int& srcWorkBits, Uint16 *&pSrc, const signed int kFixedMask, OutType& maskedSrcBits1)
+    void NextBits(IStream& stream, unsigned int& bitCounter, unsigned int& srcWorkBits, const signed int kFixedMask, OutType& maskedSrcBits1)
     {
         if (bitCounter < 16)
         {
-            const int srcBits = *pSrc << bitCounter;
-            ++pSrc;
+            const int srcBits = ReadUint16(stream) << bitCounter;
             bitCounter += 16;
             srcWorkBits |= srcBits;
         }
@@ -28,12 +27,9 @@ namespace Oddlib
     {
         unsigned int kInputSize = (BitsSize * dataSize) >> 3;
 
-        std::vector<Uint8> out(finalW*h * 4);
-        std::vector<Uint8> in(kInputSize);
-        stream.ReadBytes(in.data(), in.size());
+        std::vector<Uint8> out(finalW*h * 2);
 
-        Uint16* pInput = (Uint16*)in.data();
-        Uint8* pOutput = (Uint8*)out.data();
+        Uint32 outputPos = 0;
 
         unsigned char tmp1[256] = {};
         unsigned char tmp2[256] = {};
@@ -43,16 +39,15 @@ namespace Oddlib
         const unsigned int v36 = ((unsigned int)(kFixedMask) >> 1) - 1;
 
         unsigned int bitCounter = 0;
-        Uint16* pSrc = pInput;
 
-        unsigned int srcWorkBits = 0; // Must live for as long as the outter most loop/scope
-        while (pSrc < (Uint16 *)( ((char *)pInput) + kInputSize))// could be the first dword of the frame which is usually the size?
+        unsigned int srcWorkBits = 0; // Must live for as long as the outer most loop/scope
+        while (stream.Pos() < kInputSize)
         {
             int count = 0;
             do
             {
                 int maskedSrcBits1 = 0;
-                NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc, kFixedMask, maskedSrcBits1);
+                NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, maskedSrcBits1);
 
                 int maskedSrcBits1Copy = maskedSrcBits1;
 
@@ -83,12 +78,12 @@ namespace Oddlib
                 for (;;)
                 {
                     int v14 = 0;
-                    NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc, kFixedMask, v14);
+                    NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, v14);
                     *(&tmp1[count] + (tmp2 - tmp1)) = static_cast<char>(v14);
                     if (count != v14)
                     {
                         char v16; // TODO: int?
-                        NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc, kFixedMask, v16);
+                        NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, v16);
                         tmp1[count] = static_cast<unsigned char>(v16); 
                     }
                     ++count;
@@ -101,11 +96,11 @@ namespace Oddlib
             } while (count != kFixedMask);
 
             int v19 = 0;
-            NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc, kFixedMask, v19);
+            NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, v19);
             v19 = v19 << BitsSize; // Extra
 
             int v33 = 0;
-            NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc, kFixedMask, v33);
+            NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, v33);
             v33 = v33 + v19; // Extra
 
             int v23 = 0;
@@ -124,7 +119,7 @@ namespace Oddlib
                         break;
                     }
 
-                    NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc, kFixedMask, v24);
+                    NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, v24);
                 }
 
                 for (int i = tmp2[v24]; v24 != i; i = tmp2[i])
@@ -133,7 +128,7 @@ namespace Oddlib
                     v24 = i;
                     tmp3[v23++] = v28;
                 }
-                *pOutput++ = static_cast<Uint8>(v24);
+                out[outputPos++] = static_cast<Uint8>(v24);
             }
         }
 
