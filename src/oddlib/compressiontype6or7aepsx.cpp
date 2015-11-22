@@ -6,6 +6,18 @@
 
 namespace Oddlib
 {
+    void NextBits(unsigned int& bitCounter, unsigned int& srcWorkBits, Uint16 *&pSrc1, Uint16 *&pSrcCopy)
+    {
+        if (bitCounter < 16)
+        {
+            const int srcBits = *pSrc1 << bitCounter; // TODO: Bit counter cast to char here?
+            bitCounter += 16;
+            srcWorkBits |= srcBits;
+            ++pSrc1;
+            pSrcCopy = pSrc1;
+        }
+    }
+
     // Function 0x004ABB90 in AE, function 0x8005B09C in AE PSX demo
     template<Uint32 BitsSize>
     std::vector<Uint8> CompressionType6or7AePsx<BitsSize>::Decompress(IStream& stream, Uint32 finalW, Uint32 /*w*/, Uint32 h, Uint32 dataSize)
@@ -24,25 +36,19 @@ namespace Oddlib
         Uint16 *pSrc1 = 0; // ebp@1
         unsigned int srcWorkBits = 0; // esi@1
         int count = 0; // eax@2
-        int srcBits = 0; // ebx@4
         unsigned int maskedSrcBits1 = 0; // ebx@5
         int remainder = 0; // ebx@6
         int remainderCopy = 0; // ecx@7
-        int v12 = 0; // ebx@14
         int v13 = 0; // ebp@15
         int v14 = 0; // ebx@15
-        int v15 = 0; // ebx@17
         char v16 = 0; // bl@18
         char bLastByte = 0; // zf@19
-        char v18 = 0; // cl@22
         int v19 = 0; // eax@23
         unsigned int v20 = 0; // edx@23
         unsigned int v21 = 0; // esi@23
-        char v22 = 0; // cl@24
         int v23 = 0; // eax@25
         int v24 = 0; // ebx@27
         int v25 = 0; // ebx@28
-        int v26 = 0; // ebx@30
         int i = 0; // ebp@32
         unsigned char v28 = 0; // cl@33
         Uint16 *pSrcCopy = 0; // [sp+Ch] [bp-31Ch]@1
@@ -68,6 +74,8 @@ namespace Oddlib
             count = 0;
             do
             {
+                NextBits(bitCounter, srcWorkBits, pSrc1, pSrcCopy);
+                /*
                 if (bitCounter < 0x10)
                 {
                     srcBits = *pSrc1 << bitCounter;
@@ -76,6 +84,8 @@ namespace Oddlib
                     ++pSrc1;
                     pSrcCopy = pSrc1;
                 }
+                */
+
                 bitCounter -= BitsSize;
                 maskedSrcBits1 = srcWorkBits & (kFixedMask - 1);
                 srcWorkBits >>= BitsSize;
@@ -102,6 +112,8 @@ namespace Oddlib
                 count2 = maskedSrcBits1Copy + 1;
                 while (1)
                 {
+                    NextBits(bitCounter, srcWorkBits, pSrc1, pSrcCopy);
+                    /*
                     if (bitCounter < 0x10)
                     {
                         v12 = *pSrc1 << bitCounter;
@@ -109,6 +121,7 @@ namespace Oddlib
                         srcWorkBits |= v12;
                         pSrcCopy = pSrc1 + 1;
                     }
+                    */
                     bitCounter -= BitsSize;
                     v13 = kFixedMask - 1;
                     v14 = srcWorkBits & (kFixedMask - 1);
@@ -116,6 +129,8 @@ namespace Oddlib
                     *(&tmp1[count] + (tmp2 - tmp1)) = static_cast<char>(v14);
                     if (count != v14)
                     {
+                        NextBits(bitCounter, srcWorkBits, pSrc1, pSrcCopy);
+                        /*
                         if (bitCounter < 0x10)
                         {
                             v15 = *pSrcCopy << bitCounter;
@@ -123,6 +138,7 @@ namespace Oddlib
                             srcWorkBits |= v15;
                             ++pSrcCopy;
                         }
+                        */
                         v16 = static_cast<char>(srcWorkBits & v13);
                         bitCounter -= BitsSize;
                         srcWorkBits >>= BitsSize;
@@ -131,11 +147,17 @@ namespace Oddlib
                     ++count;
                     bLastByte = count2-- == 1;
                     if (bLastByte)
+                    {
                         break;
-                    pSrc1 = pSrcCopy;
+                    }
+
+                    pSrc1 = pSrcCopy; // dead?
                 }
-                pSrc1 = pSrcCopy;
+                pSrc1 = pSrcCopy; // dead?
             } while (count != kFixedMask);
+
+            NextBits(bitCounter, srcWorkBits, pSrc1, pSrcCopy);
+            /*
             if (bitCounter < 0x10)
             {
                 v18 = static_cast<char>(bitCounter);
@@ -144,9 +166,14 @@ namespace Oddlib
                 ++pSrc1;
                 pSrcCopy = pSrc1;
             }
+            */
+
             v20 = bitCounter - BitsSize;
             v19 = (srcWorkBits & (kFixedMask - 1)) << BitsSize;
             v21 = srcWorkBits >> BitsSize;
+
+            NextBits(v20, v21, pSrc1, pSrcCopy);
+            /*
             if (v20 < 0x10)
             {
                 v22 = static_cast<char>(v20);
@@ -155,6 +182,7 @@ namespace Oddlib
                 ++pSrc1;
                 pSrcCopy = pSrc1;
             }
+            */
             bitCounter = v20 - BitsSize;
             v33 = (v21 & (kFixedMask - 1)) + v19;
             srcWorkBits = v21 >> BitsSize;
@@ -169,7 +197,12 @@ namespace Oddlib
                 }
                 v25 = v33--;
                 if (!v25)
+                {
                     break;
+                }
+
+                NextBits(bitCounter, srcWorkBits, pSrc1, pSrcCopy);
+                /*
                 if (bitCounter < 0x10)
                 {
                     v26 = *pSrc1 << bitCounter;
@@ -177,6 +210,8 @@ namespace Oddlib
                     srcWorkBits |= v26;
                     pSrcCopy = pSrc1 + 1;
                 }
+                */
+
                 bitCounter -= BitsSize;
                 v24 = srcWorkBits & (kFixedMask - 1);
                 srcWorkBits >>= BitsSize;
@@ -187,7 +222,7 @@ namespace Oddlib
                     v24 = i;
                     tmp3[v23++] = v28;
                 }
-                pSrc1 = pSrcCopy;
+                pSrc1 = pSrcCopy; // dead?
                 *pOutput++ = static_cast<Uint8>(v24);
             }
         }
