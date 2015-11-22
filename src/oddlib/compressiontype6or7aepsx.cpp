@@ -29,6 +29,7 @@ namespace Oddlib
         Uint32 outputPos = 0;
         std::vector<Uint8> out(finalW*h * 2);
 
+        // TODO: std::array
         unsigned char tmp1[256] = {};
         unsigned char tmp2[256] = {};
         unsigned char tmp3[256] = {};
@@ -37,7 +38,7 @@ namespace Oddlib
         const unsigned int v36 = ((unsigned int)(kFixedMask) >> 1) - 1;
 
         unsigned int bitCounter = 0;
-        unsigned int srcWorkBits = 0; // Must live for as long as the outer most loop/scope
+        unsigned int srcWorkBits = 0;
 
         const auto kStartPos = stream.Pos();
         const unsigned int kInputSize = (BitsSize * dataSize) >> 3;
@@ -56,14 +57,12 @@ namespace Oddlib
                     maskedSrcBits1Copy = remainder;
                     if (remainder)
                     {
-                        int remainderCopy = remainder;
                         do
                         {
                             tmp2[count] = static_cast<char>(count);
                             ++count;
                             --remainder;
-                            --remainderCopy;
-                        } while (remainderCopy);
+                        } while (remainder);
                         maskedSrcBits1Copy = remainder;
                     }
                 }
@@ -74,56 +73,57 @@ namespace Oddlib
                 }
 
                 unsigned int count2 = maskedSrcBits1Copy + 1;
+
                 for (;;)
                 {
                     const unsigned int v14 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
+                    
+                    // TODO: bounds safe
                     *(&tmp1[count] + (tmp2 - tmp1)) = static_cast<char>(v14);
+
                     if (count != v14)
                     {
                         const unsigned int v16 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
                         tmp1[count] = static_cast<unsigned char>(v16); 
                     }
+
                     ++count;
-                    const char bLastByte = count2-- == 1;
-                    if (bLastByte)
+
+                    if (count2-- == 1)
                     {
                         break;
                     }
                 }
             } while (count != kFixedMask);
 
-            unsigned int v19 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
-            v19 = v19 << BitsSize; // Extra
+            const unsigned int counterPart = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask) << BitsSize;
+            unsigned int counter = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask) + counterPart;
 
-            unsigned int v33 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
-            v33 = v33 + v19; // Extra
-
-            int v23 = 0;
+            int tmp2Idx = 0;
             for (;;)
             {
-                unsigned int v24 = 0;
-                if (v23)
+                unsigned int tmp1Idx = 0;
+                if (tmp2Idx)
                 {
-                    --v23;
-                    v24 = tmp3[v23];
+                    --tmp2Idx;
+                    tmp1Idx = tmp3[tmp2Idx];
                 }
                 else
                 {
-                    if (!v33--)
+                    if (!counter--)
                     {
                         break;
                     }
 
-                    v24 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
+                    tmp1Idx = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
                 }
 
-                for (unsigned int i = tmp2[v24]; v24 != i; i = tmp2[i])
+                for (unsigned int i = tmp2[tmp1Idx]; tmp1Idx != i; i = tmp2[i])
                 {
-                    unsigned char v28 = tmp1[v24];
-                    v24 = i;
-                    tmp3[v23++] = v28;
+                    tmp3[tmp2Idx++] = tmp1[tmp1Idx];
+                    tmp1Idx = i;
                 }
-                out[outputPos++] = static_cast<Uint8>(v24);
+                out[outputPos++] = static_cast<Uint8>(tmp1Idx);
             }
         }
 
