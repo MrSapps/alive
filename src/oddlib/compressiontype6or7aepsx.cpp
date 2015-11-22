@@ -50,13 +50,13 @@ namespace Oddlib
         int count2 = 0; // [sp+10h] [bp-318h]@11
         int v33 = 0; // [sp+10h] [bp-318h]@25
         signed int kFixedMask = 0; // [sp+14h] [bp-314h]@1
-        Uint8 *pOutputStart = 0; // [sp+1Ch] [bp-30Ch]@1
+       // Uint8 *pOutputStart = 0; // [sp+1Ch] [bp-30Ch]@1
         unsigned int v36 = 0; // [sp+24h] [bp-304h]@1
         char tmp1[256] = {}; // [sp+28h] [bp-300h]@15
         char tmp2[256] = {}; // [sp+128h] [bp-200h]@8
         unsigned char tmp3[256] = {}; // [sp+228h] [bp-100h]@27
 
-        pOutputStart = pOutput;
+//        pOutputStart = pOutput;
         srcWorkBits = 0;
         bitCounter = 0;
         pSrc1 = pInput;
