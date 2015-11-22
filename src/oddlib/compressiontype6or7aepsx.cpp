@@ -47,7 +47,7 @@ namespace Oddlib
             int count = 0;
             do
             {
-                int maskedSrcBits1 = 0;
+                unsigned int maskedSrcBits1 = 0;
                 NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask, maskedSrcBits1);
 
                 int maskedSrcBits1Copy = maskedSrcBits1;
