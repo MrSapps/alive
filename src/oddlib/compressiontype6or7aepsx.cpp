@@ -133,17 +133,18 @@ namespace Oddlib
                 {
                     --v23;
                     v24 = tmp3[v23];
-                    goto LABEL_32;
                 }
-                v25 = v33--;
-                if (!v25)
+                else
                 {
-                    break;
+                    v25 = v33--;
+                    if (!v25)
+                    {
+                        break;
+                    }
+
+                    NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, v24);
                 }
 
-                NextBits<BitsSize>(bitCounter, srcWorkBits, pSrc1, pSrcCopy, kFixedMask, v24);
-
-            LABEL_32:
                 for (i = (unsigned char)tmp2[v24]; v24 != i; i = (unsigned char)tmp2[i])
                 {
                     v28 = tmp1[v24];
