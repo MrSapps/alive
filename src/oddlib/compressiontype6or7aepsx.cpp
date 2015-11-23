@@ -35,7 +35,7 @@ namespace Oddlib
         std::array<unsigned char, 256> tmp3 = {};
 
         const unsigned int kFixedMask = 1 << BitsSize;
-        const unsigned int v36 = ((kFixedMask) >> 1) - 1;
+        const unsigned int kInvertedFixedMask = ((kFixedMask) >> 1) - 1;
 
         unsigned int bitCounter = 0;
         unsigned int srcWorkBits = 0;
@@ -51,9 +51,9 @@ namespace Oddlib
 
                 int maskedSrcBits1Copy = maskedSrcBits1;
 
-                if (maskedSrcBits1 > v36)
+                if (maskedSrcBits1 > kInvertedFixedMask)
                 {
-                    int remainder = maskedSrcBits1 - v36;
+                    int remainder = maskedSrcBits1 - kInvertedFixedMask;
                     maskedSrcBits1Copy = remainder;
                     if (remainder)
                     {
@@ -76,14 +76,11 @@ namespace Oddlib
 
                 for (;;)
                 {
-                    const unsigned int v14 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
-                    
-                    tmp2[count] = static_cast<char>(v14);
-
-                    if (count != v14)
+                    unsigned int bits = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
+                    tmp2[count] = static_cast<char>(bits);
+                    if (count != bits)
                     {
-                        const unsigned int v16 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
-                        tmp1[count] = static_cast<unsigned char>(v16); 
+                        tmp1[count] = static_cast<unsigned char>(NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask));
                     }
 
                     ++count;
