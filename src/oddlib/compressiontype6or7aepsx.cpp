@@ -8,7 +8,7 @@
 namespace Oddlib
 {
     template<Uint32 BitsSize>
-    Uint32 NextBits(IStream& stream, unsigned int& bitCounter, unsigned int& srcWorkBits, const signed int kFixedMask)
+    static Uint32 NextBits(IStream& stream, unsigned int& bitCounter, unsigned int& srcWorkBits, const signed int kFixedMask)
     {
         if (bitCounter < 16)
         {
