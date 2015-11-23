@@ -2,6 +2,7 @@
 #include "oddlib/stream.hpp"
 #include "logger.hpp"
 #include <vector>
+#include <array>
 #include <cassert>
 
 namespace Oddlib
@@ -29,13 +30,12 @@ namespace Oddlib
         Uint32 outputPos = 0;
         std::vector<Uint8> out(finalW*h * 2);
 
-        // TODO: std::array
-        unsigned char tmp1[256] = {};
-        unsigned char tmp2[256] = {};
-        unsigned char tmp3[256] = {};
+        std::array<unsigned char,256> tmp1 = {};
+        std::array<unsigned char, 256> tmp2 = {};
+        std::array<unsigned char, 256> tmp3 = {};
 
-        const signed int kFixedMask = 1 << BitsSize;
-        const unsigned int v36 = ((unsigned int)(kFixedMask) >> 1) - 1;
+        const unsigned int kFixedMask = 1 << BitsSize;
+        const unsigned int v36 = ((kFixedMask) >> 1) - 1;
 
         unsigned int bitCounter = 0;
         unsigned int srcWorkBits = 0;
@@ -78,8 +78,7 @@ namespace Oddlib
                 {
                     const unsigned int v14 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
                     
-                    // TODO: bounds safe
-                    *(&tmp1[count] + (tmp2 - tmp1)) = static_cast<char>(v14);
+                    tmp2[count] = static_cast<char>(v14);
 
                     if (count != v14)
                     {
