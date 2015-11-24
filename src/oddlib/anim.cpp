@@ -22,7 +22,6 @@ namespace Oddlib
         
         //stream.BinaryDump(fileName + "_" + std::to_string(mId));
 
-
         // Read the header
         stream.ReadUInt16(mHeader.mMaxW);
         stream.ReadUInt16(mHeader.mMaxH);
@@ -464,7 +463,6 @@ namespace Oddlib
 
         switch (frameHeader.mCompressionType)
         {
-            
         case 0:
             // Used in AE and AO (seems to mean "no compression"?)
             {

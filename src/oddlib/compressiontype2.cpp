@@ -24,7 +24,10 @@ namespace Oddlib
     // Function 0x0040AA50 in AE
     std::vector<Uint8> CompressionType2::Decompress(IStream& stream, Uint32 finalW, Uint32 /*w*/, Uint32 h, Uint32 dataSize)
     {
-        std::vector<Uint8> ret(finalW*h);
+        // HACK: Add on 43 DWORD buffer overrun area - some AE PSX sprites write
+        // this far out of bounds - just cropping off the extra
+        // pixels is a good enough workaround.
+        std::vector<Uint8> ret((finalW*h)+(4*43));
 
         Sint32 dwords_left = dataSize / 4;
         Sint32 remainder = dataSize % 4;
