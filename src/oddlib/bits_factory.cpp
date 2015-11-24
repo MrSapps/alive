@@ -58,7 +58,16 @@ namespace Oddlib
         return true;
     }
 
-    std::unique_ptr<IBits> MakeBits(IStream& stream)
+    enum eCameraType
+    {
+        eAoPsxDemo,
+        eAePsx,
+        eAoPsx,
+        eAoPc,
+        eAePc
+    };
+
+    static eCameraType GetCameraType(IStream& stream)
     {
         bool allStripsAreAoSize = true;
         bool hasFullAmountOfStrips = true;
@@ -71,7 +80,7 @@ namespace Oddlib
         {
             LOG_INFO("AO PSX demo mdec camera detected");
             stream.Seek(0);
-            return std::make_unique<PsxBits>(stream, false, true);
+            return eAoPsxDemo;
         }
 
         stream.Seek(0);
@@ -80,7 +89,7 @@ namespace Oddlib
         {
             stream.Seek(0);
             LOG_INFO("AE PSX mdec camera detected");
-            return std::make_unique<PsxBits>(stream, true, false);
+            return eAePsx;
         }
 
         stream.Seek(0);
@@ -103,20 +112,48 @@ namespace Oddlib
 
             stream.Seek(stream.Pos() + stripSize);
         }
-       
+
         stream.Seek(0);
 
         if (!hasFullAmountOfStrips)
         {
             LOG_INFO("AO PSX mdec camera detected");
-            return std::make_unique<PsxBits>(stream, false, false);
+            return eAoPsx;
         }
         else if (allStripsAreAoSize)
         {
             LOG_INFO("AO PC camera detected");
-            return std::make_unique<AoBitsPc>(stream);
+            return eAoPc;
         }
         LOG_INFO("AE PC camera detected");
-        return std::make_unique<AeBitsPc>(stream);
+        return eAePc;
+    }
+
+    bool IsPsxCamera(IStream& stream)
+    {
+        const eCameraType cameraType = GetCameraType(stream);
+        switch (cameraType)
+        {
+            case eAoPsxDemo: return true;
+            case eAePsx:     return true;
+            case eAoPsx:     return true;
+            case eAoPc:      return false;
+            case eAePc:      return false;
+        }
+        abort();
+    }
+
+    std::unique_ptr<IBits> MakeBits(IStream& stream)
+    {
+        const eCameraType cameraType = GetCameraType(stream);
+        switch (cameraType)
+        {
+            case eAoPsxDemo: return std::make_unique<PsxBits>(stream, false, true);
+            case eAePsx:     return std::make_unique<PsxBits>(stream, true, false);
+            case eAoPsx:     return std::make_unique<PsxBits>(stream, false, false);
+            case eAoPc:      return std::make_unique<AoBitsPc>(stream);
+            case eAePc:      return std::make_unique<AeBitsPc>(stream);
+        }
+        abort();
     }
 }

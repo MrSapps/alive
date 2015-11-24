@@ -1,35 +1,34 @@
 #include "oddlib/anim.hpp"
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/stream.hpp"
-#include "oddlib/compressiontype1.hpp"
 #include "oddlib/compressiontype2.hpp"
 #include "oddlib/compressiontype3.hpp"
 #include "oddlib/compressiontype3ae.hpp"
 #include "oddlib/compressiontype4or5.hpp"
 #include "oddlib/compressiontype6ae.hpp"
+#include "oddlib/compressiontype6or7aepsx.hpp"
 #include "logger.hpp"
 #include "sdl_raii.hpp"
 #include <assert.h>
 #include <fstream>
+#include <array>
 
 namespace Oddlib
 {
 
-    AnimSerializer::AnimSerializer(const std::string& fileName, Uint32 id, IStream& stream)
-        : mFileName(fileName), mId(id)
+    AnimSerializer::AnimSerializer(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx)
+        : mFileName(fileName), mId(id), mIsPsx(bIsPsx)
     {
+        
         //stream.BinaryDump(fileName + "_" + std::to_string(mId));
 
-        
+
         // Read the header
         stream.ReadUInt16(mHeader.mMaxW);
         stream.ReadUInt16(mHeader.mMaxH);
         stream.ReadUInt32(mHeader.mFrameTableOffSet);
 
-        Uint32 frameStart = 0;
-        stream.ReadUInt32(frameStart);
-
-        stream.Seek(0x1c);
+         Uint32 frameStart = 0;
 
         stream.ReadUInt32(mHeader.mPaltSize);
         if (mHeader.mPaltSize == 0)
@@ -38,6 +37,41 @@ namespace Oddlib
             // actually the palt size.
             mbIsAoFile = false;
             stream.ReadUInt32(mHeader.mPaltSize);
+        }
+        else
+        {
+            // There is another anim format where all sprite frames are in one
+            // pre-made sprite sheet. In this case there are 10 zero bytes for
+            // some unused structure.
+            // Thus if the next 10 bytes are zeroes then this is "sprite sheet"
+            // format anim, else its "normal" AO format anim.
+            frameStart = mHeader.mPaltSize;
+            
+            std::array<Uint8, 10> nulls = {};
+            stream.ReadBytes(nulls.data(), nulls.size());
+            bool allNulls = true;
+            for (const auto& b : nulls)
+            {
+                if (b != 0)
+                {
+                    allNulls = false;
+                    break;
+                }
+            }
+            if (allNulls)
+            {
+                stream.Seek(frameStart);
+
+                Uint32 paltOffset = 0;
+                stream.ReadUInt32(paltOffset);
+                stream.Seek(paltOffset);
+                stream.ReadUInt32(mHeader.mPaltSize);
+            }
+            else
+            {
+                frameStart = 0;
+                stream.Seek(stream.Pos() - 10);
+            }
         }
 
         // Read the palette
@@ -74,10 +108,13 @@ namespace Oddlib
         ParseFrameInfoHeaders(stream);
         GatherUniqueFrameOffsets();
         mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
-
-        mUniqueFrameHeaderOffsets.clear();
-        mUniqueFrameHeaderOffsets.insert(frameStart);
-        mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
+        // TODO: Handle frames as rects into sprite sheet
+        if (frameStart != 0)
+        {
+            mUniqueFrameHeaderOffsets.clear();
+            mUniqueFrameHeaderOffsets.insert(frameStart);
+            mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
+        }
 
         DebugDecodeAllFrames(stream);
     }
@@ -336,7 +373,7 @@ namespace Oddlib
             {
                 // ABEEND.BAN from the AO PSX demo goes out of bounds - probably why the resulting
                 // beta image looks quite strange.
-                if (v > mPalt.size())
+                if (v >= mPalt.size())
                 {
                     v = static_cast<unsigned char>(mPalt.size() - 1);
                 }
@@ -391,15 +428,15 @@ namespace Oddlib
         stream.Seek(frameOffset);
 
         FrameHeader frameHeader;
-        stream.ReadUInt32(frameHeader.mMagic);
+        stream.ReadUInt32(frameHeader.mClutOffset);
+
+        // TODO: Validate clut offset is valid
+
         stream.ReadUInt8(frameHeader.mWidth);
         stream.ReadUInt8(frameHeader.mHeight);
         stream.ReadUInt8(frameHeader.mColourDepth);
         stream.ReadUInt8(frameHeader.mCompressionType);
         stream.ReadUInt32(frameHeader.mFrameDataSize);
-
-        frameHeader.mWidth = 120;
-        frameHeader.mHeight = 95-28;
 
         Uint32 nTextureWidth = 0;
         Uint32 actualWidth = 0;
@@ -425,11 +462,9 @@ namespace Oddlib
             //return std::vector<Uint8>();
         }
 
-       // LOG_INFO("Compression type " << static_cast<Uint32>(frameHeader.mCompressionType));
-        //frameHeader.mCompressionType = 4;
-
         switch (frameHeader.mCompressionType)
         {
+            
         case 0:
             // Used in AE and AO (seems to mean "no compression"?)
             {
@@ -463,47 +498,63 @@ namespace Oddlib
             }
             break;
 
-        // Run length encoding compression type
         case 1:
-            // In AE but never used, used for AO, same algorithm, 0x0040A610 in AE
-            // TODO: Never seems to be called in anything for AO PC?
-            //Decompress<CompressionType1>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
+            // In AE and AO but never used. Both same algorithm, 0x0040A610 in AE
             abort();
             break;
 
         case 2:
-            // In AE but never used, used for AO, same algorithm, 0x0040AA50 in AE
-            Decompress<CompressionType2>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mMagic == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
+           // In AE but never used, used for AO, same algorithm, 0x0040AA50 in AE
+            Decompress<CompressionType2>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mClutOffset == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
             break;
 
         case 3:
-            if (frameHeader.mMagic == 0x8)
+            if (frameHeader.mClutOffset == 0x8)
             {
                 // The size is the header seems to be half the size of the calculated frameDataSize, give or take 3 bytes
                 Decompress<CompressionType3>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             else
             {
-                Decompress<CompressionType3Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mMagic == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
+                Decompress<CompressionType3Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mClutOffset == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
             }
             break;
 
         case 4:
         case 5:
             // Both AO and AE
-            Decompress<CompressionType4Or5>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mMagic == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
+            Decompress<CompressionType4Or5>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mClutOffset == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
             break;
 
         // AO cases end at 5
         case 6:
-            Decompress<CompressionType6Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameDataSize);
+            if (mIsPsx)
+            {
+                // Actually type 7 in AE PC
+                Decompress<CompressionType6or7AePsx<8>>(frameHeader, stream, actualWidth, frameHeader.mColourDepth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+            }
+            else
+            {
+                Decompress<CompressionType6Ae>(frameHeader, stream, actualWidth, frameHeader.mColourDepth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+            }
+            break;
+            
+        case 7:
+           // Actually type 8 in AE PC
+            if (mIsPsx)
+            {
+                Decompress<CompressionType6or7AePsx<6>>(frameHeader, stream, actualWidth, frameHeader.mColourDepth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+            }
+            else
+            {
+                // TODO: ABEINTRO.BAN in AE PC has this? Check correctness
+                Decompress<CompressionType6or7AePsx<8>>(frameHeader, stream, actualWidth, frameHeader.mColourDepth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+            }
             break;
 
-        case 7:
         case 8:
-            // AE, also never seems to be used
-            //abort();
-          //  LOG_ERROR("TYPE 7 or 8");
+            // AE PC never used - same as type 7 in AE PSX
+            abort();
             break;
         }
 
@@ -512,12 +563,12 @@ namespace Oddlib
 
     // ==================================================
 
-    /*static*/ std::vector<std::unique_ptr<Animation>> AnimationFactory::Create(Oddlib::LvlArchive& archive, const std::string& fileName, Uint32 resourceId)
+    /*static*/ std::vector<std::unique_ptr<Animation>> AnimationFactory::Create(Oddlib::LvlArchive& archive, const std::string& fileName, Uint32 resourceId, bool bIsxPsx)
     {
         std::vector < std::unique_ptr<Animation> > r;
 
         Stream stream(archive.FileByName(fileName)->ChunkById(resourceId)->ReadData());
-        AnimSerializer anim(fileName, resourceId, stream);
+        AnimSerializer anim(fileName, resourceId, stream, bIsxPsx);
 
         return r;
     }

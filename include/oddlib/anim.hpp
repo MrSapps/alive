@@ -23,11 +23,19 @@ namespace Oddlib
     * AnimSets - an array of offsets / pointers to FrameInfos
     * FrameInfos - offsets / pointers to FrameHeaders
     * EOF
+    *
+    * However AE data has an extra 0 DWORD before the palt size - in the PSX data
+    * sometimes it isn't 0. In this case the format is that there is only one large
+    * "sprite sheet" frame, and each frame infos is a sub rect of the larger image.
+    *
+    * Note: Because compression type 6 is used in AE PSX and AE PC, we have to pass in a flag to
+    * know if the source data is PC or PSX. This is because the type 6 decompression is not the same between
+    * PC and PSX, and there is no reliable way to detect which format we have.
     */
     class AnimSerializer
     {
     public:
-        explicit AnimSerializer(const std::string& fileName, Uint32 id, IStream& stream);
+        explicit AnimSerializer(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx);
     private:
         void ParseAnimationSets(IStream& stream);
         void ParseFrameInfoHeaders(IStream& stream);
@@ -38,6 +46,7 @@ namespace Oddlib
         
         std::string mFileName;
         Uint32 mId = 0;
+        bool mIsPsx = false;
 
         struct BanHeader
         {
@@ -101,7 +110,7 @@ namespace Oddlib
 
         struct FrameHeader
         {
-            Uint32 mMagic;          // Always 0x8 for AO and AE also is the offset to palt/clut?
+            Uint32 mClutOffset;
             Uint8 mWidth;
             Uint8 mHeight;
             Uint8 mColourDepth;
@@ -145,6 +154,6 @@ namespace Oddlib
     class AnimationFactory
     {
     public:
-        static std::vector<std::unique_ptr<Animation>> Create(Oddlib::LvlArchive& archive, const std::string& fileName, Uint32 resourceId);
+        static std::vector<std::unique_ptr<Animation>> Create(Oddlib::LvlArchive& archive, const std::string& fileName, Uint32 resourceId, bool bIsxPsx);
     };
 }

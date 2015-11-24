@@ -2032,6 +2032,7 @@ TEST(SubTitleParser, Parse)
 
 TEST(LvlArchive, DISABLED_Integration)
 {
+    // TODO: Check for IDX file in LVL to know if its AO or not?
     Oddlib::LvlArchive lvl("s1.LVL");
 
     for (Uint32 i = 0; i < lvl.FileCount(); i++)
@@ -2043,7 +2044,7 @@ TEST(LvlArchive, DISABLED_Integration)
             if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
             {
                 Oddlib::Stream stream(chunk->ReadData());
-                Oddlib::AnimSerializer anim(file->FileName(), chunk->Id(), stream);
+                Oddlib::AnimSerializer anim(file->FileName(), chunk->Id(), stream, false);
             }
         }
     }

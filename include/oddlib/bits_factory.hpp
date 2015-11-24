@@ -21,5 +21,6 @@ namespace Oddlib
         }
     };
 
+    bool IsPsxCamera(IStream& stream);
     std::unique_ptr<IBits> MakeBits(IStream& stream);
 }
