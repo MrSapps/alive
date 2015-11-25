@@ -510,11 +510,12 @@ int main(int /*argc*/, char** /*argv*/)
     }
     */
 
-    // FALLROCK.BAN corrupted frames?
-    // ABEHOIST.BAN and some other ABE sprites have blue pixel patches appearing - maybe decompression issue or palt byte swapping?
-    // AE broken frames - could it be 1 big image and each offset is a rect within it?
-    // Some type 6/7 AE PSX frames seem to have bad pal index
-    // BGEXPLD.BAN, EMOHAP.BAN, EVILFART.BAN  bad frames
+    // FALLROCK.BAN corrupted frames in AePcDemo
+    // ABESPEAK.BAN AE PSX, AE PSX DEMO 1 bad frame
+    // ABEHOIST.BAN, ABEWELM.BAN ANEBASIC.BAN ANEDSMNT.BAN ANEEDGE.BAN D1HIVE.BAN AO PSX, AO PSX DEMO, blue pixels
+    // ABEKNBK.BAN all psx ae, some pixels too far right? maybe a couple on ao pc too
+    // ^ ABEWASP.BAN ao/AePsxDemo has right aligned pixels?
+    // 
 
 
     for (const auto& data : datas)

@@ -260,6 +260,7 @@ namespace Oddlib
 
     void AnimSerializer::DebugDecodeAllFrames(IStream& stream)
     {
+        /*
         auto endIt = mUniqueFrameHeaderOffsets.end();
         std::advance(endIt, -1);
 
@@ -267,23 +268,17 @@ namespace Oddlib
         {
             DecodeFrame(stream, *it, DataSize(it));
         }
+        */
 
-        /*
         auto endIt = mUniqueFrameHeaderOffsets.end();
-        std::advance(endIt, -2);
+        std::advance(endIt, -1);
 
         BeginFrames(mHeader.mMaxW, mHeader.mMaxH, static_cast<int>(mUniqueFrameHeaderOffsets.size()));
         for (auto it = mUniqueFrameHeaderOffsets.begin(); it != endIt; it++)
         {
-            const Uint32 frameOffset = *it;
-            auto itCopy = it;
-            itCopy++;
-            const Uint32 nextFrameOffset = *itCopy;
-            const Uint32 frameDataSize = (nextFrameOffset - frameOffset) - sizeof(FrameHeader);
-            DecodeFrame(stream, frameOffset, frameDataSize);
+            DecodeFrame(stream, *it, DataSize(it));
         }
         EndFrames();
-        */
     }
 
     template<class T>
@@ -297,27 +292,26 @@ namespace Oddlib
 
     void AnimSerializer::BeginFrames(int w, int h, int count)
     {
+        // BUG: Sprite sheet types are truncated to max frame size
+
+        if (count <= 0)
+        {
+            count = 1;
+        }
+
+        mSpritesX = 10;
+        mSpritesY = count / 10;
+        if (mSpritesY <= 0)
+        {
+            mSpritesY = 1;
+        }
         if (count < 10)
         {
             mSpritesX = count;
-            mSpritesY = 1;
-        }
-        else
-        {
-            mSpritesX = 10;
-            mSpritesY = count / 10;
-            if (count % 10 != 0)
-            {
-                mSpritesY++;
-            }
-            if (mSpritesY == 0)
-            {
-                mSpritesY = 1;
-            }
         }
 
-        mSpriteX = 0;
-        mSpriteY = 0;
+        mXPos = 0;
+        mYPos = 0;
 
         const auto red_mask = 0xF800;
         const auto green_mask = 0x7E0;
@@ -328,11 +322,10 @@ namespace Oddlib
     void AnimSerializer::AddFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData)
     {
 
-        DebugSaveFrame(header, realWidth, decompressedData);
+        //DebugSaveFrame(header, realWidth, decompressedData);
 
-        /*
-        int xpos = mSpriteX * mHeader.mMaxW;
-        int ypos = mSpriteY * mHeader.mMaxH;
+        int xpos = mXPos * mHeader.mMaxW;
+        int ypos = mYPos * mHeader.mMaxH;
 
         std::vector<Uint16> pixels;
         auto frame = MakeFrame(header, realWidth, decompressedData, pixels);
@@ -345,20 +338,18 @@ namespace Oddlib
         dstRect.h = frame->h;
         SDL_BlitSurface(frame.get(), NULL, mSpriteSheet.get(), &dstRect);
 
-        mSpriteX++;
-        if (mSpriteX > mSpritesX)
+        mXPos++;
+        if (mXPos > mSpritesX)
         {
-            mSpriteX = 0;
-            mSpriteY++;
+            mXPos = 0;
+            mYPos++;
         }
-        */
     }
 
     void AnimSerializer::EndFrames()
     {
         // Save surface to disk
-        static int i = 1;
-        SDL_SaveBMP(mSpriteSheet.get(), (mFileName + std::to_string(i++) + ".bmp").c_str());
+        SDL_SaveBMP(mSpriteSheet.get(), (mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".bmp").c_str());
     }
 
     SDL_SurfacePtr AnimSerializer::MakeFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint16>& pixels)

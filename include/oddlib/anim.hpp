@@ -137,8 +137,8 @@ namespace Oddlib
         SDL_SurfacePtr mSpriteSheet;
         int mSpritesX = 0;
         int mSpritesY = 0;
-        int mSpriteX = 0;
-        int mSpriteY = 0;
+        int mXPos = 0;
+        int mYPos = 0;
     };
 
     class Frame
