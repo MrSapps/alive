@@ -160,6 +160,37 @@ public:
         eAePsxDemo
     };
 
+    static const char* ToString(eDataType type)
+    {
+        switch (type)
+        {
+        case eAoPc:
+            return "AoPc";
+
+        case eAoPcDemo:
+            return "AoPcDemo";
+
+        case eAoPsx:
+            return "AoPsx";
+
+        case eAoPsxDemo:
+            return "AoPsxDemo";
+
+        case eAePc:
+            return "AePc";
+
+        case eAePcDemo:
+            return "AePcDemo";
+
+        case eAePsx:
+            return "AePsx";
+
+        case eAePsxDemo:
+            return "AePsxDemo";
+        }
+        return "unknown";
+    }
+
     DataTest(eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls, const std::vector<std::string>& fileFilter)
         : mType(eType), mReducer(resourcePath, lvls, fileFilter)
     {
@@ -293,7 +324,7 @@ public:
     {
         ForChunksOfType(Oddlib::MakeType('A', 'n', 'i', 'm'), [&](const std::string& fileName, Oddlib::LvlArchive::FileChunk& chunk, bool isPsx)
         {
-            Oddlib::AnimSerializer anim(fileName, chunk.Id(), *chunk.Stream(), isPsx);
+            Oddlib::AnimSerializer anim(fileName, chunk.Id(), *chunk.Stream(), isPsx, ToString(mType));
         });
     }
 
@@ -301,6 +332,7 @@ private:
     eDataType mType;
     LvlFileReducer mReducer;
 };
+
 
 int main(int /*argc*/, char** /*argv*/)
 {
@@ -406,12 +438,84 @@ int main(int /*argc*/, char** /*argv*/)
    // fileFilter.push_back("WELLLEAF.BAN");
     //fileFilter.push_back("EXPLODE.BND");
 
+    /*
+    std::vector<std::unique_ptr<LvlFileReducer>> reducedData;
+    for (const auto& data : datas)
+    {
+        const auto it = DataTypeLvlMap.find(data.first);
+        if (it == std::end(DataTypeLvlMap))
+        {
+            // Defined struct is wrong
+            abort();
+        }
+        reducedData.emplace_back(std::make_unique<LvlFileReducer>(data.second, *it->second, fileFilter));
+    }
+
+    std::set<std::string> animsWithoutMatchingIds;
+    for (const auto& dataSet : reducedData)
+    {
+        for (const auto& chunk : dataSet->Chunks())
+        {
+            if (chunk.first->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
+            {
+                for (const auto& otherData : reducedData)
+                {
+                    if (otherData != dataSet)
+                    {
+                        bool exists = false;
+                        bool idMatches = false;
+                        for (const auto& otherChunk : otherData->Chunks())
+                        {
+                            if (chunk.first->Type() == otherChunk.first->Type())
+                            {
+                                if (chunk.second.first == otherChunk.second.first)
+                                {
+                                    exists = true;
+                                    if (chunk.first->Id() == otherChunk.first->Id())
+                                    {
+                                        idMatches = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (exists && !idMatches)
+                        {
+                            animsWithoutMatchingIds.insert(chunk.second.first + "_" + std::to_string(chunk.first->Id()));
+                            //std::cout << chunk.second.first.c_str() << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    */
+
+    /*
+        D2LIFT.BND_1001
+        DOOR.BAN_2012 AE "mine" door
+        DOOR.BAN_8001 AO "intro" door
+        GLUKKON.BND_801 "flying head" from explosion - not sure why this ends up here??
+        PARAMITE.BND_2034 ??
+        SLIG.BND_319
+        SLIG.BND_360 moved into SHELL.BAN?
+        STARTANM.BND_132 moved into ABESPEK2.BAN?
+        STARTANM.BND_8002
+    */
+    
+    /*
+    for (const auto& item : animsWithoutMatchingIds)
+    {
+        std::cout << item.c_str() << std::endl;
+    }
+    */
 
     // FALLROCK.BAN corrupted frames?
     // ABEHOIST.BAN and some other ABE sprites have blue pixel patches appearing - maybe decompression issue or palt byte swapping?
     // AE broken frames - could it be 1 big image and each offset is a rect within it?
     // Some type 6/7 AE PSX frames seem to have bad pal index
     // BGEXPLD.BAN, EMOHAP.BAN, EVILFART.BAN  bad frames
+
 
     for (const auto& data : datas)
     {

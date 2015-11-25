@@ -16,8 +16,8 @@
 namespace Oddlib
 {
 
-    AnimSerializer::AnimSerializer(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx)
-        : mFileName(fileName), mId(id), mIsPsx(bIsPsx)
+    AnimSerializer::AnimSerializer(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName)
+        : mFileName(fileName), mId(id), mIsPsx(bIsPsx), mDataSetName(dataSetName)
     {
         
         //stream.BinaryDump(fileName + "_" + std::to_string(mId));
@@ -418,8 +418,7 @@ namespace Oddlib
         auto surface = MakeFrame(header, realWidth, decompressedData, pixels);
 
         // Save surface to disk
-        static int i = 1;
-        SDL_SaveBMP(surface.get(), (mFileName + "_id_" + std::to_string(mId) + "_" + std::to_string(i++) + ".bmp").c_str());
+        SDL_SaveBMP(surface.get(), (mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".bmp").c_str());
     }
 
     std::vector<Uint8> AnimSerializer::DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize)
@@ -529,11 +528,11 @@ namespace Oddlib
             if (mIsPsx)
             {
                 // Actually type 7 in AE PC
-                Decompress<CompressionType6or7AePsx<8>>(frameHeader, stream, actualWidth, frameHeader.mColourDepth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                Decompress<CompressionType6or7AePsx<8>>(frameHeader, stream, actualWidth, frameHeader.mHeight, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             else
             {
-                Decompress<CompressionType6Ae>(frameHeader, stream, actualWidth, frameHeader.mColourDepth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                Decompress<CompressionType6Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             break;
             
@@ -541,12 +540,12 @@ namespace Oddlib
            // Actually type 8 in AE PC
             if (mIsPsx)
             {
-                Decompress<CompressionType6or7AePsx<6>>(frameHeader, stream, actualWidth, frameHeader.mColourDepth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                Decompress<CompressionType6or7AePsx<6>>(frameHeader, stream, actualWidth, frameHeader.mHeight, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             else
             {
                 // TODO: ABEINTRO.BAN in AE PC has this? Check correctness
-                Decompress<CompressionType6or7AePsx<8>>(frameHeader, stream, actualWidth, frameHeader.mColourDepth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                Decompress<CompressionType6or7AePsx<8>>(frameHeader, stream, actualWidth, frameHeader.mHeight, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             break;
 
@@ -566,7 +565,7 @@ namespace Oddlib
         std::vector < std::unique_ptr<Animation> > r;
 
         Stream stream(archive.FileByName(fileName)->ChunkById(resourceId)->ReadData());
-        AnimSerializer anim(fileName, resourceId, stream, bIsxPsx);
+        AnimSerializer anim(fileName, resourceId, stream, bIsxPsx, "unknown");
 
         return r;
     }
