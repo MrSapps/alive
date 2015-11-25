@@ -377,7 +377,7 @@ int main(int /*argc*/, char** /*argv*/)
         { DataTest::eAePsxDemo, &aeDemoPsxLvls }
     };
 
-    const std::map<DataTest::eDataType, std::string> datas =
+    const std::vector<std::pair<DataTest::eDataType, std::string>> datas =
     {
         { DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus" },
         { DataTest::eAePcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo" },
@@ -413,7 +413,7 @@ int main(int /*argc*/, char** /*argv*/)
     // Some type 6/7 AE PSX frames seem to have bad pal index
     // BGEXPLD.BAN, EMOHAP.BAN, EVILFART.BAN  bad frames
 
-    for (const auto& data : datas) // FIX ME data structure wipes out AE CD2
+    for (const auto& data : datas)
     {
         const auto it = DataTypeLvlMap.find(data.first);
         if (it == std::end(DataTypeLvlMap))
