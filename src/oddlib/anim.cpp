@@ -27,14 +27,16 @@ namespace Oddlib
         stream.ReadUInt16(mHeader.mMaxH);
         stream.ReadUInt32(mHeader.mFrameTableOffSet);
 
-         Uint32 frameStart = 0;
+        Uint32 frameStart = 0;
 
         stream.ReadUInt32(mHeader.mPaltSize);
+        mClutPos = static_cast<Uint32>(stream.Pos());
         if (mHeader.mPaltSize == 0)
         {
             // Assume its an Ae file if the palt size is zero, in this case the next Uint32 is
             // actually the palt size.
             mbIsAoFile = false;
+            mClutPos = static_cast<Uint32>(stream.Pos());
             stream.ReadUInt32(mHeader.mPaltSize);
         }
         else
@@ -64,6 +66,7 @@ namespace Oddlib
                 Uint32 paltOffset = 0;
                 stream.ReadUInt32(paltOffset);
                 stream.Seek(paltOffset);
+                mClutPos = static_cast<Uint32>(stream.Pos());
                 stream.ReadUInt32(mHeader.mPaltSize);
             }
             else
@@ -74,12 +77,14 @@ namespace Oddlib
         }
 
         // Read the palette
+        mOriginalPalt.reserve(mHeader.mPaltSize);
         mPalt.reserve(mHeader.mPaltSize);
+
         for (auto i = 0u; i < mHeader.mPaltSize; i++)
         {
             Uint16 tmp = 0;
             stream.ReadUInt16(tmp);
-
+            mOriginalPalt.push_back(tmp);
 
             unsigned int oldPixel = tmp;
 
@@ -110,12 +115,38 @@ namespace Oddlib
         // TODO: Handle frames as rects into sprite sheet
         if (frameStart != 0)
         {
+            mIsSingleFrame = true;
             mUniqueFrameHeaderOffsets.clear();
             mUniqueFrameHeaderOffsets.insert(frameStart);
             mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
         }
 
         DebugDecodeAllFrames(stream);
+
+        /*
+        std::ofstream s;
+        s.open("hacked_frames.dat", std::ios::binary);
+        if (!s.is_open())
+        {
+            throw Exception("hacked_frames.dat");
+        }
+        stream.Seek(0);
+        const auto size = stream.Size();
+
+        std::vector<Uint8> allStreamBytes(size);
+        stream.ReadBytes(allStreamBytes.data(), allStreamBytes.size());
+    
+        s.write(reinterpret_cast<const char*>(allStreamBytes.data()), allStreamBytes.size());
+
+        
+        bool flip = false;
+        for (const Uint32& offset : mUniqueFrameHeaderStreamOffsets)
+        {
+            s.seekp(offset, std::ios::beg);
+            const Uint32 forceFrameOffset = flip ? 0x00011270 : 0x000136f0;
+            flip = !flip;
+            s.write(reinterpret_cast<const char*>(&forceFrameOffset), sizeof(Uint32));
+        }*/
     }
 
     void AnimSerializer::ParseAnimationSets(IStream& stream)
@@ -214,6 +245,10 @@ namespace Oddlib
 
                 auto frameInfo = std::make_unique<FrameInfoHeader>();
 
+                // Record where the offsets are for debugging - this gives us an easy way to point all frames
+                // to the same image data
+               // mUniqueFrameHeaderStreamOffsets.insert(stream.Pos());
+
                 stream.ReadUInt32(frameInfo->mFrameHeaderOffset);
                 stream.ReadUInt32(frameInfo->mMagic);
 
@@ -260,25 +295,20 @@ namespace Oddlib
 
     void AnimSerializer::DebugDecodeAllFrames(IStream& stream)
     {
-        /*
         auto endIt = mUniqueFrameHeaderOffsets.end();
         std::advance(endIt, -1);
+
+        if (!mIsSingleFrame)
+        {
+            BeginFrames(mHeader.mMaxW, mHeader.mMaxH, static_cast<int>(mUniqueFrameHeaderOffsets.size()));
+        }
 
         for (auto it = mUniqueFrameHeaderOffsets.begin(); it != endIt; it++)
         {
             DecodeFrame(stream, *it, DataSize(it));
         }
-        */
 
-        auto endIt = mUniqueFrameHeaderOffsets.end();
-        std::advance(endIt, -1);
-
-        BeginFrames(mHeader.mMaxW, mHeader.mMaxH, static_cast<int>(mUniqueFrameHeaderOffsets.size()));
-        for (auto it = mUniqueFrameHeaderOffsets.begin(); it != endIt; it++)
-        {
-            DecodeFrame(stream, *it, DataSize(it));
-        }
-        EndFrames();
+        EndFrames(); 
     }
 
     template<class T>
@@ -292,8 +322,6 @@ namespace Oddlib
 
     void AnimSerializer::BeginFrames(int w, int h, int count)
     {
-        // BUG: Sprite sheet types are truncated to max frame size
-
         if (count <= 0)
         {
             count = 1;
@@ -334,22 +362,66 @@ namespace Oddlib
         SDL_Rect dstRect;
         dstRect.x = xpos;
         dstRect.y = ypos;
-        dstRect.w = frame->w;
-        dstRect.h = frame->h;
-        SDL_BlitSurface(frame.get(), NULL, mSpriteSheet.get(), &dstRect);
+        dstRect.w = header.mWidth;
+        dstRect.h = header.mHeight;
 
-        mXPos++;
-        if (mXPos > mSpritesX)
+        SDL_Rect srcRect;
+        srcRect.x = 0;
+        srcRect.y = 0;
+        srcRect.w = header.mWidth;
+        srcRect.h = header.mHeight;
+
+        if (mSpriteSheet)
         {
-            mXPos = 0;
-            mYPos++;
+            SDL_BlitSurface(frame.get(), &srcRect, mSpriteSheet.get(), &dstRect);
+
+            mXPos++;
+            if (mXPos > mSpritesX)
+            {
+                mXPos = 0;
+                mYPos++;
+            }
+        }
+        else
+        {
+            static int i = 0;
+            i++;
+            SDL_SaveBMP(frame.get(), (mFileName + "_" + mDataSetName + "_id_" + std::to_string(i) + ".bmp").c_str());
         }
     }
 
     void AnimSerializer::EndFrames()
     {
-        // Save surface to disk
-        SDL_SaveBMP(mSpriteSheet.get(), (mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".bmp").c_str());
+        if (mSpriteSheet)
+        {
+            // Save surface to disk
+            SDL_SaveBMP(mSpriteSheet.get(), (mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".bmp").c_str());
+        }
+    }
+    
+    Uint16 AnimSerializer::GetPaltValue(Uint32 idx)
+    {
+        // ABEEND.BAN from the AO PSX demo goes out of bounds - probably why the resulting
+        // beta image looks quite strange.
+        if (idx >= mPalt.size())
+        {
+            idx = static_cast<unsigned char>(mPalt.size() - 1);
+        }
+
+        if ((static_cast<unsigned short int> (mOriginalPalt[idx]) >> 15) & 0xffff)
+        {
+            // A blue colour that seems to mean "use full transparent black"
+            if (mPalt[idx] == 0x1059 || mPalt[idx] == 0x1840 || mPalt[idx] == 0x0007)
+            {
+                return 0xF800;
+            }
+            else
+            {
+                return mPalt[idx];
+            }
+        }
+   
+        return mPalt[idx];
     }
 
     SDL_SurfacePtr AnimSerializer::MakeFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint16>& pixels)
@@ -361,13 +433,7 @@ namespace Oddlib
             pixels.reserve(pixels.size());
             for (auto v : decompressedData)
             {
-                // ABEEND.BAN from the AO PSX demo goes out of bounds - probably why the resulting
-                // beta image looks quite strange.
-                if (v >= mPalt.size())
-                {
-                    v = static_cast<unsigned char>(mPalt.size() - 1);
-                }
-                pixels.push_back(mPalt[v]);
+                pixels.push_back(GetPaltValue(v));
             }
             // Create an SDL surface
             const auto red_mask = 0xF800;
@@ -385,8 +451,8 @@ namespace Oddlib
             pixels.reserve(decompressedData.size() * 2);
             for (auto v : decompressedData)
             {
-                pixels.push_back(mPalt[LO_NIBBLE(v)]);
-                pixels.push_back(mPalt[HI_NIBBLE(v)]);
+                pixels.push_back(GetPaltValue(LO_NIBBLE(v)));
+                pixels.push_back(GetPaltValue(HI_NIBBLE(v)));
             }
 
             // Create an SDL surface
@@ -419,7 +485,6 @@ namespace Oddlib
         FrameHeader frameHeader;
         stream.ReadUInt32(frameHeader.mClutOffset);
 
-        // TODO: Validate clut offset is valid
 
         stream.ReadUInt8(frameHeader.mWidth);
         stream.ReadUInt8(frameHeader.mHeight);
@@ -450,6 +515,12 @@ namespace Oddlib
             //LOG_ERROR("Bad depth");
             //return std::vector<Uint8>();
         }
+
+        // TODO: Sometimes the offset isn't the same, need to check why, multi cluts?
+       // assert(frameHeader.mClutOffset == mClutPos);
+
+        LOG_INFO("TYPE: " << (int)frameHeader.mCompressionType << " DEPTH " << (int)frameHeader.mColourDepth);
+
 
         switch (frameHeader.mCompressionType)
         {
@@ -551,7 +622,7 @@ namespace Oddlib
 
     // ==================================================
 
-    /*static*/ std::vector<std::unique_ptr<Animation>> AnimationFactory::Create(Oddlib::LvlArchive& archive, const std::string& fileName, Uint32 resourceId, bool bIsxPsx)
+    /*static std::vector<std::unique_ptr<Animation>> AnimationFactory::Create(Oddlib::LvlArchive& archive, const std::string& fileName, Uint32 resourceId, bool bIsxPsx)
     {
         std::vector < std::unique_ptr<Animation> > r;
 
@@ -560,5 +631,5 @@ namespace Oddlib
 
         return r;
     }
-
+    */
 }

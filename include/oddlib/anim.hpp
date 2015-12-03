@@ -44,6 +44,7 @@ namespace Oddlib
         void DebugDecodeAllFrames(IStream& stream);
         std::vector<Uint8> DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize);
         
+        bool mIsSingleFrame = false;
         std::string mFileName;
         std::string mDataSetName;
         Uint32 mId = 0;
@@ -85,6 +86,7 @@ namespace Oddlib
 
         // Unique combination of frames from all animations, as each animation can reuse any number of frames
         std::set< Uint32 > mUniqueFrameHeaderOffsets;
+        //std::set< Uint32 > mUniqueFrameHeaderStreamOffsets;
 
         struct FrameInfoHeader
         {
@@ -119,8 +121,10 @@ namespace Oddlib
             Uint32 mFrameDataSize; // Actually 2 Uint16's in AE for W/H again
         };
         static_assert(sizeof(FrameHeader) == 12, "Wrong frame header size");
+        Uint32 mClutPos = 0;
 
         std::vector<std::unique_ptr<AnimationHeader>> mAnimationHeaders;
+        std::vector<Uint16> mOriginalPalt;
         std::vector<Uint16> mPalt;
 
         bool mbIsAoFile = true;
@@ -133,6 +137,7 @@ namespace Oddlib
         void AddFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData);
         void EndFrames();
         void DebugSaveFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData);
+        Uint16 GetPaltValue(Uint32 idx);
         SDL_SurfacePtr MakeFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint16>& pixels);
         SDL_SurfacePtr mSpriteSheet;
         int mSpritesX = 0;
@@ -141,20 +146,10 @@ namespace Oddlib
         int mYPos = 0;
     };
 
-    class Frame
-    {
-    public:
-    };
-
-    class Animation
-    {
-    public:
-        std::vector<std::shared_ptr<Frame>> mFrames;
-    };
-
+    /*
     class AnimationFactory
     {
     public:
         static std::vector<std::unique_ptr<Animation>> Create(Oddlib::LvlArchive& archive, const std::string& fileName, Uint32 resourceId, bool bIsxPsx);
-    };
+    };*/
 }
