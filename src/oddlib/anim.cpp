@@ -439,7 +439,7 @@ namespace Oddlib
             const auto red_mask = 0xF800;
             const auto green_mask = 0x7E0;
             const auto blue_mask = 0x1F;
-            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), realWidth, header.mHeight, 16, realWidth*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), header.mWidth, header.mHeight, 16, realWidth*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
 
             return surface;
         }
@@ -459,7 +459,7 @@ namespace Oddlib
             const auto red_mask = 0xF800;
             const auto green_mask = 0x7E0;
             const auto blue_mask = 0x1F;
-            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), realWidth, header.mHeight, 16, realWidth*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), header.mWidth, header.mHeight, 16, realWidth*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
 
             return surface;
         }
@@ -590,7 +590,10 @@ namespace Oddlib
             if (mIsPsx)
             {
                 // Actually type 7 in AE PC
-                Decompress<CompressionType6or7AePsx<8>>(frameHeader, stream, actualWidth, frameHeader.mHeight, frameHeader.mHeight, frameHeader.mFrameDataSize);
+
+                // This clips off extra "bad" pixels that sometimes get added
+                frameHeader.mHeight -= 1;
+                Decompress<CompressionType6or7AePsx<8>>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             else
             {
@@ -602,12 +605,17 @@ namespace Oddlib
            // Actually type 8 in AE PC
             if (mIsPsx)
             {
-                Decompress<CompressionType6or7AePsx<6>>(frameHeader, stream, actualWidth, frameHeader.mHeight, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                // This clips off extra "bad" pixels that sometimes get added
+                frameHeader.mHeight -= 1;
+                Decompress<CompressionType6or7AePsx<6>>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             else
             {
                 // TODO: ABEINTRO.BAN in AE PC has this? Check correctness
-                Decompress<CompressionType6or7AePsx<8>>(frameHeader, stream, actualWidth, frameHeader.mHeight, frameHeader.mHeight, frameHeader.mFrameDataSize);
+
+                // This clips off extra "bad" pixels that sometimes get added
+                frameHeader.mHeight -= 1;
+                Decompress<CompressionType6or7AePsx<8>>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             break;
 
