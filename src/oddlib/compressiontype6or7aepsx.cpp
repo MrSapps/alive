@@ -28,7 +28,7 @@ namespace Oddlib
     std::vector<Uint8> CompressionType6or7AePsx<BitsSize>::Decompress(IStream& stream, Uint32 finalW, Uint32 /*w*/, Uint32 h, Uint32 dataSize)
     {
         Uint32 outputPos = 0;
-        std::vector<Uint8> out(finalW*h * 2);
+        std::vector<Uint8> out(finalW*h*2);
 
         std::array<unsigned char,256> tmp1 = {};
         std::array<unsigned char, 256> tmp2 = {};
@@ -47,24 +47,18 @@ namespace Oddlib
             unsigned int count = 0;
             do
             {
-                const unsigned int maskedSrcBits1 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
-
-                int maskedSrcBits1Copy = maskedSrcBits1;
+                unsigned int maskedSrcBits1 = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
 
                 if (maskedSrcBits1 > kInvertedFixedMask)
                 {
                     int remainder = maskedSrcBits1 - kInvertedFixedMask;
-                    maskedSrcBits1Copy = remainder;
-                    if (remainder)
+                    while (remainder != 0)
                     {
-                        do
-                        {
-                            tmp2[count] = static_cast<char>(count);
-                            ++count;
-                            --remainder;
-                        } while (remainder);
-                        maskedSrcBits1Copy = remainder;
+                        tmp2[count] = static_cast<char>(count);
+                        ++count;
+                        --remainder;
                     }
+                    maskedSrcBits1 = remainder;
                 }
 
                 if (count == kFixedMask)
@@ -72,9 +66,9 @@ namespace Oddlib
                     break;
                 }
 
-                unsigned int count2 = maskedSrcBits1Copy + 1;
+                unsigned int count2 = maskedSrcBits1 + 1;
 
-                for (;;)
+                while (count2 != 0)
                 {
                     unsigned int bits = NextBits<BitsSize>(stream, bitCounter, srcWorkBits, kFixedMask);
                     tmp2[count] = static_cast<char>(bits);
@@ -84,11 +78,7 @@ namespace Oddlib
                     }
 
                     ++count;
-
-                    if (count2-- == 1)
-                    {
-                        break;
-                    }
+                    --count2;
                 }
             } while (count != kFixedMask);
 
@@ -119,6 +109,7 @@ namespace Oddlib
                     tmp3[tmp2Idx++] = tmp1[tmp1Idx];
                     tmp1Idx = i;
                 }
+
                 out[outputPos++] = static_cast<Uint8>(tmp1Idx);
             }
         }
