@@ -35,7 +35,7 @@ namespace Oddlib
     class AnimSerializer
     {
     public:
-        explicit AnimSerializer(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName);
+        AnimSerializer(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName);
     private:
         void ParseAnimationSets(IStream& stream);
         void ParseFrameInfoHeaders(IStream& stream);

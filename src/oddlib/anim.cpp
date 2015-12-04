@@ -17,9 +17,9 @@ namespace Oddlib
 {
 
     AnimSerializer::AnimSerializer(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName)
-        : mFileName(fileName), mId(id), mIsPsx(bIsPsx), mDataSetName(dataSetName)
+        : mFileName(fileName), mDataSetName(dataSetName), mId(id), mIsPsx(bIsPsx)
     {
-        
+
         //stream.BinaryDump(fileName + "_" + std::to_string(mId));
 
         // Read the header
