@@ -20,3 +20,6 @@
 [submodule "3rdParty/stk"]
 	path = 3rdParty/stk
 	url = https://github.com/thestk/stk.git
+[submodule "3rdParty/lodepng"]
+	path = 3rdParty/lodepng
+	url = https://github.com/lvandeve/lodepng.git
