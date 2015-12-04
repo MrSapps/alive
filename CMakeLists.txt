@@ -60,7 +60,7 @@ endif ()
 
 include_directories(
     include
-	${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers
     ${SDL2_INCLUDE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/packaging
     ${OPENGL_INCLUDE_DIRS}
@@ -84,6 +84,13 @@ SET(glew_src
 
 add_library(glew STATIC ${glew_src})
 SET_PROPERTY(TARGET glew PROPERTY FOLDER "3rdparty")
+
+SET(lodepng_src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/lodepng/lodepng.cpp
+)
+add_library(lodepng STATIC ${lodepng_src})
+SET_PROPERTY(TARGET lodepng PROPERTY FOLDER "3rdparty")
+
 
 SET(stk_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/Delay.cpp
@@ -232,7 +239,7 @@ add_executable(Alive MACOSX_BUNDLE
     src/main.cpp
 )
 
-SET(Alive_Libs  AliveLib jsonxx oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
+SET(Alive_Libs  AliveLib jsonxx oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng)
 
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
@@ -374,6 +381,7 @@ if (MSVC)
     endif()
     
     # Use default flags on 3rd party things that generate warnings on max levels
+    set_source_files_properties(${lodepng_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267")
     set_source_files_properties(${stk_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267")
     set_source_files_properties(${jsonxx_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS}")
     set_source_files_properties(${oddlib_src} PROPERTIES COMPILE_FLAGSS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
