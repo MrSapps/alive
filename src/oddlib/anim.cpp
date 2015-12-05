@@ -9,6 +9,7 @@
 #include "oddlib/compressiontype6or7aepsx.hpp"
 #include "logger.hpp"
 #include "sdl_raii.hpp"
+#include "lodepng\lodepng.h"
 #include <assert.h>
 #include <fstream>
 #include <array>
@@ -77,31 +78,57 @@ namespace Oddlib
         }
 
         // Read the palette
-        mOriginalPalt.reserve(mHeader.mPaltSize);
         mPalt.reserve(mHeader.mPaltSize);
 
         for (auto i = 0u; i < mHeader.mPaltSize; i++)
         {
             Uint16 tmp = 0;
             stream.ReadUInt16(tmp);
-            mOriginalPalt.push_back(tmp);
 
             unsigned int oldPixel = tmp;
 
             // RGB555
-            unsigned short int green = (((oldPixel >> 5) & 0x1F) << 6);
-            unsigned short int blue = (((oldPixel >> 10) & 0x1F) << 0);
-            unsigned short int red = (((oldPixel >> 0) & 0x1F) << 11);
+            const unsigned short int green16 = ((oldPixel >> 5) & 0x1F);
+            const unsigned short int red16 = ((oldPixel >> 0) & 0x1F);
+            const unsigned short int blue16 = ((oldPixel >> 10) & 0x1F);
+            const unsigned short int semiTrans = (((oldPixel) >> 15) & 0xffff);
 
-            oldPixel = (static_cast<unsigned short int> (oldPixel) >> 15) & 0xffff; // Checking transparent bit?
-            if (oldPixel)
+            /* TODO: Add this back
+            if ((static_cast<unsigned short int> (mOriginalPalt[idx]) >> 15) & 0xffff)
             {
-                //LOG_INFO("Transparent");
+            // A blue colour that seems to mean "use full transparent black"
+            if (mPalt[idx] == 0x1059 || mPalt[idx] == 0x1840 || mPalt[idx] == 0x0007)
+            {
+            return 0xF800;
             }
+            else
+            {
+            return mPalt[idx];
+            }
+            }
+            */
 
-            unsigned short int newPixel = red | blue | green;
+            const unsigned int green32 = ((green16 * 255) / 31);
+            const unsigned int blue32 =  ((blue16 * 255) / 31);
+            const unsigned int red32 = ((red16 * 255) / 31);
 
 
+            unsigned int newPixel = (red32 << 24) | (blue32 << 8) | (green32 << 16);
+            //unsigned int newPixel = (blue32 << 8) | (green32 << 0) | (red32 << 16);
+
+            if (semiTrans)
+            {
+                // Should be 50% but slightly less looks better
+                newPixel |= 180;// (255 / 2);
+            }
+            else if (newPixel == 0)
+            {
+            }
+            else
+            {
+                newPixel |= 255;
+            }
+       
             mPalt.push_back(newPixel);
         }
 
@@ -341,10 +368,19 @@ namespace Oddlib
         mXPos = 0;
         mYPos = 0;
 
-        const auto red_mask = 0xF800;
-        const auto green_mask = 0x7E0;
-        const auto blue_mask = 0x1F;
-        mSpriteSheet.reset(SDL_CreateRGBSurface(0, mSpritesX*w, mSpritesY*h, 16, red_mask, green_mask, blue_mask, 0));
+        /*
+        const auto red_mask = 0xff000000;
+        const auto green_mask = 0x00ff0000;
+        const auto blue_mask = 0x0000ff00;
+        const auto alpha_mask = 0x000000ff;
+        */
+
+        // Flip order of colours around for PNG lib
+        const auto red_mask    = 0x000000ff;
+        const auto green_mask  = 0x0000ff00;
+        const auto blue_mask   = 0x00ff0000;
+        const auto alpha_mask  = 0xff000000;
+        mSpriteSheet.reset(SDL_CreateRGBSurface(0, mSpritesX*w, mSpritesY*h, 32, red_mask, green_mask, blue_mask, alpha_mask));
     }
 
     void AnimSerializer::AddFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData)
@@ -355,7 +391,7 @@ namespace Oddlib
         int xpos = mXPos * mHeader.mMaxW;
         int ypos = mYPos * mHeader.mMaxH;
 
-        std::vector<Uint16> pixels;
+        std::vector<Uint32> pixels;
         auto frame = MakeFrame(header, realWidth, decompressedData, pixels);
 
 
@@ -371,6 +407,11 @@ namespace Oddlib
         srcRect.w = header.mWidth;
         srcRect.h = header.mHeight;
 
+        if (!mSpriteSheet && mIsSingleFrame)
+        {
+            BeginFrames(realWidth, header.mHeight, 1);
+        }
+
         if (mSpriteSheet)
         {
             SDL_BlitSurface(frame.get(), &srcRect, mSpriteSheet.get(), &dstRect);
@@ -382,12 +423,6 @@ namespace Oddlib
                 mYPos++;
             }
         }
-        else
-        {
-            static int i = 0;
-            i++;
-            SDL_SaveBMP(frame.get(), (mFileName + "_" + mDataSetName + "_id_" + std::to_string(i) + ".bmp").c_str());
-        }
     }
 
     void AnimSerializer::EndFrames()
@@ -395,11 +430,35 @@ namespace Oddlib
         if (mSpriteSheet)
         {
             // Save surface to disk
-            SDL_SaveBMP(mSpriteSheet.get(), (mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".bmp").c_str());
+            //SDL_SaveBMP(mSpriteSheet.get(), (mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".bmp").c_str());
+            
+            lodepng::State state = {};
+            // input color type
+            state.info_raw.colortype = LCT_RGBA;
+            state.info_raw.bitdepth = 8;
+
+
+
+            // output color type
+            state.info_png.color.colortype = LCT_RGBA;
+            state.info_png.color.bitdepth = 8;
+            state.encoder.auto_convert = 0;
+
+            std::vector<unsigned char> out;
+            lodepng::encode(out, (const unsigned char*)mSpriteSheet->pixels, mSpriteSheet->w, mSpriteSheet->h, state);
+
+            std::ofstream fileStream;
+            fileStream.open((mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".png").c_str(), std::ios::binary);
+            if (!fileStream.is_open())
+            { 
+                throw Exception("Can't open output file");
+            }
+
+            fileStream.write(reinterpret_cast<const char*>(out.data()), out.size());
         }
     }
     
-    Uint16 AnimSerializer::GetPaltValue(Uint32 idx)
+    Uint32 AnimSerializer::GetPaltValue(Uint32 idx)
     {
         // ABEEND.BAN from the AO PSX demo goes out of bounds - probably why the resulting
         // beta image looks quite strange.
@@ -407,24 +466,11 @@ namespace Oddlib
         {
             idx = static_cast<unsigned char>(mPalt.size() - 1);
         }
-
-        if ((static_cast<unsigned short int> (mOriginalPalt[idx]) >> 15) & 0xffff)
-        {
-            // A blue colour that seems to mean "use full transparent black"
-            if (mPalt[idx] == 0x1059 || mPalt[idx] == 0x1840 || mPalt[idx] == 0x0007)
-            {
-                return 0xF800;
-            }
-            else
-            {
-                return mPalt[idx];
-            }
-        }
-   
+        
         return mPalt[idx];
     }
 
-    SDL_SurfacePtr AnimSerializer::MakeFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint16>& pixels)
+    SDL_SurfacePtr AnimSerializer::MakeFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint32>& pixels)
     {
         // Apply the pallete
         if (header.mColourDepth == 8)
@@ -436,10 +482,11 @@ namespace Oddlib
                 pixels.push_back(GetPaltValue(v));
             }
             // Create an SDL surface
-            const auto red_mask = 0xF800;
-            const auto green_mask = 0x7E0;
-            const auto blue_mask = 0x1F;
-            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), header.mWidth, header.mHeight, 16, realWidth*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+            const auto red_mask = 0xff000000;
+            const auto green_mask = 0x00ff0000;
+            const auto blue_mask = 0x0000ff00;
+            const auto alpha_mask = 0x000000ff;
+            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), header.mWidth, header.mHeight, 32, realWidth*sizeof(Uint32), red_mask, green_mask, blue_mask, alpha_mask));
 
             return surface;
         }
@@ -456,10 +503,11 @@ namespace Oddlib
             }
 
             // Create an SDL surface
-            const auto red_mask = 0xF800;
-            const auto green_mask = 0x7E0;
-            const auto blue_mask = 0x1F;
-            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), header.mWidth, header.mHeight, 16, realWidth*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+            const auto red_mask = 0xff000000;
+            const auto green_mask = 0x00ff0000;
+            const auto blue_mask = 0x0000ff00;
+            //const auto alpha_mask = 0x000000ff;
+            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), header.mWidth, header.mHeight, 32, realWidth*sizeof(Uint32), red_mask, green_mask, blue_mask, 0));
 
             return surface;
         }
@@ -471,7 +519,7 @@ namespace Oddlib
 
     void AnimSerializer::DebugSaveFrame(AnimSerializer::FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData)
     {
-        std::vector<Uint16> pixels;
+        std::vector<Uint32> pixels;
         auto surface = MakeFrame(header, realWidth, decompressedData, pixels);
 
         // Save surface to disk
@@ -519,7 +567,7 @@ namespace Oddlib
         // TODO: Sometimes the offset isn't the same, need to check why, multi cluts?
        // assert(frameHeader.mClutOffset == mClutPos);
 
-        LOG_INFO("TYPE: " << (int)frameHeader.mCompressionType << " DEPTH " << (int)frameHeader.mColourDepth);
+        //LOG_INFO("TYPE: " << (int)frameHeader.mCompressionType << " DEPTH " << (int)frameHeader.mColourDepth);
 
 
         switch (frameHeader.mCompressionType)

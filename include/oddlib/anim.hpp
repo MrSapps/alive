@@ -124,8 +124,7 @@ namespace Oddlib
         Uint32 mClutPos = 0;
 
         std::vector<std::unique_ptr<AnimationHeader>> mAnimationHeaders;
-        std::vector<Uint16> mOriginalPalt;
-        std::vector<Uint16> mPalt;
+        std::vector<Uint32> mPalt;
 
         bool mbIsAoFile = true;
 
@@ -137,8 +136,8 @@ namespace Oddlib
         void AddFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData);
         void EndFrames();
         void DebugSaveFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData);
-        Uint16 GetPaltValue(Uint32 idx);
-        SDL_SurfacePtr MakeFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint16>& pixels);
+        Uint32 GetPaltValue(Uint32 idx);
+        SDL_SurfacePtr MakeFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint32>& pixels);
         SDL_SurfacePtr mSpriteSheet;
         int mSpritesX = 0;
         int mSpritesY = 0;
