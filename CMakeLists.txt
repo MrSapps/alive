@@ -311,7 +311,7 @@ add_executable(Tests
 
 
 #cotire(Tests)
-target_link_libraries(Tests oddlib gmock ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Tests oddlib gmock ${Alive_Libs} ${CMAKE_THREAD_LIBS_INIT})
 
 if (UseValgrind)
     add_test(NAME Tests COMMAND valgrind -v --leak-check=full --show-reachable=yes --tool=memcheck --error-exitcode=1 $<TARGET_FILE:Tests> WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
