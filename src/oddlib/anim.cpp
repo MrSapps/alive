@@ -9,7 +9,7 @@
 #include "oddlib/compressiontype6or7aepsx.hpp"
 #include "logger.hpp"
 #include "sdl_raii.hpp"
-#include "lodepng\lodepng.h"
+#include "lodepng/lodepng.h"
 #include <assert.h>
 #include <fstream>
 #include <array>
