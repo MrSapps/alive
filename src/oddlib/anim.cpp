@@ -87,26 +87,23 @@ namespace Oddlib
 
             unsigned int oldPixel = tmp;
 
+            // TODO: Only apply to problematic sprites in AO PSX demo
+            /*
+            if (oldPixel == 0x0400 || oldPixel == 0xe422 || oldPixel == 0x9c00)
+            {
+                oldPixel = 1 << 15;
+            }
+            */
+
+            const unsigned short int semiTrans = (((oldPixel) >> 15) & 0xffff);
+
+
             // RGB555
             const unsigned short int green16 = ((oldPixel >> 5) & 0x1F);
             const unsigned short int red16 = ((oldPixel >> 0) & 0x1F);
             const unsigned short int blue16 = ((oldPixel >> 10) & 0x1F);
-            const unsigned short int semiTrans = (((oldPixel) >> 15) & 0xffff);
 
-            /* TODO: Add this back
-            if ((static_cast<unsigned short int> (mOriginalPalt[idx]) >> 15) & 0xffff)
-            {
-            // A blue colour that seems to mean "use full transparent black"
-            if (mPalt[idx] == 0x1059 || mPalt[idx] == 0x1840 || mPalt[idx] == 0x0007)
-            {
-            return 0xF800;
-            }
-            else
-            {
-            return mPalt[idx];
-            }
-            }
-            */
+            // TODO: Get colour ramp off real PSX in 16bit mode as they dont 100% map to PC RGB ramp
 
             const unsigned int green32 = ((green16 * 255) / 31);
             const unsigned int blue32 =  ((blue16 * 255) / 31);
@@ -123,6 +120,8 @@ namespace Oddlib
             }
             else if (newPixel == 0)
             {
+                // Fully transparent
+                newPixel |= 0;
             }
             else
             {
@@ -166,14 +165,15 @@ namespace Oddlib
         s.write(reinterpret_cast<const char*>(allStreamBytes.data()), allStreamBytes.size());
 
         
-        bool flip = false;
+       // bool flip = false;
         for (const Uint32& offset : mUniqueFrameHeaderStreamOffsets)
         {
             s.seekp(offset, std::ios::beg);
-            const Uint32 forceFrameOffset = flip ? 0x00011270 : 0x000136f0;
-            flip = !flip;
+            const Uint32 forceFrameOffset = 0x00000210;//flip ? 0x00011270 : 0x000136f0;
+            //flip = !flip;
             s.write(reinterpret_cast<const char*>(&forceFrameOffset), sizeof(Uint32));
-        }*/
+        }
+        */
     }
 
     void AnimSerializer::ParseAnimationSets(IStream& stream)
@@ -274,7 +274,7 @@ namespace Oddlib
 
                 // Record where the offsets are for debugging - this gives us an easy way to point all frames
                 // to the same image data
-               // mUniqueFrameHeaderStreamOffsets.insert(stream.Pos());
+                //mUniqueFrameHeaderStreamOffsets.insert(stream.Pos());
 
                 stream.ReadUInt32(frameInfo->mFrameHeaderOffset);
                 stream.ReadUInt32(frameInfo->mMagic);
@@ -506,8 +506,8 @@ namespace Oddlib
             const auto red_mask = 0xff000000;
             const auto green_mask = 0x00ff0000;
             const auto blue_mask = 0x0000ff00;
-            //const auto alpha_mask = 0x000000ff;
-            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), header.mWidth, header.mHeight, 32, realWidth*sizeof(Uint32), red_mask, green_mask, blue_mask, 0));
+            const auto alpha_mask = 0x000000ff;
+            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), header.mWidth, header.mHeight, 32, realWidth*sizeof(Uint32), red_mask, green_mask, blue_mask, alpha_mask));
 
             return surface;
         }
@@ -569,7 +569,6 @@ namespace Oddlib
 
         //LOG_INFO("TYPE: " << (int)frameHeader.mCompressionType << " DEPTH " << (int)frameHeader.mColourDepth);
 
-
         switch (frameHeader.mCompressionType)
         {
         case 0:
@@ -612,7 +611,7 @@ namespace Oddlib
 
         case 2:
            // In AE but never used, used for AO, same algorithm, 0x0040AA50 in AE
-            Decompress<CompressionType2>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mClutOffset == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
+            Decompress<CompressionType2>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, (frameHeader.mClutOffset == 0x8 || mIsPsx) ? frameHeader.mFrameDataSize : frameDataSize);
             break;
 
         case 3:

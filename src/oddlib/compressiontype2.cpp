@@ -27,7 +27,7 @@ namespace Oddlib
         // HACK: Add on 43 DWORD buffer overrun area - some AE PSX sprites write
         // this far out of bounds - just cropping off the extra
         // pixels is a good enough workaround.
-        std::vector<Uint8> ret((finalW*h)+(4*43));
+        std::vector<Uint8> ret((finalW*h));
 
         Sint32 dwords_left = dataSize / 4;
         Sint32 remainder = dataSize % 4;
