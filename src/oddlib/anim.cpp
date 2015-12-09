@@ -16,29 +16,203 @@
 
 namespace Oddlib
 {
-
-    AnimSerializer::AnimSerializer(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName)
-        : mFileName(fileName), mDataSetName(dataSetName), mId(id), mIsPsx(bIsPsx)
+    AnimationSet::AnimationSet(AnimSerializer& /*as*/)
     {
 
-        //stream.BinaryDump(fileName + "_" + std::to_string(mId));
+    }
 
+    std::unique_ptr<AnimationSet> LoadAnimations(const std::string& /*fileName*/, Uint32 /*id*/, IStream& stream, bool bIsPsx, const char* /*dataSetName*/)
+    {
+        AnimSerializer as(stream, bIsPsx);
+        return nullptr;
+    }
+
+    DebugAnimationSpriteSheet::DebugAnimationSpriteSheet(AnimSerializer& as, const std::string& fileName, Uint32 id, const char* dataSetName)
+        : mFileName(fileName), mDataSetName(dataSetName), mId(id)
+    {
+        DebugDecodeAllFrames(as);
+    }
+
+
+    void DebugAnimationSpriteSheet::DebugDecodeAllFrames(AnimSerializer& as)
+    {
+        auto endIt = as.UniqueFrames().end();
+        std::advance(endIt, -1);
+
+        BeginFrames(as.MaxW(), as.MaxH(), static_cast<int>(as.UniqueFrames().size()));
+
+        for (auto it = as.UniqueFrames().begin(); it != endIt; it++)
+        {
+            // In most cases data size isn't used, instead the frame size from the header
+            // of the frame is used instead.
+            auto frameData = as.ReadAndDecompressFrame(*it, DataSize(as, it));
+            AddFrame(as, frameData);
+        }
+
+        EndFrames();
+    }
+
+    Uint32 DebugAnimationSpriteSheet::DataSize(AnimSerializer& as, std::set<Uint32>::iterator it)
+    {
+        auto nextIt = it;
+        nextIt++;
+        if (nextIt == as.UniqueFrames().end())
+        {
+            // TODO Since we added mHeader.mFrameTableOffSet to mUniqueFrameHeaderOffsets
+            // can't happen?
+            //return mHeader.mFrameTableOffSet - *it;
+            abort();
+        }
+        else
+        {
+            return *nextIt - *it;
+        }
+    }
+
+    void DebugAnimationSpriteSheet::BeginFrames(int w, int h, int count)
+    {
+        if (count <= 0)
+        {
+            count = 1;
+        }
+
+        mSpritesX = 10;
+        mSpritesY = count / 10;
+        if (mSpritesY <= 0)
+        {
+            mSpritesY = 1;
+        }
+        if (count < 10)
+        {
+            mSpritesX = count;
+        }
+
+        mXPos = 0;
+        mYPos = 0;
+
+        // Flip order of colours around for PNG lib
+        const auto red_mask = 0x000000ff;
+        const auto green_mask = 0x0000ff00;
+        const auto blue_mask = 0x00ff0000;
+        const auto alpha_mask = 0xff000000;
+        mSpriteSheet.reset(SDL_CreateRGBSurface(0, mSpritesX*w, mSpritesY*h, 32, red_mask, green_mask, blue_mask, alpha_mask));
+    }
+
+    void DebugAnimationSpriteSheet::AddFrame(AnimSerializer& as, AnimSerializer::DecodedFrame& df)
+    {
+        int xpos = mXPos * as.MaxW();
+        int ypos = mYPos * as.MaxH();
+
+        std::vector<Uint32> pixels;
+        auto frame = as.ApplyPalleteToFrame(df.mFrameHeader, df.mFixedWidth, df.mPixelData, pixels);
+
+
+        SDL_Rect dstRect;
+        dstRect.x = xpos;
+        dstRect.y = ypos;
+        dstRect.w = df.mFrameHeader.mWidth;
+        dstRect.h = df.mFrameHeader.mHeight;
+
+        SDL_Rect srcRect;
+        srcRect.x = 0;
+        srcRect.y = 0;
+        srcRect.w = df.mFrameHeader.mWidth;
+        srcRect.h = df.mFrameHeader.mHeight;
+
+        if (mSpriteSheet)
+        {
+            SDL_BlitSurface(frame.get(), &srcRect, mSpriteSheet.get(), &dstRect);
+
+            mXPos++;
+            if (mXPos > mSpritesX)
+            {
+                mXPos = 0;
+                mYPos++;
+            }
+        }
+    }
+
+    void DebugAnimationSpriteSheet::EndFrames()
+    {
+        if (mSpriteSheet)
+        {
+            lodepng::State state = {};
+
+            // input color type
+            state.info_raw.colortype = LCT_RGBA;
+            state.info_raw.bitdepth = 8;
+
+            // output color type
+            state.info_png.color.colortype = LCT_RGBA;
+            state.info_png.color.bitdepth = 8;
+            state.encoder.auto_convert = 0;
+
+            // encode to PNG
+            std::vector<unsigned char> out;
+            lodepng::encode(out, (const unsigned char*)mSpriteSheet->pixels, mSpriteSheet->w, mSpriteSheet->h, state);
+
+            // write out PNG buffer
+            std::ofstream fileStream;
+            fileStream.open((mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".png").c_str(), std::ios::binary);
+            if (!fileStream.is_open())
+            {
+                throw Exception("Can't open output file");
+            }
+
+            fileStream.write(reinterpret_cast<const char*>(out.data()), out.size());
+        }
+    }
+
+    void DebugDumpAnimationFrames(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName)
+    {
+        AnimSerializer as(stream, bIsPsx);
+        DebugAnimationSpriteSheet dass(as, fileName, id, dataSetName);
+    }
+
+    AnimSerializer::AnimSerializer(IStream& stream, bool bIsPsx)
+        : mIsPsx(bIsPsx), mStream(stream)
+    {
         // Read the header
-        stream.ReadUInt16(mHeader.mMaxW);
-        stream.ReadUInt16(mHeader.mMaxH);
-        stream.ReadUInt32(mHeader.mFrameTableOffSet);
+        mStream.ReadUInt16(mHeader.mMaxW);
+        mStream.ReadUInt16(mHeader.mMaxH);
+        mStream.ReadUInt32(mHeader.mFrameTableOffSet);
+        
+        // Read the pallete
+        const Uint32 frameStart = ParsePallete();
 
+        // Seek to frame table offset
+        mStream.Seek(mHeader.mFrameTableOffSet);
+
+        // Read each animation header
+        ParseAnimationSets();
+
+        // Read the info about each frame in each animation header
+        ParseFrameInfoHeaders();
+
+        // Get a list of unique image frames
+        GatherUniqueFrameOffsets();
+        mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
+
+        if (frameStart != 0)
+        {
+            // TODO: Handle frames as rects into sprite sheet
+            mSingleFrameOffset = frameStart;
+        }
+    }
+
+    Uint32 AnimSerializer::ParsePallete()
+    {
         Uint32 frameStart = 0;
 
-        stream.ReadUInt32(mHeader.mPaltSize);
-        mClutPos = static_cast<Uint32>(stream.Pos());
+        mStream.ReadUInt32(mHeader.mPaltSize);
+        mClutOffset = static_cast<Uint32>(mStream.Pos());
         if (mHeader.mPaltSize == 0)
         {
             // Assume its an Ae file if the palt size is zero, in this case the next Uint32 is
             // actually the palt size.
             mbIsAoFile = false;
-            mClutPos = static_cast<Uint32>(stream.Pos());
-            stream.ReadUInt32(mHeader.mPaltSize);
+            mClutOffset = static_cast<Uint32>(mStream.Pos());
+            mStream.ReadUInt32(mHeader.mPaltSize);
         }
         else
         {
@@ -48,9 +222,9 @@ namespace Oddlib
             // Thus if the next 10 bytes are zeroes then this is "sprite sheet"
             // format anim, else its "normal" AO format anim.
             frameStart = mHeader.mPaltSize;
-            
+
             std::array<Uint8, 10> nulls = {};
-            stream.ReadBytes(nulls.data(), nulls.size());
+            mStream.ReadBytes(nulls.data(), nulls.size());
             bool allNulls = true;
             for (const auto& b : nulls)
             {
@@ -62,18 +236,18 @@ namespace Oddlib
             }
             if (allNulls)
             {
-                stream.Seek(frameStart);
+                mStream.Seek(frameStart);
 
                 Uint32 paltOffset = 0;
-                stream.ReadUInt32(paltOffset);
-                stream.Seek(paltOffset);
-                mClutPos = static_cast<Uint32>(stream.Pos());
-                stream.ReadUInt32(mHeader.mPaltSize);
+                mStream.ReadUInt32(paltOffset);
+                mStream.Seek(paltOffset);
+                mClutOffset = static_cast<Uint32>(mStream.Pos());
+                mStream.ReadUInt32(mHeader.mPaltSize);
             }
             else
             {
                 frameStart = 0;
-                stream.Seek(stream.Pos() - 10);
+                mStream.Seek(mStream.Pos() - 10);
             }
         }
 
@@ -83,7 +257,7 @@ namespace Oddlib
         for (auto i = 0u; i < mHeader.mPaltSize; i++)
         {
             Uint16 tmp = 0;
-            stream.ReadUInt16(tmp);
+            mStream.ReadUInt16(tmp);
 
             unsigned int oldPixel = tmp;
 
@@ -91,7 +265,7 @@ namespace Oddlib
             /*
             if (oldPixel == 0x0400 || oldPixel == 0xe422 || oldPixel == 0x9c00)
             {
-                oldPixel = 1 << 15;
+            oldPixel = 1 << 15;
             }
             */
 
@@ -106,7 +280,7 @@ namespace Oddlib
             // TODO: Get colour ramp off real PSX in 16bit mode as they dont 100% map to PC RGB ramp
 
             const unsigned int green32 = ((green16 * 255) / 31);
-            const unsigned int blue32 =  ((blue16 * 255) / 31);
+            const unsigned int blue32 = ((blue16 * 255) / 31);
             const unsigned int red32 = ((red16 * 255) / 31);
 
 
@@ -127,69 +301,26 @@ namespace Oddlib
             {
                 newPixel |= 255;
             }
-       
+
             mPalt.push_back(newPixel);
         }
-
-        // Seek to frame table offset
-        stream.Seek(mHeader.mFrameTableOffSet);
-
-        ParseAnimationSets(stream);
-        ParseFrameInfoHeaders(stream);
-        GatherUniqueFrameOffsets();
-        mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
-        // TODO: Handle frames as rects into sprite sheet
-        if (frameStart != 0)
-        {
-            mIsSingleFrame = true;
-            mUniqueFrameHeaderOffsets.clear();
-            mUniqueFrameHeaderOffsets.insert(frameStart);
-            mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
-        }
-
-        DebugDecodeAllFrames(stream);
-
-        /*
-        std::ofstream s;
-        s.open("hacked_frames.dat", std::ios::binary);
-        if (!s.is_open())
-        {
-            throw Exception("hacked_frames.dat");
-        }
-        stream.Seek(0);
-        const auto size = stream.Size();
-
-        std::vector<Uint8> allStreamBytes(size);
-        stream.ReadBytes(allStreamBytes.data(), allStreamBytes.size());
-    
-        s.write(reinterpret_cast<const char*>(allStreamBytes.data()), allStreamBytes.size());
-
-        
-       // bool flip = false;
-        for (const Uint32& offset : mUniqueFrameHeaderStreamOffsets)
-        {
-            s.seekp(offset, std::ios::beg);
-            const Uint32 forceFrameOffset = 0x00000210;//flip ? 0x00011270 : 0x000136f0;
-            //flip = !flip;
-            s.write(reinterpret_cast<const char*>(&forceFrameOffset), sizeof(Uint32));
-        }
-        */
+        return frameStart;
     }
 
-    void AnimSerializer::ParseAnimationSets(IStream& stream)
+    void AnimSerializer::ParseAnimationSets()
     {
         // Collect all animation sets
         auto hdr = std::make_unique<AnimationHeader>();
-        stream.ReadUInt16(hdr->mFps);
-        stream.ReadUInt16(hdr->mNumFrames);
-        stream.ReadUInt16(hdr->mLoopStartFrame);
-        stream.ReadUInt16(hdr->mFlags);
+        mStream.ReadUInt16(hdr->mFps);
+        mStream.ReadUInt16(hdr->mNumFrames);
+        mStream.ReadUInt16(hdr->mLoopStartFrame);
+        mStream.ReadUInt16(hdr->mFlags);
         
         // Read the offsets to each frame info
         hdr->mFrameInfoOffsets.resize(hdr->mNumFrames);
         for (auto& offset : hdr->mFrameInfoOffsets)
         {
-            stream.ReadUInt32(offset);
+            mStream.ReadUInt32(offset);
         }
 
         // The first set is usually the last set. Either way when we get to the end of the file from
@@ -197,28 +328,28 @@ namespace Oddlib
         // Eventually we'll get to the info at iFrameTableOffSet again and stop the recursion.
         // This might be wrong and missing some sets, it might be better to track the position at the end
         // of each set so far and use the one nearest to the EOF.
-        if (stream.AtEnd())
+        if (mStream.AtEnd())
         {
             if (hdr->mFrameInfoOffsets.empty())
             {
                 // Handle a very strange case seen in AO ROPES.BAN, we have a set header that says there are
                 // zero frames, then we have a single frame offset *before* the start of the animation!
-                stream.Seek(0);
-                stream.Seek(stream.Size() - 0x14);
-                ParseAnimationSets(stream);
+                mStream.Seek(0);
+                mStream.Seek(mStream.Size() - 0x14);
+                ParseAnimationSets();
             }
             else
             {
                 // As we said above move to the last frame info offset
                 auto offset = hdr->mFrameInfoOffsets.back();
-                stream.Seek(offset);
+                mStream.Seek(offset);
 
                 // Now we want to seek to the end of the frame info where we hope the FrameSet data
                 // *really* starts (and why we'll end up where we started after parsing down this list)
                 auto frmHdr = std::make_unique<FrameInfoHeader>();
 
-                stream.ReadUInt32(frmHdr->mFrameHeaderOffset);
-                stream.ReadUInt32(frmHdr->mMagic);
+                mStream.ReadUInt32(frmHdr->mFrameHeaderOffset);
+                mStream.ReadUInt32(frmHdr->mMagic);
                 // stream.ReadUInt16(frmHdr->points);
                 // stream.ReadUInt16(frmHdr->triggers);
 
@@ -250,25 +381,25 @@ namespace Oddlib
                     break;
                 }
 
-                stream.Seek(offset + headerDataToSkipSize);
+                mStream.Seek(offset + headerDataToSkipSize);
             }
         }
 
         mAnimationHeaders.emplace_back(std::move(hdr));
 
-        if (stream.Pos() != mHeader.mFrameTableOffSet)
+        if (mStream.Pos() != mHeader.mFrameTableOffSet)
         {
-            ParseAnimationSets(stream);
+            ParseAnimationSets();
         }
     }
 
-    void AnimSerializer::ParseFrameInfoHeaders(IStream& stream)
+    void AnimSerializer::ParseFrameInfoHeaders()
     {
         for (const std::unique_ptr<AnimationHeader>& animationHeader : mAnimationHeaders)
         {
             for (const Uint32 frameInfoOffset : animationHeader->mFrameInfoOffsets)
             {
-                stream.Seek(frameInfoOffset);
+                mStream.Seek(frameInfoOffset);
 
                 auto frameInfo = std::make_unique<FrameInfoHeader>();
 
@@ -276,17 +407,17 @@ namespace Oddlib
                 // to the same image data
                 //mUniqueFrameHeaderStreamOffsets.insert(stream.Pos());
 
-                stream.ReadUInt32(frameInfo->mFrameHeaderOffset);
-                stream.ReadUInt32(frameInfo->mMagic);
+                mStream.ReadUInt32(frameInfo->mFrameHeaderOffset);
+                mStream.ReadUInt32(frameInfo->mMagic);
 
-                stream.ReadSInt16(frameInfo->mColx);
-                stream.ReadSInt16(frameInfo->mColy);
+                mStream.ReadSInt16(frameInfo->mColx);
+                mStream.ReadSInt16(frameInfo->mColy);
 
-                stream.ReadSInt16(frameInfo->mColw);
-                stream.ReadSInt16(frameInfo->mColh);
+                mStream.ReadSInt16(frameInfo->mColw);
+                mStream.ReadSInt16(frameInfo->mColh);
 
-                stream.ReadSInt16(frameInfo->mOffx);
-                stream.ReadSInt16(frameInfo->mOffy);
+                mStream.ReadSInt16(frameInfo->mOffx);
+                mStream.ReadSInt16(frameInfo->mOffy);
 
                 animationHeader->mFrameInfos.emplace_back(std::move(frameInfo));
             }
@@ -304,160 +435,15 @@ namespace Oddlib
         }
     }
 
-    Uint32 AnimSerializer::DataSize(std::set<Uint32>::iterator it)
-    {
-        auto nextIt = it;
-        nextIt++;
-        if (nextIt == mUniqueFrameHeaderOffsets.end())
-        {
-            // TODO Since we added mHeader.mFrameTableOffSet to mUniqueFrameHeaderOffsets
-            // can't happen?
-            return mHeader.mFrameTableOffSet - *it;
-        }
-        else
-        {
-            return *nextIt - *it;
-        }
-    }
-
-    void AnimSerializer::DebugDecodeAllFrames(IStream& stream)
-    {
-        auto endIt = mUniqueFrameHeaderOffsets.end();
-        std::advance(endIt, -1);
-
-        if (!mIsSingleFrame)
-        {
-            BeginFrames(mHeader.mMaxW, mHeader.mMaxH, static_cast<int>(mUniqueFrameHeaderOffsets.size()));
-        }
-
-        for (auto it = mUniqueFrameHeaderOffsets.begin(); it != endIt; it++)
-        {
-            DecodeFrame(stream, *it, DataSize(it));
-        }
-
-        EndFrames(); 
-    }
-
     template<class T>
-    std::vector<Uint8> AnimSerializer::Decompress(AnimSerializer::FrameHeader& header, IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 dataSize)
+    std::vector<Uint8> AnimSerializer::Decompress(AnimSerializer::FrameHeader& /*header*/, Uint32 finalW, Uint32 w, Uint32 h, Uint32 dataSize)
     {
         T decompressor;
-        auto decompressedData = decompressor.Decompress(stream, finalW, w, h, dataSize);
-        AddFrame(header, finalW, decompressedData);
+        auto decompressedData = decompressor.Decompress(mStream, finalW, w, h, dataSize);
+        //AddFrame(header, finalW, decompressedData);
         return decompressedData;
     }
 
-    void AnimSerializer::BeginFrames(int w, int h, int count)
-    {
-        if (count <= 0)
-        {
-            count = 1;
-        }
-
-        mSpritesX = 10;
-        mSpritesY = count / 10;
-        if (mSpritesY <= 0)
-        {
-            mSpritesY = 1;
-        }
-        if (count < 10)
-        {
-            mSpritesX = count;
-        }
-
-        mXPos = 0;
-        mYPos = 0;
-
-        /*
-        const auto red_mask = 0xff000000;
-        const auto green_mask = 0x00ff0000;
-        const auto blue_mask = 0x0000ff00;
-        const auto alpha_mask = 0x000000ff;
-        */
-
-        // Flip order of colours around for PNG lib
-        const auto red_mask    = 0x000000ff;
-        const auto green_mask  = 0x0000ff00;
-        const auto blue_mask   = 0x00ff0000;
-        const auto alpha_mask  = 0xff000000;
-        mSpriteSheet.reset(SDL_CreateRGBSurface(0, mSpritesX*w, mSpritesY*h, 32, red_mask, green_mask, blue_mask, alpha_mask));
-    }
-
-    void AnimSerializer::AddFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData)
-    {
-
-        //DebugSaveFrame(header, realWidth, decompressedData);
-
-        int xpos = mXPos * mHeader.mMaxW;
-        int ypos = mYPos * mHeader.mMaxH;
-
-        std::vector<Uint32> pixels;
-        auto frame = MakeFrame(header, realWidth, decompressedData, pixels);
-
-
-        SDL_Rect dstRect;
-        dstRect.x = xpos;
-        dstRect.y = ypos;
-        dstRect.w = header.mWidth;
-        dstRect.h = header.mHeight;
-
-        SDL_Rect srcRect;
-        srcRect.x = 0;
-        srcRect.y = 0;
-        srcRect.w = header.mWidth;
-        srcRect.h = header.mHeight;
-
-        if (!mSpriteSheet && mIsSingleFrame)
-        {
-            BeginFrames(realWidth, header.mHeight, 1);
-        }
-
-        if (mSpriteSheet)
-        {
-            SDL_BlitSurface(frame.get(), &srcRect, mSpriteSheet.get(), &dstRect);
-
-            mXPos++;
-            if (mXPos > mSpritesX)
-            {
-                mXPos = 0;
-                mYPos++;
-            }
-        }
-    }
-
-    void AnimSerializer::EndFrames()
-    {
-        if (mSpriteSheet)
-        {
-            // Save surface to disk
-            //SDL_SaveBMP(mSpriteSheet.get(), (mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".bmp").c_str());
-            
-            lodepng::State state = {};
-            // input color type
-            state.info_raw.colortype = LCT_RGBA;
-            state.info_raw.bitdepth = 8;
-
-
-
-            // output color type
-            state.info_png.color.colortype = LCT_RGBA;
-            state.info_png.color.bitdepth = 8;
-            state.encoder.auto_convert = 0;
-
-            std::vector<unsigned char> out;
-            lodepng::encode(out, (const unsigned char*)mSpriteSheet->pixels, mSpriteSheet->w, mSpriteSheet->h, state);
-
-            std::ofstream fileStream;
-            fileStream.open((mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".png").c_str(), std::ios::binary);
-            if (!fileStream.is_open())
-            { 
-                throw Exception("Can't open output file");
-            }
-
-            fileStream.write(reinterpret_cast<const char*>(out.data()), out.size());
-        }
-    }
-    
     Uint32 AnimSerializer::GetPaltValue(Uint32 idx)
     {
         // ABEEND.BAN from the AO PSX demo goes out of bounds - probably why the resulting
@@ -470,7 +456,7 @@ namespace Oddlib
         return mPalt[idx];
     }
 
-    SDL_SurfacePtr AnimSerializer::MakeFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint32>& pixels)
+    SDL_SurfacePtr AnimSerializer::ApplyPalleteToFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint32>& pixels)
     {
         // Apply the pallete
         if (header.mColourDepth == 8)
@@ -517,28 +503,21 @@ namespace Oddlib
         }
     }
 
-    void AnimSerializer::DebugSaveFrame(AnimSerializer::FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData)
+    AnimSerializer::DecodedFrame AnimSerializer::ReadAndDecompressFrame(Uint32 frameOffset, Uint32 frameDataSize)
     {
-        std::vector<Uint32> pixels;
-        auto surface = MakeFrame(header, realWidth, decompressedData, pixels);
+        DecodedFrame ret;
 
-        // Save surface to disk
-        SDL_SaveBMP(surface.get(), (mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".bmp").c_str());
-    }
-
-    std::vector<Uint8> AnimSerializer::DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize)
-    {
-        stream.Seek(frameOffset);
+        mStream.Seek(frameOffset);
 
         FrameHeader frameHeader;
-        stream.ReadUInt32(frameHeader.mClutOffset);
+        mStream.ReadUInt32(frameHeader.mClutOffset);
 
 
-        stream.ReadUInt8(frameHeader.mWidth);
-        stream.ReadUInt8(frameHeader.mHeight);
-        stream.ReadUInt8(frameHeader.mColourDepth);
-        stream.ReadUInt8(frameHeader.mCompressionType);
-        stream.ReadUInt32(frameHeader.mFrameDataSize);
+        mStream.ReadUInt8(frameHeader.mWidth);
+        mStream.ReadUInt8(frameHeader.mHeight);
+        mStream.ReadUInt8(frameHeader.mColourDepth);
+        mStream.ReadUInt8(frameHeader.mCompressionType);
+        mStream.ReadUInt32(frameHeader.mFrameDataSize);
 
         Uint32 nTextureWidth = 0;
         Uint32 actualWidth = 0;
@@ -563,6 +542,8 @@ namespace Oddlib
             //LOG_ERROR("Bad depth");
             //return std::vector<Uint8>();
         }
+        ret.mFixedWidth = actualWidth;
+        ret.mFrameHeader = frameHeader;
 
         // TODO: Sometimes the offset isn't the same, need to check why, multi cluts?
        // assert(frameHeader.mClutOffset == mClutPos);
@@ -574,28 +555,27 @@ namespace Oddlib
         case 0:
             // Used in AE and AO (seems to mean "no compression"?)
             {
-                std::vector<Uint8> data;
 
                 // The frame size field isn't used in this case, its actually part of the frame pixel data
-                stream.Seek(stream.Pos() - 4);
+                mStream.Seek(mStream.Pos() - 4);
 
                 if (frameHeader.mColourDepth == 4)
                 {
-                    data.resize((actualWidth*frameHeader.mHeight) / 2);
+                    ret.mPixelData.resize((actualWidth*frameHeader.mHeight) / 2);
                 }
                 else if (frameHeader.mColourDepth == 8)
                 {
-                    data.resize(actualWidth*frameHeader.mHeight);
+                    ret.mPixelData.resize(actualWidth*frameHeader.mHeight);
                 }
                 else
                 {
                     abort();
                 }
 
-                if (!data.empty())
+                if (!ret.mPixelData.empty())
                 {
-                    stream.ReadBytes(data.data(), data.size());
-                    AddFrame(frameHeader, actualWidth, data);
+                    mStream.ReadBytes(ret.mPixelData.data(), ret.mPixelData.size());
+                    //AddFrame(frameHeader, actualWidth, data);
                 }
                 else
                 {
@@ -611,25 +591,25 @@ namespace Oddlib
 
         case 2:
            // In AE but never used, used for AO, same algorithm, 0x0040AA50 in AE
-            Decompress<CompressionType2>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, (frameHeader.mClutOffset == 0x8 || mIsPsx) ? frameHeader.mFrameDataSize : frameDataSize);
+            ret.mPixelData = Decompress<CompressionType2>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, (frameHeader.mClutOffset == 0x8 || mIsPsx) ? frameHeader.mFrameDataSize : frameDataSize);
             break;
 
         case 3:
             if (frameHeader.mClutOffset == 0x8)
             {
                 // The size is the header seems to be half the size of the calculated frameDataSize, give or take 3 bytes
-                Decompress<CompressionType3>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                ret.mPixelData = Decompress<CompressionType3>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             else
             {
-                Decompress<CompressionType3Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mClutOffset == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
+                ret.mPixelData = Decompress<CompressionType3Ae>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mClutOffset == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
             }
             break;
 
         case 4:
         case 5:
             // Both AO and AE
-            Decompress<CompressionType4Or5>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mClutOffset == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
+            ret.mPixelData = Decompress<CompressionType4Or5>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mClutOffset == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
             break;
 
         // AO cases end at 5
@@ -640,11 +620,11 @@ namespace Oddlib
 
                 // This clips off extra "bad" pixels that sometimes get added
                 frameHeader.mHeight -= 1;
-                Decompress<CompressionType6or7AePsx<8>>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                ret.mPixelData = Decompress<CompressionType6or7AePsx<8>>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             else
             {
-                Decompress<CompressionType6Ae>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                ret.mPixelData = Decompress<CompressionType6Ae>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             break;
             
@@ -654,7 +634,7 @@ namespace Oddlib
             {
                 // This clips off extra "bad" pixels that sometimes get added
                 frameHeader.mHeight -= 1;
-                Decompress<CompressionType6or7AePsx<6>>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                ret.mPixelData = Decompress<CompressionType6or7AePsx<6>>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             else
             {
@@ -662,7 +642,7 @@ namespace Oddlib
 
                 // This clips off extra "bad" pixels that sometimes get added
                 frameHeader.mHeight -= 1;
-                Decompress<CompressionType6or7AePsx<8>>(frameHeader, stream, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                ret.mPixelData = Decompress<CompressionType6or7AePsx<8>>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
             }
             break;
 
@@ -672,19 +652,6 @@ namespace Oddlib
             break;
         }
 
-        return std::vector<Uint8>();
+        return ret;
     }
-
-    // ==================================================
-
-    /*static std::vector<std::unique_ptr<Animation>> AnimationFactory::Create(Oddlib::LvlArchive& archive, const std::string& fileName, Uint32 resourceId, bool bIsxPsx)
-    {
-        std::vector < std::unique_ptr<Animation> > r;
-
-        Stream stream(archive.FileByName(fileName)->ChunkById(resourceId)->ReadData());
-        AnimSerializer anim(fileName, resourceId, stream, bIsxPsx, "unknown");
-
-        return r;
-    }
-    */
 }

@@ -32,22 +32,76 @@ namespace Oddlib
     * know if the source data is PC or PSX. This is because the type 6 decompression is not the same between
     * PC and PSX, and there is no reliable way to detect which format we have.
     */
+    class AnimSerializer;
+
+    class Animation
+    {
+    public:
+        struct FrameRect
+        {
+            int ox, oy, x, y, w, h;
+        };
+        Uint32 NumFrames() const;
+        Uint32 Fps() const;
+        std::vector<Uint8> FrameData(Uint32 idx) const; // Convert and display as opengl texture
+        const FrameRect& FrameRect(Uint32 idx) const;
+    private:
+    };
+
+    class AnimationSet
+    {
+    public:
+        AnimationSet(AnimSerializer& as);
+        Uint32 NumberOfAnimations() const;
+        const Animation* AnimationAt(Uint32 idx) const;
+    private:
+    };
+
+    std::unique_ptr<AnimationSet> LoadAnimations(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName);
+
+
+    void DebugDumpAnimationFrames(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName);
+
     class AnimSerializer
     {
     public:
-        AnimSerializer(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName);
+        struct FrameHeader
+        {
+            Uint32 mClutOffset;
+            Uint8 mWidth;
+            Uint8 mHeight;
+            Uint8 mColourDepth;
+            Uint8 mCompressionType;
+            Uint32 mFrameDataSize; // Actually 2 Uint16's in AE for W/H again
+        };
+        static_assert(sizeof(FrameHeader) == 12, "Wrong frame header size");
+
+    public:
+        AnimSerializer(IStream& stream, bool bIsPsx);
+        AnimSerializer(const AnimSerializer&) = delete;
+        AnimSerializer& operator = (const AnimSerializer&) = delete;
+
+        SDL_SurfacePtr ApplyPalleteToFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint32>& pixels);
+        const std::set< Uint32 >& UniqueFrames() const { return mUniqueFrameHeaderOffsets; }
+        Uint32 MaxW() const { return mHeader.mMaxW; }
+        Uint32 MaxH() const { return mHeader.mMaxH; }
+
+        struct DecodedFrame
+        {
+            std::vector<Uint8> mPixelData;
+            FrameHeader mFrameHeader;
+            Uint32 mFixedWidth = 0;
+        };
+        DecodedFrame ReadAndDecompressFrame(Uint32 frameOffset, Uint32 frameDataSize);
+
     private:
-        void ParseAnimationSets(IStream& stream);
-        void ParseFrameInfoHeaders(IStream& stream);
+        Uint32 GetPaltValue(Uint32 idx);
+        Uint32 ParsePallete();
+        void ParseAnimationSets();
+        void ParseFrameInfoHeaders();
         void GatherUniqueFrameOffsets();
-        Uint32 DataSize(std::set<Uint32>::iterator it);
-        void DebugDecodeAllFrames(IStream& stream);
-        std::vector<Uint8> DecodeFrame(IStream& stream, Uint32 frameOffset, Uint32 frameDataSize);
         
-        bool mIsSingleFrame = false;
-        std::string mFileName;
-        std::string mDataSetName;
-        Uint32 mId = 0;
+        Uint32 mSingleFrameOffset = 0;
         bool mIsPsx = false;
 
         struct BanHeader
@@ -56,7 +110,6 @@ namespace Oddlib
             Uint16 mMaxH = 0;       // Max frame H
             Uint32 mFrameTableOffSet = 0; // Where the frame table begins
             Uint32 mPaltSize = 0;         // Number of palt words
-
         };
         BanHeader mHeader;
 
@@ -86,16 +139,11 @@ namespace Oddlib
 
         // Unique combination of frames from all animations, as each animation can reuse any number of frames
         std::set< Uint32 > mUniqueFrameHeaderOffsets;
-        //std::set< Uint32 > mUniqueFrameHeaderStreamOffsets;
 
         struct FrameInfoHeader
         {
             Uint32 mFrameHeaderOffset = 0;
             Uint32 mMagic = 0;
-
-            // TODO: Actually, number of points and triggers?
-            //Uint16 points = 0;
-            //Uint16 triggers = 0;
 
             // Top left
             Sint16 mColx = 0;
@@ -107,21 +155,10 @@ namespace Oddlib
 
             Sint16 mOffx = 0;
             Sint16 mOffy = 0;
-
-            //std::vector<Uint32> mTriggers;
         };
+        static_assert(sizeof(FrameInfoHeader) == 20, "Wrong frame info header size");
 
-        struct FrameHeader
-        {
-            Uint32 mClutOffset;
-            Uint8 mWidth;
-            Uint8 mHeight;
-            Uint8 mColourDepth;
-            Uint8 mCompressionType;
-            Uint32 mFrameDataSize; // Actually 2 Uint16's in AE for W/H again
-        };
-        static_assert(sizeof(FrameHeader) == 12, "Wrong frame header size");
-        Uint32 mClutPos = 0;
+        Uint32 mClutOffset = 0;
 
         std::vector<std::unique_ptr<AnimationHeader>> mAnimationHeaders;
         std::vector<Uint32> mPalt;
@@ -129,26 +166,29 @@ namespace Oddlib
         bool mbIsAoFile = true;
 
         template<class T>
-        std::vector<Uint8> Decompress(FrameHeader& header, IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 dataSize);
+        std::vector<Uint8> Decompress(FrameHeader& header, Uint32 finalW, Uint32 w, Uint32 h, Uint32 dataSize);
+        IStream& mStream;
+    };
 
-        // TODO: Put this stuff into its own object
+    class DebugAnimationSpriteSheet
+    {
+    public:
+        DebugAnimationSpriteSheet(AnimSerializer& as, const std::string& fileName, Uint32 id, const char* dataSetName);
+    private:
+        void DebugDecodeAllFrames(AnimSerializer& as);
+        Uint32 DataSize(AnimSerializer& as, std::set<Uint32>::iterator it);
         void BeginFrames(int w, int h, int count);
-        void AddFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData);
+        void AddFrame(AnimSerializer& as, AnimSerializer::DecodedFrame& df);
         void EndFrames();
-        void DebugSaveFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData);
-        Uint32 GetPaltValue(Uint32 idx);
-        SDL_SurfacePtr MakeFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint32>& pixels);
         SDL_SurfacePtr mSpriteSheet;
         int mSpritesX = 0;
         int mSpritesY = 0;
         int mXPos = 0;
         int mYPos = 0;
+
+        std::string mFileName;
+        std::string mDataSetName;
+        Uint32 mId = 0;
     };
 
-    /*
-    class AnimationFactory
-    {
-    public:
-        static std::vector<std::unique_ptr<Animation>> Create(Oddlib::LvlArchive& archive, const std::string& fileName, Uint32 resourceId, bool bIsxPsx);
-    };*/
 }

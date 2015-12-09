@@ -324,7 +324,12 @@ public:
     {
         ForChunksOfType(Oddlib::MakeType('A', 'n', 'i', 'm'), [&](const std::string& fileName, Oddlib::LvlArchive::FileChunk& chunk, bool isPsx)
         {
-            Oddlib::AnimSerializer anim(fileName, chunk.Id(), *chunk.Stream(), isPsx, ToString(mType));
+            if (chunk.Id() == 0x1770)
+            {
+                // ELECWALL.BAN
+             //   abort();
+            }
+            Oddlib::DebugDumpAnimationFrames(fileName, chunk.Id(), *chunk.Stream(), isPsx, ToString(mType));
         });
     }
 
@@ -411,17 +416,25 @@ int main(int /*argc*/, char** /*argv*/)
 
     const std::vector<std::pair<DataTest::eDataType, std::string>> datas =
     {
+      //  { DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\AE_RE\\testing.bin" },
+    
+        // OK
         { DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus" },
+        /*
+        // Mainly OK, only bad data seems to also be rendered incorrectly by the game itself, i.e the game data itself is bad
         { DataTest::eAePcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo" },
-        { DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
+
+        // Random pixel issue..
+       { DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
         { DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
-        { DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
+       // { DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
 
-
+        // AO ok
         { DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee" },
         { DataTest::eAoPcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\abeodd" },
         { DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
         { DataTest::eAoPsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
+  */
     };
 
     std::vector<std::string> fileFilter;
@@ -511,12 +524,25 @@ int main(int /*argc*/, char** /*argv*/)
     */
 
     // FALLROCK.BAN corrupted frames in AePcDemo
-    // ABESPEAK.BAN AE PSX, AE PSX DEMO 1 bad frame
-    // ABEHOIST.BAN, ABEWELM.BAN ANEBASIC.BAN ANEDSMNT.BAN ANEEDGE.BAN D1HIVE.BAN AO PSX, AO PSX DEMO, blue pixels
-    // ABEKNBK.BAN all psx ae, some pixels too far right? maybe a couple on ao pc too
-    // ^ ABEWASP.BAN ao/AePsxDemo has right aligned pixels?
-    // 
+    // ^ TODO: Where is this used in the real game, can't find it? Probably bad in src data
 
+    // ABESPEAK.BAN AE PSX, AE PSX DEMO 1 bad frame
+    // ^ Bad in the src data, real engine displays it the same.
+
+    // ABEHOIST.BAN, ABEWELM.BAN ANEBASIC.BAN ANEDSMNT.BAN ANEEDGE.BAN D1HIVE.BAN AO PSX, AO PSX DEMO, blue pixels
+    // ^ fixed via forcing these to black, changes some pixels in unrelated anims near the edges so can't really be noticed
+    
+    // ABEKNBK.BAN all psx ae, some pixels too far right? maybe a couple on ao pc too
+    // ABEWASP.BAN ao/AePsxDemo has right aligned pixels?
+    // ^ Some problem with Type 7 sprites, always adds some junk pixels near the end?
+
+    // Type 2 in psx just has black frames, has overrun issue?
+
+    //fileFilter.push_back("ABECAR.BAN");
+ //   fileFilter.push_back("ABEWASP.BAN");
+   // fileFilter.push_back("FALLROCK.BAN");
+   // fileFilter.push_back("SPARKS.BAN");
+  //  fileFilter.push_back("ELECWALL.BAN");
 
     for (const auto& data : datas)
     {
