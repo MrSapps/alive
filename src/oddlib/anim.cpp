@@ -16,15 +16,128 @@
 
 namespace Oddlib
 {
-    AnimationSet::AnimationSet(AnimSerializer& /*as*/)
+    Animation::Animation(const AnimSerializer::AnimationHeader& animHeader, const AnimationSet& animSet)
     {
+        mFps = animHeader.mFps;
+        mLoopStartFrame = animHeader.mLoopStartFrame;
+        for (const std::unique_ptr<AnimSerializer::FrameInfoHeader>& frameInfo : animHeader.mFrameInfos)
+        {
+            Frame tmp;
 
+            // Frame image
+            tmp.mFrame = animSet.FrameByOffset(frameInfo->mFrameHeaderOffset);
+            
+            // Offset
+            tmp.mOffX = frameInfo->mOffx;
+            tmp.mOffX = frameInfo->mOffy;
+
+            // Collision info
+            tmp.mBX = frameInfo->mColx;
+            tmp.mBY = frameInfo->mColy;
+            tmp.mBW = frameInfo->mColw;
+            tmp.mBH = frameInfo->mColh;
+            mFrames.push_back(tmp);
+        }
+    }
+
+    const Animation::Frame& Animation::GetFrame(Uint32 idx) const
+    {
+        return mFrames[idx];
+    }
+
+    AnimationSet::AnimationSet(AnimSerializer& as)
+    {
+        // Add all frames
+        for (auto it : as.UniqueFrames())
+        {
+            const AnimSerializer::DecodedFrame decoded = as.ReadAndDecompressFrame(it);
+            mFrames[it] = MakeFrame(as, decoded, it);
+        }
+
+        // Add animations that point to the frames
+        for (const std::unique_ptr<AnimSerializer::AnimationHeader>& animSet : as.Animations())
+        {
+            mAnimations.push_back(std::make_unique<Animation>(*animSet, *this));
+        }
+    }
+
+    SDL_SurfacePtr AnimationSet::MakeFrame(AnimSerializer& as, const AnimSerializer::DecodedFrame& df, Uint32 offsetData)
+    {
+        std::vector<Uint32> pixels;
+        auto frame = as.ApplyPalleteToFrame(df.mFrameHeader, df.mFixedWidth, df.mPixelData, pixels);
+
+        SDL_Rect dstRect;
+        dstRect.x = 0;
+        dstRect.y = 0;
+        dstRect.w = df.mFrameHeader.mWidth;
+        dstRect.h = df.mFrameHeader.mHeight;
+
+        SDL_Rect srcRect;
+        if (as.IsSingleFrame())
+        {
+            // The anim is one big premade sprite sheet, so we have to "cut out" the rect
+            // of the frame we're after
+
+            // SURPRISE! The frame offset is actually a rect in this case
+            unsigned char bytes[4];
+            bytes[0] = (offsetData >> 24) & 0xFF;
+            bytes[1] = (offsetData >> 16) & 0xFF;
+            bytes[2] = (offsetData >> 8) & 0xFF;
+            bytes[3] = offsetData & 0xFF;
+
+
+            srcRect.x = bytes[3];
+            srcRect.y = bytes[2];
+            srcRect.w = bytes[1];
+            srcRect.h = bytes[0];
+
+
+            dstRect.w = srcRect.w;
+            dstRect.h = srcRect.h;
+
+        }
+        else
+        {
+            srcRect.x = 0;
+            srcRect.y = 0;
+            srcRect.w = df.mFrameHeader.mWidth;
+            srcRect.h = df.mFrameHeader.mHeight;
+        }
+
+        const auto red_mask = 0x000000ff;
+        const auto green_mask = 0x0000ff00;
+        const auto blue_mask = 0x00ff0000;
+        const auto alpha_mask = 0xff000000;
+        SDL_SurfacePtr tmp(SDL_CreateRGBSurface(0, dstRect.w, dstRect.h, 32, red_mask, green_mask, blue_mask, alpha_mask));
+
+        SDL_BlitSurface(frame.get(), &srcRect, tmp.get(), &dstRect);
+        return tmp;
+    }
+
+    Uint32 AnimationSet::NumberOfAnimations() const
+    {
+        return static_cast<Uint32>(mAnimations.size());
+    }
+
+    const Animation* AnimationSet::AnimationAt(Uint32 idx) const
+    {
+        return mAnimations[idx].get();
+    }
+
+    SDL_Surface* AnimationSet::FrameByOffset(Uint32 offset) const
+    {
+        auto it = mFrames.find(offset);
+        if (it != std::end(mFrames))
+        {
+            return it->second.get();
+        }
+        return nullptr;
     }
 
     std::unique_ptr<AnimationSet> LoadAnimations(const std::string& /*fileName*/, Uint32 /*id*/, IStream& stream, bool bIsPsx, const char* /*dataSetName*/)
     {
         AnimSerializer as(stream, bIsPsx);
-        return nullptr;
+        return std::make_unique<AnimationSet>(as);
     }
 
     DebugAnimationSpriteSheet::DebugAnimationSpriteSheet(AnimSerializer& as, const std::string& fileName, Uint32 id, const char* dataSetName)
@@ -36,9 +149,6 @@ namespace Oddlib
 
     void DebugAnimationSpriteSheet::DebugDecodeAllFrames(AnimSerializer& as)
     {
-        auto endIt = as.UniqueFrames().end();
-        std::advance(endIt, -1);
-
         BeginFrames(as.MaxW(), as.MaxH(), static_cast<int>(as.UniqueFrames().size()));
         
         for (auto it : as.UniqueFrames())
@@ -462,7 +572,7 @@ namespace Oddlib
         return mPalt[idx];
     }
 
-    SDL_SurfacePtr AnimSerializer::ApplyPalleteToFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint32>& pixels)
+    SDL_SurfacePtr AnimSerializer::ApplyPalleteToFrame(const FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint32>& pixels)
     {
         // Apply the pallete
         if (header.mColourDepth == 8)

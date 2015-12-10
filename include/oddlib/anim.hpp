@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <set>
+#include <map>
 #include "SDL.h"
 #include "sdl_raii.hpp"
 #include <string>
@@ -33,29 +34,7 @@ namespace Oddlib
     * PC and PSX, and there is no reliable way to detect which format we have.
     */
     class AnimSerializer;
-
-    class Animation
-    {
-    public:
-        struct FrameRect
-        {
-            int ox, oy, x, y, w, h;
-        };
-        Uint32 NumFrames() const;
-        Uint32 Fps() const;
-        std::vector<Uint8> FrameData(Uint32 idx) const; // Convert and display as opengl texture
-        const FrameRect& FrameRect(Uint32 idx) const;
-    private:
-    };
-
-    class AnimationSet
-    {
-    public:
-        AnimationSet(AnimSerializer& as);
-        Uint32 NumberOfAnimations() const;
-        const Animation* AnimationAt(Uint32 idx) const;
-    private:
-    };
+    class AnimationSet;
 
     std::unique_ptr<AnimationSet> LoadAnimations(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName);
 
@@ -81,7 +60,7 @@ namespace Oddlib
         AnimSerializer(const AnimSerializer&) = delete;
         AnimSerializer& operator = (const AnimSerializer&) = delete;
 
-        SDL_SurfacePtr ApplyPalleteToFrame(FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint32>& pixels);
+        SDL_SurfacePtr ApplyPalleteToFrame(const FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint32>& pixels);
         const std::set< Uint32 >& UniqueFrames() const { return mUniqueFrameHeaderOffsets; }
         Uint32 MaxW() const { return mHeader.mMaxW; }
         Uint32 MaxH() const { return mHeader.mMaxH; }
@@ -94,6 +73,50 @@ namespace Oddlib
         };
         DecodedFrame ReadAndDecompressFrame(Uint32 frameOffset);
         bool IsSingleFrame() const { return mSingleFrameOffset > 0; }
+
+        struct FrameInfoHeader;
+        struct AnimationHeader
+        {
+            Uint16 mFps = 0;            // Seems to be 0x1 or 0x2
+            Uint16 mNumFrames = 0;      // Number of frames in the set
+
+            // If loop flag set then this is the frame to loop back to
+            Uint16 mLoopStartFrame = 0;
+
+            enum eFlags
+            {
+                eFlipXFlag = 0x4,
+                eFlipYFlag = 0x8,
+                eNeverUnload = 0x1,
+                eLoopFlag = 0x2
+            };
+            Uint16 mFlags = 0;
+
+            // Offset to each frame, can be duplicated across sets if two animations share the same frame
+            std::vector< Uint32 > mFrameInfoOffsets;
+
+            std::vector<std::unique_ptr<FrameInfoHeader>> mFrameInfos;
+        };
+
+        struct FrameInfoHeader
+        {
+            Uint32 mFrameHeaderOffset = 0;
+            Uint32 mMagic = 0;
+
+            // Top left
+            Sint16 mColx = 0;
+            Sint16 mColy = 0;
+
+            // Bottom right
+            Sint16 mColw = 0;
+            Sint16 mColh = 0;
+
+            Sint16 mOffx = 0;
+            Sint16 mOffy = 0;
+        };
+        static_assert(sizeof(FrameInfoHeader) == 20, "Wrong frame info header size");
+
+        const std::vector<std::unique_ptr<AnimationHeader>>& Animations() const { return mAnimationHeaders; }
     private:
         Uint32 GetPaltValue(Uint32 idx);
         Uint32 ParsePallete();
@@ -113,50 +136,10 @@ namespace Oddlib
         };
         BanHeader mHeader;
 
-        struct FrameInfoHeader;
-        struct AnimationHeader
-        {
-            Uint16 mFps = 0;            // Seems to be 0x1 or 0x2
-            Uint16 mNumFrames = 0;      // Number of frames in the set
-
-            // If loop flag set then this is the frame to loop back to
-            Uint16 mLoopStartFrame = 0;
-            
-            enum eFlags
-            {
-                eFlipXFlag = 0x4,
-                eFlipYFlag = 0x8,
-                eNeverUnload = 0x1,
-                eLoopFlag = 0x2
-            };
-            Uint16 mFlags = 0;
-
-            // Offset to each frame, can be duplicated across sets if two animations share the same frame
-            std::vector< Uint32 > mFrameInfoOffsets;
-
-            std::vector<std::unique_ptr<FrameInfoHeader>> mFrameInfos;
-        };
 
         // Unique combination of frames from all animations, as each animation can reuse any number of frames
         std::set< Uint32 > mUniqueFrameHeaderOffsets;
 
-        struct FrameInfoHeader
-        {
-            Uint32 mFrameHeaderOffset = 0;
-            Uint32 mMagic = 0;
-
-            // Top left
-            Sint16 mColx = 0;
-            Sint16 mColy = 0;
-
-            // Bottom right
-            Sint16 mColw = 0;
-            Sint16 mColh = 0;
-
-            Sint16 mOffx = 0;
-            Sint16 mOffy = 0;
-        };
-        static_assert(sizeof(FrameInfoHeader) == 20, "Wrong frame info header size");
 
         Uint32 mClutOffset = 0;
 
@@ -188,6 +171,54 @@ namespace Oddlib
         std::string mFileName;
         std::string mDataSetName;
         Uint32 mId = 0;
+    };
+
+
+    class Animation
+    {
+    public:
+        Animation(const AnimSerializer::AnimationHeader& animHeader, const AnimationSet& animSet);
+
+        struct Frame
+        {
+            // Frame offset for correct positioning
+            int mOffX;
+            int mOffY;
+
+            // Bounding box
+            int mBX;
+            int mBY;
+            int mBW;
+            int mBH;
+
+            // Image pixel data - pointer as data is sometimes shared between frames
+            SDL_Surface* mFrame;
+        };
+        Uint32 NumFrames() const { return static_cast<Uint32>(mFrames.size()); }
+        Uint32 Fps() const { return mFps; }
+        Uint32 LoopStartFrame() const { return mLoopStartFrame; }
+        const Frame& GetFrame(Uint32 idx) const;
+    private:
+        Uint32 mFps = 0;
+        Uint32 mLoopStartFrame = 0;
+        std::vector<Frame> mFrames;
+    };
+
+
+    class AnimationSet
+    {
+    public:
+        AnimationSet(AnimSerializer& as);
+        Uint32 NumberOfAnimations() const;
+        const Animation* AnimationAt(Uint32 idx) const;
+        SDL_Surface* FrameByOffset(Uint32 offset) const;
+    private:
+        SDL_SurfacePtr MakeFrame(AnimSerializer& as, const AnimSerializer::DecodedFrame& df, Uint32 offsetData);
+
+        std::vector<std::unique_ptr<Animation>> mAnimations;
+
+        // Map of frame offsets to frame images
+        std::map<Uint32, SDL_SurfacePtr> mFrames;
     };
 
 }
