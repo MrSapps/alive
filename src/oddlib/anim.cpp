@@ -29,7 +29,7 @@ namespace Oddlib
             
             // Offset
             tmp.mOffX = frameInfo->mOffx;
-            tmp.mOffX = frameInfo->mOffy;
+            tmp.mOffY = frameInfo->mOffy;
 
             // Collision info
             tmp.mBX = frameInfo->mColx;
@@ -134,7 +134,7 @@ namespace Oddlib
         return nullptr;
     }
 
-    std::unique_ptr<AnimationSet> LoadAnimations(const std::string& /*fileName*/, Uint32 /*id*/, IStream& stream, bool bIsPsx, const char* /*dataSetName*/)
+    std::unique_ptr<AnimationSet> LoadAnimations(IStream& stream, bool bIsPsx)
     {
         AnimSerializer as(stream, bIsPsx);
         return std::make_unique<AnimationSet>(as);

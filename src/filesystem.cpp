@@ -279,7 +279,10 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkById(con
         if (file)
         {
             auto chunk = file->ChunkById(id);
-            return chunk->Stream();
+            if (chunk)
+            {
+                return chunk->Stream();
+            }
         }
     }
     return nullptr;

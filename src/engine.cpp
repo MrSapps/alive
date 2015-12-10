@@ -14,6 +14,8 @@
 #include "renderer.hpp"
 #include "gui.hpp"
 
+#include "oddlib/anim.hpp"
+
 extern "C"
 {
 #include "lua.h"
@@ -550,27 +552,83 @@ void Engine::Render()
             bool fmvBrowserOpen;
             bool soundBrowserOpen;
             bool levelBrowserOpen;
+            bool animationBrowserOpen;
         };
         static EditorUi editor;
 
         mGui->next_window_pos = v2i(50, 50);
-        gui_begin_window(mGui, "Browsers", v2i(200, 100));
+        gui_begin_window(mGui, "Browsers", v2i(200, 130));
         gui_checkbox(mGui, "resPathsOpen|Resource paths", &editor.resPathsOpen);
         gui_checkbox(mGui, "fmvBrowserOpen|FMV browser", &editor.fmvBrowserOpen);
         gui_checkbox(mGui, "soundBrowserOpen|Sound browser", &editor.soundBrowserOpen);
         gui_checkbox(mGui, "levelBrowserOpen|Level browser", &editor.levelBrowserOpen);
+        gui_checkbox(mGui, "animationBrowserOpen|Animation browser", &editor.animationBrowserOpen);
+
         gui_end_window(mGui);
 
         mGui->next_window_pos = v2i(300, 50);
 
         if (editor.resPathsOpen)
+        {
             mFileSystem.DebugUi(*mGui);
+        }
+
         if (editor.fmvBrowserOpen)
+        {
             mFmv->Render(*mRenderer, *mGui, w, h);
+        }
+
         if (editor.soundBrowserOpen)
+        {
             mSound->Render(mGui, w, h);
+        }
+
         if (editor.levelBrowserOpen)
+        {
             mLevel->Render(*mRenderer, *mGui, w, h);
+        }
+
+        if (editor.animationBrowserOpen)
+        {
+            static std::unique_ptr<Oddlib::AnimationSet> anims;
+            static Uint32 counter = 0;
+            static Uint32 frameNum = 0;
+            static Uint32 animNum = 0;
+            if (!anims)
+            {
+                auto stream = mFileSystem.ResourcePaths().OpenLvlFileChunkById("MI.LVL", "ABEBSIC.BAN", 10);
+                anims = Oddlib::LoadAnimations(*stream, false);
+            }
+            
+            const Oddlib::Animation* anim = anims->AnimationAt(animNum);
+            
+
+            const Oddlib::Animation::Frame& frame = anim->GetFrame(frameNum);
+            counter++;
+            if (counter > 200)
+            {
+                counter = 0;
+                frameNum++;
+                if (frameNum >= anim->NumFrames())
+                {
+                    frameNum = 0;
+                    animNum++;
+                    if (animNum >= anims->NumberOfAnimations())
+                    {
+                        animNum = 0;
+                    }
+                }
+            }
+
+            const int textureId = mRenderer->createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
+
+            float xpos = 300.0f + frame.mOffX;
+            float ypos = 300.0f + frame.mOffY;
+            mRenderer->drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w)*2, static_cast<float>(frame.mFrame->h)*2);
+
+            mRenderer->destroyTexture(textureId);
+
+        }
     }
 
     gui_end(mGui);

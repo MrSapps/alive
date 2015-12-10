@@ -36,8 +36,7 @@ namespace Oddlib
     class AnimSerializer;
     class AnimationSet;
 
-    std::unique_ptr<AnimationSet> LoadAnimations(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName);
-
+    std::unique_ptr<AnimationSet> LoadAnimations(IStream& stream, bool bIsPsx);
 
     void DebugDumpAnimationFrames(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName);
 
