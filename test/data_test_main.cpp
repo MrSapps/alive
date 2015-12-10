@@ -417,24 +417,16 @@ int main(int /*argc*/, char** /*argv*/)
     const std::vector<std::pair<DataTest::eDataType, std::string>> datas =
     {
       //  { DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\AE_RE\\testing.bin" },
-    
-        // OK
+
         { DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus" },
-        /*
-        // Mainly OK, only bad data seems to also be rendered incorrectly by the game itself, i.e the game data itself is bad
         { DataTest::eAePcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo" },
-
-        // Random pixel issue..
-       { DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
+        { DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
         { DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
-       // { DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
-
-        // AO ok
+        { DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
         { DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee" },
         { DataTest::eAoPcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\abeodd" },
         { DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
         { DataTest::eAoPsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
-  */
     };
 
     std::vector<std::string> fileFilter;
@@ -542,7 +534,7 @@ int main(int /*argc*/, char** /*argv*/)
  //   fileFilter.push_back("ABEWASP.BAN");
    // fileFilter.push_back("FALLROCK.BAN");
    // fileFilter.push_back("SPARKS.BAN");
-  //  fileFilter.push_back("ELECWALL.BAN");
+   // fileFilter.push_back("ABEBLOW.BAN");
 
     for (const auto& data : datas)
     {

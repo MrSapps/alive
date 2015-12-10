@@ -92,8 +92,8 @@ namespace Oddlib
             FrameHeader mFrameHeader;
             Uint32 mFixedWidth = 0;
         };
-        DecodedFrame ReadAndDecompressFrame(Uint32 frameOffset, Uint32 frameDataSize);
-
+        DecodedFrame ReadAndDecompressFrame(Uint32 frameOffset);
+        bool IsSingleFrame() const { return mSingleFrameOffset > 0; }
     private:
         Uint32 GetPaltValue(Uint32 idx);
         Uint32 ParsePallete();
@@ -166,7 +166,7 @@ namespace Oddlib
         bool mbIsAoFile = true;
 
         template<class T>
-        std::vector<Uint8> Decompress(FrameHeader& header, Uint32 finalW, Uint32 w, Uint32 h, Uint32 dataSize);
+        std::vector<Uint8> Decompress(FrameHeader& header, Uint32 finalW);
         IStream& mStream;
     };
 
@@ -176,9 +176,8 @@ namespace Oddlib
         DebugAnimationSpriteSheet(AnimSerializer& as, const std::string& fileName, Uint32 id, const char* dataSetName);
     private:
         void DebugDecodeAllFrames(AnimSerializer& as);
-        Uint32 DataSize(AnimSerializer& as, std::set<Uint32>::iterator it);
         void BeginFrames(int w, int h, int count);
-        void AddFrame(AnimSerializer& as, AnimSerializer::DecodedFrame& df);
+        void AddFrame(AnimSerializer& as, AnimSerializer::DecodedFrame& df, Uint32 offsetData);
         void EndFrames();
         SDL_SurfacePtr mSpriteSheet;
         int mSpritesX = 0;

@@ -40,33 +40,14 @@ namespace Oddlib
         std::advance(endIt, -1);
 
         BeginFrames(as.MaxW(), as.MaxH(), static_cast<int>(as.UniqueFrames().size()));
-
-        for (auto it = as.UniqueFrames().begin(); it != endIt; it++)
+        
+        for (auto it : as.UniqueFrames())
         {
-            // In most cases data size isn't used, instead the frame size from the header
-            // of the frame is used instead.
-            auto frameData = as.ReadAndDecompressFrame(*it, DataSize(as, it));
-            AddFrame(as, frameData);
+            auto frameData = as.ReadAndDecompressFrame(it);
+            AddFrame(as, frameData, it);
         }
 
         EndFrames();
-    }
-
-    Uint32 DebugAnimationSpriteSheet::DataSize(AnimSerializer& as, std::set<Uint32>::iterator it)
-    {
-        auto nextIt = it;
-        nextIt++;
-        if (nextIt == as.UniqueFrames().end())
-        {
-            // TODO Since we added mHeader.mFrameTableOffSet to mUniqueFrameHeaderOffsets
-            // can't happen?
-            //return mHeader.mFrameTableOffSet - *it;
-            abort();
-        }
-        else
-        {
-            return *nextIt - *it;
-        }
     }
 
     void DebugAnimationSpriteSheet::BeginFrames(int w, int h, int count)
@@ -98,7 +79,7 @@ namespace Oddlib
         mSpriteSheet.reset(SDL_CreateRGBSurface(0, mSpritesX*w, mSpritesY*h, 32, red_mask, green_mask, blue_mask, alpha_mask));
     }
 
-    void DebugAnimationSpriteSheet::AddFrame(AnimSerializer& as, AnimSerializer::DecodedFrame& df)
+    void DebugAnimationSpriteSheet::AddFrame(AnimSerializer& as, AnimSerializer::DecodedFrame& df, Uint32 offsetData)
     {
         int xpos = mXPos * as.MaxW();
         int ypos = mYPos * as.MaxH();
@@ -114,10 +95,36 @@ namespace Oddlib
         dstRect.h = df.mFrameHeader.mHeight;
 
         SDL_Rect srcRect;
-        srcRect.x = 0;
-        srcRect.y = 0;
-        srcRect.w = df.mFrameHeader.mWidth;
-        srcRect.h = df.mFrameHeader.mHeight;
+        if (as.IsSingleFrame())
+        {
+            // The anim is one big premade sprite sheet, so we have to "cut out" the rect
+            // of the frame we're after
+
+            // SURPRISE! The frame offset is actually a rect in this case
+            unsigned char bytes[4];
+            bytes[0] = (offsetData >> 24) & 0xFF;
+            bytes[1] = (offsetData >> 16) & 0xFF;
+            bytes[2] = (offsetData >> 8) & 0xFF;
+            bytes[3] = offsetData & 0xFF;
+            
+
+            srcRect.x = bytes[3];
+            srcRect.y = bytes[2];
+            srcRect.w = bytes[1];
+            srcRect.h = bytes[0];
+
+       
+            dstRect.w = srcRect.w;
+            dstRect.h = srcRect.h;
+
+        }
+        else
+        {
+            srcRect.x = 0;
+            srcRect.y = 0;
+            srcRect.w = df.mFrameHeader.mWidth;
+            srcRect.h = df.mFrameHeader.mHeight;
+        }
 
         if (mSpriteSheet)
         {
@@ -191,7 +198,7 @@ namespace Oddlib
 
         // Get a list of unique image frames
         GatherUniqueFrameOffsets();
-        mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
+      //  mUniqueFrameHeaderOffsets.insert(mHeader.mFrameTableOffSet);
 
         if (frameStart != 0)
         {
@@ -436,11 +443,10 @@ namespace Oddlib
     }
 
     template<class T>
-    std::vector<Uint8> AnimSerializer::Decompress(AnimSerializer::FrameHeader& /*header*/, Uint32 finalW, Uint32 w, Uint32 h, Uint32 dataSize)
+    std::vector<Uint8> AnimSerializer::Decompress(AnimSerializer::FrameHeader& header, Uint32 finalW)
     {
         T decompressor;
-        auto decompressedData = decompressor.Decompress(mStream, finalW, w, h, dataSize);
-        //AddFrame(header, finalW, decompressedData);
+        auto decompressedData = decompressor.Decompress(mStream, finalW, header.mWidth, header.mHeight, header.mFrameDataSize);
         return decompressedData;
     }
 
@@ -503,11 +509,19 @@ namespace Oddlib
         }
     }
 
-    AnimSerializer::DecodedFrame AnimSerializer::ReadAndDecompressFrame(Uint32 frameOffset, Uint32 frameDataSize)
+    AnimSerializer::DecodedFrame AnimSerializer::ReadAndDecompressFrame(Uint32 frameOffset)
     {
         DecodedFrame ret;
 
-        mStream.Seek(frameOffset);
+        if (mSingleFrameOffset > 0)
+        {
+            // There is only one frame here.. can't seek anywhere else!
+            mStream.Seek(mSingleFrameOffset);
+        }
+        else
+        {
+            mStream.Seek(frameOffset);
+        }
 
         FrameHeader frameHeader;
         mStream.ReadUInt32(frameHeader.mClutOffset);
@@ -543,7 +557,6 @@ namespace Oddlib
             //return std::vector<Uint8>();
         }
         ret.mFixedWidth = actualWidth;
-        ret.mFrameHeader = frameHeader;
 
         // TODO: Sometimes the offset isn't the same, need to check why, multi cluts?
        // assert(frameHeader.mClutOffset == mClutPos);
@@ -575,7 +588,6 @@ namespace Oddlib
                 if (!ret.mPixelData.empty())
                 {
                     mStream.ReadBytes(ret.mPixelData.data(), ret.mPixelData.size());
-                    //AddFrame(frameHeader, actualWidth, data);
                 }
                 else
                 {
@@ -591,25 +603,25 @@ namespace Oddlib
 
         case 2:
            // In AE but never used, used for AO, same algorithm, 0x0040AA50 in AE
-            ret.mPixelData = Decompress<CompressionType2>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, (frameHeader.mClutOffset == 0x8 || mIsPsx) ? frameHeader.mFrameDataSize : frameDataSize);
+            ret.mPixelData = Decompress<CompressionType2>(frameHeader, actualWidth);
             break;
 
         case 3:
             if (frameHeader.mClutOffset == 0x8)
             {
                 // The size is the header seems to be half the size of the calculated frameDataSize, give or take 3 bytes
-                ret.mPixelData = Decompress<CompressionType3>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                ret.mPixelData = Decompress<CompressionType3>(frameHeader, actualWidth );
             }
             else
             {
-                ret.mPixelData = Decompress<CompressionType3Ae>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mClutOffset == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
+                ret.mPixelData = Decompress<CompressionType3Ae>(frameHeader, actualWidth);
             }
             break;
 
         case 4:
         case 5:
             // Both AO and AE
-            ret.mPixelData = Decompress<CompressionType4Or5>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mClutOffset == 0x8 ? frameHeader.mFrameDataSize : frameDataSize);
+            ret.mPixelData = Decompress<CompressionType4Or5>(frameHeader, actualWidth);
             break;
 
         // AO cases end at 5
@@ -620,11 +632,11 @@ namespace Oddlib
 
                 // This clips off extra "bad" pixels that sometimes get added
                 frameHeader.mHeight -= 1;
-                ret.mPixelData = Decompress<CompressionType6or7AePsx<8>>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                ret.mPixelData = Decompress<CompressionType6or7AePsx<8>>(frameHeader, actualWidth);
             }
             else
             {
-                ret.mPixelData = Decompress<CompressionType6Ae>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                ret.mPixelData = Decompress<CompressionType6Ae>(frameHeader, actualWidth);
             }
             break;
             
@@ -634,7 +646,7 @@ namespace Oddlib
             {
                 // This clips off extra "bad" pixels that sometimes get added
                 frameHeader.mHeight -= 1;
-                ret.mPixelData = Decompress<CompressionType6or7AePsx<6>>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                ret.mPixelData = Decompress<CompressionType6or7AePsx<6>>(frameHeader, actualWidth);
             }
             else
             {
@@ -642,7 +654,7 @@ namespace Oddlib
 
                 // This clips off extra "bad" pixels that sometimes get added
                 frameHeader.mHeight -= 1;
-                ret.mPixelData = Decompress<CompressionType6or7AePsx<8>>(frameHeader, actualWidth, frameHeader.mWidth, frameHeader.mHeight, frameHeader.mFrameDataSize);
+                ret.mPixelData = Decompress<CompressionType6or7AePsx<8>>(frameHeader, actualWidth);
             }
             break;
 
@@ -651,6 +663,8 @@ namespace Oddlib
             abort();
             break;
         }
+
+        ret.mFrameHeader = frameHeader;
 
         return ret;
     }
