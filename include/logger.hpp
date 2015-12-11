@@ -3,13 +3,17 @@
 #include <exception>
 #include <iostream>
 
+#if _MSC_VER
+#define FNAME __FUNCTION__
+#else
+#define FNAME __PRETTY_FUNCTION__
+#endif
+
 // For VS2013 and younger constxpr/noexcept isn't implemented
 #if _MSC_VER < 1900
-#define FNAME __FUNCTION__
 #define CONSTXPR 
 #define NOEXEPT 
 #else
-#define FNAME __PRETTY_FUNCTION__
 #define CONSTXPR constexpr
 #define NOEXEPT noexcept
 #endif
