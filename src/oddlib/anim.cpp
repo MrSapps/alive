@@ -57,7 +57,11 @@ namespace Oddlib
         // Add animations that point to the frames
         for (const std::unique_ptr<AnimSerializer::AnimationHeader>& animSet : as.Animations())
         {
-            mAnimations.push_back(std::make_unique<Animation>(*animSet, *this));
+            // Some animations have 0 frames for some bizzare reason
+            if (animSet->mFrameInfos.empty() == false)
+            {
+                mAnimations.push_back(std::make_unique<Animation>(*animSet, *this));
+            }
         }
     }
 
