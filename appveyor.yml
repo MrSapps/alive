@@ -3,7 +3,7 @@ version: 1.0.{build}
 platform: 
  - x86
  - x64
-configuration: 
+configuration:
  - Debug
  - Release
 
@@ -12,22 +12,34 @@ clone_folder: c:\alive
 before_build:
  - mkdir build
  - cd build
- - call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" %platform%
- - echo %platform%
- - if %platform%==X64 (cmake .. -G "Visual Studio 12 2013 Win64")
- - if %platform%==x86 (cmake .. -G "Visual Studio 12 2013")
+ - cmake --help
+ - set build_type=%platform%_%configuration%
+ - echo %build_type%
+ - cmd: if %build_type%==x86_Debug (SET PATH=c:\mingw\bin)
+ - echo %path%
+ - if %build_type%==x86_Debug (call "C:\Program Files (x86)\cmake\bin\cmake" .. -G "MinGW Makefiles")
+ - if %build_type%==x64_Debug (cmake .. -G "Visual Studio 14 2015 Win64")
+ - if %build_type%==x64_Release (cmake .. -G "Visual Studio 12 2013 Win64")
+ - if %build_type%==x86_Release (cmake .. -G "Visual Studio 12 2013")
 
 build_script:
- - cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+ - if %build_type%==x64_Release (cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll")
+ - if %build_type%==x86_Release (cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll")
+ - if %build_type%==x64_Debug (cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll")
+ - if %build_type%==x86_Debug (call "C:\Program Files (x86)\cmake\bin\cmake" --build . --config %configuration%)
+
  # Gotta use the full path to cpack because chocolatey replaces cpack with itself!
  - call "C:\Program Files (x86)\cmake\bin\cpack" -G WIX -C %configuration%
  - ctest -VV -C %configuration%
 
+
 install:
+# Make compiler command line tools available
  - git submodule update --init --recursive
- - ps: Start-FileDownload 'https://www.libsdl.org/release/SDL2-devel-2.0.3-VC.zip'
- - 7z x SDL2-devel-2.0.3-VC.zip
- - set SDL2DIR=C:\alive\SDL2-2.0.3
+ - ps: Start-FileDownload 'https://www.libsdl.org/release/SDL2-devel-2.0.3-mingw.tar.gz'
+ - 7z e SDL2-devel-2.0.3-mingw.tar.gz
+ - 7z x SDL2-devel-2.0.3-mingw.tar
+ - set SDL2DIR=C:\alive\SDL2-devel-2.0.3-mingw\i686-w64-mingw32
 
 artifacts:
  - path: build\*.msi
