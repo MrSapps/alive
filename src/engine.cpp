@@ -574,8 +574,8 @@ struct ResInfo
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
 
         int scale = 3;
-        float xpos = 300.0f + (frame.mOffX);
-        float ypos = 300.0f + (frame.mOffY);
+        float xpos = 300.0f + (frame.mOffX*scale);
+        float ypos = 300.0f + (frame.mOffY*scale);
         // LOG_INFO("Pos " << xpos << "," << ypos);
         rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w*scale ), static_cast<float>(frame.mFrame->h*scale ));
 
