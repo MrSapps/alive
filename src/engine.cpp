@@ -573,10 +573,11 @@ struct ResInfo
 
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
 
-        float xpos = 300.0f - (frame.mOffX);
-        float ypos = 300.0f;// -(frame.mOffY);
+        int scale = 3;
+        float xpos = 300.0f + (frame.mOffX);
+        float ypos = 300.0f + (frame.mOffY);
         // LOG_INFO("Pos " << xpos << "," << ypos);
-        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w * 2), static_cast<float>(frame.mFrame->h * 2));
+        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w*scale ), static_cast<float>(frame.mFrame->h*scale ));
 
         rend.destroyTexture(textureId);
     }
@@ -634,6 +635,7 @@ void Engine::Render()
             mSound->Render(mGui, w, h);
         }
 
+
         if (editor.levelBrowserOpen)
         {
             mLevel->Render(*mRenderer, *mGui, w, h);
@@ -647,7 +649,7 @@ void Engine::Render()
             {
                 // Add all "anim" resources to a big list
                 // HACK: all leaked
-                static auto stream = mFileSystem.ResourcePaths().Open("FD.LVL");
+                static auto stream = mFileSystem.ResourcePaths().Open("BA.LVL");
                 static Oddlib::LvlArchive lvlArchive(std::move(stream));
                 for (auto i = 0u; i < lvlArchive.FileCount(); i++)
                 {
@@ -671,12 +673,6 @@ void Engine::Render()
             for (auto& res : resources)
             {
                 gui_checkbox(mGui, res.first.c_str(), &res.second->mDisplay);
-            }
-  
-            gui_end_window(mGui);
-            
-            for (auto& res : resources)
-            {
                 if (res.second->mDisplay)
                 {
                     Oddlib::LvlArchive::FileChunk* chunk = res.second->mFileChunk;
@@ -685,9 +681,14 @@ void Engine::Render()
                         res.second->mAnim = Oddlib::LoadAnimations(*chunk->Stream(), false);
                     }
 
+                    mRenderer->beginLayer(gui_layer(mGui));
                     res.second->Animate(*mRenderer);
+                    mRenderer->endLayer();
                 }
-            }  
+            }
+  
+            gui_end_window(mGui);
+
         }
     }
 

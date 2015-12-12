@@ -410,8 +410,7 @@ namespace Oddlib
 
             if (semiTrans)
             {
-                // Should be 50% but slightly less looks better
-                newPixel |= 180;// (255 / 2);
+                newPixel |= (255 / 2);
             }
             else if (newPixel == 0)
             {
@@ -531,14 +530,17 @@ namespace Oddlib
                 mStream.ReadUInt32(frameInfo->mFrameHeaderOffset);
                 mStream.ReadUInt32(frameInfo->mMagic);
 
-                mStream.ReadSInt16(frameInfo->mColx);
-                mStream.ReadSInt16(frameInfo->mColy);
-
-                mStream.ReadSInt16(frameInfo->mColw);
-                mStream.ReadSInt16(frameInfo->mColh);
 
                 mStream.ReadSInt16(frameInfo->mOffx);
                 mStream.ReadSInt16(frameInfo->mOffy);
+
+
+                mStream.ReadSInt16(frameInfo->mColx);
+                mStream.ReadSInt16(frameInfo->mColy);
+
+          
+                mStream.ReadSInt16(frameInfo->mColw);
+                mStream.ReadSInt16(frameInfo->mColh);
 
                 animationHeader->mFrameInfos.emplace_back(std::move(frameInfo));
             }
