@@ -36,9 +36,7 @@ public:
         const int ret = lua_pcall(mLuaState, num_params, num_returns, mErrorHandlerStackIndex);
         if (ret)
         {
-            printf("\nLua call failed (%s): %s\n",
-                ErrorToString(ret).c_str(),
-                lua_tostring(mLuaState, -1));
+            LOG_ERROR("Lua call failed (" << ErrorToString(ret) << ": " << lua_tostring(mLuaState, -1));
         }
 
         // remove the error handler from the stack
@@ -73,7 +71,6 @@ private:
         luaL_openlibs(mLuaState);
 
         set_redirected_print();
-        lua_register(mLuaState, "h_echo", HAPI_echo);
     }
 
     void HaltLua()
@@ -128,30 +125,6 @@ private:
         return 0;
     }
 
-
-    // this is the API function we expose to lua.
-    static int HAPI_echo(lua_State* L)
-    {
-        int args_from_lua = lua_gettop(L);
-
-        // in this example, we'll take any number of args
-        printf("HAPI_echo() called with %d arguments\n", args_from_lua);
-        for (int n = 1; n <= args_from_lua; ++n)
-        {
-            printf(" * arg %02d (%s):\t%s\n",
-                n,
-                LuaTypeToString(lua_type(L, n)).c_str(),
-                lua_tostring(L, n));
-            // note: lua_tostring coerces stack value!
-        }
-
-        // return (123, "abc") to lua
-        lua_pushnumber(L, 123);
-        lua_pushstring(L, "abc");
-        return 2; // 2 return values are on the stack
-
-    }
-
     int set_redirected_print()
     {
         lua_getglobal(mLuaState, "_G");
@@ -183,7 +156,6 @@ bool Script::Init(FileSystem& fs)
 
     mScript = std::make_unique<LuaScript>();
 
-    printf("loading/executing lua file %s\n", myfile.c_str());
     luaL_dofile(mScript->State(), myfile.c_str());
 
     return true;
@@ -195,6 +167,6 @@ void Script::Update()
     const int res = mScript->CallLua(myfn, 0, 0);
     if (res)
     {
-        printf("%d, returned from call to %s\n", res, myfn.c_str());
+        
     }
 }
