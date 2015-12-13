@@ -2,6 +2,13 @@
 #include "filesystem.hpp"
 #include "logger.hpp"
 
+extern "C"
+{
+#include "lua.h"
+#include "lualib.h"
+#include "lauxlib.h"
+}
+
 class LuaScript
 {
 public:
@@ -45,7 +52,7 @@ public:
         return ret;
     }
 
-    bool FunctionExists(std::string func)
+    bool FunctionExists(const std::string& func)
     {
         // try to put the function on top of the stack
         lua_getglobal(mLuaState, func.c_str());

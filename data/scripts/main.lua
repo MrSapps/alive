@@ -1,3 +1,6 @@
+local x = 0
+
 function Update()
-   --print("Hello")
+   x = x + 1
+   --print("Hello " .. x)
 end
