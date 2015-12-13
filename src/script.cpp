@@ -17,7 +17,7 @@ public:
 
     // call a lua function.
     // you must specify the quantity of of params and returns.
-    int CallLua(std::string func, int num_params, int num_returns)
+    int ScriptCall(const char* func, int num_params, int num_returns)
     {
         // on error, execute lua function debug.traceback
         // debug is a table, put it on the stack
@@ -32,7 +32,7 @@ public:
         mErrorHandlerStackIndex = lua_gettop(mLuaState);
         
         // get the lua function and execute it
-        lua_getglobal(mLuaState, func.c_str());
+        lua_getglobal(mLuaState, func);
         const int ret = lua_pcall(mLuaState, num_params, num_returns, mErrorHandlerStackIndex);
         if (ret)
         {
@@ -163,8 +163,7 @@ bool Script::Init(FileSystem& fs)
 
 void Script::Update()
 {
-    const std::string myfn = "Update";
-    const int res = mScript->CallLua(myfn, 0, 0);
+    const int res = mScript->ScriptCall("Update", 0, 0);
     if (res)
     {
         
