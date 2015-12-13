@@ -30,8 +30,7 @@ public:
         lua_remove(mLuaState, -2);
 
         mErrorHandlerStackIndex = lua_gettop(mLuaState);
-        printf("lua's error handler at pos %d\n", mErrorHandlerStackIndex);
-
+        
         // get the lua function and execute it
         lua_getglobal(mLuaState, func.c_str());
         const int ret = lua_pcall(mLuaState, num_params, num_returns, mErrorHandlerStackIndex);
@@ -180,22 +179,22 @@ Script::~Script()
 bool Script::Init(FileSystem& fs)
 {
     const std::string myfile = fs.GameData().BasePath() + "data/scripts/main.lua";
-    const std::string myfn = "Init";
- 
-    LuaScript script;
+
+
+    mScript = std::make_unique<LuaScript>();
 
     printf("loading/executing lua file %s\n", myfile.c_str());
-    luaL_dofile(script.State(), myfile.c_str());
-
-    printf("calling %s in %s\n", myfn.c_str(), myfile.c_str());
-    const int res = script.CallLua(myfn, 0, 0);
-
-    printf("%d, returned from call to %s in %s\n", res, myfn.c_str(), myfile.c_str());
+    luaL_dofile(mScript->State(), myfile.c_str());
 
     return true;
 }
 
 void Script::Update()
 {
-
+    const std::string myfn = "Update";
+    const int res = mScript->CallLua(myfn, 0, 0);
+    if (res)
+    {
+        printf("%d, returned from call to %s\n", res, myfn.c_str());
+    }
 }

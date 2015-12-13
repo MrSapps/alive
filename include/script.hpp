@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 extern "C"
 {
 #include "lua.h"
@@ -15,5 +17,5 @@ public:
     bool Init(class FileSystem& fs);
     void Update();
 private:
-
+    std::unique_ptr<class LuaScript> mScript;
 };
