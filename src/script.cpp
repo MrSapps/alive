@@ -2,51 +2,169 @@
 #include "filesystem.hpp"
 #include "logger.hpp"
 
-static void report_errors(lua_State *L, const int status)
+class LuaScript
 {
-    if (status != 0)
+public:
+    LuaScript()
     {
-        LOG_ERROR( "-- " << lua_tostring(L, -1));
-        lua_pop(L, 1); // remove error message
+        InitLua();
     }
-}
 
-static int execute_program(lua_State *L)
-{
-    return lua_pcall(L, 0, LUA_MULTRET, 0);
-}
-
-extern "C"
-{
-
-    static int l_my_print(lua_State* L)
+    ~LuaScript()
     {
-        int nargs = lua_gettop(L);
-        std::cout << "in my_print:";
+        HaltLua();
+    }
+
+    // call a lua function.
+    // you must specify the quantity of of params and returns.
+    int CallLua(std::string func, int num_params, int num_returns)
+    {
+        // on error, execute lua function debug.traceback
+        // debug is a table, put it on the stack
+        lua_getglobal(mLuaState, "debug");
+
+        // -1 is the top of the stack
+        lua_getfield(mLuaState, -1, "traceback");
+
+        // traceback is on top, remove debug from 2nd spot
+        lua_remove(mLuaState, -2);
+
+        mErrorHandlerStackIndex = lua_gettop(mLuaState);
+        printf("lua's error handler at pos %d\n", mErrorHandlerStackIndex);
+
+        // get the lua function and execute it
+        lua_getglobal(mLuaState, func.c_str());
+        const int ret = lua_pcall(mLuaState, num_params, num_returns, mErrorHandlerStackIndex);
+        if (ret)
+        {
+            printf("\nLua call failed (%s): %s\n",
+                ErrorToString(ret).c_str(),
+                lua_tostring(mLuaState, -1));
+        }
+
+        // remove the error handler from the stack
+        lua_pop(mLuaState, 1);
+
+        return ret;
+    }
+
+    bool FunctionExists(std::string func)
+    {
+        // try to put the function on top of the stack
+        lua_getglobal(mLuaState, func.c_str());
+
+        // check that value on top of stack is not nil
+        bool ret = !lua_isnil(mLuaState, -1);
+
+        // get rid of the value we put on the stack
+        lua_pop(mLuaState, 1);
+
+        return ret;
+    }
+
+    lua_State* State()
+    {
+        return mLuaState;
+    }
+
+private:
+    void InitLua()
+    {
+        mLuaState = luaL_newstate();
+        luaL_openlibs(mLuaState);
+
+        set_redirected_print();
+        lua_register(mLuaState, "h_echo", HAPI_echo);
+    }
+
+    void HaltLua()
+    {
+        lua_close(mLuaState);
+    }
+
+    static std::string LuaTypeToString(int index)
+    {
+        switch (index)
+        {
+        case LUA_TNIL:            return "nil";
+        case LUA_TNUMBER:         return "number";
+        case LUA_TBOOLEAN:        return "boolean";
+        case LUA_TSTRING:         return "string";
+        case LUA_TTABLE:          return "table";
+        case LUA_TFUNCTION:       return "function";
+        case LUA_TUSERDATA:       return "userdata";
+        case LUA_TTHREAD:         return "thread";
+        case LUA_TLIGHTUSERDATA:  return "light userdata";
+        default:                  return "unknown type";
+        }
+    }
+
+    static std::string ErrorToString(int resultcode)
+    {
+        switch (resultcode)
+        {
+        case 0:             return "Success";
+        case LUA_ERRRUN:    return "Runtime error";
+        case LUA_ERRSYNTAX: return "Syntax error";
+        case LUA_ERRERR:    return "Error with error alert mechanism.";
+        case LUA_ERRFILE:   return "Couldn't open or read file";
+        default:            return "Unknown error: " + std::to_string(resultcode);
+        }
+    }
+
+    static int script_log(lua_State* L)
+    {
+        const int nargs = lua_gettop(L);
         for (int i = 1; i <= nargs; ++i)
         {
-            std::cout << lua_tostring(L, i);
+            if (lua_isstring(L, i))
+            {
+                LOG_INFO(lua_tostring(L, i));
+            }
+            else
+            {
+                LOG_ERROR("TODO: Print this type");
+            }
         }
-        std::cout << std::endl;
         return 0;
     }
 
-    static const struct luaL_Reg printlib[] =
-    {
-        { "print", l_my_print },
-        { NULL, NULL }
-    };
 
-    extern int luaopen_luamylib(lua_State *L)
+    // this is the API function we expose to lua.
+    static int HAPI_echo(lua_State* L)
     {
-        lua_getglobal(L, "_G");
-        luaL_register(L, NULL, printlib);
-        lua_pop(L, 1);
+        int args_from_lua = lua_gettop(L);
+
+        // in this example, we'll take any number of args
+        printf("HAPI_echo() called with %d arguments\n", args_from_lua);
+        for (int n = 1; n <= args_from_lua; ++n)
+        {
+            printf(" * arg %02d (%s):\t%s\n",
+                n,
+                LuaTypeToString(lua_type(L, n)).c_str(),
+                lua_tostring(L, n));
+            // note: lua_tostring coerces stack value!
+        }
+
+        // return (123, "abc") to lua
+        lua_pushnumber(L, 123);
+        lua_pushstring(L, "abc");
+        return 2; // 2 return values are on the stack
+
+    }
+
+    int set_redirected_print()
+    {
+        lua_getglobal(mLuaState, "_G");
+        lua_register(mLuaState, "print", script_log);
+        lua_pop(mLuaState, 1); // global table
         return 0;
     }
 
-}
-
+private:
+    lua_State* mLuaState = nullptr;
+    int mErrorHandlerStackIndex = 0;
+};
 
 
 Script::Script()
@@ -61,40 +179,23 @@ Script::~Script()
 
 bool Script::Init(FileSystem& fs)
 {
-    if (!mState.State())
-    {
-        LOG_ERROR("Failed to create lua state");
-        return false;
-    }
+    const std::string myfile = fs.GameData().BasePath() + "data/scripts/main.lua";
+    const std::string myfn = "Init";
+ 
+    LuaScript script;
 
-    luaopen_base(mState);
-    luaopen_luamylib(mState);
+    printf("loading/executing lua file %s\n", myfile.c_str());
+    luaL_dofile(script.State(), myfile.c_str());
 
-    const std::string scriptFileName = fs.GameData().BasePath() + "data/scripts/main.lua";
-    mScript = luaL_loadfile(mState, scriptFileName.c_str());
-    if (mScript == LUA_ERRSYNTAX)
-    {
-        LOG_ERROR("Script syntax error");
-    }
-    else if (mScript == LUA_ERRMEM)
-    {
-        LOG_ERROR("Out of memory");
-    }
+    printf("calling %s in %s\n", myfn.c_str(), myfile.c_str());
+    const int res = script.CallLua(myfn, 0, 0);
 
-
+    printf("%d, returned from call to %s in %s\n", res, myfn.c_str(), myfile.c_str());
 
     return true;
 }
 
 void Script::Update()
 {
-    if (mScript == 0)
-    {
-        int ret = execute_program(mState);
-        if (ret != 2)
-        {
-            LOG_INFO("ret is " << ret);
-            report_errors(mState, mScript);
-        }
-    }
+
 }
