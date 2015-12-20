@@ -60,11 +60,14 @@ struct BlendMode {
     GLenum srcFactor;
     GLenum dstFactor;
     GLenum equation;
+    float colorMul;
 
     // Some usual blend modes
+    static BlendMode normal();
     static BlendMode additive();
     static BlendMode subtractive();
-    static BlendMode normal();
+    static BlendMode opaque();
+    static BlendMode B100F100();
 };
 
 // Internal to Renderer
@@ -127,6 +130,7 @@ public:
     // All coordinates are given in pixels.
     // All color components are given in 0..1 floating point.
 
+    // Use negative w or h to flip uv coordinates
     void drawQuad(int texHandle, float x, float y, float w, float h, BlendMode = BlendMode::normal());
 
     // NanoVG wrap
