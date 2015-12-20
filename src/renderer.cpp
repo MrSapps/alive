@@ -200,6 +200,34 @@ void draw_vao(const Vao *vao)
     }
 }
 
+BlendMode BlendMode::additive()
+{
+    BlendMode b = {0};
+    b.srcFactor = GL_SRC_ALPHA;
+    b.dstFactor = GL_ONE;
+    b.equation = GL_FUNC_ADD;
+    return b;
+}
+
+BlendMode BlendMode::subtractive()
+{
+    // Not sure if this is correct formula. Needs testing.
+    BlendMode b = {0};
+    b.srcFactor = GL_SRC_ALPHA;
+    b.dstFactor = GL_ONE;
+    b.equation = GL_FUNC_REVERSE_SUBTRACT;
+    return b;
+}
+
+BlendMode BlendMode::normal()
+{
+    BlendMode b = {0};
+    b.srcFactor = GL_SRC_ALPHA;
+    b.dstFactor = GL_ONE_MINUS_SRC_ALPHA;
+    b.equation = GL_FUNC_ADD;
+    return b;
+}
+
 GLuint createShader(GLenum type, const char *shaderSrc)
 {
     GLuint shader;
@@ -229,6 +257,7 @@ GLuint createShader(GLenum type, const char *shaderSrc)
     }
     return shader;
 }
+
 Renderer::Renderer(const char *fontPath)
 {
     { // Vector rendering init
@@ -416,6 +445,7 @@ void Renderer::endFrame()
             float y = cmd.s.f[1];
             float w = cmd.s.f[2];
             float h = cmd.s.f[3];
+            BlendMode blend = cmd.s.blendMode;
 
             float white[4] = { 1, 1, 1, 1 };
 
@@ -455,6 +485,8 @@ void Renderer::endFrame()
             GL(glActiveTexture(GL_TEXTURE0));
             GL(glBindTexture(GL_TEXTURE_2D, texHandle));
             GL(glUseProgram(mProgram));
+            GL(glBlendFunc(blend.srcFactor, blend.dstFactor));
+            GL(glBlendEquation(blend.equation));
             draw_vao(&mQuadVao);
 
             unbind_vao();
@@ -565,10 +597,11 @@ void Renderer::destroyTexture(int handle)
     }
 }
 
-void Renderer::drawQuad(int texHandle, float x, float y, float w, float h)
+void Renderer::drawQuad(int texHandle, float x, float y, float w, float h, BlendMode blendMode)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_quad;
+    cmd.s.blendMode = blendMode;
     cmd.s.integer = texHandle;
     cmd.s.f[0] = x;
     cmd.s.f[1] = y;
