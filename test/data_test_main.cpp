@@ -11,6 +11,7 @@
 #include "stdthread.h"
 #include "msvc_sdl_link.hpp"
 #include "gamedata.hpp"
+#include <cassert>
 
 class LvlFileReducer
 {
@@ -575,9 +576,12 @@ public:
                 for (Uint32 j = 0; j < file->ChunkCount(); j++)
                 {
                     Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
-                    if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
+                    if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm') && !string_util::ends_with(file->FileName(), ".CAM"))
                     {
+                        AddRes(chunk->Id(), file->FileName(), lvl, eType);
 
+                        Oddlib::AnimSerializer as(*chunk->Stream(), false); // TODO: Set correctly
+                        AddNumAnimationsMapping(chunk->Id(), static_cast<Uint32>(as.Animations().size()));
                     }
                 }
             }
@@ -589,6 +593,49 @@ public:
     }
 
 private:
+    void AddNumAnimationsMapping(Uint32 resId, Uint32 numAnims)
+    {
+        auto it = mNumberOfAnimsMap.find(resId);
+        if (it == std::end(mNumberOfAnimsMap))
+        {
+            mNumberOfAnimsMap[resId] = numAnims;
+        }
+        else
+        {
+            if (resId == 314) return; // BLOOD.BAN and SPARKS.BAN have same id but diff number of anims
+            if (resId == 2020) return; // SLAM.BAN and SLAMVLTS.BAN
+            assert(it->second == numAnims);
+        }
+    }
+
+    void AddRes(Uint32 resId, const std::string& resFileName, const std::string& lvlName, DataTest::eDataType eType)
+    {
+        auto it = mAnimResIds.find(resId);
+        if (it == std::end(mAnimResIds))
+        {
+            mAnimResIds[resId] = std::set<std::string>{ resFileName };
+        }
+        else
+        {
+            it->second.insert(resFileName);
+        }
+
+        AddFileToLvlMap(resFileName, lvlName, eType);
+    }
+
+    void AddFileToLvlMap(const std::string& resFileName, const std::string& lvlName, DataTest::eDataType eType)
+    {
+        auto it = mLvlFileMaps.find(resFileName);
+        if (it == std::end(mLvlFileMaps))
+        {
+            mLvlFileMaps[resFileName] = std::set<std::pair<std::string, DataTest::eDataType>> {  std::make_pair(lvlName, eType) };
+        }
+        else
+        {
+            it->second.insert(std::make_pair(lvlName, eType));
+        }
+    }
+
     void AddLvlMapping(DataTest::eDataType eType, const std::string& lvlName)
     {
         auto it = mLvlToDataSetMap.find(lvlName);
@@ -604,13 +651,13 @@ private:
 
 private:
     // Map of Anim res ids to files that contain them
-    std::map<Uint32, std::vector<std::string>> mAnimResIds; // E.g 25 -> [ABEBLOW.BAN, XYZ.BAN]
+    std::map<Uint32, std::set<std::string>> mAnimResIds; // E.g 25 -> [ABEBLOW.BAN, XYZ.BAN]
 
     // ResId to number of anims in that ResId
     std::map<Uint32, Uint32> mNumberOfAnimsMap; // E.g 25 -> 3, because it has flying head, arm and leg anims
 
     // Map of which BAN/BNDs live in what LVL+dataset
-    std::map<std::string, std::vector<std::pair<std::string, DataTest::eDataType>>> mLvlFileMaps; // E.g ABEBLOW.BAN [R1.LVL (AoPc), R1.LVL (AoPsx)]
+    std::map<std::string, std::set<std::pair<std::string, DataTest::eDataType>>> mLvlFileMaps; // E.g ABEBLOW.BAN [R1.LVL (AoPc), R1.LVL (AoPsx)]
 
     // Map of which LVL's live in what data set
     std::map<std::string, std::set<DataTest::eDataType>> mLvlToDataSetMap; // E.g R1.LVL -> AoPc, AoPsx, AoPcDemo, AoPsxDemo
@@ -626,6 +673,8 @@ private:
         }
         Db db(datas.begin()->first, datas.begin()->second, *it->second);
        // break;
+
+        // BADOOR/BRDOOR/SHDOOR share res id but are not the same anim, they are "themed"
     }
 
     
