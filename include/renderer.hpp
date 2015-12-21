@@ -5,32 +5,6 @@
 #include <GL/glew.h>
 #include "SDL_opengl.h"
 
-// These values should match nanovg
-enum TextAlign {
-	TEXT_ALIGN_LEFT 	= 1<<0,	// Default, align text horizontally to left.
-	TEXT_ALIGN_CENTER 	= 1<<1,	// Align text horizontally to center.
-	TEXT_ALIGN_RIGHT 	= 1<<2,	// Align text horizontally to right.
-	TEXT_ALIGN_TOP 		= 1<<3,	// Align text vertically to top.
-	TEXT_ALIGN_MIDDLE	= 1<<4,	// Align text vertically to middle.
-	TEXT_ALIGN_BOTTOM	= 1<<5,	// Align text vertically to bottom. 
-	TEXT_ALIGN_BASELINE	= 1<<6, // Default, align text vertically to baseline. 
-};
-
-struct Color {
-    float r, g, b, a;
-};
-
-// For NanoVG wrap
-struct RenderPaint {
-    float xform[6];
-    float extent[2];
-    float radius;
-    float feather;
-    Color innerColor;
-    Color outerColor;
-    int image;
-};
-
 // Vertex array object. Contains vertex and index buffers
 // Copy-pasted from revolc engine
 typedef struct Vao {
@@ -55,6 +29,35 @@ void add_vertices_to_vao(Vao *vao, void *vertices, int count);
 void add_indices_to_vao(Vao *vao, MeshIndexType *indices, int count);
 void reset_vao_mesh(Vao *vao);
 void draw_vao(const Vao *vao);
+
+
+// These values should match nanovg
+enum TextAlign {
+	TEXT_ALIGN_LEFT 	= 1<<0,	// Default, align text horizontally to left.
+	TEXT_ALIGN_CENTER 	= 1<<1,	// Align text horizontally to center.
+	TEXT_ALIGN_RIGHT 	= 1<<2,	// Align text horizontally to right.
+	TEXT_ALIGN_TOP 		= 1<<3,	// Align text vertically to top.
+	TEXT_ALIGN_MIDDLE	= 1<<4,	// Align text vertically to middle.
+	TEXT_ALIGN_BOTTOM	= 1<<5,	// Align text vertically to bottom. 
+	TEXT_ALIGN_BASELINE	= 1<<6, // Default, align text vertically to baseline. 
+};
+
+struct Color {
+    float r, g, b, a;
+
+    static Color white();
+};
+
+// For NanoVG wrap
+struct RenderPaint {
+    float xform[6];
+    float extent[2];
+    float radius;
+    float feather;
+    Color innerColor;
+    Color outerColor;
+    int image;
+};
 
 struct BlendMode {
     GLenum srcFactor;
@@ -103,6 +106,7 @@ struct DrawCmd {
             int integer;
             float f[5];
             BlendMode blendMode; // Used only for quads, for now.
+            Color color;
             char str[128]; // TODO: Allocate dynamically from cheap frame allocator
         } s;
         RenderPaint paint;
@@ -131,7 +135,7 @@ public:
     // All color components are given in 0..1 floating point.
 
     // Use negative w or h to flip uv coordinates
-    void drawQuad(int texHandle, float x, float y, float w, float h, BlendMode = BlendMode::normal());
+    void drawQuad(int texHandle, float x, float y, float w, float h, Color color = Color::white(), BlendMode blendMode = BlendMode::normal());
 
     // NanoVG wrap
     void fillColor(Color c);

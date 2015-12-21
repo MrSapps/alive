@@ -54,7 +54,7 @@ struct TriMeshVertex
 {
     float pos[2];
     float uv[2];
-    float color[4];
+    Color color;
 };
 
 typedef struct VertexAttrib
@@ -198,6 +198,14 @@ void draw_vao(const Vao *vao)
     else {
         GL(glDrawArrays(GL_POINTS, 0, vao->v_count));
     }
+}
+
+
+Color Color::white()
+{
+    Color c = {};
+    c.r = c.g = c.b = c.a = 1.f;
+    return c;
 }
 
 BlendMode BlendMode::normal()
@@ -469,37 +477,37 @@ void Renderer::endFrame()
             float w = cmd.s.f[2];
             float h = cmd.s.f[3];
             BlendMode blend = cmd.s.blendMode;
+            Color color = cmd.s.color;
 
-            float color[4] = { 1, 1, 1, 1 };
-            color[0] *= blend.colorMul;
-            color[1] *= blend.colorMul;
-            color[2] *= blend.colorMul;
-            color[3] *= blend.colorMul;
+            color.r *= blend.colorMul;
+            color.g *= blend.colorMul;
+            color.b *= blend.colorMul;
+            color.a *= blend.colorMul;
 
             TriMeshVertex vert[4] = {};
             vert[0].pos[0] = 2 * x / mW - 1;
             vert[0].pos[1] = -2 * y / mH + 1;
             vert[0].uv[0] = 0;
             vert[0].uv[1] = 0;
-            memcpy(vert[0].color, color, sizeof(vert[0].color));
+            memcpy(&vert[0].color, &color, sizeof(vert[0].color));
 
             vert[1].pos[0] = 2 * (x + w) / mW - 1;
             vert[1].pos[1] = -2 * y / mH + 1;
             vert[1].uv[0] = 1;
             vert[1].uv[1] = 0;
-            memcpy(vert[1].color, color, sizeof(vert[1].color));
+            memcpy(&vert[1].color, &color, sizeof(vert[1].color));
 
             vert[2].pos[0] = 2 * (x + w) / mW - 1;
             vert[2].pos[1] = -2 * (y + h) / mH + 1;
             vert[2].uv[0] = 1;
             vert[2].uv[1] = 1;
-            memcpy(vert[2].color, color, sizeof(vert[2].color));
+            memcpy(&vert[2].color, &color, sizeof(vert[2].color));
 
             vert[3].pos[0] = 2 * x / mW - 1;
             vert[3].pos[1] = -2 * (y + h) / mH + 1;
             vert[3].uv[0] = 0;
             vert[3].uv[1] = 1;
-            memcpy(vert[3].color, color, sizeof(vert[3].color));
+            memcpy(&vert[3].color, &color, sizeof(vert[3].color));
 
             static MeshIndexType ind[6] = { 0, 1, 2, 0, 2, 3 };
 
@@ -624,7 +632,7 @@ void Renderer::destroyTexture(int handle)
     }
 }
 
-void Renderer::drawQuad(int texHandle, float x, float y, float w, float h, BlendMode blendMode)
+void Renderer::drawQuad(int texHandle, float x, float y, float w, float h, Color color, BlendMode blendMode)
 {
     // Keep quad in the same position when flipping uv coords
     if (w < 0) {
@@ -642,6 +650,7 @@ void Renderer::drawQuad(int texHandle, float x, float y, float w, float h, Blend
     cmd.s.f[1] = y;
     cmd.s.f[2] = w;
     cmd.s.f[3] = h;
+    cmd.s.color = color;
     pushCmd(cmd);
 }
 
