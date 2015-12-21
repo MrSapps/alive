@@ -1,5 +1,5 @@
 #include "gridmap.hpp"
-#include "gui.hpp"
+#include "gui.h"
 #include "oddlib/lvlarchive.hpp"
 #include "renderer.hpp"
 #include "oddlib/path.hpp"

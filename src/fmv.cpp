@@ -1,5 +1,5 @@
 #include "fmv.hpp"
-#include "gui.hpp"
+#include "gui.h"
 #include "core/audiobuffer.hpp"
 #include "oddlib/cdromfilesystem.hpp"
 #include "gamedata.hpp"

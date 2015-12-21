@@ -205,8 +205,8 @@ SET(alivelib_src
     src/sound.cpp
     include/renderer.hpp
     src/renderer.cpp
-    include/gui.hpp
-    src/gui.cpp
+    include/gui.h
+    src/gui.c
     include/guiwidgets.hpp
     src/guiwidgets.cpp
     include/engine.hpp

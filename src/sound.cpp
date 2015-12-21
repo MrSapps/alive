@@ -1,6 +1,6 @@
 #include "sound.hpp"
 #include "oddlib/audio/SequencePlayer.h"
-#include "gui.hpp"
+#include "gui.h"
 #include "core/audiobuffer.hpp"
 #include "logger.hpp"
 #include "filesystem.hpp"
