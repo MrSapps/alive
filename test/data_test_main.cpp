@@ -12,6 +12,7 @@
 #include "msvc_sdl_link.hpp"
 #include "gamedata.hpp"
 #include <cassert>
+#include "jsonxx/jsonxx.h"
 
 class LvlFileReducer
 {
@@ -589,10 +590,42 @@ public:
             AddLvlMapping(eType, lvl);
 
         }
-
+        ToJson();
     }
 
 private:
+    void ToJson()
+    {
+        jsonxx::Array resources;
+
+        for (const auto& animData : mAnimResIds)
+        {
+            jsonxx::Object animObj;
+            animObj << "id" << std::to_string(animData.first);
+
+            jsonxx::Array files;
+            for (const auto& file : animData.second)
+            {
+                files << file;
+            }
+            animObj << "files" << files;
+
+            // TODO: Generated name of each animation, to be renamed by hand later
+            // TODO: Blend mode
+            // TODO: Semi trans flag
+            // TODO: pallet res id?
+
+            resources << animObj;
+        }
+
+        // TODO: Array of BND/BANs to to LVL resources
+
+        // TODO: Dataset arrays, map of what lvl files/paths belong to each game
+
+
+        std::cout << resources.json().c_str() << std::endl;
+    }
+
     void AddNumAnimationsMapping(Uint32 resId, Uint32 numAnims)
     {
         auto it = mNumberOfAnimsMap.find(resId);
