@@ -224,15 +224,16 @@ protected:
         // TODO: Optimize - should update 1 texture rather than creating per frame
         int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
 
-        gui_begin_window(&gui, "FMV", v2i(width, height));
-        V2i pos = gui_turtle_pos(&gui);
-        V2i size = gui_window_client_size(&gui);
+        gui_begin_window(&gui, "FMV", width, height);
+        int x, y, w, h;
+        gui_turtle_pos(&gui, &x, &y);
+        gui_window_client_size(&gui, &w, &h);
 
         rend.beginLayer(gui_layer(&gui));
-        rend.drawQuad(texhandle, static_cast<float>(pos.x), static_cast<float>(pos.y), static_cast<float>(size.x), static_cast<float>(size.y));
+        rend.drawQuad(texhandle, static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
 
         if (subtitles)
-            RenderSubtitles(rend, subtitles, pos.x, pos.y, size.x, size.y);
+            RenderSubtitles(rend, subtitles, x, y, w, h);
 
         rend.endLayer();
 
@@ -673,10 +674,10 @@ public:
         static bool bSet = false;
         if (!bSet)
         {
-            gui.next_window_pos = v2i(920, 40);
+            gui_set_next_window_pos(&gui, 920, 40);
             bSet = true;
         }
-        gui_begin_window(&gui, name.c_str(), v2i(300, 580));
+        gui_begin_window(&gui, name.c_str(), 300, 580);
 
         gui_textfield(&gui, "Filter", mFilterString, sizeof(mFilterString));
 

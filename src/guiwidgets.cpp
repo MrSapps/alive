@@ -7,7 +7,7 @@ void drawButton(void *void_rend, float x, float y, float w, float h, bool down, 
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
+        rend->scissor(1.f*s->pos[0], 1.f*s->pos[1], 1.f*s->size[0], 1.f*s->size[1]);
     else
         rend->resetScissor();
 
@@ -58,7 +58,7 @@ void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
+        rend->scissor(1.f*s->pos[0], 1.f*s->pos[1], 1.f*s->size[0], 1.f*s->size[1]);
     else
         rend->resetScissor();
 
@@ -89,7 +89,7 @@ void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, b
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
+        rend->scissor(1.f*s->pos[0], 1.f*s->pos[1], 1.f*s->size[0], 1.f*s->size[1]);
     else
         rend->resetScissor();
 
@@ -120,7 +120,7 @@ void drawTextBox(void *void_rend, float x, float y, float w, float h, bool activ
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
+        rend->scissor(1.f*s->pos[0], 1.f*s->pos[1], 1.f*s->size[0], 1.f*s->size[1]);
     else
         rend->resetScissor();
 
@@ -148,7 +148,7 @@ void drawText(void *void_rend, float x, float y, const char *text, int layer, Gu
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
     if (s)
-        rend->scissor(1.f*s->pos.x, 1.f*s->pos.y, 1.f*s->size.x, 1.f*s->size.y);
+        rend->scissor(1.f*s->pos[0], 1.f*s->pos[1], 1.f*s->size[0], 1.f*s->size[1]);
     else
         rend->resetScissor();
 

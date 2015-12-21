@@ -340,7 +340,7 @@ bool FileSystem::Init()
 
 void FileSystem::DebugUi(GuiContext &gui)
 {
-    gui_begin_window(&gui, "Resource paths", v2i(700, 200));
+    gui_begin_window(&gui, "Resource paths", 700, 200);
 
     //ImGui::GetStyle().WindowMinSize = ImVec2(260, 200);
     //ImGui::GetStyle().WindowTitleAlign = ImGuiAlign_Center;
