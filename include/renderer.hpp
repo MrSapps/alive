@@ -56,6 +56,20 @@ void add_indices_to_vao(Vao *vao, MeshIndexType *indices, int count);
 void reset_vao_mesh(Vao *vao);
 void draw_vao(const Vao *vao);
 
+struct BlendMode {
+    GLenum srcFactor;
+    GLenum dstFactor;
+    GLenum equation;
+    float colorMul;
+
+    // Some usual blend modes
+    static BlendMode normal();
+    static BlendMode additive();
+    static BlendMode subtractive();
+    static BlendMode opaque();
+    static BlendMode B100F100();
+};
+
 // Internal to Renderer
 enum DrawCmdType {
     DrawCmdType_quad,
@@ -88,6 +102,7 @@ struct DrawCmd {
         struct {
             int integer;
             float f[5];
+            BlendMode blendMode; // Used only for quads, for now.
             char str[128]; // TODO: Allocate dynamically from cheap frame allocator
         } s;
         RenderPaint paint;
@@ -115,7 +130,8 @@ public:
     // All coordinates are given in pixels.
     // All color components are given in 0..1 floating point.
 
-    void drawQuad(int texHandle, float x, float y, float w, float h);
+    // Use negative w or h to flip uv coordinates
+    void drawQuad(int texHandle, float x, float y, float w, float h, BlendMode = BlendMode::normal());
 
     // NanoVG wrap
     void fillColor(Color c);

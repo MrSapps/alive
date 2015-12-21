@@ -344,7 +344,8 @@ struct ResInfo
         float xpos = 300.0f + (frame.mOffX*scale);
         float ypos = 300.0f + (frame.mOffY*scale);
         // LOG_INFO("Pos " << xpos << "," << ypos);
-        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w*scale ), static_cast<float>(frame.mFrame->h*scale ));
+        BlendMode blend = BlendMode::B100F100(); // TODO: Detect correct blending
+        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w*scale ), static_cast<float>(frame.mFrame->h*scale), blend);
 
         rend.destroyTexture(textureId);
     }

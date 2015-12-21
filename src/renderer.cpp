@@ -200,6 +200,57 @@ void draw_vao(const Vao *vao)
     }
 }
 
+BlendMode BlendMode::normal()
+{
+    BlendMode b = {0};
+    b.srcFactor = GL_SRC_ALPHA;
+    b.dstFactor = GL_ONE_MINUS_SRC_ALPHA;
+    b.equation = GL_FUNC_ADD;
+    b.colorMul = 1.0f;
+    return b;
+}
+
+BlendMode BlendMode::additive()
+{
+    BlendMode b = {0};
+    b.srcFactor = GL_SRC_ALPHA;
+    b.dstFactor = GL_ONE;
+    b.equation = GL_FUNC_ADD;
+    b.colorMul = 1.0f;
+    return b;
+}
+
+BlendMode BlendMode::subtractive()
+{
+    // Not sure if this is correct formula. Needs testing.
+    BlendMode b = {0};
+    b.srcFactor = GL_SRC_ALPHA;
+    b.dstFactor = GL_ONE;
+    b.equation = GL_FUNC_REVERSE_SUBTRACT;
+    b.colorMul = 1.0f;
+    return b;
+}
+
+BlendMode BlendMode::opaque()
+{
+    BlendMode b = {0};
+    b.srcFactor = GL_ONE;
+    b.dstFactor = GL_ZERO;
+    b.equation = GL_FUNC_ADD;
+    b.colorMul = 1.0f;
+    return b;
+}
+
+BlendMode BlendMode::B100F100()
+{
+    BlendMode b = {0};
+    b.srcFactor = GL_ONE;
+    b.dstFactor = GL_ONE;
+    b.equation = GL_FUNC_ADD;
+    b.colorMul = 1.0f; // This should be less, probably
+    return b;
+}
+
 GLuint createShader(GLenum type, const char *shaderSrc)
 {
     GLuint shader;
@@ -229,6 +280,7 @@ GLuint createShader(GLenum type, const char *shaderSrc)
     }
     return shader;
 }
+
 Renderer::Renderer(const char *fontPath)
 {
     { // Vector rendering init
@@ -416,33 +468,38 @@ void Renderer::endFrame()
             float y = cmd.s.f[1];
             float w = cmd.s.f[2];
             float h = cmd.s.f[3];
+            BlendMode blend = cmd.s.blendMode;
 
-            float white[4] = { 1, 1, 1, 1 };
+            float color[4] = { 1, 1, 1, 1 };
+            color[0] *= blend.colorMul;
+            color[1] *= blend.colorMul;
+            color[2] *= blend.colorMul;
+            color[3] *= blend.colorMul;
 
             TriMeshVertex vert[4] = {};
             vert[0].pos[0] = 2 * x / mW - 1;
             vert[0].pos[1] = -2 * y / mH + 1;
             vert[0].uv[0] = 0;
             vert[0].uv[1] = 0;
-            memcpy(vert[0].color, white, sizeof(vert[0].color));
+            memcpy(vert[0].color, color, sizeof(vert[0].color));
 
             vert[1].pos[0] = 2 * (x + w) / mW - 1;
             vert[1].pos[1] = -2 * y / mH + 1;
             vert[1].uv[0] = 1;
             vert[1].uv[1] = 0;
-            memcpy(vert[1].color, white, sizeof(vert[1].color));
+            memcpy(vert[1].color, color, sizeof(vert[1].color));
 
             vert[2].pos[0] = 2 * (x + w) / mW - 1;
             vert[2].pos[1] = -2 * (y + h) / mH + 1;
             vert[2].uv[0] = 1;
             vert[2].uv[1] = 1;
-            memcpy(vert[2].color, white, sizeof(vert[2].color));
+            memcpy(vert[2].color, color, sizeof(vert[2].color));
 
             vert[3].pos[0] = 2 * x / mW - 1;
             vert[3].pos[1] = -2 * (y + h) / mH + 1;
             vert[3].uv[0] = 0;
             vert[3].uv[1] = 1;
-            memcpy(vert[3].color, white, sizeof(vert[3].color));
+            memcpy(vert[3].color, color, sizeof(vert[3].color));
 
             static MeshIndexType ind[6] = { 0, 1, 2, 0, 2, 3 };
 
@@ -455,6 +512,8 @@ void Renderer::endFrame()
             GL(glActiveTexture(GL_TEXTURE0));
             GL(glBindTexture(GL_TEXTURE_2D, texHandle));
             GL(glUseProgram(mProgram));
+            GL(glBlendFunc(blend.srcFactor, blend.dstFactor));
+            GL(glBlendEquation(blend.equation));
             draw_vao(&mQuadVao);
 
             unbind_vao();
@@ -565,10 +624,19 @@ void Renderer::destroyTexture(int handle)
     }
 }
 
-void Renderer::drawQuad(int texHandle, float x, float y, float w, float h)
+void Renderer::drawQuad(int texHandle, float x, float y, float w, float h, BlendMode blendMode)
 {
+    // Keep quad in the same position when flipping uv coords
+    if (w < 0) {
+        x += -w;
+    }
+    if (h < 0) {
+        y += -h;
+    }
+
     DrawCmd cmd;
     cmd.type = DrawCmdType_quad;
+    cmd.s.blendMode = blendMode;
     cmd.s.integer = texHandle;
     cmd.s.f[0] = x;
     cmd.s.f[1] = y;
