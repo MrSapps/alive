@@ -206,7 +206,7 @@ SET(alivelib_src
     include/renderer.hpp
     src/renderer.cpp
     include/gui.h
-    src/gui.c
+    src/gui.cpp
     include/guiwidgets.hpp
     src/guiwidgets.cpp
     include/engine.hpp
