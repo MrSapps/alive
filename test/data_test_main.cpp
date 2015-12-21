@@ -156,7 +156,8 @@ public:
         eAoPsxDemo,
         eAePc,
         eAePcDemo,
-        eAePsx,
+        eAePsxCd1,
+        eAePsxCd2,
         eAePsxDemo
     };
 
@@ -182,8 +183,11 @@ public:
         case eAePcDemo:
             return "AePcDemo";
 
-        case eAePsx:
-            return "AePsx";
+        case eAePsxCd1:
+            return "AePsxCd1";
+
+        case eAePsxCd2:
+            return "AePsxCd2";
 
         case eAePsxDemo:
             return "AePsxDemo";
@@ -264,7 +268,8 @@ public:
                 break;
 
             case eAePsxDemo:
-            case eAePsx:
+            case eAePsxCd1:
+            case eAePsxCd2:
             {
                 auto tmp = dynamic_cast<Oddlib::PsxBits*>(bits.get());
                 if (tmp && tmp->IncludeLength())
@@ -339,6 +344,7 @@ private:
 };
 
 
+
 int main(int /*argc*/, char** /*argv*/)
 {
     const std::vector<std::string> aoLvls =
@@ -407,7 +413,8 @@ int main(int /*argc*/, char** /*argv*/)
         { DataTest::eAoPc, &aoLvls },
         { DataTest::eAoPsx, &aoLvls },
         { DataTest::eAePc, &aeLvls },
-        { DataTest::eAePsx, &aeLvls },
+        { DataTest::eAePsxCd1, &aeLvls },
+        { DataTest::eAePsxCd2, &aeLvls },
         { DataTest::eAoPcDemo, &aoDemoLvls },
         { DataTest::eAoPsxDemo, &aoDemoPsxLvls },
         { DataTest::eAePcDemo, &aeDemoLvls },
@@ -421,8 +428,8 @@ int main(int /*argc*/, char** /*argv*/)
         { DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus" },
         { DataTest::eAePcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo" },
         { DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
-        { DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
-        { DataTest::eAePsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
+        { DataTest::eAePsxCd1, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
+        { DataTest::eAePsxCd2, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
         { DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee" },
         { DataTest::eAoPcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\abeodd" },
         { DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
@@ -536,6 +543,7 @@ int main(int /*argc*/, char** /*argv*/)
    // fileFilter.push_back("SPARKS.BAN");
    // fileFilter.push_back("ABEBLOW.BAN");
 
+/*
     for (const auto& data : datas)
     {
         const auto it = DataTypeLvlMap.find(data.first);
@@ -546,6 +554,80 @@ int main(int /*argc*/, char** /*argv*/)
         }
         DataTest dataDecoder(data.first, data.second, *it->second, fileFilter);
     }
+    */
 
+// Used to create the "base" json db's. E.g the list of LVL's each data set has, unique collection of anim id's
+// and what BAN/BND's they live in. And which LVL's each BAN/BND lives in.
+class Db
+{
+public:
+    Db(DataTest::eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
+    {
+        for (const std::string& lvl : lvls)
+        {
+            const std::string lvlPath = resourcePath + "\\" + lvl;
+
+            Oddlib::LvlArchive archive(lvlPath);
+
+            for (Uint32 i = 0; i < archive.FileCount(); i++)
+            {
+                Oddlib::LvlArchive::File* file = archive.FileByIndex(i);
+                for (Uint32 j = 0; j < file->ChunkCount(); j++)
+                {
+                    Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
+                    if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
+                    {
+
+                    }
+                }
+            }
+
+            AddLvlMapping(eType, lvl);
+
+        }
+
+    }
+
+private:
+    void AddLvlMapping(DataTest::eDataType eType, const std::string& lvlName)
+    {
+        auto it = mLvlToDataSetMap.find(lvlName);
+        if (it == std::end(mLvlToDataSetMap))
+        {
+            mLvlToDataSetMap[lvlName] = std::set<DataTest::eDataType>{ eType };
+        }
+        else
+        {
+            it->second.insert(eType);
+        }
+    }
+
+private:
+    // Map of Anim res ids to files that contain them
+    std::map<Uint32, std::vector<std::string>> mAnimResIds; // E.g 25 -> [ABEBLOW.BAN, XYZ.BAN]
+
+    // ResId to number of anims in that ResId
+    std::map<Uint32, Uint32> mNumberOfAnimsMap; // E.g 25 -> 3, because it has flying head, arm and leg anims
+
+    // Map of which BAN/BNDs live in what LVL+dataset
+    std::map<std::string, std::vector<std::pair<std::string, DataTest::eDataType>>> mLvlFileMaps; // E.g ABEBLOW.BAN [R1.LVL (AoPc), R1.LVL (AoPsx)]
+
+    // Map of which LVL's live in what data set
+    std::map<std::string, std::set<DataTest::eDataType>> mLvlToDataSetMap; // E.g R1.LVL -> AoPc, AoPsx, AoPcDemo, AoPsxDemo
+};
+
+    //for (const auto& data : datas)
+    {
+        const auto it = DataTypeLvlMap.find(datas.begin()->first);
+        if (it == std::end(DataTypeLvlMap))
+        {
+            // Defined struct is wrong
+            abort();
+        }
+        Db db(datas.begin()->first, datas.begin()->second, *it->second);
+       // break;
+    }
+
+    
     return 0;
 }
