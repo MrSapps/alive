@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <fstream>
 #include "jsonxx/jsonxx.h"
-#include "gui.hpp"
+#include "gui.h"
 
 #ifdef _WIN32
 const char kDirSeperator = '\\';

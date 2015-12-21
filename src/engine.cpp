@@ -12,7 +12,7 @@
 #include "sound.hpp"
 #include "gridmap.hpp"
 #include "renderer.hpp"
-#include "gui.hpp"
+#include "gui.h"
 #include "guiwidgets.hpp"
 #include "oddlib/anim.hpp"
 

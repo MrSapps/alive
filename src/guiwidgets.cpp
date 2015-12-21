@@ -1,6 +1,6 @@
 #include "guiwidgets.hpp"
 #include "renderer.hpp"
-#include "gui.hpp"
+#include "gui.h"
 
 void drawButton(void *void_rend, float x, float y, float w, float h, bool down, bool hover, int layer, GuiScissor *s)
 {
