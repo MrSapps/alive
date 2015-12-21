@@ -163,8 +163,8 @@ void Engine::Update()
     { // Reset gui input
         for (int i = 0; i < GUI_KEY_COUNT; ++i)
             mGui->key_state[i] = 0;
-        mGui->cursor_pos.x = -1;
-        mGui->cursor_pos.y = -1;
+        mGui->cursor_pos[0] = -1;
+        mGui->cursor_pos[0] = -1;
     }
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -283,8 +283,8 @@ void Engine::Update()
 
         int mouse_x, mouse_y;
         SDL_GetMouseState(&mouse_x, &mouse_y);
-        mGui->cursor_pos.x = mouse_x;
-        mGui->cursor_pos.y = mouse_y;
+        mGui->cursor_pos[0] = mouse_x;
+        mGui->cursor_pos[1] = mouse_y;
 
         if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT))
             mGui->key_state[GUI_KEY_LMB] |= GUI_KEYSTATE_DOWN_BIT;
@@ -355,7 +355,8 @@ void Engine::Render()
 {
     int w, h;
     SDL_GetWindowSize(mWindow, &w, &h);
-    mGui->host_win_size = v2i(w, h);
+    mGui->host_win_size[0] = w;
+    mGui->host_win_size[1] = h;
 
     mRenderer->beginFrame(w, h);
     gui_begin(mGui, "background");
@@ -376,8 +377,8 @@ void Engine::Render()
 
         static EditorUi editor;
 
-        mGui->next_window_pos = v2i(50, 50);
-        gui_begin_window(mGui, "Browsers", v2i(200, 130));
+        gui_set_next_window_pos(mGui, 50, 50);
+        gui_begin_window(mGui, "Browsers", 200, 130);
         gui_checkbox(mGui, "resPathsOpen|Resource paths", &editor.resPathsOpen);
         gui_checkbox(mGui, "fmvBrowserOpen|FMV browser", &editor.fmvBrowserOpen);
         gui_checkbox(mGui, "soundBrowserOpen|Sound browser", &editor.soundBrowserOpen);
@@ -386,7 +387,7 @@ void Engine::Render()
 
         gui_end_window(mGui);
 
-        mGui->next_window_pos = v2i(300, 50);
+        gui_set_next_window_pos(mGui, 300, 50);
 
         if (editor.resPathsOpen)
         {
@@ -436,8 +437,8 @@ void Engine::Render()
                 }
             }
 
-            mGui->next_window_pos = v2i(350, 50);
-            gui_begin_window(mGui, "Animations", v2i(200, 130));
+            gui_set_next_window_pos(mGui, 350, 50);
+            gui_begin_window(mGui, "Animations", 200, 130);
             for (auto& res : resources)
             {
                 gui_checkbox(mGui, res.first.c_str(), &res.second->mDisplay);

@@ -8,72 +8,6 @@
 
 typedef uint32_t GuiId;
 
-struct V2i {
-    int x, y;
-};
-
-V2i v2i(int x, int y);
-V2i operator+(V2i a, V2i b);
-V2i operator-(V2i a, V2i b);
-V2i operator*(V2i a, V2i b);
-V2i operator*(V2i a, int m);
-V2i operator/(V2i v, int d);
-bool operator==(V2i a, V2i b);
-bool operator!=(V2i a, V2i b);
-V2i rounded_to_grid(V2i v, int grid);
-
-struct V2f {
-    float x, y;
-};
-V2f v2f(float x, float y);
-V2f operator+(V2f a, V2f b);
-V2f operator-(V2f a, V2f b);
-V2f operator*(V2f a, float m);
-V2f v2i_to_v2f(V2i v);
-V2i v2f_to_v2i(V2f v);
-bool v2i_in_rect(V2i v, V2i pos, V2i size);
-
-struct Skin {
-#if 0
-    // Global defaults. In points, not pixels.
-    float knob_arc_width;
-    float knob_bloom_width;
-    float knob_size;
-
-    Color default_color;
-
-    // Element-wise values
-    HashTbl(GuiId, V2i) element_offsets;
-    HashTbl(GuiId, V2i) element_sizes;
-    HashTbl(GuiId, U8) element_grids;
-    HashTbl(GuiId, Color) element_colors;
-    HashTbl(GuiId, U8) element_resize_handles;
-#endif
-};
-
-#if 0
-Skin create_skin();
-void destroy_skin(Skin *skin);
-
-enum SkinningMode {
-    SkinningMode_none,
-    SkinningMode_pos,
-    SkinningMode_size,
-    SkinningMode_r,
-    SkinningMode_g,
-    SkinningMode_b,
-    SkinningMode_a,
-    SkinningMode_right_handle, // Enable/disable a handle which is dragged in x-direction
-    SkinningMode_bottom_handle, // Enable/disable a handle which is dragged in y-direction
-    SkinningMode_grid_1,
-    SkinningMode_grid_2,
-    SkinningMode_grid_3,
-    SkinningMode_grid_4,
-    SkinningMode_grid_5,
-    SkinningMode_grid_last,
-};
-#endif
-
 #define MAX_GUI_LABEL_SIZE 256
 
 struct DragDropData {
@@ -81,12 +15,12 @@ struct DragDropData {
     int ix;
 };
 
-struct GuiScissor { V2i pos, size; };
+struct GuiScissor { int pos[2], size[2]; };
 struct GuiContext_Turtle {
-    V2i pos; // Output "cursor
-    V2i start_pos;
-    V2i bounding_max;
-    V2i last_bounding_max; // Most recently added gui element
+    int pos[2]; // Output "cursor
+    int start_pos[2];
+    int bounding_max[2];
+    int last_bounding_max[2]; // Most recently added gui element
     char label[MAX_GUI_LABEL_SIZE]; // Label of the gui_begin
     int frame_ix;
     int window_ix;
@@ -100,8 +34,8 @@ struct GuiContext_Turtle {
 // Stored data for frame elements
 struct GuiContext_Frame {
     GuiId id;
-    V2i last_bounding_size;
-    V2i scroll; // Translation in pt. Cannot be relative, because adding content shouldn't cause translation to change.
+    int last_bounding_size[2];
+    int scroll[2]; // Translation in pt. Cannot be relative, because adding content shouldn't cause translation to change.
 };
 
 struct Rendering;
@@ -113,10 +47,10 @@ struct GuiContext_Window {
 
     int frame_ix; // Corresponding GuiContext_Frame
 
-    V2i pos; // Top-left position
-    V2i client_size; // Size, not taking account title bar or borders
+    int pos[2]; // Top-left position
+    int client_size[2]; // Size, not taking account title bar or borders
 
-    V2i total_size; // Value depends on client_size
+    int total_size[2]; // Value depends on client_size
 };
 
 #define MAX_GUI_STACK_SIZE 32
@@ -177,17 +111,18 @@ struct GuiContext_MemBucket {
 // Handles the gui state
 struct GuiContext {
     // Write to these to make gui work
-    V2i host_win_size;
-    V2i cursor_pos; // Screen position, pixel coordinates
+    int host_win_size[2];
+    int cursor_pos[2]; // Screen position, pixel coordinates
     int mouse_scroll; // Typically +1 or -1
     uint8_t key_state[GUI_KEY_COUNT];
-    V2i next_window_pos;
 
     // Internals
 
-    V2i drag_start_pos; // Pixel coordinates
+    int next_window_pos[2];
+
+    int drag_start_pos[2]; // Pixel coordinates
     bool dragging;
-    V2f drag_start_value; // Knob value, or xy position, or ...
+    float drag_start_value[2]; // Knob value, or xy position, or ...
     DragDropData dragdropdata; // Data from gui component which is currently dragged
 
     char written_text_buf[GUI_WRITTEN_TEXT_BUF_SIZE]; // Modified by gui_write_char
@@ -211,9 +146,6 @@ struct GuiContext {
     int hot_layer;
     GuiId active_id, last_active_id;
     int active_win_ix;
-
-    Skin skin;
-    //SkinningMode skinning_mode;
 
     GuiCallbacks callbacks;
 
@@ -239,14 +171,14 @@ void gui_write_char(GuiContext *ctx, char ch);
 int gui_layer(GuiContext *ctx);
 
 // Scrolling area
-void gui_begin_frame(GuiContext *ctx, const char *label, V2i pos, V2i size);
+void gui_begin_frame(GuiContext *ctx, const char *label, int x, int y, int w, int h);
 void gui_end_frame(GuiContext *ctx);
-void gui_set_frame_scroll(GuiContext *ctx, V2i scroll); // Move frame contents
-V2i gui_frame_scroll(GuiContext *ctx);
+void gui_set_frame_scroll(GuiContext *ctx, int scroll_x, int scroll_y); // Move frame contents
+void gui_frame_scroll(GuiContext *ctx, int *x, int *y);
 
-void gui_begin_window(GuiContext *ctx, const char *label, V2i default_size);
+void gui_begin_window(GuiContext *ctx, const char *label, int default_size_x, int default_size_y);
 void gui_end_window(GuiContext *ctx, bool *open = NULL);
-V2i gui_window_client_size(GuiContext *ctx);
+void gui_window_client_size(GuiContext *ctx, int *w, int *h);
 
 void gui_begin_contextmenu(GuiContext *ctx, const char *label);
 void gui_end_contextmenu(GuiContext *ctx, bool *open);
@@ -274,11 +206,12 @@ void gui_end(GuiContext *ctx);
 void gui_end_droppable(GuiContext *ctx, DragDropData *dropped);
 void gui_end_ex(GuiContext *ctx, bool make_zero_size, DragDropData *dropped);
 
-void gui_set_turtle_pos(GuiContext *ctx, V2i pos);
-V2i gui_turtle_pos(GuiContext *ctx);
+void gui_set_next_window_pos(GuiContext *ctx, int x, int y);
+void gui_set_turtle_pos(GuiContext *ctx, int x, int y);
+void gui_turtle_pos(GuiContext *ctx, int *x, int *y);
 void gui_next_row(GuiContext *ctx);
 void gui_next_col(GuiContext *ctx);
-void gui_enlarge_bounding(GuiContext *ctx, V2i pos);
+void gui_enlarge_bounding(GuiContext *ctx, int x, int y);
 
 void gui_ver_space(GuiContext *ctx);
 void gui_hor_space(GuiContext *ctx);
