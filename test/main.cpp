@@ -2069,7 +2069,7 @@ void ExceptionTest(int& v)
         return;
     }
 
-    DtorTest test2(v);
+   // DtorTest test2(v);
     WrapApi();
 }
 
