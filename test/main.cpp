@@ -2066,7 +2066,6 @@ void ExceptionTest(int& v)
 
     if (setjmp(env))
     {
-        ASSERT_EQ(0, v);
         return;
     }
 
@@ -2078,6 +2077,7 @@ TEST(LuaExceptionHandling, DestructorsAreCalled)
 {
     int v = 0;
     ExceptionTest(v);
+    ASSERT_EQ(0, v);
 }
 #ifdef _MSC_VER
 #pragma warning(pop)
