@@ -26,6 +26,7 @@
 #include "xa.bin.g.h"
 #include "subtitles.hpp"
 #include "msvc_sdl_link.hpp"
+#include <setjmp.h>
 
 int main(int argc, char** argv)
 {
