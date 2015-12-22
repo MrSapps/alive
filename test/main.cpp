@@ -2030,6 +2030,56 @@ TEST(SubTitleParser, Parse)
     }
 }
 
+class DtorTest
+{
+public:
+    DtorTest(const DtorTest&) = delete;
+    DtorTest& operator =(const DtorTest&) = delete;
+    DtorTest(int& var)
+        : mVar(var)
+    {
+        mVar++;
+    }
+
+    ~DtorTest()
+    {
+        mVar--;
+    }
+private:
+    int& mVar;
+};
+
+#pragma warning(push)
+#pragma warning(disable:4611)
+
+jmp_buf env;
+void WrapApi()
+{
+    longjmp(env, 1);
+}
+
+void ExceptionTest(int& v)
+{
+    DtorTest test1(v);
+
+    if (setjmp(env))
+    {
+        ASSERT_EQ(0, v);
+        return;
+    }
+
+    DtorTest test2(v);
+    WrapApi();
+}
+
+TEST(LuaExceptionHandling, DestructorsAreCalled)
+{
+    int v = 0;
+    ExceptionTest(v);
+}
+
+#pragma warning(pop)
+
 TEST(LvlArchive, DISABLED_Integration)
 {
     // TODO: Check for IDX file in LVL to know if its AO or not?
