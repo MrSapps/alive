@@ -2055,22 +2055,26 @@ private:
 #pragma warning(disable:4611)
 #endif
 jmp_buf env;
-void WrapApi()
+void DoJumper()
 {
     longjmp(env, 1);
+}
+
+void WrapApi()
+{
+    if (setjmp(env))
+    {
+        return;
+    }
+    DoJumper();
 }
 
 void ExceptionTest(int& v)
 {
     DtorTest test1(v);
-
-    if (setjmp(env))
-    {
-        return;
-    }
-
-   // DtorTest test2(v);
+    DtorTest test2(v);
     WrapApi();
+    DtorTest test3(v);
 }
 
 TEST(LuaExceptionHandling, DestructorsAreCalled)
