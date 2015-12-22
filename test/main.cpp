@@ -2050,9 +2050,10 @@ private:
     int& mVar;
 };
 
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4611)
-
+#endif
 jmp_buf env;
 void WrapApi()
 {
@@ -2078,8 +2079,9 @@ TEST(LuaExceptionHandling, DestructorsAreCalled)
     int v = 0;
     ExceptionTest(v);
 }
-
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 
 TEST(LvlArchive, DISABLED_Integration)
 {
