@@ -136,6 +136,7 @@ SET_PROPERTY(TARGET luajit PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET minilua PROPERTY FOLDER "3rdparty")
 
 SET(oddlib_src
+    src/gpuselect.cpp
     include/proxy_nanovg.h
     include/msvc_sdl_link.hpp
     include/stdthread.h
