@@ -1,6 +1,6 @@
 #include "sound.hpp"
 #include "oddlib/audio/SequencePlayer.h"
-#include "gui.hpp"
+#include "gui.h"
 #include "core/audiobuffer.hpp"
 #include "logger.hpp"
 #include "filesystem.hpp"
@@ -97,7 +97,7 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
         }
     }
 
-    gui_begin_window(gui, "Sound", v2i(250, 400));
+    gui_begin_window(gui, "Sound", 250, 400);
 
     static int selectedIndex = 0; 
     for (size_t i = 0; i < mThemes.size(); i++)
@@ -129,8 +129,8 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
     }
     gui_end_window(gui);
 
-    gui->next_window_pos = v2i(50, 250);
-    { gui_begin_window(gui, "Audio output settings", v2i(250, 300));
+    gui_set_next_window_pos(gui, 50, 250);
+    { gui_begin_window(gui, "Audio output settings", 250, 300);
         gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.AntiAliasFilteringEnabled);
 
         if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
