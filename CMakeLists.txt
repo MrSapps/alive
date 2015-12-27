@@ -206,7 +206,7 @@ SET(alivelib_src
     src/sound.cpp
     include/renderer.hpp
     src/renderer.cpp
-    include/gui.hpp
+    include/gui.h
     src/gui.cpp
     include/guiwidgets.hpp
     src/guiwidgets.cpp
@@ -369,7 +369,8 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fmvdb.json" DESTINATION "${DATA_
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/themes.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/sfx_list.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resource_paths.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.lua" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/Roboto-Regular.ttf" DESTINATION "${DATA_DIR}")
 
 

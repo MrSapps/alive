@@ -1,5 +1,5 @@
 #include "gridmap.hpp"
-#include "gui.hpp"
+#include "gui.h"
 #include "oddlib/lvlarchive.hpp"
 #include "renderer.hpp"
 #include "oddlib/path.hpp"
@@ -54,8 +54,8 @@ void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 
 void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
 {
-    gui.next_window_pos = v2i(10, 300);
-    gui_begin_window(&gui, "Paths", v2i(150, 400));
+    gui_set_next_window_pos(&gui, 10, 300);
+    gui_begin_window(&gui, "Paths", 150, 400);
 
     static std::vector<std::pair<std::string, const GameData::PathEntry*>> items;
     if (items.empty())
@@ -330,7 +330,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     }
 #else // Proper editor gui
 
-    gui_begin_frame(&gui, "camArea", v2i(0, 0), v2i(screenW, screenH));
+    gui_begin_frame(&gui, "camArea", 0, 0, screenW, screenH);
     rend.beginLayer(gui_layer(&gui));
 
     const float zoomBase = 1.2f;
@@ -346,28 +346,40 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 
     const float zoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
     // Use oldZoom because gui_set_frame_scroll below doesn't change scrolling in current frame. Could be changed though.
-    const V2i camSize = v2i((int)(1440*oldZoomMul), (int)(1080*oldZoomMul)); // TODO: Native reso should be constant somewhere
-    const V2i margin = v2i((int)(3000*oldZoomMul), (int)(3000*oldZoomMul));
+    const int camSize[2] = { (int)(1440*oldZoomMul), (int)(1080*oldZoomMul) }; // TODO: Native reso should be constant somewhere
+    const int margin[2] = { (int)(3000*oldZoomMul), (int)(3000*oldZoomMul) };
 
-    V2i worldFrameSize = mIsAo ? v2i(1024, 480) : v2i(375, 260);
-    V2i worldCamSize = v2i(368, 240); // Size of cam background in object coordinate system
-    V2f frameSize = v2f(1.f * worldFrameSize.x/worldCamSize.x * camSize.x,
-                        1.f * worldFrameSize.y/worldCamSize.y * camSize.y);
+    int worldFrameSize[2] = {375, 260};
+    if (mIsAo)
+    {
+        worldFrameSize[0] = 1024;
+        worldFrameSize[1] = 480;
+    }
+    int worldCamSize[2] = {368, 240}; // Size of cam background in object coordinate system
+    float frameSize[2] = { 1.f * worldFrameSize[0]/worldCamSize[0] * camSize[0],
+                           1.f * worldFrameSize[1]/worldCamSize[1] * camSize[1] };
 
     // Zoom around cursor
     if (zoomChanged)
     {
-        V2f scaledCursorPos = v2i_to_v2f(gui.cursor_pos);// - v2f(screenW/2.f, screenH/2.f);
-        V2f oldClientPos = v2i_to_v2f(gui_frame_scroll(&gui)) + scaledCursorPos;
-        V2f worldPos = oldClientPos*(1.f/oldZoomMul);
-        V2f newClientPos = worldPos*zoomMul;
-        V2f newScreenPos = newClientPos - scaledCursorPos;
+        int scroll[2];
+        gui_frame_scroll(&gui, &scroll[0], &scroll[1]);
+        float scaledCursorPos[2] = { 1.f*gui.cursor_pos[0], 1.f*gui.cursor_pos[1] };
+        float oldClientPos[2] = { scroll[0] + scaledCursorPos[0], scroll[1] + scaledCursorPos[1] };
+        float worldPos[2] = { oldClientPos[0]*(1.f/oldZoomMul), oldClientPos[1]*(1.f/oldZoomMul) };
+        float newClientPos[2] = { worldPos[0]*zoomMul, worldPos[1]*zoomMul };
+        float newScreenPos[2] = { newClientPos[0] - scaledCursorPos[0], newClientPos[1] - scaledCursorPos[1] };
 
-        gui_set_frame_scroll(&gui, v2f_to_v2i(newScreenPos + v2f(0.5f, 0.5f)));
+        gui_set_frame_scroll(&gui, (int)(newScreenPos[0] + 0.5f), (int)(newScreenPos[1] + 0.5f));
     }
 
     // Draw cam backgrounds
-    V2f offset = mIsAo ? v2f(257.f * camSize.x / worldCamSize.x, 114.f * camSize.y / worldCamSize.y) : v2f(0, 0);
+    float offset[2] = {0, 0};
+    if (mIsAo)
+    {
+        offset[0] = 257.f * camSize[0] / worldCamSize[0];
+        offset[1] = 114.f * camSize[1] / worldCamSize[1];
+    }
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
@@ -376,9 +388,13 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
             if (!screen->hasTexture())
                 continue;
 
-            V2i pos = gui_turtle_pos(&gui) + v2i((int)(frameSize.x * x + offset.x), (int)(frameSize.y * y + offset.y)) + margin;
-            rend.drawQuad(screen->getTexHandle(mFs), 1.0f*pos.x, 1.0f*pos.y, 1.0f*camSize.x, 1.0f*camSize.y);
-            gui_enlarge_bounding(&gui, pos + camSize + margin*2);
+            int pos[2];
+            gui_turtle_pos(&gui, &pos[0], &pos[1]);
+            pos[0] += (int)(frameSize[0] * x + offset[0]) + margin[0];
+            pos[1] += (int)(frameSize[1] * y + offset[1]) + margin[1];
+            rend.drawQuad(screen->getTexHandle(mFs), 1.0f*pos[0], 1.0f*pos[1], 1.0f*camSize[0], 1.0f*camSize[1]);
+            gui_enlarge_bounding(&gui, pos[0] + camSize[0] + margin[0]*2,
+                                       pos[1] + camSize[1] + margin[1]*2);
         }
     }
 
@@ -386,17 +402,20 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     {
         rend.strokeColor(Color{0, 0, 1, 1});
         rend.strokeWidth(2.f);
-        V2i pos = gui_turtle_pos(&gui) + margin;
+        int pos[2];
+        gui_turtle_pos(&gui, &pos[0], &pos[1]);
+        pos[0] += margin[0];
+        pos[1] += margin[1];
         for (size_t i = 0; i < mCollisionItems.size(); ++i)
         {
             const Oddlib::Path::CollisionItem& item = mCollisionItems[i];
-            V2i p1 = v2i((int)(1.f * item.mP1.mX * frameSize.x / worldFrameSize.x),
-                         (int)(1.f * item.mP1.mY * frameSize.y / worldFrameSize.y));
-            V2i p2 = v2i((int)(1.f * item.mP2.mX * frameSize.x / worldFrameSize.x),
-                         (int)(1.f * item.mP2.mY * frameSize.y / worldFrameSize.y));
+            int p1[2] = { (int)(1.f * item.mP1.mX * frameSize[0] / worldFrameSize[0]),
+                          (int)(1.f * item.mP1.mY * frameSize[1] / worldFrameSize[1]) };
+            int p2[2] = { (int)(1.f * item.mP2.mX * frameSize[0] / worldFrameSize[0]),
+                          (int)(1.f * item.mP2.mY * frameSize[1] / worldFrameSize[1]) };
             rend.beginPath();
-            rend.moveTo(pos.x + p1.x + 0.5f, pos.y + p1.y + 0.5f);
-            rend.lineTo(pos.x + p2.x + 0.5f, pos.y + p2.y + 0.5f);
+            rend.moveTo(pos[0] + p1[0] + 0.5f, pos[1] + p1[1] + 0.5f);
+            rend.lineTo(pos[0] + p2[0] + 0.5f, pos[1] + p2[1] + 0.5f);
             rend.stroke();
         }
     }
@@ -412,18 +431,21 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
                 if (!screen->hasTexture())
                     continue;
 
-                V2i pos = gui_turtle_pos(&gui) + margin;
+                int pos[2];
+                gui_turtle_pos(&gui, &pos[0], &pos[1]);
+                pos[0] += margin[0];
+                pos[1] += margin[1];
                 const Oddlib::Path::Camera& cam = screen->getCamera();
                 for (size_t i = 0; i < cam.mObjects.size(); ++i)
                 {
                     const Oddlib::Path::MapObject& obj = cam.mObjects[i];
-                    V2i objPos = v2i((int)(1.f * obj.mRectTopLeft.mX * frameSize.x / worldFrameSize.x),
-                                     (int)(1.f * obj.mRectTopLeft.mY * frameSize.y / worldFrameSize.y));
-                    V2i objSize = v2i((int)(1.f * (obj.mRectBottomRight.mX - obj.mRectTopLeft.mX) * frameSize.x / worldFrameSize.x),
-                                      (int)(1.f * (obj.mRectBottomRight.mY - obj.mRectTopLeft.mY) * frameSize.y / worldFrameSize.y));
+                    int objPos[2] = { (int)(1.f * obj.mRectTopLeft.mX * frameSize[0] / worldFrameSize[0]),
+                                      (int)(1.f * obj.mRectTopLeft.mY * frameSize[1] / worldFrameSize[1])};
+                    int objSize[2] = { (int)(1.f * (obj.mRectBottomRight.mX - obj.mRectTopLeft.mX) * frameSize[0] / worldFrameSize[0]),
+                                       (int)(1.f * (obj.mRectBottomRight.mY - obj.mRectTopLeft.mY) * frameSize[1] / worldFrameSize[1])};
 
                     rend.beginPath();
-                    rend.rect(pos.x + 1.f*objPos.x + 0.5f, pos.y + 1.f*objPos.y + 0.5f, 1.f*objSize.x, 1.f*objSize.y);
+                    rend.rect(pos[0] + 1.f*objPos[0] + 0.5f, pos[1] + 1.f*objPos[1] + 0.5f, 1.f*objSize[0], 1.f*objSize[1]);
                     rend.stroke();
                 }
             }
