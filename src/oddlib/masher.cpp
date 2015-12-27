@@ -419,13 +419,13 @@ namespace Oddlib
         unsigned int v16; // ecx@15
         // int v17; // esi@15
         int idx; // ebx@16
-        Uint32 outVal; // ecx@18
+        Uint32 outVal = 0; // ecx@18
         unsigned int macroBlockWord1; // eax@20
         //  int v21; // esi@21
         unsigned int v22; // edi@21
         int v23; // ebx@21
         //   signed int v24; // eax@21
-        Uint32 v25; // ecx@21
+        Uint32 v25 = 0; // ecx@21
         // DecodeMacroBlock_Struct *thisPtr; // [sp-4h] [bp-10h]@3
 
         v1 = isYBlock /*this->ZeroOrOneConstant*/;                 // off 14
@@ -513,18 +513,23 @@ namespace Oddlib
             if (counter)
             {
                 blockNumberQ = counter + 1;
+                
                 if (blockNumberQ & 3)
                 {
+                    //blockNumberQ++;
                     output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ++]] = 0;
                     if (blockNumberQ & 3)
                     {
+                       // blockNumberQ++;
                         output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ++]] = 0;
                         if (blockNumberQ & 3)
                         {
+                           // blockNumberQ++;
                             output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ++]] = 0;
                         }
                     }
                 }
+                
 
                 while (blockNumberQ != 64)              // 63 AC values?
                 {
@@ -536,7 +541,7 @@ namespace Oddlib
                     output_q[index2] = 0;
                     output_q[index3] = 0;
                     blockNumberQ += 4;
-                    // blockNumberQ++;
+                    //blockNumberQ++;
                 }
             }
             else
@@ -689,7 +694,14 @@ namespace Oddlib
                 int ypos = y + yoff;
                 if (xpos < width && ypos < height)
                 {
-                    SetElement(xpos, ypos, width, pixelBuffer, *(Uint32*)&Macroblock_RGB[x][y].Red);
+                    Uint32 pixelValue = 0;
+                    pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Blue;
+                    pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Green;
+                    pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Red;
+
+                    // Actually is no alpha in FMVs
+                    // pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].A
+                    SetElement(xpos, ypos, width, pixelBuffer, pixelValue);
                 }
             }
         }
@@ -876,7 +888,7 @@ namespace Oddlib
         int loopOutput; // ebx@16
         int secondWordCopyCopyCopyCopy; // ecx@17
 
-        int v45; // esi@19
+        int v45 = 0; // esi@19
 
         signed int secondWord_Unknown2; // ecx@22
 

@@ -58,9 +58,6 @@ private:
     static const uint32_t K0[4]; // TODO: Was signed, not sure which is correct though
     static const uint32_t K1[4];
 
-    int32_t t1, t2;
-    int32_t t1_x, t2_x;
-
     int8_t GetSoundData(const SoundFrame::SoundGroup &arg_group,
         uint8_t arg_unit,
         uint8_t arg_sample);

@@ -1,27 +1,60 @@
 #include "renderer.hpp"
 #include "oddlib/exceptions.hpp"
 #include "logger.hpp"
-#include "nanovg.h"
-#define NANOVG_GLES2_IMPLEMENTATION
+#include "proxy_nanovg.h"
+#define NANOVG_GL3_IMPLEMENTATION
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4201) // nonstandard extension used : nameless struct/union
+#pragma warning(disable:4244) // conversion from 'int' to 'float', possible loss of data
+#if _MSC_VER >= 1900
+#pragma warning(disable:4459) // declaration of 'defaultFBO' hides global declaration
+#endif
+#endif
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #include <algorithm>
 #include <cassert>
 #include "SDL.h"
 #include "SDL_pixels.h"
 
-static GLuint fontTex;
+//static GLuint fontTex;
 static GLuint       g_FontTexture = 0;
 
 // TODO: Error message
 #define ALIVE_FATAL_ERROR() abort()
 
+#ifdef NDEBUG
+#   define GL(x) x
+#else
+static void assertOnGlError(const char *msg)
+{
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR)
+    {
+        LOG_ERROR("GL ERROR: " << error << ", " << msg); 
+        assert(0 && "GL ERROR");
+    }
+}
+#   define GL(x) do { assertOnGlError("before " #x); x; assertOnGlError("after " #x); } while(0)
+#endif
+
 struct TriMeshVertex
 {
     float pos[2];
     float uv[2];
-    float color[4];
+    Color color;
 };
 
 typedef struct VertexAttrib
@@ -31,7 +64,7 @@ typedef struct VertexAttrib
     GLenum type;
     bool floating; // False for integer attribs
     GLboolean normalized;
-    int offset;
+    size_t offset;
 } VertexAttrib;
 
 void vertex_attributes(const VertexAttrib **attribs, int *count)
@@ -59,38 +92,38 @@ Vao create_vao(int max_v_count, int max_i_count)
     vao.v_capacity = max_v_count;
     vao.i_capacity = max_i_count;
 
-    glGenVertexArrays(1, &vao.vao_id);
-    glGenBuffers(1, &vao.vbo_id);
-    glGenBuffers(1, &vao.ibo_id);
+    GL(glGenVertexArrays(1, &vao.vao_id));
+    GL(glGenBuffers(1, &vao.vbo_id));
+    GL(glGenBuffers(1, &vao.ibo_id));
 
     bind_vao(&vao);
 
     for (int i = 0; i < attrib_count; ++i) {
-        glEnableVertexAttribArray(i);
+        GL(glEnableVertexAttribArray(i));
         if (attribs[i].floating) {
-            glVertexAttribPointer(
+            GL(glVertexAttribPointer(
                 i,
                 attribs[i].size,
                 attribs[i].type,
                 attribs[i].normalized,
                 vao.v_size,
-                (const GLvoid*)attribs[i].offset);
+                (const GLvoid*)attribs[i].offset));
         }
         else
         {
-            glVertexAttribIPointer(
+            GL(glVertexAttribIPointer(
                 i,
                 attribs[i].size,
                 attribs[i].type,
                 vao.v_size,
-                (const GLvoid*)attribs[i].offset);
+                (const GLvoid*)attribs[i].offset));
         }
     }
 
-    glBufferData(GL_ARRAY_BUFFER, vao.v_size*max_v_count, NULL, GL_STATIC_DRAW);
+    GL(glBufferData(GL_ARRAY_BUFFER, vao.v_size*max_v_count, NULL, GL_STATIC_DRAW));
     if (vao.ibo_id)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-            sizeof(MeshIndexType)*max_i_count, NULL, GL_STATIC_DRAW);
+        GL(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+            sizeof(MeshIndexType)*max_i_count, NULL, GL_STATIC_DRAW));
     return vao;
 }
 
@@ -103,40 +136,40 @@ void destroy_vao(Vao *vao)
     int attrib_count;
     vertex_attributes(NULL, &attrib_count);
     for (int i = 0; i < attrib_count; ++i)
-        glDisableVertexAttribArray(i);
+        GL(glDisableVertexAttribArray(i));
 
     unbind_vao();
 
-    glDeleteVertexArrays(1, &vao->vao_id);
-    glDeleteBuffers(1, &vao->vbo_id);
+    GL(glDeleteVertexArrays(1, &vao->vao_id));
+    GL(glDeleteBuffers(1, &vao->vbo_id));
     if (vao->ibo_id)
-        glDeleteBuffers(1, &vao->ibo_id);
+        GL(glDeleteBuffers(1, &vao->ibo_id));
     vao->vao_id = vao->vbo_id = vao->ibo_id = 0;
 }
 
 void bind_vao(const Vao *vao)
 {
     assert(vao && vao->vao_id);
-    glBindVertexArray(vao->vao_id);
-    glBindBuffer(GL_ARRAY_BUFFER, vao->vbo_id);
+    GL(glBindVertexArray(vao->vao_id));
+    GL(glBindBuffer(GL_ARRAY_BUFFER, vao->vbo_id));
     if (vao->ibo_id)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vao->ibo_id);
+        GL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vao->ibo_id));
 }
 
 void unbind_vao()
 {
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    GL(glBindVertexArray(0));
+    GL(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    GL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 }
 
 void add_vertices_to_vao(Vao *vao, void *vertices, int count)
 {
     assert(vao->v_count + count <= vao->v_capacity);
-    glBufferSubData(GL_ARRAY_BUFFER,
+    GL(glBufferSubData(GL_ARRAY_BUFFER,
         vao->v_size*vao->v_count,
         vao->v_size*count,
-        vertices);
+        vertices));
     vao->v_count += count;
 }
 
@@ -144,10 +177,10 @@ void add_indices_to_vao(Vao *vao, MeshIndexType *indices, int count)
 {
     assert(vao->ibo_id);
     assert(vao->i_count + count <= vao->i_capacity);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
+    GL(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,
         sizeof(MeshIndexType)*vao->i_count,
         sizeof(MeshIndexType)*count,
-        indices);
+        indices));
     vao->i_count += count;
 }
 
@@ -159,12 +192,71 @@ void reset_vao_mesh(Vao *vao)
 void draw_vao(const Vao *vao)
 {
     if (vao->ibo_id) {
-        glDrawRangeElements(GL_TRIANGLES,
-            0, vao->i_count, vao->i_count, MESH_INDEX_GL_TYPE, 0);
+        GL(glDrawRangeElements(GL_TRIANGLES,
+            0, vao->i_count, vao->i_count, MESH_INDEX_GL_TYPE, 0));
     }
     else {
-        glDrawArrays(GL_POINTS, 0, vao->v_count);
+        GL(glDrawArrays(GL_POINTS, 0, vao->v_count));
     }
+}
+
+
+Color Color::white()
+{
+    Color c = {};
+    c.r = c.g = c.b = c.a = 1.f;
+    return c;
+}
+
+BlendMode BlendMode::normal()
+{
+    BlendMode b = {0};
+    b.srcFactor = GL_SRC_ALPHA;
+    b.dstFactor = GL_ONE_MINUS_SRC_ALPHA;
+    b.equation = GL_FUNC_ADD;
+    b.colorMul = 1.0f;
+    return b;
+}
+
+BlendMode BlendMode::additive()
+{
+    BlendMode b = {0};
+    b.srcFactor = GL_SRC_ALPHA;
+    b.dstFactor = GL_ONE;
+    b.equation = GL_FUNC_ADD;
+    b.colorMul = 1.0f;
+    return b;
+}
+
+BlendMode BlendMode::subtractive()
+{
+    // Not sure if this is correct formula. Needs testing.
+    BlendMode b = {0};
+    b.srcFactor = GL_SRC_ALPHA;
+    b.dstFactor = GL_ONE;
+    b.equation = GL_FUNC_REVERSE_SUBTRACT;
+    b.colorMul = 1.0f;
+    return b;
+}
+
+BlendMode BlendMode::opaque()
+{
+    BlendMode b = {0};
+    b.srcFactor = GL_ONE;
+    b.dstFactor = GL_ZERO;
+    b.equation = GL_FUNC_ADD;
+    b.colorMul = 1.0f;
+    return b;
+}
+
+BlendMode BlendMode::B100F100()
+{
+    BlendMode b = {0};
+    b.srcFactor = GL_ONE;
+    b.dstFactor = GL_ONE;
+    b.equation = GL_FUNC_ADD;
+    b.colorMul = 1.0f; // This should be less, probably
+    return b;
 }
 
 GLuint createShader(GLenum type, const char *shaderSrc)
@@ -172,22 +264,22 @@ GLuint createShader(GLenum type, const char *shaderSrc)
     GLuint shader;
     GLint compiled;
 
-    shader = glCreateShader(type);
+    GL(shader = glCreateShader(type));
     if (shader == 0)
         return 0;
 
-    glShaderSource(shader, 1, &shaderSrc, NULL);
-    glCompileShader(shader);
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+    GL(glShaderSource(shader, 1, &shaderSrc, NULL));
+    GL(glCompileShader(shader));
+    GL(glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled));
 
     if (!compiled)
     {
         GLint infoLen = 0;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
+        GL(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen));
         if (infoLen > 1)
         {
             std::vector<char> infoLog(sizeof(char) * (infoLen+1));
-            glGetShaderInfoLog(shader, infoLen, NULL, infoLog.data());
+            GL(glGetShaderInfoLog(shader, infoLen, NULL, infoLog.data()));
             LOG_INFO("Error compiling shader: " << infoLog.data());
 
             ALIVE_FATAL_ERROR();
@@ -196,15 +288,16 @@ GLuint createShader(GLenum type, const char *shaderSrc)
     }
     return shader;
 }
+
 Renderer::Renderer(const char *fontPath)
 {
     { // Vector rendering init
         LOG_INFO("Creating nanovg context");
 
 #ifdef _DEBUG
-        mNanoVg = nvgCreateGLES2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+        mNanoVg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
 #else
-        mNanoVg = nvgCreateGLES2(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+        mNanoVg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 #endif
 
         if (!mNanoVg)
@@ -252,7 +345,6 @@ Renderer::Renderer(const char *fontPath)
             "}                            \n";
         const char fsString[] =
             "#version 120\n"
-            "precision mediump float;\n"
             "uniform sampler2D u_tex;\n"
             "varying vec2 v_uv; \n"
             "varying vec4 v_color; \n"
@@ -263,29 +355,29 @@ Renderer::Renderer(const char *fontPath)
 
         mVs = createShader(GL_VERTEX_SHADER, vsString);
         mFs = createShader(GL_FRAGMENT_SHADER, fsString);
-        mProgram = glCreateProgram();
+        GL(mProgram = glCreateProgram());
 
         if (mProgram == 0)
             ALIVE_FATAL_ERROR();
 
-        glAttachShader(mProgram, mVs);
-        glAttachShader(mProgram, mFs);
+        GL(glAttachShader(mProgram, mVs));
+        GL(glAttachShader(mProgram, mFs));
 
-        glBindAttribLocation(mProgram, 0, "v_pos");
-        glLinkProgram(mProgram);
+        GL(glBindAttribLocation(mProgram, 0, "v_pos"));
+        GL(glLinkProgram(mProgram));
 
         GLint linked;
-        glGetProgramiv(mProgram, GL_LINK_STATUS, &linked);
+        GL(glGetProgramiv(mProgram, GL_LINK_STATUS, &linked));
         if (!linked)
         {
             GLint infoLen = 0;
 
-            glGetProgramiv(mProgram, GL_INFO_LOG_LENGTH, &infoLen);
+            GL(glGetProgramiv(mProgram, GL_INFO_LOG_LENGTH, &infoLen));
 
             if (infoLen > 1)
             {
                 std::vector<char> infoLog(sizeof(char) * (infoLen+1));
-                glGetProgramInfoLog(mProgram, infoLen, NULL, infoLog.data());
+                GL(glGetProgramInfoLog(mProgram, infoLen, NULL, infoLog.data()));
                 LOG_INFO("Error linking program " << infoLog.data());
             }
             ALIVE_FATAL_ERROR();
@@ -306,7 +398,7 @@ Renderer::~Renderer()
     { // Delete vector rendering
         if (g_FontTexture)
         {
-            glDeleteTextures(1, &g_FontTexture);
+            GL(glDeleteTextures(1, &g_FontTexture));
             g_FontTexture = 0;
         }
 
@@ -317,23 +409,23 @@ Renderer::~Renderer()
 
         if (mNanoVg)
         {
-            nvgDeleteGLES2(mNanoVg);
+            nvgDeleteGL3(mNanoVg);
         }
     }
 
     { // Delete textured quad rendering
         destroy_vao(&mQuadVao);
 
-        glDeleteShader(mVs);
-        glDeleteShader(mFs);
-        glDeleteProgram(mProgram);
+        GL(glDeleteShader(mVs));
+        GL(glDeleteShader(mFs));
+        GL(glDeleteProgram(mProgram));
     }
 }
 
 void Renderer::beginFrame(int w, int h)
 {
-    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    GL(glClearColor(0.4f, 0.4f, 0.4f, 1.0f));
+    GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 
     mW = w;
     mH = h;
@@ -352,7 +444,7 @@ void Renderer::endFrame()
     });
 
     // Actual rendering
-    glViewport(0, 0, mW, mH);
+    GL(glViewport(0, 0, mW, mH));
     nvgResetTransform(mNanoVg);
     bool vectorModeOn = false;
     for (size_t i = 0; i < mDrawCmds.size(); ++i)
@@ -365,14 +457,12 @@ void Renderer::endFrame()
 
         if (vectorModeOn && cmd.type == DrawCmdType_quad)
         { // Start game rendering batch
-            glDisable(GL_DEPTH_TEST);
-            glDisable(GL_STENCIL_TEST);
-            glDisable(GL_CULL_FACE);
-            glDisable(GL_SCISSOR_TEST);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glEnable(GL_TEXTURE_2D);
-            glDisable(GL_ALPHA_TEST);
+            GL(glDisable(GL_DEPTH_TEST));
+            GL(glDisable(GL_STENCIL_TEST));
+            GL(glDisable(GL_CULL_FACE));
+            GL(glDisable(GL_SCISSOR_TEST));
+            GL(glEnable(GL_BLEND));
+            GL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         }
 
         vectorModeOn = (cmd.type != DrawCmdType_quad);
@@ -381,38 +471,43 @@ void Renderer::endFrame()
         {
         case DrawCmdType_quad:
         {
-            int texHandle = cmd.integer;
-            float x = cmd.f[0];
-            float y = cmd.f[1];
-            float w = cmd.f[2];
-            float h = cmd.f[3];
+            int texHandle = cmd.s.integer;
+            float x = cmd.s.f[0];
+            float y = cmd.s.f[1];
+            float w = cmd.s.f[2];
+            float h = cmd.s.f[3];
+            BlendMode blend = cmd.s.blendMode;
+            Color color = cmd.s.color;
 
-            float white[4] = { 1, 1, 1, 1 };
+            color.r *= blend.colorMul;
+            color.g *= blend.colorMul;
+            color.b *= blend.colorMul;
+            color.a *= blend.colorMul;
 
             TriMeshVertex vert[4] = {};
             vert[0].pos[0] = 2 * x / mW - 1;
             vert[0].pos[1] = -2 * y / mH + 1;
             vert[0].uv[0] = 0;
             vert[0].uv[1] = 0;
-            memcpy(vert[0].color, white, sizeof(vert[0].color));
+            memcpy(&vert[0].color, &color, sizeof(vert[0].color));
 
             vert[1].pos[0] = 2 * (x + w) / mW - 1;
             vert[1].pos[1] = -2 * y / mH + 1;
             vert[1].uv[0] = 1;
             vert[1].uv[1] = 0;
-            memcpy(vert[1].color, white, sizeof(vert[1].color));
+            memcpy(&vert[1].color, &color, sizeof(vert[1].color));
 
             vert[2].pos[0] = 2 * (x + w) / mW - 1;
             vert[2].pos[1] = -2 * (y + h) / mH + 1;
             vert[2].uv[0] = 1;
             vert[2].uv[1] = 1;
-            memcpy(vert[2].color, white, sizeof(vert[2].color));
+            memcpy(&vert[2].color, &color, sizeof(vert[2].color));
 
             vert[3].pos[0] = 2 * x / mW - 1;
             vert[3].pos[1] = -2 * (y + h) / mH + 1;
             vert[3].uv[0] = 0;
             vert[3].uv[1] = 1;
-            memcpy(vert[3].color, white, sizeof(vert[3].color));
+            memcpy(&vert[3].color, &color, sizeof(vert[3].color));
 
             static MeshIndexType ind[6] = { 0, 1, 2, 0, 2, 3 };
 
@@ -422,35 +517,37 @@ void Renderer::endFrame()
             add_vertices_to_vao(&mQuadVao, vert, 4);
             add_indices_to_vao(&mQuadVao, ind, 6);
 
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, texHandle);
-            glUseProgram(mProgram);
+            GL(glActiveTexture(GL_TEXTURE0));
+            GL(glBindTexture(GL_TEXTURE_2D, texHandle));
+            GL(glUseProgram(mProgram));
+            GL(glBlendFunc(blend.srcFactor, blend.dstFactor));
+            GL(glBlendEquation(blend.equation));
             draw_vao(&mQuadVao);
 
             unbind_vao();
         } break;
-        case DrawCmdType_fillColor: nvgFillColor(mNanoVg, nvgRGBAf(cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3])); break;
-        case DrawCmdType_strokeColor: nvgStrokeColor(mNanoVg, nvgRGBAf(cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3])); break;
-        case DrawCmdType_strokeWidth: nvgStrokeWidth(mNanoVg, cmd.f[0]); break;
-        case DrawCmdType_fontSize: nvgFontSize(mNanoVg, cmd.f[0]); break;
-        case DrawCmdType_fontBlur: nvgFontBlur(mNanoVg, cmd.f[0]); break;
-        case DrawCmdType_textAlign: nvgTextAlign(mNanoVg, cmd.integer); break;
-        case DrawCmdType_text: nvgText(mNanoVg, cmd.f[0], cmd.f[1], cmd.str, nullptr); break;
+        case DrawCmdType_fillColor: nvgFillColor(mNanoVg, nvgRGBAf(cmd.s.f[0], cmd.s.f[1], cmd.s.f[2], cmd.s.f[3])); break;
+        case DrawCmdType_strokeColor: nvgStrokeColor(mNanoVg, nvgRGBAf(cmd.s.f[0], cmd.s.f[1], cmd.s.f[2], cmd.s.f[3])); break;
+        case DrawCmdType_strokeWidth: nvgStrokeWidth(mNanoVg, cmd.s.f[0]); break;
+        case DrawCmdType_fontSize: nvgFontSize(mNanoVg, cmd.s.f[0]); break;
+        case DrawCmdType_fontBlur: nvgFontBlur(mNanoVg, cmd.s.f[0]); break;
+        case DrawCmdType_textAlign: nvgTextAlign(mNanoVg, cmd.s.integer); break;
+        case DrawCmdType_text: nvgText(mNanoVg, cmd.s.f[0], cmd.s.f[1], cmd.s.str, nullptr); break;
         case DrawCmdType_resetTransform: nvgResetTransform(mNanoVg); break;
         case DrawCmdType_beginPath: nvgBeginPath(mNanoVg); break;
-        case DrawCmdType_moveTo: nvgMoveTo(mNanoVg, cmd.f[0], cmd.f[1]); break;
-        case DrawCmdType_lineTo: nvgLineTo(mNanoVg, cmd.f[0], cmd.f[1]); break;
+        case DrawCmdType_moveTo: nvgMoveTo(mNanoVg, cmd.s.f[0], cmd.s.f[1]); break;
+        case DrawCmdType_lineTo: nvgLineTo(mNanoVg, cmd.s.f[0], cmd.s.f[1]); break;
         case DrawCmdType_closePath: nvgClosePath(mNanoVg); break;
         case DrawCmdType_fill: nvgFill(mNanoVg); break;
         case DrawCmdType_stroke: nvgStroke(mNanoVg); break;
-        case DrawCmdType_roundedRect: nvgRoundedRect(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3], cmd.f[4]); break;
-        case DrawCmdType_rect: nvgRect(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3]); break;
-        case DrawCmdType_circle: nvgCircle(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2]); break;
-        case DrawCmdType_solidPathWinding: nvgPathWinding(mNanoVg, cmd.integer ? NVG_SOLID : NVG_HOLE); break;
+        case DrawCmdType_roundedRect: nvgRoundedRect(mNanoVg, cmd.s.f[0], cmd.s.f[1], cmd.s.f[2], cmd.s.f[3], cmd.s.f[4]); break;
+        case DrawCmdType_rect: nvgRect(mNanoVg, cmd.s.f[0], cmd.s.f[1], cmd.s.f[2], cmd.s.f[3]); break;
+        case DrawCmdType_circle: nvgCircle(mNanoVg, cmd.s.f[0], cmd.s.f[1], cmd.s.f[2]); break;
+        case DrawCmdType_solidPathWinding: nvgPathWinding(mNanoVg, cmd.s.integer ? NVG_SOLID : NVG_HOLE); break;
         case DrawCmdType_fillPaint:
         {
             RenderPaint p = cmd.paint;
-            NVGpaint nvp = { 0 };
+            NVGpaint nvp = {};
 
             static_assert(sizeof(p.xform) == sizeof(nvp.xform), "wrong size");
             static_assert(sizeof(p.extent) == sizeof(nvp.extent), "wrong size");
@@ -470,7 +567,7 @@ void Renderer::endFrame()
             nvp.image = p.image;
             nvgFillPaint(mNanoVg, nvp);
         } break;
-        case DrawCmdType_scissor: nvgScissor(mNanoVg, cmd.f[0], cmd.f[1], cmd.f[2], cmd.f[3]); break;
+        case DrawCmdType_scissor: nvgScissor(mNanoVg, cmd.s.f[0], cmd.s.f[1], cmd.s.f[2], cmd.s.f[3]); break;
         case DrawCmdType_resetScissor: nvgResetScissor(mNanoVg); break;
         default: assert(0 && "Unknown DrawCmdType");
         }
@@ -482,14 +579,17 @@ void Renderer::endFrame()
     for (size_t i = 0; i < mDestroyTextureList.size(); ++i)
     {
         GLuint tex = (GLuint)mDestroyTextureList[i];
-        glDeleteTextures(1, &tex);
+        GL(glDeleteTextures(1, &tex));
     }
     mDestroyTextureList.clear();
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
     {
-        LOG_ERROR(gluErrorString(error));
+        // TODO: Make our own gluErrorString alike function as its marked deprecated on OSX
+        // it only needs to stringify about 6 error codes
+       // LOG_ERROR(gluErrorString(error));
+        LOG_ERROR("glGetError:" << error);
     }
 }
 
@@ -506,20 +606,20 @@ void Renderer::endLayer()
 int Renderer::createTexture(GLenum internalFormat, int width, int height, GLenum inputFormat, GLenum colorDataType, const void *pixels, bool interpolation)
 {
     GLuint tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolation ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolation ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    GL(glGenTextures(1, &tex));
+    GL(glBindTexture(GL_TEXTURE_2D, tex));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolation ? GL_LINEAR : GL_NEAREST));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolation ? GL_LINEAR : GL_NEAREST));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(   GL_TEXTURE_2D, 0,
+    GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+    GL(glTexImage2D(   GL_TEXTURE_2D, 0,
                     internalFormat,
                     width, height, 0,
                     inputFormat,
-                    GL_UNSIGNED_BYTE, // Color component datatype
-                    pixels);
+                    colorDataType,
+                    pixels));
 
     return tex;
 }
@@ -532,15 +632,25 @@ void Renderer::destroyTexture(int handle)
     }
 }
 
-void Renderer::drawQuad(int texHandle, float x, float y, float w, float h)
+void Renderer::drawQuad(int texHandle, float x, float y, float w, float h, Color color, BlendMode blendMode)
 {
+    // Keep quad in the same position when flipping uv coords
+    if (w < 0) {
+        x += -w;
+    }
+    if (h < 0) {
+        y += -h;
+    }
+
     DrawCmd cmd;
     cmd.type = DrawCmdType_quad;
-    cmd.integer = texHandle;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = w;
-    cmd.f[3] = h;
+    cmd.s.blendMode = blendMode;
+    cmd.s.integer = texHandle;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
+    cmd.s.f[2] = w;
+    cmd.s.f[3] = h;
+    cmd.s.color = color;
     pushCmd(cmd);
 }
 
@@ -548,7 +658,7 @@ void Renderer::fillColor(Color c)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_fillColor;
-    memcpy(cmd.f, &c, sizeof(c));
+    memcpy(cmd.s.f, &c, sizeof(c));
     pushCmd(cmd);
 }
 
@@ -556,7 +666,7 @@ void Renderer::strokeColor(Color c)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_strokeColor;
-    memcpy(cmd.f, &c, sizeof(c));
+    memcpy(cmd.s.f, &c, sizeof(c));
     pushCmd(cmd);
 }
 
@@ -564,7 +674,7 @@ void Renderer::strokeWidth(float size)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_strokeWidth;
-    cmd.f[0] = size;
+    cmd.s.f[0] = size;
     pushCmd(cmd);
 }
 
@@ -574,7 +684,7 @@ void Renderer::fontSize(float s)
 
     DrawCmd cmd;
     cmd.type = DrawCmdType_fontSize;
-    cmd.f[0] = s;
+    cmd.s.f[0] = s;
     pushCmd(cmd);
 }
 
@@ -584,7 +694,7 @@ void Renderer::fontBlur(float s)
 
     DrawCmd cmd;
     cmd.type = DrawCmdType_fontBlur;
-    cmd.f[0] = s;
+    cmd.s.f[0] = s;
     pushCmd(cmd);
 }
 
@@ -594,7 +704,7 @@ void Renderer::textAlign(int align)
 
     DrawCmd cmd;
     cmd.type = DrawCmdType_textAlign;
-    cmd.integer = align;
+    cmd.s.integer = align;
     pushCmd(cmd);
 }
 
@@ -602,10 +712,10 @@ void Renderer::text(float x, float y, const char *msg)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_text;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    strncpy(cmd.str, msg, sizeof(cmd.str));
-    cmd.str[sizeof(cmd.str) - 1] = '\0';
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
+    strncpy(cmd.s.str, msg, sizeof(cmd.s.str));
+    cmd.s.str[sizeof(cmd.s.str) - 1] = '\0';
     pushCmd(cmd);
 }
 
@@ -627,8 +737,8 @@ void Renderer::moveTo(float x, float y)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_moveTo;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
     pushCmd(cmd);
 }
 
@@ -636,8 +746,8 @@ void Renderer::lineTo(float x, float y)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_lineTo;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
     pushCmd(cmd);
 }
 
@@ -666,11 +776,11 @@ void Renderer::roundedRect(float x, float y, float w, float h, float r)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_roundedRect;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = w;
-    cmd.f[3] = h;
-    cmd.f[4] = r;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
+    cmd.s.f[2] = w;
+    cmd.s.f[3] = h;
+    cmd.s.f[4] = r;
     pushCmd(cmd);
 }
 
@@ -678,10 +788,10 @@ void Renderer::rect(float x, float y, float w, float h)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_rect;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = w;
-    cmd.f[3] = h;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
+    cmd.s.f[2] = w;
+    cmd.s.f[3] = h;
     pushCmd(cmd);
 }
 
@@ -689,9 +799,9 @@ void Renderer::circle(float x, float y, float r)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_circle;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = r;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
+    cmd.s.f[2] = r;
     pushCmd(cmd);
 }
 
@@ -699,7 +809,7 @@ void Renderer::solidPathWinding(bool b)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_solidPathWinding;
-    cmd.integer = b;
+    cmd.s.integer = b;
     pushCmd(cmd);
 }
 
@@ -715,10 +825,10 @@ void Renderer::scissor(float x, float y, float w, float h)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_scissor;
-    cmd.f[0] = x;
-    cmd.f[1] = y;
-    cmd.f[2] = w;
-    cmd.f[3] = h;
+    cmd.s.f[0] = x;
+    cmd.s.f[1] = y;
+    cmd.s.f[2] = w;
+    cmd.s.f[3] = h;
     pushCmd(cmd);
 }
 
@@ -733,7 +843,7 @@ void Renderer::resetScissor()
 
 static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
 {
-    RenderPaint p = { 0 };
+    RenderPaint p = {};
 
     static_assert(sizeof(p.xform) == sizeof(nvp.xform), "wrong size");
     static_assert(sizeof(p.extent) == sizeof(nvp.extent), "wrong size");
@@ -756,7 +866,6 @@ static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
 
 RenderPaint Renderer::linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec)
 {
-    RenderPaint p = { 0 };
     NVGpaint nvp = nvgLinearGradient(mNanoVg, sx, sy, ex, ey, nvgRGBAf(sc.r, sc.g, sc.b, sc.a), nvgRGBAf(ec.r, ec.g, ec.b, ec.a));
     return NVGpaintToRenderPaint(nvp);
 }
@@ -777,7 +886,7 @@ RenderPaint Renderer::radialGradient(float cx, float cy, float inr, float outr, 
 
 void Renderer::textBounds(int x, int y, const char *msg, float bounds[4])
 {
-    nvgTextBounds(mNanoVg, x, y, msg, nullptr, bounds);
+    nvgTextBounds(mNanoVg, 1.f*x, 1.f*y, msg, nullptr, bounds);
 }
 
 void Renderer::pushCmd(DrawCmd cmd)

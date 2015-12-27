@@ -31,6 +31,31 @@ namespace Oddlib
     {
         return std::make_unique<Oddlib::Stream>(ReadData());
     }
+    
+    bool LvlArchive::FileChunk::operator != (const FileChunk& rhs) const
+    {
+        return !(*this == rhs);
+    }
+
+    bool LvlArchive::FileChunk::operator == (const FileChunk& rhs) const
+    {
+        if (mId != rhs.Id())
+        {
+            return false;
+        }
+
+        if (mType != rhs.mType)
+        {
+            return false;
+        }
+
+        if (mDataSize != rhs.mDataSize)
+        {
+            return false;
+        }
+
+        return ReadData() == rhs.ReadData();
+    }
 
     const std::string& LvlArchive::File::FileName() const
     {

@@ -23,7 +23,6 @@ private:
     int LoadNanoVgFonts(struct NVGcontext* vg);
     void InitGL();
     void RenderVideoUi();
-    void ImGui_WindowResize();
 protected:
     virtual void InitSubSystems();
     virtual void DebugRender() { };

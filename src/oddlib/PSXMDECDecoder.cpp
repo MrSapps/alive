@@ -232,7 +232,7 @@ void PSXMDECDecoder::BSRoundTableInit()
     for (uint16_t i = 0; i < 256; i++)
     {
         BSRoundTable[i] = 0;
-        BSRoundTable[i + 256] = i;
+        BSRoundTable[i + 256] = static_cast<uint8_t>(i);
         BSRoundTable[i + 512] = 255;
     }
 }
@@ -430,9 +430,9 @@ void PSXMDECDecoder::DecodeDCTVLC(uint16_t *arg_mdec_rl,
         // AC
         for (;;)
         {
-            *arg_mdec_rl++ = code2;
+            *arg_mdec_rl++ = static_cast<uint16_t>(code2);
             bitbuf <<= (code2 >> 16);
-            incnt += (code2 >> 16);
+            incnt += static_cast<int8_t>(code2 >> 16);
             while (incnt >= 0)
             {
                 bitbuf |= *arg_mdec_bs++ << incnt;
@@ -483,7 +483,7 @@ void PSXMDECDecoder::DecodeDCTVLC(uint16_t *arg_mdec_rl,
                 return;
             }
         }
-        *arg_mdec_rl++ = code2; // EOB code
+        *arg_mdec_rl++ = static_cast<uint16_t>(code2); // EOB code
         bitbuf <<= 2;
         incnt += 2;
         while (incnt >= 0)
@@ -503,7 +503,7 @@ uint16_t *PSXMDECDecoder::RL2BLK(uint16_t *arg_mdec_rl, int16_t *arg_blk)
     {
         uint16_t rl = *arg_mdec_rl++;
         uint8_t q_scale = (rl >> 10);
-        arg_blk[0] = IQTable[0] * ((int16_t)(rl << 6) >> 6);
+        arg_blk[0] = static_cast<int16_t>(IQTable[0] * ((int16_t)(rl << 6) >> 6));
         uint8_t k = 0;
         for (;;)
         {
@@ -512,8 +512,7 @@ uint16_t *PSXMDECDecoder::RL2BLK(uint16_t *arg_mdec_rl, int16_t *arg_blk)
             if (rl == VLC_EOB)
                 break;
             k += (rl >> 10) + 1;
-            arg_blk[RL_ZSCAN_MATRIX[k]] = IQTable[RL_ZSCAN_MATRIX[k]] * q_scale
-                * ((int16_t)(rl << 6) >> 6) / 8;
+            arg_blk[RL_ZSCAN_MATRIX[k]] = static_cast<int16_t>(IQTable[RL_ZSCAN_MATRIX[k]] * q_scale * ((int16_t)(rl << 6) >> 6) / 8);
         }
         IDCT(arg_blk, k + 1);
         arg_blk += DCT_BLOCK_SIZE;
@@ -521,85 +520,6 @@ uint16_t *PSXMDECDecoder::RL2BLK(uint16_t *arg_mdec_rl, int16_t *arg_blk)
 
     return arg_mdec_rl;
 }
-
-
-void PSXMDECDecoder::YUV2BGR24(int16_t *arg_blk,
-    uint8_t arg_image[][3],
-    bool arg_no_color)
-{
-    int16_t *yblk = arg_blk + DCT_BLOCK_SIZE * 2;
-    for (uint8_t yy = 0; yy < 16; yy += 2, arg_blk += 4, yblk += 8, arg_image +=
-        8 + 16)
-    {
-        if (yy == 8)
-            yblk += DCT_BLOCK_SIZE;
-        for (uint8_t x = 0; x < 4; x++, arg_blk++, yblk += 2, arg_image += 2)
-        {
-            int16_t r0, g0, b0;
-            if (arg_no_color)
-                r0 = g0 = b0 = 0;
-            else
-            {
-                r0 = ((arg_blk[DCT_BLOCK_SIZE] * (uint16_t)(1.402 * (1 << 12)))
-                    >> 12);
-                g0 = ((arg_blk[0] * (uint16_t)(-0.3437 * (1 << 12))) >> 12) +
-                    ((arg_blk[DCT_BLOCK_SIZE] * (uint16_t)(-0.7143 * (1 << 12)))
-                    >> 12);
-                b0 = ((arg_blk[0] * (uint16_t)(1.772 * (1 << 12))) >> 12);
-            }
-            int16_t y = yblk[0] + 128;
-            arg_image[0][2] = BSRoundTable[r0 + y + 256];
-            arg_image[0][1] = BSRoundTable[g0 + y + 256];
-            arg_image[0][0] = BSRoundTable[b0 + y + 256];
-
-            y = yblk[1] + 128;
-            arg_image[1][2] = BSRoundTable[r0 + y + 256];
-            arg_image[1][1] = BSRoundTable[g0 + y + 256];
-            arg_image[1][0] = BSRoundTable[b0 + y + 256];
-
-            y = yblk[8] + 128;
-            arg_image[16][2] = BSRoundTable[r0 + y + 256];
-            arg_image[16][1] = BSRoundTable[g0 + y + 256];
-            arg_image[16][0] = BSRoundTable[b0 + y + 256];
-
-            y = yblk[9] + 128;
-            arg_image[17][2] = BSRoundTable[r0 + y + 256];
-            arg_image[17][1] = BSRoundTable[g0 + y + 256];
-            arg_image[17][0] = BSRoundTable[b0 + y + 256];
-            if (arg_no_color)
-                r0 = g0 = b0 = 0;
-            else
-            {
-                r0 = ((arg_blk[4 + DCT_BLOCK_SIZE] * (uint16_t)(1.402 * (1 <<
-                    12))) >> 12);
-                g0 = ((arg_blk[4] * (uint16_t)(-0.3437 * (1 << 12))) >> 12) +
-                    ((arg_blk[4 + DCT_BLOCK_SIZE] * (uint16_t)(-0.7143 * (1 <<
-                    12))) >> 12);
-                b0 = ((arg_blk[4] * (uint16_t)(1.772 * (1 << 12))) >> 12);
-            }
-            y = yblk[DCT_BLOCK_SIZE + 0] + 128;
-            arg_image[8 + 0][2] = BSRoundTable[r0 + y + 256];
-            arg_image[8 + 0][1] = BSRoundTable[g0 + y + 256];
-            arg_image[8 + 0][0] = BSRoundTable[b0 + y + 256];
-
-            y = yblk[DCT_BLOCK_SIZE + 1] + 128;
-            arg_image[8 + 1][2] = BSRoundTable[r0 + y + 256];
-            arg_image[8 + 1][1] = BSRoundTable[g0 + y + 256];
-            arg_image[8 + 1][0] = BSRoundTable[b0 + y + 256];
-
-            y = yblk[DCT_BLOCK_SIZE + 8] + 128;
-            arg_image[8 + 16][2] = BSRoundTable[r0 + y + 256];
-            arg_image[8 + 16][1] = BSRoundTable[g0 + y + 256];
-            arg_image[8 + 16][0] = BSRoundTable[b0 + y + 256];
-
-            y = yblk[DCT_BLOCK_SIZE + 9] + 128;
-            arg_image[8 + 17][2] = BSRoundTable[r0 + y + 256];
-            arg_image[8 + 17][1] = BSRoundTable[g0 + y + 256];
-            arg_image[8 + 17][0] = BSRoundTable[b0 + y + 256];
-        }
-    }
-}
-
 
 // An overly used bit of code in the YUV2BGRA32 function. Instead of huge code repeats, this will
 // make things much more nicer.
@@ -637,9 +557,9 @@ void PSXMDECDecoder::YUV2BGRA32(int16_t *arg_blk,
             int16_t r0, g0, b0;
 
             // Set up YUV stuff
-            r0 = arg_blk[DCT_BLOCK_SIZE] * rConstant;
-            g0 = (arg_blk[0] * gConstant) + (arg_blk[DCT_BLOCK_SIZE] * g2Constant);
-            b0 = arg_blk[0] * bConstant;
+            r0 = static_cast<int16_t>(arg_blk[DCT_BLOCK_SIZE] * rConstant);
+            g0 = static_cast<int16_t>((arg_blk[0] * gConstant) + (arg_blk[DCT_BLOCK_SIZE] * g2Constant));
+            b0 = static_cast<int16_t>(arg_blk[0] * bConstant);
 
             int16_t y = yblk[0] + 128;
             YUVfunction1(arg_image, 0, r0, g0, b0, y);
@@ -655,9 +575,9 @@ void PSXMDECDecoder::YUV2BGRA32(int16_t *arg_blk,
 
 
             // Set up YUV stuff again
-            r0 = arg_blk[4 + DCT_BLOCK_SIZE] * rConstant;
-            g0 = (arg_blk[4] * gConstant) + (arg_blk[4 + DCT_BLOCK_SIZE] * g2Constant);
-            b0 = arg_blk[4] * bConstant;
+            r0 = static_cast<int16_t>(arg_blk[4 + DCT_BLOCK_SIZE] * rConstant);
+            g0 = static_cast<int16_t>((arg_blk[4] * gConstant) + (arg_blk[4 + DCT_BLOCK_SIZE] * g2Constant));
+            b0 = static_cast<int16_t>(arg_blk[4] * bConstant);
 
             y = yblk[DCT_BLOCK_SIZE + 0] + 128;
             YUVfunction1(arg_image, 8, r0, g0, b0, y);

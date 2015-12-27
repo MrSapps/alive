@@ -60,7 +60,7 @@ endif ()
 
 include_directories(
     include
-	${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers
     ${SDL2_INCLUDE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/packaging
     ${OPENGL_INCLUDE_DIRS}
@@ -85,9 +85,14 @@ SET(glew_src
 add_library(glew STATIC ${glew_src})
 SET_PROPERTY(TARGET glew PROPERTY FOLDER "3rdparty")
 
+SET(lodepng_src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/lodepng/lodepng.cpp
+)
+add_library(lodepng STATIC ${lodepng_src})
+SET_PROPERTY(TARGET lodepng PROPERTY FOLDER "3rdparty")
+
+
 SET(stk_src 
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/ADSR.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/BiQuad.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/Delay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/OnePole.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/src/FreeVerb.cpp
@@ -97,15 +102,6 @@ SET(stk_src
 add_library(stk STATIC ${stk_src})
 SET_PROPERTY(TARGET stk PROPERTY FOLDER "3rdparty")
 
-
-SET(imgui_src 
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_rect_pack.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_textedit.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_truetype.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imconfig.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imgui.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imgui.cpp
-)
 
 SET(nanovg_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/fontstash.h
@@ -118,9 +114,6 @@ SET(nanovg_src
 )
 add_library(NanoVg STATIC ${nanovg_src})
 SET_PROPERTY(TARGET NanoVg PROPERTY FOLDER "3rdparty")
-
-add_library(imgui STATIC ${imgui_src})
-SET_PROPERTY(TARGET imgui PROPERTY FOLDER "3rdparty")
 
 SET(gmock_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/src/gmock-all.cc
@@ -142,7 +135,8 @@ SET_PROPERTY(TARGET liblua PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET luajit PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET minilua PROPERTY FOLDER "3rdparty")
 
-add_library(oddlib STATIC
+SET(oddlib_src
+    include/proxy_nanovg.h
     include/msvc_sdl_link.hpp
     include/stdthread.h
     include/logger.hpp
@@ -161,13 +155,11 @@ add_library(oddlib STATIC
     include/oddlib/PSXADPCMDecoder.h
     src/oddlib/PSXADPCMDecoder.cpp
     src/oddlib/PSXMDECDecoder.cpp
-    src/oddlib/audio/ADSR.cpp
     src/oddlib/audio/AliveAudio.cpp
     src/oddlib/audio/SequencePlayer.cpp
     src/oddlib/audio/Soundbank.cpp
     src/oddlib/audio/vab.cpp
     src/oddlib/audio/Voice.cpp
-    include/oddlib/audio/ADSR.h
     include/oddlib/audio/AliveAudio.h
     include/oddlib/audio/AudioInterpolation.h
     include/oddlib/audio/Sample.h
@@ -182,23 +174,41 @@ add_library(oddlib STATIC
     include/oddlib/ao_bits_pc.hpp
     src/oddlib/ae_bits_pc.cpp
     include/oddlib/ae_bits_pc.hpp
-     src/oddlib/psx_bits.cpp
+    src/oddlib/psx_bits.cpp
     include/oddlib/psx_bits.hpp
     src/oddlib/bits_factory.cpp
     include/oddlib/bits_factory.hpp
+    include/oddlib/compressiontype3ae.hpp
+    src/oddlib/compressiontype3ae.cpp
+    include/oddlib/compressiontype4or5.hpp
+    src/oddlib/compressiontype4or5.cpp
+    include/oddlib/compressiontype6ae.hpp
+    src/oddlib/compressiontype6ae.cpp
+    include/oddlib/compressiontype3.hpp
+    src/oddlib/compressiontype3.cpp
+    include/oddlib/compressiontype2.hpp
+    src/oddlib/compressiontype2.cpp
+    include/oddlib/compressiontype6or7aepsx.hpp
+    src/oddlib/compressiontype6or7aepsx.cpp
 )
 
-add_library(AliveLib STATIC
+add_library(oddlib STATIC
+    ${oddlib_src}
+)
+
+SET(alivelib_src
     include/core/audiobuffer.hpp
     src/core/audiobuffer.cpp
     include/fmv.hpp
     src/fmv.cpp
     include/sound.hpp
     src/sound.cpp
-	include/renderer.hpp
-	src/renderer.cpp
-	include/gui.hpp
-	src/gui.cpp
+    include/renderer.hpp
+    src/renderer.cpp
+    include/gui.h
+    src/gui.cpp
+    include/guiwidgets.hpp
+    src/guiwidgets.cpp
     include/engine.hpp
     src/engine.cpp
     include/gamedata.hpp
@@ -211,6 +221,12 @@ add_library(AliveLib STATIC
     src/gridobject.cpp
     include/subtitles.hpp
     include/sdl_raii.hpp
+    include/script.hpp
+    src/script.cpp
+)
+
+add_library(AliveLib STATIC
+    ${alivelib_src}
 )
 
 if(WIN32)
@@ -225,7 +241,7 @@ add_executable(Alive MACOSX_BUNDLE
     src/main.cpp
 )
 
-SET(Alive_Libs  AliveLib jsonxx imgui oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua)
+SET(Alive_Libs  AliveLib jsonxx oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng)
 
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
@@ -297,7 +313,7 @@ add_executable(Tests
 
 
 #cotire(Tests)
-target_link_libraries(Tests oddlib gmock ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Tests oddlib gmock ${Alive_Libs} ${CMAKE_THREAD_LIBS_INIT})
 
 if (UseValgrind)
     add_test(NAME Tests COMMAND valgrind -v --leak-check=full --show-reachable=yes --tool=memcheck --error-exitcode=1 $<TARGET_FILE:Tests> WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
@@ -352,20 +368,38 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fmvdb.json" DESTINATION "${DATA_
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/themes.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/sfx_list.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resource_paths.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.lua" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/Roboto-Regular.ttf" DESTINATION "${DATA_DIR}")
 
 
+ SET(OLD_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 if (MSVC)
     # Build cpp files on all cores
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826 /wd4127 /wd4711 /wd4738")
+  
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826 /wd4127 /wd4711 /wd4738 /WX")
+    # Warnings added in VS2013 and later
+    if(MSVC_VERSION GREATER 1800)
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027")
+    endif()
+    
+    # Use default flags on 3rd party things that generate warnings on max levels
+    set_source_files_properties(${lodepng_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267 /wd4334")
+    set_source_files_properties(${stk_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267")
+    set_source_files_properties(${jsonxx_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS}")
+    set_source_files_properties(${oddlib_src} PROPERTIES COMPILE_FLAGSS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
+    set_source_files_properties(${alivelib_src} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
+    set_source_files_properties(${nanovg_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4456 /wd4457 /wd4459")
 else()
+    set_source_files_properties(${stk_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-sign-compare")
+    set_source_files_properties(${nanovg_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-unused-result")
+
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # C++14 by default
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -fPIC -Wall")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -fPIC -Wall -Werror")
     else()
         # Enable C++14, you may need to use -std=c++0x if using an older gcc compiler
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fPIC -Wall -pedantic")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fPIC -Wall -pedantic -Werror")
         
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0") # debug, no optimisation
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage") # enabling coverage

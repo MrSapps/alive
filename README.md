@@ -1,9 +1,10 @@
-Linux/OSX  | Windows 32 | Windows 64 | Coverage | Coverity
-------------- | ------------- | ------------- | ---------- | ------------
-[![Build Status](https://travis-ci.org/paulsapps/alive.svg?branch=master)](https://travis-ci.org/paulsapps/alive)  | [![Build Status](https://paulsapps.visualstudio.com/DefaultCollection/_apis/public/build/definitions/8a250c8d-747e-4705-b4ff-802acb5a79d9/2/badge)](https://travis-ci.org/paulsapps/alive) | [![Build Status](https://paulsapps.visualstudio.com/DefaultCollection/_apis/public/build/definitions/8a250c8d-747e-4705-b4ff-802acb5a79d9/3/badge)](https://travis-ci.org/paulsapps/alive) |[![Coverage status](https://coveralls.io/repos/paulsapps/alive/badge.svg)](https://coveralls.io/r/paulsapps/alive) | [![Coverity status](https://scan.coverity.com/projects/5367/badge.svg)](https://scan.coverity.com/projects/5367)
+Build  | Status
+------------- | -------------
+Windows |[![Build status](https://ci.appveyor.com/api/projects/status/r7k50qbfx8wynbd2?svg=true)](https://ci.appveyor.com/project/paulsapps/alive)
+Linux/OSX | [![Build Status](https://travis-ci.org/paulsapps/alive.svg?branch=dev)](https://travis-ci.org/paulsapps/alive)
+Coverage  | [![Coverage Status](https://coveralls.io/repos/paulsapps/alive/badge.svg?branch=dev&service=github)](https://coveralls.io/github/paulsapps/alive?branch=dev)
+Coverity  | [![Coverity status](https://scan.coverity.com/projects/5367/badge.svg)](https://scan.coverity.com/projects/5367)
 
-
-[![Build status](https://ci.appveyor.com/api/projects/status/r7k50qbfx8wynbd2?svg=true)](https://ci.appveyor.com/project/paulsapps/alive)
 
 Open source implementation of ALIVE engine that powers Oddworld Abes Oddysee and Oddworld Abes Exoddus. 
 
@@ -22,7 +23,7 @@ IRC channel is #oddworld on irc.esper.net
 
 Build instructions.
 
-Supported compilers are clang, gcc and msvc 2013. msvc 2015 can be used but requires a version of SDL2 that is also built with msvc2015. The clang and gcc version must support C++11. Should be possible to build on Windows, OSX and most *nix OS'es.
+Supported compilers are clang, gcc and msvc 2013/2015. The clang and gcc version must support C++11. Should be possible to build on Windows, OSX and most *nix OS'es.
 
 1. Install CMake 2.8 or newer.
 2. Clone down the repo with with --recursive option so that sub modules are also cloned

@@ -36,10 +36,9 @@ const uint32_t PSXADPCMDecoder::K1[4] =
 
 
 
-PSXADPCMDecoder::PSXADPCMDecoder() :
-t1(0), t2(0), t1_x(0), t2_x(0)
+PSXADPCMDecoder::PSXADPCMDecoder()
 {
-    ;
+    
 }
 
 
@@ -101,7 +100,7 @@ uint16_t PSXADPCMDecoder::DecodeFrameToPCM(int8_t *arg_decoded_stream, uint8_t *
                 int t = (int8_t)(d << 4) >> 4;
                 int s = (t << shift) + ((s_1 * f0 + s_2 * f1 + 32) >> 6);
                 s_2 = s_1;
-                s_1 = CLIP<int>(s, -32768, 32767);
+                s_1 = static_cast<int16_t>(CLIP<int>(s, -32768, 32767));
 
                 *leftChannel = s_1;
                 leftChannel += channels;
@@ -126,7 +125,7 @@ uint16_t PSXADPCMDecoder::DecodeFrameToPCM(int8_t *arg_decoded_stream, uint8_t *
                 int t = (int8_t)d >> 4;
                 int s = (t << shift) + ((s_1 * f0 + s_2 * f1 + 32) >> 6);
                 s_2 = s_1;
-                s_1 = CLIP<int>(s, -32768, 32767);
+                s_1 = static_cast<int16_t>(CLIP<int>(s, -32768, 32767));
 
 
                 if (channels == 2)

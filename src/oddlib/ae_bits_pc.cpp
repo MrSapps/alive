@@ -145,8 +145,6 @@ namespace Oddlib
         }
 
         mSurface.reset(SDL_CreateRGBSurfaceFrom(g_vram, 640, 240, 16, 640 * sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
-
-        //SDL_SaveBMP(mSurface.get(), "testing.bmp");
     }
 
     void AeBitsPc::vlc_decode(const std::vector<Uint16>& aCamSeg, std::vector<Uint16>& aDst)

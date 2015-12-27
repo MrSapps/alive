@@ -299,11 +299,11 @@ public:
 
         do
         {
-            auto sizeToRead = dataSize;
+            //auto sizeToRead = dataSize;
             Sector sector(dataSector++, mStream);
             //if (sizeToRead > sector.DataLength())
             {
-                sizeToRead = sector.DataLength();
+                //sizeToRead = sector.DataLength();
                 dataSize -= sector.DataLength();
             }
 
@@ -325,7 +325,7 @@ public:
         Stream& operator = (const Stream&) = delete;
 
         Stream(const directory_record& dr, std::string name, Oddlib::IStream& stream, bool includeSubHeaders)
-            : mDr(dr), mName(name), mStream(stream.Clone()), mIncludeSubHeader(includeSubHeaders)
+            : mIncludeSubHeader(includeSubHeaders), mDr(dr), mName(name), mStream(stream.Clone())
         {
             mSector = mDr.location.little;
             mStream->Seek(mSector * kRawSectorSize);
@@ -415,10 +415,10 @@ public:
                     // If what we will read is more than the remaining data in this sector
                     if (posWithinSector + destSize > 2048)
                     {
-                        int spaceLeft = 2048 - posWithinSector;
+                        int spaceLeft = 2048 - static_cast<int>(posWithinSector);
                         assert(spaceLeft >= 0);
 
-                        int dataLeftAfterRead = destSize - spaceLeft;
+                        int dataLeftAfterRead = static_cast<int>(destSize) - spaceLeft;
                         assert(dataLeftAfterRead >= 0);
 
                         mPos += spaceLeft;
@@ -436,9 +436,8 @@ public:
                     else if (destSize)
                     {
                         mPos += destSize;
-                        mSector = (mStream->Pos() / kRawSectorSize);
+                        mSector = static_cast<Uint32>(mStream->Pos() / kRawSectorSize);
                         mSector -= mDr.location.little;
-                        assert(mSector >= 0);
                         mStream->ReadBytes(pDest, destSize);
                     }
 
@@ -452,7 +451,7 @@ public:
             if (!mIncludeSubHeader)
             {
                 // Figure out what sector we should be on
-                mSector = pos / 2048;
+                mSector = static_cast<Uint32>(pos / 2048);
 
                 // The real file pos must be in raw sector sizes, plus the starting sector
                 mStream->Seek(((mSector + mDr.location.little) * kRawSectorSize)+24);
@@ -476,7 +475,7 @@ public:
             if ((pos % 2048) != 0)
             {
                 mPos = 0;
-                mSector = pos / 2048;
+                mSector = static_cast<Uint32>(pos / 2048);
                 mStream->Seek((mSector * kRawSectorSize) + 16);
                 return;
             }

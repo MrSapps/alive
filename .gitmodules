@@ -2,9 +2,6 @@
 	path = 3rdParty/gmock-1.7.0
 	url = https://github.com/paulsapps/gmock-1.7.0.git
 	
-[submodule "3rdParty/imgui"]
-	path = 3rdParty/imgui
-	url = https://github.com/ocornut/imgui
 [submodule "3rdParty/jsonxx"]
 	path = 3rdParty/jsonxx
 	url = https://github.com/hjiang/jsonxx
@@ -23,3 +20,6 @@
 [submodule "3rdParty/stk"]
 	path = 3rdParty/stk
 	url = https://github.com/thestk/stk.git
+[submodule "3rdParty/lodepng"]
+	path = 3rdParty/lodepng
+	url = https://github.com/lvandeve/lodepng.git

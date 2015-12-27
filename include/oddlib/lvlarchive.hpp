@@ -44,6 +44,8 @@ namespace Oddlib
             Uint32 Type() const;
             std::vector<Uint8> ReadData() const;
             std::unique_ptr<Oddlib::IStream> Stream() const;
+            bool operator != (const FileChunk& rhs) const;
+            bool operator == (const FileChunk& rhs) const;
         private:
             IStream& mStream;
             Uint32 mId = 0;

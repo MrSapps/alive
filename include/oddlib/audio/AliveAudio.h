@@ -18,7 +18,15 @@
 #include "core/audiobuffer.hpp"
 #include "stdthread.h"
 #include "AudioInterpolation.h"
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4267) //  'return' : conversion from 'size_t' to 'unsigned long', possible loss of data
+#endif
 #include "stk/include/FreeVerb.h"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 const int AliveAudioSampleRate = 44100;
 
@@ -43,7 +51,7 @@ public:
     void ClearAllTrackVoices(int trackID, bool forceKill = false);
 
     void LoadSoundbank(char * fileName);
-    void SetSoundbank(AliveAudioSoundbank * soundbank);
+    void SetSoundbank(std::unique_ptr<AliveAudioSoundbank> soundbank);
 
     void LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile, FileSystem& fs);
     void LoadAllFromLvl(Oddlib::LvlArchive& lvlArchive, std::string vabID, std::string seqFile);
@@ -57,15 +65,15 @@ public:
     virtual void Play(Uint8* stream, Uint32 len) override;
     void AliveInitAudio(FileSystem& fs);
 
-	// Can be changed from outside class
+    // Can be changed from outside class
     AudioInterpolation Interpolation = AudioInterpolation_hermite;
-	bool AntiAliasFilteringEnabled = false;
+    bool AntiAliasFilteringEnabled = false;
     bool ForceReverb = false;
     float ReverbMix = 0.5f;
     bool DebugDisableVoiceResampling = false;
 
 private:
-    AliveAudioSoundbank* m_CurrentSoundbank = nullptr;
+    std::unique_ptr<AliveAudioSoundbank> m_CurrentSoundbank;
 
     std::vector<AliveAudioVoice *> m_Voices;
     std::vector<float> m_DryChannelBuffer;

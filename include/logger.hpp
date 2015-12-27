@@ -3,12 +3,17 @@
 #include <exception>
 #include <iostream>
 
-#ifdef _MSC_VER
+#if _MSC_VER
 #define FNAME __FUNCTION__
+#else
+#define FNAME __PRETTY_FUNCTION__
+#endif
+
+// For VS2013 and younger constxpr/noexcept isn't implemented
+#if _MSC_VER < 1900
 #define CONSTXPR 
 #define NOEXEPT 
 #else
-#define FNAME __PRETTY_FUNCTION__
 #define CONSTXPR constexpr
 #define NOEXEPT noexcept
 #endif
@@ -16,6 +21,7 @@
 enum colour { DARKBLUE = 1, DARKGREEN, DARKTEAL, DARKRED, DARKPINK, DARKYELLOW, GRAY, DARKGRAY, BLUE, GREEN, TEAL, RED, PINK, YELLOW, WHITE };
 
 #ifdef _WIN32
+#define NOMINMAX
 #include <windows.h>
 static void* gConsoleHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
 

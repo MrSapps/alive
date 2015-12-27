@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <fstream>
 #include "jsonxx/jsonxx.h"
-#include "gui.hpp"
+#include "gui.h"
 
 #ifdef _WIN32
 const char kDirSeperator = '\\';
@@ -192,15 +192,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::Open(const std::string& 
         throw Oddlib::Exception("No resource paths configured");
     }
 
-    std::vector<std::string> names;
-    names.emplace_back(name);
-    auto psxName = mPcToPsxMappings.find(name);
-    if (psxName != std::end(mPcToPsxMappings))
-    {
-        names.emplace_back(psxName->second);
-    }
-
-    return FindFile(names, false);
+    return FindFile(GetAlternateNames(name), false);
 }
 
 std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenFmv(const std::string& name, bool pickBiggest /*= false*/)
@@ -209,18 +201,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenFmv(const std::strin
     {
         throw Oddlib::Exception("No resource paths configured");
     }
-
-    std::vector<std::string> names;
-    names.emplace_back(name);
-    auto psxName = mPcToPsxMappings.find(name);
-    if (psxName != std::end(mPcToPsxMappings))
-    {
-        names.emplace_back(psxName->second);
-    }
-
-    // TODO: Derive mod(s) name/path
-
-    return FindFile(names, pickBiggest);
+    return FindFile(GetAlternateNames(name), pickBiggest);
 }
 
 ResourcePathAndModsFs::IResourcePathAbstraction* ResourcePathAndModsFs::FindFile(const std::string& name, bool pickBiggest)
@@ -265,23 +246,23 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::FindFile(const std::vect
         }
     }
 
-    // Grab the resource path with the highest priority
-    std::vector<std::pair<IResourcePathAbstraction*, std::string>>::iterator highestPriority = resourcePaths.end();
+    // Grab the resource path with the lowest (i.e the highest) priority
+    std::vector<std::pair<IResourcePathAbstraction*, std::string>>::iterator lowestPriority = resourcePaths.end();
     if (!resourcePaths.empty())
     {
         for (auto resPathResult = resourcePaths.begin(); resPathResult != resourcePaths.end(); resPathResult++)
         {
-            if (highestPriority == std::end(resourcePaths) || resPathResult->second > highestPriority->second)
+            if (lowestPriority == std::end(resourcePaths) || resPathResult->first->Priority() < lowestPriority->first->Priority())
             {
-                highestPriority = resPathResult;
+                lowestPriority = resPathResult;
             }
         }
     }
    
-    // Open the file from the highest priority resource path
-    if (highestPriority != std::end(resourcePaths))
+    // Open the file from the lowest priority resource path
+    if (lowestPriority != resourcePaths.end())
     {
-        return highestPriority->first->Open(highestPriority->second);
+        return lowestPriority->first->Open(lowestPriority->second);
     }
 
     return nullptr;
@@ -290,7 +271,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::FindFile(const std::vect
 // TODO: Change LVL archive interface so we can keep it open/cached here
 std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkById(const std::string& lvl, const std::string& name, Uint32 id)
 {
-    auto stream = FindFile(std::vector<std::string> {lvl}, false);
+    auto stream = FindFile(GetAlternateNames(lvl), true);
     if (stream)
     {
         Oddlib::LvlArchive lvlArchive(std::move(stream));
@@ -298,7 +279,10 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkById(con
         if (file)
         {
             auto chunk = file->ChunkById(id);
-            return chunk->Stream();
+            if (chunk)
+            {
+                return chunk->Stream();
+            }
         }
     }
     return nullptr;
@@ -306,7 +290,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkById(con
 
 std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkByType(const std::string& lvl, const std::string& name, Uint32 type)
 {
-    auto stream = FindFile(std::vector<std::string> {lvl}, false);
+    auto stream = FindFile(GetAlternateNames(lvl), true);
     if (stream)
     {
         Oddlib::LvlArchive lvlArchive(std::move(stream));
@@ -320,6 +304,31 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkByType(c
     return nullptr;
 }
 
+std::vector<std::string> ResourcePathAndModsFs::GetAlternateNames(const std::string& name)
+{
+    std::vector<std::string> ret{ name };
+    auto psxName = mPcToPsxMappings.find(name);
+    if (psxName != std::end(mPcToPsxMappings))
+    {
+        ret.emplace_back(psxName->second);
+    }
+    else
+    {
+        // Check for a match using lowercase copy of the name
+        std::string nameCopy = name;
+        std::transform(nameCopy.begin(), nameCopy.end(), nameCopy.begin(), string_util::c_tolower);
+        psxName = mPcToPsxMappings.find(nameCopy);
+        if (psxName != std::end(mPcToPsxMappings))
+        {
+            ret.emplace_back(psxName->second);
+        }
+    }
+
+    // TODO: Derive mod(s) name/path
+
+    return ret;
+}
+
 // FileSystem
 bool FileSystem::Init()
 {
@@ -331,13 +340,7 @@ bool FileSystem::Init()
 
 void FileSystem::DebugUi(GuiContext &gui)
 {
-    static bool bSet = false;
-    if (!bSet)
-    {
-        gui.next_window_pos = v2i(10, 40);
-        bSet = true;
-    }
-    gui_begin_window(&gui, "Resource paths", v2i(700, 200));
+    gui_begin_window(&gui, "Resource paths", 700, 200);
 
     //ImGui::GetStyle().WindowMinSize = ImVec2(260, 200);
     //ImGui::GetStyle().WindowTitleAlign = ImGuiAlign_Center;
@@ -358,7 +361,7 @@ void FileSystem::DebugUi(GuiContext &gui)
         {
             if (gui_selectable(&gui, items[i], static_cast<int>(i) == idx))
             {
-                idx = i;
+                idx = static_cast<int>(i);
                 memset(pathBuffer, 0, sizeof(pathBuffer));
                 strncpy(pathBuffer, items[i], sizeof(pathBuffer));
                 memset(priorityBuffer, 0, sizeof(priorityBuffer));
@@ -411,7 +414,7 @@ void FileSystem::InitResourcePaths()
 
         for (size_t i = 0; i < resourcePaths.size(); i++)
         {
-            const jsonxx::Object& pathAndPriority = resourcePaths.get<jsonxx::Object>(i);
+            const jsonxx::Object& pathAndPriority = resourcePaths.get<jsonxx::Object>(static_cast<Uint32>(i));
 
             const auto& path = pathAndPriority.get<jsonxx::String>("path");
             const auto& priority = pathAndPriority.get<jsonxx::Number>("priority");

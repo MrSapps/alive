@@ -1,5 +1,5 @@
 #include "fmv.hpp"
-#include "gui.hpp"
+#include "gui.h"
 #include "core/audiobuffer.hpp"
 #include "oddlib/cdromfilesystem.hpp"
 #include "gamedata.hpp"
@@ -8,7 +8,7 @@
 #include "subtitles.hpp"
 #include <GL/glew.h>
 #include "SDL_opengl.h"
-#include "nanovg.h"
+#include "proxy_nanovg.h"
 #include "stdthread.h"
 #include "renderer.hpp"
 
@@ -86,7 +86,7 @@ public:
     virtual void FillBuffers() = 0;
 
     // Main thread context
-    void OnRenderFrame(Renderer& rend, GuiContext &gui, int screenW, int screenH)
+    void OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int /*screenH*/)
     {
         // TODO: Populate mAudioBuffer and mVideoBuffer
         // for up to N buffered frames
@@ -97,11 +97,12 @@ public:
             FillBuffers();
         }
 
+        /*
         int num = -1;
         if (!mVideoBuffer.empty())
         {
             num = mVideoBuffer.begin()->mFrameNum;
-        }
+        }*/
 
         //        std::cout << "Playing frame num " << mVideoFrameIndex << " first buffered frame is " << num << " samples played " << (size_t)mConsumedAudioBytes << std::endl;
 
@@ -124,7 +125,7 @@ public:
         if (mSubTitles)
         {
             // We assume the FPS is always 15, thus 1000/15=66.66 so frame number * 66 = number of msecs into the video
-            const auto& subs = mSubTitles->Find((videoFrameIndex * 66));
+            const auto& subs = mSubTitles->Find((videoFrameIndex * 66)+200);
             if (!subs.empty())
             {
                 // TODO: Render all active subs, not just the first one
@@ -223,15 +224,16 @@ protected:
         // TODO: Optimize - should update 1 texture rather than creating per frame
         int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
 
-        gui_begin_window(&gui, "FMV", v2i(width, height));
-        V2i pos = gui_turtle_pos(&gui);
-        V2i size = gui_window_client_size(&gui);
+        gui_begin_window(&gui, "FMV", width, height);
+        int x, y, w, h;
+        gui_turtle_pos(&gui, &x, &y);
+        gui_window_client_size(&gui, &w, &h);
 
         rend.beginLayer(gui_layer(&gui));
-        rend.drawQuad(texhandle, pos.x, pos.y, size.x, size.y);
+        rend.drawQuad(texhandle, static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
 
         if (subtitles)
-            RenderSubtitles(rend, subtitles, pos.x, pos.y, size.x, size.y);
+            RenderSubtitles(rend, subtitles, x, y, w, h);
 
         rend.endLayer();
 
@@ -292,7 +294,7 @@ public:
         mAudioController.SetAudioSpec(kSampleRate / kFps, kSampleRate);
 
         // TODO: Check the correctness of this
-        int numFrames = (mFmvStream->Size()/10) / 2048;
+        int numFrames = static_cast<int>((mFmvStream->Size()/10) / 2048);
         mAudioBytesPerFrame = (4 * kSampleRate)*(numFrames / kFps) / numFrames;
 
         mPsx = true;
@@ -593,13 +595,26 @@ private:
         auto fmvData = allFmvs.find(fmvName);
         if (fmvData != std::end(allFmvs))
         {
-            // Check if the PSX file containing the FMV exists
-            const std::vector<GameData::FmvSection>& sections = fmvData->second;
-            for (const GameData::FmvSection& section : sections)
+            if (!fmvData->second.empty())
             {
+                if (fmvData->second.size() > 1)
+                {
+                    LOG_ERROR("More than one FMV mapping");
+                    assert(false);
+                }
+                auto section = fmvData->second[0];
 
-                // Only PSX FMV's have many in a single file
-                return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), section.mStartSector, section.mNumberOfSectors);
+                // TODO FIX ME: Should this always be a 1:1 mapping? If yes remove vector
+                // else here we need to know which one to pick.
+
+                // Check if the PSX file containing the FMV exists
+                //const std::vector<GameData::FmvSection>& sections = fmvData->second;
+                //for (const GameData::FmvSection& section : sections)
+                {
+
+                    // Only PSX FMV's have many in a single file
+                    return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), section.mStartSector, section.mNumberOfSectors);
+                }
             }
         }
 
@@ -640,7 +655,7 @@ class FmvUi
 {
 private:
     char mFilterString[64];
-    size_t mListBoxSelectedItem = (size_t)-1;
+    int mListBoxSelectedItem = -1;
     std::vector<const char*> mListBoxItems;
     std::unique_ptr<class IMovie>& mFmv;
 public:
@@ -659,10 +674,10 @@ public:
         static bool bSet = false;
         if (!bSet)
         {
-            gui.next_window_pos = v2i(920, 40);
+            gui_set_next_window_pos(&gui, 920, 40);
             bSet = true;
         }
-        gui_begin_window(&gui, name.c_str(), v2i(300, 580));
+        gui_begin_window(&gui, name.c_str(), 300, 580);
 
         gui_textfield(&gui, "Filter", mFilterString, sizeof(mFilterString));
 
@@ -683,19 +698,19 @@ public:
             {
                 if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
                 {
-                    mListBoxSelectedItem = i;
+                    mListBoxSelectedItem = static_cast<int>(i);
                 }
             }
             //ImGui::ListBoxFooter();
         }
 
-        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < mListBoxItems.size())
+        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
         {
             try
             {
                 const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
                 mFmv = IMovie::Factory(fmvName, mAudioController, mFileSystem, allFmvs);
-                mListBoxSelectedItem = (size_t)-1;
+                mListBoxSelectedItem = -1;
             }
             catch (const Oddlib::Exception& ex)
             {
@@ -714,8 +729,6 @@ private:
 Fmv::Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs)
     : mGameData(gameData), mAudioController(audioController), mFileSystem(fs)
 {
-    // TODO: Should probably be handled by something else
-    glEnable(GL_TEXTURE_2D);
 }
 
 Fmv::~Fmv()
@@ -785,7 +798,6 @@ void DebugFmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     if (!mFmv)
     {
         RenderVideoUi(gui);
-        mFileSystem.DebugUi(gui);
     }
 }
 

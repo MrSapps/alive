@@ -79,8 +79,8 @@ void AliveAudio::CleanVoices()
 
 void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
 {
-    static float tick = 0;
-    static int note = 0;
+    //static float tick = 0;
+    //static int note = 0;
 
     //AliveAudioSoundbank * currentSoundbank = AliveAudio::m_CurrentSoundbank;
 
@@ -93,7 +93,7 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
         m_ReverbChannelBuffer[i] = 0;
     }
 
-    const int voiceCount = m_Voices.size();
+    const size_t voiceCount = m_Voices.size();
     /*
     if (voiceCount == 0)
     {
@@ -107,7 +107,7 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
 
     for (int i = 0; i < StreamLength; i += 2)
     {
-        for (int v = 0; v < voiceCount; v++)
+        for (size_t v = 0; v < voiceCount; v++)
         {
             AliveAudioVoice * voice = rawPointer[v]; // Raw pointer skips all that vector bottleneck crap
 
@@ -224,7 +224,7 @@ void AliveAudio::PlayOneShot(std::string soundID)
 
     for (size_t i = 0; i < soundList.size(); i++)
     {
-        jsonxx::Object sndObj = soundList.get<jsonxx::Object>(i);
+        jsonxx::Object sndObj = soundList.get<jsonxx::Object>(static_cast<unsigned int>(i));
         if (sndObj.get<jsonxx::String>("id") == soundID)
         {
             float randA = 0;
@@ -363,26 +363,13 @@ void AliveAudio::ClearAllTrackVoices(int trackID, bool forceKill)
 void AliveAudio::LoadSoundbank(char * fileName)
 {
     ClearAllVoices(true);
-
-    if (m_CurrentSoundbank != nullptr)
-    {
-        delete m_CurrentSoundbank;
-    }
-
-    AliveAudioSoundbank * soundBank = new AliveAudioSoundbank(fileName, *this);
-    m_CurrentSoundbank = soundBank;
+    m_CurrentSoundbank = std::make_unique<AliveAudioSoundbank>(fileName, *this);
 }
 
-void AliveAudio::SetSoundbank(AliveAudioSoundbank * soundbank)
+void AliveAudio::SetSoundbank(std::unique_ptr<AliveAudioSoundbank> soundbank)
 {
     ClearAllVoices(true);
-
-    if (m_CurrentSoundbank != nullptr)
-    {
-        delete m_CurrentSoundbank;
-    }
-
-    m_CurrentSoundbank = soundbank;
+    m_CurrentSoundbank = std::move(soundbank);
 }
 
 void AliveAudio::LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile, FileSystem& fs)
@@ -398,9 +385,10 @@ void AliveAudio::LoadAllFromLvl(std::string lvlPath, std::string vabID, std::str
 void AliveAudio::LoadAllFromLvl(Oddlib::LvlArchive& archive, std::string vabID, std::string seqFile)
 {
     m_LoadedSeqData.clear();
-    SetSoundbank(new AliveAudioSoundbank(archive, vabID, *this));
-    for (size_t i = 0; i < archive.FileByName(seqFile)->ChunkCount(); i++)
+    SetSoundbank(std::make_unique<AliveAudioSoundbank>(archive, vabID, *this));
+    auto file = archive.FileByName(seqFile);
+    for (size_t i = 0; i < file->ChunkCount(); i++)
     {
-        m_LoadedSeqData.push_back(archive.FileByName(seqFile)->ChunkByIndex(i)->ReadData());
+        m_LoadedSeqData.push_back(file->ChunkByIndex(static_cast<Uint32>(i))->ReadData());
     }
 }
