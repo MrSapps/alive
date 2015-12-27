@@ -577,7 +577,8 @@ public:
                 for (Uint32 j = 0; j < file->ChunkCount(); j++)
                 {
                     Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
-                    if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm') && !string_util::ends_with(file->FileName(), ".CAM"))
+                    // As far as seen, all anim's within cam BND's are duplicates of BAN's
+                    if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm') /*&& !string_util::ends_with(file->FileName(), ".CAM")*/)
                     {
                         AddRes(chunk->Id(), file->FileName(), lvl, eType);
 
@@ -615,6 +616,9 @@ private:
             // TODO: Semi trans flag
             // TODO: pallet res id?
 
+            auto numAnims = mNumberOfAnimsMap[animData.first];
+            animObj << "numAnims" << numAnims;
+
             resources << animObj;
         }
 
@@ -622,8 +626,12 @@ private:
 
         // TODO: Dataset arrays, map of what lvl files/paths belong to each game
 
-
-        std::cout << resources.json().c_str() << std::endl;
+        std::ofstream jsonFile("test.json");
+        if (!jsonFile.is_open())
+        {
+            abort();
+        }
+        jsonFile << resources.json().c_str() << std::endl;
     }
 
     void AddNumAnimationsMapping(Uint32 resId, Uint32 numAnims)
