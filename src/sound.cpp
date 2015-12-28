@@ -46,6 +46,10 @@ Sound::Sound(GameData& gameData, IAudioController& audioController, FileSystem& 
 
 Sound::~Sound()
 {
+    // Ensure the audio call back stops at this point else will be
+    // calling back into freed objects
+    SDL_AudioQuit();
+
     mAudioController.RemovePlayer(&mAliveAudio);
 }
 
