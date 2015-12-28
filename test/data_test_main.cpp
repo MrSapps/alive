@@ -54,6 +54,7 @@ public:
 private:
     void Reduce(std::unique_ptr<Oddlib::LvlArchive> lvl)
     {
+        
         bool foundCam = false;
         bool isPsx = false;
         for (auto i = 0u; i < lvl->FileCount(); i++)
@@ -73,6 +74,7 @@ private:
         {
             abort();
         }
+        
 
         bool chunkTaken = false;
         for (auto i = 0u; i < lvl->FileCount(); i++)
@@ -565,30 +567,24 @@ class Db
 public:
     Db(DataTest::eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
     {
-        for (const std::string& lvl : lvls)
+        LvlFileReducer reducer(resourcePath, lvls);
+
+
+        for (auto& chunkPair : reducer.Chunks())
         {
-            const std::string lvlPath = resourcePath + "\\" + lvl;
 
-            Oddlib::LvlArchive archive(lvlPath);
+            Oddlib::LvlArchive::FileChunk* chunk = chunkPair.first;
 
-            for (Uint32 i = 0; i < archive.FileCount(); i++)
+            // As far as seen, all anim's within cam BND's are duplicates of BAN's
+            if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm') /*&& !string_util::ends_with(file->FileName(), ".CAM")*/)
             {
-                Oddlib::LvlArchive::File* file = archive.FileByIndex(i);
-                for (Uint32 j = 0; j < file->ChunkCount(); j++)
-                {
-                    Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
-                    // As far as seen, all anim's within cam BND's are duplicates of BAN's
-                    if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm') /*&& !string_util::ends_with(file->FileName(), ".CAM")*/)
-                    {
-                        AddRes(chunk->Id(), file->FileName(), lvl, eType);
+                AddRes(chunk->Id(), chunkPair.second.first, "TODO.LVL" /*lvl*/, eType);
 
-                        Oddlib::AnimSerializer as(*chunk->Stream(), false); // TODO: Set correctly
-                        AddNumAnimationsMapping(chunk->Id(), static_cast<Uint32>(as.Animations().size()));
-                    }
-                }
+                Oddlib::AnimSerializer as(*chunk->Stream(), false); // TODO: Set correctly
+                AddNumAnimationsMapping(chunk->Id(), static_cast<Uint32>(as.Animations().size()));
             }
 
-            AddLvlMapping(eType, lvl);
+            //AddLvlMapping(eType, lvl);
 
         }
         ToJson();
