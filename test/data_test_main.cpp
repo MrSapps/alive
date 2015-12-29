@@ -618,9 +618,29 @@ private:
             resources << animObj;
         }
 
-        // TODO: Array of BND/BANs to to LVL resources
 
-        // TODO: Dataset arrays, map of what lvl files/paths belong to each game
+        // Map of which LVL's live in what data set
+        for (const auto& dataSetPair : mLvlToDataSetMap)
+        {
+            jsonxx::Object lvlsObj;
+            lvlsObj << "data_set_name" << std::to_string(dataSetPair.first);
+
+            jsonxx::Array files;
+            for (const std::string& lvlName : dataSetPair.second)
+            {
+                files << lvlName;
+            }
+
+            lvlsObj << "lvls" << files;
+
+            resources << lvlsObj;
+        }
+
+        /*
+        // TODO
+        // Map of which BAN/BNDs live in what LVL+dataset
+        std::map<std::string, std::set<std::pair<std::string, DataTest::eDataType>>> mLvlFileMaps; // E.g ABEBLOW.BAN [R1.LVL (AoPc), R1.LVL (AoPsx)]
+        */
 
         std::ofstream jsonFile("test.json");
         if (!jsonFile.is_open())
@@ -650,7 +670,7 @@ private:
         auto it = mAnimResIds.find(resId);
         if (it == std::end(mAnimResIds))
         {
-            mAnimResIds[resId] = std::set<std::string>{ resFileName };
+            mAnimResIds[resId] = { resFileName };
         }
         else
         {
@@ -665,7 +685,7 @@ private:
         auto it = mLvlFileMaps.find(resFileName);
         if (it == std::end(mLvlFileMaps))
         {
-            mLvlFileMaps[resFileName] = std::set<std::pair<std::string, DataTest::eDataType>> {  std::make_pair(lvlName, eType) };
+            mLvlFileMaps[resFileName] = { std::make_pair(lvlName, eType) };
         }
         else
         {
@@ -675,14 +695,14 @@ private:
 
     void AddLvlMapping(DataTest::eDataType eType, const std::string& lvlName)
     {
-        auto it = mLvlToDataSetMap.find(lvlName);
+        auto it = mLvlToDataSetMap.find(eType);
         if (it == std::end(mLvlToDataSetMap))
         {
-            mLvlToDataSetMap[lvlName] = std::set<DataTest::eDataType>{ eType };
+            mLvlToDataSetMap[eType].insert(lvlName);
         }
         else
         {
-            it->second.insert(eType);
+            it->second.insert(lvlName);
         }
     }
 
@@ -697,7 +717,7 @@ private:
     std::map<std::string, std::set<std::pair<std::string, DataTest::eDataType>>> mLvlFileMaps; // E.g ABEBLOW.BAN [R1.LVL (AoPc), R1.LVL (AoPsx)]
 
     // Map of which LVL's live in what data set
-    std::map<std::string, std::set<DataTest::eDataType>> mLvlToDataSetMap; // E.g R1.LVL -> AoPc, AoPsx, AoPcDemo, AoPsxDemo
+    std::map<DataTest::eDataType, std::set<std::string>> mLvlToDataSetMap; // E.g AoPc, AoPsx, AoPcDemo, AoPsxDemo -> R1.LVL
 };
 
     //for (const auto& data : datas)
