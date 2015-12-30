@@ -24,7 +24,7 @@ void gui_sprintf_impl(char *buf, size_t count, const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	v_sprintf_impl(buf, count, fmt, args);
+	gui_v_sprintf_impl(buf, count, fmt, args);
 	va_end(args);
 }
 #endif
