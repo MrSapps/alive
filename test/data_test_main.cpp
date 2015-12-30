@@ -41,7 +41,8 @@ public:
             }
             else
             {
-                LOG_WARNING("LVL not found: " << lvl);
+                //LOG_WARNING("LVL not found: " << lvl);
+                abort(); // All LVLs in a set must exist
             }
         }
     }
@@ -56,19 +57,23 @@ public:
         return mLvlFileContent.find(name)->second;
     }
 
+    bool ALvlWasPsx() const
+    {
+        return mIsPsx;
+    }
+
 private:
     void Reduce(std::unique_ptr<Oddlib::LvlArchive> lvl, const std::string& lvlName)
     {
         
         bool foundCam = false;
-        bool isPsx = false;
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
             if (string_util::ends_with(file->FileName(), ".CAM", true))
             {
                 auto stream = file->ChunkByType(Oddlib::MakeType('B', 'i', 't', 's'))->Stream();
-                isPsx = Oddlib::IsPsxCamera(*stream);
+                mIsPsx = Oddlib::IsPsxCamera(*stream);
                 foundCam = true;
                 break;
             }
@@ -110,7 +115,7 @@ private:
                     {
                         if (!ChunkExists(*chunk))
                         {
-                            AddChunk(chunk, file->FileName(), isPsx);
+                            AddChunk(chunk, file->FileName(), mIsPsx);
                             chunkTaken = true;
                         }
                     }
@@ -155,6 +160,7 @@ private:
     std::vector<std::unique_ptr<Oddlib::LvlArchive>> mLvls;
 
     std::map<std::string, std::set<std::string>> mLvlFileContent;
+    bool mIsPsx = false;
 };
 
 class DataTest
@@ -584,59 +590,61 @@ public:
 
         for (auto& chunkPair : reducer.Chunks())
         {
-
             Oddlib::LvlArchive::FileChunk* chunk = chunkPair.first;
-
-            // As far as seen, all anim's within cam BND's are duplicates of BAN's
-            if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm') /*&& !string_util::ends_with(file->FileName(), ".CAM")*/)
+            if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
             {
                 AddRes(chunk->Id(), chunkPair.second.first);
 
-                Oddlib::AnimSerializer as(*chunk->Stream(), false); // TODO: Set correctly
+                Oddlib::AnimSerializer as(*chunk->Stream(), reducer.ALvlWasPsx());
                 AddNumAnimationsMapping(chunk->Id(), static_cast<Uint32>(as.Animations().size()));
             }
         }
+
         ToJson(reducer);
     }
 
 private:
+
     void ToJson(const LvlFileReducer& reducer)
     {
         jsonxx::Array resources;
 
         for (const auto& animData : mAnimResIds)
         {
-            jsonxx::Object animObj;
-            animObj << "id" << std::to_string(animData.first);
-
-            jsonxx::Array files;
-            for (const auto& file : animData.second)
+            const auto& animFiles = animData.second;
+            const auto id = animData.first;
+            for (const auto& animFile : animFiles)
             {
-                files << file;
+                jsonxx::Object animObj;
+                animObj << "id" << std::to_string(id);
+                animObj << "file" << animFile;
+
+                auto numAnims = mNumberOfAnimsMap[animData.first];
+                animObj << "numAnims" << numAnims;
+
+                jsonxx::Array anims;
+
+                for (auto i = 0u; i < numAnims; i++)
+                {
+                    jsonxx::Object anim;
+
+                    // Generated globally unique name
+                    anim 
+                        << "name" 
+                        << animFile + "_" + std::to_string(id) + "_" + std::to_string(i + 1);
+
+                    // Guessed blending mode
+                    anim << "blend_mode" << "1";
+
+                    // TODO: Semi trans flag
+                    // TODO: pallet res id?
+
+                    anims << anim;
+                }
+                animObj << "anims" << anims;
+
+                resources << animObj;
             }
-            animObj << "files" << files;
-
-
-            auto numAnims = mNumberOfAnimsMap[animData.first];
-            animObj << "numAnims" << numAnims;
-
-            jsonxx::Array anims;
-
-            // TODO: Duplicate for each file name, as more than 1 file name means
-            // the actual frame data is not equal
-            for (auto i = 0u; i < numAnims; i++)
-            {
-                jsonxx::Object anim;
-                anim << "name" << std::to_string(animData.first) + "_" + std::to_string(i + 1);
-                anim << "blend_mode" << "1";
-                // TODO: Semi trans flag
-                // TODO: pallet res id?
-
-                anims << anim;
-            }
-            animObj << "anims" << anims;
-
-            resources << animObj;
         }
 
 
@@ -646,6 +654,7 @@ private:
             jsonxx::Object dataSet;
             const std::string strName = DataTest::ToString(dataSetPair.first);
             dataSet << "data_set_name" << strName;
+            dataSet << "is_psx" << std::string(reducer.ALvlWasPsx() ? "true" : "false");
 
             jsonxx::Array lvlsArray;
 
