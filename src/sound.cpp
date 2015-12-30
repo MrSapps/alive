@@ -97,7 +97,7 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
         }
     }
 
-    gui_begin_window(gui, "Sound", 250, 400);
+    gui_begin_window(gui, "Sound");
 
     static int selectedIndex = 0; 
     for (size_t i = 0; i < mThemes.size(); i++)
@@ -129,8 +129,7 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
     }
     gui_end_window(gui);
 
-    gui_set_next_window_pos(gui, 50, 250);
-    { gui_begin_window(gui, "Audio output settings", 250, 300);
+    { gui_begin_window(gui, "Audio output settings");
         gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.AntiAliasFilteringEnabled);
 
         if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))

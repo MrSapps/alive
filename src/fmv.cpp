@@ -224,12 +224,12 @@ protected:
         // TODO: Optimize - should update 1 texture rather than creating per frame
         int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
 
-        gui_begin_window(&gui, "FMV", width, height);
+        gui_begin_window(&gui, "FMV");
         int x, y, w, h;
         gui_turtle_pos(&gui, &x, &y);
         gui_window_client_size(&gui, &w, &h);
 
-        rend.beginLayer(gui_layer(&gui));
+        rend.beginLayer(gui_layer(&gui) + 1);
         rend.drawQuad(texhandle, static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
 
         if (subtitles)
@@ -669,15 +669,8 @@ public:
 
     void DrawVideoSelectionUi(GuiContext& gui, const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
     {
-
         std::string name = "Video player";
-        static bool bSet = false;
-        if (!bSet)
-        {
-            gui_set_next_window_pos(&gui, 920, 40);
-            bSet = true;
-        }
-        gui_begin_window(&gui, name.c_str(), 300, 580);
+        gui_begin_window(&gui, name.c_str());
 
         gui_textfield(&gui, "Filter", mFilterString, sizeof(mFilterString));
 
