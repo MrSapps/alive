@@ -8,8 +8,6 @@
 
 static void *gui_frame_alloc(GuiContext *ctx, int size);
 
-const int gui_zero_v2i[2] = {0};
-
 #if defined(_MSC_VER) && _MSC_VER <= 1800 // MSVC 2013
 size_t gui_v_sprintf_impl(char *buf, size_t count, const char *fmt, va_list args)
 {
@@ -519,7 +517,7 @@ static void gui_draw(	GuiContext *ctx, GuiDrawInfo_Type type, int pos[2], int si
 	info.selected = selected;
 	if (text) {
 		// Copy text -- don't take pointers to host data
-		int text_size = strlen(text) + 1;
+		int text_size = (int)strlen(text) + 1;
 		char *text_copy = (char*)gui_frame_alloc(ctx, text_size);
 		GUI_FMT_STR(text_copy, text_size, "%s", text);
 		info.text = text_copy;
