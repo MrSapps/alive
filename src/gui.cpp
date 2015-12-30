@@ -194,13 +194,6 @@ static void set_element_storage_bool(GuiContext *ctx, const char *label, GUI_BOO
 
 	ctx->storage[ix].id = id;
 	ctx->storage[ix].bool_value = value;
-
-	assert(element_storage_bool(ctx, label, !value) == value);
-	GuiId test_id = 0;
-	for (int i = 0; i < ctx->storage_count; ++i) {
-		assert(test_id < ctx->storage[i].id);
-		test_id = ctx->storage[i].id;
-	}
 }
 
 static void save_layout(GuiContext *ctx, const char *path)
