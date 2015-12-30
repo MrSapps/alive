@@ -37,7 +37,7 @@ public:
             auto stream = mFs.ResourcePaths().Open(lvl);
             if (stream)
             {
-                Reduce(std::make_unique<Oddlib::LvlArchive>(std::move(stream)));
+                Reduce(std::make_unique<Oddlib::LvlArchive>(std::move(stream)), lvl);
             }
             else
             {
@@ -51,8 +51,13 @@ public:
         return mChunks;
     }
 
+    const std::set<std::string>& LvlFileContent(const std::string& name) const
+    {
+        return mLvlFileContent.find(name)->second;
+    }
+
 private:
-    void Reduce(std::unique_ptr<Oddlib::LvlArchive> lvl)
+    void Reduce(std::unique_ptr<Oddlib::LvlArchive> lvl, const std::string& lvlName)
     {
         
         bool foundCam = false;
@@ -60,16 +65,16 @@ private:
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
+            if (string_util::ends_with(file->FileName(), ".CAM", true))
             {
-                if (string_util::ends_with(file->FileName(), ".CAM", true))
-                {
-                    auto stream = file->ChunkByType(Oddlib::MakeType('B', 'i', 't', 's'))->Stream();
-                    isPsx = Oddlib::IsPsxCamera(*stream);
-                    foundCam = true;
-                    break;
-                }
+                auto stream = file->ChunkByType(Oddlib::MakeType('B', 'i', 't', 's'))->Stream();
+                isPsx = Oddlib::IsPsxCamera(*stream);
+                foundCam = true;
+                break;
             }
+
         }
+
         if (!foundCam)
         {
             abort();
@@ -80,6 +85,7 @@ private:
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
+            mLvlFileContent[lvlName].insert(file->FileName());
 
             bool bUseFile = true;
             if (!mFileFilter.empty())
@@ -147,6 +153,8 @@ private:
 
     std::vector<std::pair<Oddlib::LvlArchive::FileChunk*, std::pair<std::string, bool>>> mChunks;
     std::vector<std::unique_ptr<Oddlib::LvlArchive>> mLvls;
+
+    std::map<std::string, std::set<std::string>> mLvlFileContent;
 };
 
 class DataTest
@@ -569,6 +577,10 @@ public:
     {
         LvlFileReducer reducer(resourcePath, lvls);
 
+        for (const auto& lvl : lvls)
+        {
+            AddLvlMapping(eType, lvl);
+        }
 
         for (auto& chunkPair : reducer.Chunks())
         {
@@ -578,20 +590,17 @@ public:
             // As far as seen, all anim's within cam BND's are duplicates of BAN's
             if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm') /*&& !string_util::ends_with(file->FileName(), ".CAM")*/)
             {
-                AddRes(chunk->Id(), chunkPair.second.first, "TODO.LVL" /*lvl*/, eType);
+                AddRes(chunk->Id(), chunkPair.second.first);
 
                 Oddlib::AnimSerializer as(*chunk->Stream(), false); // TODO: Set correctly
                 AddNumAnimationsMapping(chunk->Id(), static_cast<Uint32>(as.Animations().size()));
             }
-
-            //AddLvlMapping(eType, lvl);
-
         }
-        ToJson();
+        ToJson(reducer);
     }
 
 private:
-    void ToJson()
+    void ToJson(const LvlFileReducer& reducer)
     {
         jsonxx::Array resources;
 
@@ -607,13 +616,25 @@ private:
             }
             animObj << "files" << files;
 
-            // TODO: Generated name of each animation, to be renamed by hand later
-            // TODO: Blend mode
-            // TODO: Semi trans flag
-            // TODO: pallet res id?
 
             auto numAnims = mNumberOfAnimsMap[animData.first];
             animObj << "numAnims" << numAnims;
+
+            jsonxx::Array anims;
+
+            // TODO: Duplicate for each file name, as more than 1 file name means
+            // the actual frame data is not equal
+            for (auto i = 0u; i < numAnims; i++)
+            {
+                jsonxx::Object anim;
+                anim << "name" << std::to_string(animData.first) + "_" + std::to_string(i + 1);
+                anim << "blend_mode" << "1";
+                // TODO: Semi trans flag
+                // TODO: pallet res id?
+
+                anims << anim;
+            }
+            animObj << "anims" << anims;
 
             resources << animObj;
         }
@@ -622,25 +643,30 @@ private:
         // Map of which LVL's live in what data set
         for (const auto& dataSetPair : mLvlToDataSetMap)
         {
-            jsonxx::Object lvlsObj;
-            lvlsObj << "data_set_name" << std::to_string(dataSetPair.first);
+            jsonxx::Object dataSet;
+            const std::string strName = DataTest::ToString(dataSetPair.first);
+            dataSet << "data_set_name" << strName;
 
-            jsonxx::Array files;
+            jsonxx::Array lvlsArray;
+
             for (const std::string& lvlName : dataSetPair.second)
             {
-                files << lvlName;
+                jsonxx::Object lvlObj;
+                lvlObj << "name" << lvlName;
+
+                jsonxx::Array lvlContent;
+                const std::set<std::string>& content = reducer.LvlFileContent(lvlName);
+                for (const auto& lvlFile : content)
+                {
+                    lvlContent << lvlFile;
+                }
+                lvlObj << "files" << lvlContent;
+                lvlsArray << lvlObj;
             }
+            dataSet << "lvls" << lvlsArray;
 
-            lvlsObj << "lvls" << files;
-
-            resources << lvlsObj;
+            resources << dataSet;
         }
-
-        /*
-        // TODO
-        // Map of which BAN/BNDs live in what LVL+dataset
-        std::map<std::string, std::set<std::pair<std::string, DataTest::eDataType>>> mLvlFileMaps; // E.g ABEBLOW.BAN [R1.LVL (AoPc), R1.LVL (AoPsx)]
-        */
 
         std::ofstream jsonFile("test.json");
         if (!jsonFile.is_open())
@@ -659,13 +685,14 @@ private:
         }
         else
         {
+            // TODO: If not equal then should probably just take the biggest value
             if (resId == 314) return; // BLOOD.BAN and SPARKS.BAN have same id but diff number of anims
             if (resId == 2020) return; // SLAM.BAN and SLAMVLTS.BAN
             assert(it->second == numAnims);
         }
     }
 
-    void AddRes(Uint32 resId, const std::string& resFileName, const std::string& lvlName, DataTest::eDataType eType)
+    void AddRes(Uint32 resId, const std::string& resFileName)
     {
         auto it = mAnimResIds.find(resId);
         if (it == std::end(mAnimResIds))
@@ -677,20 +704,6 @@ private:
             it->second.insert(resFileName);
         }
 
-        AddFileToLvlMap(resFileName, lvlName, eType);
-    }
-
-    void AddFileToLvlMap(const std::string& resFileName, const std::string& lvlName, DataTest::eDataType eType)
-    {
-        auto it = mLvlFileMaps.find(resFileName);
-        if (it == std::end(mLvlFileMaps))
-        {
-            mLvlFileMaps[resFileName] = { std::make_pair(lvlName, eType) };
-        }
-        else
-        {
-            it->second.insert(std::make_pair(lvlName, eType));
-        }
     }
 
     void AddLvlMapping(DataTest::eDataType eType, const std::string& lvlName)
@@ -712,9 +725,6 @@ private:
 
     // ResId to number of anims in that ResId
     std::map<Uint32, Uint32> mNumberOfAnimsMap; // E.g 25 -> 3, because it has flying head, arm and leg anims
-
-    // Map of which BAN/BNDs live in what LVL+dataset
-    std::map<std::string, std::set<std::pair<std::string, DataTest::eDataType>>> mLvlFileMaps; // E.g ABEBLOW.BAN [R1.LVL (AoPc), R1.LVL (AoPsx)]
 
     // Map of which LVL's live in what data set
     std::map<DataTest::eDataType, std::set<std::string>> mLvlToDataSetMap; // E.g AoPc, AoPsx, AoPcDemo, AoPsxDemo -> R1.LVL
