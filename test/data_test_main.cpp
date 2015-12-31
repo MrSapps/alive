@@ -42,7 +42,7 @@ public:
             else
             {
                 //LOG_WARNING("LVL not found: " << lvl);
-                abort(); // All LVLs in a set must exist
+               // abort(); // All LVLs in a set must exist
             }
         }
     }
@@ -397,6 +397,21 @@ int main(int /*argc*/, char** /*argv*/)
         "ABESODSE\\S1.LVL"
     };
 
+    const std::vector<std::string> aeCd1Lvls =
+    {
+        "mi.lvl",
+        "ba.lvl",
+        "br.lvl",
+        "bw.lvl",
+        "cr.lvl",
+        "fd.lvl",
+        "ne.lvl",
+        "pv.lvl",
+        "st.lvl",
+        "sv.lvl"
+    };
+
+
     const std::vector<std::string> aeLvls =
     {
         "mi.lvl",
@@ -431,7 +446,7 @@ int main(int /*argc*/, char** /*argv*/)
         { DataTest::eAoPc, &aoLvls },
         { DataTest::eAoPsx, &aoLvls },
         { DataTest::eAePc, &aeLvls },
-        { DataTest::eAePsxCd1, &aeLvls },
+        { DataTest::eAePsxCd1, &aeCd1Lvls },
         { DataTest::eAePsxCd2, &aeLvls },
         { DataTest::eAoPcDemo, &aoDemoLvls },
         { DataTest::eAoPsxDemo, &aoDemoPsxLvls },
@@ -439,153 +454,37 @@ int main(int /*argc*/, char** /*argv*/)
         { DataTest::eAePsxDemo, &aeDemoPsxLvls }
     };
 
+    std::string dataPath1 = "C:\\Users\\pmoran\\Desktop\\c\\data\\";
+
     const std::vector<std::pair<DataTest::eDataType, std::string>> datas =
     {
-      //  { DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\AE_RE\\testing.bin" },
-
-        { DataTest::eAePc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Exoddus" },
-        { DataTest::eAePcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\exoddemo" },
-        { DataTest::eAePsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
-        { DataTest::eAePsxCd1, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
-        { DataTest::eAePsxCd2, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
-        { DataTest::eAoPc, "C:\\Program Files (x86)\\Steam\\SteamApps\\common\\Oddworld Abes Oddysee" },
-        { DataTest::eAoPcDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\abeodd" },
-        { DataTest::eAoPsx, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
-        { DataTest::eAoPsxDemo, "C:\\Users\\paul\\Desktop\\alive\\all_data\\Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
+        { DataTest::eAePc, dataPath1 + "Oddworld Abes Exoddus" },
+        { DataTest::eAePcDemo, dataPath1 + "exoddemo" },
+        { DataTest::eAePsxDemo, dataPath1 + "Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
+        { DataTest::eAePsxCd1, dataPath1 + "Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
+        { DataTest::eAePsxCd2, dataPath1 + "Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
+        
+        { DataTest::eAoPc, dataPath1 + "Oddworld Abes Oddysee" },
+        { DataTest::eAoPcDemo, dataPath1 + "abeodd" },
+        { DataTest::eAoPsxDemo, dataPath1 + "Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
+        { DataTest::eAoPsx, dataPath1 + "Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
     };
 
-    std::vector<std::string> fileFilter;
-   // fileFilter.push_back("OMMFLARE.BAN");
-    //fileFilter.push_back("DUST.BAN");
-    //fileFilter.push_back("METAL.BAN");
-    //fileFilter.push_back("VAPOR.BAN");
-    //fileFilter.push_back("DEBRIS00.BAN");
-    //fileFilter.push_back("DRPROCK.BAN");
-    //fileFilter.push_back("DRPSPRK.BAN");
-   // fileFilter.push_back("EVILFART.BAN");
-   // fileFilter.push_back("SHELL.BAN");
-   // fileFilter.push_back("SQBSMK.BAN");
-   // fileFilter.push_back("WELLLEAF.BAN");
-    //fileFilter.push_back("EXPLODE.BND");
-
-    /*
-    std::vector<std::unique_ptr<LvlFileReducer>> reducedData;
-    for (const auto& data : datas)
-    {
-        const auto it = DataTypeLvlMap.find(data.first);
-        if (it == std::end(DataTypeLvlMap))
-        {
-            // Defined struct is wrong
-            abort();
-        }
-        reducedData.emplace_back(std::make_unique<LvlFileReducer>(data.second, *it->second, fileFilter));
-    }
-
-    std::set<std::string> animsWithoutMatchingIds;
-    for (const auto& dataSet : reducedData)
-    {
-        for (const auto& chunk : dataSet->Chunks())
-        {
-            if (chunk.first->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
-            {
-                for (const auto& otherData : reducedData)
-                {
-                    if (otherData != dataSet)
-                    {
-                        bool exists = false;
-                        bool idMatches = false;
-                        for (const auto& otherChunk : otherData->Chunks())
-                        {
-                            if (chunk.first->Type() == otherChunk.first->Type())
-                            {
-                                if (chunk.second.first == otherChunk.second.first)
-                                {
-                                    exists = true;
-                                    if (chunk.first->Id() == otherChunk.first->Id())
-                                    {
-                                        idMatches = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if (exists && !idMatches)
-                        {
-                            animsWithoutMatchingIds.insert(chunk.second.first + "_" + std::to_string(chunk.first->Id()));
-                            //std::cout << chunk.second.first.c_str() << std::endl;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    */
-
-    /*
-        D2LIFT.BND_1001
-        DOOR.BAN_2012 AE "mine" door
-        DOOR.BAN_8001 AO "intro" door
-        GLUKKON.BND_801 "flying head" from explosion - not sure why this ends up here??
-        PARAMITE.BND_2034 ??
-        SLIG.BND_319
-        SLIG.BND_360 moved into SHELL.BAN?
-        STARTANM.BND_132 moved into ABESPEK2.BAN?
-        STARTANM.BND_8002
-    */
-    
-    /*
-    for (const auto& item : animsWithoutMatchingIds)
-    {
-        std::cout << item.c_str() << std::endl;
-    }
-    */
-
-    // FALLROCK.BAN corrupted frames in AePcDemo
-    // ^ TODO: Where is this used in the real game, can't find it? Probably bad in src data
-
-    // ABESPEAK.BAN AE PSX, AE PSX DEMO 1 bad frame
-    // ^ Bad in the src data, real engine displays it the same.
-
-    // ABEHOIST.BAN, ABEWELM.BAN ANEBASIC.BAN ANEDSMNT.BAN ANEEDGE.BAN D1HIVE.BAN AO PSX, AO PSX DEMO, blue pixels
-    // ^ fixed via forcing these to black, changes some pixels in unrelated anims near the edges so can't really be noticed
-    
-    // ABEKNBK.BAN all psx ae, some pixels too far right? maybe a couple on ao pc too
-    // ABEWASP.BAN ao/AePsxDemo has right aligned pixels?
-    // ^ Some problem with Type 7 sprites, always adds some junk pixels near the end?
-
-    // Type 2 in psx just has black frames, has overrun issue?
-
-    //fileFilter.push_back("ABECAR.BAN");
- //   fileFilter.push_back("ABEWASP.BAN");
-   // fileFilter.push_back("FALLROCK.BAN");
-   // fileFilter.push_back("SPARKS.BAN");
-   // fileFilter.push_back("ABEBLOW.BAN");
-
-/*
-    for (const auto& data : datas)
-    {
-        const auto it = DataTypeLvlMap.find(data.first);
-        if (it == std::end(DataTypeLvlMap))
-        {
-            // Defined struct is wrong
-            abort();
-        }
-        DataTest dataDecoder(data.first, data.second, *it->second, fileFilter);
-    }
-    */
 
 // Used to create the "base" json db's. E.g the list of LVL's each data set has, unique collection of anim id's
 // and what BAN/BND's they live in. And which LVL's each BAN/BND lives in.
 class Db
 {
 public:
-    Db(DataTest::eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
+    Db() = default;
+
+    void Merge(DataTest::eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
     {
         LvlFileReducer reducer(resourcePath, lvls);
 
         for (const auto& lvl : lvls)
         {
-            AddLvlMapping(eType, lvl);
+            AddLvlMapping(eType, lvl, reducer.ALvlWasPsx(), reducer.LvlFileContent(lvl));
         }
 
         for (auto& chunkPair : reducer.Chunks())
@@ -599,13 +498,9 @@ public:
                 AddNumAnimationsMapping(chunk->Id(), static_cast<Uint32>(as.Animations().size()));
             }
         }
-
-        ToJson(reducer);
     }
 
-private:
-
-    void ToJson(const LvlFileReducer& reducer)
+    void ToJson()
     {
         jsonxx::Array resources;
 
@@ -654,17 +549,18 @@ private:
             jsonxx::Object dataSet;
             const std::string strName = DataTest::ToString(dataSetPair.first);
             dataSet << "data_set_name" << strName;
-            dataSet << "is_psx" << std::string(reducer.ALvlWasPsx() ? "true" : "false");
+            dataSet << "is_psx" << std::string(dataSetPair.second.begin()->second.mIsPsx ? "true" : "false");
 
             jsonxx::Array lvlsArray;
 
-            for (const std::string& lvlName : dataSetPair.second)
+            
+            for (const auto& lvlData : dataSetPair.second)
             {
                 jsonxx::Object lvlObj;
-                lvlObj << "name" << lvlName;
+                lvlObj << "name" << lvlData.first;
 
                 jsonxx::Array lvlContent;
-                const std::set<std::string>& content = reducer.LvlFileContent(lvlName);
+                const std::set<std::string>& content = lvlData.second.mFiles;
                 for (const auto& lvlFile : content)
                 {
                     lvlContent << lvlFile;
@@ -673,6 +569,7 @@ private:
                 lvlsArray << lvlObj;
             }
             dataSet << "lvls" << lvlsArray;
+            
 
             resources << dataSet;
         }
@@ -684,6 +581,8 @@ private:
         }
         jsonFile << resources.json().c_str() << std::endl;
     }
+
+    private:
 
     void AddNumAnimationsMapping(Uint32 resId, Uint32 numAnims)
     {
@@ -697,6 +596,44 @@ private:
             // TODO: If not equal then should probably just take the biggest value
             if (resId == 314) return; // BLOOD.BAN and SPARKS.BAN have same id but diff number of anims
             if (resId == 2020) return; // SLAM.BAN and SLAMVLTS.BAN
+
+            if (resId == 10) return; // ABEBSIC.BAN 47 VS 51 of AePcDemo
+            if (resId == 55) return; // ABEBSIC1.BAN 11 VS 10 of AePcDemo
+            if (resId == 43) return; // ABEEDGE.BAN 43 VS 10 of AePcDemo
+            if (resId == 28) return; // ABEKNOKZ.BAN 2 VS 3 of AePcDemo
+            if (resId == 518) return; // MUDTORT.BAN 3 VS 2
+            if (resId == 604) return;
+            if (resId == 605) return;
+            if (resId == 45) return; // ABEDOOR.BAN 4 vs 2 ao demo
+            if (resId == 26) return; // 4 VS 5
+            if (resId == 203) return; // 1 VS 2
+            if (resId == 511) return; // 3 VS 6
+            if (resId == 130) return; // 15 vs 10
+            if (resId == 576) return; // 2 vs 3
+            if (resId == 1000) return; //1 vs 2
+            if (resId == 800) return; // 24 vs 5
+            if (resId == 200) return; // 3 vs 14
+            if (resId == 700) return; // 18 vs 12
+            if (resId == 711) return; // 2 vs 1
+            if (resId == 701) return; // 3 vs 2
+            if (resId == 704) return; // 2 vs 1
+            if (resId == 113) return; // 2 vs 1
+            if (resId == 600) return; // 22 vs 13
+            if (resId == 2013) return; // 2 vs 1
+            if (resId == 27) return; // 2 vs 3
+            if (resId == 16) return;
+            if (resId == 415) return;
+            if (resId == 100) return;
+            if (resId == 6000) return;
+            if (resId == 2012) return;
+            if (resId == 2019) return;
+            if (resId == 2018) return;
+            if (resId == 2007) return;
+            if (resId == 337) return;
+            if (resId == 2026) return;
+            if (resId == 508) return;
+            if (resId == 8002) return;
+
             assert(it->second == numAnims);
         }
     }
@@ -715,16 +652,12 @@ private:
 
     }
 
-    void AddLvlMapping(DataTest::eDataType eType, const std::string& lvlName)
+    void AddLvlMapping(DataTest::eDataType eType, const std::string& lvlName, bool isPsx, const std::set<std::string>& files)
     {
-        auto it = mLvlToDataSetMap.find(eType);
-        if (it == std::end(mLvlToDataSetMap))
+        auto it = mLvlToDataSetMap[eType].find(lvlName);
+        if (it == std::end(mLvlToDataSetMap[eType]))
         {
-            mLvlToDataSetMap[eType].insert(lvlName);
-        }
-        else
-        {
-            it->second.insert(lvlName);
+            mLvlToDataSetMap[eType][lvlName] = LvlData{ isPsx, files };
         }
     }
 
@@ -736,23 +669,29 @@ private:
     std::map<Uint32, Uint32> mNumberOfAnimsMap; // E.g 25 -> 3, because it has flying head, arm and leg anims
 
     // Map of which LVL's live in what data set
-    std::map<DataTest::eDataType, std::set<std::string>> mLvlToDataSetMap; // E.g AoPc, AoPsx, AoPcDemo, AoPsxDemo -> R1.LVL
+    struct LvlData
+    {
+        bool mIsPsx;
+        std::set<std::string> mFiles;
+    };
+
+    std::map<DataTest::eDataType, std::map<std::string, LvlData>> mLvlToDataSetMap; // E.g AoPc, AoPsx, AoPcDemo, AoPsxDemo -> R1.LVL
 };
 
-    //for (const auto& data : datas)
+    Db db;
+
+    for (const auto& data : datas)
     {
-        const auto it = DataTypeLvlMap.find(datas.begin()->first);
+        const auto it = DataTypeLvlMap.find(data.first);
         if (it == std::end(DataTypeLvlMap))
         {
             // Defined struct is wrong
             abort();
         }
-        Db db(datas.begin()->first, datas.begin()->second, *it->second);
-       // break;
-
-        // BADOOR/BRDOOR/SHDOOR share res id but are not the same anim, they are "themed"
+        db.Merge(data.first, data.second, *it->second);
     }
 
-    
+    db.ToJson();
+
     return 0;
 }
