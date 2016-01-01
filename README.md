@@ -16,9 +16,6 @@ www.mlgthatsme.com/alive_builds
 You can become a patreon here (donations to support development):
 https://www.patreon.com/alive
 
-Or BitCoin:
-1DnshozPxRQg3yeR777MqsVzfL97NQpUB
-
 IRC channel is #oddworld on irc.esper.net
 
 
