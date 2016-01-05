@@ -535,6 +535,9 @@ public:
                     // TODO: pallet res id?
 
                     anims << anim;
+
+                    // TODO: Index array for each data set
+
                 }
                 animObj << "anims" << anims;
 
@@ -586,6 +589,9 @@ public:
 
     void AddNumAnimationsMapping(Uint32 resId, Uint32 numAnims)
     {
+        // TODO: Must store num anims for each dataset for saving indexes
+        // in ToJson
+
         auto it = mNumberOfAnimsMap.find(resId);
         if (it == std::end(mNumberOfAnimsMap))
         {
@@ -692,6 +698,27 @@ private:
     }
 
     db.ToJson();
+
+    /*
+    res.Request("kAbeWalkLeft", "MudPal", "AoPc");
+    res.Request("kAbeWalkLeft", "AoPc");
+
+    Give an animation name and pallete:
+        Find anim with blending mode, flags and containing file name
+        Find lvl containing file for active dataset
+        Load resource
+
+        Thus AoPc and AoPsxDemo may both map kAbeWalkLeft to ABEBSIC.BAN in
+        2 r1.lvl and ABEDEMO\R1.LVL to different anim indexes
+
+        its possible it wont be the same index for both dsets, so index must state
+        which dataset its for
+
+        Debug UI should have API to display kAbeWalkLeft from all data sets and
+        display file name/index/blending mode with way to save it back out
+
+
+    */
 
     return 0;
 }
