@@ -16,6 +16,8 @@
 #include "guiwidgets.hpp"
 #include "oddlib/anim.hpp"
 
+#include "generated_gui_layout.cpp" // Has function "load_layout" to set gui layout. Only used in single .cpp file.
+
 extern "C"
 {
 #include "lua.h"
@@ -135,16 +137,8 @@ void Engine::InitSubSystems()
     mLevel = std::make_unique<Level>(mGameData, mAudioHandler, mFileSystem);
 
     { // Init gui system
-        GuiCallbacks callbacks = { 0 };
-        callbacks.user_data = mRenderer.get();
-        callbacks.draw_button = drawButton;
-        callbacks.draw_checkbox = drawCheckBox;
-        callbacks.draw_radiobutton = drawRadioButton;
-        callbacks.draw_textbox = drawTextBox;
-        callbacks.draw_text = drawText;
-        callbacks.calc_text_size = calcTextSize;
-        callbacks.draw_window = drawWindow;
-        mGui = create_gui(callbacks);
+        mGui = create_gui(&calcTextSize, mRenderer.get());
+        load_layout(mGui);
     }
 }
 
@@ -217,19 +211,23 @@ void Engine::Update()
             int guiKey = -1;
             if (event.button.button == SDL_BUTTON(SDL_BUTTON_LEFT))
                 guiKey = GUI_KEY_LMB;
+            else if (event.button.button == SDL_BUTTON(SDL_BUTTON_MIDDLE))
+                guiKey = GUI_KEY_MMB; 
+            else if (event.button.button == SDL_BUTTON(SDL_BUTTON_RIGHT))
+                guiKey = GUI_KEY_RMB;
 
             if (guiKey >= 0)
             {
                   uint8_t state = mGui->key_state[guiKey];
                   if (event.type == SDL_MOUSEBUTTONUP)
                   {
-                      state |= GUI_KEYSTATE_RELEASED_BIT;
+                      state = GUI_KEYSTATE_RELEASED_BIT;
                   }
                   else
                   {
-                      state |= GUI_KEYSTATE_PRESSED_BIT;
+                      state = GUI_KEYSTATE_DOWN_BIT | GUI_KEYSTATE_PRESSED_BIT;
                   }
-                  mGui->key_state[GUI_KEY_LMB] = state;
+                  mGui->key_state[guiKey] = state;
             }
 
             // TODO: Enable SDL_CaptureMouse when sdl supports it.
@@ -360,7 +358,7 @@ void Engine::Render()
     mGui->host_win_size[1] = h;
 
     mRenderer->beginFrame(w, h);
-    gui_begin(mGui, "background");
+    gui_pre_frame(mGui); 
 
     DebugRender();
 
@@ -373,22 +371,21 @@ void Engine::Render()
             bool soundBrowserOpen;
             bool levelBrowserOpen;
             bool animationBrowserOpen;
+            bool guiLayoutEditorOpen;
         };
 
 
         static EditorUi editor;
 
-        gui_set_next_window_pos(mGui, 50, 50);
-        gui_begin_window(mGui, "Browsers", 200, 130);
+        gui_begin_window(mGui, "Browsers");
         gui_checkbox(mGui, "resPathsOpen|Resource paths", &editor.resPathsOpen);
         gui_checkbox(mGui, "fmvBrowserOpen|FMV browser", &editor.fmvBrowserOpen);
         gui_checkbox(mGui, "soundBrowserOpen|Sound browser", &editor.soundBrowserOpen);
         gui_checkbox(mGui, "levelBrowserOpen|Level browser", &editor.levelBrowserOpen);
         gui_checkbox(mGui, "animationBrowserOpen|Animation browser", &editor.animationBrowserOpen);
+        gui_checkbox(mGui, "guiLayoutEditOpen|GUI layout editor", &editor.guiLayoutEditorOpen);
 
         gui_end_window(mGui);
-
-        gui_set_next_window_pos(mGui, 300, 50);
 
         if (editor.resPathsOpen)
         {
@@ -438,8 +435,7 @@ void Engine::Render()
                 }
             }
 
-            gui_set_next_window_pos(mGui, 350, 50);
-            gui_begin_window(mGui, "Animations", 200, 130);
+            gui_begin_window(mGui, "Animations");
             for (auto& res : resources)
             {
                 gui_checkbox(mGui, res.first.c_str(), &res.second->mDisplay);
@@ -460,9 +456,16 @@ void Engine::Render()
             gui_end_window(mGui);
 
         }
+
+        if (editor.guiLayoutEditorOpen)
+        {
+            gui_layout_editor(mGui, "../src/generated_gui_layout.cpp");
+        }
     }
 
-    gui_end(mGui);
+    gui_post_frame(mGui);
+
+    drawWidgets(*mGui, *mRenderer);
     mRenderer->endFrame();
 
     SDL_GL_SwapWindow(mWindow);
@@ -478,8 +481,7 @@ bool Engine::InitSDL()
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    //SDL_GL_SetAttribute( SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG ); // May be a performance booster in *nix?
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
     mWindow = SDL_CreateWindow(ALIVE_VERSION_NAME_STR,
