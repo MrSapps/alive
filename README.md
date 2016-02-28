@@ -23,7 +23,7 @@ IRC channel is #oddworld on irc.esper.net
 
 Build instructions.
 
-Supported compilers are clang, gcc and msvc 2013/2015. The clang and gcc version must support C++11. Should be possible to build on Windows, OSX and most *nix OS'es.
+Supported compilers are clang, gcc and msvc 2013/2015. The clang and gcc version must support C++14. Should be possible to build on Windows, OSX and most *nix OS'es.
 
 1. Install CMake 2.8 or newer.
 2. Clone down the repo with with --recursive option so that sub modules are also cloned

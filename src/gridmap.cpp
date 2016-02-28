@@ -54,8 +54,7 @@ void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 
 void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
 {
-    gui_set_next_window_pos(&gui, 10, 300);
-    gui_begin_window(&gui, "Paths", 150, 400);
+    gui_begin_window(&gui, "Paths");
 
     static std::vector<std::pair<std::string, const GameData::PathEntry*>> items;
     if (items.empty())
@@ -287,7 +286,7 @@ void GridMap::Update()
 
 }
 
-void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
+void GridMap::Render(Renderer& rend, GuiContext& gui, int, int)
 {
 #if 0 // List of cams
     gui.next_window_pos = v2i(950, 50);
@@ -330,8 +329,8 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     }
 #else // Proper editor gui
 
-    gui_begin_frame(&gui, "camArea", 0, 0, screenW, screenH);
-    rend.beginLayer(gui_layer(&gui));
+    gui_begin_panel(&gui, "camArea");
+    rend.beginLayer(gui_layer(&gui) + 1);
 
     const float zoomBase = 1.2f;
     const float oldZoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
@@ -363,14 +362,14 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     if (zoomChanged)
     {
         int scroll[2];
-        gui_frame_scroll(&gui, &scroll[0], &scroll[1]);
+        gui_scroll(&gui, &scroll[0], &scroll[1]);
         float scaledCursorPos[2] = { 1.f*gui.cursor_pos[0], 1.f*gui.cursor_pos[1] };
         float oldClientPos[2] = { scroll[0] + scaledCursorPos[0], scroll[1] + scaledCursorPos[1] };
         float worldPos[2] = { oldClientPos[0]*(1.f/oldZoomMul), oldClientPos[1]*(1.f/oldZoomMul) };
         float newClientPos[2] = { worldPos[0]*zoomMul, worldPos[1]*zoomMul };
         float newScreenPos[2] = { newClientPos[0] - scaledCursorPos[0], newClientPos[1] - scaledCursorPos[1] };
 
-        gui_set_frame_scroll(&gui, (int)(newScreenPos[0] + 0.5f), (int)(newScreenPos[1] + 0.5f));
+        gui_set_scroll(&gui, (int)(newScreenPos[0] + 0.5f), (int)(newScreenPos[1] + 0.5f));
     }
 
     // Draw cam backgrounds
@@ -453,7 +452,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     }
 
     rend.endLayer();
-    gui_end_frame(&gui);
+    gui_end_panel(&gui);
 #endif
 }
 

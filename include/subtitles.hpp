@@ -17,7 +17,12 @@ public:
     {
         ParseSequnceNumber(TakeLine(lines));
         ParseStartEndTime(TakeLine(lines));
-        ParseText(TakeLine(lines));
+
+        // Text continues till we hit a blank line or EOF
+        while (!lines.empty() && !IsBlankLine(lines.front()))
+        {
+            ParseText(TakeLine(lines));
+        }
     }
 
     Uint64 SequnceNumber() const { return mSequnceNumber; }
@@ -26,8 +31,14 @@ public:
     const std::string& Text() const { return mSubTitleText; }
 
 protected:
+    bool IsBlankLine(const std::string& line)
+    {
+        return string_util::trim(line).empty();
+    }
+
     void ParseSequnceNumber(const std::string& line)
     {
+        // 1, 2, 3 etc
         mSequnceNumber = std::stoll(line);
     }
 
@@ -56,7 +67,14 @@ protected:
 
     void ParseText(const std::string& text)
     {
-        mSubTitleText = text;
+        if (mSubTitleText.empty())
+        {
+            mSubTitleText = text;
+        }
+        else
+        {
+            mSubTitleText += "\n" + text;
+        }
     }
 
     std::string TakeLine(std::deque<std::string>& lines)

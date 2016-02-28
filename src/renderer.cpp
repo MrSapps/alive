@@ -363,7 +363,9 @@ Renderer::Renderer(const char *fontPath)
         GL(glAttachShader(mProgram, mVs));
         GL(glAttachShader(mProgram, mFs));
 
-        GL(glBindAttribLocation(mProgram, 0, "v_pos"));
+        GL(glBindAttribLocation(mProgram, 0, "a_pos"));
+        GL(glBindAttribLocation(mProgram, 1, "a_uv"));
+        GL(glBindAttribLocation(mProgram, 2, "a_color"));
         GL(glLinkProgram(mProgram));
 
         GLint linked;
