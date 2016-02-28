@@ -309,6 +309,7 @@ EXEC_PROGRAM(${CMAKE_COMMAND}
 add_executable(Tests 
     test/sample_files/generated_headers/sample.lvl.g.h
     test/main.cpp
+    test/resource_locator_test.cpp
     include/subtitles.hpp
 )
 
