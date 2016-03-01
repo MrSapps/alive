@@ -2016,7 +2016,7 @@ TEST(SubTitleParser, Parse)
 
     // Test finding overlapping subtitle
     {
-        SubTitleParser p("1\r\n12:34:56,789 --> 12:34:56,800\r\nFool1\r\n2\r\n12:34:56,789 --> 12:34:56,810\r\nFool2\r\n");
+        SubTitleParser p("1\r\n12:34:56,789 --> 12:34:56,800\r\nFool1\r\n\r\n2\r\n12:34:56,789 --> 12:34:56,810\r\nFool2\r\n");
         ASSERT_EQ(0u, p.Find(45296788u).size());
         ASSERT_EQ(2u, p.Find(45296789u).size());
         ASSERT_EQ("Fool1", p.Find(45296789u)[0]->Text());
@@ -2027,6 +2027,16 @@ TEST(SubTitleParser, Parse)
         ASSERT_EQ(1u, p.Find(45296801u).size());
         ASSERT_EQ("Fool2", p.Find(45296801u)[0]->Text());
         ASSERT_EQ(0u, p.Find(1).size());
+    }
+
+    // Test multi line subs
+    {
+        auto data = std::deque<std::string> { "1", "00:00:00,000 --> 00:00:00,001", " lol1", "lol2", "lol3", "2" };
+        SubTitle s(data);
+        ASSERT_EQ(1u, s.SequnceNumber());
+        ASSERT_EQ(0u, s.StartTimeStampMsec());
+        ASSERT_EQ(1u, s.EndTimeStampMsec());
+        ASSERT_EQ("lol1\nlol2\nlol3\n2", s.Text());
     }
 }
 
