@@ -28,7 +28,8 @@ class DataSet
 public:
     DataSet(const char* dataSetPath, const char* dataSetName)
     {
-
+        std::ignore = dataSetPath;
+        std::ignore = dataSetName;
     }
 
     // TODO: File that ids this data set
@@ -59,17 +60,23 @@ class ResourceLocator
 public:
     ResourceLocator(IFileSystem& fileSystem, GameDefinition& game)
     {
-
+        std::ignore = fileSystem;
+        std::ignore = game;
     }
 
     void AddDataSet(DataSet& set, int priority)
     {
-
+        std::ignore = set;
+        std::ignore = priority;
     }
 
     void AddAnimationMapping(const char* resourceName, const char* dataSetName, int id, int animationIndex, int blendingMode)
     {
-
+        std::ignore = resourceName;
+        std::ignore = dataSetName;
+        std::ignore = id;
+        std::ignore = animationIndex;
+        std::ignore = blendingMode;
     }
 
     template<typename T>
@@ -77,12 +84,20 @@ public:
     {
         // For each data set attempt to find resourceName by mapping
         // to a LVL/file/chunk. Or in the case of a mod dataset something else.
+        std::ignore = resourceName;
+        return nullptr;
     }
 
     template<typename T>
     Resource<T>* LocateOriginal(const char* dataSetName, const char* lvlName, const char* fileName, int id, int animationIndex, int blendMode)
     {
-
+        std::ignore = dataSetName;
+        std::ignore = lvlName;
+        std::ignore = fileName;
+        std::ignore = id;
+        std::ignore = animationIndex;
+        std::ignore = blendMode;
+        return nullptr;
     }
 };
 
@@ -110,4 +125,5 @@ TEST(ResourceLocator, Locate)
     resMapped->Reload();
 
     TAnimationResource* resDirect = locator.LocateOriginal<Animation>("AEPCCD1", "mi.lvl", "ABEBSIC.BAN", 10, 1, 2);
+    resDirect->Reload();
 }
