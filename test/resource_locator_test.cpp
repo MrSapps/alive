@@ -6,6 +6,12 @@ public:
 
 };
 
+class FileSystem : public IFileSystem
+{
+public:
+
+};
+
 // AOPC, AOPSX, FoosMod etc
 class GameDefinition
 {
@@ -20,22 +26,33 @@ public:
 class DataSet
 {
 public:
+    DataSet(const char* dataSetPath, const char* dataSetName)
+    {
+
+    }
+
     // TODO: File that ids this data set
     // Files in dataset
+    std::vector<std::string> mFiles;
 };
 
-class BaseResource
+template<class T>
+class Resource
+{
+public:
+    void Reload()
+    {
+
+    }
+};
+
+class Animation
 {
 public:
 
 };
 
-class AnimationResource : public BaseResource
-{
-public:
-
-};
-
+using TAnimationResource = Resource < Animation >;
 
 class ResourceLocator
 {
@@ -50,28 +67,47 @@ public:
 
     }
 
-    BaseResource* Locate(const char* resourceName)
+    void AddAnimationMapping(const char* resourceName, const char* dataSetName, int id, int animationIndex, int blendingMode)
+    {
+
+    }
+
+    template<typename T>
+    Resource<T>* Locate(const char* resourceName)
     {
         // For each data set attempt to find resourceName by mapping
         // to a LVL/file/chunk. Or in the case of a mod dataset something else.
     }
-};
 
-class ResourceCache
-{
-public:
+    template<typename T>
+    Resource<T>* LocateOriginal(const char* dataSetName, const char* lvlName, const char* fileName, int id, int animationIndex, int blendMode)
+    {
 
+    }
 };
 
 TEST(ResourceLocator, Locate)
 {
-    IFileSystem fs;
     GameDefinition aePc;
+    aePc.mAuthor = "Oddworld Inhabitants";
+    aePc.mDescription = "The original PC version of Oddworld Abe's Exoddus";
+    aePc.mName = "Oddworld Abe's Exoddus PC";
+
+    FileSystem fs;
     ResourceLocator locator(fs, aePc);
 
-    DataSet aePcCd1;
+    DataSet aePcCd1("C:\\dataset_location", "AEPCCD1");
+    aePcCd1.mFiles.push_back("mi.lvl\\ABEBSIC.BAN");
+    aePcCd1.mFiles.push_back("INGRDNT.DDV");
+
     locator.AddDataSet(aePcCd1, 1);
 
+    locator.AddAnimationMapping("AbeWalkLeft", "ABEBSIC.BAN", 10, 1, 2);
+
     // TODO: Still want raw access to use "raw" data for debugging. e.g load pc and psx version of the sprite for AbeWalkLeft, maybe demo and mod override too.
-    BaseResource* res = locator.Locate("AbeWalkLeft");
+    // or could just create a mapper per data set (?)
+    TAnimationResource* resMapped = locator.Locate<Animation>("AbeWalkLeft");
+    resMapped->Reload();
+
+    TAnimationResource* resDirect = locator.LocateOriginal<Animation>("AEPCCD1", "mi.lvl", "ABEBSIC.BAN", 10, 1, 2);
 }
