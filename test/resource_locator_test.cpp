@@ -123,14 +123,75 @@ private:
     }
 };
 
-template<class T>
-class Resource
+class ResourceBase
 {
 public:
+};
+
+// TODO: Should store the dataset somewhere too so explicly picking another data set 
+// still loads the resource
+class ResourceCache
+{
+public:
+    void Add(ResourceBase* )
+    {
+        // TODO
+    }
+
+    void Remove(ResourceBase*)
+    {
+        // TODO
+    }
+
+    ResourceBase* Find(const char* resourceName)
+    {
+        auto it = mCache.find(resourceName);
+        if (it != std::end(mCache))
+        {
+            return it->second;
+        }
+        return nullptr;
+    }
+private:
+    std::map<const char*, ResourceBase*> mCache;
+};
+
+template<class T>
+class Resource : public ResourceBase
+{
+public:
+    Resource(const Resource& rhs)
+        : mCache(rhs.mCache)
+    {
+        *this = rhs;
+    }
+
+    Resource& operator = (const Resource& rhs)
+    {
+        if (this != &rhs)
+        {
+            // TODO
+        }
+        return *this;
+    }
+
+    Resource(ResourceCache& cache, std::unique_ptr<Oddlib::IStream>)
+        : mCache(cache)
+    {
+        mCache.Add(this);
+    }
+
+    ~Resource()
+    {
+        mCache.Remove(this);
+    }
+
     void Reload()
     {
 
     }
+private:
+    ResourceCache& mCache;
 };
 
 class Animation
@@ -170,8 +231,15 @@ public:
     */
 
     template<typename T>
-    Resource<T>* Locate(const char* resourceName)
+    Resource<T> Locate(const char* resourceName)
     {
+        // Check if the resource is cached
+        ResourceBase* cachedRes = mResourceCache.Find(resourceName);
+        if (cachedRes)
+        {
+            return *static_cast<Resource<T>*>(cachedRes);
+        }
+
         // For each data set attempt to find resourceName by mapping
         // to a LVL/file/chunk. Or in the case of a mod dataset something else.
         const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
@@ -181,19 +249,29 @@ public:
             {
                 const auto& lvlFileToFind = animMapping->mFile;
 
-                mFs.Open((path.mPath + "\\" + lvlFileToFind).c_str());
+                // TODO: We need to search in each LVL that the animMapping->mFile could be in
+                // within each path.mPath, however if the data path is a path to a mod then apply
+                // the override rules such as looking for PNGs instead.
+
+                auto stream = mFs.Open((path.mPath + "\\" + lvlFileToFind).c_str());
+                if (stream)
+                {
+                    return Resource<T>(mResourceCache, std::move(stream));
+                }
             }
         }
 
-        return nullptr;
+        // TODO
+        return Resource<T>(mResourceCache, nullptr);
     }
 
     template<typename T>
-    Resource<T>* Locate(const char* resourceName, const char* dataSetName)
+    Resource<T> Locate(const char* resourceName, const char* dataSetName)
     {
         std::ignore = resourceName;
         std::ignore = dataSetName;
-        return nullptr;
+        // TODO
+        return Resource<T>(mResourceCache,nullptr);
     }
 private:
     IFileSystem& mFs;
@@ -209,6 +287,7 @@ private:
         }
     };
     std::set<DataPath> mDataPaths;
+    ResourceCache mResourceCache;
 };
 
 TEST(ResourceLocator, ParseResourceMap)
@@ -227,7 +306,14 @@ TEST(ResourceLocator, Locate)
     const std::string resourceMapsJson = R"({"anims":[{"blend_mode":1,"name":"SLIGZ.BND_417_1"},{"blend_mode":1,"name":"SLIGZ.BND_417_2"}],"file":"SLIGZ.BND","id":417})";
     EXPECT_CALL(fs, OpenProxy(StrEq("resource_maps.json"))).WillRepeatedly(Return(new Oddlib::Stream(StringToVector(resourceMapsJson))));
     EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND"))).WillRepeatedly(Return(nullptr));
-    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location2\\SLIGZ.BND"))).WillRepeatedly(Return(nullptr));
+    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location2\\SLIGZ.BND")))
+        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector("test"))))
+        .RetiresOnSaturation();
+
+    // TODO: Find a way to make gmock stop caching the argument causing us to double delete
+    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location2\\SLIGZ.BND")))
+        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector("test"))))
+        .RetiresOnSaturation();
 
     ResourceLocator locator(fs, aePc, "resource_maps.json");
 
@@ -237,10 +323,13 @@ TEST(ResourceLocator, Locate)
     // TODO: Test parsing the resource map on its own, use this to add the stuff we want to test
     //locator.AddAnimationMapping("AbeWalkLeft", "ABEBSIC.BAN", 10, 1, 2);
 
-    TAnimationResource* resMapped = locator.Locate<Animation>("SLIGZ.BND_417_1");
-    resMapped->Reload();
+    TAnimationResource resMapped1 = locator.Locate<Animation>("SLIGZ.BND_417_1");
+    resMapped1.Reload();
+
+    TAnimationResource resMapped2 = locator.Locate<Animation>("SLIGZ.BND_417_1");
+    resMapped2.Reload();
 
     // Can explicitly set the dataset to obtain it from a known location
-    TAnimationResource* resDirect = locator.Locate<Animation>("SLIGZ.BND_417_1", "AEPCCD1");
-    resDirect->Reload();
+    TAnimationResource resDirect = locator.Locate<Animation>("SLIGZ.BND_417_1", "AEPCCD1");
+    resDirect.Reload();
 }
