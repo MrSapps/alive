@@ -1,21 +1,60 @@
 #include <gmock/gmock.h>
+#include <set>
+#include "oddlib/stream.hpp"
+#include <jsonxx/jsonxx.h>
+#include "logger.hpp"
+
+using namespace ::testing;
+
+std::vector<Uint8> StringToVector(const std::string& str)
+{
+    return std::vector<Uint8>(str.begin(), str.end());
+}
 
 class IFileSystem
 {
 public:
+    virtual ~IFileSystem() = default;
+    virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) = 0;
+
+    //virtual std::string UserSettingsDirectory() = 0;
 
 };
 
 class FileSystem : public IFileSystem
 {
 public:
+    virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
+    {
+        std::ignore = fileName;
+        return nullptr;
+    }
+};
 
+class MockFileSystem : public IFileSystem
+{
+public:
+    virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
+    {
+        // Can't mock unique_ptr return, so mock raw one which the unique_ptr one will call
+        return std::unique_ptr<Oddlib::IStream>(OpenProxy(fileName));
+    }
+
+    MOCK_METHOD1(OpenProxy, Oddlib::IStream*(const char*));
 };
 
 // AOPC, AOPSX, FoosMod etc
 class GameDefinition
 {
 public:
+    GameDefinition(IFileSystem& fileSystem, const char* gameDefinitionFile)
+    {
+        std::ignore = fileSystem;
+        std::ignore = gameDefinitionFile;
+    }
+
+    GameDefinition() = default;
+
     std::string mName;
     std::string mDescription;
     std::string mAuthor;
@@ -23,18 +62,65 @@ public:
     // Depends on DataSets
 };
 
-class DataSet
+class ResourceMapper
 {
 public:
-    DataSet(const char* dataSetPath, const char* dataSetName)
+    ResourceMapper(IFileSystem& fileSystem, const char* resourceMapFile)
     {
-        std::ignore = dataSetPath;
-        std::ignore = dataSetName;
+        auto stream = fileSystem.Open(resourceMapFile);
+        assert(stream != nullptr);
+        const auto jsonData = stream->LoadAllToString();
+        Parse(jsonData);
     }
 
-    // TODO: File that ids this data set
-    // Files in dataset
-    std::vector<std::string> mFiles;
+    struct AnimMapping
+    {
+        std::string mFile;
+        Uint32 mId;
+        Uint32 mBlendingMode;
+    };
+
+    const AnimMapping* Find(const char* resourceName) const
+    {
+        auto it = mAnimMaps.find(resourceName);
+        if (it != std::end(mAnimMaps))
+        {
+            return &it->second;
+        }
+        return nullptr;
+    }
+
+private:
+
+    std::map<std::string, AnimMapping> mAnimMaps;
+
+    void Parse(const std::string& json)
+    {
+        jsonxx::Object root;
+        root.parse(json);
+        if (root.has<jsonxx::Array>("anims"))
+        {
+            const jsonxx::Array& anims = root.get<jsonxx::Array>("anims");
+
+            const auto& file = root.get<jsonxx::String>("file");
+            const auto id = static_cast<Uint32>(root.get<jsonxx::Number>("id"));
+
+            for (size_t i = 0; i < anims.size(); i++)
+            {
+                AnimMapping mapping;
+                mapping.mFile = file;
+                mapping.mId = static_cast<Uint32>(id);
+
+                const jsonxx::Object& animRecord = anims.get<jsonxx::Object>(static_cast<Uint32>(i));
+
+                const auto& name = animRecord.get<jsonxx::String>("name");
+                const auto blendMode = animRecord.get<jsonxx::Number>("blend_mode");
+                mapping.mBlendingMode = static_cast<Uint32>(blendMode);
+
+                mAnimMaps[name] = mapping;
+            }
+        }
+    }
 };
 
 template<class T>
@@ -58,18 +144,21 @@ using TAnimationResource = Resource < Animation >;
 class ResourceLocator
 {
 public:
-    ResourceLocator(IFileSystem& fileSystem, GameDefinition& game)
+    ResourceLocator(const ResourceLocator&) = delete;
+    ResourceLocator& operator =(const ResourceLocator&) = delete;
+
+    ResourceLocator(IFileSystem& fileSystem, GameDefinition& game, const char* resourceMapFile)
+        : mFs(fileSystem), mResMapper(fileSystem, resourceMapFile)
     {
-        std::ignore = fileSystem;
         std::ignore = game;
     }
 
-    void AddDataSet(DataSet& set, int priority)
+    void AddDataPath(const char* dataPath, Sint32 priority)
     {
-        std::ignore = set;
-        std::ignore = priority;
+        mDataPaths.insert({ dataPath, priority });
     }
 
+    /*
     void AddAnimationMapping(const char* resourceName, const char* dataSetName, int id, int animationIndex, int blendingMode)
     {
         std::ignore = resourceName;
@@ -78,28 +167,54 @@ public:
         std::ignore = animationIndex;
         std::ignore = blendingMode;
     }
+    */
 
     template<typename T>
     Resource<T>* Locate(const char* resourceName)
     {
         // For each data set attempt to find resourceName by mapping
         // to a LVL/file/chunk. Or in the case of a mod dataset something else.
-        std::ignore = resourceName;
+        const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
+        if (animMapping)
+        {
+            for (auto& path : mDataPaths)
+            {
+                const auto& lvlFileToFind = animMapping->mFile;
+
+                mFs.Open((path.mPath + "\\" + lvlFileToFind).c_str());
+            }
+        }
+
         return nullptr;
     }
 
     template<typename T>
-    Resource<T>* LocateOriginal(const char* dataSetName, const char* lvlName, const char* fileName, int id, int animationIndex, int blendMode)
+    Resource<T>* Locate(const char* resourceName, const char* dataSetName)
     {
+        std::ignore = resourceName;
         std::ignore = dataSetName;
-        std::ignore = lvlName;
-        std::ignore = fileName;
-        std::ignore = id;
-        std::ignore = animationIndex;
-        std::ignore = blendMode;
         return nullptr;
     }
+private:
+    IFileSystem& mFs;
+    ResourceMapper mResMapper;
+    struct DataPath
+    {
+        std::string mPath;
+        Sint32 mPriority;
+
+        bool operator < (const DataPath& rhs) const
+        {
+            return mPriority < rhs.mPriority;
+        }
+    };
+    std::set<DataPath> mDataPaths;
 };
+
+TEST(ResourceLocator, ParseResourceMap)
+{
+    // TODO
+}
 
 TEST(ResourceLocator, Locate)
 {
@@ -108,22 +223,24 @@ TEST(ResourceLocator, Locate)
     aePc.mDescription = "The original PC version of Oddworld Abe's Exoddus";
     aePc.mName = "Oddworld Abe's Exoddus PC";
 
-    FileSystem fs;
-    ResourceLocator locator(fs, aePc);
+    MockFileSystem fs;
+    const std::string resourceMapsJson = R"({"anims":[{"blend_mode":1,"name":"SLIGZ.BND_417_1"},{"blend_mode":1,"name":"SLIGZ.BND_417_2"}],"file":"SLIGZ.BND","id":417})";
+    EXPECT_CALL(fs, OpenProxy(StrEq("resource_maps.json"))).WillRepeatedly(Return(new Oddlib::Stream(StringToVector(resourceMapsJson))));
+    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND"))).WillRepeatedly(Return(nullptr));
+    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location2\\SLIGZ.BND"))).WillRepeatedly(Return(nullptr));
 
-    DataSet aePcCd1("C:\\dataset_location", "AEPCCD1");
-    aePcCd1.mFiles.push_back("mi.lvl\\ABEBSIC.BAN");
-    aePcCd1.mFiles.push_back("INGRDNT.DDV");
+    ResourceLocator locator(fs, aePc, "resource_maps.json");
 
-    locator.AddDataSet(aePcCd1, 1);
+    locator.AddDataPath("C:\\dataset_location2", 2);
+    locator.AddDataPath("C:\\dataset_location1", 1);
+  
+    // TODO: Test parsing the resource map on its own, use this to add the stuff we want to test
+    //locator.AddAnimationMapping("AbeWalkLeft", "ABEBSIC.BAN", 10, 1, 2);
 
-    locator.AddAnimationMapping("AbeWalkLeft", "ABEBSIC.BAN", 10, 1, 2);
-
-    // TODO: Still want raw access to use "raw" data for debugging. e.g load pc and psx version of the sprite for AbeWalkLeft, maybe demo and mod override too.
-    // or could just create a mapper per data set (?)
-    TAnimationResource* resMapped = locator.Locate<Animation>("AbeWalkLeft");
+    TAnimationResource* resMapped = locator.Locate<Animation>("SLIGZ.BND_417_1");
     resMapped->Reload();
 
-    TAnimationResource* resDirect = locator.LocateOriginal<Animation>("AEPCCD1", "mi.lvl", "ABEBSIC.BAN", 10, 1, 2);
+    // Can explicitly set the dataset to obtain it from a known location
+    TAnimationResource* resDirect = locator.Locate<Animation>("SLIGZ.BND_417_1", "AEPCCD1");
     resDirect->Reload();
 }
