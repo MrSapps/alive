@@ -247,17 +247,17 @@ SET(Alive_Libs  AliveLib jsonxx oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
 
-add_executable(IntegrationTest
+add_executable(Integration
   ${WIN32_RESOURCES_SRC}
   test/integration_main.cpp
 )
-TARGET_LINK_LIBRARIES(IntegrationTest ${Alive_Libs})
+TARGET_LINK_LIBRARIES(Integration ${Alive_Libs})
 
-add_executable(DataTest
+add_executable(DataTool
   ${WIN32_RESOURCES_SRC}
   test/data_test_main.cpp
 )
-TARGET_LINK_LIBRARIES(DataTest ${Alive_Libs})
+TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
 
 
 
