@@ -304,16 +304,17 @@ TEST(ResourceLocator, Locate)
 
     MockFileSystem fs;
     const std::string resourceMapsJson = R"({"anims":[{"blend_mode":1,"name":"SLIGZ.BND_417_1"},{"blend_mode":1,"name":"SLIGZ.BND_417_2"}],"file":"SLIGZ.BND","id":417})";
-    EXPECT_CALL(fs, OpenProxy(StrEq("resource_maps.json"))).WillRepeatedly(Return(new Oddlib::Stream(StringToVector(resourceMapsJson))));
-    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND"))).WillRepeatedly(Return(nullptr));
-    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location2\\SLIGZ.BND")))
-        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector("test"))))
-        .RetiresOnSaturation();
+    
+    EXPECT_CALL(fs, OpenProxy(StrEq("resource_maps.json")))
+        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(resourceMapsJson))));
 
-    // TODO: Find a way to make gmock stop caching the argument causing us to double delete
+    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND")))
+        .WillRepeatedly(Return(nullptr));
+
     EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location2\\SLIGZ.BND")))
-        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector("test"))))
-        .RetiresOnSaturation();
+        .Times(2)
+        .WillOnce(Return(new Oddlib::Stream(StringToVector("test"))))   // For SLIGZ.BND_417_1
+        .WillOnce(Return(new Oddlib::Stream(StringToVector("test"))));  // For SLIGZ.BND_417_1
 
     ResourceLocator locator(fs, aePc, "resource_maps.json");
 
