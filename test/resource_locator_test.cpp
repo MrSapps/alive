@@ -142,40 +142,68 @@ private:
 class ResourceBase
 {
 public:
+    
 };
 
-// TODO: Should store the dataset somewhere too so explicly picking another data set 
-// still loads the resource
+class Animation : public ResourceBase
+{
+public:
+
+};
+
+// TODO: Handle resources that have been loaded via explicit dataset name
 class ResourceCache
 {
 public:
-    void Add(ResourceBase* )
+    void Add(const std::string& resourceName, std::shared_ptr<ResourceBase> resource)
     {
-        // TODO
+        mCache[resourceName] = resource;
     }
 
-    void Remove(ResourceBase*)
-    {
-        // TODO
-    }
-
-    ResourceBase* Find(const char* resourceName)
+    void Remove(const std::string& resourceName)
     {
         auto it = mCache.find(resourceName);
         if (it != std::end(mCache))
         {
-            return it->second;
+            auto sPtr = it->second.lock();
+            if (!sPtr)
+            {
+                mCache.erase(it);
+            }
+        }
+    }
+
+    template<class T>
+    std::shared_ptr<T> Find(const char* resourceName)
+    {
+        auto it = mCache.find(resourceName);
+        if (it != std::end(mCache))
+        {
+            auto sPtr = it->second.lock();
+            if (!sPtr)
+            {
+                mCache.erase(it);
+                return nullptr;
+            }
+            return std::static_pointer_cast<T>(sPtr);
         }
         return nullptr;
     }
 private:
-    std::map<const char*, ResourceBase*> mCache;
+    std::map<std::string, std::weak_ptr<ResourceBase>> mCache;
 };
 
+
 template<class T>
-class Resource : public ResourceBase
+class Resource
 {
 public:
+    Resource(ResourceCache& cache, std::shared_ptr<T> ptr)
+        : mCache(cache)
+    {
+        mPtr = ptr;
+    }
+
     Resource(const Resource& rhs)
         : mCache(rhs.mCache)
     {
@@ -186,37 +214,39 @@ public:
     {
         if (this != &rhs)
         {
-            // TODO
+            mResourceName = rhs.mResourceName;
+            mPtr = rhs.mPtr;
         }
         return *this;
     }
 
-    Resource(ResourceCache& cache, std::unique_ptr<Oddlib::IStream>)
-        : mCache(cache)
+    Resource(const std::string& resourceName, ResourceCache& cache, std::unique_ptr<Oddlib::IStream>)
+        : mCache(cache), mResourceName(resourceName)
     {
-        mCache.Add(this);
+        mPtr = std::make_shared<T>(); // TODO: Pass in stream
+        mCache.Add(mResourceName, mPtr);
     }
 
     ~Resource()
     {
-        mCache.Remove(this);
+        mCache.Remove(mResourceName);
     }
 
     void Reload()
     {
 
     }
+
+    T* Ptr()
+    {
+        return mPtr.get();
+    }
+
 private:
+    std::shared_ptr<T> mPtr;
+    std::string mResourceName;
     ResourceCache& mCache;
 };
-
-class Animation
-{
-public:
-
-};
-
-using TAnimationResource = Resource < Animation >;
 
 class ResourceLocator
 {
@@ -235,25 +265,14 @@ public:
         mDataPaths.insert({ dataPath, priority });
     }
 
-    /*
-    void AddAnimationMapping(const char* resourceName, const char* dataSetName, int id, int animationIndex, int blendingMode)
-    {
-        std::ignore = resourceName;
-        std::ignore = dataSetName;
-        std::ignore = id;
-        std::ignore = animationIndex;
-        std::ignore = blendingMode;
-    }
-    */
-
     template<typename T>
     Resource<T> Locate(const char* resourceName)
     {
         // Check if the resource is cached
-        ResourceBase* cachedRes = mResourceCache.Find(resourceName);
+        std::shared_ptr<T> cachedRes = mResourceCache.Find<T>(resourceName);
         if (cachedRes)
         {
-            return *static_cast<Resource<T>*>(cachedRes);
+            return Resource<T>(mResourceCache, cachedRes);
         }
 
         // For each data set attempt to find resourceName by mapping
@@ -268,17 +287,16 @@ public:
                 // TODO: We need to search in each LVL that the animMapping->mFile could be in
                 // within each path.mPath, however if the data path is a path to a mod then apply
                 // the override rules such as looking for PNGs instead.
-
                 auto stream = mFs.Open((path.mPath + "\\" + lvlFileToFind).c_str());
                 if (stream)
                 {
-                    return Resource<T>(mResourceCache, std::move(stream));
+                    return Resource<T>(resourceName, mResourceCache, std::move(stream));
                 }
             }
         }
 
         // TODO
-        return Resource<T>(mResourceCache, nullptr);
+        return Resource<T>("", mResourceCache, nullptr);
     }
 
     template<typename T>
@@ -287,7 +305,7 @@ public:
         std::ignore = resourceName;
         std::ignore = dataSetName;
         // TODO
-        return Resource<T>(mResourceCache,nullptr);
+        return Resource<T>("", mResourceCache, nullptr);
     }
 private:
     IFileSystem& mFs;
@@ -308,7 +326,17 @@ private:
 
 TEST(ResourceLocator, Cache)
 {
+    ResourceCache cache;
 
+    ASSERT_EQ(nullptr, cache.Find<Animation>("foo"));
+    {
+        Resource<Animation> res1("foo", cache, nullptr);
+
+        std::shared_ptr<Animation> cached = cache.Find<Animation>("foo");
+        ASSERT_NE(nullptr, cached);
+        ASSERT_EQ(cached.get(), res1.Ptr());
+    }
+    ASSERT_EQ(nullptr, cache.Find<Animation>("foo"));
 }
 
 TEST(ResourceLocator, ParseResourceMap)
@@ -341,7 +369,6 @@ TEST(ResourceLocator, ParseResourceMap)
 
 TEST(ResourceLocator, Locate)
 {
-    
     GameDefinition aePc;
     aePc.mAuthor = "Oddworld Inhabitants";
     aePc.mDescription = "The original PC version of Oddworld Abe's Exoddus";
@@ -353,9 +380,8 @@ TEST(ResourceLocator, Locate)
         .WillRepeatedly(Return(nullptr));
 
     EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location2\\SLIGZ.BND")))
-        .Times(2)
-        .WillOnce(Return(new Oddlib::Stream(StringToVector("test"))))   // For SLIGZ.BND_417_1
-        .WillOnce(Return(new Oddlib::Stream(StringToVector("test"))));  // For SLIGZ.BND_417_1
+        .Times(1)
+        .WillOnce(Return(new Oddlib::Stream(StringToVector("test"))));   // For SLIGZ.BND_417_1, 2nd call should be cached
 
     ResourceMapper mapper;
     mapper.AddAnimMapping("SLIGZ.BND_417_1", { "SLIGZ.BND", 417, 1 });
@@ -366,13 +392,13 @@ TEST(ResourceLocator, Locate)
     locator.AddDataPath("C:\\dataset_location2", 2);
     locator.AddDataPath("C:\\dataset_location1", 1);
   
-    TAnimationResource resMapped1 = locator.Locate<Animation>("SLIGZ.BND_417_1");
+    Resource<Animation> resMapped1 = locator.Locate<Animation>("SLIGZ.BND_417_1");
     resMapped1.Reload();
 
-    TAnimationResource resMapped2 = locator.Locate<Animation>("SLIGZ.BND_417_1");
+    Resource<Animation> resMapped2 = locator.Locate<Animation>("SLIGZ.BND_417_1");
     resMapped2.Reload();
 
     // Can explicitly set the dataset to obtain it from a known location
-    TAnimationResource resDirect = locator.Locate<Animation>("SLIGZ.BND_417_1", "AEPCCD1");
+    Resource<Animation> resDirect = locator.Locate<Animation>("SLIGZ.BND_417_1", "AEPCCD1");
     resDirect.Reload();
 }
