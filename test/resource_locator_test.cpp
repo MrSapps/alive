@@ -65,6 +65,18 @@ public:
 class ResourceMapper
 {
 public:
+    ResourceMapper() = default;
+
+    ResourceMapper(ResourceMapper&& rhs)
+    {
+        *this = std::move(rhs);
+    }
+
+    ResourceMapper& operator = (ResourceMapper&& rhs)
+    {
+        mAnimMaps = std::move(rhs.mAnimMaps);
+    }
+
     ResourceMapper(IFileSystem& fileSystem, const char* resourceMapFile)
     {
         auto stream = fileSystem.Open(resourceMapFile);
@@ -90,6 +102,10 @@ public:
         return nullptr;
     }
 
+    void AddAnimMapping(const std::string& resourceName, const AnimMapping& mapping)
+    {
+        mAnimMaps[resourceName] = mapping;
+    }
 private:
 
     std::map<std::string, AnimMapping> mAnimMaps;
@@ -117,7 +133,7 @@ private:
                 const auto blendMode = animRecord.get<jsonxx::Number>("blend_mode");
                 mapping.mBlendingMode = static_cast<Uint32>(blendMode);
 
-                mAnimMaps[name] = mapping;
+                AddAnimMapping(name, mapping);
             }
         }
     }
@@ -208,8 +224,8 @@ public:
     ResourceLocator(const ResourceLocator&) = delete;
     ResourceLocator& operator =(const ResourceLocator&) = delete;
 
-    ResourceLocator(IFileSystem& fileSystem, GameDefinition& game, const char* resourceMapFile)
-        : mFs(fileSystem), mResMapper(fileSystem, resourceMapFile)
+    ResourceLocator(IFileSystem& fileSystem, GameDefinition& game, ResourceMapper&& resourceMapper)
+        : mFs(fileSystem), mResMapper(resourceMapper)
     {
         std::ignore = game;
     }
@@ -290,23 +306,48 @@ private:
     ResourceCache mResourceCache;
 };
 
+TEST(ResourceLocator, Cache)
+{
+
+}
+
 TEST(ResourceLocator, ParseResourceMap)
 {
-    // TODO
+    const std::string resourceMapsJson = R"({"anims":[{"blend_mode":1,"name":"SLIGZ.BND_417_1"},{"blend_mode":1,"name":"SLIGZ.BND_417_2"}],"file":"SLIGZ.BND","id":417})";
+
+    MockFileSystem fs;
+
+    EXPECT_CALL(fs, OpenProxy(StrEq("resource_maps.json")))
+        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(resourceMapsJson))));
+
+    ResourceMapper mapper(fs, "resource_maps.json");
+    
+    const ResourceMapper::AnimMapping* r0 = mapper.Find("I don't exist");
+    ASSERT_EQ(nullptr, r0);
+
+    const ResourceMapper::AnimMapping* r1 = mapper.Find("SLIGZ.BND_417_1");
+    ASSERT_NE(nullptr, r1);
+    ASSERT_EQ("SLIGZ.BND", r1->mFile);
+    ASSERT_EQ(417, r1->mId);
+    ASSERT_EQ(1, r1->mBlendingMode);
+
+    const ResourceMapper::AnimMapping* r2 = mapper.Find("SLIGZ.BND_417_2");
+    ASSERT_NE(nullptr, r2);
+    ASSERT_EQ("SLIGZ.BND", r2->mFile);
+    ASSERT_EQ(417, r2->mId);
+    ASSERT_EQ(1, r2->mBlendingMode);
+
 }
 
 TEST(ResourceLocator, Locate)
 {
+    
     GameDefinition aePc;
     aePc.mAuthor = "Oddworld Inhabitants";
     aePc.mDescription = "The original PC version of Oddworld Abe's Exoddus";
     aePc.mName = "Oddworld Abe's Exoddus PC";
 
     MockFileSystem fs;
-    const std::string resourceMapsJson = R"({"anims":[{"blend_mode":1,"name":"SLIGZ.BND_417_1"},{"blend_mode":1,"name":"SLIGZ.BND_417_2"}],"file":"SLIGZ.BND","id":417})";
-    
-    EXPECT_CALL(fs, OpenProxy(StrEq("resource_maps.json")))
-        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(resourceMapsJson))));
 
     EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND")))
         .WillRepeatedly(Return(nullptr));
@@ -316,14 +357,15 @@ TEST(ResourceLocator, Locate)
         .WillOnce(Return(new Oddlib::Stream(StringToVector("test"))))   // For SLIGZ.BND_417_1
         .WillOnce(Return(new Oddlib::Stream(StringToVector("test"))));  // For SLIGZ.BND_417_1
 
-    ResourceLocator locator(fs, aePc, "resource_maps.json");
+    ResourceMapper mapper;
+    mapper.AddAnimMapping("SLIGZ.BND_417_1", { "SLIGZ.BND", 417, 1 });
+    mapper.AddAnimMapping("SLIGZ.BND_417_2", { "SLIGZ.BND", 417, 1 });
+
+    ResourceLocator locator(fs, aePc, std::move(mapper));
 
     locator.AddDataPath("C:\\dataset_location2", 2);
     locator.AddDataPath("C:\\dataset_location1", 1);
   
-    // TODO: Test parsing the resource map on its own, use this to add the stuff we want to test
-    //locator.AddAnimationMapping("AbeWalkLeft", "ABEBSIC.BAN", 10, 1, 2);
-
     TAnimationResource resMapped1 = locator.Locate<Animation>("SLIGZ.BND_417_1");
     resMapped1.Reload();
 
