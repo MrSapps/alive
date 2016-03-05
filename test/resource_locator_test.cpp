@@ -314,7 +314,7 @@ public:
     ResourceLocator& operator =(const ResourceLocator&) = delete;
 
     ResourceLocator(IFileSystem& fileSystem, GameDefinition& game, ResourceMapper&& resourceMapper)
-        : mFs(fileSystem), mResMapper(resourceMapper), mDataPaths(fileSystem)
+        : mDataPaths(fileSystem), mFs(fileSystem), mResMapper(std::move(resourceMapper))
     {
         std::ignore = game;
     }
@@ -365,10 +365,10 @@ public:
         return Resource<T>("", mResourceCache, nullptr);
     }
 private:
+    DataPaths mDataPaths;
     IFileSystem& mFs;
     ResourceMapper mResMapper;
     ResourceCache mResourceCache;
-    DataPaths mDataPaths;
 };
 
 TEST(DataPaths, Open)
@@ -408,14 +408,14 @@ TEST(ResourceLocator, ParseResourceMap)
     const ResourceMapper::AnimMapping* r1 = mapper.Find("SLIGZ.BND_417_1");
     ASSERT_NE(nullptr, r1);
     ASSERT_EQ("SLIGZ.BND", r1->mFile);
-    ASSERT_EQ(417, r1->mId);
-    ASSERT_EQ(1, r1->mBlendingMode);
+    ASSERT_EQ(417u, r1->mId);
+    ASSERT_EQ(1u, r1->mBlendingMode);
 
     const ResourceMapper::AnimMapping* r2 = mapper.Find("SLIGZ.BND_417_2");
     ASSERT_NE(nullptr, r2);
     ASSERT_EQ("SLIGZ.BND", r2->mFile);
-    ASSERT_EQ(417, r2->mId);
-    ASSERT_EQ(1, r2->mBlendingMode);
+    ASSERT_EQ(417u, r2->mId);
+    ASSERT_EQ(1u, r2->mBlendingMode);
 
 }
 
