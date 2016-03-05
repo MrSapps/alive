@@ -17,8 +17,8 @@ public:
     virtual ~IFileSystem() = default;
     virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) = 0;
 
+    // TODO impl this and other required helpers
     //virtual std::string UserSettingsDirectory() = 0;
-
 };
 
 class FileSystem : public IFileSystem
@@ -55,11 +55,14 @@ public:
 
     GameDefinition() = default;
 
+private:
     std::string mName;
     std::string mDescription;
     std::string mAuthor;
     // TODO: initial level, how maps connect, etc.
     // Depends on DataSets
+
+
 };
 
 class ResourceMapper
@@ -234,7 +237,7 @@ public:
 
     void Reload()
     {
-
+        // TODO
     }
 
     T* Ptr()
@@ -248,6 +251,55 @@ private:
     ResourceCache& mCache;
 };
 
+class DataPaths
+{
+public:
+    DataPaths(const DataPaths&) = delete;
+    DataPaths& operator = (const DataPaths&) = delete;
+
+    DataPaths(IFileSystem& fs)
+        :mFs(fs)
+    {
+
+    }
+
+    std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName)
+    {
+        for (auto& path : mDataPaths)
+        {
+            // TODO: We need to search in each LVL that the animMapping->mFile could be in
+            // within each path.mPath, however if the data path is a path to a mod then apply
+            // the override rules such as looking for PNGs instead.
+            auto stream = mFs.Open((path.mPath + "\\" + fileName).c_str());
+            if (stream)
+            {
+                return stream;
+            }
+        }
+        return nullptr;
+    }
+
+    void Add(const char* dataPath, Sint32 priority)
+    {
+        mDataPaths.insert({ dataPath, priority });
+    }
+private:
+    struct DataPath
+    {
+        std::string mPath;
+        Sint32 mPriority;
+
+        // Sort such that the lowest priority number is first.
+        bool operator < (const DataPath& rhs) const
+        {
+            return mPriority < rhs.mPriority;
+        }
+    };
+
+    std::set<DataPath> mDataPaths;
+    IFileSystem& mFs;
+};
+
 class ResourceLocator
 {
 public:
@@ -255,19 +307,21 @@ public:
     ResourceLocator& operator =(const ResourceLocator&) = delete;
 
     ResourceLocator(IFileSystem& fileSystem, GameDefinition& game, ResourceMapper&& resourceMapper)
-        : mFs(fileSystem), mResMapper(resourceMapper)
+        : mFs(fileSystem), mResMapper(resourceMapper), mDataPaths(fileSystem)
     {
         std::ignore = game;
     }
 
     void AddDataPath(const char* dataPath, Sint32 priority)
     {
-        mDataPaths.insert({ dataPath, priority });
+        mDataPaths.Add(dataPath, priority);
     }
 
     template<typename T>
     Resource<T> Locate(const char* resourceName)
     {
+        // TODO: Resource name to hash? Then everything past here uses hash value only
+
         // Check if the resource is cached
         std::shared_ptr<T> cachedRes = mResourceCache.Find<T>(resourceName);
         if (cachedRes)
@@ -280,18 +334,11 @@ public:
         const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
         if (animMapping)
         {
-            for (auto& path : mDataPaths)
+            const auto& lvlFileToFind = animMapping->mFile;
+            auto stream = mDataPaths.Open(lvlFileToFind);
+            if (stream)
             {
-                const auto& lvlFileToFind = animMapping->mFile;
-
-                // TODO: We need to search in each LVL that the animMapping->mFile could be in
-                // within each path.mPath, however if the data path is a path to a mod then apply
-                // the override rules such as looking for PNGs instead.
-                auto stream = mFs.Open((path.mPath + "\\" + lvlFileToFind).c_str());
-                if (stream)
-                {
-                    return Resource<T>(resourceName, mResourceCache, std::move(stream));
-                }
+                return Resource<T>(resourceName, mResourceCache, std::move(stream));
             }
         }
 
@@ -310,18 +357,8 @@ public:
 private:
     IFileSystem& mFs;
     ResourceMapper mResMapper;
-    struct DataPath
-    {
-        std::string mPath;
-        Sint32 mPriority;
-
-        bool operator < (const DataPath& rhs) const
-        {
-            return mPriority < rhs.mPriority;
-        }
-    };
-    std::set<DataPath> mDataPaths;
     ResourceCache mResourceCache;
+    DataPaths mDataPaths;
 };
 
 TEST(ResourceLocator, Cache)
@@ -370,9 +407,11 @@ TEST(ResourceLocator, ParseResourceMap)
 TEST(ResourceLocator, Locate)
 {
     GameDefinition aePc;
+    /*
     aePc.mAuthor = "Oddworld Inhabitants";
     aePc.mDescription = "The original PC version of Oddworld Abe's Exoddus";
     aePc.mName = "Oddworld Abe's Exoddus PC";
+    */
 
     MockFileSystem fs;
 
