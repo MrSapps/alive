@@ -77,7 +77,11 @@ public:
 
     ResourceMapper& operator = (ResourceMapper&& rhs)
     {
-        mAnimMaps = std::move(rhs.mAnimMaps);
+        if (this != &rhs)
+        {
+            mAnimMaps = std::move(rhs.mAnimMaps);
+        }
+        return *this;
     }
 
     ResourceMapper(IFileSystem& fileSystem, const char* resourceMapFile)
@@ -145,13 +149,16 @@ private:
 class ResourceBase
 {
 public:
-    
+    virtual void Reload() = 0;
 };
 
 class Animation : public ResourceBase
 {
 public:
-
+    virtual void Reload() override
+    {
+        // TODO
+    }
 };
 
 // TODO: Handle resources that have been loaded via explicit dataset name
@@ -224,7 +231,7 @@ public:
     }
 
     Resource(const std::string& resourceName, ResourceCache& cache, std::unique_ptr<Oddlib::IStream>)
-        : mCache(cache), mResourceName(resourceName)
+        : mResourceName(resourceName), mCache(cache)
     {
         mPtr = std::make_shared<T>(); // TODO: Pass in stream
         mCache.Add(mResourceName, mPtr);
@@ -237,7 +244,7 @@ public:
 
     void Reload()
     {
-        // TODO
+        mPtr->Reload();
     }
 
     T* Ptr()
@@ -320,7 +327,7 @@ public:
     template<typename T>
     Resource<T> Locate(const char* resourceName)
     {
-        // TODO: Resource name to hash? Then everything past here uses hash value only
+        // TODO: Use hashses for names after this point?
 
         // Check if the resource is cached
         std::shared_ptr<T> cachedRes = mResourceCache.Find<T>(resourceName);
@@ -346,9 +353,12 @@ public:
         return Resource<T>("", mResourceCache, nullptr);
     }
 
+    // This method should be used for debugging only - i.e so we can compare what resource X looks like
+    // in dataset A and B.
     template<typename T>
     Resource<T> Locate(const char* resourceName, const char* dataSetName)
     {
+
         std::ignore = resourceName;
         std::ignore = dataSetName;
         // TODO
@@ -360,6 +370,11 @@ private:
     ResourceCache mResourceCache;
     DataPaths mDataPaths;
 };
+
+TEST(DataPaths, Open)
+{
+    // TODO
+}
 
 TEST(ResourceLocator, Cache)
 {
@@ -404,7 +419,7 @@ TEST(ResourceLocator, ParseResourceMap)
 
 }
 
-TEST(ResourceLocator, Locate)
+TEST(ResourceLocator, LocateAnimation)
 {
     GameDefinition aePc;
     /*
@@ -440,4 +455,29 @@ TEST(ResourceLocator, Locate)
     // Can explicitly set the dataset to obtain it from a known location
     Resource<Animation> resDirect = locator.Locate<Animation>("SLIGZ.BND_417_1", "AEPCCD1");
     resDirect.Reload();
+}
+
+TEST(ResourceLocator, LocateFmv)
+{
+    // TODO
+}
+
+TEST(ResourceLocator, LocateSound)
+{
+    // TODO
+}
+
+TEST(ResourceLocator, LocateMusic)
+{
+    // TODO
+}
+
+TEST(ResourceLocator, LocateCamera)
+{
+    // TODO
+}
+
+TEST(ResourceLocator, LocatePath)
+{
+    // TODO
 }
