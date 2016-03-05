@@ -314,7 +314,7 @@ public:
     ResourceLocator& operator =(const ResourceLocator&) = delete;
 
     ResourceLocator(IFileSystem& fileSystem, GameDefinition& game, ResourceMapper&& resourceMapper)
-        : mDataPaths(fileSystem), mFs(fileSystem), mResMapper(std::move(resourceMapper))
+        : mDataPaths(fileSystem), mResMapper(std::move(resourceMapper))
     {
         std::ignore = game;
     }
@@ -366,7 +366,6 @@ public:
     }
 private:
     DataPaths mDataPaths;
-    IFileSystem& mFs;
     ResourceMapper mResMapper;
     ResourceCache mResourceCache;
 };
