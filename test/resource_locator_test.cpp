@@ -278,6 +278,36 @@ private:
     ResourceCache& mCache;
 };
 
+enum class DataTypes
+{
+    eAoPc,
+    eAoPcDemo,
+    eAoPsx,
+    eAoPsxDemo,
+    eAePc,
+    eAePcDemo,
+    eAePsxCd1,
+    eAePsxCd2,
+    eAePsxDemo
+};
+
+const char* ToString(DataTypes type)
+{
+    switch (type)
+    {
+    case DataTypes::eAoPc:      return "eAoPc";
+    case DataTypes::eAoPcDemo:  return "eAoPcDemo";
+    case DataTypes::eAoPsx:     return "eAoPsx";
+    case DataTypes::eAoPsxDemo: return "eAoPsxDemo";
+    case DataTypes::eAePc:      return "eAePc";
+    case DataTypes::eAePcDemo:  return "eAePcDemo";
+    case DataTypes::eAePsxCd1:  return "eAePsxCd1";
+    case DataTypes::eAePsxCd2:  return "eAePsxCd2";
+    case DataTypes::eAePsxDemo: return "eAePsxDemo";
+    default: abort();
+    }
+}
+
 class DataPaths
 {
 public:
@@ -347,11 +377,10 @@ public:
     template<typename T>
     Resource<T> Locate(const char* resourceName)
     {
-        // TODO: Use hashses for names after this point?
-        const size_t strHash = StringHash(resourceName);
+        const size_t resNameHash = StringHash(resourceName);
 
         // Check if the resource is cached
-        std::shared_ptr<T> cachedRes = mResourceCache.Find<T>(strHash);
+        std::shared_ptr<T> cachedRes = mResourceCache.Find<T>(resNameHash);
         if (cachedRes)
         {
             return Resource<T>(mResourceCache, cachedRes);
@@ -366,7 +395,7 @@ public:
             auto stream = mDataPaths.Open(lvlFileToFind);
             if (stream)
             {
-                return Resource<T>(strHash, mResourceCache, std::move(stream));
+                return Resource<T>(resNameHash, mResourceCache, std::move(stream));
             }
         }
 
@@ -377,11 +406,26 @@ public:
     // This method should be used for debugging only - i.e so we can compare what resource X looks like
     // in dataset A and B.
     template<typename T>
-    Resource<T> Locate(const char* resourceName, const char* dataSetName)
+    Resource<T> Locate(const char* resourceName, DataTypes dataSetName)
     {
+        const std::string uniqueName = std::string(resourceName) + ToString(dataSetName);
+        const size_t resNameHash = StringHash(uniqueName);
 
-        std::ignore = resourceName;
-        std::ignore = dataSetName;
+        // Check if the resource is cached
+        std::shared_ptr<T> cachedRes = mResourceCache.Find<T>(resNameHash);
+        if (cachedRes)
+        {
+            return Resource<T>(mResourceCache, cachedRes);
+        }
+
+        const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
+        if (animMapping)
+        {
+            // TODO: Find resource in specific data set 
+            //const auto& lvlFileToFind = animMapping->mFile;
+            //auto stream = mDataPaths.Open(lvlFileToFind, dataSetName);
+        }
+
         // TODO
         return Resource<T>(StringHash(""), mResourceCache, nullptr);
     }
@@ -489,7 +533,7 @@ TEST(ResourceLocator, LocateAnimation)
     resMapped2.Reload();
 
     // Can explicitly set the dataset to obtain it from a known location
-    Resource<Animation> resDirect = locator.Locate<Animation>("SLIGZ.BND_417_1", "AEPCCD1");
+    Resource<Animation> resDirect = locator.Locate<Animation>("SLIGZ.BND_417_1", DataTypes::eAePsxCd1);
     resDirect.Reload();
 }
 
