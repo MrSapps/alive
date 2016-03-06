@@ -372,7 +372,22 @@ private:
 
 TEST(DataPaths, Open)
 {
-    // TODO
+    MockFileSystem fs;
+
+    DataPaths paths(fs);
+
+    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND")))
+        .WillRepeatedly(Return(nullptr));
+
+    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location2\\SLIGZ.BND")))
+        .Times(1)
+        .WillOnce(Return(new Oddlib::Stream(StringToVector("test"))));
+
+    auto stream = paths.Open("SLIGZ.BND");
+    ASSERT_NE(nullptr, stream);
+
+    const auto str = stream->LoadAllToString();
+    ASSERT_EQ(str, "test");
 }
 
 TEST(ResourceLocator, Cache)
