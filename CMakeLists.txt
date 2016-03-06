@@ -224,6 +224,7 @@ SET(alivelib_src
     include/sdl_raii.hpp
     include/script.hpp
     src/script.cpp
+    include/resourcemapper.hpp
 )
 
 add_library(AliveLib STATIC

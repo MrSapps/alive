@@ -48,6 +48,7 @@ protected:
     SDL_Window* mWindow = nullptr;
     SDL_GLContext mContext = nullptr;
 
+    std::unique_ptr<class ResourceMapper> mResourceMapper;
     std::unique_ptr<class Renderer> mRenderer;
     std::unique_ptr<class Fmv> mFmv;
     std::unique_ptr<class Sound> mSound;

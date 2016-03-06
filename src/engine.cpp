@@ -15,6 +15,7 @@
 #include "gui.h"
 #include "guiwidgets.hpp"
 #include "oddlib/anim.hpp"
+#include "resourcemapper.hpp"
 
 #include "generated_gui_layout.cpp" // Has function "load_layout" to set gui layout. Only used in single .cpp file.
 
@@ -95,6 +96,20 @@ bool Engine::Init()
 {
     try
     {
+        GameDefinition gd;
+
+        // load the enumerated "built in" game defs
+
+        // load the enumerated "mod" game defs
+
+        // load the list of data paths and discover what they are
+
+        // create the resource mapper loading the resource maps from the json db
+        mResourceMapper = std::make_unique<ResourceMapper>();
+
+        // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
+        // also add in any extra maps for resources defined by the mod
+
         if (!mFileSystem.Init())
         {
             LOG_ERROR("File system init failure");
