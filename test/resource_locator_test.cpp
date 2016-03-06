@@ -43,9 +43,7 @@ class FileSystem : public IFileSystem
 public:
     virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
     {
-        // TODO
-        std::ignore = fileName;
-        return nullptr;
+        return std::make_unique<Oddlib::Stream>(fileName);
     }
 };
 
@@ -61,13 +59,43 @@ public:
     MOCK_METHOD1(OpenProxy, Oddlib::IStream*(const char*));
 };
 
+enum class DataTypes
+{
+    eAoPc,
+    eAoPcDemo,
+    eAoPsx,
+    eAoPsxDemo,
+    eAePc,
+    eAePcDemo,
+    eAePsxCd1,
+    eAePsxCd2,
+    eAePsxDemo
+};
+
+const char* ToString(DataTypes type)
+{
+    switch (type)
+    {
+    case DataTypes::eAoPc:      return "eAoPc";
+    case DataTypes::eAoPcDemo:  return "eAoPcDemo";
+    case DataTypes::eAoPsx:     return "eAoPsx";
+    case DataTypes::eAoPsxDemo: return "eAoPsxDemo";
+    case DataTypes::eAePc:      return "eAePc";
+    case DataTypes::eAePcDemo:  return "eAePcDemo";
+    case DataTypes::eAePsxCd1:  return "eAePsxCd1";
+    case DataTypes::eAePsxCd2:  return "eAePsxCd2";
+    case DataTypes::eAePsxDemo: return "eAePsxDemo";
+    default: abort();
+    }
+}
+
 // AOPC, AOPSX, FoosMod etc
 class GameDefinition
 {
 public:
     GameDefinition(IFileSystem& fileSystem, const char* gameDefinitionFile)
     {
-        // TODO
+        // TODO load from json file
         std::ignore = fileSystem;
         std::ignore = gameDefinitionFile;
     }
@@ -78,10 +106,8 @@ private:
     std::string mName;
     std::string mDescription;
     std::string mAuthor;
-    // TODO: initial level, how maps connect, etc.
-    // Depends on DataSets
-
-
+    std::string mInitialLevel;
+    std::vector<DataTypes> mRequiredDataSets;
 };
 
 class ResourceMapper
@@ -175,6 +201,12 @@ public:
 class Animation : public ResourceBase
 {
 public:
+    Animation(std::unique_ptr<Oddlib::IStream> stream)
+    {
+        // TODO
+        std::ignore = stream;
+    }
+
     virtual void Reload() override
     {
         // TODO
@@ -250,10 +282,10 @@ public:
         return *this;
     }
 
-    Resource(size_t resourceNameHash, ResourceCache& cache, std::unique_ptr<Oddlib::IStream>)
+    Resource(size_t resourceNameHash, ResourceCache& cache, std::unique_ptr<Oddlib::IStream> stream)
         : mResourceNameHash(resourceNameHash), mCache(cache)
     {
-        mPtr = std::make_shared<T>(); // TODO: Pass in stream
+        mPtr = std::make_shared<T>(std::move(stream));
         mCache.Add(mResourceNameHash, mPtr);
     }
 
@@ -277,36 +309,6 @@ private:
     size_t mResourceNameHash;
     ResourceCache& mCache;
 };
-
-enum class DataTypes
-{
-    eAoPc,
-    eAoPcDemo,
-    eAoPsx,
-    eAoPsxDemo,
-    eAePc,
-    eAePcDemo,
-    eAePsxCd1,
-    eAePsxCd2,
-    eAePsxDemo
-};
-
-const char* ToString(DataTypes type)
-{
-    switch (type)
-    {
-    case DataTypes::eAoPc:      return "eAoPc";
-    case DataTypes::eAoPcDemo:  return "eAoPcDemo";
-    case DataTypes::eAoPsx:     return "eAoPsx";
-    case DataTypes::eAoPsxDemo: return "eAoPsxDemo";
-    case DataTypes::eAePc:      return "eAePc";
-    case DataTypes::eAePcDemo:  return "eAePcDemo";
-    case DataTypes::eAePsxCd1:  return "eAePsxCd1";
-    case DataTypes::eAePsxCd2:  return "eAePsxCd2";
-    case DataTypes::eAePsxDemo: return "eAePsxDemo";
-    default: abort();
-    }
-}
 
 class DataPaths
 {
@@ -435,11 +437,14 @@ private:
     ResourceCache mResourceCache;
 };
 
-TEST(DataPaths, Open)
+TEST(ResourceLocator, DataPathsOpen)
 {
     MockFileSystem fs;
 
     DataPaths paths(fs);
+
+    paths.Add("C:\\dataset_location1", 1);
+    paths.Add("C:\\dataset_location2", 2);
 
     EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND")))
         .WillRepeatedly(Return(nullptr));
@@ -497,6 +502,13 @@ TEST(ResourceLocator, ParseResourceMap)
     ASSERT_EQ(417u, r2->mId);
     ASSERT_EQ(1u, r2->mBlendingMode);
 
+}
+
+TEST(ResourceLocator, ParseGameDefinition)
+{
+    // TODO
+    MockFileSystem fs;
+    GameDefinition gd(fs, "test_game_definition.json");
 }
 
 TEST(ResourceLocator, LocateAnimation)
