@@ -6,6 +6,23 @@
 
 using namespace ::testing;
 
+size_t StringHash(const char* s)
+{
+    // FNV hasher
+    size_t result = 2166136261U;
+    while (*s)
+    {
+        result = (16777619 * result) ^ static_cast<unsigned char>(*s);
+        s++;
+    }
+    return result;
+}
+
+size_t StringHash(const std::string& s)
+{
+    return StringHash(s.c_str());
+}
+
 std::vector<Uint8> StringToVector(const std::string& str)
 {
     return std::vector<Uint8>(str.begin(), str.end());
@@ -26,6 +43,7 @@ class FileSystem : public IFileSystem
 public:
     virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
     {
+        // TODO
         std::ignore = fileName;
         return nullptr;
     }
@@ -49,6 +67,7 @@ class GameDefinition
 public:
     GameDefinition(IFileSystem& fileSystem, const char* gameDefinitionFile)
     {
+        // TODO
         std::ignore = fileSystem;
         std::ignore = gameDefinitionFile;
     }
@@ -149,6 +168,7 @@ private:
 class ResourceBase
 {
 public:
+    virtual ~ResourceBase() = default;
     virtual void Reload() = 0;
 };
 
@@ -165,14 +185,14 @@ public:
 class ResourceCache
 {
 public:
-    void Add(const std::string& resourceName, std::shared_ptr<ResourceBase> resource)
+    void Add(size_t resourceHash, std::shared_ptr<ResourceBase> resource)
     {
-        mCache[resourceName] = resource;
+        mCache[resourceHash] = resource;
     }
 
-    void Remove(const std::string& resourceName)
+    void Remove(size_t resourceHash)
     {
-        auto it = mCache.find(resourceName);
+        auto it = mCache.find(resourceHash);
         if (it != std::end(mCache))
         {
             auto sPtr = it->second.lock();
@@ -184,9 +204,9 @@ public:
     }
 
     template<class T>
-    std::shared_ptr<T> Find(const char* resourceName)
+    std::shared_ptr<T> Find(size_t resourceHash)
     {
-        auto it = mCache.find(resourceName);
+        auto it = mCache.find(resourceHash);
         if (it != std::end(mCache))
         {
             auto sPtr = it->second.lock();
@@ -200,7 +220,7 @@ public:
         return nullptr;
     }
 private:
-    std::map<std::string, std::weak_ptr<ResourceBase>> mCache;
+    std::map<size_t, std::weak_ptr<ResourceBase>> mCache;
 };
 
 
@@ -224,22 +244,22 @@ public:
     {
         if (this != &rhs)
         {
-            mResourceName = rhs.mResourceName;
+            mResourceNameHash = rhs.mResourceNameHash;
             mPtr = rhs.mPtr;
         }
         return *this;
     }
 
-    Resource(const std::string& resourceName, ResourceCache& cache, std::unique_ptr<Oddlib::IStream>)
-        : mResourceName(resourceName), mCache(cache)
+    Resource(size_t resourceNameHash, ResourceCache& cache, std::unique_ptr<Oddlib::IStream>)
+        : mResourceNameHash(resourceNameHash), mCache(cache)
     {
         mPtr = std::make_shared<T>(); // TODO: Pass in stream
-        mCache.Add(mResourceName, mPtr);
+        mCache.Add(mResourceNameHash, mPtr);
     }
 
     ~Resource()
     {
-        mCache.Remove(mResourceName);
+        mCache.Remove(mResourceNameHash);
     }
 
     void Reload()
@@ -254,7 +274,7 @@ public:
 
 private:
     std::shared_ptr<T> mPtr;
-    std::string mResourceName;
+    size_t mResourceNameHash;
     ResourceCache& mCache;
 };
 
@@ -328,9 +348,10 @@ public:
     Resource<T> Locate(const char* resourceName)
     {
         // TODO: Use hashses for names after this point?
+        const size_t strHash = StringHash(resourceName);
 
         // Check if the resource is cached
-        std::shared_ptr<T> cachedRes = mResourceCache.Find<T>(resourceName);
+        std::shared_ptr<T> cachedRes = mResourceCache.Find<T>(strHash);
         if (cachedRes)
         {
             return Resource<T>(mResourceCache, cachedRes);
@@ -345,12 +366,12 @@ public:
             auto stream = mDataPaths.Open(lvlFileToFind);
             if (stream)
             {
-                return Resource<T>(resourceName, mResourceCache, std::move(stream));
+                return Resource<T>(strHash, mResourceCache, std::move(stream));
             }
         }
 
         // TODO
-        return Resource<T>("", mResourceCache, nullptr);
+        return Resource<T>(StringHash(""), mResourceCache, nullptr);
     }
 
     // This method should be used for debugging only - i.e so we can compare what resource X looks like
@@ -362,7 +383,7 @@ public:
         std::ignore = resourceName;
         std::ignore = dataSetName;
         // TODO
-        return Resource<T>("", mResourceCache, nullptr);
+        return Resource<T>(StringHash(""), mResourceCache, nullptr);
     }
 private:
     DataPaths mDataPaths;
@@ -394,15 +415,16 @@ TEST(ResourceLocator, Cache)
 {
     ResourceCache cache;
 
-    ASSERT_EQ(nullptr, cache.Find<Animation>("foo"));
+    const size_t resNameHash = StringHash("foo");
+    ASSERT_EQ(nullptr, cache.Find<Animation>(resNameHash));
     {
-        Resource<Animation> res1("foo", cache, nullptr);
+        Resource<Animation> res1(resNameHash, cache, nullptr);
 
-        std::shared_ptr<Animation> cached = cache.Find<Animation>("foo");
+        std::shared_ptr<Animation> cached = cache.Find<Animation>(resNameHash);
         ASSERT_NE(nullptr, cached);
         ASSERT_EQ(cached.get(), res1.Ptr());
     }
-    ASSERT_EQ(nullptr, cache.Find<Animation>("foo"));
+    ASSERT_EQ(nullptr, cache.Find<Animation>(resNameHash));
 }
 
 TEST(ResourceLocator, ParseResourceMap)
