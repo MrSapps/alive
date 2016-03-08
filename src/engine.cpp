@@ -96,16 +96,20 @@ bool Engine::Init()
 {
     try
     {
-        GameDefinition gd;
-
+  
         // load the enumerated "built in" game defs
+        GameDefinition gd;
 
         // load the enumerated "mod" game defs
 
-        // load the list of data paths and discover what they are
+        // load the list of data paths (if any) and discover what they are
+
+        FileSystem2 fs;
+        ResourceMapper mapper;
 
         // create the resource mapper loading the resource maps from the json db
-        mResourceMapper = std::make_unique<ResourceMapper>();
+        mResourceLocator = std::make_unique<ResourceLocator>(fs, gd, std::move(mapper));
+
 
         // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
         // also add in any extra maps for resources defined by the mod
