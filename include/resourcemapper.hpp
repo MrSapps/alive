@@ -41,35 +41,18 @@ public:
     }
 };
 
-enum class DataTypes
-{
-    eAoPc,
-    eAoPcDemo,
-    eAoPsx,
-    eAoPsxDemo,
-    eAePc,
-    eAePcDemo,
-    eAePsxCd1,
-    eAePsxCd2,
-    eAePsxDemo
-};
-
-const char* ToString(DataTypes type)
-{
-    switch (type)
-    {
-    case DataTypes::eAoPc:      return "AoPc";
-    case DataTypes::eAoPcDemo:  return "AoPcDemo";
-    case DataTypes::eAoPsx:     return "AoPsx";
-    case DataTypes::eAoPsxDemo: return "AoPsxDemo";
-    case DataTypes::eAePc:      return "AePc";
-    case DataTypes::eAePcDemo:  return "AePcDemo";
-    case DataTypes::eAePsxCd1:  return "AePsxCd1";
-    case DataTypes::eAePsxCd2:  return "AePsxCd2";
-    case DataTypes::eAePsxDemo: return "AePsxDemo";
-    default: abort();
-    }
-}
+/*
+// TODO: Make these known constants:
+"AoPc"
+"AoPcDemo"
+"AoPsx"
+"AoPsxDemo"
+"AePc"
+"AePcDemo"
+"AePsxCd1"
+"AePsxCd2"
+"AePsxDemo"
+*/
 
 // AOPC, AOPSX, FoosMod etc
 class GameDefinition
@@ -89,7 +72,8 @@ private:
     std::string mDescription;
     std::string mAuthor;
     std::string mInitialLevel;
-    std::vector<DataTypes> mRequiredDataSets;
+    std::string mDataSetName; // Name of this data set
+    std::vector<std::string> mRequiredDataSets;
     std::vector<std::string> mModDataSets; // Dirs/zips of override files relative to where gameDefinitionFile lives
 };
 
@@ -293,13 +277,13 @@ private:
     ResourceCache& mCache;
 };
 
-class DataPaths
+class ResourceLoader
 {
 public:
-    DataPaths(const DataPaths&) = delete;
-    DataPaths& operator = (const DataPaths&) = delete;
+    ResourceLoader(const ResourceLoader&) = delete;
+    ResourceLoader& operator = (const ResourceLoader&) = delete;
 
-    DataPaths(IFileSystem& fs)
+    ResourceLoader(IFileSystem& fs)
         :mFs(fs)
     {
 
@@ -321,7 +305,7 @@ public:
         return nullptr;
     }
 
-    std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName, DataTypes dataSetName)
+    std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName, const std::string& dataSetName)
     {
         for (auto& path : mDataPaths)
         {
@@ -345,7 +329,7 @@ private:
     {
         std::string mPath;
         Sint32 mPriority;
-        DataTypes mType; //TODO: Init this
+        std::string mType; //TODO: Init this AoPc, FoosMod etc
 
         // Sort such that the lowest priority number is first.
         bool operator < (const DataPath& rhs) const
@@ -407,9 +391,9 @@ public:
     // This method should be used for debugging only - i.e so we can compare what resource X looks like
     // in dataset A and B.
     template<typename T>
-    Resource<T> Locate(const char* resourceName, DataTypes dataSetName)
+    Resource<T> Locate(const char* resourceName, const std::string& dataSetName)
     {
-        const std::string uniqueName = std::string(resourceName) + ToString(dataSetName);
+        const std::string uniqueName = std::string(resourceName) + dataSetName;
         const size_t resNameHash = StringHash(uniqueName);
 
         // Check if the resource is cached
@@ -435,7 +419,7 @@ public:
         return Resource<T>(StringHash(""), mResourceCache, nullptr);
     }
 private:
-    DataPaths mDataPaths;
+    ResourceLoader mDataPaths;
     ResourceMapper mResMapper;
     ResourceCache mResourceCache;
 };

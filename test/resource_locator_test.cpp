@@ -19,14 +19,14 @@ public:
     MOCK_METHOD1(OpenProxy, Oddlib::IStream*(const char*));
 };
 
-TEST(ResourceLocator, DataPathsOpen)
+TEST(ResourceLocator, ResourceLoaderOpen)
 {
     MockFileSystem fs;
 
-    DataPaths paths(fs);
+    ResourceLoader loader(fs);
 
-    paths.Add("C:\\dataset_location1", 1);
-    paths.Add("C:\\dataset_location2", 2);
+    loader.Add("C:\\dataset_location1", 1);
+    loader.Add("C:\\dataset_location2", 2);
 
     EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND")))
         .WillRepeatedly(Return(nullptr));
@@ -35,7 +35,7 @@ TEST(ResourceLocator, DataPathsOpen)
         .Times(1)
         .WillOnce(Return(new Oddlib::Stream(StringToVector("test"))));
 
-    auto stream = paths.Open("SLIGZ.BND");
+    auto stream = loader.Open("SLIGZ.BND");
     ASSERT_NE(nullptr, stream);
 
     const auto str = stream->LoadAllToString();
@@ -105,8 +105,9 @@ TEST(ResourceLocator, LocateAnimation)
     aePc.mAuthor = "Oddworld Inhabitants";
     aePc.mDescription = "The original PC version of Oddworld Abe's Exoddus";
     aePc.mName = "Oddworld Abe's Exoddus PC";
+    aePc.mDataSetName = "AePc";
     */
-
+    
     MockFileSystem fs;
 
     EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND")))
@@ -132,7 +133,7 @@ TEST(ResourceLocator, LocateAnimation)
     resMapped2.Reload();
 
     // Can explicitly set the dataset to obtain it from a known location
-    Resource<Animation> resDirect = locator.Locate<Animation>("SLIGZ.BND_417_1", DataTypes::eAePsxCd1);
+    Resource<Animation> resDirect = locator.Locate<Animation>("SLIGZ.BND_417_1", "AePc");
     resDirect.Reload();
 }
 
