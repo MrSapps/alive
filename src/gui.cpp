@@ -877,7 +877,7 @@ void gui_end_ex(GuiContext *ctx, DragDropData *dropdata)
 	}
 
 	{ // Dragging stop logic
-		if (	!ctx->key_state[GUI_KEY_LMB] & GUI_KEYSTATE_DOWN_BIT || // Mouse released
+		if (	!(ctx->key_state[GUI_KEY_LMB] & GUI_KEYSTATE_DOWN_BIT) || // Mouse released
 				(ctx->key_state[GUI_KEY_LCTRL] & GUI_KEYSTATE_DOWN_BIT && ctx->mouse_scroll)) { // Scrolling when xy dragging
 			if (ctx->dragdropdata.tag && dropdata) {
 				int pos[2], size[2], c_p[2];
