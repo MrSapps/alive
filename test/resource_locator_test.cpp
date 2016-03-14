@@ -242,11 +242,35 @@ public:
         for (const auto& path : paths)
         {
             // TODO: Store the path and its identity
-            mIds.Identify(fs, path);
+            std::string id = mIds.Identify(fs, path);
+            auto it = mPaths.find(id);
+            if (it == std::end(mPaths))
+            {
+                mPaths[id] = std::vector < std::string > {path};
+            }
+            else
+            {
+                it->second.push_back(path);
+            }
+        }
+    }
+
+    const std::vector<std::string>& PathsFor(const std::string& id)
+    {
+        auto it = mPaths.find(id);
+        if (it == std::end(mPaths))
+        {
+            return mNotFoundResult;
+        }
+        else
+        {
+            return it->second;
         }
     }
 
 private:
+    std::map<std::string, std::vector<std::string>> mPaths;
+
     std::vector<std::string> Parse(const std::string& json)
     {
         std::vector<std::string> paths;
@@ -266,6 +290,7 @@ private:
     // To match to what a game def wants (AePcCd1, AoDemoPsx etc)
     // we use SLUS codes for PSX or if it contains ABEWIN.EXE etc then its AoPc.
     DataPathIdentities mIds;
+    std::vector<std::string> mNotFoundResult;
 };
 
 
@@ -299,9 +324,25 @@ TEST(ResourceLocator, Construct)
     EXPECT_CALL(fs, OpenProxy(StrEq("datasets.json")))
         .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(dataSetsJson))));
 
+    EXPECT_CALL(fs, Exists(StrEq("F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus\\Exoddus.exe")))
+        .WillOnce(Return(true));
+
+    EXPECT_CALL(fs, Exists(StrEq("C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin\\AbeWin.exe")))
+        .WillOnce(Return(false));
+    EXPECT_CALL(fs, Exists(StrEq("C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin\\Exoddus.exe")))
+        .WillOnce(Return(false));
+
     // Data paths are saved user paths to game data
     // load the list of data paths (if any) and discover what they are
     DataPaths dataPaths(fs, "datasetids.json", "datasets.json");
+
+    auto aoPaths = dataPaths.PathsFor("AoPc");
+    ASSERT_EQ(aoPaths.size(), 0u);
+
+
+    auto aePaths = dataPaths.PathsFor("AePc");
+    ASSERT_EQ(aePaths.size(), 1u);
+    ASSERT_EQ(aePaths[0], "F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus");
 
     /*
     std::vector<GameDefinition> gds;
