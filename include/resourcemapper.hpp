@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 inline size_t StringHash(const char* s)
 {
     // FNV hasher
@@ -28,6 +30,9 @@ public:
     virtual ~IFileSystem() = default;
     virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) = 0;
 
+    virtual std::vector<std::string> EnumerateFiles(const char* directory) = 0;
+    virtual bool Exists(const char* fileName) = 0;
+
     // TODO impl this and other required helpers
     //virtual std::string UserSettingsDirectory() = 0;
 };
@@ -38,6 +43,18 @@ public:
     virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
     {
         return std::make_unique<Oddlib::Stream>(fileName);
+    }
+
+    virtual std::vector<std::string> EnumerateFiles(const char* directory) override
+    {
+        // TODO
+        std::ignore = directory;
+        return std::vector<std::string>();
+    }
+
+    bool Exists(const char* /*fileName*/) override
+    {
+        return false;
     }
 };
 
@@ -219,7 +236,7 @@ public:
         return nullptr;
     }
 private:
-    std::map<size_t, std::weak_ptr<ResourceBase>> mCache;
+    std::unordered_map<size_t, std::weak_ptr<ResourceBase>> mCache;
 };
 
 
@@ -319,7 +336,7 @@ public:
 
     void Add(const char* dataPath, Sint32 priority)
     {
-        mDataPaths.insert({ dataPath, priority });
+        mDataPaths.insert({ dataPath, priority, "" });
 
         // TODO: !!! Need to ID the data path at this point
         // abort();
