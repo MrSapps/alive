@@ -90,8 +90,19 @@ TEST(ResourceLocator, ParseResourceMap)
 
 TEST(ResourceLocator, ParseGameDefinition)
 {
-    // TODO
+    const std::string gameDefJson = R"(
+    {
+     "paths": [
+        "F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus",
+        "C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin"
+      ]
+    }
+    )";
+
     MockFileSystem fs;
+    EXPECT_CALL(fs, OpenProxy(StrEq("test_game_definition.json")))
+        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(gameDefJson))));
+
     GameDefinition gd(fs, "test_game_definition.json");
 }
 
@@ -332,6 +343,26 @@ TEST(ResourceLocator, Construct)
     EXPECT_CALL(fs, Exists(StrEq("C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin\\Exoddus.exe")))
         .WillOnce(Return(false));
 
+    EXPECT_CALL(fs, EnumerateFiles(StrEq("${game_files}\\GameDefinitions")))
+        .WillOnce(Return(std::vector<std::string> { "AbesExoddusPc.json" }));
+
+    EXPECT_CALL(fs, EnumerateFiles(StrEq("${user_home}\\Alive\\Mods")))
+        .WillOnce(Return(std::vector<std::string> {  }));
+
+
+    const std::string aePcGameDefJson = R"(
+{
+ "paths": [
+    "F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus",
+    "C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin"
+  ]
+}
+)";
+
+    EXPECT_CALL(fs, OpenProxy(StrEq("${game_files}\\GameDefinitions\\AbesExoddusPc.json")))
+        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(aePcGameDefJson))));
+
+
     // Data paths are saved user paths to game data
     // load the list of data paths (if any) and discover what they are
     DataPaths dataPaths(fs, "datasetids.json", "datasets.json");
@@ -344,21 +375,22 @@ TEST(ResourceLocator, Construct)
     ASSERT_EQ(aePaths.size(), 1u);
     ASSERT_EQ(aePaths[0], "F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus");
 
-    /*
+   
     std::vector<GameDefinition> gds;
  
+
     // load the enumerated "built-in" game defs
     const auto builtInGds = fs.EnumerateFiles("${game_files}\\GameDefinitions");
     for (const auto& file : builtInGds)
     {
-        gds.emplace_back(GameDefinition(fs, file.c_str()));
+        gds.emplace_back(GameDefinition(fs, (std::string("${game_files}\\GameDefinitions") + "\\" + file).c_str()));
     }
 
     // load the enumerated "mod" game defs
     const auto modGs = fs.EnumerateFiles("${user_home}\\Alive\\Mods");
     for (const auto& file : modGs)
     {
-        gds.emplace_back(GameDefinition(fs, file.c_str()));
+        gds.emplace_back(GameDefinition(fs, (std::string("${user_home}\\Alive\\Mods") + "\\" + file).c_str()));
     }
 
 
@@ -383,5 +415,5 @@ TEST(ResourceLocator, Construct)
     // Now we can obtain resources
     Resource<Animation> resMapped1 = resourceLocator.Locate<Animation>("SLIGZ.BND_417_1");
     resMapped1.Reload();
-    */
+
 }

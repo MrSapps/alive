@@ -77,14 +77,45 @@ class GameDefinition
 public:
     GameDefinition(IFileSystem& fileSystem, const char* gameDefinitionFile)
     {
-        // TODO load from json file
-        std::ignore = fileSystem;
-        std::ignore = gameDefinitionFile;
+        auto stream = fileSystem.Open(gameDefinitionFile);
+        assert(stream != nullptr);
+        const auto jsonData = stream->LoadAllToString();
+        Parse(jsonData);
     }
 
     GameDefinition() = default;
 
 private:
+    void Parse(const std::string& json)
+    {
+        jsonxx::Object root;
+        root.parse(json);
+        if (root.has<jsonxx::Array>("anims"))
+        {
+            /*
+            const jsonxx::Array& anims = root.get<jsonxx::Array>("anims");
+
+            const auto& file = root.get<jsonxx::String>("file");
+            const auto id = static_cast<Uint32>(root.get<jsonxx::Number>("id"));
+
+            for (size_t i = 0; i < anims.size(); i++)
+            {
+                AnimMapping mapping;
+                mapping.mFile = file;
+                mapping.mId = static_cast<Uint32>(id);
+
+                const jsonxx::Object& animRecord = anims.get<jsonxx::Object>(static_cast<Uint32>(i));
+
+                const auto& name = animRecord.get<jsonxx::String>("name");
+                const auto blendMode = animRecord.get<jsonxx::Number>("blend_mode");
+                mapping.mBlendingMode = static_cast<Uint32>(blendMode);
+
+                AddAnimMapping(name, mapping);
+            }
+            */
+        }
+    }
+
     std::string mName;
     std::string mDescription;
     std::string mAuthor;
