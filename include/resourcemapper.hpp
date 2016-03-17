@@ -84,35 +84,33 @@ public:
     }
 
     GameDefinition() = default;
-
+    
+    const std::string& Name() const { return mName; }
+    const std::string& Description() const { return mDescription; }
+    const std::string& Author() const { return mAuthor; }
+    const std::string& InitialLevel() const { return mInitialLevel; }
+    const std::string& DataSet() const { return mDataSetName; }
 private:
+
     void Parse(const std::string& json)
     {
         jsonxx::Object root;
         root.parse(json);
-        if (root.has<jsonxx::Array>("anims"))
+        
+        mName = root.get<jsonxx::String>("Name");
+        mDescription = root.get<jsonxx::String>("Description");
+        mAuthor = root.get<jsonxx::String>("Author");
+        mInitialLevel = root.get<jsonxx::String>("InitialLevel");
+        mDataSetName = root.get<jsonxx::String>("DatasetName");
+
+        if (root.has<jsonxx::Array>("RequiredDatasets"))
         {
-            /*
-            const jsonxx::Array& anims = root.get<jsonxx::Array>("anims");
-
-            const auto& file = root.get<jsonxx::String>("file");
-            const auto id = static_cast<Uint32>(root.get<jsonxx::Number>("id"));
-
-            for (size_t i = 0; i < anims.size(); i++)
+            const auto requiredSets = root.get<jsonxx::Array>("RequiredDatasets");
+            mRequiredDataSets.reserve(requiredSets.size());
+            for (size_t i = 0; i < requiredSets.size(); i++)
             {
-                AnimMapping mapping;
-                mapping.mFile = file;
-                mapping.mId = static_cast<Uint32>(id);
-
-                const jsonxx::Object& animRecord = anims.get<jsonxx::Object>(static_cast<Uint32>(i));
-
-                const auto& name = animRecord.get<jsonxx::String>("name");
-                const auto blendMode = animRecord.get<jsonxx::Number>("blend_mode");
-                mapping.mBlendingMode = static_cast<Uint32>(blendMode);
-
-                AddAnimMapping(name, mapping);
+                mRequiredDataSets.emplace_back(requiredSets.get<jsonxx::String>(static_cast<Uint32>(i)));
             }
-            */
         }
     }
 
@@ -122,7 +120,6 @@ private:
     std::string mInitialLevel;
     std::string mDataSetName; // Name of this data set
     std::vector<std::string> mRequiredDataSets;
-    std::vector<std::string> mModDataSets; // Dirs/zips of override files relative to where gameDefinitionFile lives
 };
 
 class ResourceMapper

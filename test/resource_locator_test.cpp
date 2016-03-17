@@ -90,12 +90,15 @@ TEST(ResourceLocator, ParseResourceMap)
 
 TEST(ResourceLocator, ParseGameDefinition)
 {
+
     const std::string gameDefJson = R"(
     {
-     "paths": [
-        "F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus",
-        "C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin"
-      ]
+      "Name" : "Oddworld Abe's Exoddus PC",
+      "Description" : "The original PC version of Oddworld Abe's Exoddus",
+      "Author" : "Oddworld Inhabitants",
+      "InitialLevel" : "st_path1",
+      "DatasetName" : "AePc",
+      "RequiredDatasets"  : []
     }
     )";
 
@@ -104,6 +107,11 @@ TEST(ResourceLocator, ParseGameDefinition)
         .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(gameDefJson))));
 
     GameDefinition gd(fs, "test_game_definition.json");
+    ASSERT_EQ(gd.Name(), "Oddworld Abe's Exoddus PC");
+    ASSERT_EQ(gd.Description(), "The original PC version of Oddworld Abe's Exoddus");
+    ASSERT_EQ(gd.Author(), "Oddworld Inhabitants");
+    ASSERT_EQ(gd.InitialLevel(), "st_path1");
+    ASSERT_EQ(gd.DataSet(), "AePc");
 }
 
 TEST(ResourceLocator, GameDefinitionDiscovery)
@@ -114,13 +122,7 @@ TEST(ResourceLocator, GameDefinitionDiscovery)
 TEST(ResourceLocator, LocateAnimation)
 {
     GameDefinition aePc;
-    /*
-    aePc.mAuthor = "Oddworld Inhabitants";
-    aePc.mDescription = "The original PC version of Oddworld Abe's Exoddus";
-    aePc.mName = "Oddworld Abe's Exoddus PC";
-    aePc.mDataSetName = "AePc";
-    */
-    
+
     MockFileSystem fs;
 
     EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND")))
@@ -311,26 +313,26 @@ TEST(ResourceLocator, Construct)
     MockFileSystem fs;
 
     const std::string resourceMapsJson = R"(
-{
-  "data_set_ids" :
-  {
-    "AoPc": { "files":  [ "AbeWin.exe" ] },
-    "AePc": { "files":  [ "Exoddus.exe" ] }
-  }
-}
-)";
+    {
+      "data_set_ids" :
+      {
+        "AoPc": { "files":  [ "AbeWin.exe" ] },
+        "AePc": { "files":  [ "Exoddus.exe" ] }
+      }
+    }
+    )";
 
     EXPECT_CALL(fs, OpenProxy(StrEq("datasetids.json")))
         .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(resourceMapsJson))));
 
     const std::string dataSetsJson = R"(
-{
- "paths": [
-    "F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus",
-    "C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin"
-  ]
-}
-)";
+    {
+     "paths": [
+        "F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus",
+        "C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin"
+      ]
+    }
+    )";
 
     EXPECT_CALL(fs, OpenProxy(StrEq("datasets.json")))
         .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(dataSetsJson))));
@@ -351,13 +353,15 @@ TEST(ResourceLocator, Construct)
 
 
     const std::string aePcGameDefJson = R"(
-{
- "paths": [
-    "F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus",
-    "C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin"
-  ]
-}
-)";
+    {
+      "Name" : "Oddworld Abe's Exoddus PC",
+      "Description" : "The original PC version of Oddworld Abe's Exoddus",
+      "Author" : "Oddworld Inhabitants",
+      "InitialLevel" : "st_path1",
+      "DatasetName" : "AePc",
+      "RequiredDatasets"  : []
+    }
+    )";
 
     EXPECT_CALL(fs, OpenProxy(StrEq("${game_files}\\GameDefinitions\\AbesExoddusPc.json")))
         .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(aePcGameDefJson))));
