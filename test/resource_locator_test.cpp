@@ -281,6 +281,20 @@ public:
         }
     }
 
+    std::vector<std::string> MissingDataSets(const std::vector<std::string>& requiredSets)
+    {
+        std::vector<std::string> ret;
+        for (const auto& dataset : requiredSets)
+        {
+            if (!PathsFor(dataset).empty())
+            {
+                break;
+            }
+            ret.emplace_back(dataset);
+        }
+        return ret;
+    }
+
 private:
     std::map<std::string, std::vector<std::string>> mPaths;
 
@@ -359,7 +373,7 @@ TEST(ResourceLocator, Construct)
       "Author" : "Oddworld Inhabitants",
       "InitialLevel" : "st_path1",
       "DatasetName" : "AePc",
-      "RequiredDatasets"  : []
+      "RequiredDatasets"  : [ "Foo1", "Foo2" ]
     }
     )";
 
@@ -404,7 +418,11 @@ TEST(ResourceLocator, Construct)
     GameDefinition& selected = gds[0];
 
     // ask for any missing data sets
-    //dataPaths.MissingDataSets(selected.RequiredDataSets());
+    auto requiredSets = selected.RequiredDataSets();
+    requiredSets.emplace_back("AePc"); // add in self to check its found
+    const auto missing = dataPaths.MissingDataSets(requiredSets);
+    const std::vector<std::string> expected{ "Foo1", "Foo2" };
+    ASSERT_EQ(expected, missing);
 
     // TODO: Pass in data paths here instead of calling AddDataPath?
     // create the resource mapper loading the resource maps from the json db

@@ -90,6 +90,7 @@ public:
     const std::string& Author() const { return mAuthor; }
     const std::string& InitialLevel() const { return mInitialLevel; }
     const std::string& DataSet() const { return mDataSetName; }
+    const std::vector<std::string> RequiredDataSets() const { return mRequiredDataSets; }
 private:
 
     void Parse(const std::string& json)
