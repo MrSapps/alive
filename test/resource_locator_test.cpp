@@ -27,8 +27,8 @@ TEST(ResourceLocator, ResourceLoaderOpen)
 
     ResourceLoader loader(fs);
 
-    loader.Add("C:\\dataset_location1", 1);
-    loader.Add("C:\\dataset_location2", 2);
+    loader.Add("C:\\dataset_location1", 1, "AePc");
+    loader.Add("C:\\dataset_location2", 2, "AePc");
 
     EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND")))
         .WillRepeatedly(Return(nullptr));
@@ -138,8 +138,8 @@ TEST(ResourceLocator, LocateAnimation)
 
     ResourceLocator locator(fs, aePc, std::move(mapper));
 
-    locator.AddDataPath("C:\\dataset_location2", 2);
-    locator.AddDataPath("C:\\dataset_location1", 1);
+    locator.AddDataPath("C:\\dataset_location2", 2, "AoPc");
+    locator.AddDataPath("C:\\dataset_location1", 1, "AePc");
   
     Resource<Animation> resMapped1 = locator.Locate<Animation>("SLIGZ.BND_417_1");
     resMapped1.Reload();
@@ -429,7 +429,7 @@ TEST(ResourceLocator, Construct)
     ResourceLocator resourceLocator(fs, selected, std::move(mapper));
     
     // TODO: Should be a DataPath instance (?)
-    // locator.AddDataPath(dataPaths[i], i);
+    //locator.AddDataPath(dataPaths);
 
     // TODO: Allow changing at any point, don't set in ctor?
     //resourceLocator.SetGameDefinition(&selected);

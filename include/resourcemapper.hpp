@@ -363,12 +363,9 @@ public:
         return nullptr;
     }
 
-    void Add(const char* dataPath, Sint32 priority)
+    void Add(const char* dataPath, Sint32 priority, const std::string& dataSetId)
     {
-        mDataPaths.insert({ dataPath, priority, "" });
-
-        // TODO: !!! Need to ID the data path at this point
-        // abort();
+        mDataPaths.insert({ dataPath, priority, dataSetId });
     }
 private:
     struct DataPath
@@ -400,9 +397,9 @@ public:
         std::ignore = game;
     }
 
-    void AddDataPath(const char* dataPath, Sint32 priority)
+    void AddDataPath(const char* dataPath, Sint32 priority, const std::string& dataSetId)
     {
-        mDataPaths.Add(dataPath, priority);
+        mDataPaths.Add(dataPath, priority, dataSetId);
     }
 
     template<typename T>
