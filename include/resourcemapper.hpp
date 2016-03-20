@@ -273,8 +273,8 @@ template<class T>
 class Resource
 {
 public:
-    Resource(ResourceCache& cache, std::shared_ptr<T> ptr)
-        : mCache(cache)
+    Resource(ResourceCache& cache, std::shared_ptr<T> ptr, size_t resourceNameHash)
+        : mCache(cache), mResourceNameHash(resourceNameHash)
     {
         mPtr = ptr;
     }
@@ -411,7 +411,7 @@ public:
         std::shared_ptr<T> cachedRes = mResourceCache.Find<T>(resNameHash);
         if (cachedRes)
         {
-            return Resource<T>(mResourceCache, cachedRes);
+            return Resource<T>(mResourceCache, cachedRes, resNameHash);
         }
 
         // For each data set attempt to find resourceName by mapping
@@ -443,7 +443,7 @@ public:
         std::shared_ptr<T> cachedRes = mResourceCache.Find<T>(resNameHash);
         if (cachedRes)
         {
-            return Resource<T>(mResourceCache, cachedRes);
+            return Resource<T>(mResourceCache, cachedRes, resNameHash);
         }
 
         const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
