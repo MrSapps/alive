@@ -265,7 +265,7 @@ public:
         return nullptr;
     }
 private:
-    std::map<size_t, std::weak_ptr<ResourceBase>> mCache;
+    std::unordered_map<size_t, std::weak_ptr<ResourceBase>> mCache;
 };
 
 
