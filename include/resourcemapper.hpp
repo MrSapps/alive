@@ -274,7 +274,7 @@ class Resource
 {
 public:
     Resource(ResourceCache& cache, std::shared_ptr<T> ptr, size_t resourceNameHash)
-        : mCache(cache), mResourceNameHash(resourceNameHash)
+        : mResourceNameHash(resourceNameHash), mCache(cache)
     {
         mPtr = ptr;
     }
