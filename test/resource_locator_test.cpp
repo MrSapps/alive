@@ -411,9 +411,6 @@ TEST(ResourceLocator, Construct)
         gds.emplace_back(GameDefinition(fs, (std::string("${user_home}\\Alive\\Mods") + "\\" + file).c_str()));
     }
 
-
-    ResourceMapper mapper;
-
     // Get the user selected game def
     GameDefinition& selected = gds[0];
 
@@ -424,16 +421,24 @@ TEST(ResourceLocator, Construct)
     const std::vector<std::string> expected{ "Foo1", "Foo2" };
     ASSERT_EQ(expected, missing);
 
-    // TODO: Pass in data paths here instead of calling AddDataPath?
     // create the resource mapper loading the resource maps from the json db
+    ResourceMapper mapper;
+    mapper.AddAnimMapping("SLIGZ.BND_417_1", { "SLIGZ.BND", 417, 1 });
+
     ResourceLocator resourceLocator(fs, selected, std::move(mapper));
     
-    // TODO: Should be a DataPath instance (?)
-    //locator.AddDataPath(dataPaths);
+    // TODO: Handle extra mod dependant data sets
 
-    // TODO: Allow changing at any point, don't set in ctor?
-    //resourceLocator.SetGameDefinition(&selected);
-    
+    for (const auto& requiredSet : selected.RequiredDataSets())
+    {
+        const auto& paths = dataPaths.PathsFor(requiredSet);
+        for (const auto& path : paths)
+        {
+            // TODO: Priority
+            resourceLocator.AddDataPath(path.c_str(), 0, requiredSet);
+        }
+    }
+
     // Now we can obtain resources
     Resource<Animation> resMapped1 = resourceLocator.Locate<Animation>("SLIGZ.BND_417_1");
     resMapped1.Reload();
