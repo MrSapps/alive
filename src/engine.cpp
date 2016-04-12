@@ -105,10 +105,13 @@ bool Engine::Init()
         // load the list of data paths (if any) and discover what they are
 
         FileSystem2 fs;
-        ResourceMapper mapper;
+        ResourceMapper mapper(fs, "F:\\Data\\alive\\alive\\data\\resources.json");
 
         // create the resource mapper loading the resource maps from the json db
         mResourceLocator = std::make_unique<ResourceLocator>(fs, gd, std::move(mapper));
+
+        auto res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31");
+        res.Reload();
 
 
         // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper

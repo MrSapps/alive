@@ -74,7 +74,30 @@ public:
 // AOPC, AOPSX, FoosMod etc
 class GameDefinition
 {
+private:
+
+
+
 public:
+    /*
+    static std::vector<std::pair<std::string, std::string>> GetMergedDatasets(
+        const GameDefinition& selectedGd, 
+        const std::vector<GameDefinition>& builtInGds,
+        const std::vector<GameDefinition>& modGds)
+    {
+        auto requiredSets = selectedGd.RequiredDataSets();
+        for (auto& reqSet : requiredSets)
+        {
+            // If the required data set is a mod then recursively add the mods required data sets
+            for (auto& gd : modGds)
+            {
+
+            }
+        }
+        return std::vector<std::pair<std::string, std::string>> {};
+    }
+    */
+
     GameDefinition(IFileSystem& fileSystem, const char* gameDefinitionFile)
     {
         auto stream = fileSystem.Open(gameDefinitionFile);
@@ -177,28 +200,36 @@ private:
 
     void Parse(const std::string& json)
     {
-        jsonxx::Object root;
-        root.parse(json);
-        if (root.has<jsonxx::Array>("anims"))
+        jsonxx::Array root;
+        if (!root.parse(json))
         {
-            const jsonxx::Array& anims = root.get<jsonxx::Array>("anims");
+            throw std::runtime_error("Can't parse resource map json");
+        }
 
-            const auto& file = root.get<jsonxx::String>("file");
-            const auto id = static_cast<Uint32>(root.get<jsonxx::Number>("id"));
-
-            for (size_t i = 0; i < anims.size(); i++)
+        for (size_t rootObjIndex = 0; rootObjIndex < root.size(); rootObjIndex++)
+        {
+            jsonxx::Object obj = root.get<jsonxx::Object>(rootObjIndex);
+            if (obj.has<jsonxx::Array>("anims"))
             {
-                AnimMapping mapping;
-                mapping.mFile = file;
-                mapping.mId = static_cast<Uint32>(id);
+                const jsonxx::Array& anims = obj.get<jsonxx::Array>("anims");
 
-                const jsonxx::Object& animRecord = anims.get<jsonxx::Object>(static_cast<Uint32>(i));
+                const auto& file = obj.get<jsonxx::String>("file");
+                const auto id = static_cast<Uint32>(obj.get<jsonxx::Number>("id"));
 
-                const auto& name = animRecord.get<jsonxx::String>("name");
-                const auto blendMode = animRecord.get<jsonxx::Number>("blend_mode");
-                mapping.mBlendingMode = static_cast<Uint32>(blendMode);
+                for (size_t i = 0; i < anims.size(); i++)
+                {
+                    AnimMapping mapping;
+                    mapping.mFile = file;
+                    mapping.mId = static_cast<Uint32>(id);
 
-                AddAnimMapping(name, mapping);
+                    const jsonxx::Object& animRecord = anims.get<jsonxx::Object>(static_cast<Uint32>(i));
+
+                    const auto& name = animRecord.get<jsonxx::String>("name");
+                    const auto blendMode = animRecord.get<jsonxx::Number>("blend_mode");
+                    mapping.mBlendingMode = static_cast<Uint32>(blendMode);
+
+                    AddAnimMapping(name, mapping);
+                }
             }
         }
     }
@@ -267,7 +298,6 @@ public:
 private:
     std::unordered_map<size_t, std::weak_ptr<ResourceBase>> mCache;
 };
-
 
 template<class T>
 class Resource

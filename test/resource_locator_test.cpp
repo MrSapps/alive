@@ -62,7 +62,7 @@ TEST(ResourceLocator, Cache)
 
 TEST(ResourceLocator, ParseResourceMap)
 {
-    const std::string resourceMapsJson = R"({"anims":[{"blend_mode":1,"name":"SLIGZ.BND_417_1"},{"blend_mode":1,"name":"SLIGZ.BND_417_2"}],"file":"SLIGZ.BND","id":417})";
+    const std::string resourceMapsJson = R"([ {"anims":[{"blend_mode":1,"name":"SLIGZ.BND_417_1"},{"blend_mode":1,"name":"SLIGZ.BND_417_2"}],"file":"SLIGZ.BND","id":417}])";
 
     MockFileSystem fs;
 
@@ -427,7 +427,11 @@ TEST(ResourceLocator, Construct)
 
     ResourceLocator resourceLocator(fs, selected, std::move(mapper));
     
-    // TODO: Handle extra mod dependant data sets
+    // TODO: Handle extra mod dependent data sets
+    // Need to merge GD dataset lists so that none "default" data paths appear first
+    // then the "default" paths should appear in order.
+  //  auto dataSets = GameDefinition::GetMergedDatasets(selected, builtInGds, modGs);
+
 
     for (const auto& requiredSet : selected.RequiredDataSets())
     {

@@ -515,7 +515,7 @@ public:
                 animObj << "file" << animFile;
 
                 auto numAnims = mNumberOfAnimsMap[animData.first];
-                animObj << "numAnims" << numAnims;
+                //animObj << "numAnims" << numAnims;
 
                 jsonxx::Array anims;
 
