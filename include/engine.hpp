@@ -42,7 +42,8 @@ protected:
     // Audio must init early
     SdlAudioWrapper mAudioHandler;
 
-    FileSystem mFileSystem;
+    FileSystem mFileSystem_old;
+    std::unique_ptr<class IFileSystem> mFileSystem;
     GameData mGameData;
  
     SDL_Window* mWindow = nullptr;

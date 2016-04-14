@@ -7,6 +7,26 @@
 
 namespace string_util
 {
+    inline void replace_all(std::string& input, char find, const char replace)
+    {
+        size_t pos = 0;
+        while ((pos = input.find(find, pos)) != std::string::npos)
+        {
+            input.replace(pos, 1, 1, replace);
+            pos += 1;
+        }
+    }
+
+    inline void replace_all(std::string& input, const std::string& find, const std::string& replace)
+    {
+        size_t pos = 0;
+        while ((pos = input.find(find, pos)) != std::string::npos)
+        {
+            input.replace(pos, find.length(), replace);
+            pos += replace.length();
+        }
+    }
+
     inline std::string trim(const std::string& s)
     {
         auto wsfront = std::find_if_not(s.begin(), s.end(), [](int c){return ::isspace(c) || c == '\n' || c=='\r'; });

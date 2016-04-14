@@ -96,34 +96,41 @@ bool Engine::Init()
 {
     try
     {
-  
-        // load the enumerated "built in" game defs
-        GameDefinition gd;
-
-        // load the enumerated "mod" game defs
-
         // load the list of data paths (if any) and discover what they are
-
-        FileSystem2 fs;
-        ResourceMapper mapper(fs, "F:\\Data\\alive\\alive\\data\\resources.json");
-
-        // create the resource mapper loading the resource maps from the json db
-        mResourceLocator = std::make_unique<ResourceLocator>(fs, gd, std::move(mapper));
-
-        auto res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31");
-        res.Reload();
-
-
-        // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
-        // also add in any extra maps for resources defined by the mod
-
-        if (!mFileSystem.Init())
+        mFileSystem = std::make_unique<FileSystem2>();
+        if (!mFileSystem->Init())
         {
             LOG_ERROR("File system init failure");
             return false;
         }
 
-        if (!mGameData.Init(mFileSystem))
+        // load the enumerated "built in" game defs
+        mFileSystem->EnumerateFiles("{GameDir}/GameDefinitions");
+
+        GameDefinition gd;
+
+        // load the enumerated "mod" game defs
+        mFileSystem->EnumerateFiles("{UserDir}/Mods");
+
+        ResourceMapper mapper(*mFileSystem, "{GameDir}/data/resources.json");
+
+        // create the resource mapper loading the resource maps from the json db
+        mResourceLocator = std::make_unique<ResourceLocator>(*mFileSystem, gd, std::move(mapper));
+
+        // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
+        // also add in any extra maps for resources defined by the mod
+        
+        // Test/debug
+        auto res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31");
+        res.Reload();
+
+        if (!mFileSystem_old.Init())
+        {
+            LOG_ERROR("File system old init failure");
+            return false;
+        }
+
+        if (!mGameData.Init(mFileSystem_old))
         {
             LOG_ERROR("Game data init failure");
             return false;
@@ -153,10 +160,10 @@ bool Engine::Init()
 
 void Engine::InitSubSystems()
 {
-    mRenderer = std::make_unique<Renderer>((mFileSystem.GameData().BasePath() + "/data/Roboto-Regular.ttf").c_str());
-    mFmv = std::make_unique<DebugFmv>(mGameData, mAudioHandler, mFileSystem);
-    mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem);
-    mLevel = std::make_unique<Level>(mGameData, mAudioHandler, mFileSystem);
+    mRenderer = std::make_unique<Renderer>((mFileSystem_old.GameData().BasePath() + "/data/Roboto-Regular.ttf").c_str());
+    mFmv = std::make_unique<DebugFmv>(mGameData, mAudioHandler, mFileSystem_old);
+    mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem_old);
+    mLevel = std::make_unique<Level>(mGameData, mAudioHandler, mFileSystem_old);
 
     { // Init gui system
         mGui = create_gui(&calcTextSize, mRenderer.get());
@@ -411,7 +418,7 @@ void Engine::Render()
 
         if (editor.resPathsOpen)
         {
-            mFileSystem.DebugUi(*mGui);
+            mFileSystem_old.DebugUi(*mGui);
         }
 
         if (editor.fmvBrowserOpen)
@@ -438,7 +445,7 @@ void Engine::Render()
             {
                 // Add all "anim" resources to a big list
                 // HACK: all leaked
-                static auto stream = mFileSystem.ResourcePaths().Open("BA.LVL");
+                static auto stream = mFileSystem_old.ResourcePaths().Open("BA.LVL");
                 static Oddlib::LvlArchive lvlArchive(std::move(stream));
                 for (auto i = 0u; i < lvlArchive.FileCount(); i++)
                 {

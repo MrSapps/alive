@@ -1879,6 +1879,26 @@ TEST(Logger, Indentation)
     LOG_ERROR("Error test");
 }
 
+TEST(string_util, replace_all_char)
+{
+    std::string input = "121212121";
+    char find = '1';
+    char replace = '9';
+
+    string_util::replace_all(input, find, replace);
+    ASSERT_EQ("929292929", input);
+}
+
+TEST(string_util, replace_all_string)
+{
+    std::string input = "yes no yes no";
+    std::string find = "yes";
+    std::string replace = "rofl";
+
+    string_util::replace_all(input, find, replace);
+    ASSERT_EQ("rofl no rofl no", input);
+}
+
 TEST(string_util, endsWith)
 {
     std::string t1 = "LOLrofl";
@@ -1944,26 +1964,26 @@ TEST(CdFs, Read_FileSystemLimits)
 
     ASSERT_GT(img.FileExists("LEVEL1\\LVL1.TXT"), 0);
     ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LVL2.TXT"), 0);
-ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LVL3.TXT"), 0);
-ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LVL4.TXT"), 0);
-ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LVL5.TXT"), 0);
-ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LVL6.TXT"), 0);
-ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL7.TXT"), 0);
-ASSERT_EQ(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL77.TXT"), -1);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LVL3.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LVL4.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LVL5.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LVL6.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL7.TXT"), 0);
+    ASSERT_EQ(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL77.TXT"), -1);
 
-ASSERT_GT(img.FileExists("TEST\\SECTORS1\\EXAMPLE.TXT"), 0);
-ASSERT_GT(img.FileExists("TEST\\SECTORS2\\BIG.TXT"), 0);
-ASSERT_GT(img.FileExists("TEST\\XA1\\SMALL.TXT"), 0);
-ASSERT_GT(img.FileExists("TEST\\XA1\\BIG.TXT"), 0);
+    ASSERT_GT(img.FileExists("TEST\\SECTORS1\\EXAMPLE.TXT"), 0);
+    ASSERT_GT(img.FileExists("TEST\\SECTORS2\\BIG.TXT"), 0);
+    ASSERT_GT(img.FileExists("TEST\\XA1\\SMALL.TXT"), 0);
+    ASSERT_GT(img.FileExists("TEST\\XA1\\BIG.TXT"), 0);
 
-auto data = img.ReadFile("TEST\\SECTORS1\\EXAMPLE.TXT", false);
+    auto data = img.ReadFile("TEST\\SECTORS1\\EXAMPLE.TXT", false);
 
-const std::string expected = "dir entries go over 1 sector size";
-std::vector<Uint8> buffer(expected.size());
-data->ReadBytes(buffer.data(), buffer.size());
+    const std::string expected = "dir entries go over 1 sector size";
+    std::vector<Uint8> buffer(expected.size());
+    data->ReadBytes(buffer.data(), buffer.size());
 
-std::string strData(reinterpret_cast<char*>(buffer.data()), buffer.size());
-ASSERT_EQ(expected, strData);
+    std::string strData(reinterpret_cast<char*>(buffer.data()), buffer.size());
+    ASSERT_EQ(expected, strData);
 }
 
 TEST(CdFs, Read_XaSectors)

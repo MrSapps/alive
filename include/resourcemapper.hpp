@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unordered_map>
+#include "string_util.hpp"
 
 inline size_t StringHash(const char* s)
 {
@@ -28,6 +29,8 @@ class IFileSystem
 {
 public:
     virtual ~IFileSystem() = default;
+    
+    virtual bool Init() { return true; }
     virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) = 0;
 
     virtual std::vector<std::string> EnumerateFiles(const char* directory) = 0;
@@ -40,9 +43,18 @@ public:
 class FileSystem2 : public IFileSystem
 {
 public:
+    virtual bool Init() override
+    {
+        mNamedPaths["{GameDir}"] = InitBasePath();
+
+        // TODO: Resolve {UserDir}
+
+        return true;
+    }
+
     virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
     {
-        return std::make_unique<Oddlib::Stream>(fileName);
+        return std::make_unique<Oddlib::Stream>(ExpandPath(fileName));
     }
 
     virtual std::vector<std::string> EnumerateFiles(const char* directory) override
@@ -56,6 +68,56 @@ public:
     {
         return false;
     }
+
+private:
+    std::string ExpandPath(const std::string& path)
+    {
+        std::string ret = path;
+        for (const auto& namedPath : mNamedPaths)
+        {
+            string_util::replace_all(ret, namedPath.first, namedPath.second);
+        }
+        string_util::replace_all(ret, '\\', '/');
+        return ret;
+    }
+
+    std::string InitBasePath()
+    {
+        char* pBasePath = SDL_GetBasePath();
+        std::string basePath;
+        if (pBasePath)
+        {
+            basePath = pBasePath;
+            SDL_free(pBasePath);
+
+            // If it looks like we're running from the IDE/dev build then attempt to fix up the path to the correct location to save
+            // manually setting the correct working directory.
+            const bool bIsDebugPath = string_util::contains(basePath, "/alive/bin/") || string_util::contains(basePath, "\\alive\\bin\\");
+            if (bIsDebugPath)
+            {
+                if (string_util::contains(basePath, "/alive/bin/"))
+                {
+                    LOG_WARNING("We appear to be running from the IDE (Linux) - fixing up basePath to be ../");
+                    basePath += "../";
+                }
+                else
+                {
+                    LOG_WARNING("We appear to be running from the IDE (Win32) - fixing up basePath to be ../");
+                    basePath += "..\\..\\";
+                }
+            }
+        }
+        else
+        {
+            basePath = "./";
+            LOG_ERROR("SDL_GetBasePath failed, falling back to ./");
+        }
+        LOG_INFO("basePath is " << basePath);
+        string_util::replace_all(basePath, '\\', '/');
+        return basePath;
+    }
+
+    std::map<std::string, std::string> mNamedPaths;
 };
 
 /*
