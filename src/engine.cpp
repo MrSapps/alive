@@ -105,12 +105,18 @@ bool Engine::Init()
         }
 
         // load the enumerated "built in" game defs
-        mFileSystem->EnumerateFiles("{GameDir}/GameDefinitions");
+        const auto gameDefs = mFileSystem->EnumerateFiles("{GameDir}/data/GameDefinitions");
+
+        for (const auto& gameDef : gameDefs)
+        {
+            GameDefinition t(*mFileSystem, ("{GameDir}/data/GameDefinitions/" + gameDef).c_str());
+
+        }
 
         GameDefinition gd;
 
         // load the enumerated "mod" game defs
-        mFileSystem->EnumerateFiles("{UserDir}/Mods");
+        const auto modDefs = mFileSystem->EnumerateFiles("{UserDir}/Mods");
 
         ResourceMapper mapper(*mFileSystem, "{GameDir}/data/resources.json");
 
