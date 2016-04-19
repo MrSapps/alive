@@ -1,6 +1,13 @@
 #pragma once
 
 #include <unordered_map>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <dirent.h>
+#endif
+
 #include "string_util.hpp"
 
 inline size_t StringHash(const char* s)
@@ -42,7 +49,13 @@ public:
 
 class FileSystem2 : public IFileSystem
 {
+private:
+    static bool IsDots(const std::string& name)
+    {
+        return name == "." || name == "..";
+    }
 public:
+
     virtual bool Init() override
     {
         mNamedPaths["{GameDir}"] = InitBasePath();
@@ -57,12 +70,82 @@ public:
         return std::make_unique<Oddlib::Stream>(ExpandPath(fileName));
     }
 
+#ifdef _WIN32
+    struct FindCloseDeleter
+    {
+        typedef HANDLE pointer;
+        void operator()(HANDLE hFind)
+        {
+            if (hFind != INVALID_HANDLE_VALUE)
+            {
+                ::FindClose(hFind);
+            }
+        }
+    };
+    typedef std::unique_ptr<HANDLE, FindCloseDeleter> FindCloseHandle;
+
     virtual std::vector<std::string> EnumerateFiles(const char* directory) override
     {
-        // TODO
-        std::ignore = directory;
-        return std::vector<std::string>();
+        std::vector<std::string> ret;
+        WIN32_FIND_DATA findData = {};
+        const std::string dirPath = ExpandPath(directory) + "/*";
+        FindCloseHandle ptr(::FindFirstFile(dirPath.c_str(), &findData));
+        if (ptr.get() != INVALID_HANDLE_VALUE)
+        {
+            do
+            {
+                if (!IsDots(findData.cFileName) && !(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+                {
+                    ret.emplace_back(findData.cFileName);
+                }
+            } while (::FindNextFile(ptr.get(), &findData));
+            LOG_INFO(ret.size() << " items enumerated from " << dirPath);
+        }
+        else
+        {
+            LOG_ERROR("Failed to enumerate directory " << dirPath);
+        }
+        return ret;
     }
+#else
+    virtual std::vector<std::string> EnumerateFiles(const char* /*directory*/) override
+    {
+        throw std::runtime_error("EnumerateFiles not implemented");
+    }
+
+    /*
+    struct closedirDeleter
+    {
+        typedef DIR* pointer;
+        void operator()(DIR* dir)
+        {
+            closedir(dir);
+        }
+    };
+    typedef std::unique_ptr<DIR, closedirDeleter> closedirHandle;
+
+    virtual std::vector<std::string> EnumerateFiles(const char* directory) override
+    {
+        std::vector<std::string> ret;
+        closedirHandle dir(opendir(ExpandPath(directory).c_str()));
+        if (dir)
+        {
+            DIR* dirent* ent = nullptr;
+            do
+            {
+                ent = readdir(dir.get());
+                // TODO: Filter out dots/dirs/test this
+                ret.emplace_back(ent->d_name);
+            } while (ent);
+            LOG_INFO(ret.size() << " items enumerated from " << dirPath);
+        }
+        else
+        {
+            LOG_ERROR("Failed to enumerate directory " << directory);
+        }
+        return ret;
+    }*/
+#endif
 
     bool Exists(const char* /*fileName*/) override
     {
@@ -78,6 +161,7 @@ private:
             string_util::replace_all(ret, namedPath.first, namedPath.second);
         }
         string_util::replace_all(ret, '\\', '/');
+        string_util::replace_all(ret, "//", "/");
         return ret;
     }
 
