@@ -40,11 +40,8 @@ public:
     virtual bool Init() { return true; }
     virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) = 0;
 
-    virtual std::vector<std::string> EnumerateFiles(const char* directory) = 0;
+    virtual std::vector<std::string> EnumerateFiles(const char* directory, const char* filter) = 0;
     virtual bool Exists(const char* fileName) = 0;
-
-    // TODO impl this and other required helpers
-    //virtual std::string UserSettingsDirectory() = 0;
 };
 
 class FileSystem2 : public IFileSystem
@@ -84,11 +81,11 @@ public:
     };
     typedef std::unique_ptr<HANDLE, FindCloseDeleter> FindCloseHandle;
 
-    virtual std::vector<std::string> EnumerateFiles(const char* directory) override
+    virtual std::vector<std::string> EnumerateFiles(const char* directory, const char* filter) override
     {
         std::vector<std::string> ret;
         WIN32_FIND_DATA findData = {};
-        const std::string dirPath = ExpandPath(directory) + "/*";
+        const std::string dirPath = ExpandPath(directory) + "/" + filter;
         FindCloseHandle ptr(::FindFirstFile(dirPath.c_str(), &findData));
         if (ptr.get() != INVALID_HANDLE_VALUE)
         {

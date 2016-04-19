@@ -169,7 +169,7 @@ int GridScreen::getTexHandle(FileSystem& fs)
 
                 // TODO: Use resource system
                 // This will look files named like "R1P15C01.CAM"
-                std::string path = std::string("../data/deltas/") + mFileName;
+                std::string path = std::string("../data/deltas/") + mFileName + ".cam.bmp.png";
                 int w, h;
                 int bpp;
                 uint8_t *dst = static_cast<uint8_t*>(stbi_load(path.c_str(), &w, &h, &bpp, STBI_rgb));

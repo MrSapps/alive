@@ -1,0 +1,7 @@
+{
+  "Name" : "Oddworld Abe's Oddysee PC",
+  "Description" : "The original PC version of Oddworld Abe's Oddysee",
+  "Author" : "Oddworld Inhabitants",
+  "InitialLevel" : "r1_path1",
+  "DatasetName" : "AoPc"
+}

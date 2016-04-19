@@ -17,7 +17,7 @@ public:
     }
 
     MOCK_METHOD1(OpenProxy, Oddlib::IStream*(const char*));
-    MOCK_METHOD1(EnumerateFiles, std::vector<std::string>(const char* ));
+    MOCK_METHOD2(EnumerateFiles, std::vector<std::string>(const char*, const char* ));
     MOCK_METHOD1(Exists, bool(const char*));
 };
 
@@ -359,10 +359,10 @@ TEST(ResourceLocator, Construct)
     EXPECT_CALL(fs, Exists(StrEq("C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin\\Exoddus.exe")))
         .WillOnce(Return(false));
 
-    EXPECT_CALL(fs, EnumerateFiles(StrEq("${game_files}\\GameDefinitions")))
+    EXPECT_CALL(fs, EnumerateFiles(StrEq("${game_files}\\GameDefinitions"), StrEq("*.json")))
         .WillOnce(Return(std::vector<std::string> { "AbesExoddusPc.json" }));
 
-    EXPECT_CALL(fs, EnumerateFiles(StrEq("${user_home}\\Alive\\Mods")))
+    EXPECT_CALL(fs, EnumerateFiles(StrEq("${user_home}\\Alive\\Mods"), StrEq("*.json")))
         .WillOnce(Return(std::vector<std::string> {  }));
 
 
@@ -398,14 +398,14 @@ TEST(ResourceLocator, Construct)
  
 
     // load the enumerated "built-in" game defs
-    const auto builtInGds = fs.EnumerateFiles("${game_files}\\GameDefinitions");
+    const auto builtInGds = fs.EnumerateFiles("${game_files}\\GameDefinitions", "*.json");
     for (const auto& file : builtInGds)
     {
         gds.emplace_back(GameDefinition(fs, (std::string("${game_files}\\GameDefinitions") + "\\" + file).c_str()));
     }
 
     // load the enumerated "mod" game defs
-    const auto modGs = fs.EnumerateFiles("${user_home}\\Alive\\Mods");
+    const auto modGs = fs.EnumerateFiles("${user_home}\\Alive\\Mods", "*.json");
     for (const auto& file : modGs)
     {
         gds.emplace_back(GameDefinition(fs, (std::string("${user_home}\\Alive\\Mods") + "\\" + file).c_str()));
