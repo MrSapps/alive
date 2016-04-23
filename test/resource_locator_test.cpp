@@ -98,6 +98,7 @@ TEST(ResourceLocator, ParseGameDefinition)
       "Author" : "Oddworld Inhabitants",
       "InitialLevel" : "st_path1",
       "DatasetName" : "AePc",
+      "Hidden" : true,
       "RequiredDatasets"  : []
     }
     )";
@@ -112,6 +113,7 @@ TEST(ResourceLocator, ParseGameDefinition)
     ASSERT_EQ(gd.Author(), "Oddworld Inhabitants");
     ASSERT_EQ(gd.InitialLevel(), "st_path1");
     ASSERT_EQ(gd.DataSet(), "AePc");
+    ASSERT_EQ(gd.Hidden(), true);
 }
 
 TEST(ResourceLocator, GameDefinitionDiscovery)

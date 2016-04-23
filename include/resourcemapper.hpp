@@ -257,6 +257,7 @@ public:
     const std::string& InitialLevel() const { return mInitialLevel; }
     const std::string& DataSet() const { return mDataSetName; }
     const std::vector<std::string> RequiredDataSets() const { return mRequiredDataSets; }
+    bool Hidden() const { return mHidden; }
 private:
 
     void Parse(const std::string& json)
@@ -269,6 +270,10 @@ private:
         mAuthor = root.get<jsonxx::String>("Author");
         mInitialLevel = root.get<jsonxx::String>("InitialLevel");
         mDataSetName = root.get<jsonxx::String>("DatasetName");
+        if (root.has<jsonxx::Boolean>("Hidden"))
+        {
+            mHidden = root.get<jsonxx::Boolean>("Hidden");
+        }
 
         if (root.has<jsonxx::Array>("RequiredDatasets"))
         {
@@ -286,6 +291,7 @@ private:
     std::string mAuthor;
     std::string mInitialLevel;
     std::string mDataSetName; // Name of this data set
+    bool mHidden = false;
     std::vector<std::string> mRequiredDataSets;
 };
 

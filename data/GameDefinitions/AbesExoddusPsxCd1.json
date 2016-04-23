@@ -3,5 +3,6 @@
     "Description": "The original PSX version of Oddworld Abe's Exoddus CD1",
     "Author": "Oddworld Inhabitants",
     "InitialLevel": "mi_path1",
-    "DatasetName": "AePsx"
+    "Hidden" :  true,
+    "DatasetName": "AePsxCd1"
 }
