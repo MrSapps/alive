@@ -105,7 +105,7 @@ public:
         return ret;
     }
 #else
-    virtual std::vector<std::string> EnumerateFiles(const char* /*directory*/) override
+    virtual std::vector<std::string> EnumerateFiles(const char* /*directory*/, const char* /*filter*/) override
     {
         throw std::runtime_error("EnumerateFiles not implemented");
     }
