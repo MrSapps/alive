@@ -112,7 +112,7 @@ TEST(ResourceLocator, ParseGameDefinition)
     ASSERT_EQ(gd.Description(), "The original PC version of Oddworld Abe's Exoddus");
     ASSERT_EQ(gd.Author(), "Oddworld Inhabitants");
     ASSERT_EQ(gd.InitialLevel(), "st_path1");
-    ASSERT_EQ(gd.DataSet(), "AePc");
+    ASSERT_EQ(gd.DataSetName(), "AePc");
     ASSERT_EQ(gd.Hidden(), true);
 }
 
