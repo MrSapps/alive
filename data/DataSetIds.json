@@ -1,6 +1,13 @@
 {
     "data_set_ids": {
-        "AoPc": { "files": [ "AbeWin.exe" ] },
-        "AePc": { "files": [ "Exoddus.exe" ] }
+        "AoPc": { "contains_any": [ "AbeWin.exe" ] },
+        "AoPcDemo": { "contains_any": [ "AbeDemo.exe" ] },
+        "AoPsx": { "contains_any": [ "SLES_006.64", "SLUS_001.90" ] },
+        "AoPsxDemo": { "contains_any": [ "SLED_007.25" ] },
+        "AePc": { "contains_any": [ "Exoddus.exe" ] },
+        "AePcDemo": { "contains_any": [ "Exoddus.exe" ], "not_contains": [ "sounds.dat" ] },
+        "AePsxCd1": { "contains_any": [ "SLES_014.80" ] },
+        "AePsxCd2": { "contains_any": [ "SLES_114.80" ] },
+        "AePsxDemo": { "contains_any": [ "ABE2.EXE" ] }
     }
 }

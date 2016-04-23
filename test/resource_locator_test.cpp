@@ -184,162 +184,23 @@ TEST(ResourceLocator, LocatePath)
     // TODO
 }
 
-class DataPathIdentities
-{
-public:
-    DataPathIdentities(IFileSystem& fs, const char* dataSetsIdsFileName)
-    {
-        auto stream = fs.Open(dataSetsIdsFileName);
-        Parse(stream->LoadAllToString());
-    }
-
-    void AddIdentity(const std::string& dataSetName, const std::vector<std::string>& idenfyingFiles)
-    {
-        mDataPathIds[dataSetName] = idenfyingFiles;
-    }
-
-    std::string Identify(IFileSystem& fs, const std::string& path) const
-    {
-        for (const auto& dataPathId : mDataPathIds)
-        {
-            bool foundAll = true;
-            for (const auto& identifyingFile : dataPathId.second)
-            {
-                if (!fs.Exists((path + "\\" + identifyingFile).c_str()))
-                {
-                    foundAll = false;
-                    break;
-                }
-            }
-            if (foundAll)
-            {
-                return dataPathId.first;
-            }
-        }
-        return "";
-    }
-
-private:
-    std::map<std::string, std::vector<std::string>> mDataPathIds;
-
-    void Parse(const std::string& json)
-    {
-        jsonxx::Object root;
-        root.parse(json);
-        if (root.has<jsonxx::Object>("data_set_ids"))
-        {
-            jsonxx::Object dataSetIds = root.get<jsonxx::Object>("data_set_ids");
-            for (const auto& v : dataSetIds.kv_map())
-            {
-                jsonxx::Object dataSetId = dataSetIds.get<jsonxx::Object>(v.first);
-                jsonxx::Array identifyingFiles = dataSetId.get<jsonxx::Array>("files");
-                std::vector<std::string> files;
-                files.reserve(identifyingFiles.size());
-                for (const auto& f : identifyingFiles.values())
-                {
-                    files.emplace_back(f->get<jsonxx::String>());
-                }
-                mDataPathIds[v.first] = files;
-            }
-        }
-    }
-};
-
-
-class DataPaths
-{
-public:
-    DataPaths(IFileSystem& fs, const char* dataSetsIdsFileName, const char* dataPathFileName)
-        : mIds(fs, dataSetsIdsFileName)
-    {
-        auto stream = fs.Open(dataPathFileName);
-        std::vector<std::string> paths = Parse(stream->LoadAllToString());
-        for (const auto& path : paths)
-        {
-            // TODO: Store the path and its identity
-            std::string id = mIds.Identify(fs, path);
-            auto it = mPaths.find(id);
-            if (it == std::end(mPaths))
-            {
-                mPaths[id] = std::vector < std::string > {path};
-            }
-            else
-            {
-                it->second.push_back(path);
-            }
-        }
-    }
-
-    const std::vector<std::string>& PathsFor(const std::string& id)
-    {
-        auto it = mPaths.find(id);
-        if (it == std::end(mPaths))
-        {
-            return mNotFoundResult;
-        }
-        else
-        {
-            return it->second;
-        }
-    }
-
-    std::vector<std::string> MissingDataSets(const std::vector<std::string>& requiredSets)
-    {
-        std::vector<std::string> ret;
-        for (const auto& dataset : requiredSets)
-        {
-            if (!PathsFor(dataset).empty())
-            {
-                break;
-            }
-            ret.emplace_back(dataset);
-        }
-        return ret;
-    }
-
-private:
-    std::map<std::string, std::vector<std::string>> mPaths;
-
-    std::vector<std::string> Parse(const std::string& json)
-    {
-        std::vector<std::string> paths;
-        jsonxx::Object root;
-        root.parse(json);
-        if (root.has<jsonxx::Array>("paths"))
-        {
-            jsonxx::Array pathsArray = root.get<jsonxx::Array>("paths");
-            for (const auto& path : pathsArray.values())
-            {
-                paths.emplace_back(path->get<jsonxx::String>());
-            }
-        }
-        return paths;
-    }
-
-    // To match to what a game def wants (AePcCd1, AoDemoPsx etc)
-    // we use SLUS codes for PSX or if it contains ABEWIN.EXE etc then its AoPc.
-    DataPathIdentities mIds;
-    std::vector<std::string> mNotFoundResult;
-};
-
-
 TEST(ResourceLocator, Construct)
 {
 
     MockFileSystem fs;
 
-    const std::string resourceMapsJson = R"(
+    const std::string datasetIdsJson = R"(
     {
       "data_set_ids" :
       {
-        "AoPc": { "files":  [ "AbeWin.exe" ] },
-        "AePc": { "files":  [ "Exoddus.exe" ] }
+        "AoPc": { "contains_any":  [ "AbeWin.exe" ] },
+        "AePc": { "contains_any":  [ "Exoddus.exe" ], "not_contains": [ "sounds.dat" ] }
       }
     }
     )";
 
     EXPECT_CALL(fs, OpenProxy(StrEq("datasetids.json")))
-        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(resourceMapsJson))));
+        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(datasetIdsJson))));
 
     const std::string dataSetsJson = R"(
     {
@@ -358,7 +219,11 @@ TEST(ResourceLocator, Construct)
 
     EXPECT_CALL(fs, Exists(StrEq("C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin\\AbeWin.exe")))
         .WillOnce(Return(false));
+
     EXPECT_CALL(fs, Exists(StrEq("C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin\\Exoddus.exe")))
+        .WillOnce(Return(false));
+
+    EXPECT_CALL(fs, Exists(StrEq("F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus\\sounds.dat")))
         .WillOnce(Return(false));
 
     EXPECT_CALL(fs, EnumerateFiles(StrEq("${game_files}\\GameDefinitions"), StrEq("*.json")))

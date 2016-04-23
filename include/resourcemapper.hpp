@@ -55,9 +55,15 @@ public:
 
     virtual bool Init() override
     {
-        mNamedPaths["{GameDir}"] = InitBasePath();
+        auto basePath = InitBasePath();
+        if (basePath.empty())
+        {
+            return false;
+        }
+        mNamedPaths["{GameDir}"] = basePath;
 
         // TODO: Resolve {UserDir}
+        mNamedPaths["{UserDir}"] = ".";
 
         return true;
     }
@@ -190,8 +196,8 @@ private:
         }
         else
         {
-            basePath = "./";
-            LOG_ERROR("SDL_GetBasePath failed, falling back to ./");
+            LOG_ERROR("SDL_GetBasePath failed");
+            return "";
         }
         LOG_INFO("basePath is " << basePath);
         string_util::replace_all(basePath, '\\', '/');
@@ -200,6 +206,177 @@ private:
 
     std::map<std::string, std::string> mNamedPaths;
 };
+
+
+class DataPathIdentities
+{
+public:
+    DataPathIdentities(IFileSystem& fs, const char* dataSetsIdsFileName)
+    {
+        auto stream = fs.Open(dataSetsIdsFileName);
+        Parse(stream->LoadAllToString());
+    }
+
+
+    std::string Identify(IFileSystem& fs, const std::string& path) const
+    {
+        for (const auto& dataPathId : mDataPathIds)
+        {
+            // Check we can find at least one of the "any of" set of files
+            bool foundAnyOf = false;
+            for (const auto& f : dataPathId.second.mContainAnyOf)
+            {
+                if (fs.Exists((path + "\\" + f).c_str()))
+                {
+                    foundAnyOf = true;
+                    break;
+                }
+            }
+
+            // Ok we found one of the files that must exist
+            if (foundAnyOf)
+            {
+                // So now check that all of the "must not exist" files don't exist
+                bool foundAnyShouldntExistFiles = false;
+                for (const auto& f : dataPathId.second.mMustNotContain)
+                {
+                    if (fs.Exists((path + "\\" + f).c_str()))
+                    {
+                        foundAnyShouldntExistFiles = true;
+                        break;
+                    }
+                }
+
+                if (!foundAnyShouldntExistFiles)
+                {
+                    return dataPathId.first;
+                }
+            }
+
+        }
+        return "";
+    }
+
+private:
+    struct DataPathFiles
+    {
+        std::vector<std::string> mContainAnyOf;
+        std::vector<std::string> mMustNotContain;
+    };
+    std::map<std::string, DataPathFiles> mDataPathIds;
+
+    void Parse(const std::string& json)
+    {
+        jsonxx::Object root;
+        root.parse(json);
+        if (root.has<jsonxx::Object>("data_set_ids"))
+        {
+            jsonxx::Object dataSetIds = root.get<jsonxx::Object>("data_set_ids");
+            for (const auto& v : dataSetIds.kv_map())
+            {
+                DataPathFiles dpFiles;
+                const jsonxx::Object& dataSetId = dataSetIds.get<jsonxx::Object>(v.first);
+                const jsonxx::Array& identifyingFiles = dataSetId.get<jsonxx::Array>("contains_any");
+                dpFiles.mContainAnyOf.reserve(identifyingFiles.size());
+                for (const auto& f : identifyingFiles.values())
+                {
+                    dpFiles.mContainAnyOf.emplace_back(f->get<jsonxx::String>());
+                }
+
+                if (dataSetId.has<jsonxx::Array>("not_contains"))
+                {
+                    const jsonxx::Array& mustNotContainFiles = dataSetId.get<jsonxx::Array>("not_contains");
+                    dpFiles.mMustNotContain.reserve(mustNotContainFiles.size());
+                    for (const auto& f : mustNotContainFiles.values())
+                    {
+                        dpFiles.mMustNotContain.emplace_back(f->get<jsonxx::String>());
+                    }
+                }
+
+                mDataPathIds[v.first] = dpFiles;
+            }
+        }
+    }
+};
+
+class DataPaths
+{
+public:
+    DataPaths(IFileSystem& fs, const char* dataSetsIdsFileName, const char* dataPathFileName)
+        : mIds(fs, dataSetsIdsFileName)
+    {
+        if (fs.Exists(dataPathFileName))
+        {
+            auto stream = fs.Open(dataPathFileName);
+            std::vector<std::string> paths = Parse(stream->LoadAllToString());
+            for (const auto& path : paths)
+            {
+                std::string id = mIds.Identify(fs, path);
+                auto it = mPaths.find(id);
+                if (it == std::end(mPaths))
+                {
+                    mPaths[id] = std::vector < std::string > {path};
+                }
+                else
+                {
+                    it->second.push_back(path);
+                }
+            }
+        }
+    }
+
+    const std::vector<std::string>& PathsFor(const std::string& id)
+    {
+        auto it = mPaths.find(id);
+        if (it == std::end(mPaths))
+        {
+            return mNotFoundResult;
+        }
+        else
+        {
+            return it->second;
+        }
+    }
+
+    std::vector<std::string> MissingDataSets(const std::vector<std::string>& requiredSets)
+    {
+        std::vector<std::string> ret;
+        for (const auto& dataset : requiredSets)
+        {
+            if (!PathsFor(dataset).empty())
+            {
+                break;
+            }
+            ret.emplace_back(dataset);
+        }
+        return ret;
+    }
+
+private:
+    std::map<std::string, std::vector<std::string>> mPaths;
+
+    std::vector<std::string> Parse(const std::string& json)
+    {
+        std::vector<std::string> paths;
+        jsonxx::Object root;
+        root.parse(json);
+        if (root.has<jsonxx::Array>("paths"))
+        {
+            jsonxx::Array pathsArray = root.get<jsonxx::Array>("paths");
+            for (const auto& path : pathsArray.values())
+            {
+                paths.emplace_back(path->get<jsonxx::String>());
+            }
+        }
+        return paths;
+    }
+
+    // To match to what a game def wants (AePcCd1, AoDemoPsx etc)
+    // we use SLUS codes for PSX or if it contains ABEWIN.EXE etc then its AoPc.
+    DataPathIdentities mIds;
+    std::vector<std::string> mNotFoundResult;
+};
+
 
 /*
 // TODO: Make these known constants:
@@ -240,6 +417,9 @@ public:
         return std::vector<std::pair<std::string, std::string>> {};
     }
     */
+
+    GameDefinition(const GameDefinition&) = default;
+    GameDefinition& operator = (const GameDefinition&) = default;
 
     GameDefinition(IFileSystem& fileSystem, const char* gameDefinitionFile)
     {
