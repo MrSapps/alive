@@ -233,6 +233,9 @@ TEST(ResourceLocator, Construct)
         .WillOnce(Return(std::vector<std::string> {  }));
 
 
+    EXPECT_CALL(fs, Exists(StrEq("datasets.json")))
+        .WillOnce(Return(true));
+
     const std::string aePcGameDefJson = R"(
     {
       "Name" : "Oddworld Abe's Exoddus PC",
