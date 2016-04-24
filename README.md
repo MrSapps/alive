@@ -13,6 +13,9 @@ This engine will be designed to allow easier modding than the orignal engine and
 You can find the CI build outputs here:
 www.mlgthatsme.com/alive_builds
 
+Youtube playlist here:
+https://www.youtube.com/playlist?list=PLZysgmpXqKgSCUuU9S2ccQq0Sdrai3UQY
+
 You can become a patreon here (donations to support development):
 https://www.patreon.com/alive
 
