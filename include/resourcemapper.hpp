@@ -41,7 +41,7 @@ public:
     virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) = 0;
 
     virtual std::vector<std::string> EnumerateFiles(const char* directory, const char* filter) = 0;
-    virtual bool Exists(const char* fileName) = 0;
+    virtual bool FileExists(const char* fileName) = 0;
 };
 
 class FileSystem2 : public IFileSystem
@@ -150,10 +150,19 @@ public:
     }*/
 #endif
 
-    bool Exists(const char* /*fileName*/) override
+#ifdef _WIN32
+    bool FileExists(const char* fileName) override
+    {
+        const auto name = ExpandPath(fileName);
+        const DWORD dwAttrib = GetFileAttributes(name.c_str());
+        return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+    }
+#else
+    bool FileExists(const char* /*fileName*/) override
     {
         return false;
     }
+#endif
 
 private:
     std::string ExpandPath(const std::string& path)
@@ -226,7 +235,7 @@ public:
             bool foundAnyOf = false;
             for (const auto& f : dataPathId.second.mContainAnyOf)
             {
-                if (fs.Exists((path + "\\" + f).c_str()))
+                if (fs.FileExists((path + "\\" + f).c_str()))
                 {
                     foundAnyOf = true;
                     break;
@@ -240,7 +249,7 @@ public:
                 bool foundAnyShouldntExistFiles = false;
                 for (const auto& f : dataPathId.second.mMustNotContain)
                 {
-                    if (fs.Exists((path + "\\" + f).c_str()))
+                    if (fs.FileExists((path + "\\" + f).c_str()))
                     {
                         foundAnyShouldntExistFiles = true;
                         break;
@@ -305,7 +314,7 @@ public:
     DataPaths(IFileSystem& fs, const char* dataSetsIdsFileName, const char* dataPathFileName)
         : mIds(fs, dataSetsIdsFileName)
     {
-        if (fs.Exists(dataPathFileName))
+        if (fs.FileExists(dataPathFileName))
         {
             auto stream = fs.Open(dataPathFileName);
             std::vector<std::string> paths = Parse(stream->LoadAllToString());
@@ -540,28 +549,34 @@ private:
             jsonxx::Object obj = root.get<jsonxx::Object>(rootObjIndex);
             if (obj.has<jsonxx::Array>("anims"))
             {
-                const jsonxx::Array& anims = obj.get<jsonxx::Array>("anims");
-
-                const auto& file = obj.get<jsonxx::String>("file");
-                const auto id = static_cast<Uint32>(obj.get<jsonxx::Number>("id"));
-
-                for (size_t i = 0; i < anims.size(); i++)
-                {
-                    AnimMapping mapping;
-                    mapping.mFile = file;
-                    mapping.mId = static_cast<Uint32>(id);
-
-                    const jsonxx::Object& animRecord = anims.get<jsonxx::Object>(static_cast<Uint32>(i));
-
-                    const auto& name = animRecord.get<jsonxx::String>("name");
-                    const auto blendMode = animRecord.get<jsonxx::Number>("blend_mode");
-                    mapping.mBlendingMode = static_cast<Uint32>(blendMode);
-
-                    AddAnimMapping(name, mapping);
-                }
+                ParseAnimResourceJson(obj);
             }
         }
     }
+
+    void ParseAnimResourceJson(const jsonxx::Object& obj)
+    {
+        const jsonxx::Array& anims = obj.get<jsonxx::Array>("anims");
+
+        const auto& file = obj.get<jsonxx::String>("file");
+        const auto id = static_cast<Uint32>(obj.get<jsonxx::Number>("id"));
+
+        for (size_t i = 0; i < anims.size(); i++)
+        {
+            AnimMapping mapping;
+            mapping.mFile = file;
+            mapping.mId = static_cast<Uint32>(id);
+
+            const jsonxx::Object& animRecord = anims.get<jsonxx::Object>(static_cast<Uint32>(i));
+
+            const auto& name = animRecord.get<jsonxx::String>("name");
+            const auto blendMode = animRecord.get<jsonxx::Number>("blend_mode");
+            mapping.mBlendingMode = static_cast<Uint32>(blendMode);
+
+            AddAnimMapping(name, mapping);
+        }
+    }
+
 };
 
 class ResourceBase

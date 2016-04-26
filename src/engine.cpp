@@ -128,7 +128,7 @@ bool Engine::Init()
         // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
         // also add in any extra maps for resources defined by the mod
         
-        DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "datasets.json");
+        DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
 
 
         // Test/debug

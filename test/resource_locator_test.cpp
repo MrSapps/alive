@@ -18,7 +18,7 @@ public:
 
     MOCK_METHOD1(OpenProxy, Oddlib::IStream*(const char*));
     MOCK_METHOD2(EnumerateFiles, std::vector<std::string>(const char*, const char* ));
-    MOCK_METHOD1(Exists, bool(const char*));
+    MOCK_METHOD1(FileExists, bool(const char*));
 };
 
 TEST(ResourceLocator, ResourceLoaderOpen)
@@ -214,16 +214,16 @@ TEST(ResourceLocator, Construct)
     EXPECT_CALL(fs, OpenProxy(StrEq("datasets.json")))
         .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(dataSetsJson))));
 
-    EXPECT_CALL(fs, Exists(StrEq("F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus\\Exoddus.exe")))
+    EXPECT_CALL(fs, FileExists(StrEq("F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus\\Exoddus.exe")))
         .WillOnce(Return(true));
 
-    EXPECT_CALL(fs, Exists(StrEq("C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin\\AbeWin.exe")))
+    EXPECT_CALL(fs, FileExists(StrEq("C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin\\AbeWin.exe")))
         .WillOnce(Return(false));
 
-    EXPECT_CALL(fs, Exists(StrEq("C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin\\Exoddus.exe")))
+    EXPECT_CALL(fs, FileExists(StrEq("C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin\\Exoddus.exe")))
         .WillOnce(Return(false));
 
-    EXPECT_CALL(fs, Exists(StrEq("F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus\\sounds.dat")))
+    EXPECT_CALL(fs, FileExists(StrEq("F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus\\sounds.dat")))
         .WillOnce(Return(false));
 
     EXPECT_CALL(fs, EnumerateFiles(StrEq("${game_files}\\GameDefinitions"), StrEq("*.json")))
@@ -233,7 +233,7 @@ TEST(ResourceLocator, Construct)
         .WillOnce(Return(std::vector<std::string> {  }));
 
 
-    EXPECT_CALL(fs, Exists(StrEq("datasets.json")))
+    EXPECT_CALL(fs, FileExists(StrEq("datasets.json")))
         .WillOnce(Return(true));
 
     const std::string aePcGameDefJson = R"(
