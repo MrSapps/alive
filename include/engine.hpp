@@ -8,6 +8,7 @@
 #include <GL/glew.h>
 #include "SDL_opengl.h"
 #include "core/audiobuffer.hpp"
+#include "resourcemapper.hpp"
 
 class IEngineStateChanger
 {
@@ -46,6 +47,7 @@ private:
     void Render();
     bool InitSDL();
     int LoadNanoVgFonts(struct NVGcontext* vg);
+    void InitResources();
     void InitGL();
     void RenderVideoUi();
 protected:
@@ -70,4 +72,5 @@ protected:
     struct GuiContext *mGui = nullptr;
 
     std::unique_ptr<EngineState> mCurrentState;
+    std::vector<GameDefinition> mGameDefinitions;
 };

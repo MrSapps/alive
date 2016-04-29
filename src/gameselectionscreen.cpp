@@ -7,13 +7,34 @@ void GameSelectionScreen::Update()
 
 }
 
+void GameSelectionScreen::FilterGameDefinitions()
+{
+    mVisibleGameDefinitions.reserve(mGameDefinitions.size());
+    for (const auto& gd : mGameDefinitions)
+    {
+        if (!gd.Hidden())
+        {
+            mVisibleGameDefinitions.emplace_back(&gd);
+        }
+    }
+}
+
 void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
 {
-    bool change = false;
-
     gui_begin_window(mGui, "Select game");
 
-    if (gui_button(mGui, "Test"))
+    for (size_t idx = 0; idx < mVisibleGameDefinitions.size(); idx++)
+    {
+        const  GameDefinition& gd = *mVisibleGameDefinitions[idx];
+        if (gui_radiobutton(mGui, gd.Name().c_str(), mSelectedGameDefintionIndex == idx))
+        {
+            mSelectedGameDefintionIndex = idx;
+        }
+
+    }
+
+    bool change = false;
+    if (gui_button(mGui, "Start game"))
     {
         change = true;
     }

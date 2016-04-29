@@ -13,7 +13,6 @@
 #include "renderer.hpp"
 #include "gui.h"
 #include "guiwidgets.hpp"
-#include "resourcemapper.hpp"
 #include "gameselectionscreen.hpp"
 #include "generated_gui_layout.cpp" // Has function "load_layout" to set gui layout. Only used in single .cpp file.
 
@@ -94,37 +93,7 @@ bool Engine::Init()
             return false;
         }
 
-        // load the enumerated "built in" game defs
-        const auto gameDefFiles = mFileSystem->EnumerateFiles("{GameDir}/data/GameDefinitions", "*.json");
-
-        std::vector<GameDefinition> gameDefs;
-        for (const auto& gameDef : gameDefFiles)
-        {
-            gameDefs.emplace_back(*mFileSystem, ("{GameDir}/data/GameDefinitions/" + gameDef).c_str());
-        }
-
-        // load the enumerated "mod" game defs
-        const auto modDefsFiles = mFileSystem->EnumerateFiles("{UserDir}/Mods", "*.json");
-        for (const auto& gameDef : modDefsFiles)
-        {
-            gameDefs.emplace_back(*mFileSystem, ("{UserDir}/Mods/" + gameDef).c_str());
-        }
-
-        ResourceMapper mapper(*mFileSystem, "{GameDir}/data/resources.json");
-
-        // create the resource mapper loading the resource maps from the json db
-        mResourceLocator = std::make_unique<ResourceLocator>(*mFileSystem, std::move(mapper));
-
-        // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
-        // also add in any extra maps for resources defined by the mod
-        
-        DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
-        //mResourceLocator->SetDataPaths(gameDefs[0], std::move(dataPaths));
-
-        // Test/debug
-        auto res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31");
-        //res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31", "AePc");
-        res.Reload();
+        InitResources();
 
         if (!mFileSystem_old.Init())
         {
@@ -148,7 +117,7 @@ bool Engine::Init()
 
         InitSubSystems();
 
-        ToState(std::make_unique<GameSelectionScreen>(*this, mGui, *mFmv, *mSound, *mLevel, mFileSystem_old));
+        ToState(std::make_unique<GameSelectionScreen>(*this, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, mFileSystem_old));
 
         return true;
     }
@@ -382,6 +351,38 @@ bool Engine::InitSDL()
 #endif
 
     return true;
+}
+
+void Engine::InitResources()
+{
+    // load the enumerated "built in" game defs
+    const auto gameDefJsonFiles = mFileSystem->EnumerateFiles("{GameDir}/data/GameDefinitions", "*.json");
+    for (const auto& gameDef : gameDefJsonFiles)
+    {
+        mGameDefinitions.emplace_back(*mFileSystem, ("{GameDir}/data/GameDefinitions/" + gameDef).c_str());
+    }
+
+    // load the enumerated "mod" game defs
+    const auto modDefsJsonFiles = mFileSystem->EnumerateFiles("{UserDir}/Mods", "*.json");
+    for (const auto& gameDef : modDefsJsonFiles)
+    {
+        mGameDefinitions.emplace_back(*mFileSystem, ("{UserDir}/Mods/" + gameDef).c_str());
+    }
+
+    // create the resource mapper loading the resource maps from the json db
+    ResourceMapper mapper(*mFileSystem, "{GameDir}/data/resources.json");
+    mResourceLocator = std::make_unique<ResourceLocator>(*mFileSystem, std::move(mapper));
+
+    // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
+    // also add in any extra maps for resources defined by the mod
+
+    DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
+    //mResourceLocator->SetDataPaths(gameDefs[0], std::move(dataPaths));
+
+    // Test/debug
+    auto res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31");
+    //res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31", "AePc");
+    res.Reload();
 }
 
 void Engine::InitGL()

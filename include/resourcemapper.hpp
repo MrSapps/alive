@@ -1,5 +1,6 @@
 #pragma once
 
+#include "jsonxx/jsonxx.h"
 #include <unordered_map>
 
 #ifdef _WIN32
@@ -22,12 +23,12 @@ inline size_t StringHash(const char* s)
     return result;
 }
 
-size_t StringHash(const std::string& s)
+inline size_t StringHash(const std::string& s)
 {
     return StringHash(s.c_str());
 }
 
-std::vector<Uint8> StringToVector(const std::string& str)
+inline std::vector<Uint8> StringToVector(const std::string& str)
 {
     return std::vector<Uint8>(str.begin(), str.end());
 }
