@@ -36,7 +36,10 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
     bool change = false;
     if (gui_button(mGui, "Start game"))
     {
-        change = true;
+        if (mVisibleGameDefinitions[mSelectedGameDefintionIndex]->DataSetName() == "Developer")
+        {
+            change = true;
+        }
     }
 
     gui_end_window(mGui);
