@@ -25,7 +25,7 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
 
     for (size_t idx = 0; idx < mVisibleGameDefinitions.size(); idx++)
     {
-        const  GameDefinition& gd = *mVisibleGameDefinitions[idx];
+        const GameDefinition& gd = *mVisibleGameDefinitions[idx];
         if (gui_radiobutton(mGui, gd.Name().c_str(), mSelectedGameDefintionIndex == idx))
         {
             mSelectedGameDefintionIndex = idx;
@@ -33,17 +33,21 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
 
     }
 
-    bool change = false;
+    bool gotoDevMode = false;
     if (gui_button(mGui, "Start game"))
     {
-        if (mVisibleGameDefinitions[mSelectedGameDefintionIndex]->DataSetName() == "Developer")
+        const GameDefinition& gd = *mVisibleGameDefinitions[mSelectedGameDefintionIndex];
+
+        // TODO: Validate we have all of the required data sets to launch the game
+
+        if (gd.DataSetName() == "Developer")
         {
-            change = true;
+            gotoDevMode = true;
         }
     }
 
     gui_end_window(mGui);
-    if (change)
+    if (gotoDevMode)
     {
         // "this" will be deleted after this call, so must be last call in the function
 
