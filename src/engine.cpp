@@ -359,14 +359,14 @@ void Engine::InitResources()
     const auto gameDefJsonFiles = mFileSystem->EnumerateFiles("{GameDir}/data/GameDefinitions", "*.json");
     for (const auto& gameDef : gameDefJsonFiles)
     {
-        mGameDefinitions.emplace_back(*mFileSystem, ("{GameDir}/data/GameDefinitions/" + gameDef).c_str());
+        mGameDefinitions.emplace_back(*mFileSystem, ("{GameDir}/data/GameDefinitions/" + gameDef).c_str(), false);
     }
 
     // load the enumerated "mod" game defs
     const auto modDefsJsonFiles = mFileSystem->EnumerateFiles("{UserDir}/Mods", "*.json");
     for (const auto& gameDef : modDefsJsonFiles)
     {
-        mGameDefinitions.emplace_back(*mFileSystem, ("{UserDir}/Mods/" + gameDef).c_str());
+        mGameDefinitions.emplace_back(*mFileSystem, ("{UserDir}/Mods/" + gameDef).c_str(), true);
     }
 
     // create the resource mapper loading the resource maps from the json db

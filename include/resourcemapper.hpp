@@ -431,7 +431,8 @@ public:
     GameDefinition(const GameDefinition&) = default;
     GameDefinition& operator = (const GameDefinition&) = default;
 
-    GameDefinition(IFileSystem& fileSystem, const char* gameDefinitionFile)
+    GameDefinition(IFileSystem& fileSystem, const char* gameDefinitionFile, bool isMod)
+        : mIsMod(isMod)
     {
         auto stream = fileSystem.Open(gameDefinitionFile);
         assert(stream != nullptr);
@@ -448,6 +449,7 @@ public:
     const std::string& DataSetName() const { return mDataSetName; }
     const std::vector<std::string> RequiredDataSets() const { return mRequiredDataSets; }
     bool Hidden() const { return mHidden; }
+    bool IsMod() const { return mIsMod; }
 private:
 
     void Parse(const std::string& json)
@@ -483,6 +485,7 @@ private:
     std::string mDataSetName; // Name of this data set
     bool mHidden = false;
     std::vector<std::string> mRequiredDataSets;
+    bool mIsMod = false;
 };
 
 class ResourceMapper
