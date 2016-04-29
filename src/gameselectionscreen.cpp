@@ -10,11 +10,6 @@ void GameSelectionScreen::Update()
 void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
 {
     bool change = false;
-    struct uiData
-    {
-        bool test;
-    };
-    static uiData data;
 
     gui_begin_window(mGui, "Select game");
 
