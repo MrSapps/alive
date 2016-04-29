@@ -138,7 +138,7 @@ TEST(ResourceLocator, LocateAnimation)
     mapper.AddAnimMapping("SLIGZ.BND_417_1", { "SLIGZ.BND", 417, 1 });
     mapper.AddAnimMapping("SLIGZ.BND_417_2", { "SLIGZ.BND", 417, 1 });
 
-    ResourceLocator locator(fs, aePc, std::move(mapper));
+    ResourceLocator locator(fs, std::move(mapper));
 
     locator.AddDataPath("C:\\dataset_location2", 2, "AoPc");
     locator.AddDataPath("C:\\dataset_location1", 1, "AePc");
@@ -295,7 +295,7 @@ TEST(ResourceLocator, Construct)
     ResourceMapper mapper;
     mapper.AddAnimMapping("SLIGZ.BND_417_1", { "SLIGZ.BND", 417, 1 });
 
-    ResourceLocator resourceLocator(fs, selected, std::move(mapper));
+    ResourceLocator resourceLocator(fs, std::move(mapper));
     
     // TODO: Handle extra mod dependent data sets
     // Need to merge GD dataset lists so that none "default" data paths appear first

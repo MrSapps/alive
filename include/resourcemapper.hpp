@@ -765,10 +765,10 @@ public:
     ResourceLocator(const ResourceLocator&) = delete;
     ResourceLocator& operator =(const ResourceLocator&) = delete;
 
-    ResourceLocator(IFileSystem& fileSystem, GameDefinition& game, ResourceMapper&& resourceMapper)
+    ResourceLocator(IFileSystem& fileSystem, ResourceMapper&& resourceMapper)
         : mDataPaths(fileSystem), mResMapper(std::move(resourceMapper))
     {
-        std::ignore = game;
+
     }
 
     void AddDataPath(const char* dataPath, Sint32 priority, const std::string& dataSetId)

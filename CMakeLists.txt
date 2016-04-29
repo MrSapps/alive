@@ -212,7 +212,11 @@ SET(alivelib_src
     src/guiwidgets.cpp
     include/engine.hpp
     src/engine.cpp
-    include/gamedata.hpp
+    include/engine.hpp
+    src/developerscreen.cpp
+    include/developerscreen.hpp
+    src/gameselectionscreen.cpp
+    include/gameselectionscreen.hpp
     src/gamedata.cpp
     include/filesystem.hpp
     src/filesystem.cpp
