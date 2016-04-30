@@ -107,7 +107,7 @@ TEST(ResourceLocator, ParseGameDefinition)
     EXPECT_CALL(fs, OpenProxy(StrEq("test_game_definition.json")))
         .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(gameDefJson))));
 
-    GameDefinition gd(fs, "test_game_definition.json");
+    GameDefinition gd(fs, "test_game_definition.json", false);
     ASSERT_EQ(gd.Name(), "Oddworld Abe's Exoddus PC");
     ASSERT_EQ(gd.Description(), "The original PC version of Oddworld Abe's Exoddus");
     ASSERT_EQ(gd.Author(), "Oddworld Inhabitants");
@@ -138,7 +138,7 @@ TEST(ResourceLocator, LocateAnimation)
     mapper.AddAnimMapping("SLIGZ.BND_417_1", { "SLIGZ.BND", 417, 1 });
     mapper.AddAnimMapping("SLIGZ.BND_417_2", { "SLIGZ.BND", 417, 1 });
 
-    ResourceLocator locator(fs, aePc, std::move(mapper));
+    ResourceLocator locator(fs, std::move(mapper));
 
     locator.AddDataPath("C:\\dataset_location2", 2, "AoPc");
     locator.AddDataPath("C:\\dataset_location1", 1, "AePc");
@@ -271,14 +271,14 @@ TEST(ResourceLocator, Construct)
     const auto builtInGds = fs.EnumerateFiles("${game_files}\\GameDefinitions", "*.json");
     for (const auto& file : builtInGds)
     {
-        gds.emplace_back(GameDefinition(fs, (std::string("${game_files}\\GameDefinitions") + "\\" + file).c_str()));
+        gds.emplace_back(GameDefinition(fs, (std::string("${game_files}\\GameDefinitions") + "\\" + file).c_str(), false));
     }
 
     // load the enumerated "mod" game defs
     const auto modGs = fs.EnumerateFiles("${user_home}\\Alive\\Mods", "*.json");
     for (const auto& file : modGs)
     {
-        gds.emplace_back(GameDefinition(fs, (std::string("${user_home}\\Alive\\Mods") + "\\" + file).c_str()));
+        gds.emplace_back(GameDefinition(fs, (std::string("${user_home}\\Alive\\Mods") + "\\" + file).c_str(), true));
     }
 
     // Get the user selected game def
@@ -295,7 +295,7 @@ TEST(ResourceLocator, Construct)
     ResourceMapper mapper;
     mapper.AddAnimMapping("SLIGZ.BND_417_1", { "SLIGZ.BND", 417, 1 });
 
-    ResourceLocator resourceLocator(fs, selected, std::move(mapper));
+    ResourceLocator resourceLocator(fs, std::move(mapper));
     
     // TODO: Handle extra mod dependent data sets
     // Need to merge GD dataset lists so that none "default" data paths appear first

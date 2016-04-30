@@ -1,6 +1,5 @@
 #include "engine.hpp"
 #include <iostream>
-#include "oddlib/lvlarchive.hpp"
 #include "oddlib/masher.hpp"
 #include "oddlib/exceptions.hpp"
 #include "logger.hpp"
@@ -14,18 +13,8 @@
 #include "renderer.hpp"
 #include "gui.h"
 #include "guiwidgets.hpp"
-#include "oddlib/anim.hpp"
-#include "resourcemapper.hpp"
-
+#include "gameselectionscreen.hpp"
 #include "generated_gui_layout.cpp" // Has function "load_layout" to set gui layout. Only used in single .cpp file.
-
-extern "C"
-{
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-}
-
 
 
 #ifdef _WIN32
@@ -104,36 +93,7 @@ bool Engine::Init()
             return false;
         }
 
-        // load the enumerated "built in" game defs
-        const auto gameDefFiles = mFileSystem->EnumerateFiles("{GameDir}/data/GameDefinitions", "*.json");
-
-        std::vector<GameDefinition> gameDefs;
-        for (const auto& gameDef : gameDefFiles)
-        {
-            gameDefs.emplace_back(*mFileSystem, ("{GameDir}/data/GameDefinitions/" + gameDef).c_str());
-        }
-
-        // load the enumerated "mod" game defs
-        const auto modDefsFiles = mFileSystem->EnumerateFiles("{UserDir}/Mods", "*.json");
-        for (const auto& gameDef : modDefsFiles)
-        {
-            gameDefs.emplace_back(*mFileSystem, ("{UserDir}/Mods/" + gameDef).c_str());
-        }
-
-        ResourceMapper mapper(*mFileSystem, "{GameDir}/data/resources.json");
-
-        // create the resource mapper loading the resource maps from the json db
-        mResourceLocator = std::make_unique<ResourceLocator>(*mFileSystem, gameDefs[0], std::move(mapper));
-
-        // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
-        // also add in any extra maps for resources defined by the mod
-        
-        DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
-
-
-        // Test/debug
-        auto res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31");
-        res.Reload();
+        InitResources();
 
         if (!mFileSystem_old.Init())
         {
@@ -155,10 +115,9 @@ bool Engine::Init()
 
         InitGL();
 
-
-        ToState(eRunning);
-
         InitSubSystems();
+
+        ToState(std::make_unique<GameSelectionScreen>(*this, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, mFileSystem_old));
 
         return true;
     }
@@ -184,7 +143,7 @@ void Engine::InitSubSystems()
 
 int Engine::Run()
 {
-    while (mState != eShuttingDown)
+    while (mCurrentState)
     {
         Update();
         Render();
@@ -200,6 +159,9 @@ void Engine::Update()
         mGui->cursor_pos[0] = -1;
         mGui->cursor_pos[0] = -1;
     }
+
+    // TODO: Map "player" input to "game" buttons
+
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -217,7 +179,7 @@ void Engine::Update()
             break;
 
         case SDL_QUIT:
-            ToState(eShuttingDown);
+            ToState(nullptr);
             break;
 
         case SDL_TEXTINPUT:
@@ -294,10 +256,13 @@ void Engine::Update()
 
 
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
+            
+            // TODO: Move out of here
             if (key == SDL_SCANCODE_ESCAPE)
             {
                 mFmv->Stop();
             }
+
             if (event.type == SDL_KEYDOWN && key == SDL_SCANCODE_BACKSPACE)
                 gui_write_char(mGui, '\b'); // Note that this is called in case of repeated backspace key also
 
@@ -331,68 +296,16 @@ void Engine::Update()
             mGui->key_state[GUI_KEY_LCTRL] |= GUI_KEYSTATE_DOWN_BIT;
     }
 
-    // TODO: Move into state machine
-    //mFmv.Play("INGRDNT.DDV");
-    mFmv->Update();
-    mSound->Update();
-    mLevel->Update();
-}
-
-struct ResInfo
-{
-    ResInfo() = default;
-    ResInfo(const ResInfo&) = delete;
-    ResInfo& operator = (const ResInfo&) = delete;
-
-    bool mDisplay;
-    Oddlib::LvlArchive::FileChunk* mFileChunk;
-    std::unique_ptr<Oddlib::AnimationSet> mAnim;
-
-    Uint32 counter = 0;
-    Uint32 frameNum = 0;
-    Uint32 animNum = 0;
-
-    void Animate(Renderer& rend)
+    if (mCurrentState)
     {
-
-
-        const Oddlib::Animation* anim = mAnim->AnimationAt(animNum);
-
-
-        const Oddlib::Animation::Frame& frame = anim->GetFrame(frameNum);
-        counter++;
-        if (counter > 25)
-        {
-            counter = 0;
-            frameNum++;
-            if (frameNum >= anim->NumFrames())
-            {
-                frameNum = 0;
-                animNum++;
-                if (animNum >= mAnim->NumberOfAnimations())
-                {
-                    animNum = 0;
-                }
-            }
-        }
-
-        const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
-
-        int scale = 3;
-        float xpos = 300.0f + (frame.mOffX*scale);
-        float ypos = 300.0f + (frame.mOffY*scale);
-        // LOG_INFO("Pos " << xpos << "," << ypos);
-        BlendMode blend = BlendMode::B100F100(); // TODO: Detect correct blending
-        Color color = Color::white();
-        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w*scale ), static_cast<float>(frame.mFrame->h*scale), color, blend);
-
-        rend.destroyTexture(textureId);
+        mCurrentState->Update();
     }
-};
+}
 
 void Engine::Render()
 {
-    int w, h;
+    int w = 0;
+    int h = 0;
     SDL_GetWindowSize(mWindow, &w, &h);
     mGui->host_win_size[0] = w;
     mGui->host_win_size[1] = h;
@@ -400,107 +313,9 @@ void Engine::Render()
     mRenderer->beginFrame(w, h);
     gui_pre_frame(mGui); 
 
-    DebugRender();
-
-    { // Editor user interface
-        // When this gets bigger it can be moved to a separate class etc.
-        struct EditorUi
-        {
-            bool resPathsOpen;
-            bool fmvBrowserOpen;
-            bool soundBrowserOpen;
-            bool levelBrowserOpen;
-            bool animationBrowserOpen;
-            bool guiLayoutEditorOpen;
-        };
-
-
-        static EditorUi editor;
-
-        gui_begin_window(mGui, "Browsers");
-        gui_checkbox(mGui, "resPathsOpen|Resource paths", &editor.resPathsOpen);
-        gui_checkbox(mGui, "fmvBrowserOpen|FMV browser", &editor.fmvBrowserOpen);
-        gui_checkbox(mGui, "soundBrowserOpen|Sound browser", &editor.soundBrowserOpen);
-        gui_checkbox(mGui, "levelBrowserOpen|Level browser", &editor.levelBrowserOpen);
-        gui_checkbox(mGui, "animationBrowserOpen|Animation browser", &editor.animationBrowserOpen);
-        gui_checkbox(mGui, "guiLayoutEditOpen|GUI layout editor", &editor.guiLayoutEditorOpen);
-
-        gui_end_window(mGui);
-
-        if (editor.resPathsOpen)
-        {
-            mFileSystem_old.DebugUi(*mGui);
-        }
-
-        if (editor.fmvBrowserOpen)
-        {
-            mFmv->Render(*mRenderer, *mGui, w, h);
-        }
-
-        if (editor.soundBrowserOpen)
-        {
-            mSound->Render(mGui, w, h);
-        }
-
-
-        if (editor.levelBrowserOpen)
-        {
-            mLevel->Render(*mRenderer, *mGui, w, h);
-        }
-
-        if (editor.animationBrowserOpen)
-        {
-
-            static std::vector<std::pair<std::string, std::unique_ptr<ResInfo>>> resources;
-            if (resources.empty())
-            {
-                // Add all "anim" resources to a big list
-                // HACK: all leaked
-                static auto stream = mFileSystem_old.ResourcePaths().Open("BA.LVL");
-                static Oddlib::LvlArchive lvlArchive(std::move(stream));
-                for (auto i = 0u; i < lvlArchive.FileCount(); i++)
-                {
-                    Oddlib::LvlArchive::File* file = lvlArchive.FileByIndex(i);
-                    for (auto j = 0u; j < file->ChunkCount(); j++)
-                    {
-                        Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
-                        if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
-                        {
-                            auto info = std::make_unique<ResInfo>();
-                            info->mDisplay = false;
-                            info->mFileChunk = chunk;
-                            resources.emplace_back(std::make_pair(file->FileName() + "_" + std::to_string(chunk->Id()), std::move(info)));
-                        }
-                    }
-                }
-            }
-
-            gui_begin_window(mGui, "Animations");
-            for (auto& res : resources)
-            {
-                gui_checkbox(mGui, res.first.c_str(), &res.second->mDisplay);
-                if (res.second->mDisplay)
-                {
-                    Oddlib::LvlArchive::FileChunk* chunk = res.second->mFileChunk;
-                    if (!res.second->mAnim)
-                    {
-                        res.second->mAnim = Oddlib::LoadAnimations(*chunk->Stream(), false);
-                    }
-
-                    mRenderer->beginLayer(gui_layer(mGui));
-                    res.second->Animate(*mRenderer);
-                    mRenderer->endLayer();
-                }
-            }
-  
-            gui_end_window(mGui);
-
-        }
-
-        if (editor.guiLayoutEditorOpen)
-        {
-            gui_layout_editor(mGui, "../src/generated_gui_layout.cpp");
-        }
+    if (mCurrentState)
+    {
+        mCurrentState->Render(w, h, *mRenderer);
     }
 
     gui_post_frame(mGui);
@@ -538,6 +353,38 @@ bool Engine::InitSDL()
     return true;
 }
 
+void Engine::InitResources()
+{
+    // load the enumerated "built in" game defs
+    const auto gameDefJsonFiles = mFileSystem->EnumerateFiles("{GameDir}/data/GameDefinitions", "*.json");
+    for (const auto& gameDef : gameDefJsonFiles)
+    {
+        mGameDefinitions.emplace_back(*mFileSystem, ("{GameDir}/data/GameDefinitions/" + gameDef).c_str(), false);
+    }
+
+    // load the enumerated "mod" game defs
+    const auto modDefsJsonFiles = mFileSystem->EnumerateFiles("{UserDir}/Mods", "*.json");
+    for (const auto& gameDef : modDefsJsonFiles)
+    {
+        mGameDefinitions.emplace_back(*mFileSystem, ("{UserDir}/Mods/" + gameDef).c_str(), true);
+    }
+
+    // create the resource mapper loading the resource maps from the json db
+    ResourceMapper mapper(*mFileSystem, "{GameDir}/data/resources.json");
+    mResourceLocator = std::make_unique<ResourceLocator>(*mFileSystem, std::move(mapper));
+
+    // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
+    // also add in any extra maps for resources defined by the mod
+
+    DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
+    //mResourceLocator->SetDataPaths(gameDefs[0], std::move(dataPaths));
+
+    // Test/debug
+    auto res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31");
+    //res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31", "AePc");
+    res.Reload();
+}
+
 void Engine::InitGL()
 {
     
@@ -568,13 +415,3 @@ void Engine::InitGL()
         throw Oddlib::Exception(reinterpret_cast<const char*>(glewGetErrorString(err)));
     }
 }
-
-void Engine::ToState(Engine::eStates newState)
-{
-    if (newState != mState)
-    {
-        mPreviousState = mState;
-        mState = newState;
-    }
-}
-

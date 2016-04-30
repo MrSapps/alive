@@ -1,5 +1,6 @@
 #pragma once
 
+#include "jsonxx/jsonxx.h"
 #include <unordered_map>
 
 #ifdef _WIN32
@@ -22,12 +23,12 @@ inline size_t StringHash(const char* s)
     return result;
 }
 
-size_t StringHash(const std::string& s)
+inline size_t StringHash(const std::string& s)
 {
     return StringHash(s.c_str());
 }
 
-std::vector<Uint8> StringToVector(const std::string& str)
+inline std::vector<Uint8> StringToVector(const std::string& str)
 {
     return std::vector<Uint8>(str.begin(), str.end());
 }
@@ -430,7 +431,8 @@ public:
     GameDefinition(const GameDefinition&) = default;
     GameDefinition& operator = (const GameDefinition&) = default;
 
-    GameDefinition(IFileSystem& fileSystem, const char* gameDefinitionFile)
+    GameDefinition(IFileSystem& fileSystem, const char* gameDefinitionFile, bool isMod)
+        : mIsMod(isMod)
     {
         auto stream = fileSystem.Open(gameDefinitionFile);
         assert(stream != nullptr);
@@ -447,6 +449,7 @@ public:
     const std::string& DataSetName() const { return mDataSetName; }
     const std::vector<std::string> RequiredDataSets() const { return mRequiredDataSets; }
     bool Hidden() const { return mHidden; }
+    bool IsMod() const { return mIsMod; }
 private:
 
     void Parse(const std::string& json)
@@ -482,6 +485,7 @@ private:
     std::string mDataSetName; // Name of this data set
     bool mHidden = false;
     std::vector<std::string> mRequiredDataSets;
+    bool mIsMod = false;
 };
 
 class ResourceMapper
@@ -765,10 +769,10 @@ public:
     ResourceLocator(const ResourceLocator&) = delete;
     ResourceLocator& operator =(const ResourceLocator&) = delete;
 
-    ResourceLocator(IFileSystem& fileSystem, GameDefinition& game, ResourceMapper&& resourceMapper)
+    ResourceLocator(IFileSystem& fileSystem, ResourceMapper&& resourceMapper)
         : mDataPaths(fileSystem), mResMapper(std::move(resourceMapper))
     {
-        std::ignore = game;
+
     }
 
     void AddDataPath(const char* dataPath, Sint32 priority, const std::string& dataSetId)
