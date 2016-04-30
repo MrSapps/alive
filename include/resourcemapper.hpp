@@ -2,11 +2,15 @@
 
 #include "jsonxx/jsonxx.h"
 #include <unordered_map>
+#include <regex>
 
 #ifdef _WIN32
 #include <windows.h>
 #else
 #include <dirent.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #endif
 
 #include "string_util.hpp"
@@ -112,12 +116,6 @@ public:
         return ret;
     }
 #else
-    virtual std::vector<std::string> EnumerateFiles(const char* /*directory*/, const char* /*filter*/) override
-    {
-        throw std::runtime_error("EnumerateFiles not implemented");
-    }
-
-    /*
     struct closedirDeleter
     {
         typedef DIR* pointer;
@@ -128,27 +126,36 @@ public:
     };
     typedef std::unique_ptr<DIR, closedirDeleter> closedirHandle;
 
-    virtual std::vector<std::string> EnumerateFiles(const char* directory) override
+    virtual std::vector<std::string> EnumerateFiles(const char* directory, const char* filter) override
     {
         std::vector<std::string> ret;
-        closedirHandle dir(opendir(ExpandPath(directory).c_str()));
+        const std::string dirPath = ExpandPath(directory) + "/";
+        closedirHandle dir(opendir(dirPath.c_str()));
         if (dir)
         {
-            DIR* dirent* ent = nullptr;
+            dirent* ent = nullptr;
             do
             {
+                const std::string strFilter(filter);
                 ent = readdir(dir.get());
-                // TODO: Filter out dots/dirs/test this
-                ret.emplace_back(ent->d_name);
+                if (ent)
+                {
+                    const std::string dirName = ent->d_name;
+                    if (!IsDots(dirName) && WildCardMatcher(dirName, strFilter, true))
+                    {
+                        ret.emplace_back(dirName);
+                        LOG_INFO("Name is " << dirName);
+                    }
+                }
             } while (ent);
             LOG_INFO(ret.size() << " items enumerated from " << dirPath);
         }
         else
         {
-            LOG_ERROR("Failed to enumerate directory " << directory);
+            LOG_ERROR("Failed to enumerate directory " << dirPath);
         }
         return ret;
-    }*/
+    }
 #endif
 
 #ifdef _WIN32
@@ -159,13 +166,48 @@ public:
         return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
     }
 #else
-    bool FileExists(const char* /*fileName*/) override
+    bool FileExists(const char* fileName) override
     {
-        return false;
+        struct stat buffer = {};
+        return stat(fileName, &buffer) == 0; 
     }
 #endif
 
 private:
+    bool WildCardMatcher(const std::string& text, std::string wildcardPattern, bool caseSensitive)
+    {
+        // Escape all regex special chars
+        EscapeRegex(wildcardPattern);
+
+        // Convert chars '*?' back to their regex equivalents
+        string_util::replace_all(wildcardPattern, "\\?", ".");
+        string_util::replace_all(wildcardPattern, "\\*", ".*");
+
+        std::regex pattern(wildcardPattern, 
+            caseSensitive ? 
+                std::regex_constants::ECMAScript : 
+                std::regex_constants::ECMAScript | std::regex_constants::icase);
+
+        return std::regex_match(text, pattern);
+    }
+    
+    void EscapeRegex(std::string& regex)
+    {
+        string_util::replace_all(regex, "\\", "\\\\");
+        string_util::replace_all(regex, "^", "\\^");
+        string_util::replace_all(regex, ".", "\\.");
+        string_util::replace_all(regex, "$", "\\$");
+        string_util::replace_all(regex, "|", "\\|");
+        string_util::replace_all(regex, "(", "\\(");
+        string_util::replace_all(regex, ")", "\\)");
+        string_util::replace_all(regex, "[", "\\[");
+        string_util::replace_all(regex, "]", "\\]");
+        string_util::replace_all(regex, "*", "\\*");
+        string_util::replace_all(regex, "+", "\\+");
+        string_util::replace_all(regex, "?", "\\?");
+        string_util::replace_all(regex, "/", "\\/");
+    }
+
     std::string ExpandPath(const std::string& path)
     {
         std::string ret = path;
