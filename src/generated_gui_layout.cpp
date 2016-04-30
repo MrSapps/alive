@@ -203,6 +203,31 @@ void load_layout(GuiContext *ctx)
 
 	{
 		GuiElementLayout l = {0};
+		l.id = 2674996296;
+		GUI_FMT_STR(l.str, sizeof(l.str), "%s", "Select game");
+		l.on_same_row = 0;
+		l.has_offset = 1;
+		l.offset[0] = 47;
+		l.offset[1] = 27;
+		l.has_size = 1;
+		l.size[0] = 351;
+		l.size[1] = 523;
+		l.prevent_resizing = 0;
+		l.align_left = 0;
+		l.align_right = 0;
+		l.align_top = 0;
+		l.align_bottom = 0;
+		l.padding[0] = 0;
+		l.padding[1] = 0;
+		l.padding[2] = 0;
+		l.padding[3] = 0;
+		l.gap[0] = 0;
+		l.gap[1] = 0;
+		append_element_layout(ctx, l);
+	}
+
+	{
+		GuiElementLayout l = {0};
 		l.id = 3012723582;
 		GUI_FMT_STR(l.str, sizeof(l.str), "%s", "Audio output settings");
 		l.on_same_row = 0;
