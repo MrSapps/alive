@@ -14,7 +14,7 @@ public:
         mLevel(level),
         mFsOld(fs)
     {
-        FilterGameDefinitions();
+        mVisibleGameDefinitions = GameDefinition::GetVisibleGameDefinitions(mGameDefinitions);
     }
     virtual void Update() override;
     virtual void Render(int w, int h, Renderer& renderer) override;

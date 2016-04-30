@@ -7,18 +7,6 @@ void GameSelectionScreen::Update()
 
 }
 
-void GameSelectionScreen::FilterGameDefinitions()
-{
-    mVisibleGameDefinitions.reserve(mGameDefinitions.size());
-    for (const auto& gd : mGameDefinitions)
-    {
-        if (!gd.Hidden())
-        {
-            mVisibleGameDefinitions.emplace_back(&gd);
-        }
-    }
-}
-
 void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
 {
     gui_begin_window(mGui, "Select game");

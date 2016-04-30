@@ -428,6 +428,20 @@ public:
     }
     */
 
+    static std::vector<const GameDefinition*> GetVisibleGameDefinitions(const std::vector<GameDefinition>& gameDefinitions)
+    {
+        std::vector<const GameDefinition*> ret;
+        ret.reserve(gameDefinitions.size());
+        for (const auto& gd : gameDefinitions)
+        {
+            if (!gd.Hidden())
+            {
+                ret.emplace_back(&gd);
+            }
+        }
+        return ret;
+    }
+
     GameDefinition(const GameDefinition&) = default;
     GameDefinition& operator = (const GameDefinition&) = default;
 
