@@ -273,6 +273,8 @@ TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
 
 #cotire(oddlib)
 
+add_executable(bin2h tools/bin2h/bin2h.cpp)
+
 # Bake binary test files in C array/header files
 function(make_header src dst varname)
 message(STATUS "Generating header '${dst}' from " '${src}')
