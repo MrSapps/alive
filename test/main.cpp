@@ -62,7 +62,7 @@ static std::string FileChunkToString(Oddlib::LvlArchive::FileChunk& chunk)
 
 TEST(LvlArchive, ReadFiles)
 {
-    Oddlib::LvlArchive lvl(get_sample_lvl());
+    Oddlib::LvlArchive lvl(get_sample());
 
     // Check number of read files is correct
     ASSERT_EQ(3u, lvl.FileCount());
