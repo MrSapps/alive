@@ -273,13 +273,25 @@ TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
 
 #cotire(oddlib)
 
+
 add_executable(bin2h tools/bin2h/bin2h.cpp)
+SET_PROPERTY(TARGET bin2h PROPERTY FOLDER "Header generators")
+
 
 # Bake binary test files in C array/header files
 function(make_header src dst varname)
-message(STATUS "Generating header '${dst}' from " '${src}')
-  EXEC_PROGRAM(${CMAKE_COMMAND}
-    ARGS -DBINARYBAKER_INPUT_FILE='${src}' -DBINARYBAKER_OUTPUT_FILE='${dst}' -DBINARYBAKER_VARIABLE_NAME='${varname}' -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/BinaryBaker.cmakescript)
+    message(STATUS "Generating header '${dst}' from " '${src}')
+    ADD_CUSTOM_COMMAND(OUTPUT "${dst}"
+                   COMMAND bin2h "${src}" "${dst}" ${varname}
+                   DEPENDS "${src}" )
+
+    add_custom_target(
+      Generate_${varname} ALL
+      DEPENDS "${dst}"
+    )
+
+    SET_PROPERTY(TARGET Generate_${varname} PROPERTY FOLDER "Header generators")
+
 endfunction()
   
 # Helper to take file foo.dat in any path and place it in generated headers as foo.dat.g.h with
@@ -288,7 +300,7 @@ function(to_vec src_file)
     SET(generated_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers)
     get_filename_component(NameOnly ${samples_dir}/${src_file} NAME)
     get_filename_component(NameOnlyNoExt ${samples_dir}/${src_file} NAME_WE)
-    #message(STATUS "File name is ${NameOnly} with out ext is ${NameOnlyNoExt}")
+    message(STATUS "File name is ${NameOnly} with out ext is ${NameOnlyNoExt}")
     make_header(${src_file}
                 ${generated_headers_dir}/${NameOnly}.g.h 
                 ${NameOnlyNoExt})
@@ -314,17 +326,11 @@ to_vec(${samples_dir}/ae_ddv/video_only/all_colours_max_compression_30_fps.ddv)
 to_vec(${samples_dir}/ae_ddv/video_only/all_colours_medium_compression_30_fps.ddv)
 to_vec(${samples_dir}/ae_ddv/video_only/all_colours_min_compression_30_fps.ddv)
 
-
-EXEC_PROGRAM(${CMAKE_COMMAND}
-    ARGS -DBINARYBAKER_INPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/sample.lvl -DBINARYBAKER_OUTPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers/sample.lvl.g.h -DBINARYBAKER_VARIABLE_NAME=sample_lvl -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/BinaryBaker.cmakescript)
-
 add_executable(Tests 
-    test/sample_files/generated_headers/sample.lvl.g.h
     test/main.cpp
     test/resource_locator_test.cpp
     include/subtitles.hpp
 )
-
 
 #cotire(Tests)
 target_link_libraries(Tests oddlib gmock ${Alive_Libs} ${CMAKE_THREAD_LIBS_INIT})
