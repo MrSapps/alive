@@ -37,7 +37,7 @@ struct setcolour
     colour mColour;
     void* mConsoleHandle;
 
-    setcolour(mColour col)
+    setcolour(colour col)
         : mColour(col), mConsoleHandle(0)
     {
         mConsoleHandle = gConsoleHandle;
@@ -55,7 +55,7 @@ static std::basic_ostream<char> &operator<<(std::basic_ostream<char>& s, const s
         case WHITE:  colour = 15; break;
         case PINK:   colour = 13; break;
     }
-    ::SetConsoleTextAttribute(ref.mConsoleHandle, colour));
+    ::SetConsoleTextAttribute(ref.mConsoleHandle, colour);
     return s;
 }
 #else
