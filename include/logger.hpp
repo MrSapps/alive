@@ -18,7 +18,14 @@
 #define NOEXEPT noexcept
 #endif
 
-enum colour { DARKBLUE = 1, DARKGREEN, DARKTEAL, DARKRED, DARKPINK, DARKYELLOW, GRAY, DARKGRAY, BLUE, GREEN, TEAL, RED, PINK, YELLOW, WHITE };
+enum colour
+{
+    GREEN,
+    RED,
+    YELLOW,
+    WHITE,
+    PINK
+};
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -27,35 +34,58 @@ static void* gConsoleHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
 
 struct setcolour
 {
-    colour _c;
-    void* _console_handle;
+    colour mColour;
+    void* mConsoleHandle;
 
-    setcolour(colour c)
-        : _c(c), _console_handle(0)
+    setcolour(mColour col)
+        : mColour(col), mConsoleHandle(0)
     {
-        _console_handle = gConsoleHandle;
+        mConsoleHandle = gConsoleHandle;
     }
 };
 
-
-static std::basic_ostream<char> &operator<<(std::basic_ostream<char> &s, const setcolour &ref)
+static std::basic_ostream<char> &operator<<(std::basic_ostream<char>& s, const setcolour& ref)
 {
-    ::SetConsoleTextAttribute(ref._console_handle, static_cast<WORD>(ref._c));
+    WORD colour = 0;
+    switch(ref.mColour)
+    {
+        case GREEN:  colour = 10; break;
+        case RED:    colour = 12; break;
+        case YELLOW: colour = 14; break;
+        case WHITE:  colour = 15; break;
+        case PINK:   colour = 13; break;
+    }
+    ::SetConsoleTextAttribute(ref.mConsoleHandle, colour));
     return s;
 }
 #else
+
+#include <unistd.h>
+
+static bool gbConsoleSupportsColour = isatty(fileno(stdout)) == 1;
+
 struct setcolour
 {
-    colour _c;
-    setcolour(colour c)
-        : _c(c)
+    colour mColour;
+    setcolour(colour col)
+        : mColour(col)
     {
     }
 };
 
-static std::basic_ostream<char> &operator<<(std::basic_ostream<char>& s, const setcolour& /*ref*/)
+static std::basic_ostream<char> &operator<<(std::basic_ostream<char>& s, const setcolour& ref)
 {
-    // Not supported on other platforms yet
+    if (gbConsoleSupportsColour)
+    {
+        switch(ref.mColour)
+        {
+            case GREEN:  s << "\033[40m\033[32m"; break;
+            case RED:    s << "\033[40m\033[31m"; break;
+            case YELLOW: s << "\033[40m\033[33m"; break;
+            case WHITE:  s << "\033[40m\033[37m"; break;
+            case PINK:   s << "\033[40m\033[35m"; break;
+        }
+    }
     return s;
 }
 #endif
