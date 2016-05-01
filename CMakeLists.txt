@@ -247,7 +247,12 @@ add_executable(Alive MACOSX_BUNDLE
     src/main.cpp
 )
 
-SET(Alive_Libs  AliveLib jsonxx oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng)
+if(UNIX AND NOT APPLE)
+    # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg glew stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng)
+ELSE()
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng)
+ENDIF()
 
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
