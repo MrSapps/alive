@@ -342,6 +342,11 @@ bool Engine::InitSDL()
     mWindow = SDL_CreateWindow(ALIVE_VERSION_NAME_STR,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640*2, 480*2,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    if (!mWindow)
+    {
+        LOG_ERROR("Failed to create window: " << SDL_GetError());
+        return false;
+    }
 
     SDL_SetWindowMinimumSize(mWindow, 320, 240);
 
@@ -387,17 +392,38 @@ void Engine::InitResources()
 
 void Engine::InitGL()
 {
-    
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
+    // SDL Defaults
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 3);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 3);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 2);
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
+    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 0);
+
+    // Overrides
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 
-
     mContext = SDL_GL_CreateContext(mWindow);
+    if (!mContext)
+    {
+        throw Oddlib::Exception((std::string("Failed to create GL context: ") + SDL_GetError()).c_str());
+    }
+
+    int r = 0;
+    int g = 0;
+    int b = 0;
+    int a = 0;
+    int bufferSize = 0;
+    int doubleBuffer = 0;
+    SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r);
+    SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &g);
+    SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &b);
+    SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &a);
+    SDL_GL_GetAttribute(SDL_GL_BUFFER_SIZE, &bufferSize);
+    SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &doubleBuffer);
+    LOG_INFO("GL settings r " << r << " g " << g << " b " << b << " bufferSize " << bufferSize << " double buffer " << doubleBuffer);
+
     SDL_GL_SetSwapInterval(0); // No vsync for gui, for responsiveness
 
     if (gl3wInit()) 
