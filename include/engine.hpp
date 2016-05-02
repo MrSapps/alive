@@ -5,8 +5,7 @@
 #include <memory>
 #include "oddlib/masher.hpp"
 #include "SDL.h"
-#include <GL/glew.h>
-#include "SDL_opengl.h"
+#include <GL/gl3w.h>
 #include "core/audiobuffer.hpp"
 #include "resourcemapper.hpp"
 

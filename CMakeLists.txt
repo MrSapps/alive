@@ -64,7 +64,7 @@ include_directories(
     ${SDL2_INCLUDE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/packaging
     ${OPENGL_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glew-1.11.0/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0
@@ -76,14 +76,13 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/include
 )
 
-add_definitions(-DGLEW_STATIC)
 
-SET(glew_src 
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glew-1.11.0/src/glew.c
+SET(gl3w_src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 
-add_library(glew STATIC ${glew_src})
-SET_PROPERTY(TARGET glew PROPERTY FOLDER "3rdparty")
+add_library(gl3w STATIC ${gl3w_src})
+SET_PROPERTY(TARGET gl3w PROPERTY FOLDER "3rdparty")
 
 SET(lodepng_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/lodepng/lodepng.cpp
@@ -249,9 +248,9 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(UNIX AND NOT APPLE)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg glew stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg gl3w stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng)
 ELSE()
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg gl3w stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng)
 ENDIF()
 
 #cotire(Alive)

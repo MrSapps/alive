@@ -6,7 +6,7 @@
 #include "logger.hpp"
 #include "filesystem.hpp"
 #include "subtitles.hpp"
-#include <GL/glew.h>
+#include <GL/gl3w.h>
 #include "SDL_opengl.h"
 #include "proxy_nanovg.h"
 #include "stdthread.h"

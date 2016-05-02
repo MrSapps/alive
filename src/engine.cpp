@@ -400,18 +400,13 @@ void Engine::InitGL()
     mContext = SDL_GL_CreateContext(mWindow);
     SDL_GL_SetSwapInterval(0); // No vsync for gui, for responsiveness
 
-    glewExperimental = GL_TRUE;
-    GLenum err = glewInit();
-    if (err == GLEW_OK)
+    if (gl3wInit()) 
     {
-        // GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
-        glGetError();
-
-        glEnable(GL_STENCIL_TEST);
+        throw Oddlib::Exception("failed to initialize OpenGL");
     }
-    else
+
+    if (!gl3wIsSupported(3, 1)) 
     {
-        LOG_INFO("glewInit failure");
-        throw Oddlib::Exception(reinterpret_cast<const char*>(glewGetErrorString(err)));
+        throw Oddlib::Exception("OpenGL 3.1 not supported");
     }
 }

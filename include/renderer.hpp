@@ -2,7 +2,7 @@
 #define ALIVE_RENDERER_HPP
 
 #include <vector>
-#include <GL/glew.h>
+#include <GL/gl3w.h>
 #include "SDL_opengl.h"
 
 // Vertex array object. Contains vertex and index buffers
