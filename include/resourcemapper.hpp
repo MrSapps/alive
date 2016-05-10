@@ -496,6 +496,12 @@ public:
         Parse(jsonData);
     }
 
+    GameDefinition(std::string name, std::string dataSetName, std::vector<std::string> requiredDataSets, bool isMod)
+        : mName(name), mDataSetName(dataSetName), mRequiredDataSets(requiredDataSets), mIsMod(isMod)
+    {
+
+    }
+
     GameDefinition() = default;
     
     const std::string& Name() const { return mName; }

@@ -318,3 +318,108 @@ TEST(ResourceLocator, Construct)
     resMapped1.Reload();
 
 }
+
+void GetDependencies(std::set<std::string>& requiredDataSets, std::set<std::string>& missingDataSets, const GameDefinition* gd, const std::vector<const GameDefinition*>& gds)
+{
+    requiredDataSets.insert(gd->DataSetName());
+
+    for (const std::string& dataSetName : gd->RequiredDataSets())
+    {
+        // Skip if already processed to avoid inf recursion on cycles
+        if (requiredDataSets.find(dataSetName) == std::end(requiredDataSets))
+        {
+            bool found = false;
+            for (const GameDefinition* gameDef : gds)
+            {
+                if (gameDef->DataSetName() == dataSetName)
+                {
+                    found = true;
+
+                    GetDependencies(requiredDataSets, missingDataSets, gameDef, gds);
+                    break;
+                }
+            }
+            if (!found)
+            {
+                missingDataSets.insert(dataSetName);
+            }
+        }
+    }
+
+}
+
+TEST(ResourceLocator, GameDefinitionDeps)
+{
+    {
+        // Create a graph like:
+        // a
+        // |
+        // b c
+        //   |
+        //   d
+        const GameDefinition a("a", "SetA", { "SetB", "SetC" }, false);
+        const GameDefinition b("b", "SetB", {}, false);
+        const GameDefinition c("c", "SetC", { "SetD" }, false);
+        const GameDefinition d("d", "SetD", {}, false);
+
+        const std::vector<const GameDefinition*> gds { &a, &b, &c, &d };
+
+        std::set<std::string> requiredDataSets;
+        std::set<std::string> missingDataSets;
+        GetDependencies(requiredDataSets, missingDataSets, &a, gds);
+
+        const std::set<std::string> expectedMissingDataSets = {};
+        ASSERT_EQ(expectedMissingDataSets, missingDataSets);
+
+        const std::set<std::string> expectedRequiredDataSets = { "SetA", "SetB", "SetC", "SetD" };
+        ASSERT_EQ(expectedRequiredDataSets, requiredDataSets);
+    }
+
+    {
+        // Create a graph with cycles
+        // a <--|
+        // |    |
+        // b c <|-|
+        //   |  | |
+        //   d--| |
+        //   |    |
+        //   e----|
+        const GameDefinition a("a", "SetA", { "SetB", "SetC" }, false);
+        const GameDefinition b("b", "SetB", {}, false);
+        const GameDefinition c("c", "SetC", { "SetD" }, false);
+        const GameDefinition d("d", "SetD", { "SetE", "SetA" }, false);
+        const GameDefinition e("e", "SetE", { "SetC" }, false);
+
+        const std::vector<const GameDefinition*> gds { &a, &b, &c, &d, &e };
+
+        std::set<std::string> requiredDataSets;
+        std::set<std::string> missingDataSets;
+        GetDependencies(requiredDataSets, missingDataSets, &a, gds);
+
+        const std::set<std::string> expectedMissingDataSets = {};
+        ASSERT_EQ(expectedMissingDataSets, missingDataSets);
+
+        const std::set<std::string> expectedRequiredDataSets = { "SetA", "SetB", "SetC", "SetD", "SetE" };
+        ASSERT_EQ(expectedRequiredDataSets, requiredDataSets);
+    }
+
+    {
+        // Create a graph with missing node(s)
+        const GameDefinition a("a", "SetA", { "SetB", "SetC" }, false);
+
+        const std::vector<const GameDefinition*> gds { };
+
+        std::set<std::string> requiredDataSets;
+        std::set<std::string> missingDataSets;
+        GetDependencies(requiredDataSets, missingDataSets, &a, gds);
+
+        const std::set<std::string> expectedMissingDataSets = { "SetB", "SetC" };
+        ASSERT_EQ(expectedMissingDataSets, missingDataSets);
+
+        const std::set<std::string> expectedRequiredDataSets = { "SetA" };
+        ASSERT_EQ(expectedRequiredDataSets, requiredDataSets);
+    }
+
+    // TODO: Need to know which ones are mods or not so we can check if we have
+    // data paths to it
+}
