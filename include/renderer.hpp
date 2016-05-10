@@ -2,7 +2,11 @@
 #define ALIVE_RENDERER_HPP
 
 #include <vector>
+
 #include <GL/gl3w.h>
+#ifdef WIN32_LEAN_AND_MEAN
+#undef WIN32_LEAN_AND_MEAN
+#endif
 #include "SDL_opengl.h"
 
 // Vertex array object. Contains vertex and index buffers
