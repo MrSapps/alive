@@ -368,7 +368,7 @@ TEST(ResourceLocator, GameDefinitionDeps)
         std::set<std::string> missingDataSets;
         GetDependencies(requiredDataSets, missingDataSets, &a, gds);
 
-        const std::set<std::string> expectedMissingDataSets = {};
+        const std::set<std::string> expectedMissingDataSets {};
         ASSERT_EQ(expectedMissingDataSets, missingDataSets);
 
         const std::set<std::string> expectedRequiredDataSets = { "SetA", "SetB", "SetC", "SetD" };
@@ -396,10 +396,10 @@ TEST(ResourceLocator, GameDefinitionDeps)
         std::set<std::string> missingDataSets;
         GetDependencies(requiredDataSets, missingDataSets, &a, gds);
 
-        const std::set<std::string> expectedMissingDataSets = {};
+        const std::set<std::string> expectedMissingDataSets {};
         ASSERT_EQ(expectedMissingDataSets, missingDataSets);
 
-        const std::set<std::string> expectedRequiredDataSets = { "SetA", "SetB", "SetC", "SetD", "SetE" };
+        const std::set<std::string> expectedRequiredDataSets { "SetA", "SetB", "SetC", "SetD", "SetE" };
         ASSERT_EQ(expectedRequiredDataSets, requiredDataSets);
     }
 
@@ -413,10 +413,10 @@ TEST(ResourceLocator, GameDefinitionDeps)
         std::set<std::string> missingDataSets;
         GetDependencies(requiredDataSets, missingDataSets, &a, gds);
 
-        const std::set<std::string> expectedMissingDataSets = { "SetB", "SetC" };
+        const std::set<std::string> expectedMissingDataSets { "SetB", "SetC" };
         ASSERT_EQ(expectedMissingDataSets, missingDataSets);
 
-        const std::set<std::string> expectedRequiredDataSets = { "SetA" };
+        const std::set<std::string> expectedRequiredDataSets { "SetA" };
         ASSERT_EQ(expectedRequiredDataSets, requiredDataSets);
     }
 
