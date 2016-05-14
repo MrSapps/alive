@@ -26,7 +26,25 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
     {
         const GameDefinition& gd = *mVisibleGameDefinitions[mSelectedGameDefintionIndex];
 
-        // TODO: Validate we have all of the required data sets to launch the game
+        DataSetMap requiredDataSets;
+        std::set<std::string> missingDataSets;
+
+        std::vector<const GameDefinition*> tmpGameDefs;
+        for (const auto& t : mGameDefinitions)
+        {
+            tmpGameDefs.push_back(&t);
+        }
+
+        GameDefinition::GetDependencies(requiredDataSets, missingDataSets, &gd, tmpGameDefs);
+        if (!missingDataSets.empty())
+        {
+            // Need user to download missing game defs
+        }
+
+        const BuiltInAndModGameDefs sorted = GameDefinition::SplitInToBuiltInAndMods(requiredDataSets);
+        
+        // TODO: Validate we have all of the required data sets to launch the game, if not then ask the user
+        // for paths to them (for built in game defs only, the mod itself is the mod data path).
 
         if (gd.DataSetName() == "Developer")
         {

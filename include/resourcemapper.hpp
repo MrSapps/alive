@@ -3,6 +3,7 @@
 #include "jsonxx/jsonxx.h"
 #include <unordered_map>
 #include <regex>
+#include <map>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -444,31 +445,61 @@ private:
 */
 
 // AOPC, AOPSX, FoosMod etc
+using DataSetMap = std::map<std::string, const class GameDefinition*>;
+struct BuiltInAndModGameDefs
+{
+    std::vector< std::pair<std::string, const GameDefinition*>> gameDefs;
+    std::vector< std::pair<std::string, const GameDefinition*>> modDefs;
+};
+
 class GameDefinition
 {
-private:
-
-
-
 public:
-    /*
-    static std::vector<std::pair<std::string, std::string>> GetMergedDatasets(
-        const GameDefinition& selectedGd, 
-        const std::vector<GameDefinition>& builtInGds,
-        const std::vector<GameDefinition>& modGds)
+    static BuiltInAndModGameDefs SplitInToBuiltInAndMods(const DataSetMap& requiredDataSets)
     {
-        auto requiredSets = selectedGd.RequiredDataSets();
-        for (auto& reqSet : requiredSets)
+        BuiltInAndModGameDefs sorted;
+        for (const auto& dataSetPair : requiredDataSets)
         {
-            // If the required data set is a mod then recursively add the mods required data sets
-            for (auto& gd : modGds)
+            if (dataSetPair.second->IsMod())
             {
-
+                sorted.modDefs.push_back(dataSetPair);
+            }
+            else
+            {
+                sorted.gameDefs.push_back(dataSetPair);
             }
         }
-        return std::vector<std::pair<std::string, std::string>> {};
+        return sorted;
     }
-    */
+
+    static void GetDependencies(DataSetMap& requiredDataSets, std::set<std::string>& missingDataSets, const GameDefinition* gd, const std::vector<const GameDefinition*>& gds)
+    {
+        requiredDataSets[gd->DataSetName()] = gd;
+
+        for (const std::string& dataSetName : gd->RequiredDataSets())
+        {
+            // Skip if already processed to avoid inf recursion on cycles
+            if (requiredDataSets.find(dataSetName) == std::end(requiredDataSets))
+            {
+                bool found = false;
+                for (const GameDefinition* gameDef : gds)
+                {
+                    if (gameDef->DataSetName() == dataSetName)
+                    {
+                        found = true;
+
+                        GetDependencies(requiredDataSets, missingDataSets, gameDef, gds);
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    missingDataSets.insert(dataSetName);
+                }
+            }
+        }
+
+    }
 
     static std::vector<const GameDefinition*> GetVisibleGameDefinitions(const std::vector<GameDefinition>& gameDefinitions)
     {

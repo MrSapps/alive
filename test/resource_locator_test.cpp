@@ -319,37 +319,6 @@ TEST(ResourceLocator, Construct)
 
 }
 
-using DataSetMap = std::map<std::string, const GameDefinition*>;
-
-void GetDependencies(DataSetMap& requiredDataSets, std::set<std::string>& missingDataSets, const GameDefinition* gd, const std::vector<const GameDefinition*>& gds)
-{
-    requiredDataSets[gd->DataSetName()] = gd;
-
-    for (const std::string& dataSetName : gd->RequiredDataSets())
-    {
-        // Skip if already processed to avoid inf recursion on cycles
-        if (requiredDataSets.find(dataSetName) == std::end(requiredDataSets))
-        {
-            bool found = false;
-            for (const GameDefinition* gameDef : gds)
-            {
-                if (gameDef->DataSetName() == dataSetName)
-                {
-                    found = true;
-
-                    GetDependencies(requiredDataSets, missingDataSets, gameDef, gds);
-                    break;
-                }
-            }
-            if (!found)
-            {
-                missingDataSets.insert(dataSetName);
-            }
-        }
-    }
-
-}
-
 TEST(ResourceLocator, GameDefinitionDeps)
 {
     {
@@ -368,7 +337,7 @@ TEST(ResourceLocator, GameDefinitionDeps)
 
         DataSetMap requiredDataSets;
         std::set<std::string> missingDataSets;
-        GetDependencies(requiredDataSets, missingDataSets, &a, gds);
+        GameDefinition::GetDependencies(requiredDataSets, missingDataSets, &a, gds);
 
         const std::set<std::string> expectedMissingDataSets {};
         ASSERT_EQ(expectedMissingDataSets, missingDataSets);
@@ -396,7 +365,7 @@ TEST(ResourceLocator, GameDefinitionDeps)
 
         DataSetMap requiredDataSets;
         std::set<std::string> missingDataSets;
-        GetDependencies(requiredDataSets, missingDataSets, &a, gds);
+        GameDefinition::GetDependencies(requiredDataSets, missingDataSets, &a, gds);
 
         const std::set<std::string> expectedMissingDataSets {};
         ASSERT_EQ(expectedMissingDataSets, missingDataSets);
@@ -413,7 +382,7 @@ TEST(ResourceLocator, GameDefinitionDeps)
 
         DataSetMap requiredDataSets;
         std::set<std::string> missingDataSets;
-        GetDependencies(requiredDataSets, missingDataSets, &a, gds);
+        GameDefinition::GetDependencies(requiredDataSets, missingDataSets, &a, gds);
 
         const std::set<std::string> expectedMissingDataSets { "SetB", "SetC" };
         ASSERT_EQ(expectedMissingDataSets, missingDataSets);
@@ -422,7 +391,7 @@ TEST(ResourceLocator, GameDefinitionDeps)
         ASSERT_EQ(expectedRequiredDataSets, requiredDataSets);
     }
 
-    // TODO: Need to know which ones are mods or not so we can check if we have
+    // Need to know which ones are mods or not so we can check if we have
     // data paths to it
     {
         const GameDefinition a("a", "SetA", { "SetB", "SetC" }, true);
@@ -434,20 +403,12 @@ TEST(ResourceLocator, GameDefinitionDeps)
         const std::vector<const GameDefinition*> gds{ &a, &b, &c, &d, &e };
         const DataSetMap requiredDataSets{ { "SetA", &a }, { "SetB", &b }, { "SetC", &c }, { "SetD", &d }, { "SetE", &e } };
 
-        std::vector< std::pair<std::string, const GameDefinition*>> gameDefs;
-        std::vector< std::pair<std::string, const GameDefinition*>> modDefs;
+        const BuiltInAndModGameDefs sorted = GameDefinition::SplitInToBuiltInAndMods(requiredDataSets);
 
-        for (const auto& dataSetPair : requiredDataSets)
-        {
-            if (dataSetPair.second->IsMod())
-            {
-                modDefs.push_back(dataSetPair);
-            }
-            else
-            {
-                gameDefs.push_back(dataSetPair);
-            }
-        }
+        const std::vector< std::pair<std::string, const GameDefinition*>> builtIns{ { "SetD", &d }, { "SetE", &e } };
+        ASSERT_EQ(builtIns, sorted.gameDefs);
 
+        const std::vector< std::pair<std::string, const GameDefinition*>> mods{ { "SetA", &a }, { "SetB", &b }, { "SetC", &c } };
+        ASSERT_EQ(mods, sorted.modDefs);
     }
 }
