@@ -5,14 +5,15 @@
 class GameSelectionScreen : public EngineState
 {
 public:
-    GameSelectionScreen(IEngineStateChanger& stateChanger, const std::vector<GameDefinition>& gameDefinitions, GuiContext* gui, class Fmv& fmv, class Sound& sound, class Level& level, class FileSystem& fs)
+    GameSelectionScreen(IEngineStateChanger& stateChanger, const std::vector<GameDefinition>& gameDefinitions, GuiContext* gui, class Fmv& fmv, class Sound& sound, class Level& level, class FileSystem& fs, ResourceLocator& resLocator)
       : EngineState(stateChanger), 
         mGameDefinitions(gameDefinitions),
         mGui(gui),
         mFmv(fmv),
         mSound(sound),
         mLevel(level),
-        mFsOld(fs)
+        mFsOld(fs),
+        mResLocator(resLocator)
     {
         mVisibleGameDefinitions = GameDefinition::GetVisibleGameDefinitions(mGameDefinitions);
     }
@@ -28,6 +29,6 @@ private:
     Sound& mSound;
     Level& mLevel;
     FileSystem& mFsOld;
-
+    ResourceLocator& mResLocator;
     size_t mSelectedGameDefintionIndex = 0;
 };

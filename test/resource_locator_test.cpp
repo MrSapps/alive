@@ -21,29 +21,6 @@ public:
     MOCK_METHOD1(FileExists, bool(const char*));
 };
 
-TEST(ResourceLocator, ResourceLoaderOpen)
-{
-    MockFileSystem fs;
-
-    ResourceLoader loader(fs);
-
-    loader.Add("C:\\dataset_location1", 1, "AePc");
-    loader.Add("C:\\dataset_location2", 2, "AePc");
-
-    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND")))
-        .WillRepeatedly(Return(nullptr));
-
-    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location2\\SLIGZ.BND")))
-        .Times(1)
-        .WillOnce(Return(new Oddlib::Stream(StringToVector("test"))));
-
-    auto stream = loader.Open("SLIGZ.BND");
-    ASSERT_NE(nullptr, stream);
-
-    const auto str = stream->LoadAllToString();
-    ASSERT_EQ(str, "test");
-}
-
 TEST(ResourceLocator, Cache)
 {
     ResourceCache cache;
@@ -134,11 +111,12 @@ TEST(ResourceLocator, LocateAnimation)
         .Times(1)
         .WillOnce(Return(new Oddlib::Stream(StringToVector("test"))));   // For SLIGZ.BND_417_1, 2nd call should be cached
 
+    DataPaths paths(fs, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
     ResourceMapper mapper;
     mapper.AddAnimMapping("SLIGZ.BND_417_1", { "SLIGZ.BND", 417, 1 });
     mapper.AddAnimMapping("SLIGZ.BND_417_2", { "SLIGZ.BND", 417, 1 });
 
-    ResourceLocator locator(fs, std::move(mapper));
+    ResourceLocator locator(std::move(mapper), std::move(paths));
 
     locator.AddDataPath("C:\\dataset_location2", 2, "AoPc");
     locator.AddDataPath("C:\\dataset_location1", 1, "AePc");
@@ -292,10 +270,11 @@ TEST(ResourceLocator, Construct)
     ASSERT_EQ(expected, missing);
 
     // create the resource mapper loading the resource maps from the json db
+    DataPaths dataPaths2(fs, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
     ResourceMapper mapper;
     mapper.AddAnimMapping("SLIGZ.BND_417_1", { "SLIGZ.BND", 417, 1 });
 
-    ResourceLocator resourceLocator(fs, std::move(mapper));
+    ResourceLocator resourceLocator(std::move(mapper), std::move(dataPaths2));
     
     // TODO: Handle extra mod dependent data sets
     // Need to merge GD dataset lists so that none "default" data paths appear first

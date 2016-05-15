@@ -4,10 +4,12 @@
         "AoPcDemo": { "contains_any": [ "AbeDemo.exe" ] },
         "AoPsx": { "contains_any": [ "SLES_006.64", "SLUS_001.90" ] },
         "AoPsxDemo": { "contains_any": [ "SLED_007.25" ] },
-        "AePc": { "contains_any": [ "Exoddus.exe" ] },
+        "AePc": { "contains_all": [ "Exoddus.exe", "sounds.dat" ] },
         "AePcDemo": { "contains_any": [ "Exoddus.exe" ], "not_contains": [ "sounds.dat" ] },
+        "AePsx": { },
         "AePsxCd1": { "contains_any": [ "SLES_014.80" ] },
         "AePsxCd2": { "contains_any": [ "SLES_114.80" ] },
-        "AePsxDemo": { "contains_any": [ "ABE2.EXE" ] }
+        "AePsxDemo": { "contains_any": [ "ABE2.EXE" ] },
+        "Developer": { }
     }
 }

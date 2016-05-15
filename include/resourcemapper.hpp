@@ -50,7 +50,7 @@ public:
     virtual bool FileExists(const char* fileName) = 0;
 };
 
-class FileSystem2 : public IFileSystem
+class OSFileSystem : public IFileSystem
 {
 private:
     static bool IsDots(const std::string& name)
@@ -260,52 +260,79 @@ private:
     std::map<std::string, std::string> mNamedPaths;
 };
 
+class CdIsoFileSystem : public IFileSystem
+{
+public:
+    explicit CdIsoFileSystem(const char* fileName)
+        : mRawCdImage(fileName)
+    {
+
+    }
+
+    virtual ~CdIsoFileSystem() = default;
+
+    virtual bool Init() override
+    {
+        // TODO
+        return true;
+    }
+
+    virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
+    {
+        // TODO
+    }
+
+    virtual std::vector<std::string> EnumerateFiles(const char* directory, const char* filter) override
+    {
+        // TODO
+    }
+
+    virtual bool FileExists(const char* fileName) override
+    {
+        return mRawCdImage.FileExists(fileName);
+    }
+
+private:
+    RawCdImage mRawCdImage;
+};
+
+// TODO
+class ZipFileSystem
+{
+};
+
+// TODO
+class LvlFileSystem
+{
+};
 
 class DataPathIdentities
 {
 public:
+    DataPathIdentities() = default;
+
     DataPathIdentities(IFileSystem& fs, const char* dataSetsIdsFileName)
     {
         auto stream = fs.Open(dataSetsIdsFileName);
-        Parse(stream->LoadAllToString());
+        if (stream)
+        {
+            Parse(stream->LoadAllToString());
+        }
     }
 
+    bool IsMetaPath(const std::string& id) const
+    {
+        return mMetaPaths.find(id) != std::end(mMetaPaths);
+    }
 
     std::string Identify(IFileSystem& fs, const std::string& path) const
     {
         for (const auto& dataPathId : mDataPathIds)
         {
-            // Check we can find at least one of the "any of" set of files
-            bool foundAnyOf = false;
-            for (const auto& f : dataPathId.second.mContainAnyOf)
+            if (MatchPathWithDataPathId(fs, dataPathId, path))
             {
-                if (fs.FileExists((path + "\\" + f).c_str()))
-                {
-                    foundAnyOf = true;
-                    break;
-                }
+                return dataPathId.first;
             }
-
-            // Ok we found one of the files that must exist
-            if (foundAnyOf)
-            {
-                // So now check that all of the "must not exist" files don't exist
-                bool foundAnyShouldntExistFiles = false;
-                for (const auto& f : dataPathId.second.mMustNotContain)
-                {
-                    if (fs.FileExists((path + "\\" + f).c_str()))
-                    {
-                        foundAnyShouldntExistFiles = true;
-                        break;
-                    }
-                }
-
-                if (!foundAnyShouldntExistFiles)
-                {
-                    return dataPathId.first;
-                }
-            }
-
         }
         return "";
     }
@@ -314,9 +341,87 @@ private:
     struct DataPathFiles
     {
         std::vector<std::string> mContainAnyOf;
+        std::vector<std::string> mContainAllOf;
         std::vector<std::string> mMustNotContain;
     };
+
     std::map<std::string, DataPathFiles> mDataPathIds;
+
+    // A meta path is one that exists just to include other paths
+    // e.g AePsx includes AePsxCd1 and AxePsxCd1, but AePsx won't actually have a path as such
+    std::set<std::string> mMetaPaths;
+
+    bool MatchPathWithDataPathId(IFileSystem& fs, const std::pair<std::string, DataPathFiles>& dataPathId, const std::string& path) const
+    {
+        const bool isFile = fs.FileExists(path.c_str());
+        if (isFile)
+        {
+            // TODO: Handle cd archive and zip archive cases - init cd/zip fs using passed in fs
+            if (string_util::ends_with(path, ".bin", true))
+            {
+                CdIsoFileSystem cdFs(path);
+            }
+            else if (string_util::ends_with(path, ".zip", true))
+            {
+
+            }
+            return false;
+        }
+
+        // Check all of the "must exist files" do exist
+        for (const auto& f : dataPathId.second.mContainAllOf)
+        {
+            if (!fs.FileExists((path + "\\" + f).c_str()))
+            {
+                // Skip this dataPathId, the path doesn't match all of the "must contain"
+                return false;
+            }
+        }
+
+        // Check that all of the "must not exist" files don't exist
+        for (const auto& f : dataPathId.second.mMustNotContain)
+        {
+            if (fs.FileExists((path + "\\" + f).c_str()))
+            {
+                // Found a file that shouldn't exist, skip to the next dataPathId
+                return false;
+            }
+        }
+
+        // Check we can find at least one of the "any of" set of files
+        bool foundAnyOf = false;
+        for (const auto& f : dataPathId.second.mContainAnyOf)
+        {
+            if (fs.FileExists((path + "\\" + f).c_str()))
+            {
+                foundAnyOf = true;
+                break;
+            }
+        }
+
+        // If one of the "any of" files exists or we have one or more "must exist" files
+        // then this dataPathId matches path
+        if (foundAnyOf || dataPathId.second.mContainAllOf.empty() == false)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    void ReadStringArray(const jsonxx::Object& jsonObject, const std::string& jsonArrayName, std::vector<std::string>& resultingStrings)
+    {
+        if (jsonObject.has<jsonxx::Array>(jsonArrayName))
+        {
+            const jsonxx::Array& stringArray = jsonObject.get<jsonxx::Array>(jsonArrayName);
+            resultingStrings.reserve(stringArray.size());
+            for (const auto& f : stringArray.values())
+            {
+                resultingStrings.emplace_back(f->get<jsonxx::String>());
+            }
+        }
+
+    }
 
     void Parse(const std::string& json)
     {
@@ -327,26 +432,21 @@ private:
             jsonxx::Object dataSetIds = root.get<jsonxx::Object>("data_set_ids");
             for (const auto& v : dataSetIds.kv_map())
             {
-                DataPathFiles dpFiles;
                 const jsonxx::Object& dataSetId = dataSetIds.get<jsonxx::Object>(v.first);
-                const jsonxx::Array& identifyingFiles = dataSetId.get<jsonxx::Array>("contains_any");
-                dpFiles.mContainAnyOf.reserve(identifyingFiles.size());
-                for (const auto& f : identifyingFiles.values())
-                {
-                    dpFiles.mContainAnyOf.emplace_back(f->get<jsonxx::String>());
-                }
 
-                if (dataSetId.has<jsonxx::Array>("not_contains"))
-                {
-                    const jsonxx::Array& mustNotContainFiles = dataSetId.get<jsonxx::Array>("not_contains");
-                    dpFiles.mMustNotContain.reserve(mustNotContainFiles.size());
-                    for (const auto& f : mustNotContainFiles.values())
-                    {
-                        dpFiles.mMustNotContain.emplace_back(f->get<jsonxx::String>());
-                    }
-                }
+                DataPathFiles dpFiles;
+                ReadStringArray(dataSetId, "contains_any", dpFiles.mContainAnyOf);
+                ReadStringArray(dataSetId, "contains_all", dpFiles.mContainAllOf);
+                ReadStringArray(dataSetId, "not_contains", dpFiles.mMustNotContain);
 
-                mDataPathIds[v.first] = dpFiles;
+                if (dpFiles.mContainAnyOf.empty() && dpFiles.mContainAllOf.empty() && dpFiles.mMustNotContain.empty())
+                {
+                    mMetaPaths.insert(v.first);
+                }
+                else
+                {
+                    mDataPathIds[v.first] = dpFiles;
+                }
             }
         }
     }
@@ -355,6 +455,21 @@ private:
 class DataPaths
 {
 public:
+    DataPaths(const DataPaths&) = delete;
+    DataPaths& operator = (const DataPaths&) = delete;
+
+    DataPaths(DataPaths&& other)
+    {
+        *this = std::move(other);
+    }
+
+    DataPaths& operator = (DataPaths&& other)
+    {
+        mIds = std::move(other.mIds);
+        mPaths = std::move(other.mPaths);
+        return *this;
+    }
+
     DataPaths(IFileSystem& fs, const char* dataSetsIdsFileName, const char* dataPathFileName)
         : mIds(fs, dataSetsIdsFileName)
     {
@@ -396,10 +511,16 @@ public:
         std::vector<std::string> ret;
         for (const auto& dataset : requiredSets)
         {
+            if (mIds.IsMetaPath(dataset))
+            {
+                continue;
+            }
+
             if (!PathsFor(dataset).empty())
             {
-                break;
+                continue;
             }
+
             ret.emplace_back(dataset);
         }
         return ret;
@@ -427,9 +548,10 @@ private:
     // To match to what a game def wants (AePcCd1, AoDemoPsx etc)
     // we use SLUS codes for PSX or if it contains ABEWIN.EXE etc then its AoPc.
     DataPathIdentities mIds;
-    std::vector<std::string> mNotFoundResult;
+    const /*static*/ std::vector<std::string> mNotFoundResult;
 };
 
+//const static std::vector<std::string> DataPaths::mNotFoundResult;
 
 /*
 // TODO: Make these known constants:
@@ -794,67 +916,6 @@ private:
     ResourceCache& mCache;
 };
 
-class ResourceLoader
-{
-public:
-    ResourceLoader(const ResourceLoader&) = delete;
-    ResourceLoader& operator = (const ResourceLoader&) = delete;
-
-    ResourceLoader(IFileSystem& fs)
-        :mFs(fs)
-    {
-
-    }
-
-    std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName)
-    {
-        for (auto& path : mDataPaths)
-        {
-            // TODO: We need to search in each LVL that the animMapping->mFile could be in
-            // within each path.mPath, however if the data path is a path to a mod then apply
-            // the override rules such as looking for PNGs instead.
-            auto stream = mFs.Open((path.mPath + "\\" + fileName).c_str());
-            if (stream)
-            {
-                return stream;
-            }
-        }
-        return nullptr;
-    }
-
-    std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName, const std::string& dataSetName)
-    {
-        for (auto& path : mDataPaths)
-        {
-            if (path.mType == dataSetName)
-            {
-                return mFs.Open((path.mPath + "\\" + fileName).c_str());
-            }
-        }
-        return nullptr;
-    }
-
-    void Add(const char* dataPath, Sint32 priority, const std::string& dataSetId)
-    {
-        mDataPaths.insert({ dataPath, priority, dataSetId });
-    }
-private:
-    struct DataPath
-    {
-        std::string mPath;
-        Sint32 mPriority;
-        std::string mType; //TODO: Init this AoPc, FoosMod etc
-
-        // Sort such that the lowest priority number is first.
-        bool operator < (const DataPath& rhs) const
-        {
-            return mPriority < rhs.mPriority;
-        }
-    };
-
-    std::set<DataPath> mDataPaths;
-    IFileSystem& mFs;
-};
 
 class ResourceLocator
 {
@@ -862,15 +923,22 @@ public:
     ResourceLocator(const ResourceLocator&) = delete;
     ResourceLocator& operator =(const ResourceLocator&) = delete;
 
-    ResourceLocator(IFileSystem& fileSystem, ResourceMapper&& resourceMapper)
-        : mDataPaths(fileSystem), mResMapper(std::move(resourceMapper))
+
+    ResourceLocator(ResourceMapper&& resourceMapper, DataPaths&& dataPaths)
+        : mResMapper(std::move(resourceMapper)), mDataPaths(std::move(dataPaths))
     {
 
     }
 
-    void AddDataPath(const char* dataPath, Sint32 priority, const std::string& dataSetId)
+    // TOOD: Provide limited interface to this?
+    DataPaths& GetDataPaths()
     {
-        mDataPaths.Add(dataPath, priority, dataSetId);
+        return mDataPaths;
+    }
+
+    void AddDataPath(const char* /*dataPath*/, Sint32 /*priority*/, const std::string& /*dataSetId*/)
+    {
+       // mDataPaths.Add(dataPath, priority, dataSetId);
     }
 
     template<typename T>
@@ -890,12 +958,14 @@ public:
         const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
         if (animMapping)
         {
-            const auto& lvlFileToFind = animMapping->mFile;
+            //const auto& lvlFileToFind = animMapping->mFile;
+            /*
             auto stream = mDataPaths.Open(lvlFileToFind);
             if (stream)
             {
                 return Resource<T>(resNameHash, mResourceCache, std::move(stream));
             }
+            */
         }
 
         // TODO
@@ -921,19 +991,20 @@ public:
         if (animMapping)
         {
             // TODO: Find resource in specific data set 
-            const auto& lvlFileToFind = animMapping->mFile;
+            //const auto& lvlFileToFind = animMapping->mFile;
+            /*
             auto stream = mDataPaths.Open(lvlFileToFind, dataSetName);
             if (stream)
             {
                 return Resource<T>(resNameHash, mResourceCache, std::move(stream));
-            }
+            }*/
         }
 
         // TODO
         return Resource<T>(StringHash(""), mResourceCache, nullptr);
     }
 private:
-    ResourceLoader mDataPaths;
     ResourceMapper mResMapper;
+    DataPaths mDataPaths;
     ResourceCache mResourceCache;
 };

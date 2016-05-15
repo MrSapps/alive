@@ -86,7 +86,7 @@ bool Engine::Init()
     try
     {
         // load the list of data paths (if any) and discover what they are
-        mFileSystem = std::make_unique<FileSystem2>();
+        mFileSystem = std::make_unique<OSFileSystem>();
         if (!mFileSystem->Init())
         {
             LOG_ERROR("File system init failure");
@@ -117,7 +117,7 @@ bool Engine::Init()
 
         InitSubSystems();
 
-        ToState(std::make_unique<GameSelectionScreen>(*this, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, mFileSystem_old));
+        ToState(std::make_unique<GameSelectionScreen>(*this, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, mFileSystem_old, *mResourceLocator));
 
         return true;
     }
@@ -375,14 +375,12 @@ void Engine::InitResources()
     }
 
     // create the resource mapper loading the resource maps from the json db
+    DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
     ResourceMapper mapper(*mFileSystem, "{GameDir}/data/resources.json");
-    mResourceLocator = std::make_unique<ResourceLocator>(*mFileSystem, std::move(mapper));
+    mResourceLocator = std::make_unique<ResourceLocator>(std::move(mapper), std::move(dataPaths));
 
     // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
-    // also add in any extra maps for resources defined by the mod
-
-    DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
-    //mResourceLocator->SetDataPaths(gameDefs[0], std::move(dataPaths));
+    // also add in any extra maps for resources defined by the mod @ game selection screen
 
     // Test/debug
     auto res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31");

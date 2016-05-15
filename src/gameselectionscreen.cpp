@@ -35,16 +35,27 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
             tmpGameDefs.push_back(&t);
         }
 
+        // Check we have the required data sets
         GameDefinition::GetDependencies(requiredDataSets, missingDataSets, &gd, tmpGameDefs);
         if (!missingDataSets.empty())
         {
-            // Need user to download missing game defs
+            // Need user to download missing game defs, no in game way to recover from this
         }
 
         const BuiltInAndModGameDefs sorted = GameDefinition::SplitInToBuiltInAndMods(requiredDataSets);
-        
-        // TODO: Validate we have all of the required data sets to launch the game, if not then ask the user
-        // for paths to them (for built in game defs only, the mod itself is the mod data path).
+
+        // Check we have a valid path to the "builtin" (i.e original) game files
+        std::vector<std::string> setNames;
+        for (const auto& dSetName : sorted.gameDefs)
+        {
+            setNames.push_back(dSetName.first);
+        }
+
+        auto missingDataPaths = mResLocator.GetDataPaths().MissingDataSets(setNames);
+        if (!missingDataPaths.empty())
+        {
+            // Some are missing so ask the user for them
+        }
 
         if (gd.DataSetName() == "Developer")
         {
