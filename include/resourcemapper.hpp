@@ -15,6 +15,7 @@
 #endif
 
 #include "string_util.hpp"
+#include "oddlib/cdromfilesystem.hpp"
 
 inline size_t StringHash(const char* s)
 {
@@ -279,17 +280,19 @@ public:
 
     virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
     {
-        // TODO
+        return mRawCdImage.ReadFile(fileName, false);
     }
 
-    virtual std::vector<std::string> EnumerateFiles(const char* directory, const char* filter) override
+    virtual std::vector<std::string> EnumerateFiles(const char* /*directory*/, const char* /*filter*/) override
     {
         // TODO
+        abort();
+        //return std::vector<std::string> { };
     }
 
     virtual bool FileExists(const char* fileName) override
     {
-        return mRawCdImage.FileExists(fileName);
+        return mRawCdImage.FileExists(fileName) != -1;
     }
 
 private:
@@ -351,23 +354,8 @@ private:
     // e.g AePsx includes AePsxCd1 and AxePsxCd1, but AePsx won't actually have a path as such
     std::set<std::string> mMetaPaths;
 
-    bool MatchPathWithDataPathId(IFileSystem& fs, const std::pair<std::string, DataPathFiles>& dataPathId, const std::string& path) const
+    bool DoMatchPathWithDataPathId(IFileSystem& fs, const std::pair<std::string, DataPathFiles>& dataPathId, const std::string& path) const
     {
-        const bool isFile = fs.FileExists(path.c_str());
-        if (isFile)
-        {
-            // TODO: Handle cd archive and zip archive cases - init cd/zip fs using passed in fs
-            if (string_util::ends_with(path, ".bin", true))
-            {
-                CdIsoFileSystem cdFs(path);
-            }
-            else if (string_util::ends_with(path, ".zip", true))
-            {
-
-            }
-            return false;
-        }
-
         // Check all of the "must exist files" do exist
         for (const auto& f : dataPathId.second.mContainAllOf)
         {
@@ -407,6 +395,32 @@ private:
         }
 
         return false;
+    }
+
+    bool MatchPathWithDataPathId(IFileSystem& fs, const std::pair<std::string, DataPathFiles>& dataPathId, const std::string& path) const
+    {
+        const bool isFile = fs.FileExists(path.c_str());
+        if (isFile)
+        {
+            if (string_util::ends_with(path, ".bin", true))
+            {
+                CdIsoFileSystem cdFs(path.c_str());
+                return DoMatchPathWithDataPathId(cdFs, dataPathId, "");
+            }
+            else if (string_util::ends_with(path, ".zip", true))
+            {
+                // TODO
+                return false;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return DoMatchPathWithDataPathId(fs, dataPathId, path);
+        }
     }
 
     void ReadStringArray(const jsonxx::Object& jsonObject, const std::string& jsonArrayName, std::vector<std::string>& resultingStrings)

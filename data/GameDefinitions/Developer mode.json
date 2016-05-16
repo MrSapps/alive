@@ -1,6 +1,6 @@
 {
     "Name": "Developer mode",
-    "Description": "A 'fake' mod which enters developer mode to view all game data",
+    "Description": "A 'fake' game definition which enables developer mode to view all game data",
     "Author": "ALIVE team",
     "InitialLevel": "not_used",
     "DatasetName": "Developer",

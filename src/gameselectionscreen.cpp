@@ -57,7 +57,7 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
             // Some are missing so ask the user for them
         }
 
-        if (gd.DataSetName() == "Developer")
+        if (gd.DataSetName() == "Developer" && missingDataPaths.empty() && missingDataSets.empty())
         {
             gotoDevMode = true;
         }
