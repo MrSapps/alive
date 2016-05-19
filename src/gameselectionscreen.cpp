@@ -24,22 +24,25 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
     bool gotoDevMode = false;
     if (gui_button(mGui, "Start game"))
     {
-        const GameDefinition& gd = *mVisibleGameDefinitions[mSelectedGameDefintionIndex];
+        const GameDefinition& userSelectedGameDef = *mVisibleGameDefinitions[mSelectedGameDefintionIndex];
 
         DataSetMap requiredDataSets;
         std::set<std::string> missingDataSets;
 
-        std::vector<const GameDefinition*> tmpGameDefs;
+        std::vector<const GameDefinition*> allGameDefs;
         for (const auto& t : mGameDefinitions)
         {
-            tmpGameDefs.push_back(&t);
+            allGameDefs.push_back(&t);
         }
 
         // Check we have the required data sets
-        GameDefinition::GetDependencies(requiredDataSets, missingDataSets, &gd, tmpGameDefs);
+
+        // TODO: Store the requiredDataSet priority in the requiredDataSets by using the order + level in the tree/graph
+        GameDefinition::GetDependencies(requiredDataSets, missingDataSets, &userSelectedGameDef, allGameDefs);
         if (!missingDataSets.empty())
         {
             // Need user to download missing game defs, no in game way to recover from this
+            LOG_ERROR(missingDataSets.size() << " data sets are missing");
         }
 
         const BuiltInAndModGameDefs sorted = GameDefinition::SplitInToBuiltInAndMods(requiredDataSets);
@@ -55,10 +58,15 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
         if (!missingDataPaths.empty())
         {
             // Some are missing so ask the user for them
+            LOG_ERROR(missingDataPaths.size() << " data paths are missing");
         }
 
-        if (gd.DataSetName() == "Developer" && missingDataPaths.empty() && missingDataSets.empty())
+        if (/*gd.DataSetName() == "Developer" &&*/ missingDataPaths.empty() && missingDataSets.empty())
         {
+            LOG_INFO("Loading " << userSelectedGameDef.DataSetName());
+            
+            //mResLocator.GetDataPaths().SetActiveDataPaths(requiredDataSets);
+
             gotoDevMode = true;
         }
     }

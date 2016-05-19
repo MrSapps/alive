@@ -608,6 +608,7 @@ public:
         return sorted;
     }
 
+    // DFS graph walk - TODO: Change to BFS so we can track the priority of each required dataset
     static void GetDependencies(DataSetMap& requiredDataSets, std::set<std::string>& missingDataSets, const GameDefinition* gd, const std::vector<const GameDefinition*>& gds)
     {
         requiredDataSets[gd->DataSetName()] = gd;
