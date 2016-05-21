@@ -7,19 +7,304 @@
 
 using namespace ::testing;
 
-class MockFileSystem : public IFileSystem
+// Pseudo in memory file system
+class FakeFileSystem : public IFileSystem
 {
-public:
-    virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
+private:
+    struct File
     {
-        // Can't mock unique_ptr return, so mock raw one which the unique_ptr one will call
-        return std::unique_ptr<Oddlib::IStream>(OpenProxy(fileName));
+        std::string mName;
+        std::vector<Uint8> mData;
+    };
+
+    struct Directory
+    {
+        std::string mName;
+        std::vector<Directory> mChildren;
+        std::vector<File> mFiles;
+    };
+
+public:
+    virtual ~FakeFileSystem() = default;
+
+    void AddFile(std::string strPath, const std::string& content = "")
+    {
+        AddFile(strPath, StringToVector(content));
     }
 
-    MOCK_METHOD1(OpenProxy, Oddlib::IStream*(const char*));
-    MOCK_METHOD2(EnumerateFiles, std::vector<std::string>(const char*, const char* ));
-    MOCK_METHOD1(FileExists, bool(const char*));
+    void AddFile(std::string strPath, const std::vector<Uint8>& content)
+    {
+        DirectoryAndFileName path(strPath);
+        Directory* dir = FindPath(path.mDir, true);
+
+        // Don't allow duplicated file names
+        File* file = FindFile(*dir, path.mFile);
+        if (file)
+        {
+            // Update existing
+            file->mData = content;
+            return;
+        }
+        dir->mFiles.emplace_back(File{ path.mFile, content });
+    }
+
+// IFileSystem
+    virtual bool Init() override
+    {
+        return true;
+    }
+
+    virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
+    {
+        DirectoryAndFileName path(fileName);
+        Directory* dir = FindPath(path.mDir, true);
+        if (!dir)
+        {
+            return nullptr;
+        }
+
+        File* file = FindFile(*dir, path.mFile);
+        if (!file)
+        {
+            return nullptr;
+        }
+
+
+        return std::make_unique<Oddlib::Stream>(std::vector<Uint8>(file->mData));
+    }
+
+    virtual std::vector<std::string> EnumerateFiles(const char* directory, const char* filter) override
+    {
+        Directory* dir = FindPath(directory, true);
+        std::vector<std::string> ret;
+        if (!dir)
+        {
+            return ret;
+        }
+
+        for (const File& file : dir->mFiles)
+        {
+            if (WildCardMatcher(file.mName, filter, IgnoreCase))
+            {
+                ret.emplace_back(file.mName);
+            }
+        }
+
+        return ret;
+    }
+
+    virtual bool FileExists(const char* fileName) override
+    {
+        DirectoryAndFileName path(fileName);
+        Directory* dir = FindPath(path.mDir, true);
+        if (!dir)
+        {
+            return false;
+        }
+
+        for (const File& file : dir->mFiles)
+        {
+            if (file.mName == path.mFile)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Make public so it can be tested
+    static bool WildCardMatcher(const std::string& text, std::string wildcardPattern, EMatchType caseSensitive)
+    {
+        return IFileSystem::WildCardMatcher(text, wildcardPattern, caseSensitive);
+    }
+
+    static void NormalizePath(std::string& path)
+    {
+        IFileSystem::NormalizePath(path);
+    }
+
+private:
+
+    struct DirectoryAndFileName
+    {
+        DirectoryAndFileName(std::string path)
+        {
+            NormalizePath(path);
+
+            auto lastDirPos = path.find_last_of('/');
+            if (lastDirPos != std::string::npos)
+            {
+                mDir = path.substr(0, lastDirPos);
+                mFile = path.substr(lastDirPos+1);
+            }
+            else
+            {
+                mDir = path;
+            }
+        }
+
+        std::string mDir;
+        std::string mFile;
+    };
+
+    File* FindFile(Directory& dir, const std::string& fileName)
+    {
+        for (File& file : dir.mFiles)
+        {
+            if (file.mName == fileName)
+            {
+                return &file;
+            }
+        }
+        return nullptr;
+    }
+
+    Directory* FindPath(Directory& currentDir, std::deque<std::string>& paths, bool insert)
+    {
+        std::string dir = paths.front();
+        paths.pop_front();
+
+        for (Directory& subDir : currentDir.mChildren)
+        {
+            if (subDir.mName == dir)
+            {
+                if (paths.empty())
+                {
+                    return &subDir;
+                }
+                else
+                {
+                    return FindPath(subDir, paths, insert);
+                }
+            }
+        }
+
+        if (insert)
+        {
+            currentDir.mChildren.push_back(Directory{ dir, {}, {} });
+            if (paths.empty())
+            {
+                return &currentDir.mChildren.back();
+            }
+            else
+            {
+                return FindPath(currentDir.mChildren.back(), paths, insert);
+            }
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+    Directory* FindPath(std::string path, bool insert)
+    {
+        string_util::replace_all(path, "\\", "/");
+        auto dirs = string_util::split(path, '/');
+        return FindPath(mRoot, dirs, insert);
+    }
+
+    Directory mRoot;
 };
+
+
+TEST(IFileSystem, NormalizePath)
+{
+    {
+        std::string win32Path = "C:\\Windows\\System32";
+        FakeFileSystem::NormalizePath(win32Path);
+        ASSERT_EQ("C:/Windows/System32", win32Path);
+    }
+    {
+        std::string linuxPath = "/home/fool/somedir";
+        FakeFileSystem::NormalizePath(linuxPath);
+        ASSERT_EQ("/home/fool/somedir", linuxPath);
+    }
+    {
+        std::string mixedPath = "C:\\\\Windows/System32//Foo\\\\Bar";
+        FakeFileSystem::NormalizePath(mixedPath);
+        ASSERT_EQ("C:/Windows/System32/Foo/Bar", mixedPath);
+    }
+}
+
+TEST(IFileSystem, WildCardMatcher)
+{
+    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("Hello.txt", "*.txt", IFileSystem::IgnoreCase));
+    ASSERT_EQ(false, FakeFileSystem::WildCardMatcher("Hello.txt", "*.TXT", IFileSystem::MatchCase));
+    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("Hello.txt", "*.TXT", IFileSystem::IgnoreCase));
+
+    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("Hello.txt", "Hello.???", IFileSystem::MatchCase));
+    ASSERT_EQ(false, FakeFileSystem::WildCardMatcher("Hello.txt", "HELLO.???", IFileSystem::MatchCase));
+    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("Hello.txt", "HELLO.???", IFileSystem::IgnoreCase));
+
+    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("BlahHelloBlah", "*Hello*", IFileSystem::MatchCase));
+    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("BlahHelloBlah", "*HELLO*", IFileSystem::IgnoreCase));
+    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("BlahHelloBlah", "*HELLO*", IFileSystem::IgnoreCase));
+    ASSERT_EQ(false, FakeFileSystem::WildCardMatcher("BlahHelzloBlah", "*HELLO*", IFileSystem::MatchCase));
+
+}
+
+TEST(FakeFileSystem, Open)
+{
+    FakeFileSystem fs;
+    fs.AddFile("/Home/Test.txt", "File content");
+    {
+        auto stream = fs.Open("/Home/Test.txt");
+        ASSERT_NE(nullptr, stream);
+        ASSERT_EQ("File content", stream->LoadAllToString());
+    }
+    {
+        auto stream = fs.Open("/Home/TEST.txt");
+        ASSERT_EQ(nullptr, stream);
+    }
+
+    fs.AddFile("/Root.txt", "Blah");
+    {
+        auto stream = fs.Open("/Root.txt");
+        ASSERT_NE(nullptr, stream);
+        ASSERT_EQ("Blah", stream->LoadAllToString());
+    }
+    {
+        auto stream = fs.Open("/ROOT.txt");
+        ASSERT_EQ(nullptr, stream);
+    }
+}
+
+TEST(FakeFileSystem, EnumerateFiles)
+{
+    FakeFileSystem fs;
+    ASSERT_EQ(std::vector<std::string>{}, fs.EnumerateFiles("/Test", "*"));
+   
+    fs.AddFile("/Test/1.txt", "");
+    fs.AddFile("/Test/1.txt", "");
+    fs.AddFile("/Test/2.txt", "");
+    fs.AddFile("/Test/Whatever", "");
+
+    const std::vector<std::string> enumAll{ "1.txt", "2.txt", "Whatever" };
+    ASSERT_EQ(enumAll, fs.EnumerateFiles("/Test", "*"));
+
+    const std::vector<std::string> enumFiltered{ "1.txt", "2.txt" };
+    ASSERT_EQ(enumFiltered, fs.EnumerateFiles("/Test", "*.txt"));
+}
+
+TEST(FakeFileSystem, FileExists)
+{
+    FakeFileSystem fs;
+    ASSERT_EQ(false, fs.FileExists("Rubbish"));
+    ASSERT_EQ(false, fs.FileExists("/"));
+    ASSERT_EQ(false, fs.FileExists("/Home"));
+    ASSERT_EQ(false, fs.FileExists("/Home/Test.txt"));
+    ASSERT_EQ(false, fs.FileExists("/Root.txt"));
+
+    fs.AddFile("/Home/Test.txt", "File content");
+    fs.AddFile("/Root.txt", "Blah");
+
+    ASSERT_EQ(false, fs.FileExists("Rubbish"));
+    ASSERT_EQ(false, fs.FileExists("/"));
+    ASSERT_EQ(false, fs.FileExists("/Home"));
+    ASSERT_EQ(true, fs.FileExists("/Home/Test.txt"));
+    ASSERT_EQ(true, fs.FileExists("/Root.txt"));
+}
 
 TEST(ResourceLocator, Cache)
 {
@@ -41,10 +326,8 @@ TEST(ResourceLocator, ParseResourceMap)
 {
     const std::string resourceMapsJson = R"([ {"anims":[{"blend_mode":1,"name":"SLIGZ.BND_417_1"},{"blend_mode":1,"name":"SLIGZ.BND_417_2"}],"file":"SLIGZ.BND","id":417}])";
 
-    MockFileSystem fs;
-
-    EXPECT_CALL(fs, OpenProxy(StrEq("resource_maps.json")))
-        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(resourceMapsJson))));
+    FakeFileSystem fs;
+    fs.AddFile("resource_maps.json", resourceMapsJson);
 
     ResourceMapper mapper(fs, "resource_maps.json");
     
@@ -80,9 +363,8 @@ TEST(ResourceLocator, ParseGameDefinition)
     }
     )";
 
-    MockFileSystem fs;
-    EXPECT_CALL(fs, OpenProxy(StrEq("test_game_definition.json")))
-        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(gameDefJson))));
+    FakeFileSystem fs;
+    fs.AddFile("test_game_definition.json", gameDefJson);
 
     GameDefinition gd(fs, "test_game_definition.json", false);
     ASSERT_EQ(gd.Name(), "Oddworld Abe's Exoddus PC");
@@ -102,14 +384,9 @@ TEST(ResourceLocator, LocateAnimation)
 {
     GameDefinition aePc;
 
-    MockFileSystem fs;
+    FakeFileSystem fs;
 
-    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location1\\SLIGZ.BND")))
-        .WillRepeatedly(Return(nullptr));
-
-    EXPECT_CALL(fs, OpenProxy(StrEq("C:\\dataset_location2\\SLIGZ.BND")))
-        .Times(1)
-        .WillOnce(Return(new Oddlib::Stream(StringToVector("test"))));   // For SLIGZ.BND_417_1, 2nd call should be cached
+    fs.AddFile("C:\\dataset_location2\\SLIGZ.BND", "test"); // For SLIGZ.BND_417_1, 2nd call should be cached
 
     DataPaths paths(fs, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
     ResourceMapper mapper;
@@ -165,7 +442,7 @@ TEST(ResourceLocator, LocatePath)
 TEST(ResourceLocator, Construct)
 {
 
-    MockFileSystem fs;
+    FakeFileSystem fs;
 
     const std::string datasetIdsJson = R"(
     {
@@ -177,8 +454,7 @@ TEST(ResourceLocator, Construct)
     }
     )";
 
-    EXPECT_CALL(fs, OpenProxy(StrEq("datasetids.json")))
-        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(datasetIdsJson))));
+    fs.AddFile("datasetids.json", datasetIdsJson);
 
     const std::string dataSetsJson = R"(
     {
@@ -189,30 +465,9 @@ TEST(ResourceLocator, Construct)
     }
     )";
 
-    EXPECT_CALL(fs, OpenProxy(StrEq("datasets.json")))
-        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(dataSetsJson))));
-
-    EXPECT_CALL(fs, FileExists(StrEq("F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus\\Exoddus.exe")))
-        .WillOnce(Return(true));
-
-    EXPECT_CALL(fs, FileExists(StrEq("C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin\\AbeWin.exe")))
-        .WillOnce(Return(false));
-
-    EXPECT_CALL(fs, FileExists(StrEq("C:\\data\\Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin\\Exoddus.exe")))
-        .WillOnce(Return(false));
-
-    EXPECT_CALL(fs, FileExists(StrEq("F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus\\sounds.dat")))
-        .WillOnce(Return(false));
-
-    EXPECT_CALL(fs, EnumerateFiles(StrEq("${game_files}\\GameDefinitions"), StrEq("*.json")))
-        .WillOnce(Return(std::vector<std::string> { "AbesExoddusPc.json" }));
-
-    EXPECT_CALL(fs, EnumerateFiles(StrEq("${user_home}\\Alive\\Mods"), StrEq("*.json")))
-        .WillOnce(Return(std::vector<std::string> {  }));
-
-
-    EXPECT_CALL(fs, FileExists(StrEq("datasets.json")))
-        .WillOnce(Return(true));
+    fs.AddFile("datasets.json", dataSetsJson);
+    fs.AddFile("F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus\\Exoddus.exe");
+    fs.AddFile("${ user_home }\\Alive\\Mods\\Dummy.txt");
 
     const std::string aePcGameDefJson = R"(
     {
@@ -225,8 +480,7 @@ TEST(ResourceLocator, Construct)
     }
     )";
 
-    EXPECT_CALL(fs, OpenProxy(StrEq("${game_files}\\GameDefinitions\\AbesExoddusPc.json")))
-        .WillRepeatedly(Return(new Oddlib::Stream(StringToVector(aePcGameDefJson))));
+    fs.AddFile("${game_files}\\GameDefinitions\\AbesExoddusPc.json", aePcGameDefJson);
 
 
     // Data paths are saved user paths to game data
@@ -363,7 +617,7 @@ TEST(ResourceLocator, GameDefinitionDeps)
         std::set<std::string> missingDataSets;
         GameDefinition::GetDependencies(requiredDataSets, missingDataSets, &a, gds);
 
-        const std::set<std::string> expectedMissingDataSets { "SetB", "SetC" };
+        const std::set<std::string> expectedMissingDataSets{ "SetB", "SetC" };
         ASSERT_EQ(expectedMissingDataSets, missingDataSets);
 
         const DataSetMap expectedRequiredDataSets{ { "SetA", &a } };
@@ -384,10 +638,10 @@ TEST(ResourceLocator, GameDefinitionDeps)
 
         const BuiltInAndModGameDefs sorted = GameDefinition::SplitInToBuiltInAndMods(requiredDataSets);
 
-        const std::vector< std::pair<std::string, const GameDefinition*>> builtIns{ { "SetD", &d }, { "SetE", &e } };
+        const std::vector<const PriorityDataSet*> builtIns{ &requiredDataSets[3], &requiredDataSets[4] };
         ASSERT_EQ(builtIns, sorted.gameDefs);
 
-        const std::vector< std::pair<std::string, const GameDefinition*>> mods{ { "SetA", &a }, { "SetB", &b }, { "SetC", &c } };
+        const std::vector<const PriorityDataSet*> mods{ &requiredDataSets[0], &requiredDataSets[1], &requiredDataSets[2] };
         ASSERT_EQ(mods, sorted.modDefs);
     }
 }

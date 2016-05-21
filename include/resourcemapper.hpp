@@ -49,6 +49,52 @@ public:
 
     virtual std::vector<std::string> EnumerateFiles(const char* directory, const char* filter) = 0;
     virtual bool FileExists(const char* fileName) = 0;
+
+    enum EMatchType
+    {
+        IgnoreCase,
+        MatchCase
+    };
+protected:
+    static void NormalizePath(std::string& path)
+    {
+        string_util::replace_all(path, "\\", "/");
+        string_util::replace_all(path, "//", "/");
+    }
+
+    static bool WildCardMatcher(const std::string& text, std::string wildcardPattern, EMatchType caseSensitive)
+    {
+        // Escape all regex special chars
+        EscapeRegex(wildcardPattern);
+
+        // Convert chars '*?' back to their regex equivalents
+        string_util::replace_all(wildcardPattern, "\\?", ".");
+        string_util::replace_all(wildcardPattern, "\\*", ".*");
+
+        std::regex pattern(wildcardPattern,
+            caseSensitive == MatchCase ?
+            std::regex_constants::ECMAScript :
+            std::regex_constants::ECMAScript | std::regex_constants::icase);
+
+        return std::regex_match(text, pattern);
+    }
+
+    static void EscapeRegex(std::string& regex)
+    {
+        string_util::replace_all(regex, "\\", "\\\\");
+        string_util::replace_all(regex, "^", "\\^");
+        string_util::replace_all(regex, ".", "\\.");
+        string_util::replace_all(regex, "$", "\\$");
+        string_util::replace_all(regex, "|", "\\|");
+        string_util::replace_all(regex, "(", "\\(");
+        string_util::replace_all(regex, ")", "\\)");
+        string_util::replace_all(regex, "[", "\\[");
+        string_util::replace_all(regex, "]", "\\]");
+        string_util::replace_all(regex, "*", "\\*");
+        string_util::replace_all(regex, "+", "\\+");
+        string_util::replace_all(regex, "?", "\\?");
+        string_util::replace_all(regex, "/", "\\/");
+    }
 };
 
 class OSFileSystem : public IFileSystem
@@ -143,7 +189,7 @@ public:
                 if (ent)
                 {
                     const std::string dirName = ent->d_name;
-                    if (!IsDots(dirName) && WildCardMatcher(dirName, strFilter, true))
+                    if (!IsDots(dirName) && WildCardMatcher(dirName, strFilter, IgnoreCase))
                     {
                         ret.emplace_back(dirName);
                         LOG_INFO("Name is " << dirName);
@@ -174,53 +220,6 @@ public:
         return stat(fileName, &buffer) == 0; 
     }
 #endif
-
-private:
-    bool WildCardMatcher(const std::string& text, std::string wildcardPattern, bool caseSensitive)
-    {
-        // Escape all regex special chars
-        EscapeRegex(wildcardPattern);
-
-        // Convert chars '*?' back to their regex equivalents
-        string_util::replace_all(wildcardPattern, "\\?", ".");
-        string_util::replace_all(wildcardPattern, "\\*", ".*");
-
-        std::regex pattern(wildcardPattern, 
-            caseSensitive ? 
-                std::regex_constants::ECMAScript : 
-                std::regex_constants::ECMAScript | std::regex_constants::icase);
-
-        return std::regex_match(text, pattern);
-    }
-    
-    void EscapeRegex(std::string& regex)
-    {
-        string_util::replace_all(regex, "\\", "\\\\");
-        string_util::replace_all(regex, "^", "\\^");
-        string_util::replace_all(regex, ".", "\\.");
-        string_util::replace_all(regex, "$", "\\$");
-        string_util::replace_all(regex, "|", "\\|");
-        string_util::replace_all(regex, "(", "\\(");
-        string_util::replace_all(regex, ")", "\\)");
-        string_util::replace_all(regex, "[", "\\[");
-        string_util::replace_all(regex, "]", "\\]");
-        string_util::replace_all(regex, "*", "\\*");
-        string_util::replace_all(regex, "+", "\\+");
-        string_util::replace_all(regex, "?", "\\?");
-        string_util::replace_all(regex, "/", "\\/");
-    }
-
-    std::string ExpandPath(const std::string& path)
-    {
-        std::string ret = path;
-        for (const auto& namedPath : mNamedPaths)
-        {
-            string_util::replace_all(ret, namedPath.first, namedPath.second);
-        }
-        string_util::replace_all(ret, '\\', '/');
-        string_util::replace_all(ret, "//", "/");
-        return ret;
-    }
 
     std::string InitBasePath()
     {
@@ -254,8 +253,19 @@ private:
             return "";
         }
         LOG_INFO("basePath is " << basePath);
-        string_util::replace_all(basePath, '\\', '/');
+        NormalizePath(basePath);
         return basePath;
+    }
+
+    std::string ExpandPath(const std::string& path)
+    {
+        std::string ret = path;
+        for (const auto& namedPath : mNamedPaths)
+        {
+            string_util::replace_all(ret, namedPath.first, namedPath.second);
+        }
+        NormalizePath(ret);
+        return ret;
     }
 
     std::map<std::string, std::string> mNamedPaths;
@@ -581,61 +591,109 @@ private:
 */
 
 // AOPC, AOPSX, FoosMod etc
-using DataSetMap = std::map<std::string, const class GameDefinition*>;
+struct PriorityDataSet
+{
+public:
+    PriorityDataSet(std::string dataSetName, const class GameDefinition* sourceGameDefinition)
+        : mDataSetName(dataSetName), mSourceGameDefinition(sourceGameDefinition)
+    {
+
+    }
+
+    bool operator == (const PriorityDataSet& other) const
+    {
+        return (mDataSetName == other.mDataSetName && mSourceGameDefinition == other.mSourceGameDefinition);
+    }
+
+    std::string mDataSetName;
+    const GameDefinition* mSourceGameDefinition;
+};
+
+using DataSetMap = std::vector<PriorityDataSet>;
+
 struct BuiltInAndModGameDefs
 {
-    std::vector< std::pair<std::string, const GameDefinition*>> gameDefs;
-    std::vector< std::pair<std::string, const GameDefinition*>> modDefs;
+    std::vector< const PriorityDataSet* > gameDefs;
+    std::vector< const PriorityDataSet* > modDefs;
 };
 
 class GameDefinition
 {
+private:
+    static bool Exists(const std::string& dataSetName, const DataSetMap& dataSets)
+    {
+        for (const PriorityDataSet& dataSet : dataSets)
+        {
+            if (dataSet.mDataSetName == dataSetName)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static const GameDefinition* Find(const std::string& dataSetName, const std::vector<const GameDefinition*>& gds)
+    {
+        for (const GameDefinition* gd : gds)
+        {
+            if (gd->DataSetName() == dataSetName)
+            {
+                return gd;
+            }
+        }
+        return nullptr;
+    }
+
+    static void GetDependencies(int& priority, DataSetMap& requiredDataSets, std::set<std::string>& missingDataSets, const GameDefinition* gd, const std::vector<const GameDefinition*>& gds)
+    {
+        requiredDataSets.emplace_back(gd->DataSetName(), gd);
+        for (const std::string& dataSetName : gd->RequiredDataSets())
+        {
+            // Skip if already processed to avoid inf recursion on cycles
+            if (!Exists(dataSetName, requiredDataSets))
+            {
+                // Find the game def that contains the dataset that the current game def requires
+                const GameDefinition* foundGameDef = Find(dataSetName, gds);
+                if (foundGameDef)
+                {
+                    // Recursively check the this game defs dependencies too
+                    GetDependencies(priority, requiredDataSets, missingDataSets, foundGameDef, gds);
+                }
+                else
+                {
+                    missingDataSets.insert(dataSetName);
+                }
+            }
+        }
+    }
+
 public:
     static BuiltInAndModGameDefs SplitInToBuiltInAndMods(const DataSetMap& requiredDataSets)
     {
         BuiltInAndModGameDefs sorted;
         for (const auto& dataSetPair : requiredDataSets)
         {
-            if (dataSetPair.second->IsMod())
+            if (dataSetPair.mSourceGameDefinition->IsMod())
             {
-                sorted.modDefs.push_back(dataSetPair);
+                sorted.modDefs.push_back(&dataSetPair);
             }
             else
             {
-                sorted.gameDefs.push_back(dataSetPair);
+                sorted.gameDefs.push_back(&dataSetPair);
             }
         }
         return sorted;
     }
 
-    // DFS graph walk - TODO: Change to BFS so we can track the priority of each required dataset
+    // DFS graph walk
+    // This means if we have:
+    // mod -> [ AePsx, AePc]
+    // Where AePsx depends on AePsxCd1 and AePsxCd1 then the search order of resources would be:
+    // mod, AePsx, AePsxCd1, AePsxCd2, AePc.
     static void GetDependencies(DataSetMap& requiredDataSets, std::set<std::string>& missingDataSets, const GameDefinition* gd, const std::vector<const GameDefinition*>& gds)
     {
-        requiredDataSets[gd->DataSetName()] = gd;
-
-        for (const std::string& dataSetName : gd->RequiredDataSets())
-        {
-            // Skip if already processed to avoid inf recursion on cycles
-            if (requiredDataSets.find(dataSetName) == std::end(requiredDataSets))
-            {
-                bool found = false;
-                for (const GameDefinition* gameDef : gds)
-                {
-                    if (gameDef->DataSetName() == dataSetName)
-                    {
-                        found = true;
-
-                        GetDependencies(requiredDataSets, missingDataSets, gameDef, gds);
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    missingDataSets.insert(dataSetName);
-                }
-            }
-        }
-
+        int priority = 0;
+        GetDependencies(priority, requiredDataSets, missingDataSets, gd, gds);
     }
 
     static std::vector<const GameDefinition*> GetVisibleGameDefinitions(const std::vector<GameDefinition>& gameDefinitions)

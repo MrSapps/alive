@@ -36,8 +36,6 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
         }
 
         // Check we have the required data sets
-
-        // TODO: Store the requiredDataSet priority in the requiredDataSets by using the order + level in the tree/graph
         GameDefinition::GetDependencies(requiredDataSets, missingDataSets, &userSelectedGameDef, allGameDefs);
         if (!missingDataSets.empty())
         {
@@ -51,7 +49,7 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
         std::vector<std::string> setNames;
         for (const auto& dSetName : sorted.gameDefs)
         {
-            setNames.push_back(dSetName.first);
+            setNames.push_back(dSetName->mDataSetName);
         }
 
         auto missingDataPaths = mResLocator.GetDataPaths().MissingDataSets(setNames);
