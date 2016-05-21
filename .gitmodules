@@ -19,3 +19,6 @@
 [submodule "3rdParty/lodepng"]
 	path = 3rdParty/lodepng
 	url = https://github.com/lvandeve/lodepng.git
+[submodule "3rdParty/googletest"]
+	path = 3rdParty/googletest
+	url = https://github.com/paulsapps/googletest.git
