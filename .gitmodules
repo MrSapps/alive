@@ -1,7 +1,3 @@
-[submodule "3rdParty/gmock-1.7.0"]
-	path = 3rdParty/gmock-1.7.0
-	url = https://github.com/paulsapps/gmock-1.7.0.git
-	
 [submodule "3rdParty/jsonxx"]
 	path = 3rdParty/jsonxx
 	url = https://github.com/hjiang/jsonxx
