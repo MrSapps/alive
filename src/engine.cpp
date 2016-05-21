@@ -358,21 +358,25 @@ bool Engine::InitSDL()
     return true;
 }
 
+void Engine::AddGameDefinitionsFrom(const char* path, bool areMods)
+{
+    const auto jsonFiles = mFileSystem->EnumerateFiles(path, "*.json");
+    for (const auto& gameDef : jsonFiles)
+    {
+        mGameDefinitions.emplace_back(*mFileSystem, (std::string(path) + "/" + gameDef).c_str(), areMods);
+    }
+}
+
 void Engine::InitResources()
 {
     // load the enumerated "built in" game defs
-    const auto gameDefJsonFiles = mFileSystem->EnumerateFiles("{GameDir}/data/GameDefinitions", "*.json");
-    for (const auto& gameDef : gameDefJsonFiles)
-    {
-        mGameDefinitions.emplace_back(*mFileSystem, ("{GameDir}/data/GameDefinitions/" + gameDef).c_str(), false);
-    }
+    AddGameDefinitionsFrom("{GameDir}/data/GameDefinitions", false);
 
     // load the enumerated "mod" game defs
-    const auto modDefsJsonFiles = mFileSystem->EnumerateFiles("{UserDir}/Mods", "*.json");
-    for (const auto& gameDef : modDefsJsonFiles)
-    {
-        mGameDefinitions.emplace_back(*mFileSystem, ("{UserDir}/Mods/" + gameDef).c_str(), true);
-    }
+    AddGameDefinitionsFrom("{UserDir}/Mods", true);
+
+    // The engine probably won't ship with any mods, but while under development look here too
+    AddGameDefinitionsFrom("{GameDir}/data/Mods", true);
 
     // create the resource mapper loading the resource maps from the json db
     DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");

@@ -56,7 +56,11 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
         if (!missingDataPaths.empty())
         {
             // Some are missing so ask the user for them
-            LOG_ERROR(missingDataPaths.size() << " data paths are missing");
+            for (const auto& dp : missingDataPaths)
+            {
+                LOG_ERROR(dp << " data path is missing");
+            }
+           
         }
 
         if (/*gd.DataSetName() == "Developer" &&*/ missingDataPaths.empty() && missingDataSets.empty())

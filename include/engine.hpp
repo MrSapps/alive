@@ -46,6 +46,7 @@ private:
     void Render();
     bool InitSDL();
     int LoadNanoVgFonts(struct NVGcontext* vg);
+    void AddGameDefinitionsFrom(const char* path, bool areMods);
     void InitResources();
     void InitGL();
     void RenderVideoUi();
