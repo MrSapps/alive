@@ -67,10 +67,14 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock/internal
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock/internal/custom
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/internal
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/internal/custom
     ${CMAKE_BINARY_DIR}/3rdParty/luajit
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/luajit/src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/include
@@ -115,8 +119,8 @@ add_library(NanoVg STATIC ${nanovg_src})
 SET_PROPERTY(TARGET NanoVg PROPERTY FOLDER "3rdparty")
 
 SET(gmock_src
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/src/gmock-all.cc
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest/src/gtest-all.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock/src/gmock-all.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/src/gtest-all.cc
 )
 
 add_library(gmock STATIC ${gmock_src})
