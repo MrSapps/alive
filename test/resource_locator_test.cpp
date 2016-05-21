@@ -290,20 +290,20 @@ TEST(FakeFileSystem, EnumerateFiles)
 TEST(FakeFileSystem, FileExists)
 {
     FakeFileSystem fs;
-    ASSERT_EQ(false, fs.FileExists("Rubbish"));
-    ASSERT_EQ(false, fs.FileExists("/"));
-    ASSERT_EQ(false, fs.FileExists("/Home"));
-    ASSERT_EQ(false, fs.FileExists("/Home/Test.txt"));
-    ASSERT_EQ(false, fs.FileExists("/Root.txt"));
+    ASSERT_FALSE(fs.FileExists("Rubbish"));
+    ASSERT_FALSE(fs.FileExists("/"));
+    ASSERT_FALSE(fs.FileExists("/Home"));
+    ASSERT_FALSE(fs.FileExists("/Home/Test.txt"));
+    ASSERT_FALSE(fs.FileExists("/Root.txt"));
 
     fs.AddFile("/Home/Test.txt", "File content");
     fs.AddFile("/Root.txt", "Blah");
 
-    ASSERT_EQ(false, fs.FileExists("Rubbish"));
-    ASSERT_EQ(false, fs.FileExists("/"));
-    ASSERT_EQ(false, fs.FileExists("/Home"));
-    ASSERT_EQ(true, fs.FileExists("/Home/Test.txt"));
-    ASSERT_EQ(true, fs.FileExists("/Root.txt"));
+    ASSERT_FALSE(fs.FileExists("Rubbish"));
+    ASSERT_FALSE(fs.FileExists("/"));
+    ASSERT_FALSE(fs.FileExists("/Home"));
+    ASSERT_TRUE(fs.FileExists("/Home/Test.txt"));
+    ASSERT_TRUE(fs.FileExists("/Root.txt"));
 }
 
 TEST(ResourceLocator, Cache)
