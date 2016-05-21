@@ -229,18 +229,18 @@ TEST(IFileSystem, NormalizePath)
 
 TEST(IFileSystem, WildCardMatcher)
 {
-    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("Hello.txt", "*.txt", IFileSystem::IgnoreCase));
-    ASSERT_EQ(false, FakeFileSystem::WildCardMatcher("Hello.txt", "*.TXT", IFileSystem::MatchCase));
-    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("Hello.txt", "*.TXT", IFileSystem::IgnoreCase));
+    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("Hello.txt", "*.txt", IFileSystem::IgnoreCase));
+    ASSERT_FALSE(FakeFileSystem::WildCardMatcher("Hello.txt", "*.TXT", IFileSystem::MatchCase));
+    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("Hello.txt", "*.TXT", IFileSystem::IgnoreCase));
 
-    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("Hello.txt", "Hello.???", IFileSystem::MatchCase));
-    ASSERT_EQ(false, FakeFileSystem::WildCardMatcher("Hello.txt", "HELLO.???", IFileSystem::MatchCase));
-    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("Hello.txt", "HELLO.???", IFileSystem::IgnoreCase));
+    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("Hello.txt", "Hello.???", IFileSystem::MatchCase));
+    ASSERT_FALSE(FakeFileSystem::WildCardMatcher("Hello.txt", "HELLO.???", IFileSystem::MatchCase));
+    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("Hello.txt", "HELLO.???", IFileSystem::IgnoreCase));
 
-    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("BlahHelloBlah", "*Hello*", IFileSystem::MatchCase));
-    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("BlahHelloBlah", "*HELLO*", IFileSystem::IgnoreCase));
-    ASSERT_EQ(true, FakeFileSystem::WildCardMatcher("BlahHelloBlah", "*HELLO*", IFileSystem::IgnoreCase));
-    ASSERT_EQ(false, FakeFileSystem::WildCardMatcher("BlahHelzloBlah", "*HELLO*", IFileSystem::MatchCase));
+    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("BlahHelloBlah", "*Hello*", IFileSystem::MatchCase));
+    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("BlahHelloBlah", "*HELLO*", IFileSystem::IgnoreCase));
+    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("BlahHelloBlah", "*HELLO*", IFileSystem::IgnoreCase));
+    ASSERT_FALSE(FakeFileSystem::WildCardMatcher("BlahHelzloBlah", "*HELLO*", IFileSystem::MatchCase));
 
 }
 
