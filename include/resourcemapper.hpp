@@ -838,7 +838,7 @@ private:
 
         for (size_t rootObjIndex = 0; rootObjIndex < root.size(); rootObjIndex++)
         {
-            jsonxx::Object obj = root.get<jsonxx::Object>(rootObjIndex);
+            jsonxx::Object obj = root.get<jsonxx::Object>(static_cast<unsigned int>(rootObjIndex));
             if (obj.has<jsonxx::Array>("anims"))
             {
                 ParseAnimResourceJson(obj);
