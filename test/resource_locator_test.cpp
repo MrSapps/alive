@@ -519,7 +519,7 @@ TEST(ResourceLocator, Construct)
     // ask for any missing data sets
     auto requiredSets = selected.RequiredDataSets();
     requiredSets.emplace_back("AePc"); // add in self to check its found
-    const auto missing = dataPaths.MissingDataSets(requiredSets);
+    const auto missing = dataPaths.MissingDataSetPaths(requiredSets);
     const std::vector<std::string> expected{ "Foo1", "Foo2" };
     ASSERT_EQ(expected, missing);
 

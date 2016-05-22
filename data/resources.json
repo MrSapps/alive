@@ -8824,7 +8824,7 @@
     },
     {
         "data_set_name": "AoPc",
-        "is_psx": "false",
+        "is_psx": false,
         "lvls": [
             {
                 "files": [
@@ -11398,7 +11398,7 @@
     },
     {
         "data_set_name": "AoPcDemo",
-        "is_psx": "false",
+        "is_psx": false,
         "lvls": [
             {
                 "files": [
@@ -11815,7 +11815,7 @@
     },
     {
         "data_set_name": "AoPsx",
-        "is_psx": "true",
+        "is_psx": true,
         "lvls": [
             {
                 "files": [
@@ -14414,7 +14414,7 @@
     },
     {
         "data_set_name": "AoPsxDemo",
-        "is_psx": "true",
+        "is_psx": true,
         "lvls": [
             {
                 "files": [
@@ -15107,7 +15107,7 @@
     },
     {
         "data_set_name": "AePc",
-        "is_psx": "false",
+        "is_psx": false,
         "lvls": [
             {
                 "files": [
@@ -17906,7 +17906,7 @@
     },
     {
         "data_set_name": "AePcDemo",
-        "is_psx": "false",
+        "is_psx": false,
         "lvls": [
             {
                 "files": [
@@ -18456,7 +18456,7 @@
     },
     {
         "data_set_name": "AePsxCd1",
-        "is_psx": "true",
+        "is_psx": true,
         "lvls": [
             {
                 "files": [
@@ -20568,7 +20568,7 @@
     },
     {
         "data_set_name": "AePsxCd2",
-        "is_psx": "true",
+        "is_psx": true,
         "lvls": [
             {
                 "files": [
@@ -22884,7 +22884,7 @@
     },
     {
         "data_set_name": "AePsxDemo",
-        "is_psx": "true",
+        "is_psx": true,
         "lvls": [
             {
                 "files": [

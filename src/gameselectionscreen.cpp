@@ -52,7 +52,7 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
             setNames.push_back(dSetName->mDataSetName);
         }
 
-        auto missingDataPaths = mResLocator.GetDataPaths().MissingDataSets(setNames);
+        auto missingDataPaths = mResLocator.GetDataPaths().MissingDataSetPaths(setNames);
         if (!missingDataPaths.empty())
         {
             // Some are missing so ask the user for them
@@ -67,7 +67,13 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
         {
             LOG_INFO("Loading " << userSelectedGameDef.DataSetName());
             
-            //mResLocator.GetDataPaths().SetActiveDataPaths(requiredDataSets);
+            // Set active data sets for the resource loader to use
+            mResLocator.GetDataPaths().SetActiveDataPaths(requiredDataSets);
+            
+            // Temp/debug
+            auto res = mResLocator.Locate<Animation>("ABEBSIC.BAN_10_31");
+            //res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31", "AePc");
+            res.Reload();
 
             gotoDevMode = true;
         }

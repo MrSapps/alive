@@ -17,6 +17,22 @@
 #include "string_util.hpp"
 #include "oddlib/cdromfilesystem.hpp"
 
+namespace JsonDeserializer
+{
+    template<typename T>
+    void ReadStringArray(const jsonxx::Object& jsonObject, const std::string& jsonArrayName, T& resultingStrings)
+    {
+        if (jsonObject.has<jsonxx::Array>(jsonArrayName))
+        {
+            const jsonxx::Array& stringArray = jsonObject.get<jsonxx::Array>(jsonArrayName);
+            for (const auto& f : stringArray.values())
+            {
+                resultingStrings.insert(resultingStrings.end(), f->get<jsonxx::String>());
+            }
+        }
+    }
+}
+
 inline size_t StringHash(const char* s)
 {
     // FNV hasher
@@ -433,20 +449,6 @@ private:
         }
     }
 
-    void ReadStringArray(const jsonxx::Object& jsonObject, const std::string& jsonArrayName, std::vector<std::string>& resultingStrings)
-    {
-        if (jsonObject.has<jsonxx::Array>(jsonArrayName))
-        {
-            const jsonxx::Array& stringArray = jsonObject.get<jsonxx::Array>(jsonArrayName);
-            resultingStrings.reserve(stringArray.size());
-            for (const auto& f : stringArray.values())
-            {
-                resultingStrings.emplace_back(f->get<jsonxx::String>());
-            }
-        }
-
-    }
-
     void Parse(const std::string& json)
     {
         jsonxx::Object root;
@@ -459,9 +461,9 @@ private:
                 const jsonxx::Object& dataSetId = dataSetIds.get<jsonxx::Object>(v.first);
 
                 DataPathFiles dpFiles;
-                ReadStringArray(dataSetId, "contains_any", dpFiles.mContainAnyOf);
-                ReadStringArray(dataSetId, "contains_all", dpFiles.mContainAllOf);
-                ReadStringArray(dataSetId, "not_contains", dpFiles.mMustNotContain);
+                JsonDeserializer::ReadStringArray(dataSetId, "contains_any", dpFiles.mContainAnyOf);
+                JsonDeserializer::ReadStringArray(dataSetId, "contains_all", dpFiles.mContainAllOf);
+                JsonDeserializer::ReadStringArray(dataSetId, "not_contains", dpFiles.mMustNotContain);
 
                 if (dpFiles.mContainAnyOf.empty() && dpFiles.mContainAllOf.empty() && dpFiles.mMustNotContain.empty())
                 {
@@ -475,6 +477,26 @@ private:
         }
     }
 };
+
+struct PriorityDataSet
+{
+public:
+    PriorityDataSet(std::string dataSetName, const class GameDefinition* sourceGameDefinition)
+        : mDataSetName(dataSetName), mSourceGameDefinition(sourceGameDefinition)
+    {
+
+    }
+
+    bool operator == (const PriorityDataSet& other) const
+    {
+        return (mDataSetName == other.mDataSetName && mSourceGameDefinition == other.mSourceGameDefinition);
+    }
+
+    std::string mDataSetName;
+    const GameDefinition* mSourceGameDefinition;
+};
+
+using DataSetMap = std::vector<PriorityDataSet>;
 
 class DataPaths
 {
@@ -504,15 +526,13 @@ public:
             for (const auto& path : paths)
             {
                 std::string id = mIds.Identify(fs, path);
-                auto it = mPaths.find(id);
-                if (it == std::end(mPaths))
+                if (id.empty())
                 {
-                    mPaths[id] = std::vector < std::string > {path};
+                    LOG_ERROR("Path " << path << " could not be identified");
+                    continue;
                 }
-                else
-                {
-                    it->second.push_back(path);
-                }
+                LOG_INFO("Path " << path << " identified as " << id);
+                mPaths[id].push_back(path);
             }
         }
     }
@@ -530,7 +550,7 @@ public:
         }
     }
 
-    std::vector<std::string> MissingDataSets(const std::vector<std::string>& requiredSets)
+    std::vector<std::string> MissingDataSetPaths(const std::vector<std::string>& requiredSets)
     {
         std::vector<std::string> ret;
         for (const auto& dataset : requiredSets)
@@ -550,7 +570,13 @@ public:
         return ret;
     }
 
+    void SetActiveDataPaths(const DataSetMap& /*paths*/)
+    {
+        // TODO: Add paths in order, including mod zips
+    }
 private:
+    std::vector<std::unique_ptr<IFileSystem>> mActiveDataPaths;
+
     std::map<std::string, std::vector<std::string>> mPaths;
 
     std::vector<std::string> Parse(const std::string& json)
@@ -575,41 +601,6 @@ private:
     const /*static*/ std::vector<std::string> mNotFoundResult;
 };
 
-//const static std::vector<std::string> DataPaths::mNotFoundResult;
-
-/*
-// TODO: Make these known constants:
-"AoPc"
-"AoPcDemo"
-"AoPsx"
-"AoPsxDemo"
-"AePc"
-"AePcDemo"
-"AePsxCd1"
-"AePsxCd2"
-"AePsxDemo"
-*/
-
-// AOPC, AOPSX, FoosMod etc
-struct PriorityDataSet
-{
-public:
-    PriorityDataSet(std::string dataSetName, const class GameDefinition* sourceGameDefinition)
-        : mDataSetName(dataSetName), mSourceGameDefinition(sourceGameDefinition)
-    {
-
-    }
-
-    bool operator == (const PriorityDataSet& other) const
-    {
-        return (mDataSetName == other.mDataSetName && mSourceGameDefinition == other.mSourceGameDefinition);
-    }
-
-    std::string mDataSetName;
-    const GameDefinition* mSourceGameDefinition;
-};
-
-using DataSetMap = std::vector<PriorityDataSet>;
 
 struct BuiltInAndModGameDefs
 {
@@ -842,6 +833,36 @@ private:
             if (obj.has<jsonxx::Array>("anims"))
             {
                 ParseAnimResourceJson(obj);
+            }
+            else if (obj.has<jsonxx::Array>("lvls"))
+            {
+                ParseFileLocations(obj);
+            }
+        }
+    }
+
+    std::map<std::string, std::map<std::pair<std::string, bool>, std::vector<std::string>>> mFileLocations;
+
+    void ParseFileLocations(const jsonxx::Object& obj)
+    {
+        // This is slightly tricky as we reverse the mapping of the data that is in the json file
+        // the json file maps a data set, if its PSX or not, its lvls and lvl contents.
+        // But we want to map a file name to what LVLs it lives in, and a LVL to what data sets it lives in
+        // and if that data set is PSX or not.
+        const std::string& dataSetName = obj.get<jsonxx::String>("data_set_name");
+        const bool isPsx = obj.get<jsonxx::Boolean>("is_psx");
+        
+        const jsonxx::Array& lvls = obj.get<jsonxx::Array>("lvls");
+        for (size_t i = 0; i < lvls.size(); i++)
+        {
+            const jsonxx::Object& lvlRecord = lvls.get<jsonxx::Object>(static_cast<Uint32>(i));
+            const std::string& lvlName = lvlRecord.get<jsonxx::String>("name");
+
+            std::set<std::string> lvlFiles;
+            JsonDeserializer::ReadStringArray(lvlRecord, "files", lvlFiles);
+            for (const std::string& fileName : lvlFiles)
+            {
+                mFileLocations[fileName][std::make_pair(dataSetName, isPsx)].push_back(lvlName);
             }
         }
     }
