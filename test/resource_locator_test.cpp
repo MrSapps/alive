@@ -487,13 +487,12 @@ TEST(ResourceLocator, Construct)
     // load the list of data paths (if any) and discover what they are
     DataPaths dataPaths(fs, "datasetids.json", "datasets.json");
 
-    auto aoPaths = dataPaths.PathsFor("AoPc");
-    ASSERT_EQ(aoPaths.size(), 0u);
+    auto aoPath = dataPaths.PathFor("AoPc");
+    ASSERT_TRUE(aoPath.empty());
 
 
-    auto aePaths = dataPaths.PathsFor("AePc");
-    ASSERT_EQ(aePaths.size(), 1u);
-    ASSERT_EQ(aePaths[0], "F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus");
+    auto aePath = dataPaths.PathFor("AePc");
+    ASSERT_EQ(aePath, "F:\\Program Files\\SteamGames\\SteamApps\\common\\Oddworld Abes Exoddus");
 
    
     std::vector<GameDefinition> gds;
@@ -538,12 +537,9 @@ TEST(ResourceLocator, Construct)
 
     for (const auto& requiredSet : selected.RequiredDataSets())
     {
-        const auto& paths = dataPaths.PathsFor(requiredSet);
-        for (const auto& path : paths)
-        {
-            // TODO: Priority
-            resourceLocator.AddDataPath(path.c_str(), 0, requiredSet);
-        }
+        const auto& path = dataPaths.PathFor(requiredSet);
+        // TODO: Priority
+        resourceLocator.AddDataPath(path.c_str(), 0, requiredSet);
     }
 
     // Now we can obtain resources

@@ -531,13 +531,26 @@ public:
                     LOG_ERROR("Path " << path << " could not be identified");
                     continue;
                 }
-                LOG_INFO("Path " << path << " identified as " << id);
-                mPaths[id].push_back(path);
+              
+                auto it = mPaths.find(id);
+                if (it == std::end(mPaths))
+                {
+                    LOG_INFO("Path " << path << " identified as " << id);
+                    mPaths[id] = path;
+                }
+                else
+                {
+                    LOG_INFO("Path " << path 
+                        << " identified as " << id 
+                        << " but ignoring because we already have the following path "
+                        << it->second 
+                        << " for " << id);
+                }
             }
         }
     }
 
-    const std::vector<std::string>& PathsFor(const std::string& id)
+    const std::string& PathFor(const std::string& id)
     {
         auto it = mPaths.find(id);
         if (it == std::end(mPaths))
@@ -560,7 +573,7 @@ public:
                 continue;
             }
 
-            if (!PathsFor(dataset).empty())
+            if (!PathFor(dataset).empty())
             {
                 continue;
             }
@@ -577,7 +590,7 @@ public:
 private:
     std::vector<std::unique_ptr<IFileSystem>> mActiveDataPaths;
 
-    std::map<std::string, std::vector<std::string>> mPaths;
+    std::map<std::string, std::string> mPaths;
 
     std::vector<std::string> Parse(const std::string& json)
     {
@@ -586,11 +599,7 @@ private:
         root.parse(json);
         if (root.has<jsonxx::Array>("paths"))
         {
-            jsonxx::Array pathsArray = root.get<jsonxx::Array>("paths");
-            for (const auto& path : pathsArray.values())
-            {
-                paths.emplace_back(path->get<jsonxx::String>());
-            }
+            JsonDeserializer::ReadStringArray(root, "paths", paths);
         }
         return paths;
     }
@@ -598,7 +607,7 @@ private:
     // To match to what a game def wants (AePcCd1, AoDemoPsx etc)
     // we use SLUS codes for PSX or if it contains ABEWIN.EXE etc then its AoPc.
     DataPathIdentities mIds;
-    const /*static*/ std::vector<std::string> mNotFoundResult;
+    const /*static*/ std::string mNotFoundResult;
 };
 
 
