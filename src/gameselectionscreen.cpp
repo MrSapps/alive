@@ -63,6 +63,16 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
            
         }
 
+        // Get the paths for the datasets
+        for (PriorityDataSet& pds : requiredDataSets)
+        {
+            if (!pds.mSourceGameDefinition->IsMod())
+            {
+                pds.mDataSetPath = mResLocator.GetDataPaths().PathFor(pds.mDataSetName);
+            }
+            // TODO: Set mod zip path from its gd
+        }
+
         if (/*gd.DataSetName() == "Developer" &&*/ missingDataPaths.empty() && missingDataSets.empty())
         {
             LOG_INFO("Loading " << userSelectedGameDef.DataSetName());

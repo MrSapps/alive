@@ -493,6 +493,7 @@ public:
     }
 
     std::string mDataSetName;
+    std::string mDataSetPath;
     const GameDefinition* mSourceGameDefinition;
 };
 
@@ -585,7 +586,16 @@ public:
 
     void SetActiveDataPaths(const DataSetMap& /*paths*/)
     {
+        /*
         // TODO: Add paths in order, including mod zips
+        for (const PriorityDataSet& pds : paths)
+        {
+            pds.mDataSetName;
+            pds.mDataSetPath;
+            pds.mSourceGameDefinition;
+            mActiveDataPaths.emplace_back(std::make_unique<OSFileSystem>());
+        }
+        */
     }
 private:
     std::vector<std::unique_ptr<IFileSystem>> mActiveDataPaths;
