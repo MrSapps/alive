@@ -78,7 +78,7 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
             LOG_INFO("Loading " << userSelectedGameDef.DataSetName());
             
             // Set active data sets for the resource loader to use
-            mResLocator.GetDataPaths().SetActiveDataPaths(requiredDataSets);
+            mResLocator.GetDataPaths().SetActiveDataPaths(mFs, requiredDataSets);
             
             // Temp/debug
             auto res = mResLocator.Locate<Animation>("ABEBSIC.BAN_10_31");

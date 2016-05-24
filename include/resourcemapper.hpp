@@ -58,6 +58,10 @@ inline std::vector<Uint8> StringToVector(const std::string& str)
 class IFileSystem
 {
 public:
+    IFileSystem() = default;
+    IFileSystem(const IFileSystem&) = delete;
+    IFileSystem& operator = (const IFileSystem&) = delete;
+
     virtual ~IFileSystem() = default;
     
     virtual bool Init() { return true; }
@@ -71,6 +75,8 @@ public:
         IgnoreCase,
         MatchCase
     };
+
+    static std::unique_ptr<IFileSystem> Factory(IFileSystem& fs, const std::string& path);
 protected:
     static void NormalizePath(std::string& path)
     {
@@ -113,7 +119,8 @@ protected:
     }
 };
 
-class OSFileSystem : public IFileSystem
+
+class OSBaseFileSystem : public IFileSystem
 {
 private:
     static bool IsDots(const std::string& name)
@@ -124,16 +131,6 @@ public:
 
     virtual bool Init() override
     {
-        auto basePath = InitBasePath();
-        if (basePath.empty())
-        {
-            return false;
-        }
-        mNamedPaths["{GameDir}"] = basePath;
-
-        // TODO: Resolve {UserDir}
-        mNamedPaths["{UserDir}"] = ".";
-
         return true;
     }
 
@@ -233,9 +230,30 @@ public:
     bool FileExists(const char* fileName) override
     {
         struct stat buffer = {};
-        return stat(fileName, &buffer) == 0; 
+        return stat(fileName, &buffer) == 0;
     }
 #endif
+
+    virtual std::string ExpandPath(const std::string& path) = 0;
+};
+
+class GameFileSystem : public OSBaseFileSystem
+{
+public:
+    virtual bool Init() override final
+    {
+        auto basePath = InitBasePath();
+        if (basePath.empty())
+        {
+            return false;
+        }
+        mNamedPaths["{GameDir}"] = basePath;
+
+        // TODO: Resolve {UserDir}
+        mNamedPaths["{UserDir}"] = ".";
+
+        return true;
+    }
 
     std::string InitBasePath()
     {
@@ -273,7 +291,7 @@ public:
         return basePath;
     }
 
-    std::string ExpandPath(const std::string& path)
+    virtual std::string ExpandPath(const std::string& path) override final
     {
         std::string ret = path;
         for (const auto& namedPath : mNamedPaths)
@@ -284,7 +302,33 @@ public:
         return ret;
     }
 
+private:
     std::map<std::string, std::string> mNamedPaths;
+};
+
+class DirectoryLimitedOSFileSystem : public OSBaseFileSystem
+{
+public:
+    DirectoryLimitedOSFileSystem(const std::string& directory)
+    {
+        mBasePath = directory;
+        NormalizePath(mBasePath);
+    }
+
+    virtual bool Init() override final
+    {
+        return true;
+    }
+
+    virtual std::string ExpandPath(const std::string& path) override final
+    {
+        std::string ret = mBasePath + "/" + path;
+        NormalizePath(ret);
+        return ret;
+    }
+
+private:
+    std::string mBasePath;
 };
 
 class CdIsoFileSystem : public IFileSystem
@@ -335,6 +379,40 @@ class LvlFileSystem
 {
 };
 
+inline /*static*/ std::unique_ptr<IFileSystem> IFileSystem::Factory(IFileSystem& fs, const std::string& path)
+{
+    TRACE_ENTRYEXIT;
+
+    if (path.empty())
+    {
+        return nullptr;
+    }
+
+    const bool isFile = fs.FileExists(path.c_str());
+    if (isFile)
+    {
+        if (string_util::ends_with(path, ".bin", true))
+        {
+            return std::make_unique<CdIsoFileSystem>(path.c_str());
+        }
+        else if (string_util::ends_with(path, ".zip", true))
+        {
+            // TODO
+            LOG_ERROR("ZIP FS TODO");
+            return nullptr;
+        }
+        else
+        {
+            LOG_ERROR("Unknown archive type for: " << path);
+            return nullptr;
+        }
+    }
+    else
+    {
+        return std::make_unique<DirectoryLimitedOSFileSystem>(path);
+    }
+}
+
 class DataPathIdentities
 {
 public:
@@ -380,12 +458,12 @@ private:
     // e.g AePsx includes AePsxCd1 and AxePsxCd1, but AePsx won't actually have a path as such
     std::set<std::string> mMetaPaths;
 
-    bool DoMatchPathWithDataPathId(IFileSystem& fs, const std::pair<std::string, DataPathFiles>& dataPathId, const std::string& path) const
+    bool DoMatchPathWithDataPathId(IFileSystem& fs, const std::pair<std::string, DataPathFiles>& dataPathId) const
     {
         // Check all of the "must exist files" do exist
         for (const auto& f : dataPathId.second.mContainAllOf)
         {
-            if (!fs.FileExists((path + "\\" + f).c_str()))
+            if (!fs.FileExists(f.c_str()))
             {
                 // Skip this dataPathId, the path doesn't match all of the "must contain"
                 return false;
@@ -395,7 +473,7 @@ private:
         // Check that all of the "must not exist" files don't exist
         for (const auto& f : dataPathId.second.mMustNotContain)
         {
-            if (fs.FileExists((path + "\\" + f).c_str()))
+            if (fs.FileExists(f.c_str()))
             {
                 // Found a file that shouldn't exist, skip to the next dataPathId
                 return false;
@@ -406,7 +484,7 @@ private:
         bool foundAnyOf = false;
         for (const auto& f : dataPathId.second.mContainAnyOf)
         {
-            if (fs.FileExists((path + "\\" + f).c_str()))
+            if (fs.FileExists(f.c_str()))
             {
                 foundAnyOf = true;
                 break;
@@ -425,28 +503,12 @@ private:
 
     bool MatchPathWithDataPathId(IFileSystem& fs, const std::pair<std::string, DataPathFiles>& dataPathId, const std::string& path) const
     {
-        const bool isFile = fs.FileExists(path.c_str());
-        if (isFile)
+        auto dataSetFs = IFileSystem::Factory(fs, path);
+        if (dataSetFs)
         {
-            if (string_util::ends_with(path, ".bin", true))
-            {
-                CdIsoFileSystem cdFs(path.c_str());
-                return DoMatchPathWithDataPathId(cdFs, dataPathId, "");
-            }
-            else if (string_util::ends_with(path, ".zip", true))
-            {
-                // TODO
-                return false;
-            }
-            else
-            {
-                return false;
-            }
+            return DoMatchPathWithDataPathId(*dataSetFs, dataPathId);
         }
-        else
-        {
-            return DoMatchPathWithDataPathId(fs, dataPathId, path);
-        }
+        return false;
     }
 
     void Parse(const std::string& json)
@@ -584,18 +646,29 @@ public:
         return ret;
     }
 
-    void SetActiveDataPaths(const DataSetMap& /*paths*/)
+    bool SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
     {
-        /*
-        // TODO: Add paths in order, including mod zips
+        mActiveDataPaths.clear();
+
+        // Add paths in order, including mod zips
         for (const PriorityDataSet& pds : paths)
         {
-            pds.mDataSetName;
-            pds.mDataSetPath;
-            pds.mSourceGameDefinition;
-            mActiveDataPaths.emplace_back(std::make_unique<OSFileSystem>());
+            if (!pds.mDataSetPath.empty())
+            {
+                auto dataSetFs = IFileSystem::Factory(fs, pds.mDataSetPath);
+                if (dataSetFs)
+                {
+                    //pds.mSourceGameDefinition;
+                    mActiveDataPaths.emplace_back(std::move(dataSetFs));
+                }
+                else
+                {
+                    // Couldn't get an FS for the data path, fail
+                    return false;
+                }
+            }
         }
-        */
+        return true;
     }
 private:
     std::vector<std::unique_ptr<IFileSystem>> mActiveDataPaths;
@@ -1049,11 +1122,6 @@ public:
         return mDataPaths;
     }
 
-    void AddDataPath(const char* /*dataPath*/, Sint32 /*priority*/, const std::string& /*dataSetId*/)
-    {
-       // mDataPaths.Add(dataPath, priority, dataSetId);
-    }
-
     template<typename T>
     Resource<T> Locate(const char* resourceName)
     {
@@ -1071,8 +1139,8 @@ public:
         const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
         if (animMapping)
         {
-            //const auto& lvlFileToFind = animMapping->mFile;
             /*
+            const auto& lvlFileToFind = animMapping->mFile;
             auto stream = mDataPaths.Open(lvlFileToFind);
             if (stream)
             {
@@ -1100,9 +1168,11 @@ public:
             return Resource<T>(mResourceCache, cachedRes, resNameHash);
         }
 
+        // TODO: Have bespoke method to find animations - pass in possible dataset names
         const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
         if (animMapping)
         {
+            // TODO: Handle mod zips
             // TODO: Find resource in specific data set 
             //const auto& lvlFileToFind = animMapping->mFile;
             /*

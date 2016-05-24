@@ -395,9 +395,6 @@ TEST(ResourceLocator, LocateAnimation)
 
     ResourceLocator locator(std::move(mapper), std::move(paths));
 
-    locator.AddDataPath("C:\\dataset_location2", 2, "AoPc");
-    locator.AddDataPath("C:\\dataset_location1", 1, "AePc");
-  
     Resource<Animation> resMapped1 = locator.Locate<Animation>("SLIGZ.BND_417_1");
     resMapped1.Reload();
 
@@ -534,13 +531,6 @@ TEST(ResourceLocator, Construct)
     // then the "default" paths should appear in order.
   //  auto dataSets = GameDefinition::GetMergedDatasets(selected, builtInGds, modGs);
 
-
-    for (const auto& requiredSet : selected.RequiredDataSets())
-    {
-        const auto& path = dataPaths.PathFor(requiredSet);
-        // TODO: Priority
-        resourceLocator.AddDataPath(path.c_str(), 0, requiredSet);
-    }
 
     // Now we can obtain resources
     Resource<Animation> resMapped1 = resourceLocator.Locate<Animation>("SLIGZ.BND_417_1");

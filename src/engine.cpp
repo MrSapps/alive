@@ -86,7 +86,7 @@ bool Engine::Init()
     try
     {
         // load the list of data paths (if any) and discover what they are
-        mFileSystem = std::make_unique<OSFileSystem>();
+        mFileSystem = std::make_unique<GameFileSystem>();
         if (!mFileSystem->Init())
         {
             LOG_ERROR("File system init failure");
@@ -117,7 +117,7 @@ bool Engine::Init()
 
         InitSubSystems();
 
-        ToState(std::make_unique<GameSelectionScreen>(*this, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, mFileSystem_old, *mResourceLocator));
+        ToState(std::make_unique<GameSelectionScreen>(*this, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, mFileSystem_old, *mResourceLocator, *mFileSystem));
 
         return true;
     }
