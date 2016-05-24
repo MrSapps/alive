@@ -49,6 +49,11 @@ public:
     }
 
 // IFileSystem
+    virtual std::string FsPath() const override
+    {
+        return "FakeFs";
+    }
+
     virtual bool Init() override
     {
         return true;

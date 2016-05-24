@@ -69,6 +69,7 @@ public:
 
     virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) = 0;
     virtual bool FileExists(const std::string& fileName) = 0;
+    virtual std::string FsPath() const = 0;
 
     enum EMatchType
     {
@@ -255,6 +256,11 @@ public:
         return true;
     }
 
+    virtual std::string FsPath() const override
+    {
+        return mNamedPaths.find("{GameDir}")->second;
+    }
+
     std::string InitBasePath()
     {
         char* pBasePath = SDL_GetBasePath();
@@ -316,6 +322,11 @@ public:
         NormalizePath(mBasePath);
     }
 
+    virtual std::string FsPath() const override
+    {
+        return mBasePath;
+    }
+
     virtual bool Init() override final
     {
         return true;
@@ -350,12 +361,17 @@ class CdIsoFileSystem : public IFileSystem
 {
 public:
     explicit CdIsoFileSystem(const char* fileName)
-        : mRawCdImage(fileName)
+        : mRawCdImage(fileName), mCdImagePath(fileName)
     {
 
     }
 
     virtual ~CdIsoFileSystem() = default;
+
+    virtual std::string FsPath() const override
+    {
+        return mCdImagePath;
+    }
 
     virtual bool Init() override
     {
@@ -382,6 +398,7 @@ public:
 
 private:
     RawCdImage mRawCdImage;
+    std::string mCdImagePath;
 };
 
 // TODO
@@ -818,6 +835,7 @@ public:
         assert(stream != nullptr);
         const auto jsonData = stream->LoadAllToString();
         Parse(jsonData);
+        mContainingArchive = fileSystem.FsPath();
     }
 
     GameDefinition(std::string name, std::string dataSetName, std::vector<std::string> requiredDataSets, bool isMod)
@@ -836,6 +854,7 @@ public:
     const std::vector<std::string> RequiredDataSets() const { return mRequiredDataSets; }
     bool Hidden() const { return mHidden; }
     bool IsMod() const { return mIsMod; }
+    const std::string ContainingArchive() const { return mContainingArchive; }
 private:
 
     void Parse(const std::string& json)
@@ -872,6 +891,7 @@ private:
     bool mHidden = false;
     std::vector<std::string> mRequiredDataSets;
     bool mIsMod = false;
+    std::string mContainingArchive;
 };
 
 class ResourceMapper

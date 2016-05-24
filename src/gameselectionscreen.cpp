@@ -70,7 +70,11 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
             {
                 pds.mDataSetPath = mResLocator.GetDataPaths().PathFor(pds.mDataSetName);
             }
-            // TODO: Set mod zip path from its gd
+            else
+            {
+                // Set mod zip path from its gd
+                pds.mDataSetPath = pds.mSourceGameDefinition->ContainingArchive();
+            }
         }
 
         if (/*gd.DataSetName() == "Developer" &&*/ missingDataPaths.empty() && missingDataSets.empty())
