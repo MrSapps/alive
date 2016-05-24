@@ -65,10 +65,10 @@ public:
     virtual ~IFileSystem() = default;
     
     virtual bool Init() { return true; }
-    virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) = 0;
+    virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) = 0;
 
-    virtual std::vector<std::string> EnumerateFiles(const char* directory, const char* filter) = 0;
-    virtual bool FileExists(const char* fileName) = 0;
+    virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) = 0;
+    virtual bool FileExists(const std::string& fileName) = 0;
 
     enum EMatchType
     {
@@ -134,7 +134,7 @@ public:
         return true;
     }
 
-    virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
+    virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) override
     {
         return std::make_unique<Oddlib::Stream>(ExpandPath(fileName));
     }
@@ -153,7 +153,7 @@ public:
     };
     typedef std::unique_ptr<HANDLE, FindCloseDeleter> FindCloseHandle;
 
-    virtual std::vector<std::string> EnumerateFiles(const char* directory, const char* filter) override
+    virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override
     {
         std::vector<std::string> ret;
         WIN32_FIND_DATA findData = {};
@@ -187,7 +187,7 @@ public:
     };
     typedef std::unique_ptr<DIR, closedirDeleter> closedirHandle;
 
-    virtual std::vector<std::string> EnumerateFiles(const char* directory, const char* filter) override
+    virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override
     {
         std::vector<std::string> ret;
         const std::string dirPath = ExpandPath(directory) + "/";
@@ -220,17 +220,17 @@ public:
 #endif
 
 #ifdef _WIN32
-    bool FileExists(const char* fileName) override
+    bool FileExists(const std::string& fileName) override
     {
         const auto name = ExpandPath(fileName);
         const DWORD dwAttrib = GetFileAttributes(name.c_str());
         return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
     }
 #else
-    bool FileExists(const char* fileName) override
+    bool FileExists(const std::string& fileName) override
     {
         struct stat buffer = {};
-        return stat(fileName, &buffer) == 0;
+        return stat(ExpandPath(fileName).c_str(), &buffer) == 0;
     }
 #endif
 
@@ -306,10 +306,11 @@ private:
     std::map<std::string, std::string> mNamedPaths;
 };
 
-class DirectoryLimitedOSFileSystem : public OSBaseFileSystem
+class DirectoryLimitedFileSystem : public IFileSystem
 {
 public:
-    DirectoryLimitedOSFileSystem(const std::string& directory)
+    DirectoryLimitedFileSystem(IFileSystem& fs, const std::string& directory)
+        : mFs(fs)
     {
         mBasePath = directory;
         NormalizePath(mBasePath);
@@ -320,14 +321,28 @@ public:
         return true;
     }
 
-    virtual std::string ExpandPath(const std::string& path) override final
+    virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) override final
     {
-        std::string ret = mBasePath + "/" + path;
-        NormalizePath(ret);
-        return ret;
+        return mFs.Open(LimitPath(fileName));
+    }
+
+    virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override final
+    {
+        return mFs.EnumerateFiles(LimitPath(directory), filter);
+    }
+
+    virtual bool FileExists(const std::string& fileName) override final
+    {
+        return mFs.FileExists(LimitPath(fileName));
     }
 
 private:
+    std::string LimitPath(const std::string& path)
+    {
+        return mBasePath + "/" + path;
+    }
+
+    IFileSystem& mFs;
     std::string mBasePath;
 };
 
@@ -348,19 +363,19 @@ public:
         return true;
     }
 
-    virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
+    virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) override
     {
         return mRawCdImage.ReadFile(fileName, false);
     }
 
-    virtual std::vector<std::string> EnumerateFiles(const char* /*directory*/, const char* /*filter*/) override
+    virtual std::vector<std::string> EnumerateFiles(const std::string& /*directory*/, const char* /*filter*/) override
     {
         // TODO
         abort();
         //return std::vector<std::string> { };
     }
 
-    virtual bool FileExists(const char* fileName) override
+    virtual bool FileExists(const std::string& fileName) override
     {
         return mRawCdImage.FileExists(fileName) != -1;
     }
@@ -409,7 +424,7 @@ inline /*static*/ std::unique_ptr<IFileSystem> IFileSystem::Factory(IFileSystem&
     }
     else
     {
-        return std::make_unique<DirectoryLimitedOSFileSystem>(path);
+        return std::make_unique<DirectoryLimitedFileSystem>(fs, path);
     }
 }
 

@@ -54,7 +54,7 @@ public:
         return true;
     }
 
-    virtual std::unique_ptr<Oddlib::IStream> Open(const char* fileName) override
+    virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) override
     {
         DirectoryAndFileName path(fileName);
         Directory* dir = FindPath(path.mDir, true);
@@ -73,7 +73,7 @@ public:
         return std::make_unique<Oddlib::Stream>(std::vector<Uint8>(file->mData));
     }
 
-    virtual std::vector<std::string> EnumerateFiles(const char* directory, const char* filter) override
+    virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override
     {
         Directory* dir = FindPath(directory, true);
         std::vector<std::string> ret;
@@ -93,7 +93,7 @@ public:
         return ret;
     }
 
-    virtual bool FileExists(const char* fileName) override
+    virtual bool FileExists(const std::string& fileName) override
     {
         DirectoryAndFileName path(fileName);
         Directory* dir = FindPath(path.mDir, true);
