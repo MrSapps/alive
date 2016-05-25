@@ -28,11 +28,18 @@
 #include "msvc_sdl_link.hpp"
 #include <setjmp.h>
 
+#include "zipfilesystem.hpp"
+
 int main(int argc, char** argv)
 {
     ::testing::GTEST_FLAG(catch_exceptions) = false;
     ::testing::InitGoogleMock(&argc, argv);
     return RUN_ALL_TESTS();
+}
+
+TEST(ZipFileSystem, Construct)
+{
+    ZipFileSystem z;
 }
 
 TEST(LvlArchive, FileNotFound)

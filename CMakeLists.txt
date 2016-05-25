@@ -83,6 +83,9 @@ include_directories(
     ${CMAKE_BINARY_DIR}/3rdParty/luajit
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/luajit/src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib
+    ${CMAKE_BINARY_DIR}/3rdParty/zlib
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip
 )
 
 
@@ -131,6 +134,19 @@ SET(gmock_src
 add_library(gmock STATIC ${gmock_src})
 SET_PROPERTY(TARGET gmock PROPERTY FOLDER "3rdparty")
 
+SET(minizip_src
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip/zip.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip/zip.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip/unzip.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip/unzip.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip/ioapi.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip/ioapi.h
+)
+
+add_library(minizip STATIC ${minizip_src})
+SET_PROPERTY(TARGET minizip PROPERTY FOLDER "3rdparty")
+
+
 SET(jsonxx_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/jsonxx/jsonxx.cc
 )
@@ -177,6 +193,7 @@ SET(oddlib_src
     include/oddlib/audio/vab.hpp
     include/oddlib/audio/Voice.h
     include/oddlib/cdromfilesystem.hpp
+    include/zipfilesystem.hpp
     src/oddlib/path.cpp
     include/oddlib/path.hpp
     src/oddlib/ao_bits_pc.cpp
@@ -257,9 +274,9 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(UNIX AND NOT APPLE)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg gl3w stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg gl3w stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng minizip zlibstatic)
 ELSE()
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg gl3w stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg gl3w stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng minizip zlibstatic)
 ENDIF()
 
 #cotire(Alive)

@@ -401,10 +401,6 @@ private:
     std::string mCdImagePath;
 };
 
-// TODO
-class ZipFileSystem
-{
-};
 
 // TODO
 class LvlFileSystem
