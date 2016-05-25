@@ -9,6 +9,11 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/solar-cmake")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake")
 
+add_subdirectory("3rdParty/zlib")
+SET_PROPERTY(TARGET zlib PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET zlibstatic PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET minigzip PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET example PROPERTY FOLDER "3rdparty")
 
 #include(cotire)
 include(Solar)
