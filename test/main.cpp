@@ -39,7 +39,12 @@ int main(int argc, char** argv)
 
 TEST(ZipFileSystem, Construct)
 {
-    ZipFileSystem z;
+    GameFileSystem fs;
+    fs.Init();
+
+    ZipFileSystem z("{GameDir}/data/test.zip", fs);
+    z.Init();
+
 }
 
 TEST(LvlArchive, FileNotFound)

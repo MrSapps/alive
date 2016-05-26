@@ -1,31 +1,22 @@
 #pragma once
 
 #include "resourcemapper.hpp"
-#include "unzip.h"
-#include "ioapi.h"
-#include "iowin32.h"
 
 // Actually "ZIP64" file system, which removes 65k file limit and 4GB zip file size limit
-class ZipFileSystem
+class ZipFileSystem : public IFileSystem
 {
 public:
-    ZipFileSystem()
-    {
-        zlib_filefunc64_def filefunc32 = { };
+    ZipFileSystem(const std::string& zipFile, IFileSystem& fs);
 
-        //fill_win32_filefunc64(&filefunc32);
-        fill_fopen64_filefunc(&filefunc32);
+    virtual bool Init() override;
+    virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) override;
+    virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override;
+    virtual bool FileExists(const std::string& fileName) override;
+    virtual std::string FsPath() const override;
 
-        unzFile  f = unzOpen2_64("__notused__", &filefunc32);
-        if (f)
-        {
-            unz_file_info64 fileInfo = {};
-            unzGetCurrentFileInfo64(f, &fileInfo, "test.txt", 0, 0, 0, 0, 0);
+private:
+    void LocateEndOfCentralDirectoryRecord();
 
-            char buffer[10];
-            unzReadCurrentFile(f, buffer, 10);
-
-            unzClose(f);
-        }
-    }
+    std::unique_ptr<Oddlib::IStream> mStream;
+    std::string mFileName;
 };

@@ -4,6 +4,7 @@
 #include "string_util.hpp"
 #include "oddlib/exceptions.hpp"
 #include "oddlib/exceptions.hpp"
+#include "oddlib/stream.hpp"
 #include <cassert>
 
 class InvalidCdImageException : public Oddlib::Exception

@@ -193,7 +193,6 @@ SET(oddlib_src
     include/oddlib/audio/vab.hpp
     include/oddlib/audio/Voice.h
     include/oddlib/cdromfilesystem.hpp
-    include/zipfilesystem.hpp
     src/oddlib/path.cpp
     include/oddlib/path.hpp
     src/oddlib/ao_bits_pc.cpp
@@ -254,6 +253,8 @@ SET(alivelib_src
     include/script.hpp
     src/script.cpp
     include/resourcemapper.hpp
+    include/zipfilesystem.hpp
+    src/zipfilesystem.cpp
 )
 
 add_library(AliveLib STATIC

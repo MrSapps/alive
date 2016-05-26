@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <regex>
 #include <map>
+#include <set>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -16,6 +17,7 @@
 
 #include "string_util.hpp"
 #include "oddlib/cdromfilesystem.hpp"
+#include "logger.hpp"
 
 namespace JsonDeserializer
 {
