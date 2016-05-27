@@ -15,7 +15,32 @@ public:
     virtual std::string FsPath() const override;
 
 private:
-    void LocateEndOfCentralDirectoryRecord();
+    const Uint32 kEndOfCentralDirectory = 0x06054b50;
+    struct EndOfCentralDirectoryRecord
+    {
+        Uint16 mThisDiskNumber = 0;
+        Uint16 mStartCentralDirectoryDiskNumber = 0;
+        Uint16 mNumEntriesInCentaralDirectoryOnThisDisk = 0;
+        Uint16 mNumEntriesInCentaralDirectory = 0;
+        Uint32 mCentralDirectorySize = 0;
+        Uint32 mCentralDirectoryStartOffset = 0;
+        Uint16 mCommentSize = 0;
+        // comment
+
+        void DeSerialize(Oddlib::IStream& stream)
+        {
+            stream.ReadUInt16(mThisDiskNumber);
+            stream.ReadUInt16(mStartCentralDirectoryDiskNumber);
+            stream.ReadUInt16(mNumEntriesInCentaralDirectoryOnThisDisk);
+            stream.ReadUInt16(mNumEntriesInCentaralDirectory);
+            stream.ReadUInt32(mCentralDirectorySize);
+            stream.ReadUInt32(mCentralDirectoryStartOffset);
+            stream.ReadUInt16(mCommentSize);
+        }
+    };
+    EndOfCentralDirectoryRecord mEndOfCentralDirectoryRecord;
+
+    bool LocateEndOfCentralDirectoryRecord();
 
     std::unique_ptr<Oddlib::IStream> mStream;
     std::string mFileName;
