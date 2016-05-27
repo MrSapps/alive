@@ -25,7 +25,7 @@ struct DataDescriptor
     }
 };
 
-// Local file header signature = 0x04034b50
+const Uint32 kLocalFileHeader = 0x04034b50;
 struct LocalFileHeader
 {
     Uint16 mMinVersionRequiredToExtract;
@@ -112,7 +112,7 @@ bool ZipFileSystem::Init()
     }
 
     std::vector<CentralDirectoryRecord> records;
-    records.resize(mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory);
+    records.resize(mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory-1);
     // TODO: Last entry is something else? ECDR?
     for (auto i = 0; i < mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory-1; i++)
     {
@@ -130,9 +130,26 @@ bool ZipFileSystem::Init()
     for (const CentralDirectoryRecord& r : records)
     {
         LOG_INFO("File name: " << r.mLocalFileHeader.mFileName);
-        
-        // TODO: Get file data
-        //r.mRelativeLocalFileHeaderOffset;
+
+        mStream->Seek(r.mRelativeLocalFileHeaderOffset);
+        Uint32 magic = 0;
+        mStream->ReadUInt32(magic);
+        if (magic != kLocalFileHeader)
+        {
+            LOG_ERROR("Local file header missing");
+            return false;
+        }
+        mStream->Seek(mStream->Pos() + 26 + r.mLocalFileHeader.mFileNameLength + r.mLocalFileHeader.mExtraFieldLength);
+
+        auto compressedSize = r.mLocalFileHeader.mDataDescriptor.mCompressedSize;
+        if (compressedSize > 0)
+        {
+            std::vector<Uint8> buffer(compressedSize);
+
+            mStream->ReadBytes(buffer.data(), buffer.size());
+
+            //mStream->Seek(r.mRelativeLocalFileHeaderOffset);
+        }
     }
 
     return true;
