@@ -25,3 +25,6 @@
 [submodule "3rdParty/zlib"]
 	path = 3rdParty/zlib
 	url = https://github.com/paulsapps/zlib.git
+[submodule "3rdParty/libdeflate"]
+	path = 3rdParty/libdeflate
+	url = https://github.com/paulsapps/libdeflate.git

@@ -9,12 +9,6 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/solar-cmake")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake")
 
-add_subdirectory("3rdParty/zlib")
-SET_PROPERTY(TARGET zlib PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET zlibstatic PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET minigzip PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET example PROPERTY FOLDER "3rdparty")
-
 #include(cotire)
 include(Solar)
 
@@ -29,6 +23,8 @@ if ("${arch}" STREQUAL "i386")
     set (arch "x86")
 elseif("${arch}" STREQUAL "x86_64")
     set (arch "x64")
+    # Used by deflate lib
+    add_definitions(-D_M_X64)
 endif()
 
 find_package(SDL2 REQUIRED)
@@ -83,9 +79,8 @@ include_directories(
     ${CMAKE_BINARY_DIR}/3rdParty/luajit
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/luajit/src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib
-    ${CMAKE_BINARY_DIR}/3rdParty/zlib
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate/common
 )
 
 
@@ -134,17 +129,12 @@ SET(gmock_src
 add_library(gmock STATIC ${gmock_src})
 SET_PROPERTY(TARGET gmock PROPERTY FOLDER "3rdparty")
 
-SET(minizip_src
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip/zip.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip/zip.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip/unzip.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip/unzip.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip/ioapi.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/zlib/contrib/minizip/ioapi.h
+SET(libdeflate_src
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate/lib/deflate_decompress.c
 )
 
-add_library(minizip STATIC ${minizip_src})
-SET_PROPERTY(TARGET minizip PROPERTY FOLDER "3rdparty")
+add_library(libdeflate STATIC ${libdeflate_src})
+SET_PROPERTY(TARGET libdeflate PROPERTY FOLDER "3rdparty")
 
 
 SET(jsonxx_src
@@ -275,9 +265,9 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(UNIX AND NOT APPLE)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg gl3w stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng minizip zlibstatic)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg gl3w stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate)
 ELSE()
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg gl3w stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng minizip zlibstatic)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg gl3w stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate)
 ENDIF()
 
 #cotire(Alive)
