@@ -131,6 +131,7 @@ SET_PROPERTY(TARGET gmock PROPERTY FOLDER "3rdparty")
 
 SET(libdeflate_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate/lib/deflate_decompress.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate/lib/x86_cpu_features.c
 )
 
 add_library(libdeflate STATIC ${libdeflate_src})
@@ -420,6 +421,7 @@ if (MSVC)
     endif()
     
     # Use default flags on 3rd party things that generate warnings on max levels
+    set_source_files_properties(${libdeflate_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267 /wd4334 /wd4244")
     set_source_files_properties(${lodepng_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267 /wd4334")
     set_source_files_properties(${stk_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267")
     set_source_files_properties(${jsonxx_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS}")
