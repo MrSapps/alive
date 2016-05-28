@@ -43,7 +43,7 @@ TEST(ZipFileSystem, Construct)
     fs.Init();
 
     ZipFileSystem z("{GameDir}/data/test.zip", fs);
-    z.Init();
+    ASSERT_TRUE(z.Init());
 
 }
 

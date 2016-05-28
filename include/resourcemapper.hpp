@@ -81,6 +81,28 @@ public:
 
     static std::unique_ptr<IFileSystem> Factory(IFileSystem& fs, const std::string& path);
 protected:
+    struct DirectoryAndFileName
+    {
+        DirectoryAndFileName(std::string path)
+        {
+            NormalizePath(path);
+
+            auto lastDirPos = path.find_last_of('/');
+            if (lastDirPos != std::string::npos)
+            {
+                mDir = path.substr(0, lastDirPos);
+                mFile = path.substr(lastDirPos + 1);
+            }
+            else
+            {
+                mFile = path;
+            }
+        }
+
+        std::string mDir;
+        std::string mFile;
+    };
+
     static void NormalizePath(std::string& path)
     {
         string_util::replace_all(path, "\\", "/");
@@ -688,7 +710,6 @@ public:
                 auto dataSetFs = IFileSystem::Factory(fs, pds.mDataSetPath);
                 if (dataSetFs)
                 {
-                    //pds.mSourceGameDefinition;
                     mActiveDataPaths.emplace_back(std::move(dataSetFs));
                 }
                 else

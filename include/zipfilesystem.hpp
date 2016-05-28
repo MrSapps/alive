@@ -3,6 +3,7 @@
 #include "resourcemapper.hpp"
 
 // Actually "ZIP64" file system, which removes 65k file limit and 4GB zip file size limit
+// TODO: Add ZIP64 extensions, currently only supports "ZIP32" which is enough for now
 class ZipFileSystem : public IFileSystem
 {
 public:
@@ -25,7 +26,7 @@ private:
         Uint32 mCentralDirectorySize = 0;
         Uint32 mCentralDirectoryStartOffset = 0;
         Uint16 mCommentSize = 0;
-        // comment
+        // [comment data]
 
         void DeSerialize(Oddlib::IStream& stream)
         {

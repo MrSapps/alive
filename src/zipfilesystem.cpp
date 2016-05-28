@@ -3,9 +3,7 @@
 #include <SDL_stdinc.h>
 #include <memory>
 #include "zipfilesystem.hpp"
-#include "unzip.h"
-#include "ioapi.h"
-#include "iowin32.h"
+#include "libdeflate.h"
 
 #undef max
 
@@ -111,13 +109,11 @@ bool ZipFileSystem::Init()
         return false;
     }
 
-    std::vector<CentralDirectoryRecord> records;
-    records.resize(mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory-1);
-    // TODO: Last entry is something else? ECDR?
-    for (auto i = 0; i < mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory-1; i++)
-    {
-        records[i].DeSerialize(*mStream);
 
+    std::vector<CentralDirectoryRecord> records;
+    records.resize(mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory);
+    for (auto i = 0; i < mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory; i++)
+    {
         Uint32 cdrMagic = 0;
         mStream->ReadUInt32(cdrMagic);
         if (cdrMagic != kCentralDirectory)
@@ -125,7 +121,10 @@ bool ZipFileSystem::Init()
             LOG_ERROR("Missing central directory record for item " << i);
             return false;
         }
+        records[i].DeSerialize(*mStream);
     }
+
+    // Sort records by name for faster file look up and directory enumeration
 
     for (const CentralDirectoryRecord& r : records)
     {
@@ -141,6 +140,63 @@ bool ZipFileSystem::Init()
         }
         mStream->Seek(mStream->Pos() + 26 + r.mLocalFileHeader.mFileNameLength + r.mLocalFileHeader.mExtraFieldLength);
 
+        enum GeneralPurposeFlags
+        {
+            // Bits 1,2 depend on compression method
+            eExternalDataDescriptor = 1 << 3,
+            eEhancedDeflating = 1 << 4,
+            eCompressedPatchData = 1 << 5,
+            eStrongEncryption = 1 << 6,
+            eUtf8 = 1 << 11,
+            eEncryptedCentralDirectory = 1 << 13
+        };
+
+        if (r.mLocalFileHeader.mGeneralPurposeFlags & eExternalDataDescriptor)
+        {
+            LOG_ERROR("External data descriptors not supported");
+        }
+        else if (r.mLocalFileHeader.mGeneralPurposeFlags & eCompressedPatchData)
+        {
+            LOG_ERROR("Compressed patch data not supported");
+        }
+        else if (r.mLocalFileHeader.mGeneralPurposeFlags & eStrongEncryption)
+        {
+            LOG_ERROR("Strong encryption not supported");
+        }
+        else if (r.mLocalFileHeader.mGeneralPurposeFlags & eUtf8)
+        {
+            LOG_ERROR("UTF8 names not supported");
+        }
+        else if (r.mLocalFileHeader.mGeneralPurposeFlags & eEncryptedCentralDirectory)
+        {
+            LOG_ERROR("Encrypted central directory not supported");
+        }
+
+        enum CompressionMethods
+        {
+            eNone = 0,
+            eShrunk = 1,
+            eFactor1 = 3,
+            eFactor2 = 3,
+            eFactor3 = 4,
+            eFactor4 = 5,
+            eImploded = 6,
+            eDeflate = 8,
+            eDeflate64 = 9,
+            eOldIBMTERSE = 10,
+            eBZip2 = 12,
+            eLZMA = 14,
+            eNewIBMTERSE = 18,
+            eWavePack = 97,
+            ePPMdVersionIR1 = 98
+        };
+
+        if (r.mLocalFileHeader.mCompressionMethod != eDeflate &&
+            r.mLocalFileHeader.mCompressionMethod != eNone )
+        {
+            LOG_ERROR("Unsupported compression method: " << r.mLocalFileHeader.mCompressionMethod);
+        }
+
         auto compressedSize = r.mLocalFileHeader.mDataDescriptor.mCompressedSize;
         if (compressedSize > 0)
         {
@@ -148,6 +204,14 @@ bool ZipFileSystem::Init()
 
             mStream->ReadBytes(buffer.data(), buffer.size());
 
+            DirectoryAndFileName dirAndFileName(r.mLocalFileHeader.mFileName);
+
+            if (!dirAndFileName.mFile.empty())
+            {
+                auto  f = fopen(("test/" + dirAndFileName.mFile).c_str(), "w");
+                fwrite(buffer.data(), 1, buffer.size(), f);
+                fclose(f);
+            }
             //mStream->Seek(r.mRelativeLocalFileHeaderOffset);
         }
     }
@@ -193,6 +257,7 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
                 if (cdrMagic == kCentralDirectory)
                 {
                     // Must be a valid ZIP and we are now at the CDR location
+                    mStream->Seek(mStream->Pos() - 4);
                     return true;
                 }
             }

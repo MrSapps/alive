@@ -130,28 +130,6 @@ public:
 
 private:
 
-    struct DirectoryAndFileName
-    {
-        DirectoryAndFileName(std::string path)
-        {
-            NormalizePath(path);
-
-            auto lastDirPos = path.find_last_of('/');
-            if (lastDirPos != std::string::npos)
-            {
-                mDir = path.substr(0, lastDirPos);
-                mFile = path.substr(lastDirPos+1);
-            }
-            else
-            {
-                mDir = path;
-            }
-        }
-
-        std::string mDir;
-        std::string mFile;
-    };
-
     File* FindFile(Directory& dir, const std::string& fileName)
     {
         for (File& file : dir.mFiles)
