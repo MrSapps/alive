@@ -122,7 +122,7 @@ bool ZipFileSystem::Init()
         records[i].DeSerialize(*mStream);
     }
 
-    // Sort records by name for faster file look up and directory enumeration
+    // TODO: Sort records by name for faster file look up and directory enumeration
 
     for (const CentralDirectoryRecord& r : records)
     {
@@ -152,22 +152,27 @@ bool ZipFileSystem::Init()
         if (r.mLocalFileHeader.mGeneralPurposeFlags & eExternalDataDescriptor)
         {
             LOG_ERROR("External data descriptors not supported");
+            return false;
         }
         else if (r.mLocalFileHeader.mGeneralPurposeFlags & eCompressedPatchData)
         {
             LOG_ERROR("Compressed patch data not supported");
+            return false;
         }
         else if (r.mLocalFileHeader.mGeneralPurposeFlags & eStrongEncryption)
         {
             LOG_ERROR("Strong encryption not supported");
+            return false;
         }
         else if (r.mLocalFileHeader.mGeneralPurposeFlags & eUtf8)
         {
             LOG_ERROR("UTF8 names not supported");
+            return false;
         }
         else if (r.mLocalFileHeader.mGeneralPurposeFlags & eEncryptedCentralDirectory)
         {
             LOG_ERROR("Encrypted central directory not supported");
+            return false;
         }
 
         enum CompressionMethods
@@ -193,6 +198,7 @@ bool ZipFileSystem::Init()
             r.mLocalFileHeader.mCompressionMethod != eNone )
         {
             LOG_ERROR("Unsupported compression method: " << r.mLocalFileHeader.mCompressionMethod);
+            return false;
         }
 
         auto compressedSize = r.mLocalFileHeader.mDataDescriptor.mCompressedSize;
@@ -204,26 +210,34 @@ bool ZipFileSystem::Init()
 
             mStream->ReadBytes(buffer.data(), buffer.size());
 
-
-            deflate_decompressor* decompressor=  deflate_alloc_decompressor();
-            decompress_result result = deflate_decompress(decompressor, buffer.data(), buffer.size(), out.data(), out.size(), &actualOut);
-            switch (result)
+            if (r.mLocalFileHeader.mCompressionMethod == eDeflate)
             {
-            case DECOMPRESS_BAD_DATA:
-            case DECOMPRESS_INSUFFICIENT_SPACE:
-            case DECOMPRESS_SHORT_OUTPUT:
-            case DECOMPRESS_SUCCESS:
-                break;
-            }
-            deflate_free_decompressor(decompressor);
+                deflate_decompressor* decompressor = deflate_alloc_decompressor();
+                decompress_result result = deflate_decompress(decompressor, buffer.data(), buffer.size(), out.data(), out.size(), &actualOut);
+                switch (result)
+                {
+                case DECOMPRESS_BAD_DATA:
+                case DECOMPRESS_INSUFFICIENT_SPACE:
+                case DECOMPRESS_SHORT_OUTPUT:
+                    deflate_free_decompressor(decompressor);
+                    return false;
 
+                case DECOMPRESS_SUCCESS:
+                    break;
+                }
+                deflate_free_decompressor(decompressor);
+            }
+            else
+            {
+                out = buffer;
+            }
 
             DirectoryAndFileName dirAndFileName(r.mLocalFileHeader.mFileName);
 
             if (!dirAndFileName.mFile.empty())
             {
-                auto  f = fopen(("test/" + dirAndFileName.mFile).c_str(), "w");
-                fwrite(buffer.data(), 1, buffer.size(), f);
+                auto  f = fopen(("test/" + dirAndFileName.mFile).c_str(), "wb");
+                fwrite(out.data(), 1, out.size(), f);
                 fclose(f);
             }
             //mStream->Seek(r.mRelativeLocalFileHeaderOffset);
