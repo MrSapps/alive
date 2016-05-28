@@ -1,5 +1,3 @@
-#pragma once
-
 #include <SDL_stdinc.h>
 #include <memory>
 #include "zipfilesystem.hpp"
@@ -201,8 +199,24 @@ bool ZipFileSystem::Init()
         if (compressedSize > 0)
         {
             std::vector<Uint8> buffer(compressedSize);
+            std::vector<Uint8> out(r.mLocalFileHeader.mDataDescriptor.mUnCompressedSize);
+            size_t actualOut = 0;
 
             mStream->ReadBytes(buffer.data(), buffer.size());
+
+
+            deflate_decompressor* decompressor=  deflate_alloc_decompressor();
+            decompress_result result = deflate_decompress(decompressor, buffer.data(), buffer.size(), out.data(), out.size(), &actualOut);
+            switch (result)
+            {
+            case DECOMPRESS_BAD_DATA:
+            case DECOMPRESS_INSUFFICIENT_SPACE:
+            case DECOMPRESS_SHORT_OUTPUT:
+            case DECOMPRESS_SUCCESS:
+                break;
+            }
+            deflate_free_decompressor(decompressor);
+
 
             DirectoryAndFileName dirAndFileName(r.mLocalFileHeader.mFileName);
 
