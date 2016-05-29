@@ -11,17 +11,18 @@
     }
 
     const bool isFile = fs.FileExists(path.c_str());
+    std::unique_ptr<IFileSystem> ret;
     if (isFile)
     {
         if (string_util::ends_with(path, ".bin", true))
         {
-            return std::make_unique<CdIsoFileSystem>(path.c_str());
+            LOG_INFO("Creating ISO FS for " << path);
+            ret = std::make_unique<CdIsoFileSystem>(path.c_str());
         }
         else if (string_util::ends_with(path, ".zip", true))
         {
-            // TODO
-            LOG_ERROR("ZIP FS TODO");
-            return std::make_unique<ZipFileSystem>(path.c_str(), fs);
+            LOG_INFO("Creating ZIP FS for " << path);
+            ret = std::make_unique<ZipFileSystem>(path.c_str(), fs);
         }
         else
         {
@@ -31,6 +32,17 @@
     }
     else
     {
-        return std::make_unique<DirectoryLimitedFileSystem>(fs, path);
+        LOG_INFO("Creating dir view FS for " << path);
+        ret = std::make_unique<DirectoryLimitedFileSystem>(fs, path);
     }
+
+    if (ret)
+    {
+        if (!ret->Init())
+        {
+            LOG_ERROR("FS init failed");
+            return nullptr;
+        }
+    }
+    return ret;
 }
