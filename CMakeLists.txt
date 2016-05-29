@@ -244,6 +244,7 @@ SET(alivelib_src
     include/script.hpp
     src/script.cpp
     include/resourcemapper.hpp
+    src/resourcemapper.cpp
     include/zipfilesystem.hpp
     src/zipfilesystem.cpp
 )
