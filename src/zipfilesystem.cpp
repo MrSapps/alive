@@ -126,7 +126,7 @@ std::unique_ptr<Oddlib::IStream> ZipFileSystem::Open(const std::string& fileName
 
     if (!found)
     {
-        return false;
+        return nullptr;
     }
 
     CentralDirectoryRecord& r = mRecords[idx];
