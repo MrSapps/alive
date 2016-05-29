@@ -349,6 +349,7 @@ add_executable(Tests
     test/main.cpp
     test/resource_locator_test.cpp
     test/zip_fs_tests.cpp
+    test/string_util_tests.cpp
     include/subtitles.hpp
 )
 

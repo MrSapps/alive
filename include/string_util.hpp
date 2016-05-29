@@ -77,6 +77,26 @@ namespace string_util
         }
     }
 
+    inline bool starts_with(const std::string& toCheck, const std::string& prefix, bool ignoreCase = false)
+    {
+        if (prefix.size() > toCheck.size())
+        {
+            return false;
+        }
+
+        if (ignoreCase)
+        {
+            std::string ltoCheck = toCheck;
+            std::transform(ltoCheck.begin(), ltoCheck.end(), ltoCheck.begin(), c_tolower);
+
+            std::string lprefix = prefix;
+            std::transform(lprefix.begin(), lprefix.end(), lprefix.begin(), c_tolower);
+
+            return std::equal(lprefix.begin(), lprefix.end(), ltoCheck.begin());
+        }
+        return std::equal(prefix.begin(), prefix.end(), toCheck.begin());
+    }
+
     inline bool contains(const std::string& haystack, const std::string& needle)
     {
         return (haystack.find(needle) != std::string::npos);

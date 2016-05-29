@@ -5,87 +5,6 @@
 
 #undef max
 
-// DataDescriptor signature = 0x08074b50
-struct DataDescriptor
-{
-    Uint32 mCrc32;
-    Uint32 mCompressedSize;
-    Uint32 mUnCompressedSize;
-
-    void DeSerialize(Oddlib::IStream& stream)
-    {
-        stream.ReadUInt32(mCrc32);
-        stream.ReadUInt32(mCompressedSize);
-        stream.ReadUInt32(mUnCompressedSize);
-    }
-};
-
-const Uint32 kLocalFileHeader = 0x04034b50;
-struct LocalFileHeader
-{
-    Uint16 mMinVersionRequiredToExtract;
-    Uint16 mGeneralPurposeFlags;
-    Uint16 mCompressionMethod;
-    Uint16 mFileLastModifiedTime;
-    Uint16 mFileLastModifiedDate;
-    DataDescriptor mDataDescriptor;
-    Uint16 mFileNameLength;
-    Uint16 mExtraFieldLength;
-    std::string mFileName;
-
-    // extra field
-
-    void DeSerialize(Oddlib::IStream& stream)
-    {
-        stream.ReadUInt16(mMinVersionRequiredToExtract);
-        stream.ReadUInt16(mGeneralPurposeFlags);
-        stream.ReadUInt16(mCompressionMethod);
-        stream.ReadUInt16(mFileLastModifiedTime);
-        stream.ReadUInt16(mFileLastModifiedDate);
-        mDataDescriptor.DeSerialize(stream);
-        stream.ReadUInt16(mFileNameLength);
-        stream.ReadUInt16(mExtraFieldLength);
-    }
-};
-
-const Uint32 kCentralDirectory = 0x02014b50;
-struct CentralDirectoryRecord
-{
-    Uint16 mCreatedByVersion;
-    LocalFileHeader mLocalFileHeader;
-    Uint16 mFileCommentLength;
-    Uint16 mFileDiskNumber; // Where file starts
-    Uint16 mInternalFileAttributes;
-    Uint32 mExternalFileAttributes;
-    Uint32 mRelativeLocalFileHeaderOffset;
-    // file name
-    // extra field
-    // file comment
-
-    void DeSerialize(Oddlib::IStream& stream)
-    {
-        stream.ReadUInt16(mCreatedByVersion);
-        mLocalFileHeader.DeSerialize(stream);
-        stream.ReadUInt16(mFileCommentLength);
-        stream.ReadUInt16(mFileDiskNumber);
-        stream.ReadUInt16(mInternalFileAttributes);
-        stream.ReadUInt32(mExternalFileAttributes);
-        stream.ReadUInt32(mRelativeLocalFileHeaderOffset);
-
-        if (mLocalFileHeader.mFileNameLength > 0)
-        {
-            mLocalFileHeader.mFileName.resize(mLocalFileHeader.mFileNameLength);
-            stream.ReadBytes(reinterpret_cast<Uint8*>(&mLocalFileHeader.mFileName[0]), mLocalFileHeader.mFileName.size());
-        }
-
-        const Uint32 sizeOfExtraFieldAndFileComment = mLocalFileHeader.mExtraFieldLength + mFileCommentLength;
-        if (sizeOfExtraFieldAndFileComment > 0)
-        {
-            stream.Seek(stream.Pos() + sizeOfExtraFieldAndFileComment);
-        }
-    }
-};
-
 ZipFileSystem::ZipFileSystem(const std::string& zipFile, IFileSystem& fs)
     : mFileName(zipFile)
 {
@@ -109,8 +28,18 @@ bool ZipFileSystem::Init()
         return false;
     }
 
-    std::vector<CentralDirectoryRecord> records;
-    records.resize(mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory);
+    if (!LoadCentralDirectoryRecords())
+    {
+        LOG_ERROR("Failed to load file/directory records");
+        return false;
+    }
+
+    return true;
+}
+
+bool ZipFileSystem::LoadCentralDirectoryRecords()
+{
+    mRecords.resize(mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory);
     for (auto i = 0; i < mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory; i++)
     {
         Uint32 cdrMagic = 0;
@@ -120,133 +49,10 @@ bool ZipFileSystem::Init()
             LOG_ERROR("Missing central directory record for item " << i);
             return false;
         }
-        records[i].DeSerialize(*mStream);
+        mRecords[i].DeSerialize(*mStream);
     }
 
-    // TODO: Sort records by name for faster file look up and directory enumeration
-
-    for (const CentralDirectoryRecord& r : records)
-    {
-        LOG_INFO("File name: " << r.mLocalFileHeader.mFileName);
-        
-        mStream->Seek(r.mRelativeLocalFileHeaderOffset);
-        Uint32 magic = 0;
-        mStream->ReadUInt32(magic);
-        if (magic != kLocalFileHeader)
-        {
-            LOG_ERROR("Local file header missing");
-            return false;
-        }
-
-        // The other copy of the local file header might have a comment with a different length etc, so have to check again
-        LocalFileHeader localHeader;
-        localHeader.DeSerialize(*mStream);
-        mStream->Seek(mStream->Pos() + localHeader.mFileNameLength + localHeader.mExtraFieldLength);
-
-        enum GeneralPurposeFlags
-        {
-            // Bits 1,2 depend on compression method
-            eExternalDataDescriptor = 1 << 3,
-            eEhancedDeflating = 1 << 4,
-            eCompressedPatchData = 1 << 5,
-            eStrongEncryption = 1 << 6,
-            eUtf8 = 1 << 11,
-            eEncryptedCentralDirectory = 1 << 13
-        };
-
-        if (r.mLocalFileHeader.mGeneralPurposeFlags & eExternalDataDescriptor)
-        {
-            LOG_ERROR("External data descriptors not supported");
-            return false;
-        }
-        else if (r.mLocalFileHeader.mGeneralPurposeFlags & eCompressedPatchData)
-        {
-            LOG_ERROR("Compressed patch data not supported");
-            return false;
-        }
-        else if (r.mLocalFileHeader.mGeneralPurposeFlags & eStrongEncryption)
-        {
-            LOG_ERROR("Strong encryption not supported");
-            return false;
-        }
-        else if (r.mLocalFileHeader.mGeneralPurposeFlags & eUtf8)
-        {
-            LOG_ERROR("UTF8 names not supported");
-            return false;
-        }
-        else if (r.mLocalFileHeader.mGeneralPurposeFlags & eEncryptedCentralDirectory)
-        {
-            LOG_ERROR("Encrypted central directory not supported");
-            return false;
-        }
-
-        enum CompressionMethods
-        {
-            eNone = 0,
-            eShrunk = 1,
-            eFactor1 = 3,
-            eFactor2 = 3,
-            eFactor3 = 4,
-            eFactor4 = 5,
-            eImploded = 6,
-            eDeflate = 8,
-            eDeflate64 = 9,
-            eOldIBMTERSE = 10,
-            eBZip2 = 12,
-            eLZMA = 14,
-            eNewIBMTERSE = 18,
-            eWavePack = 97,
-            ePPMdVersionIR1 = 98
-        };
-
-        if (r.mLocalFileHeader.mCompressionMethod != eDeflate &&
-            r.mLocalFileHeader.mCompressionMethod != eNone )
-        {
-            LOG_ERROR("Unsupported compression method: " << r.mLocalFileHeader.mCompressionMethod);
-            return false;
-        }
-
-        auto compressedSize = r.mLocalFileHeader.mDataDescriptor.mCompressedSize;
-        if (compressedSize > 0)
-        {
-            std::vector<Uint8> buffer(compressedSize);
-            std::vector<Uint8> out(r.mLocalFileHeader.mDataDescriptor.mUnCompressedSize);
-            size_t actualOut = 0;
-
-            mStream->ReadBytes(buffer.data(), buffer.size());
-
-            if (r.mLocalFileHeader.mCompressionMethod == eDeflate)
-            {
-                deflate_decompressor* decompressor = deflate_alloc_decompressor();
-                decompress_result result = deflate_decompress(decompressor, buffer.data(), buffer.size(), out.data(), out.size(), &actualOut);
-                switch (result)
-                {
-                case DECOMPRESS_BAD_DATA:
-                case DECOMPRESS_INSUFFICIENT_SPACE:
-                case DECOMPRESS_SHORT_OUTPUT:
-                    deflate_free_decompressor(decompressor);
-                    return false;
-
-                case DECOMPRESS_SUCCESS:
-                    break;
-                }
-                deflate_free_decompressor(decompressor);
-            }
-            else
-            {
-                out = buffer;
-            }
-
-            DirectoryAndFileName dirAndFileName(r.mLocalFileHeader.mFileName);
-
-            if (!dirAndFileName.mFile.empty())
-            {
-                auto  f = fopen(("test/" + dirAndFileName.mFile).c_str(), "wb");
-                fwrite(out.data(), 1, out.size(), f);
-                fclose(f);
-            }
-        }
-    }
+    // TODO: Sort mRecords by name for faster file look up and directory enumeration
 
     return true;
 }
@@ -303,18 +109,174 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
     return false;
 }
 
-std::unique_ptr<Oddlib::IStream> ZipFileSystem::Open(const std::string& /*fileName*/)
+std::unique_ptr<Oddlib::IStream> ZipFileSystem::Open(const std::string& fileName)
 {
-    return nullptr;
+    size_t idx = 0;
+    bool found = false;
+    for (size_t i = 0; i < mRecords.size(); i++)
+    {
+        CentralDirectoryRecord& r = mRecords[i];
+        if (r.mLocalFileHeader.mFileName == fileName)
+        {
+            idx = i;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        return false;
+    }
+
+    CentralDirectoryRecord& r = mRecords[idx];
+
+    mStream->Seek(r.mRelativeLocalFileHeaderOffset);
+    Uint32 magic = 0;
+    mStream->ReadUInt32(magic);
+    if (magic != kLocalFileHeader)
+    {
+        LOG_ERROR("Local file header missing");
+        return nullptr;
+    }
+
+    // The other copy of the local file header might have a comment with a different length etc, so have to check again
+    LocalFileHeader localHeader;
+    localHeader.DeSerialize(*mStream);
+    mStream->Seek(mStream->Pos() + localHeader.mFileNameLength + localHeader.mExtraFieldLength);
+
+    enum GeneralPurposeFlags
+    {
+        // Bits 1,2 depend on compression method
+        eExternalDataDescriptor = 1 << 3,
+        eEhancedDeflating = 1 << 4,
+        eCompressedPatchData = 1 << 5,
+        eStrongEncryption = 1 << 6,
+        eUtf8 = 1 << 11,
+        eEncryptedCentralDirectory = 1 << 13
+    };
+
+    if (r.mLocalFileHeader.mGeneralPurposeFlags & eExternalDataDescriptor)
+    {
+        LOG_ERROR("External data descriptors not supported");
+        return nullptr;
+    }
+    else if (r.mLocalFileHeader.mGeneralPurposeFlags & eCompressedPatchData)
+    {
+        LOG_ERROR("Compressed patch data not supported");
+        return nullptr;
+    }
+    else if (r.mLocalFileHeader.mGeneralPurposeFlags & eStrongEncryption)
+    {
+        LOG_ERROR("Strong encryption not supported");
+        return nullptr;
+    }
+    else if (r.mLocalFileHeader.mGeneralPurposeFlags & eUtf8)
+    {
+        LOG_ERROR("UTF8 names not supported");
+        return nullptr;
+    }
+    else if (r.mLocalFileHeader.mGeneralPurposeFlags & eEncryptedCentralDirectory)
+    {
+        LOG_ERROR("Encrypted central directory not supported");
+        return nullptr;
+    }
+
+    enum CompressionMethods
+    {
+        eNone = 0,
+        eShrunk = 1,
+        eFactor1 = 3,
+        eFactor2 = 3,
+        eFactor3 = 4,
+        eFactor4 = 5,
+        eImploded = 6,
+        eDeflate = 8,
+        eDeflate64 = 9,
+        eOldIBMTERSE = 10,
+        eBZip2 = 12,
+        eLZMA = 14,
+        eNewIBMTERSE = 18,
+        eWavePack = 97,
+        ePPMdVersionIR1 = 98
+    };
+
+    if (r.mLocalFileHeader.mCompressionMethod != eDeflate &&
+        r.mLocalFileHeader.mCompressionMethod != eNone)
+    {
+        LOG_ERROR("Unsupported compression method: " << r.mLocalFileHeader.mCompressionMethod);
+        return nullptr;
+    }
+
+    auto compressedSize = r.mLocalFileHeader.mDataDescriptor.mCompressedSize;
+    if (compressedSize > 0)
+    {
+        std::vector<Uint8> buffer(compressedSize);
+        std::vector<Uint8> out(r.mLocalFileHeader.mDataDescriptor.mUnCompressedSize);
+        size_t actualOut = 0;
+
+        mStream->ReadBytes(buffer.data(), buffer.size());
+
+        if (r.mLocalFileHeader.mCompressionMethod == eDeflate)
+        {
+            deflate_decompressor* decompressor = deflate_alloc_decompressor();
+            decompress_result result = deflate_decompress(decompressor, buffer.data(), buffer.size(), out.data(), out.size(), &actualOut);
+            switch (result)
+            {
+            case DECOMPRESS_BAD_DATA:
+            case DECOMPRESS_INSUFFICIENT_SPACE:
+            case DECOMPRESS_SHORT_OUTPUT:
+                deflate_free_decompressor(decompressor);
+                return nullptr;
+
+            case DECOMPRESS_SUCCESS:
+                break;
+            }
+            deflate_free_decompressor(decompressor);
+        }
+        else
+        {
+            out = buffer;
+        }
+
+        return std::make_unique<Oddlib::Stream>(std::move(out));
+    }
+    return std::make_unique<Oddlib::Stream>(std::vector<Uint8>());
 }
 
-std::vector<std::string> ZipFileSystem::EnumerateFiles(const std::string& /*directory*/, const char* /*filter*/)
+std::vector<std::string> ZipFileSystem::EnumerateFiles(const std::string& directory, const char* filter)
 {
-    return std::vector<std::string>{};
+    std::string dir = directory;
+    NormalizePath(dir);
+
+    std::vector<std::string> ret;
+    std::string strFilter = filter;
+    for (size_t i = 0; i < mRecords.size(); i++)
+    {
+        CentralDirectoryRecord& r = mRecords[i];
+        DirectoryAndFileName dirAndFileName(r.mLocalFileHeader.mFileName);
+
+        if (dirAndFileName.mDir == dir)
+        {
+            if (WildCardMatcher(dirAndFileName.mFile, strFilter, IFileSystem::IgnoreCase))
+            {
+                ret.emplace_back(dirAndFileName.mFile);
+            }
+        }
+    }
+    return ret;
 }
 
-bool ZipFileSystem::FileExists(const std::string& /*fileName*/)
+bool ZipFileSystem::FileExists(const std::string& fileName)
 {
+    for (size_t i = 0; i < mRecords.size(); i++)
+    {
+        CentralDirectoryRecord& r = mRecords[i];
+        if (r.mLocalFileHeader.mFileName == fileName)
+        {
+            return true;
+        }
+    }
     return false;
 }
 
