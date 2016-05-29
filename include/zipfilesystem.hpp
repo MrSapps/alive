@@ -17,6 +17,7 @@ public:
 
 private:
     const Uint32 kEndOfCentralDirectory = 0x06054b50;
+    const Uint32 kEndOfCentralDirectoryRecordSizeWithMagic = 22;
     struct EndOfCentralDirectoryRecord
     {
         Uint16 mThisDiskNumber = 0;
@@ -39,6 +40,7 @@ private:
             stream.ReadUInt16(mCommentSize);
         }
     };
+
     EndOfCentralDirectoryRecord mEndOfCentralDirectoryRecord;
 
     bool LocateEndOfCentralDirectoryRecord();

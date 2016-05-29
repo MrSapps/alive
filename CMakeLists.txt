@@ -325,6 +325,8 @@ endfunction()
 
 SET(samples_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files)
 
+to_vec(${samples_dir}/zips/MaxECDRComment.zip)
+to_vec(${samples_dir}/zips/SimpleNoComp.zip)
 to_vec(${samples_dir}/test.bin)
 to_vec(${samples_dir}/xa.bin)
 to_vec(${samples_dir}/sample.lvl)
@@ -346,6 +348,7 @@ to_vec(${samples_dir}/ae_ddv/video_only/all_colours_min_compression_30_fps.ddv)
 add_executable(Tests 
     test/main.cpp
     test/resource_locator_test.cpp
+    test/zip_fs_tests.cpp
     include/subtitles.hpp
 )
 

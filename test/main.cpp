@@ -28,7 +28,6 @@
 #include "msvc_sdl_link.hpp"
 #include <setjmp.h>
 
-#include "zipfilesystem.hpp"
 
 int main(int argc, char** argv)
 {
@@ -37,15 +36,6 @@ int main(int argc, char** argv)
     return RUN_ALL_TESTS();
 }
 
-TEST(ZipFileSystem, Construct)
-{
-    GameFileSystem fs;
-    fs.Init();
-
-    ZipFileSystem z("{GameDir}/data/test.zip", fs);
-    z.Init();
-
-}
 
 TEST(LvlArchive, FileNotFound)
 {

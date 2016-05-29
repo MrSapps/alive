@@ -5,7 +5,6 @@
 
 #undef max
 
-
 // DataDescriptor signature = 0x08074b50
 struct DataDescriptor
 {
@@ -73,14 +72,17 @@ struct CentralDirectoryRecord
         stream.ReadUInt32(mExternalFileAttributes);
         stream.ReadUInt32(mRelativeLocalFileHeaderOffset);
 
-        if (mLocalFileHeader.mFileNameLength)
+        if (mLocalFileHeader.mFileNameLength > 0)
         {
             mLocalFileHeader.mFileName.resize(mLocalFileHeader.mFileNameLength);
             stream.ReadBytes(reinterpret_cast<Uint8*>(&mLocalFileHeader.mFileName[0]), mLocalFileHeader.mFileName.size());
         }
 
-        // TODO: Skip mLocalFileHeader.mExtraFieldLength
-        // TODO: Skip mFileCommentLength
+        const Uint32 sizeOfExtraFieldAndFileComment = mLocalFileHeader.mExtraFieldLength + mFileCommentLength;
+        if (sizeOfExtraFieldAndFileComment > 0)
+        {
+            stream.Seek(stream.Pos() + sizeOfExtraFieldAndFileComment);
+        }
     }
 };
 
@@ -107,7 +109,6 @@ bool ZipFileSystem::Init()
         return false;
     }
 
-
     std::vector<CentralDirectoryRecord> records;
     records.resize(mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory);
     for (auto i = 0; i < mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory; i++)
@@ -127,7 +128,7 @@ bool ZipFileSystem::Init()
     for (const CentralDirectoryRecord& r : records)
     {
         LOG_INFO("File name: " << r.mLocalFileHeader.mFileName);
-
+        
         mStream->Seek(r.mRelativeLocalFileHeaderOffset);
         Uint32 magic = 0;
         mStream->ReadUInt32(magic);
@@ -136,7 +137,11 @@ bool ZipFileSystem::Init()
             LOG_ERROR("Local file header missing");
             return false;
         }
-        mStream->Seek(mStream->Pos() + 26 + r.mLocalFileHeader.mFileNameLength + r.mLocalFileHeader.mExtraFieldLength);
+
+        // The other copy of the local file header might have a comment with a different length etc, so have to check again
+        LocalFileHeader localHeader;
+        localHeader.DeSerialize(*mStream);
+        mStream->Seek(mStream->Pos() + localHeader.mFileNameLength + localHeader.mExtraFieldLength);
 
         enum GeneralPurposeFlags
         {
@@ -240,7 +245,6 @@ bool ZipFileSystem::Init()
                 fwrite(out.data(), 1, out.size(), f);
                 fclose(f);
             }
-            //mStream->Seek(r.mRelativeLocalFileHeaderOffset);
         }
     }
 
@@ -254,11 +258,11 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
 
     // The ECRD is at the end of the file, so start at the end of the file and work towards
     // the front looking for it. We start at end-22 since the size of an ECRD is 22 bytes.
-    size_t searchPos = 22;
+    size_t searchPos = kEndOfCentralDirectoryRecordSizeWithMagic;
 
     // The max search size is the size of the structure and the max comment length, if there
     // isn't an ECDR within this range then its not a ZIP file.
-    size_t kMaxSearchPos = 22 + std::numeric_limits<Uint16>::max();
+    size_t kMaxSearchPos = kEndOfCentralDirectoryRecordSizeWithMagic + std::numeric_limits<Uint16>::max();
     if (kMaxSearchPos > fileSize)
     {
         // But don't underflow on seeking
@@ -285,7 +289,7 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
                 if (cdrMagic == kCentralDirectory)
                 {
                     // Must be a valid ZIP and we are now at the CDR location
-                    mStream->Seek(mStream->Pos() - 4);
+                    mStream->Seek(mStream->Pos() - sizeof(cdrMagic));
                     return true;
                 }
             }
@@ -293,7 +297,7 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
         else
         {
             // Didn't find the ECDR so keep going towards the start of the file
-            searchPos--;
+            searchPos++;
         }
     } while (!found || searchPos >= kMaxSearchPos);
     return false;

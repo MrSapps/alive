@@ -4,232 +4,49 @@
 #include <jsonxx/jsonxx.h>
 #include "logger.hpp"
 #include "resourcemapper.hpp"
+#include "inmemoryfs.hpp"
 
 using namespace ::testing;
-
-// Pseudo in memory file system
-class FakeFileSystem : public IFileSystem
-{
-private:
-    struct File
-    {
-        std::string mName;
-        std::vector<Uint8> mData;
-    };
-
-    struct Directory
-    {
-        std::string mName;
-        std::vector<Directory> mChildren;
-        std::vector<File> mFiles;
-    };
-
-public:
-    virtual ~FakeFileSystem() = default;
-
-    void AddFile(std::string strPath, const std::string& content = "")
-    {
-        AddFile(strPath, StringToVector(content));
-    }
-
-    void AddFile(std::string strPath, const std::vector<Uint8>& content)
-    {
-        DirectoryAndFileName path(strPath);
-        Directory* dir = FindPath(path.mDir, true);
-
-        // Don't allow duplicated file names
-        File* file = FindFile(*dir, path.mFile);
-        if (file)
-        {
-            // Update existing
-            file->mData = content;
-            return;
-        }
-        dir->mFiles.emplace_back(File{ path.mFile, content });
-    }
-
-// IFileSystem
-    virtual std::string FsPath() const override
-    {
-        return "FakeFs";
-    }
-
-    virtual bool Init() override
-    {
-        return true;
-    }
-
-    virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) override
-    {
-        DirectoryAndFileName path(fileName);
-        Directory* dir = FindPath(path.mDir, true);
-        if (!dir)
-        {
-            return nullptr;
-        }
-
-        File* file = FindFile(*dir, path.mFile);
-        if (!file)
-        {
-            return nullptr;
-        }
-
-
-        return std::make_unique<Oddlib::Stream>(std::vector<Uint8>(file->mData));
-    }
-
-    virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override
-    {
-        Directory* dir = FindPath(directory, true);
-        std::vector<std::string> ret;
-        if (!dir)
-        {
-            return ret;
-        }
-
-        for (const File& file : dir->mFiles)
-        {
-            if (WildCardMatcher(file.mName, filter, IgnoreCase))
-            {
-                ret.emplace_back(file.mName);
-            }
-        }
-
-        return ret;
-    }
-
-    virtual bool FileExists(const std::string& fileName) override
-    {
-        DirectoryAndFileName path(fileName);
-        Directory* dir = FindPath(path.mDir, true);
-        if (!dir)
-        {
-            return false;
-        }
-
-        for (const File& file : dir->mFiles)
-        {
-            if (file.mName == path.mFile)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Make public so it can be tested
-    static bool WildCardMatcher(const std::string& text, std::string wildcardPattern, EMatchType caseSensitive)
-    {
-        return IFileSystem::WildCardMatcher(text, wildcardPattern, caseSensitive);
-    }
-
-    static void NormalizePath(std::string& path)
-    {
-        IFileSystem::NormalizePath(path);
-    }
-
-private:
-
-    File* FindFile(Directory& dir, const std::string& fileName)
-    {
-        for (File& file : dir.mFiles)
-        {
-            if (file.mName == fileName)
-            {
-                return &file;
-            }
-        }
-        return nullptr;
-    }
-
-    Directory* FindPath(Directory& currentDir, std::deque<std::string>& paths, bool insert)
-    {
-        std::string dir = paths.front();
-        paths.pop_front();
-
-        for (Directory& subDir : currentDir.mChildren)
-        {
-            if (subDir.mName == dir)
-            {
-                if (paths.empty())
-                {
-                    return &subDir;
-                }
-                else
-                {
-                    return FindPath(subDir, paths, insert);
-                }
-            }
-        }
-
-        if (insert)
-        {
-            currentDir.mChildren.push_back(Directory{ dir, {}, {} });
-            if (paths.empty())
-            {
-                return &currentDir.mChildren.back();
-            }
-            else
-            {
-                return FindPath(currentDir.mChildren.back(), paths, insert);
-            }
-        }
-        else
-        {
-            return nullptr;
-        }
-    }
-
-    Directory* FindPath(std::string path, bool insert)
-    {
-        string_util::replace_all(path, "\\", "/");
-        auto dirs = string_util::split(path, '/');
-        return FindPath(mRoot, dirs, insert);
-    }
-
-    Directory mRoot;
-};
-
 
 TEST(IFileSystem, NormalizePath)
 {
     {
         std::string win32Path = "C:\\Windows\\System32";
-        FakeFileSystem::NormalizePath(win32Path);
+        InMemoryFileSystem::NormalizePath(win32Path);
         ASSERT_EQ("C:/Windows/System32", win32Path);
     }
     {
         std::string linuxPath = "/home/fool/somedir";
-        FakeFileSystem::NormalizePath(linuxPath);
+        InMemoryFileSystem::NormalizePath(linuxPath);
         ASSERT_EQ("/home/fool/somedir", linuxPath);
     }
     {
         std::string mixedPath = "C:\\\\Windows/System32//Foo\\\\Bar";
-        FakeFileSystem::NormalizePath(mixedPath);
+        InMemoryFileSystem::NormalizePath(mixedPath);
         ASSERT_EQ("C:/Windows/System32/Foo/Bar", mixedPath);
     }
 }
 
 TEST(IFileSystem, WildCardMatcher)
 {
-    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("Hello.txt", "*.txt", IFileSystem::IgnoreCase));
-    ASSERT_FALSE(FakeFileSystem::WildCardMatcher("Hello.txt", "*.TXT", IFileSystem::MatchCase));
-    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("Hello.txt", "*.TXT", IFileSystem::IgnoreCase));
+    ASSERT_TRUE(InMemoryFileSystem::WildCardMatcher("Hello.txt", "*.txt", IFileSystem::IgnoreCase));
+    ASSERT_FALSE(InMemoryFileSystem::WildCardMatcher("Hello.txt", "*.TXT", IFileSystem::MatchCase));
+    ASSERT_TRUE(InMemoryFileSystem::WildCardMatcher("Hello.txt", "*.TXT", IFileSystem::IgnoreCase));
 
-    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("Hello.txt", "Hello.???", IFileSystem::MatchCase));
-    ASSERT_FALSE(FakeFileSystem::WildCardMatcher("Hello.txt", "HELLO.???", IFileSystem::MatchCase));
-    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("Hello.txt", "HELLO.???", IFileSystem::IgnoreCase));
+    ASSERT_TRUE(InMemoryFileSystem::WildCardMatcher("Hello.txt", "Hello.???", IFileSystem::MatchCase));
+    ASSERT_FALSE(InMemoryFileSystem::WildCardMatcher("Hello.txt", "HELLO.???", IFileSystem::MatchCase));
+    ASSERT_TRUE(InMemoryFileSystem::WildCardMatcher("Hello.txt", "HELLO.???", IFileSystem::IgnoreCase));
 
-    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("BlahHelloBlah", "*Hello*", IFileSystem::MatchCase));
-    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("BlahHelloBlah", "*HELLO*", IFileSystem::IgnoreCase));
-    ASSERT_TRUE(FakeFileSystem::WildCardMatcher("BlahHelloBlah", "*HELLO*", IFileSystem::IgnoreCase));
-    ASSERT_FALSE(FakeFileSystem::WildCardMatcher("BlahHelzloBlah", "*HELLO*", IFileSystem::MatchCase));
+    ASSERT_TRUE(InMemoryFileSystem::WildCardMatcher("BlahHelloBlah", "*Hello*", IFileSystem::MatchCase));
+    ASSERT_TRUE(InMemoryFileSystem::WildCardMatcher("BlahHelloBlah", "*HELLO*", IFileSystem::IgnoreCase));
+    ASSERT_TRUE(InMemoryFileSystem::WildCardMatcher("BlahHelloBlah", "*HELLO*", IFileSystem::IgnoreCase));
+    ASSERT_FALSE(InMemoryFileSystem::WildCardMatcher("BlahHelzloBlah", "*HELLO*", IFileSystem::MatchCase));
 
 }
 
-TEST(FakeFileSystem, Open)
+TEST(InMemoryFileSystem, Open)
 {
-    FakeFileSystem fs;
+    InMemoryFileSystem fs;
     fs.AddFile("/Home/Test.txt", "File content");
     {
         auto stream = fs.Open("/Home/Test.txt");
@@ -253,9 +70,9 @@ TEST(FakeFileSystem, Open)
     }
 }
 
-TEST(FakeFileSystem, EnumerateFiles)
+TEST(InMemoryFileSystem, EnumerateFiles)
 {
-    FakeFileSystem fs;
+    InMemoryFileSystem fs;
     ASSERT_EQ(std::vector<std::string>{}, fs.EnumerateFiles("/Test", "*"));
    
     fs.AddFile("/Test/1.txt", "");
@@ -270,9 +87,9 @@ TEST(FakeFileSystem, EnumerateFiles)
     ASSERT_EQ(enumFiltered, fs.EnumerateFiles("/Test", "*.txt"));
 }
 
-TEST(FakeFileSystem, FileExists)
+TEST(InMemoryFileSystem, FileExists)
 {
-    FakeFileSystem fs;
+    InMemoryFileSystem fs;
     ASSERT_FALSE(fs.FileExists("Rubbish"));
     ASSERT_FALSE(fs.FileExists("/"));
     ASSERT_FALSE(fs.FileExists("/Home"));
@@ -309,7 +126,7 @@ TEST(ResourceLocator, ParseResourceMap)
 {
     const std::string resourceMapsJson = R"([ {"anims":[{"blend_mode":1,"name":"SLIGZ.BND_417_1"},{"blend_mode":1,"name":"SLIGZ.BND_417_2"}],"file":"SLIGZ.BND","id":417}])";
 
-    FakeFileSystem fs;
+    InMemoryFileSystem fs;
     fs.AddFile("resource_maps.json", resourceMapsJson);
 
     ResourceMapper mapper(fs, "resource_maps.json");
@@ -346,7 +163,7 @@ TEST(ResourceLocator, ParseGameDefinition)
     }
     )";
 
-    FakeFileSystem fs;
+    InMemoryFileSystem fs;
     fs.AddFile("test_game_definition.json", gameDefJson);
 
     GameDefinition gd(fs, "test_game_definition.json", false);
@@ -367,7 +184,7 @@ TEST(ResourceLocator, LocateAnimation)
 {
     GameDefinition aePc;
 
-    FakeFileSystem fs;
+    InMemoryFileSystem fs;
 
     fs.AddFile("C:\\dataset_location2\\SLIGZ.BND", "test"); // For SLIGZ.BND_417_1, 2nd call should be cached
 
@@ -422,7 +239,7 @@ TEST(ResourceLocator, LocatePath)
 TEST(ResourceLocator, Construct)
 {
 
-    FakeFileSystem fs;
+    InMemoryFileSystem fs;
 
     const std::string datasetIdsJson = R"(
     {
