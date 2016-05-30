@@ -1,6 +1,30 @@
 #include "resourcemapper.hpp"
 #include "zipfilesystem.hpp"
 
+bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
+{
+    mActiveDataPaths.clear();
+
+    // Add paths in order, including mod zips
+    for (const PriorityDataSet& pds : paths)
+    {
+        if (!pds.mDataSetPath.empty())
+        {
+            auto dataSetFs = IFileSystem::Factory(fs, pds.mDataSetPath);
+            if (dataSetFs)
+            {
+                mActiveDataPaths.emplace_back(FileSystemInfo(pds.mDataSetName, pds.mSourceGameDefinition->IsMod(), std::move(dataSetFs)));
+            }
+            else
+            {
+                // Couldn't get an FS for the data path, fail
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 /*static*/ std::unique_ptr<IFileSystem> IFileSystem::Factory(IFileSystem& fs, const std::string& path)
 {
     TRACE_ENTRYEXIT;

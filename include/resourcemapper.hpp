@@ -19,6 +19,8 @@
 #include "oddlib/cdromfilesystem.hpp"
 #include "logger.hpp"
 
+#include "oddlib/lvlarchive.hpp"
+
 namespace JsonDeserializer
 {
     template<typename T>
@@ -658,31 +660,37 @@ public:
         return ret;
     }
 
-    bool SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
-    {
-        mActiveDataPaths.clear();
+    bool SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths);
 
-        // Add paths in order, including mod zips
-        for (const PriorityDataSet& pds : paths)
+    struct FileSystemInfo
+    {
+        FileSystemInfo(const std::string& name, bool isMod, std::unique_ptr<IFileSystem> fs)
+            : mDataSetName(name), mIsMod(isMod), mFileSystem(std::move(fs))
         {
-            if (!pds.mDataSetPath.empty())
-            {
-                auto dataSetFs = IFileSystem::Factory(fs, pds.mDataSetPath);
-                if (dataSetFs)
-                {
-                    mActiveDataPaths.emplace_back(std::move(dataSetFs));
-                }
-                else
-                {
-                    // Couldn't get an FS for the data path, fail
-                    return false;
-                }
-            }
+
         }
-        return true;
-    }
+
+        FileSystemInfo(FileSystemInfo&& rhs)
+        {
+            *this = std::move(rhs);
+        }
+
+        FileSystemInfo& operator = (FileSystemInfo&& rhs)
+        {
+            mDataSetName = std::move(rhs.mDataSetName);
+            mIsMod = rhs.mIsMod;
+            mFileSystem = std::move(rhs.mFileSystem);
+            return *this;
+        }
+
+        std::string mDataSetName;
+        bool mIsMod;
+        std::unique_ptr<IFileSystem> mFileSystem;
+    };
+    const std::vector<FileSystemInfo>& ActiveDataPaths() const { return mActiveDataPaths; }
 private:
-    std::vector<std::unique_ptr<IFileSystem>> mActiveDataPaths;
+
+    std::vector<FileSystemInfo> mActiveDataPaths;
 
     std::map<std::string, std::string> mPaths;
 
@@ -888,6 +896,7 @@ public:
         if (this != &rhs)
         {
             mAnimMaps = std::move(rhs.mAnimMaps);
+            mFileLocations = std::move(rhs.mFileLocations);
         }
         return *this;
     }
@@ -907,14 +916,22 @@ public:
         Uint32 mBlendingMode;
     };
 
-    const AnimMapping* Find(const char* resourceName) const
+    std::pair<AnimMapping*, std::map<std::pair<std::string, bool>, std::vector<std::string>>*> Find(const char* resourceName)
     {
-        auto it = mAnimMaps.find(resourceName);
-        if (it != std::end(mAnimMaps))
+        auto am = mAnimMaps.find(resourceName);
+        if (am != std::end(mAnimMaps))
         {
-            return &it->second;
+            auto fl = mFileLocations.find(am->second.mFile);
+            if (fl != std::end(mFileLocations))
+            {
+                return std::make_pair(&am->second, &fl->second);
+            }
+            else
+            {
+                return std::make_pair(&am->second, nullptr);
+            }
         }
-        return nullptr;
+        return std::make_pair(nullptr, nullptr);
     }
 
     void AddAnimMapping(const std::string& resourceName, const AnimMapping& mapping)
@@ -1150,17 +1167,47 @@ public:
 
         // For each data set attempt to find resourceName by mapping
         // to a LVL/file/chunk. Or in the case of a mod dataset something else.
-        const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
-        if (animMapping)
+        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
         {
-            /*
-            const auto& lvlFileToFind = animMapping->mFile;
-            auto stream = mDataPaths.Open(lvlFileToFind);
-            if (stream)
+            if (fs.mIsMod)
             {
-                return Resource<T>(resNameHash, mResourceCache, std::move(stream));
+                // Look up the override in the zip fs
+
+                // If this name is not a known resource then it is a new resource for this mod
             }
-            */
+            else
+            {
+                const auto animMapping = mResMapper.Find(resourceName);
+                if (animMapping.first && animMapping.second)
+                {
+                    auto& animMap = *animMapping.second;
+                    // TODO: Change data structure so we don't need to know if PSX or not
+                    auto it = animMap.find(std::make_pair(fs.mDataSetName, false));
+                    if (it != animMap.end())
+                    {
+                        for (const auto& lvlName : it->second)
+                        {
+                            auto lvlFile = fs.mFileSystem->Open(lvlName);
+                            if (lvlFile)
+                            {
+                                Oddlib::LvlArchive lvlArchive(std::move(lvlFile));
+                                Oddlib::LvlArchive::File* lvlFile = lvlArchive.FileByName(animMapping.first->mFile);
+                                if (lvlFile)
+                                {
+                                    Oddlib::LvlArchive::FileChunk* chunk = lvlFile->ChunkById(animMapping.first->mId);
+                                    if (chunk)
+                                    {
+                                        // TODO: Construct animation resource
+                                        // return Resource<T>(resNameHash, mResourceCache, std::move(stream));
+                                        break;
+                                    }
+                                }
+                            }
+                            LOG_INFO(lvlName);
+                        }
+                    }
+                }
+            }
         }
 
         // TODO
@@ -1183,8 +1230,8 @@ public:
         }
 
         // TODO: Have bespoke method to find animations - pass in possible dataset names
-        const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
-        if (animMapping)
+        //const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
+        //if (animMapping)
         {
             // TODO: Handle mod zips
             // TODO: Find resource in specific data set 

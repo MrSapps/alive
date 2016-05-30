@@ -131,16 +131,16 @@ TEST(ResourceLocator, ParseResourceMap)
 
     ResourceMapper mapper(fs, "resource_maps.json");
     
-    const ResourceMapper::AnimMapping* r0 = mapper.Find("I don't exist");
+    const ResourceMapper::AnimMapping* r0 = mapper.Find("I don't exist").first;
     ASSERT_EQ(nullptr, r0);
 
-    const ResourceMapper::AnimMapping* r1 = mapper.Find("SLIGZ.BND_417_1");
+    const ResourceMapper::AnimMapping* r1 = mapper.Find("SLIGZ.BND_417_1").first;
     ASSERT_NE(nullptr, r1);
     ASSERT_EQ("SLIGZ.BND", r1->mFile);
     ASSERT_EQ(417u, r1->mId);
     ASSERT_EQ(1u, r1->mBlendingMode);
 
-    const ResourceMapper::AnimMapping* r2 = mapper.Find("SLIGZ.BND_417_2");
+    const ResourceMapper::AnimMapping* r2 = mapper.Find("SLIGZ.BND_417_2").first;
     ASSERT_NE(nullptr, r2);
     ASSERT_EQ("SLIGZ.BND", r2->mFile);
     ASSERT_EQ(417u, r2->mId);
