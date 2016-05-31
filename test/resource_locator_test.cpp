@@ -113,7 +113,7 @@ TEST(ResourceLocator, Cache)
     const size_t resNameHash = StringHash("foo");
     ASSERT_EQ(nullptr, cache.Find<Animation>(resNameHash));
     {
-        Resource<Animation> res1(resNameHash, cache, nullptr);
+        Resource<Animation> res1(resNameHash, cache, nullptr, false);
 
         std::shared_ptr<Animation> cached = cache.Find<Animation>(resNameHash);
         ASSERT_NE(nullptr, cached);
