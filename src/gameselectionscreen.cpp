@@ -85,7 +85,7 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
             mResLocator.GetDataPaths().SetActiveDataPaths(mFs, requiredDataSets);
             
             // Temp/debug
-            auto res = mResLocator.Locate<Animation>("ABEBSIC.BAN_10_31");
+            auto res = mResLocator.Locate("ABEBSIC.BAN_10_31");
             //res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31", "AePc");
             res.Reload();
 

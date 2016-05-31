@@ -70,3 +70,101 @@ bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
     }
     return ret;
 }
+
+
+Resource<Animation> ResourceLocator::Locate(const char* resourceName)
+{
+    const size_t resNameHash = StringHash(resourceName);
+
+    // Check if the resource is cached
+    std::shared_ptr<Animation> cachedRes = mResourceCache.Find<Animation>(resNameHash);
+    if (cachedRes)
+    {
+        return Resource<Animation>(mResourceCache, cachedRes, resNameHash);
+    }
+
+    // For each data set attempt to find resourceName by mapping
+    // to a LVL/file/chunk. Or in the case of a mod dataset something else.
+    const auto animMapping = mResMapper.Find(resourceName);
+    for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+    {
+        if (fs.mIsMod)
+        {
+            // TODO: Look up the override in the zip fs
+
+            // If this name is not a known resource then it is a new resource for this mod
+
+            // TODO: Handle special case overrides that still need the real file (i.e cam deltas)
+        }
+        else
+        {
+            if (animMapping.first && animMapping.second)
+            {
+                auto& animMap = *animMapping.second;
+                auto it = animMap.find(fs.mDataSetName);
+                if (it != animMap.end())
+                {
+                    for (const auto& lvlNameIsPsxPair : it->second)
+                    {
+                        auto lvlFile = fs.mFileSystem->Open(lvlNameIsPsxPair.second);
+                        if (lvlFile)
+                        {
+                            Oddlib::LvlArchive lvlArchive(std::move(lvlFile));
+                            Oddlib::LvlArchive::File* lvlFile = lvlArchive.FileByName(animMapping.first->mFile);
+                            if (lvlFile)
+                            {
+                                Oddlib::LvlArchive::FileChunk* chunk = lvlFile->ChunkById(animMapping.first->mId);
+                                if (chunk)
+                                {
+                                    LOG_INFO(resourceName
+                                        << " located in data set " << fs.mDataSetName
+                                        << " mapped to " << fs.mFileSystem->FsPath()
+                                        << " in lvl archive " << lvlNameIsPsxPair.second
+                                        << " in lvl file " << animMapping.first->mFile
+                                        << " with lvl file chunk id " << animMapping.first->mId
+                                        << " is psx " << lvlNameIsPsxPair.first);
+
+                                    return Resource<Animation>(resNameHash, mResourceCache, chunk->Stream(), lvlNameIsPsxPair.first);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // TODO
+    return Resource<Animation>(StringHash(""), mResourceCache, nullptr, false);
+}
+
+Resource<Animation> ResourceLocator::Locate(const char* resourceName, const std::string& dataSetName)
+{
+    const std::string uniqueName = std::string(resourceName) + dataSetName;
+    const size_t resNameHash = StringHash(uniqueName);
+
+    // Check if the resource is cached
+    std::shared_ptr<Animation> cachedRes = mResourceCache.Find<Animation>(resNameHash);
+    if (cachedRes)
+    {
+        return Resource<Animation>(mResourceCache, cachedRes, resNameHash);
+    }
+
+    // TODO: Have bespoke method to find animations - pass in possible dataset names
+    //const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
+    //if (animMapping)
+        {
+            // TODO: Handle mod zips
+            // TODO: Find resource in specific data set 
+            //const auto& lvlFileToFind = animMapping->mFile;
+            /*
+            auto stream = mDataPaths.Open(lvlFileToFind, dataSetName);
+            if (stream)
+            {
+            return Resource<T>(resNameHash, mResourceCache, std::move(stream));
+            }*/
+        }
+
+    // TODO
+    return Resource<Animation>(StringHash(""), mResourceCache, nullptr, false);
+}

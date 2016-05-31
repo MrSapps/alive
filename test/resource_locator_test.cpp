@@ -195,14 +195,14 @@ TEST(ResourceLocator, LocateAnimation)
 
     ResourceLocator locator(std::move(mapper), std::move(paths));
 
-    Resource<Animation> resMapped1 = locator.Locate<Animation>("SLIGZ.BND_417_1");
+    Resource<Animation> resMapped1 = locator.Locate("SLIGZ.BND_417_1");
     resMapped1.Reload();
 
-    Resource<Animation> resMapped2 = locator.Locate<Animation>("SLIGZ.BND_417_1");
+    Resource<Animation> resMapped2 = locator.Locate("SLIGZ.BND_417_1");
     resMapped2.Reload();
 
     // Can explicitly set the dataset to obtain it from a known location
-    Resource<Animation> resDirect = locator.Locate<Animation>("SLIGZ.BND_417_1", "AePc");
+    auto resDirect = locator.Locate("SLIGZ.BND_417_1", "AePc");
     resDirect.Reload();
 }
 
@@ -333,7 +333,7 @@ TEST(ResourceLocator, Construct)
 
 
     // Now we can obtain resources
-    Resource<Animation> resMapped1 = resourceLocator.Locate<Animation>("SLIGZ.BND_417_1");
+    Resource<Animation> resMapped1 = resourceLocator.Locate("SLIGZ.BND_417_1");
     resMapped1.Reload();
 
 }

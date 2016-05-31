@@ -20,6 +20,7 @@
 #include "logger.hpp"
 
 #include "oddlib/lvlarchive.hpp"
+#include "oddlib/anim.hpp"
 
 namespace JsonDeserializer
 {
@@ -1025,11 +1026,17 @@ public:
 class Animation : public ResourceBase
 {
 public:
-    Animation(std::unique_ptr<Oddlib::IStream> stream)
+    Animation() = delete;
+
+    Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx)
     {
         // TODO
-        std::ignore = stream;
+        if (stream)
+        {
+            Oddlib::AnimSerializer as(*stream, isPsx);
+        }
     }
+    
 
     virtual void Reload() override
     {
@@ -1083,6 +1090,8 @@ template<class T>
 class Resource
 {
 public:
+    Resource() = delete;
+
     Resource(ResourceCache& cache, std::shared_ptr<T> ptr, size_t resourceNameHash)
         : mResourceNameHash(resourceNameHash), mCache(cache)
     {
@@ -1105,10 +1114,10 @@ public:
         return *this;
     }
 
-    Resource(size_t resourceNameHash, ResourceCache& cache, std::unique_ptr<Oddlib::IStream> stream)
+    Resource(size_t resourceNameHash, ResourceCache& cache, std::unique_ptr<Oddlib::IStream> stream, bool isPsx)
         : mResourceNameHash(resourceNameHash), mCache(cache)
     {
-        mPtr = std::make_shared<T>(std::move(stream));
+        mPtr = std::make_shared<T>(std::move(stream), isPsx);
         mCache.Add(mResourceNameHash, mPtr);
     }
 
@@ -1153,99 +1162,12 @@ public:
         return mDataPaths;
     }
 
-    template<typename T>
-    Resource<T> Locate(const char* resourceName)
-    {
-        const size_t resNameHash = StringHash(resourceName);
-
-        // Check if the resource is cached
-        std::shared_ptr<T> cachedRes = mResourceCache.Find<T>(resNameHash);
-        if (cachedRes)
-        {
-            return Resource<T>(mResourceCache, cachedRes, resNameHash);
-        }
-
-        // For each data set attempt to find resourceName by mapping
-        // to a LVL/file/chunk. Or in the case of a mod dataset something else.
-        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
-        {
-            if (fs.mIsMod)
-            {
-                // Look up the override in the zip fs
-
-                // If this name is not a known resource then it is a new resource for this mod
-            }
-            else
-            {
-                const auto animMapping = mResMapper.Find(resourceName);
-                if (animMapping.first && animMapping.second)
-                {
-                    auto& animMap = *animMapping.second;
-                    auto it = animMap.find(fs.mDataSetName);
-                    if (it != animMap.end())
-                    {
-                        for (const auto& lvlNameIsPsxPair : it->second)
-                        {
-                            auto lvlFile = fs.mFileSystem->Open(lvlNameIsPsxPair.second);
-                            if (lvlFile)
-                            {
-                                Oddlib::LvlArchive lvlArchive(std::move(lvlFile));
-                                Oddlib::LvlArchive::File* lvlFile = lvlArchive.FileByName(animMapping.first->mFile);
-                                if (lvlFile)
-                                {
-                                    Oddlib::LvlArchive::FileChunk* chunk = lvlFile->ChunkById(animMapping.first->mId);
-                                    if (chunk)
-                                    {
-                                        // TODO: Construct animation resource
-                                        // return Resource<T>(resNameHash, mResourceCache, std::move(stream));
-                                        break;
-                                    }
-                                }
-                            }
-                            LOG_INFO(lvlNameIsPsxPair.second);
-                        }
-                    }
-                }
-            }
-        }
-
-        // TODO
-        return Resource<T>(StringHash(""), mResourceCache, nullptr);
-    }
+    Resource<Animation> Locate(const char* resourceName);
 
     // This method should be used for debugging only - i.e so we can compare what resource X looks like
     // in dataset A and B.
-    template<typename T>
-    Resource<T> Locate(const char* resourceName, const std::string& dataSetName)
-    {
-        const std::string uniqueName = std::string(resourceName) + dataSetName;
-        const size_t resNameHash = StringHash(uniqueName);
+    Resource<Animation> Locate(const char* resourceName, const std::string& dataSetName);
 
-        // Check if the resource is cached
-        std::shared_ptr<T> cachedRes = mResourceCache.Find<T>(resNameHash);
-        if (cachedRes)
-        {
-            return Resource<T>(mResourceCache, cachedRes, resNameHash);
-        }
-
-        // TODO: Have bespoke method to find animations - pass in possible dataset names
-        //const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
-        //if (animMapping)
-        {
-            // TODO: Handle mod zips
-            // TODO: Find resource in specific data set 
-            //const auto& lvlFileToFind = animMapping->mFile;
-            /*
-            auto stream = mDataPaths.Open(lvlFileToFind, dataSetName);
-            if (stream)
-            {
-                return Resource<T>(resNameHash, mResourceCache, std::move(stream));
-            }*/
-        }
-
-        // TODO
-        return Resource<T>(StringHash(""), mResourceCache, nullptr);
-    }
 private:
     ResourceMapper mResMapper;
     DataPaths mDataPaths;

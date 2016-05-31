@@ -387,7 +387,7 @@ void Engine::InitResources()
     // also add in any extra maps for resources defined by the mod @ game selection screen
 
     // Test/debug
-    auto res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31");
+    Resource<Animation> res = mResourceLocator->Locate("ABEBSIC.BAN_10_31");
     //res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31", "AePc");
     res.Reload();
 }
