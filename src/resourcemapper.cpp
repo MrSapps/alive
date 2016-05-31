@@ -122,9 +122,10 @@ Resource<Animation> ResourceLocator::Locate(const char* resourceName)
                                         << " in lvl archive " << lvlNameIsPsxPair.second
                                         << " in lvl file " << animMapping.first->mFile
                                         << " with lvl file chunk id " << animMapping.first->mId
+                                        << " at anim index " << animMapping.first->mIndex
                                         << " is psx " << lvlNameIsPsxPair.first);
 
-                                    return Resource<Animation>(resNameHash, mResourceCache, chunk->Stream(), lvlNameIsPsxPair.first);
+                                    return Resource<Animation>(resNameHash, mResourceCache, chunk->Stream(), lvlNameIsPsxPair.first, animMapping.first->mIndex);
                                 }
                             }
                         }
@@ -135,7 +136,7 @@ Resource<Animation> ResourceLocator::Locate(const char* resourceName)
     }
 
     // TODO
-    return Resource<Animation>(StringHash(""), mResourceCache, nullptr, false);
+    return Resource<Animation>(StringHash(""), mResourceCache, nullptr, false, 0);
 }
 
 Resource<Animation> ResourceLocator::Locate(const char* resourceName, const std::string& dataSetName)
@@ -166,5 +167,5 @@ Resource<Animation> ResourceLocator::Locate(const char* resourceName, const std:
         }
 
     // TODO
-    return Resource<Animation>(StringHash(""), mResourceCache, nullptr, false);
+    return Resource<Animation>(StringHash(""), mResourceCache, nullptr, false, 0);
 }

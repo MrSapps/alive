@@ -916,6 +916,7 @@ public:
         std::string mFile;
         Uint32 mId;
         Uint32 mBlendingMode;
+        Uint32 mIndex;
     };
 
     std::pair<AnimMapping*, std::map<std::string, std::vector<std::pair<bool, std::string>>>*> Find(const char* resourceName)
@@ -1010,6 +1011,7 @@ private:
             const auto& name = animRecord.get<jsonxx::String>("name");
             const auto blendMode = animRecord.get<jsonxx::Number>("blend_mode");
             mapping.mBlendingMode = static_cast<Uint32>(blendMode);
+            mapping.mIndex = static_cast<Uint32>(i);
 
             AddAnimMapping(name, mapping);
         }
@@ -1029,8 +1031,10 @@ class Animation : public ResourceBase
 public:
     Animation() = delete;
 
-    Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx)
+    Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx, Uint32 animIndex)
     {
+        animNum = animIndex;
+
         // TODO
         if (stream)
         {
@@ -1051,21 +1055,22 @@ public:
             if (frameNum >= anim->NumFrames())
             {
                 frameNum = 0;
+                /*
                 animNum++;
                 if (animNum >= mAnim->NumberOfAnimations())
                 {
                     animNum = 0;
-                }
+                }*/
             }
         }
 
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
 
-        int scale = 3;
-        float xpos = 300.0f + (frame.mOffX*scale);
-        float ypos = 300.0f + (frame.mOffY*scale);
+        int scale = 2;
+        float xpos = 500.0f + (frame.mOffX*scale);
+        float ypos = 800.0f + (frame.mOffY*scale);
         // LOG_INFO("Pos " << xpos << "," << ypos);
-        BlendMode blend = BlendMode::B100F100(); // TODO: Detect correct blending
+        BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
         Color color = Color::white();
         rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w*scale), static_cast<float>(frame.mFrame->h*scale), color, blend);
 
@@ -1154,10 +1159,10 @@ public:
         return *this;
     }
 
-    Resource(size_t resourceNameHash, ResourceCache& cache, std::unique_ptr<Oddlib::IStream> stream, bool isPsx)
+    Resource(size_t resourceNameHash, ResourceCache& cache, std::unique_ptr<Oddlib::IStream> stream, bool isPsx, Uint32 animIndex)
         : mResourceNameHash(resourceNameHash), mCache(cache)
     {
-        mPtr = std::make_shared<T>(std::move(stream), isPsx);
+        mPtr = std::make_shared<T>(std::move(stream), isPsx, animIndex);
         mCache.Add(mResourceNameHash, mPtr);
     }
 
