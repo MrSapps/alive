@@ -21,6 +21,7 @@
 
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/anim.hpp"
+#include "renderer.hpp"
 
 namespace JsonDeserializer
 {
@@ -1034,14 +1035,53 @@ public:
         if (stream)
         {
             Oddlib::AnimSerializer as(*stream, isPsx);
+            mAnim = std::make_unique<Oddlib::AnimationSet>(as);
         }
     }
     
+    void Animate(Renderer& rend)
+    {
+        const Oddlib::Animation* anim = mAnim->AnimationAt(animNum);
+        const Oddlib::Animation::Frame& frame = anim->GetFrame(frameNum);
+        counter++;
+        if (counter > 25)
+        {
+            counter = 0;
+            frameNum++;
+            if (frameNum >= anim->NumFrames())
+            {
+                frameNum = 0;
+                animNum++;
+                if (animNum >= mAnim->NumberOfAnimations())
+                {
+                    animNum = 0;
+                }
+            }
+        }
+
+        const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
+
+        int scale = 3;
+        float xpos = 300.0f + (frame.mOffX*scale);
+        float ypos = 300.0f + (frame.mOffY*scale);
+        // LOG_INFO("Pos " << xpos << "," << ypos);
+        BlendMode blend = BlendMode::B100F100(); // TODO: Detect correct blending
+        Color color = Color::white();
+        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w*scale), static_cast<float>(frame.mFrame->h*scale), color, blend);
+
+        rend.destroyTexture(textureId);
+    }
 
     virtual void Reload() override
     {
         // TODO
     }
+
+private:
+    Uint32 counter = 0;
+    Uint32 frameNum = 0;
+    Uint32 animNum = 0;
+    std::unique_ptr<Oddlib::AnimationSet> mAnim;
 };
 
 // TODO: Handle resources that have been loaded via explicit dataset name

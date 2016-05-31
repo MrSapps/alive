@@ -98,6 +98,6 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
     {
         // "this" will be deleted after this call, so must be last call in the function
 
-        mStateChanger.ToState(std::make_unique<DevloperScreen>(mGui, mStateChanger, mFmv, mSound, mLevel, mFsOld));
+        mStateChanger.ToState(std::make_unique<DevloperScreen>(mGui, mStateChanger, mFmv, mSound, mLevel, mFsOld, mResLocator));
     }
 }
