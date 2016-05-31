@@ -916,7 +916,7 @@ public:
         Uint32 mBlendingMode;
     };
 
-    std::pair<AnimMapping*, std::map<std::pair<std::string, bool>, std::vector<std::string>>*> Find(const char* resourceName)
+    std::pair<AnimMapping*, std::map<std::string, std::vector<std::pair<bool, std::string>>>*> Find(const char* resourceName)
     {
         auto am = mAnimMaps.find(resourceName);
         if (am != std::end(mAnimMaps))
@@ -964,7 +964,7 @@ private:
         }
     }
 
-    std::map<std::string, std::map<std::pair<std::string, bool>, std::vector<std::string>>> mFileLocations;
+    std::map<std::string, std::map<std::string, std::vector<std::pair<bool,std::string>>>> mFileLocations;
 
     void ParseFileLocations(const jsonxx::Object& obj)
     {
@@ -985,7 +985,7 @@ private:
             JsonDeserializer::ReadStringArray(lvlRecord, "files", lvlFiles);
             for (const std::string& fileName : lvlFiles)
             {
-                mFileLocations[fileName][std::make_pair(dataSetName, isPsx)].push_back(lvlName);
+                mFileLocations[fileName][dataSetName].push_back(std::make_pair(isPsx, lvlName));
             }
         }
     }
@@ -1181,13 +1181,12 @@ public:
                 if (animMapping.first && animMapping.second)
                 {
                     auto& animMap = *animMapping.second;
-                    // TODO: Change data structure so we don't need to know if PSX or not
-                    auto it = animMap.find(std::make_pair(fs.mDataSetName, false));
+                    auto it = animMap.find(fs.mDataSetName);
                     if (it != animMap.end())
                     {
-                        for (const auto& lvlName : it->second)
+                        for (const auto& lvlNameIsPsxPair : it->second)
                         {
-                            auto lvlFile = fs.mFileSystem->Open(lvlName);
+                            auto lvlFile = fs.mFileSystem->Open(lvlNameIsPsxPair.second);
                             if (lvlFile)
                             {
                                 Oddlib::LvlArchive lvlArchive(std::move(lvlFile));
@@ -1203,7 +1202,7 @@ public:
                                     }
                                 }
                             }
-                            LOG_INFO(lvlName);
+                            LOG_INFO(lvlNameIsPsxPair.second);
                         }
                     }
                 }
