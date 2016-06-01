@@ -68,6 +68,14 @@ TEST(string_util, contains)
     ASSERT_TRUE(string_util::contains(t3, "lL"));
 }
 
+TEST(string_util, iequals)
+{
+    ASSERT_TRUE(string_util::iequals("fool", "fool"));
+    ASSERT_TRUE(string_util::iequals("FOol", "foOL"));
+    ASSERT_TRUE(string_util::iequals("Fool", "fool"));
+    ASSERT_FALSE(string_util::iequals("Fool", "fooz"));
+}
+
 TEST(string_util, split)
 {
     std::string splitMe = "Horse,battery,staple";

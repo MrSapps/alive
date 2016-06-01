@@ -53,6 +53,24 @@ namespace string_util
         return static_cast<char>(::tolower(c));
     }
 
+    inline bool iequals(const std::string& a, const std::string& b)
+    {
+        if (a.size() != b.size())
+        {
+            return false;
+        }
+
+        for (auto i = 0u; i < a.size(); ++i)
+        {
+            if (c_tolower(a[i]) != c_tolower(b[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     inline bool ends_with(std::string const& value, std::string const& ending, bool ignoreCase = false)
     {
 

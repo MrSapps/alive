@@ -1895,6 +1895,12 @@ TEST(CdFs, Read_FileSystemLimits)
     ASSERT_GT(img.FileExists("LEN_TEST\\123456.TXT"), 0);
     ASSERT_GT(img.FileExists("LEN_TEST\\1234567.TXT"), 0);
     ASSERT_GT(img.FileExists("LEN_TEST\\12345678.TXT"), 0);
+    
+    // Check case is ignored and mixed slashes
+    ASSERT_GT(img.FileExists("level1\\lvl1.TXT"), 0);
+    ASSERT_GT(img.FileExists("level1\\\\lvl1.TXT"), 0);
+    ASSERT_GT(img.FileExists("level1/lvl1.TXT"), 0);
+    ASSERT_GT(img.FileExists("/level1//lvl1.TXT"), 0);
 
     ASSERT_GT(img.FileExists("LEVEL1\\LVL1.TXT"), 0);
     ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LVL2.TXT"), 0);

@@ -45,6 +45,7 @@ public:
 
     Sint64 FileExists(std::string fileName) const
     {
+        CdNormalizePath(fileName);
         auto rec = DoFind(fileName);
         if (!rec)
         {
@@ -55,6 +56,7 @@ public:
 
     std::unique_ptr<Oddlib::IStream> ReadFile(std::string fileName, bool includeSubheaders)
     {
+        CdNormalizePath(fileName);
         const DrWrapper* record = DoFind(fileName);
         if (!record)
         {
@@ -210,6 +212,12 @@ public:
 #pragma pack(pop)
 
     private:
+
+    void CdNormalizePath(std::string& path) const
+    {
+        string_util::replace_all(path, "/", "\\");
+        string_util::replace_all(path, "\\\\", "\\");
+    }
 
     static bool IsMode2Form2(void* data)
     {
@@ -635,7 +643,7 @@ private:
             }
 
             auto find = parts.front();
-            if (mDir.mName == find)
+            if (string_util::iequals(mDir.mName, find))
             {
                 parts.pop_front();
                 if (parts.size() > 1)
@@ -655,7 +663,7 @@ private:
                     find = parts.front();
                     for (const auto& file : mFiles)
                     {
-                        if (file.mName == find)
+                        if (string_util::iequals(file.mName, find))
                         {
                             return &file;
                         }

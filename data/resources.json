@@ -11850,7 +11850,7 @@
                     "OPTSNDFX.VB",
                     "OPTSNDFX.VH"
                 ],
-                "name": "c1.lvl"
+                "name": "p2\c1.lvl"
             },
             {
                 "files": [
@@ -12092,7 +12092,7 @@
                     "WEB.BAN",
                     "WELLLEAF.BAN"
                 ],
-                "name": "d2.lvl"
+                "name": "p2\d2.lvl"
             },
             {
                 "files": [
@@ -12274,7 +12274,7 @@
                     "WEB.BAN",
                     "WELLLEAF.BAN"
                 ],
-                "name": "d7.lvl"
+                "name": "p2\d7.lvl"
             },
             {
                 "files": [
@@ -12675,7 +12675,7 @@
                     "WASP.BAN",
                     "WELLLEAF.BAN"
                 ],
-                "name": "e2.lvl"
+                "name": "p2\e2.lvl"
             },
             {
                 "files": [
@@ -14030,7 +14030,7 @@
                     "WASP.BAN",
                     "WELLLEAF.BAN"
                 ],
-                "name": "r2.lvl"
+                "name": "p2\r2.lvl"
             },
             {
                 "files": [
@@ -14209,7 +14209,7 @@
                     "WASP.BAN",
                     "WELLLEAF.BAN"
                 ],
-                "name": "r6.lvl"
+                "name": "p2\r6.lvl"
             },
             {
                 "files": [
@@ -18620,7 +18620,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "ba.lvl"
+                "name": "ba/ba.lvl"
             },
             {
                 "files": [
@@ -18817,7 +18817,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "br.lvl"
+                "name": "br/br.lvl"
             },
             {
                 "files": [
@@ -18978,7 +18978,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "bw.lvl"
+                "name": "bw/bw.lvl"
             },
             {
                 "files": [
@@ -19084,7 +19084,7 @@
                     "STDOOR.BAN",
                     "STSEQ.BSQ"
                 ],
-                "name": "cr.lvl"
+                "name": "cr/cr.lvl"
             },
             {
                 "files": [
@@ -19257,7 +19257,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "fd.lvl"
+                "name": "fd/fd.lvl"
             },
             {
                 "files": [
@@ -19619,7 +19619,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "mi.lvl"
+                "name": "mi/mi.lvl"
             },
             {
                 "files": [
@@ -19837,7 +19837,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "ne.lvl"
+                "name": "ne/ne.lvl"
             },
             {
                 "files": [
@@ -20108,7 +20108,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "pv.lvl"
+                "name": "pv/pv.lvl"
             },
             {
                 "files": [
@@ -20290,7 +20290,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "st.lvl"
+                "name": "st/st.lvl"
             },
             {
                 "files": [
@@ -20562,7 +20562,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "sv.lvl"
+                "name": "sv/sv.lvl"
             }
         ]
     },
@@ -20836,7 +20836,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "ba.lvl"
+                "name": "ba/ba.lvl"
             },
             {
                 "files": [
@@ -21007,7 +21007,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "bm.lvl"
+                "name": "bm/bm.lvl"
             },
             {
                 "files": [
@@ -21414,7 +21414,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "br.lvl"
+                "name": "br/br.lvl"
             },
             {
                 "files": [
@@ -21680,7 +21680,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "bw.lvl"
+                "name": "bw/bw.lvl"
             },
             {
                 "files": [
@@ -21786,7 +21786,7 @@
                     "STDOOR.BAN",
                     "STSEQ.BSQ"
                 ],
-                "name": "cr.lvl"
+                "name": "cr/cr.lvl"
             },
             {
                 "files": [
@@ -22071,7 +22071,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "fd.lvl"
+                "name": "fd/fd.lvl"
             },
             {
                 "files": [
@@ -22264,7 +22264,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "mi.lvl"
+                "name": "mi/mi.lvl"
             },
             {
                 "files": [
@@ -22392,7 +22392,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "ne.lvl"
+                "name": "ne/ne.lvl"
             },
             {
                 "files": [
@@ -22548,7 +22548,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "pv.lvl"
+                "name": "pv/pv.lvl"
             },
             {
                 "files": [
@@ -22730,7 +22730,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "st.lvl"
+                "name": "st/st.lvl"
             },
             {
                 "files": [
@@ -22878,7 +22878,7 @@
                     "WELLLEAF.BAN",
                     "WORKWHEL.BAN"
                 ],
-                "name": "sv.lvl"
+                "name": "sv/sv.lvl"
             }
         ]
     },
