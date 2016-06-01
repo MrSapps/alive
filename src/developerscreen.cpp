@@ -22,6 +22,11 @@ void DevloperScreen::Render(int w, int h, Renderer& renderer)
     // When this gets bigger it can be moved to a separate class etc.
     struct EditorUi
     {
+        EditorUi()
+            : animationBrowserOpen(true)
+        {
+
+        }
         bool resPathsOpen;
         bool fmvBrowserOpen;
         bool soundBrowserOpen;
