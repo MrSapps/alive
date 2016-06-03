@@ -392,13 +392,13 @@ int main(int /*argc*/, char** /*argv*/)
         "l1.lvl",
         "r1.lvl",
         "s1.lvl",
-        "p2/c1.lvl",
-        "p2/d1.lvl",
-        "p2/d2.lvl",
-        "p2/d7.lvl",
-        "p2/e2.lvl",
-        "p2/r2.lvl",
-        "p2/r6.lvl"
+        "p2\\c1.lvl",
+        "p2\\d1.lvl",
+        "p2\\d2.lvl",
+        "p2\\d7.lvl",
+        "p2\\e2.lvl",
+        "p2\\r2.lvl",
+        "p2\\r6.lvl"
     };
 
     const std::vector<std::string> aoPcDemoLvls =
@@ -418,31 +418,31 @@ int main(int /*argc*/, char** /*argv*/)
 
     const std::vector<std::string> aePsxCd1Lvls =
     {
-        "ba/ba.lvl",
-        "br/br.lvl",
-        "bw/bw.lvl",
-        "cr/cr.lvl",
-        "fd/fd.lvl",
-        "mi/mi.lvl",
-        "ne/ne.lvl",
-        "pv/pv.lvl",
-        "st/st.lvl",
-        "sv/sv.lvl"
+        "ba\\ba.lvl",
+        "br\\br.lvl",
+        "bw\\bw.lvl",
+        "cr\\cr.lvl",
+        "fd\\fd.lvl",
+        "mi\\mi.lvl",
+        "ne\\ne.lvl",
+        "pv\\pv.lvl",
+        "st\\st.lvl",
+        "sv\\sv.lvl"
     };
 
     const std::vector<std::string> aePsxCd2Lvls =
     {
-        "ba/ba.lvl",
-        "bm/bm.lvl",
-        "br/br.lvl",
-        "bw/bw.lvl",
-        "cr/cr.lvl",
-        "fd/fd.lvl",
-        "mi/mi.lvl",
-        "ne/ne.lvl",
-        "pv/pv.lvl",
-        "st/st.lvl",
-        "sv/sv.lvl"
+        "ba\\ba.lvl",
+        "bm\\bm.lvl",
+        "br\\br.lvl",
+        "bw\\bw.lvl",
+        "cr\\cr.lvl",
+        "fd\\fd.lvl",
+        "mi\\mi.lvl",
+        "ne\\ne.lvl",
+        "pv\\pv.lvl",
+        "st\\st.lvl",
+        "sv\\sv.lvl"
     };
 
     const std::vector<std::string> aePcLvls =
