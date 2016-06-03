@@ -544,7 +544,7 @@ int main(int /*argc*/, char** /*argv*/)
                 for (const auto& animFile : animFiles)
                 {
                     jsonxx::Object animObj;
-                    animObj << "id" << std::to_string(id);
+                    animObj << "id" << id;
                     animObj << "file" << animFile;
 
                     auto numAnims = mNumberOfAnimsMap[animData.first];
@@ -562,7 +562,7 @@ int main(int /*argc*/, char** /*argv*/)
                             << animFile + "_" + std::to_string(id) + "_" + std::to_string(i + 1);
 
                         // Guessed blending mode
-                        anim << "blend_mode" << "1";
+                        anim << "blend_mode" << 1;
 
                         // TODO: Semi trans flag
                         // TODO: pallet res id?
@@ -585,7 +585,7 @@ int main(int /*argc*/, char** /*argv*/)
                 jsonxx::Object dataSet;
                 const std::string strName = DataTest::ToString(dataSetPair.first);
                 dataSet << "data_set_name" << strName;
-                dataSet << "is_psx" << std::string(dataSetPair.second.begin()->second.mIsPsx ? "true" : "false");
+                dataSet << "is_psx" << dataSetPair.second.begin()->second.mIsPsx;
 
                 jsonxx::Array lvlsArray;
 
