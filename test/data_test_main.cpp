@@ -365,31 +365,50 @@ private:
 
 int main(int /*argc*/, char** /*argv*/)
 {
-    const std::vector<std::string> aoLvls =
+    const std::vector<std::string> aoPcLvls =
     {
-        "s1.lvl",
-        "r6.lvl",
-        "r2.lvl",
-        "r1.lvl",
-        "l1.lvl",
-        "f4.lvl",
-        "f2.lvl",
-        "f1.lvl",
-        "e2.lvl",
-        "e1.lvl",
-        "d7.lvl",
+        "c1.lvl",
+        "d1.lvl",
         "d2.lvl",
-        "c1.lvl"
+        "d7.lvl",
+        "e1.lvl",
+        "e2.lvl",
+        "f1.lvl",
+        "f2.lvl",
+        "f4.lvl",
+        "l1.lvl",
+        "r1.lvl",
+        "r2.lvl",
+        "r6.lvl",
+        "s1.lvl"
     };
 
-    const std::vector<std::string> aoDemoLvls =
+    const std::vector<std::string> aoPsxLvls =
+    {
+        "e1.lvl",
+        "f1.lvl",
+        "f2.lvl",
+        "f4.lvl",
+        "l1.lvl",
+        "r1.lvl",
+        "s1.lvl",
+        "p2/c1.lvl",
+        "p2/d1.lvl",
+        "p2/d2.lvl",
+        "p2/d7.lvl",
+        "p2/e2.lvl",
+        "p2/r2.lvl",
+        "p2/r6.lvl"
+    };
+
+    const std::vector<std::string> aoPcDemoLvls =
     {
         "c1.lvl",
         "r1.lvl",
         "s1.lvl"
     };
 
-    const std::vector<std::string> aoDemoPsxLvls =
+    const std::vector<std::string> aoPsxDemoLvls =
     {
         "ABESODSE\\C1.LVL",
         "ABESODSE\\E1.LVL",
@@ -397,44 +416,58 @@ int main(int /*argc*/, char** /*argv*/)
         "ABESODSE\\S1.LVL"
     };
 
-    const std::vector<std::string> aeCd1Lvls =
+    const std::vector<std::string> aePsxCd1Lvls =
     {
-        "mi.lvl",
-        "ba.lvl",
-        "br.lvl",
-        "bw.lvl",
-        "cr.lvl",
-        "fd.lvl",
-        "ne.lvl",
-        "pv.lvl",
-        "st.lvl",
-        "sv.lvl"
+        "ba/ba.lvl",
+        "br/br.lvl",
+        "bw/bw.lvl",
+        "cr/cr.lvl",
+        "fd/fd.lvl",
+        "mi/mi.lvl",
+        "ne/ne.lvl",
+        "pv/pv.lvl",
+        "st/st.lvl",
+        "sv/sv.lvl"
     };
 
-
-    const std::vector<std::string> aeLvls =
+    const std::vector<std::string> aePsxCd2Lvls =
     {
-        "mi.lvl",
+        "ba/ba.lvl",
+        "bm/bm.lvl",
+        "br/br.lvl",
+        "bw/bw.lvl",
+        "cr/cr.lvl",
+        "fd/fd.lvl",
+        "mi/mi.lvl",
+        "ne/ne.lvl",
+        "pv/pv.lvl",
+        "st/st.lvl",
+        "sv/sv.lvl"
+    };
+
+    const std::vector<std::string> aePcLvls =
+    {
         "ba.lvl",
         "bm.lvl",
         "br.lvl",
         "bw.lvl",
         "cr.lvl",
         "fd.lvl",
+        "mi.lvl",
         "ne.lvl",
         "pv.lvl",
         "st.lvl",
         "sv.lvl"
     };
 
-    const std::vector<std::string> aeDemoLvls =
+    const std::vector<std::string> aePcDemoLvls =
     {
         "cr.lvl",
         "mi.lvl",
         "st.lvl"
     };
 
-    const std::vector<std::string> aeDemoPsxLvls =
+    const std::vector<std::string> aePsxDemoLvls =
     {
         "ABE2\\CR.LVL",
         "ABE2\\MI.LVL",
@@ -443,246 +476,246 @@ int main(int /*argc*/, char** /*argv*/)
 
     const std::map<DataTest::eDataType, const std::vector<std::string>*> DataTypeLvlMap =
     {
-        { DataTest::eAoPc, &aoLvls },
-        { DataTest::eAoPsx, &aoLvls },
-        { DataTest::eAePc, &aeLvls },
-        { DataTest::eAePsxCd1, &aeCd1Lvls },
-        { DataTest::eAePsxCd2, &aeLvls },
-        { DataTest::eAoPcDemo, &aoDemoLvls },
-        { DataTest::eAoPsxDemo, &aoDemoPsxLvls },
-        { DataTest::eAePcDemo, &aeDemoLvls },
-        { DataTest::eAePsxDemo, &aeDemoPsxLvls }
+        { DataTest::eAoPc, &aoPcLvls },
+        { DataTest::eAoPsx, &aoPsxLvls },
+        { DataTest::eAePc, &aePcLvls },
+        { DataTest::eAePsxCd1, &aePsxCd1Lvls },
+        { DataTest::eAePsxCd2, &aePsxCd2Lvls },
+        { DataTest::eAoPcDemo, &aoPcDemoLvls },
+        { DataTest::eAoPsxDemo, &aoPsxDemoLvls },
+        { DataTest::eAePcDemo, &aePcDemoLvls },
+        { DataTest::eAePsxDemo, &aePsxDemoLvls }
     };
 
-    std::string dataPath1 = "C:\\Users\\pmoran\\Desktop\\c\\data\\";
+    const std::string dataPath = "F:\\Data\\alive\\all_data\\";
 
     const std::vector<std::pair<DataTest::eDataType, std::string>> datas =
     {
-        { DataTest::eAePc, dataPath1 + "Oddworld Abes Exoddus" },
-        { DataTest::eAePcDemo, dataPath1 + "exoddemo" },
-        { DataTest::eAePsxDemo, dataPath1 + "Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
-        { DataTest::eAePsxCd1, dataPath1 + "Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
-        { DataTest::eAePsxCd2, dataPath1 + "Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
+        { DataTest::eAePc, dataPath + "Oddworld Abes Exoddus" },
+        { DataTest::eAePcDemo, dataPath + "exoddemo" },
+        { DataTest::eAePsxDemo, dataPath + "Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
+        { DataTest::eAePsxCd1, dataPath + "Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
+        { DataTest::eAePsxCd2, dataPath + "Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
         
-        { DataTest::eAoPc, dataPath1 + "Oddworld Abes Oddysee" },
-        { DataTest::eAoPcDemo, dataPath1 + "abeodd" },
-        { DataTest::eAoPsxDemo, dataPath1 + "Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
-        { DataTest::eAoPsx, dataPath1 + "Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
+        { DataTest::eAoPc, dataPath + "Oddworld Abes Oddysee" },
+        { DataTest::eAoPcDemo, dataPath + "abeodd" },
+        { DataTest::eAoPsxDemo, dataPath + "Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
+        { DataTest::eAoPsx, dataPath + "Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
     };
 
 
-// Used to create the "base" json db's. E.g the list of LVL's each data set has, unique collection of anim id's
-// and what BAN/BND's they live in. And which LVL's each BAN/BND lives in.
-class Db
-{
-public:
-    Db() = default;
-
-    void Merge(DataTest::eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
+    // Used to create the "base" json db's. E.g the list of LVL's each data set has, unique collection of anim id's
+    // and what BAN/BND's they live in. And which LVL's each BAN/BND lives in.
+    class Db
     {
-        LvlFileReducer reducer(resourcePath, lvls);
+    public:
+        Db() = default;
 
-        for (const auto& lvl : lvls)
+        void Merge(DataTest::eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         {
-            AddLvlMapping(eType, lvl, reducer.ALvlWasPsx(), reducer.LvlFileContent(lvl));
-        }
+            LvlFileReducer reducer(resourcePath, lvls);
 
-        for (auto& chunkPair : reducer.Chunks())
-        {
-            Oddlib::LvlArchive::FileChunk* chunk = chunkPair.first;
-            if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
+            for (const auto& lvl : lvls)
             {
-                AddRes(chunk->Id(), chunkPair.second.first);
-
-                Oddlib::AnimSerializer as(*chunk->Stream(), reducer.ALvlWasPsx());
-                AddNumAnimationsMapping(chunk->Id(), static_cast<Uint32>(as.Animations().size()));
+                AddLvlMapping(eType, lvl, reducer.ALvlWasPsx(), reducer.LvlFileContent(lvl));
             }
-        }
-    }
 
-    void ToJson()
-    {
-        jsonxx::Array resources;
-
-        for (const auto& animData : mAnimResIds)
-        {
-            const auto& animFiles = animData.second;
-            const auto id = animData.first;
-            for (const auto& animFile : animFiles)
+            for (auto& chunkPair : reducer.Chunks())
             {
-                jsonxx::Object animObj;
-                animObj << "id" << std::to_string(id);
-                animObj << "file" << animFile;
-
-                auto numAnims = mNumberOfAnimsMap[animData.first];
-                //animObj << "numAnims" << numAnims;
-
-                jsonxx::Array anims;
-
-                for (auto i = 0u; i < numAnims; i++)
+                Oddlib::LvlArchive::FileChunk* chunk = chunkPair.first;
+                if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
                 {
-                    jsonxx::Object anim;
+                    AddRes(chunk->Id(), chunkPair.second.first);
 
-                    // Generated globally unique name
-                    anim 
-                        << "name" 
-                        << animFile + "_" + std::to_string(id) + "_" + std::to_string(i + 1);
-
-                    // Guessed blending mode
-                    anim << "blend_mode" << "1";
-
-                    // TODO: Semi trans flag
-                    // TODO: pallet res id?
-
-                    anims << anim;
-
-                    // TODO: Index array for each data set
-
+                    Oddlib::AnimSerializer as(*chunk->Stream(), reducer.ALvlWasPsx());
+                    AddNumAnimationsMapping(chunk->Id(), static_cast<Uint32>(as.Animations().size()));
                 }
-                animObj << "anims" << anims;
-
-                resources << animObj;
             }
         }
 
-
-        // Map of which LVL's live in what data set
-        for (const auto& dataSetPair : mLvlToDataSetMap)
+        void ToJson()
         {
-            jsonxx::Object dataSet;
-            const std::string strName = DataTest::ToString(dataSetPair.first);
-            dataSet << "data_set_name" << strName;
-            dataSet << "is_psx" << std::string(dataSetPair.second.begin()->second.mIsPsx ? "true" : "false");
+            jsonxx::Array resources;
 
-            jsonxx::Array lvlsArray;
+            for (const auto& animData : mAnimResIds)
+            {
+                const auto& animFiles = animData.second;
+                const auto id = animData.first;
+                for (const auto& animFile : animFiles)
+                {
+                    jsonxx::Object animObj;
+                    animObj << "id" << std::to_string(id);
+                    animObj << "file" << animFile;
+
+                    auto numAnims = mNumberOfAnimsMap[animData.first];
+                    //animObj << "numAnims" << numAnims;
+
+                    jsonxx::Array anims;
+
+                    for (auto i = 0u; i < numAnims; i++)
+                    {
+                        jsonxx::Object anim;
+
+                        // Generated globally unique name
+                        anim 
+                            << "name" 
+                            << animFile + "_" + std::to_string(id) + "_" + std::to_string(i + 1);
+
+                        // Guessed blending mode
+                        anim << "blend_mode" << "1";
+
+                        // TODO: Semi trans flag
+                        // TODO: pallet res id?
+
+                        anims << anim;
+
+                        // TODO: Index array for each data set
+
+                    }
+                    animObj << "anims" << anims;
+
+                    resources << animObj;
+                }
+            }
+
+
+            // Map of which LVL's live in what data set
+            for (const auto& dataSetPair : mLvlToDataSetMap)
+            {
+                jsonxx::Object dataSet;
+                const std::string strName = DataTest::ToString(dataSetPair.first);
+                dataSet << "data_set_name" << strName;
+                dataSet << "is_psx" << std::string(dataSetPair.second.begin()->second.mIsPsx ? "true" : "false");
+
+                jsonxx::Array lvlsArray;
 
             
-            for (const auto& lvlData : dataSetPair.second)
-            {
-                jsonxx::Object lvlObj;
-                lvlObj << "name" << lvlData.first;
-
-                jsonxx::Array lvlContent;
-                const std::set<std::string>& content = lvlData.second.mFiles;
-                for (const auto& lvlFile : content)
+                for (const auto& lvlData : dataSetPair.second)
                 {
-                    lvlContent << lvlFile;
+                    jsonxx::Object lvlObj;
+                    lvlObj << "name" << lvlData.first;
+
+                    jsonxx::Array lvlContent;
+                    const std::set<std::string>& content = lvlData.second.mFiles;
+                    for (const auto& lvlFile : content)
+                    {
+                        lvlContent << lvlFile;
+                    }
+                    lvlObj << "files" << lvlContent;
+                    lvlsArray << lvlObj;
                 }
-                lvlObj << "files" << lvlContent;
-                lvlsArray << lvlObj;
-            }
-            dataSet << "lvls" << lvlsArray;
+                dataSet << "lvls" << lvlsArray;
             
 
-            resources << dataSet;
+                resources << dataSet;
+            }
+
+            std::ofstream jsonFile("test.json");
+            if (!jsonFile.is_open())
+            {
+                abort();
+            }
+            jsonFile << resources.json().c_str() << std::endl;
         }
 
-        std::ofstream jsonFile("test.json");
-        if (!jsonFile.is_open())
+        private:
+
+        void AddNumAnimationsMapping(Uint32 resId, Uint32 numAnims)
         {
-            abort();
+            // TODO: Must store num anims for each dataset for saving indexes
+            // in ToJson
+
+            auto it = mNumberOfAnimsMap.find(resId);
+            if (it == std::end(mNumberOfAnimsMap))
+            {
+                mNumberOfAnimsMap[resId] = numAnims;
+            }
+            else
+            {
+                // TODO: If not equal then should probably just take the biggest value
+                if (resId == 314) return; // BLOOD.BAN and SPARKS.BAN have same id but diff number of anims
+                if (resId == 2020) return; // SLAM.BAN and SLAMVLTS.BAN
+
+                if (resId == 10) return; // ABEBSIC.BAN 47 VS 51 of AePcDemo
+                if (resId == 55) return; // ABEBSIC1.BAN 11 VS 10 of AePcDemo
+                if (resId == 43) return; // ABEEDGE.BAN 43 VS 10 of AePcDemo
+                if (resId == 28) return; // ABEKNOKZ.BAN 2 VS 3 of AePcDemo
+                if (resId == 518) return; // MUDTORT.BAN 3 VS 2
+                if (resId == 604) return;
+                if (resId == 605) return;
+                if (resId == 45) return; // ABEDOOR.BAN 4 vs 2 ao demo
+                if (resId == 26) return; // 4 VS 5
+                if (resId == 203) return; // 1 VS 2
+                if (resId == 511) return; // 3 VS 6
+                if (resId == 130) return; // 15 vs 10
+                if (resId == 576) return; // 2 vs 3
+                if (resId == 1000) return; //1 vs 2
+                if (resId == 800) return; // 24 vs 5
+                if (resId == 200) return; // 3 vs 14
+                if (resId == 700) return; // 18 vs 12
+                if (resId == 711) return; // 2 vs 1
+                if (resId == 701) return; // 3 vs 2
+                if (resId == 704) return; // 2 vs 1
+                if (resId == 113) return; // 2 vs 1
+                if (resId == 600) return; // 22 vs 13
+                if (resId == 2013) return; // 2 vs 1
+                if (resId == 27) return; // 2 vs 3
+                if (resId == 16) return;
+                if (resId == 415) return;
+                if (resId == 100) return;
+                if (resId == 6000) return;
+                if (resId == 2012) return;
+                if (resId == 2019) return;
+                if (resId == 2018) return;
+                if (resId == 2007) return;
+                if (resId == 337) return;
+                if (resId == 2026) return;
+                if (resId == 508) return;
+                if (resId == 8002) return;
+
+                assert(it->second == numAnims);
+            }
         }
-        jsonFile << resources.json().c_str() << std::endl;
-    }
+
+        void AddRes(Uint32 resId, const std::string& resFileName)
+        {
+            auto it = mAnimResIds.find(resId);
+            if (it == std::end(mAnimResIds))
+            {
+                mAnimResIds[resId] = { resFileName };
+            }
+            else
+            {
+                it->second.insert(resFileName);
+            }
+
+        }
+
+        void AddLvlMapping(DataTest::eDataType eType, const std::string& lvlName, bool isPsx, const std::set<std::string>& files)
+        {
+            auto it = mLvlToDataSetMap[eType].find(lvlName);
+            if (it == std::end(mLvlToDataSetMap[eType]))
+            {
+                mLvlToDataSetMap[eType][lvlName] = LvlData{ isPsx, files };
+            }
+        }
 
     private:
+        // Map of Anim res ids to files that contain them
+        std::map<Uint32, std::set<std::string>> mAnimResIds; // E.g 25 -> [ABEBLOW.BAN, XYZ.BAN]
 
-    void AddNumAnimationsMapping(Uint32 resId, Uint32 numAnims)
-    {
-        // TODO: Must store num anims for each dataset for saving indexes
-        // in ToJson
+        // ResId to number of anims in that ResId
+        std::map<Uint32, Uint32> mNumberOfAnimsMap; // E.g 25 -> 3, because it has flying head, arm and leg anims
 
-        auto it = mNumberOfAnimsMap.find(resId);
-        if (it == std::end(mNumberOfAnimsMap))
+        // Map of which LVL's live in what data set
+        struct LvlData
         {
-            mNumberOfAnimsMap[resId] = numAnims;
-        }
-        else
-        {
-            // TODO: If not equal then should probably just take the biggest value
-            if (resId == 314) return; // BLOOD.BAN and SPARKS.BAN have same id but diff number of anims
-            if (resId == 2020) return; // SLAM.BAN and SLAMVLTS.BAN
+            bool mIsPsx;
+            std::set<std::string> mFiles;
+        };
 
-            if (resId == 10) return; // ABEBSIC.BAN 47 VS 51 of AePcDemo
-            if (resId == 55) return; // ABEBSIC1.BAN 11 VS 10 of AePcDemo
-            if (resId == 43) return; // ABEEDGE.BAN 43 VS 10 of AePcDemo
-            if (resId == 28) return; // ABEKNOKZ.BAN 2 VS 3 of AePcDemo
-            if (resId == 518) return; // MUDTORT.BAN 3 VS 2
-            if (resId == 604) return;
-            if (resId == 605) return;
-            if (resId == 45) return; // ABEDOOR.BAN 4 vs 2 ao demo
-            if (resId == 26) return; // 4 VS 5
-            if (resId == 203) return; // 1 VS 2
-            if (resId == 511) return; // 3 VS 6
-            if (resId == 130) return; // 15 vs 10
-            if (resId == 576) return; // 2 vs 3
-            if (resId == 1000) return; //1 vs 2
-            if (resId == 800) return; // 24 vs 5
-            if (resId == 200) return; // 3 vs 14
-            if (resId == 700) return; // 18 vs 12
-            if (resId == 711) return; // 2 vs 1
-            if (resId == 701) return; // 3 vs 2
-            if (resId == 704) return; // 2 vs 1
-            if (resId == 113) return; // 2 vs 1
-            if (resId == 600) return; // 22 vs 13
-            if (resId == 2013) return; // 2 vs 1
-            if (resId == 27) return; // 2 vs 3
-            if (resId == 16) return;
-            if (resId == 415) return;
-            if (resId == 100) return;
-            if (resId == 6000) return;
-            if (resId == 2012) return;
-            if (resId == 2019) return;
-            if (resId == 2018) return;
-            if (resId == 2007) return;
-            if (resId == 337) return;
-            if (resId == 2026) return;
-            if (resId == 508) return;
-            if (resId == 8002) return;
-
-            assert(it->second == numAnims);
-        }
-    }
-
-    void AddRes(Uint32 resId, const std::string& resFileName)
-    {
-        auto it = mAnimResIds.find(resId);
-        if (it == std::end(mAnimResIds))
-        {
-            mAnimResIds[resId] = { resFileName };
-        }
-        else
-        {
-            it->second.insert(resFileName);
-        }
-
-    }
-
-    void AddLvlMapping(DataTest::eDataType eType, const std::string& lvlName, bool isPsx, const std::set<std::string>& files)
-    {
-        auto it = mLvlToDataSetMap[eType].find(lvlName);
-        if (it == std::end(mLvlToDataSetMap[eType]))
-        {
-            mLvlToDataSetMap[eType][lvlName] = LvlData{ isPsx, files };
-        }
-    }
-
-private:
-    // Map of Anim res ids to files that contain them
-    std::map<Uint32, std::set<std::string>> mAnimResIds; // E.g 25 -> [ABEBLOW.BAN, XYZ.BAN]
-
-    // ResId to number of anims in that ResId
-    std::map<Uint32, Uint32> mNumberOfAnimsMap; // E.g 25 -> 3, because it has flying head, arm and leg anims
-
-    // Map of which LVL's live in what data set
-    struct LvlData
-    {
-        bool mIsPsx;
-        std::set<std::string> mFiles;
+        std::map<DataTest::eDataType, std::map<std::string, LvlData>> mLvlToDataSetMap; // E.g AoPc, AoPsx, AoPcDemo, AoPsxDemo -> R1.LVL
     };
-
-    std::map<DataTest::eDataType, std::map<std::string, LvlData>> mLvlToDataSetMap; // E.g AoPc, AoPsx, AoPcDemo, AoPsxDemo -> R1.LVL
-};
 
     Db db;
 
@@ -698,27 +731,6 @@ private:
     }
 
     db.ToJson();
-
-    /*
-    res.Request("kAbeWalkLeft", "MudPal", "AoPc");
-    res.Request("kAbeWalkLeft", "AoPc");
-
-    Give an animation name and pallete:
-        Find anim with blending mode, flags and containing file name
-        Find lvl containing file for active dataset
-        Load resource
-
-        Thus AoPc and AoPsxDemo may both map kAbeWalkLeft to ABEBSIC.BAN in
-        2 r1.lvl and ABEDEMO\R1.LVL to different anim indexes
-
-        its possible it wont be the same index for both dsets, so index must state
-        which dataset its for
-
-        Debug UI should have API to display kAbeWalkLeft from all data sets and
-        display file name/index/blending mode with way to save it back out
-
-
-    */
 
     return 0;
 }
