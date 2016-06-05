@@ -15,27 +15,116 @@
 #include "jsonxx/jsonxx.h"
 #include "resourcemapper.hpp"
 
-class LvlFileReducer
+enum eDataSetType
+{
+    eAoPc,
+    eAoPcDemo,
+    eAoPsx,
+    eAoPsxDemo,
+    eAePc,
+    eAePcDemo,
+    eAePsxCd1,
+    eAePsxCd2,
+    eAePsxDemo
+};
+
+bool IsPsx(eDataSetType type)
+{
+    switch (type)
+    {
+    case eAoPc:
+    case eAoPcDemo:
+    case eAePc:
+    case eAePcDemo:
+        return false;
+
+    case eAoPsx:
+    case eAoPsxDemo:
+    case eAePsxCd1:
+    case eAePsxCd2:
+    case eAePsxDemo:
+        return true;
+    }
+    abort();
+}
+
+const char* ToString(eDataSetType type)
+{
+    switch (type)
+    {
+    case eAoPc:
+        return "AoPc";
+
+    case eAoPcDemo:
+        return "AoPcDemo";
+
+    case eAoPsx:
+        return "AoPsx";
+
+    case eAoPsxDemo:
+        return "AoPsxDemo";
+
+    case eAePc:
+        return "AePc";
+
+    case eAePcDemo:
+        return "AePcDemo";
+
+    case eAePsxCd1:
+        return "AePsxCd1";
+
+    case eAePsxCd2:
+        return "AePsxCd2";
+
+    case eAePsxDemo:
+        return "AePsxDemo";
+    }
+    abort();
+}
+
+struct LvlFileChunk
+{
+    eDataSetType mDataSet;
+    std::string mLvlName;
+    std::string mFileName;
+    Oddlib::LvlArchive::FileChunk* mChunk;
+};
+
+struct DeDuplicatedLvlChunk
+{
+    LvlFileChunk mChunk;
+    std::vector<LvlFileChunk> mDuplicates;
+};
+
+bool ChunksAreEqual(Oddlib::LvlArchive::FileChunk& c1, Oddlib::LvlArchive::FileChunk& c2)
+{
+    // Here just compare content and not type or id, since 2 chunks may have the same data
+    // but have changed ID's across games
+    return c1.ReadData() == c2.ReadData();
+}
+
+class LvlFileChunkReducer
 {
 public:
-    LvlFileReducer(const LvlFileReducer&) = delete;
-    LvlFileReducer& operator = (const LvlFileReducer&) = delete;
-    LvlFileReducer(IFileSystem& fs, const std::string& resourcePath, const std::vector<std::string>& lvlFiles, bool isPsx)
-        : mLvlFiles(lvlFiles), mIsPsx(isPsx)
+    LvlFileChunkReducer(const LvlFileChunkReducer&) = delete;
+    LvlFileChunkReducer& operator = (const LvlFileChunkReducer&) = delete;
+    LvlFileChunkReducer() = default;
+
+    void MergeReduce(IFileSystem& parentFs, const std::string& resourcePath, const std::vector<std::string>& lvlFiles, eDataSetType dataSet)
     {
-        mFs = IFileSystem::Factory(fs, resourcePath);
-        if (!mFs->Init())
+        auto fs = IFileSystem::Factory(parentFs, resourcePath);
+        if (!fs->Init())
         {
             throw std::runtime_error("FS init failed");
         }
 
-        for (const auto& lvl : mLvlFiles)
+        for (const auto& lvl : lvlFiles)
         {
             LOG_INFO("Opening LVL: " << lvl);
-            auto stream = mFs->Open(lvl);
+            auto stream = fs->Open(lvl);
             if (stream)
             {
-                Reduce(std::make_unique<Oddlib::LvlArchive>(std::move(stream)), lvl);
+                MergeReduce(std::make_unique<Oddlib::LvlArchive>(std::move(stream)), lvl, dataSet);
             }
             else
             {
@@ -44,149 +133,66 @@ public:
             }
         }
     }
-
-    const std::vector<std::pair<Oddlib::LvlArchive::FileChunk*, std::pair<std::string, bool>>>& Chunks() const
-    {
-        return mChunks;
-    }
-
-    const std::set<std::string>& LvlFileContent(const std::string& name) const
-    {
-        return mLvlFileContent.find(name)->second;
-    }
-
 private:
-    void Reduce(std::unique_ptr<Oddlib::LvlArchive> lvl, const std::string& lvlName)
+    void MergeReduce(std::unique_ptr<Oddlib::LvlArchive> lvl, const std::string& lvlName, eDataSetType dataSet)
     {
-        bool chunkTaken = false;
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
-            mLvlFileContent[lvlName].insert(file->FileName());
             for (auto j = 0u; j < file->ChunkCount(); j++)
             {
                 auto chunk = file->ChunkByIndex(j);
-                if (!ChunkExists(*chunk))
+                bool deDuplicatedChunkAlreadyExists = false;
+
+                // Find if this chunk exists
+                for (DeDuplicatedLvlChunk& deDuplicatedChunk : mDeDuplicatedLvlFileChunks)
                 {
-                    AddChunk(chunk, file->FileName(), mIsPsx);
-                    chunkTaken = true;
+                    if (ChunksAreEqual(*deDuplicatedChunk.mChunk.mChunk,*chunk))
+                    {
+                        // Since it exists add the chunk as a duplicate
+                        deDuplicatedChunkAlreadyExists = true;
+                        LvlFileChunk chunkInfo{};
+                        chunkInfo.mChunk = chunk;
+                        chunkInfo.mDataSet = dataSet;
+                        chunkInfo.mFileName = file->FileName();
+                        chunkInfo.mLvlName = lvlName;
+                        deDuplicatedChunk.mDuplicates.push_back(chunkInfo);
+                        break;
+                    }
+                }
+
+                if (!deDuplicatedChunkAlreadyExists)
+                {
+                    // Otherwise add it as a unique chunk
+                    DeDuplicatedLvlChunk deDuplicatedChunk{};
+                    deDuplicatedChunk.mChunk.mChunk = chunk;
+                    deDuplicatedChunk.mChunk.mDataSet = dataSet;
+                    deDuplicatedChunk.mChunk.mFileName = file->FileName();
+                    deDuplicatedChunk.mChunk.mLvlName = lvlName;
+                    mDeDuplicatedLvlFileChunks.push_back(deDuplicatedChunk);
                 }
             }
         }
-        if (chunkTaken)
-        {
-            AddLvl(std::move(lvl));
-        }
+
+        mLvls.push_back(std::move(lvl));
     }
 
-    bool ChunkExists(Oddlib::LvlArchive::FileChunk& chunkToCheck)
-    {
-        for (auto& chunk : mChunks)
-        {
-            if (*chunk.first == chunkToCheck)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    void AddLvl(std::unique_ptr<Oddlib::LvlArchive> lvl)
-    {
-        mLvls.emplace_back(std::move(lvl));
-    }
-
-    void AddChunk(Oddlib::LvlArchive::FileChunk* chunk, const std::string& fileName, bool isPsx)
-    {
-        mChunks.push_back(std::make_pair(chunk, std::make_pair(fileName, isPsx)));
-    }
-
-    const std::vector<std::string>& mLvlFiles;
-    std::vector<std::string> mFileFilter;
-
-    std::unique_ptr<IFileSystem> mFs;
-
-    std::vector<std::pair<Oddlib::LvlArchive::FileChunk*, std::pair<std::string, bool>>> mChunks;
+    // Open LVLS (required because chunks must have the parent lvl in scope)
     std::vector<std::unique_ptr<Oddlib::LvlArchive>> mLvls;
 
-    std::map<std::string, std::set<std::string>> mLvlFileContent;
-    bool mIsPsx = false;
+    // List of unique lvl chunks with links to its duplicates
+    std::vector<DeDuplicatedLvlChunk> mDeDuplicatedLvlFileChunks;
 };
 
+/*
 class DataTest
 {
 public:
-    enum eDataType
+    DataTest(IFileSystem& fs, eDataSetType eType, const std::string& resourcePath, const std::vector<std::string>& lvls, eDataSetType dataSet)
+        : mType(eType), 
+          mReducer(fs, resourcePath, lvls, dataSet)
     {
-        eAoPc,
-        eAoPcDemo,
-        eAoPsx,
-        eAoPsxDemo,
-        eAePc,
-        eAePcDemo,
-        eAePsxCd1,
-        eAePsxCd2,
-        eAePsxDemo
-    };
-
-    static bool IsPsx(eDataType type)
-    {
-        switch (type)
-        {
-        case eAoPc:
-        case eAoPcDemo:
-        case eAePc:
-        case eAePcDemo:
-            return false;
-
-        case eAoPsx:
-        case eAoPsxDemo:
-        case eAePsxCd1:
-        case eAePsxCd2:
-        case eAePsxDemo:
-            return true;
-        }
-        abort();
-    }
-
-    static const char* ToString(eDataType type)
-    {
-        switch (type)
-        {
-        case eAoPc:
-            return "AoPc";
-
-        case eAoPcDemo:
-            return "AoPcDemo";
-
-        case eAoPsx:
-            return "AoPsx";
-
-        case eAoPsxDemo:
-            return "AoPsxDemo";
-
-        case eAePc:
-            return "AePc";
-
-        case eAePcDemo:
-            return "AePcDemo";
-
-        case eAePsxCd1:
-            return "AePsxCd1";
-
-        case eAePsxCd2:
-            return "AePsxCd2";
-
-        case eAePsxDemo:
-            return "AePsxDemo";
-        }
-        return "unknown";
-    }
-
-    DataTest(IFileSystem& fs, eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls, bool isPsx)
-        : mType(eType), mReducer(fs, resourcePath, lvls, isPsx)
-    {
-        ReadAllAnimations();
+        //ReadAllAnimations();
         //ReadFg1s();
         //ReadFonts();
         //ReadAllPaths();
@@ -194,6 +200,7 @@ public:
         // TODO: Handle sounds/fmvs
     }
 
+ 
     void ForChunksOfType(Uint32 type, std::function<void(const std::string&, Oddlib::LvlArchive::FileChunk&, bool)> cb)
     {
         for (auto chunkPair : mReducer.Chunks())
@@ -223,19 +230,20 @@ public:
             // TODO: Font parsing
         });
     }
+    */
 
+    /*
     void ReadAllPaths()
     {
         ForChunksOfType(Oddlib::MakeType('P', 'a', 't', 'h'), [&](const std::string&, Oddlib::LvlArchive::FileChunk&, bool)
         {
             // TODO: Load the game data json for the required hard coded data to load the path
-            /*
             Oddlib::Path path(*chunk.Stream(),
                 entry->mCollisionDataOffset,
                 entry->mObjectIndexTableOffset,
                 entry->mObjectDataOffset,
                 entry->mMapXSize,
-                entry->mMapYSize);*/
+                entry->mMapYSize);
         });
     }
 
@@ -325,12 +333,13 @@ public:
             Oddlib::DebugDumpAnimationFrames(fileName, chunk.Id(), *chunk.Stream(), isPsx, ToString(mType));
         });
     }
+   
 
 private:
-    eDataType mType;
-    LvlFileReducer mReducer;
+    eDataSetType mType;
+    LvlFileChunkReducer mReducer;
 };
-
+*/
 
 
 int main(int /*argc*/, char** /*argv*/)
@@ -444,33 +453,33 @@ int main(int /*argc*/, char** /*argv*/)
         "ABE2\\ST.LVL"
     };
 
-    const std::map<DataTest::eDataType, const std::vector<std::string>*> DataTypeLvlMap =
+    const std::map<eDataSetType, const std::vector<std::string>*> DataTypeLvlMap =
     {
-        { DataTest::eAoPc, &aoPcLvls },
-        { DataTest::eAoPsx, &aoPsxLvls },
-        { DataTest::eAePc, &aePcLvls },
-        { DataTest::eAePsxCd1, &aePsxCd1Lvls },
-        { DataTest::eAePsxCd2, &aePsxCd2Lvls },
-        { DataTest::eAoPcDemo, &aoPcDemoLvls },
-        { DataTest::eAoPsxDemo, &aoPsxDemoLvls },
-        { DataTest::eAePcDemo, &aePcDemoLvls },
-        { DataTest::eAePsxDemo, &aePsxDemoLvls }
+        { eDataSetType::eAoPc, &aoPcLvls },
+        { eDataSetType::eAoPsx, &aoPsxLvls },
+        { eDataSetType::eAePc, &aePcLvls },
+        { eDataSetType::eAePsxCd1, &aePsxCd1Lvls },
+        { eDataSetType::eAePsxCd2, &aePsxCd2Lvls },
+        { eDataSetType::eAoPcDemo, &aoPcDemoLvls },
+        { eDataSetType::eAoPsxDemo, &aoPsxDemoLvls },
+        { eDataSetType::eAePcDemo, &aePcDemoLvls },
+        { eDataSetType::eAePsxDemo, &aePsxDemoLvls }
     };
 
     const std::string dataPath = "F:\\Data\\alive\\all_data\\";
 
-    const std::vector<std::pair<DataTest::eDataType, std::string>> datas =
+    const std::vector<std::pair<eDataSetType, std::string>> datas =
     {
-        { DataTest::eAePc, dataPath + "Oddworld Abes Exoddus" },
-        { DataTest::eAePcDemo, dataPath + "exoddemo" },
-        { DataTest::eAePsxDemo, dataPath + "Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
-        { DataTest::eAePsxCd1, dataPath + "Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
-        { DataTest::eAePsxCd2, dataPath + "Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
+        { eDataSetType::eAePc, dataPath + "Oddworld Abes Exoddus" },
+        { eDataSetType::eAePcDemo, dataPath + "exoddemo" },
+        { eDataSetType::eAePsxDemo, dataPath + "Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
+        { eDataSetType::eAePsxCd1, dataPath + "Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
+        { eDataSetType::eAePsxCd2, dataPath + "Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
         
-        { DataTest::eAoPc, dataPath + "Oddworld Abes Oddysee" },
-        { DataTest::eAoPcDemo, dataPath + "abeodd" },
-        { DataTest::eAoPsxDemo, dataPath + "Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
-        { DataTest::eAoPsx, dataPath + "Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
+        { eDataSetType::eAoPc, dataPath + "Oddworld Abes Oddysee" },
+        { eDataSetType::eAoPcDemo, dataPath + "abeodd" },
+        { eDataSetType::eAoPsxDemo, dataPath + "Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
+        { eDataSetType::eAoPsx, dataPath + "Oddworld - Abe's Oddysee (E) [SLES-00664].bin" },
     };
 
 
@@ -481,10 +490,11 @@ int main(int /*argc*/, char** /*argv*/)
     public:
         Db() = default;
 
-        void Merge(IFileSystem& fs, DataTest::eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls, bool isPsx)
+        void Merge(IFileSystem& fs, eDataSetType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         {
-            LvlFileReducer reducer(fs, resourcePath, lvls, isPsx);
+            mLvlChunkReducer.MergeReduce(fs, resourcePath, lvls, eType);
 
+            /*
             for (const auto& lvl : lvls)
             {
                 AddLvlMapping(eType, lvl, isPsx, reducer.LvlFileContent(lvl));
@@ -500,7 +510,7 @@ int main(int /*argc*/, char** /*argv*/)
                     Oddlib::AnimSerializer as(*chunk->Stream(), isPsx);
                     AddNumAnimationsMapping(chunk->Id(), static_cast<Uint32>(as.Animations().size()));
                 }
-            }
+            }*/
         }
 
         void ToJson()
@@ -556,6 +566,7 @@ int main(int /*argc*/, char** /*argv*/)
             }
             resources << animsObject;
 
+            /*
             // Map of which LVL's live in what data set
             for (const auto& dataSetPair : mLvlToDataSetMap)
             {
@@ -585,7 +596,7 @@ int main(int /*argc*/, char** /*argv*/)
             
 
                 resources << dataSet;
-            }
+            }*/
 
             std::ofstream jsonFile("test.json");
             if (!jsonFile.is_open())
@@ -668,7 +679,7 @@ int main(int /*argc*/, char** /*argv*/)
 
         }
 
-        void AddLvlMapping(DataTest::eDataType eType, const std::string& lvlName, bool isPsx, const std::set<std::string>& files)
+        void AddLvlMapping(eDataSetType eType, const std::string& lvlName, bool isPsx, const std::set<std::string>& files)
         {
             auto it = mLvlToDataSetMap[eType].find(lvlName);
             if (it == std::end(mLvlToDataSetMap[eType]))
@@ -712,7 +723,9 @@ int main(int /*argc*/, char** /*argv*/)
             std::set<std::string> mFiles;
         };
 
-        std::map<DataTest::eDataType, std::map<std::string, LvlData>> mLvlToDataSetMap; // E.g AoPc, AoPsx, AoPcDemo, AoPsxDemo -> R1.LVL
+        std::map<eDataSetType, std::map<std::string, LvlData>> mLvlToDataSetMap; // E.g AoPc, AoPsx, AoPcDemo, AoPsxDemo -> R1.LVL
+
+        LvlFileChunkReducer mLvlChunkReducer;
     };
 
     Db db;
@@ -731,7 +744,7 @@ int main(int /*argc*/, char** /*argv*/)
             // Defined struct is wrong
             abort();
         }
-        db.Merge(gameFs, data.first, data.second, *it->second, DataTest::IsPsx(data.first));
+        db.Merge(gameFs, data.first, data.second, *it->second);
     }
 
     db.ToJson();
