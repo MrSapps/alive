@@ -13,36 +13,34 @@
 #include "gamedata.hpp"
 #include <cassert>
 #include "jsonxx/jsonxx.h"
+#include "resourcemapper.hpp"
 
 class LvlFileReducer
 {
 public:
     LvlFileReducer(const LvlFileReducer&) = delete;
     LvlFileReducer& operator = (const LvlFileReducer&) = delete;
-    LvlFileReducer(const std::string& resourcePath, const std::vector<std::string>& lvlFiles, std::vector<std::string> fileFilter = std::vector<std::string>())
-        : mLvlFiles(lvlFiles), mFileFilter(fileFilter)
+    LvlFileReducer(IFileSystem& fs, const std::string& resourcePath, const std::vector<std::string>& lvlFiles, bool isPsx)
+        : mLvlFiles(lvlFiles), mIsPsx(isPsx)
     {
-        mFs.Init();
-
-        // Clear out the ones loaded from resource paths json
-        mFs.ResourcePaths().ClearAllResourcePaths();
-
-        mGameData.Init(mFs);
-
-        // Add the only one we're interested in
-        mFs.ResourcePaths().AddResourcePath(resourcePath, 1);
+        mFs = IFileSystem::Factory(fs, resourcePath);
+        if (!mFs->Init())
+        {
+            throw std::runtime_error("FS init failed");
+        }
 
         for (const auto& lvl : mLvlFiles)
         {
-            auto stream = mFs.ResourcePaths().Open(lvl);
+            LOG_INFO("Opening LVL: " << lvl);
+            auto stream = mFs->Open(lvl);
             if (stream)
             {
                 Reduce(std::make_unique<Oddlib::LvlArchive>(std::move(stream)), lvl);
             }
             else
             {
-                //LOG_WARNING("LVL not found: " << lvl);
-               // abort(); // All LVLs in a set must exist
+                LOG_WARNING("LVL not found: " << lvl);
+                abort();
             }
         }
     }
@@ -57,68 +55,21 @@ public:
         return mLvlFileContent.find(name)->second;
     }
 
-    bool ALvlWasPsx() const
-    {
-        return mIsPsx;
-    }
-
 private:
     void Reduce(std::unique_ptr<Oddlib::LvlArchive> lvl, const std::string& lvlName)
     {
-        
-        bool foundCam = false;
-        for (auto i = 0u; i < lvl->FileCount(); i++)
-        {
-            auto file = lvl->FileByIndex(i);
-            if (string_util::ends_with(file->FileName(), ".CAM", true))
-            {
-                auto stream = file->ChunkByType(Oddlib::MakeType('B', 'i', 't', 's'))->Stream();
-                mIsPsx = Oddlib::IsPsxCamera(*stream);
-                foundCam = true;
-                break;
-            }
-
-        }
-
-        if (!foundCam)
-        {
-            abort();
-        }
-        
-
         bool chunkTaken = false;
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
             mLvlFileContent[lvlName].insert(file->FileName());
-
-            bool bUseFile = true;
-            if (!mFileFilter.empty())
+            for (auto j = 0u; j < file->ChunkCount(); j++)
             {
-                bUseFile = false;
-                for (const auto& includedFile : mFileFilter)
+                auto chunk = file->ChunkByIndex(j);
+                if (!ChunkExists(*chunk))
                 {
-                    if (includedFile == file->FileName())
-                    {
-                        bUseFile = true;
-                        break;
-                    }
-                }
-            }
-
-            if (bUseFile)
-            {
-                for (auto j = 0u; j < file->ChunkCount(); j++)
-                {
-                    auto chunk = file->ChunkByIndex(j);
-                  //  if (chunk->Id() == 360)
-                    {
-                        if (!ChunkExists(*chunk))
-                        {
-                            AddChunk(chunk, file->FileName(), mIsPsx);
-                            chunkTaken = true;
-                        }
-                    }
+                    AddChunk(chunk, file->FileName(), mIsPsx);
+                    chunkTaken = true;
                 }
             }
         }
@@ -153,8 +104,7 @@ private:
     const std::vector<std::string>& mLvlFiles;
     std::vector<std::string> mFileFilter;
 
-    GameData mGameData;
-    FileSystem mFs;
+    std::unique_ptr<IFileSystem> mFs;
 
     std::vector<std::pair<Oddlib::LvlArchive::FileChunk*, std::pair<std::string, bool>>> mChunks;
     std::vector<std::unique_ptr<Oddlib::LvlArchive>> mLvls;
@@ -178,6 +128,26 @@ public:
         eAePsxCd2,
         eAePsxDemo
     };
+
+    static bool IsPsx(eDataType type)
+    {
+        switch (type)
+        {
+        case eAoPc:
+        case eAoPcDemo:
+        case eAePc:
+        case eAePcDemo:
+            return false;
+
+        case eAoPsx:
+        case eAoPsxDemo:
+        case eAePsxCd1:
+        case eAePsxCd2:
+        case eAePsxDemo:
+            return true;
+        }
+        abort();
+    }
 
     static const char* ToString(eDataType type)
     {
@@ -213,8 +183,8 @@ public:
         return "unknown";
     }
 
-    DataTest(eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls, const std::vector<std::string>& fileFilter)
-        : mType(eType), mReducer(resourcePath, lvls, fileFilter)
+    DataTest(IFileSystem& fs, eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls, bool isPsx)
+        : mType(eType), mReducer(fs, resourcePath, lvls, isPsx)
     {
         ReadAllAnimations();
         //ReadFg1s();
@@ -511,13 +481,13 @@ int main(int /*argc*/, char** /*argv*/)
     public:
         Db() = default;
 
-        void Merge(DataTest::eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
+        void Merge(IFileSystem& fs, DataTest::eDataType eType, const std::string& resourcePath, const std::vector<std::string>& lvls, bool isPsx)
         {
-            LvlFileReducer reducer(resourcePath, lvls);
+            LvlFileReducer reducer(fs, resourcePath, lvls, isPsx);
 
             for (const auto& lvl : lvls)
             {
-                AddLvlMapping(eType, lvl, reducer.ALvlWasPsx(), reducer.LvlFileContent(lvl));
+                AddLvlMapping(eType, lvl, isPsx, reducer.LvlFileContent(lvl));
             }
 
             for (auto& chunkPair : reducer.Chunks())
@@ -527,7 +497,7 @@ int main(int /*argc*/, char** /*argv*/)
                 {
                     AddRes(chunk->Id(), chunkPair.second.first);
 
-                    Oddlib::AnimSerializer as(*chunk->Stream(), reducer.ALvlWasPsx());
+                    Oddlib::AnimSerializer as(*chunk->Stream(), isPsx);
                     AddNumAnimationsMapping(chunk->Id(), static_cast<Uint32>(as.Animations().size()));
                 }
             }
@@ -537,20 +507,23 @@ int main(int /*argc*/, char** /*argv*/)
         {
             jsonxx::Array resources;
 
+            jsonxx::Object animsObject;
+            jsonxx::Array anims;
+
+
             for (const auto& animData : mAnimResIds)
             {
                 const auto& animFiles = animData.second;
                 const auto id = animData.first;
                 for (const auto& animFile : animFiles)
                 {
-                    jsonxx::Object animObj;
-                    animObj << "id" << id;
-                    animObj << "file" << animFile;
+                    
+                    //animObj << "id" << id;
+                    //animObj << "file" << animFile;
 
                     auto numAnims = mNumberOfAnimsMap[animData.first];
-                    //animObj << "numAnims" << numAnims;
-
-                    jsonxx::Array anims;
+                   
+                  
 
                     for (auto i = 0u; i < numAnims; i++)
                     {
@@ -567,17 +540,21 @@ int main(int /*argc*/, char** /*argv*/)
                         // TODO: Semi trans flag
                         // TODO: pallet res id?
 
+                        jsonxx::Array locations;
+
+
+                        anim << "locations" << locations;
+
                         anims << anim;
 
                         // TODO: Index array for each data set
 
                     }
-                    animObj << "anims" << anims;
-
-                    resources << animObj;
+                    animsObject << "anims" << anims;
                 }
+              
             }
-
+            resources << animsObject;
 
             // Map of which LVL's live in what data set
             for (const auto& dataSetPair : mLvlToDataSetMap)
@@ -701,6 +678,27 @@ int main(int /*argc*/, char** /*argv*/)
         }
 
     private:
+        struct Location
+        {
+            std::string mDataSetName;   // E.g AoPc
+            std::string mFileName;      // E.g ABEBSIC.BAN
+            Uint32 mResId;              // E.g 10
+            Uint32 mIndex;              // E.g 2
+
+            Uint32 mNumberOfFrames;
+            Uint32 mFps;
+            Uint32 mMaxFrameW;
+            Uint32 mMaxFrameH;
+        };
+
+        struct AnimData
+        {
+            std::vector<Location> mLocations;
+        };
+
+        std::map<Uint64, AnimData> mPHashMaps;              // phash of every anim resource
+        std::vector<Location> mDeDuplicatedAnimResources;   // none duplicated anim resources (via hamming distance)
+
         // Map of Anim res ids to files that contain them
         std::map<Uint32, std::set<std::string>> mAnimResIds; // E.g 25 -> [ABEBLOW.BAN, XYZ.BAN]
 
@@ -718,6 +716,12 @@ int main(int /*argc*/, char** /*argv*/)
     };
 
     Db db;
+    GameFileSystem gameFs;
+    if (!gameFs.Init())
+    {
+        std::cout << "Game FS init failed" << std::endl;
+        return 1;
+    }
 
     for (const auto& data : datas)
     {
@@ -727,7 +731,7 @@ int main(int /*argc*/, char** /*argv*/)
             // Defined struct is wrong
             abort();
         }
-        db.Merge(data.first, data.second, *it->second);
+        db.Merge(gameFs, data.first, data.second, *it->second, DataTest::IsPsx(data.first));
     }
 
     db.ToJson();
