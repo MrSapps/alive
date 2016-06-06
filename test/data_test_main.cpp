@@ -88,6 +88,7 @@ struct LvlFileChunk
     std::string mLvlName;
     std::string mFileName;
     Oddlib::LvlArchive::FileChunk* mChunk;
+    std::vector<Uint8> mData;
 };
 
 struct DeDuplicatedLvlChunk
@@ -96,11 +97,11 @@ struct DeDuplicatedLvlChunk
     std::vector<LvlFileChunk> mDuplicates;
 };
 
-bool ChunksAreEqual(Oddlib::LvlArchive::FileChunk& c1, Oddlib::LvlArchive::FileChunk& c2)
+bool ChunksAreEqual(const LvlFileChunk& c1, const LvlFileChunk& c2)
 {
     // Here just compare content and not type or id, since 2 chunks may have the same data
     // but have changed ID's across games
-    return c1.ReadData() == c2.ReadData();
+    return c1.mData == c2.mData;
 }
 
 class LvlFileChunkReducer
@@ -144,19 +145,23 @@ private:
                 auto chunk = file->ChunkByIndex(j);
                 bool deDuplicatedChunkAlreadyExists = false;
 
+                // Read this chunk only once
+                LvlFileChunk chunkInfo{};
+                chunkInfo.mChunk = chunk;
+                chunkInfo.mDataSet = dataSet;
+                chunkInfo.mFileName = file->FileName();
+                chunkInfo.mLvlName = lvlName;
+                chunkInfo.mData = chunk->ReadData();
+
                 // Find if this chunk exists
                 for (DeDuplicatedLvlChunk& deDuplicatedChunk : mDeDuplicatedLvlFileChunks)
                 {
-                    if (ChunksAreEqual(*deDuplicatedChunk.mChunk.mChunk,*chunk))
+                    if (ChunksAreEqual(deDuplicatedChunk.mChunk, chunkInfo))
                     {
                         // Since it exists add the chunk as a duplicate
                         deDuplicatedChunkAlreadyExists = true;
-                        LvlFileChunk chunkInfo{};
-                        chunkInfo.mChunk = chunk;
-                        chunkInfo.mDataSet = dataSet;
-                        chunkInfo.mFileName = file->FileName();
-                        chunkInfo.mLvlName = lvlName;
                         deDuplicatedChunk.mDuplicates.push_back(chunkInfo);
+                        deDuplicatedChunk.mDuplicates.back().mData = std::vector<Uint8>(); // Don't keep many copies of the same buffer
                         break;
                     }
                 }
@@ -165,10 +170,7 @@ private:
                 {
                     // Otherwise add it as a unique chunk
                     DeDuplicatedLvlChunk deDuplicatedChunk{};
-                    deDuplicatedChunk.mChunk.mChunk = chunk;
-                    deDuplicatedChunk.mChunk.mDataSet = dataSet;
-                    deDuplicatedChunk.mChunk.mFileName = file->FileName();
-                    deDuplicatedChunk.mChunk.mLvlName = lvlName;
+                    deDuplicatedChunk.mChunk = chunkInfo;
                     mDeDuplicatedLvlFileChunks.push_back(deDuplicatedChunk);
                 }
             }
