@@ -297,54 +297,55 @@ SET_PROPERTY(TARGET bin2h PROPERTY FOLDER "Header generators")
 
 
 # Bake binary test files in C array/header files
-function(make_header src dst varname)
+function(make_header src dst targetname varname)
     message(STATUS "Generating header '${dst}' from " '${src}')
     ADD_CUSTOM_COMMAND(OUTPUT "${dst}"
                    COMMAND bin2h "${src}" "${dst}" ${varname}
                    DEPENDS "${src}" )
 
     add_custom_target(
-      Generate_${varname} ALL
+      Generate_${targetname} ALL
       DEPENDS "${dst}"
     )
 
-    SET_PROPERTY(TARGET Generate_${varname} PROPERTY FOLDER "Header generators")
+    SET_PROPERTY(TARGET Generate_${targetname} PROPERTY FOLDER "Header generators")
 
 endfunction()
   
 # Helper to take file foo.dat in any path and place it in generated headers as foo.dat.g.h with
 # var name of foo
-function(to_vec src_file)
+function(to_vec src_file out_file_name)
     SET(generated_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers)
     get_filename_component(NameOnly ${samples_dir}/${src_file} NAME)
     get_filename_component(NameOnlyNoExt ${samples_dir}/${src_file} NAME_WE)
     message(STATUS "File name is ${NameOnly} with out ext is ${NameOnlyNoExt}")
     make_header(${src_file}
-                ${generated_headers_dir}/${NameOnly}.g.h 
+                ${generated_headers_dir}/${out_file_name}.g.h 
+                ${out_file_name}
                 ${NameOnlyNoExt})
 endfunction()
 
 SET(samples_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files)
 
-to_vec(${samples_dir}/zips/MaxECDRComment.zip)
-to_vec(${samples_dir}/zips/SimpleNoComp.zip)
-to_vec(${samples_dir}/test.bin)
-to_vec(${samples_dir}/xa.bin)
-to_vec(${samples_dir}/sample.lvl)
-to_vec(${samples_dir}/ae_ddv/audio_only/mono_8_high_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/mono_8_low_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/mono_16_high_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/mono_16_low_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/stereo_8_high_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/stereo_8_low_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/stereo_16_high_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/stereo_16_low_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave.ddv)
-to_vec(${samples_dir}/ae_ddv/video_only/all_colours_high_compression_30_fps.ddv)
-to_vec(${samples_dir}/ae_ddv/video_only/all_colours_low_compression_30_fps.ddv)
-to_vec(${samples_dir}/ae_ddv/video_only/all_colours_max_compression_30_fps.ddv)
-to_vec(${samples_dir}/ae_ddv/video_only/all_colours_medium_compression_30_fps.ddv)
-to_vec(${samples_dir}/ae_ddv/video_only/all_colours_min_compression_30_fps.ddv)
+to_vec(${samples_dir}/zips/MaxECDRComment.zip MaxECDRComment.zip)
+to_vec(${samples_dir}/zips/SimpleNoComp.zip SimpleNoComp.zip)
+to_vec(${samples_dir}/test.bin test.bin)
+to_vec(${samples_dir}/xa.bin xa.bin)
+to_vec(${samples_dir}/sample.lvl sample.lvl)
+to_vec(${samples_dir}/ae_ddv/audio_only/mono_8_high_compression_all_samples.ddv mono_8_high_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/mono_8_low_compression_all_samples.ddv mono_8_low_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/mono_16_high_compression_all_samples.ddv mono_16_high_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/mono_16_low_compression_all_samples.ddv mono_16_low_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/stereo_8_high_compression_all_samples.ddv stereo_8_high_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/stereo_8_low_compression_all_samples.ddv stereo_8_low_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/stereo_16_high_compression_all_samples.ddv stereo_16_high_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/stereo_16_low_compression_all_samples.ddv stereo_16_low_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave.ddv ddv_test1.ddv)
+to_vec(${samples_dir}/ae_ddv/video_only/all_colours_high_compression_30_fps.ddv all_colours_high_compression_30_fps.ddv)
+to_vec(${samples_dir}/ae_ddv/video_only/all_colours_low_compression_30_fps.ddv all_colours_low_compression_30_fps.ddv)
+to_vec(${samples_dir}/ae_ddv/video_only/all_colours_max_compression_30_fps.ddv all_colours_max_compression_30_fps.ddv)
+to_vec(${samples_dir}/ae_ddv/video_only/all_colours_medium_compression_30_fps.ddv all_colours_medium_compression_30_fps.ddv)
+to_vec(${samples_dir}/ae_ddv/video_only/all_colours_min_compression_30_fps.ddv all_colours_min_compression_30_fps.ddv)
 
 add_executable(Tests 
     test/main.cpp

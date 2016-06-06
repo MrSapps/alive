@@ -9,7 +9,7 @@
 #include "SDL.h"
 #include "sample.lvl.g.h"
 #include "all_colours_high_compression_30_fps.ddv.g.h"
-#include "all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave.ddv.g.h"
+#include "ddv_test1.ddv.g.h"
 #include "all_colours_low_compression_30_fps.ddv.g.h"
 #include "all_colours_max_compression_30_fps.ddv.g.h"
 #include "all_colours_medium_compression_30_fps.ddv.g.h"
