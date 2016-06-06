@@ -715,9 +715,9 @@ int main(int /*argc*/, char** /*argv*/)
             abort();
         }
         db.Merge(gameFs, data.first, data.second, *it->second);
-
-        db.MergePcAndPsx();
     }
+
+    db.MergePcAndPsx();
 
     db.ToJson();
 
