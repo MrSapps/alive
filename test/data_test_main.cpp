@@ -93,8 +93,9 @@ struct LvlFileChunk
 
 struct DeDuplicatedLvlChunk
 {
-    LvlFileChunk mChunk;
-    std::vector<LvlFileChunk> mDuplicates;
+    std::unique_ptr<LvlFileChunk> mChunk;
+    std::unique_ptr<Oddlib::AnimationSet> mAnimSet;
+    std::vector<std::unique_ptr<LvlFileChunk>> mDuplicates;
 };
 
 bool ChunksAreEqual(const LvlFileChunk& c1, const LvlFileChunk& c2)
@@ -134,44 +135,55 @@ public:
             }
         }
     }
+
+    std::vector<std::unique_ptr<DeDuplicatedLvlChunk>>& UniqueChunks() { return mDeDuplicatedLvlFileChunks; }
+
 private:
     void MergeReduce(std::unique_ptr<Oddlib::LvlArchive> lvl, const std::string& lvlName, eDataSetType dataSet)
     {
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
+            if (file->FileName() != "ABEBLOW.BAN") // Limit testing to this 1 file for now
+            {
+                continue;
+            }
+
             for (auto j = 0u; j < file->ChunkCount(); j++)
             {
                 auto chunk = file->ChunkByIndex(j);
-                bool deDuplicatedChunkAlreadyExists = false;
-
-                // Read this chunk only once
-                LvlFileChunk chunkInfo{};
-                chunkInfo.mChunk = chunk;
-                chunkInfo.mDataSet = dataSet;
-                chunkInfo.mFileName = file->FileName();
-                chunkInfo.mLvlName = lvlName;
-                chunkInfo.mData = chunk->ReadData();
-
-                // Find if this chunk exists
-                for (DeDuplicatedLvlChunk& deDuplicatedChunk : mDeDuplicatedLvlFileChunks)
+                if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm')) // Only care about Anim resources at the moment
                 {
-                    if (ChunksAreEqual(deDuplicatedChunk.mChunk, chunkInfo))
+                    bool deDuplicatedChunkAlreadyExists = false;
+
+                    // Read this chunk only once
+                    auto chunkInfo = std::make_unique<LvlFileChunk>();
+                    chunkInfo->mChunk = chunk;
+                    chunkInfo->mDataSet = dataSet;
+                    chunkInfo->mFileName = file->FileName();
+                    chunkInfo->mLvlName = lvlName;
+                    chunkInfo->mData = chunk->ReadData();
+
+                    // Find if this chunk exists
+                    for (std::unique_ptr<DeDuplicatedLvlChunk>& deDuplicatedChunk : mDeDuplicatedLvlFileChunks)
                     {
-                        // Since it exists add the chunk as a duplicate
-                        deDuplicatedChunkAlreadyExists = true;
-                        deDuplicatedChunk.mDuplicates.push_back(chunkInfo);
-                        deDuplicatedChunk.mDuplicates.back().mData = std::vector<Uint8>(); // Don't keep many copies of the same buffer
-                        break;
+                        if (ChunksAreEqual(*deDuplicatedChunk->mChunk, *chunkInfo))
+                        {
+                            // Since it exists add the chunk as a duplicate
+                            deDuplicatedChunkAlreadyExists = true;
+                            deDuplicatedChunk->mDuplicates.push_back(std::move(chunkInfo));
+                            deDuplicatedChunk->mDuplicates.back()->mData = std::vector<Uint8>(); // Don't keep many copies of the same buffer
+                            break;
+                        }
                     }
-                }
 
-                if (!deDuplicatedChunkAlreadyExists)
-                {
-                    // Otherwise add it as a unique chunk
-                    DeDuplicatedLvlChunk deDuplicatedChunk{};
-                    deDuplicatedChunk.mChunk = chunkInfo;
-                    mDeDuplicatedLvlFileChunks.push_back(deDuplicatedChunk);
+                    if (!deDuplicatedChunkAlreadyExists)
+                    {
+                        // Otherwise add it as a unique chunk
+                        auto deDuplicatedChunk = std::make_unique<DeDuplicatedLvlChunk>();
+                        deDuplicatedChunk->mChunk = std::move(chunkInfo);
+                        mDeDuplicatedLvlFileChunks.push_back(std::move(deDuplicatedChunk));
+                    }
                 }
             }
         }
@@ -183,7 +195,7 @@ private:
     std::vector<std::unique_ptr<Oddlib::LvlArchive>> mLvls;
 
     // List of unique lvl chunks with links to its duplicates
-    std::vector<DeDuplicatedLvlChunk> mDeDuplicatedLvlFileChunks;
+    std::vector<std::unique_ptr<DeDuplicatedLvlChunk>> mDeDuplicatedLvlFileChunks;
 };
 
 /*
@@ -495,78 +507,76 @@ int main(int /*argc*/, char** /*argv*/)
         void Merge(IFileSystem& fs, eDataSetType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         {
             mLvlChunkReducer.MergeReduce(fs, resourcePath, lvls, eType);
-
             /*
             for (const auto& lvl : lvls)
             {
                 AddLvlMapping(eType, lvl, isPsx, reducer.LvlFileContent(lvl));
-            }
-
-            for (auto& chunkPair : reducer.Chunks())
-            {
-                Oddlib::LvlArchive::FileChunk* chunk = chunkPair.first;
-                if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
-                {
-                    AddRes(chunk->Id(), chunkPair.second.first);
-
-                    Oddlib::AnimSerializer as(*chunk->Stream(), isPsx);
-                    AddNumAnimationsMapping(chunk->Id(), static_cast<Uint32>(as.Animations().size()));
-                }
             }*/
+        }
+
+        void MergePcAndPsx()
+        {
+            std::vector<std::unique_ptr<DeDuplicatedLvlChunk>>& chunks = mLvlChunkReducer.UniqueChunks();
+            for (std::unique_ptr<DeDuplicatedLvlChunk>& chunk : chunks)
+            {
+                Oddlib::LvlArchive::FileChunk* lvlFileChunk = chunk->mChunk->mChunk;
+                if (lvlFileChunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
+                {
+                    auto stream = lvlFileChunk->Stream();
+                    Oddlib::AnimSerializer as(*stream, IsPsx(chunk->mChunk->mDataSet));
+
+                    static int i = 0;
+                    i++;
+                    Oddlib::DebugAnimationSpriteSheet dss(as, "ABEBLOW" + std::to_string(i), chunk->mChunk->mChunk->Id(), ToString(chunk->mChunk->mDataSet));
+
+                    chunk->mAnimSet = std::make_unique<Oddlib::AnimationSet>(as);
+                }
+            }
         }
 
         void ToJson()
         {
+            
             jsonxx::Array resources;
 
             jsonxx::Object animsObject;
-            jsonxx::Array anims;
+            //jsonxx::Array anims;
 
-
-            for (const auto& animData : mAnimResIds)
+            std::vector<std::unique_ptr<DeDuplicatedLvlChunk>>& chunks = mLvlChunkReducer.UniqueChunks();
+            for (const std::unique_ptr<DeDuplicatedLvlChunk>& chunk : chunks)
             {
-                const auto& animFiles = animData.second;
-                const auto id = animData.first;
-                for (const auto& animFile : animFiles)
-                {
-                    
-                    //animObj << "id" << id;
-                    //animObj << "file" << animFile;
+                jsonxx::Object anim;
 
-                    auto numAnims = mNumberOfAnimsMap[animData.first];
-                   
-                  
+                // Generated globally unique name
+                std::string strName = chunk->mChunk->mFileName + "_" + std::to_string(chunk->mChunk->mChunk->Id()) + "_" + ToString(chunk->mChunk->mDataSet);
 
-                    for (auto i = 0u; i < numAnims; i++)
-                    {
-                        jsonxx::Object anim;
+                anim
+                    << "name"
+                    << strName;// +std::to_string(i + 1);
 
-                        // Generated globally unique name
-                        anim 
-                            << "name" 
-                            << animFile + "_" + std::to_string(id) + "_" + std::to_string(i + 1);
-
-                        // Guessed blending mode
-                        anim << "blend_mode" << 1;
-
-                        // TODO: Semi trans flag
-                        // TODO: pallet res id?
-
-                        jsonxx::Array locations;
-
-
-                        anim << "locations" << locations;
-
-                        anims << anim;
-
-                        // TODO: Index array for each data set
-
-                    }
-                    animsObject << "anims" << anims;
-                }
               
+
+                /*
+                // Guessed blending mode
+                anim << "blend_mode" << 1;
+
+                // TODO: Semi trans flag
+                // TODO: pallet res id?
+
+                jsonxx::Array locations;
+
+
+                anim << "locations" << locations;
+
+                anims << anim;
+
+                // TODO: Index array for each data set
+                */
+
+                animsObject << "anims" << anim;
+                resources << animsObject;
             }
-            resources << animsObject;
+           
 
             /*
             // Map of which LVL's live in what data set
@@ -598,7 +608,8 @@ int main(int /*argc*/, char** /*argv*/)
             
 
                 resources << dataSet;
-            }*/
+            }
+            */
 
             std::ofstream jsonFile("test.json");
             if (!jsonFile.is_open())
@@ -610,6 +621,7 @@ int main(int /*argc*/, char** /*argv*/)
 
         private:
 
+            /*
         void AddNumAnimationsMapping(Uint32 resId, Uint32 numAnims)
         {
             // TODO: Must store num anims for each dataset for saving indexes
@@ -666,21 +678,11 @@ int main(int /*argc*/, char** /*argv*/)
                 assert(it->second == numAnims);
             }
         }
+        */
 
-        void AddRes(Uint32 resId, const std::string& resFileName)
-        {
-            auto it = mAnimResIds.find(resId);
-            if (it == std::end(mAnimResIds))
-            {
-                mAnimResIds[resId] = { resFileName };
-            }
-            else
-            {
-                it->second.insert(resFileName);
-            }
 
-        }
 
+        /*
         void AddLvlMapping(eDataSetType eType, const std::string& lvlName, bool isPsx, const std::set<std::string>& files)
         {
             auto it = mLvlToDataSetMap[eType].find(lvlName);
@@ -689,43 +691,9 @@ int main(int /*argc*/, char** /*argv*/)
                 mLvlToDataSetMap[eType][lvlName] = LvlData{ isPsx, files };
             }
         }
+        */
 
     private:
-        struct Location
-        {
-            std::string mDataSetName;   // E.g AoPc
-            std::string mFileName;      // E.g ABEBSIC.BAN
-            Uint32 mResId;              // E.g 10
-            Uint32 mIndex;              // E.g 2
-
-            Uint32 mNumberOfFrames;
-            Uint32 mFps;
-            Uint32 mMaxFrameW;
-            Uint32 mMaxFrameH;
-        };
-
-        struct AnimData
-        {
-            std::vector<Location> mLocations;
-        };
-
-        std::map<Uint64, AnimData> mPHashMaps;              // phash of every anim resource
-        std::vector<Location> mDeDuplicatedAnimResources;   // none duplicated anim resources (via hamming distance)
-
-        // Map of Anim res ids to files that contain them
-        std::map<Uint32, std::set<std::string>> mAnimResIds; // E.g 25 -> [ABEBLOW.BAN, XYZ.BAN]
-
-        // ResId to number of anims in that ResId
-        std::map<Uint32, Uint32> mNumberOfAnimsMap; // E.g 25 -> 3, because it has flying head, arm and leg anims
-
-        // Map of which LVL's live in what data set
-        struct LvlData
-        {
-            bool mIsPsx;
-            std::set<std::string> mFiles;
-        };
-
-        std::map<eDataSetType, std::map<std::string, LvlData>> mLvlToDataSetMap; // E.g AoPc, AoPsx, AoPcDemo, AoPsxDemo -> R1.LVL
 
         LvlFileChunkReducer mLvlChunkReducer;
     };
@@ -747,6 +715,8 @@ int main(int /*argc*/, char** /*argv*/)
             abort();
         }
         db.Merge(gameFs, data.first, data.second, *it->second);
+
+        db.MergePcAndPsx();
     }
 
     db.ToJson();
