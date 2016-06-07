@@ -514,8 +514,21 @@ int main(int /*argc*/, char** /*argv*/)
             }*/
         }
 
+        bool CompareAnims(DeDuplicatedLvlChunk& lhs, DeDuplicatedLvlChunk& /*rhs*/)
+        {
+            // TODO: Check if 2 animations are "the same enough" to actually "be the same"
+            const Oddlib::Animation* anim = lhs.mAnimSet->AnimationAt(0);
+            const Oddlib::Animation::Frame& frame = anim->GetFrame(0);
+
+            std::ignore = frame;
+
+            return false;
+        }
+
         void MergePcAndPsx()
         {
+            // TODO: Need to rearrange in to a de-duplicated anim list which links to a DeDuplicatedLvlChunk
+            // if 2 anims are the same then we also mark the chunk as duplicated
             std::vector<std::unique_ptr<DeDuplicatedLvlChunk>>& chunks = mLvlChunkReducer.UniqueChunks();
             for (std::unique_ptr<DeDuplicatedLvlChunk>& chunk : chunks)
             {
@@ -532,29 +545,55 @@ int main(int /*argc*/, char** /*argv*/)
                     chunk->mAnimSet = std::make_unique<Oddlib::AnimationSet>(as);
                 }
             }
+
+            for (size_t i = 0; i < chunks.size(); i++)
+            {
+                std::unique_ptr<DeDuplicatedLvlChunk>& chunk = chunks[i];
+                bool hasMatch = false;
+                for (size_t j = i + 1; j < chunks.size(); j++)
+                {
+                    std::unique_ptr<DeDuplicatedLvlChunk>& otherChunk = chunks[j];
+                    hasMatch = CompareAnims(*chunk, *otherChunk);
+                    if (hasMatch)
+                    {
+                        break;
+                    }
+                }
+                if (hasMatch)
+                {
+                    // Merge the found duplicate with the original
+                }
+            }
         }
 
         void ToJson()
         {
-            
             jsonxx::Array resources;
 
             jsonxx::Object animsObject;
-            //jsonxx::Array anims;
-
+ 
             std::vector<std::unique_ptr<DeDuplicatedLvlChunk>>& chunks = mLvlChunkReducer.UniqueChunks();
             for (const std::unique_ptr<DeDuplicatedLvlChunk>& chunk : chunks)
             {
-                jsonxx::Object anim;
+                for (Uint32 i = 0; i < chunk->mAnimSet->NumberOfAnimations(); i++)
+                {
+                    jsonxx::Object anim;
 
-                // Generated globally unique name
-                std::string strName = chunk->mChunk->mFileName + "_" + std::to_string(chunk->mChunk->mChunk->Id()) + "_" + ToString(chunk->mChunk->mDataSet);
+                    // Generated globally unique name
+                    const std::string strName = 
+                        chunk->mChunk->mFileName + "_" + 
+                        std::to_string(chunk->mChunk->mChunk->Id()) + 
+                        "_" +
+                        ToString(chunk->mChunk->mDataSet) + 
+                        std::to_string(i + 1);
 
-                anim
-                    << "name"
-                    << strName;// +std::to_string(i + 1);
+                    anim
+                        << "name"
+                        << strName;
 
-              
+                    animsObject << "anims" << anim;
+                    resources << animsObject;
+                }
 
                 /*
                 // Guessed blending mode
@@ -573,8 +612,7 @@ int main(int /*argc*/, char** /*argv*/)
                 // TODO: Index array for each data set
                 */
 
-                animsObject << "anims" << anim;
-                resources << animsObject;
+               
             }
            
 
