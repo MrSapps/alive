@@ -98,6 +98,14 @@ struct DeDuplicatedLvlChunk
     std::vector<std::unique_ptr<LvlFileChunk>> mDuplicates;
 };
 
+struct DeDuplicatedAnimation
+{
+    const Oddlib::Animation* mAnimation;
+    Uint32 mAnimationIndex;
+    DeDuplicatedLvlChunk* mContainingChunk;
+    std::vector<DeDuplicatedLvlChunk*> mDuplicates;
+};
+
 bool ChunksAreEqual(const LvlFileChunk& c1, const LvlFileChunk& c2)
 {
     // Here just compare content and not type or id, since 2 chunks may have the same data
@@ -501,6 +509,8 @@ int main(int /*argc*/, char** /*argv*/)
     // and what BAN/BND's they live in. And which LVL's each BAN/BND lives in.
     class Db
     {
+    private:
+        std::vector<std::unique_ptr<DeDuplicatedAnimation>> mDeDuplicatedAnimations;
     public:
         Db() = default;
 
@@ -514,7 +524,8 @@ int main(int /*argc*/, char** /*argv*/)
             }*/
         }
 
-        bool CompareAnims(DeDuplicatedLvlChunk& lhs, DeDuplicatedLvlChunk& /*rhs*/)
+        /*
+        bool CompareAnims(DeDuplicatedLvlChunk& lhs, DeDuplicatedLvlChunk& rhs)
         {
             // TODO: Check if 2 animations are "the same enough" to actually "be the same"
             const Oddlib::Animation* anim = lhs.mAnimSet->AnimationAt(0);
@@ -524,11 +535,11 @@ int main(int /*argc*/, char** /*argv*/)
 
             return false;
         }
+        */
 
         void MergePcAndPsx()
         {
-            // TODO: Need to rearrange in to a de-duplicated anim list which links to a DeDuplicatedLvlChunk
-            // if 2 anims are the same then we also mark the chunk as duplicated
+            // Load the animation set for each unique Anim chunk
             std::vector<std::unique_ptr<DeDuplicatedLvlChunk>>& chunks = mLvlChunkReducer.UniqueChunks();
             for (std::unique_ptr<DeDuplicatedLvlChunk>& chunk : chunks)
             {
@@ -537,31 +548,23 @@ int main(int /*argc*/, char** /*argv*/)
                 {
                     auto stream = lvlFileChunk->Stream();
                     Oddlib::AnimSerializer as(*stream, IsPsx(chunk->mChunk->mDataSet));
-
-                    static int i = 0;
-                    i++;
-                    Oddlib::DebugAnimationSpriteSheet dss(as, "ABEBLOW" + std::to_string(i), chunk->mChunk->mChunk->Id(), ToString(chunk->mChunk->mDataSet));
-
                     chunk->mAnimSet = std::make_unique<Oddlib::AnimationSet>(as);
                 }
             }
 
+            // Create a list of deduplicated animations by creating an instance for every animation in
+            // each unique chunks animation set
             for (size_t i = 0; i < chunks.size(); i++)
             {
                 std::unique_ptr<DeDuplicatedLvlChunk>& chunk = chunks[i];
-                bool hasMatch = false;
-                for (size_t j = i + 1; j < chunks.size(); j++)
+                Oddlib::AnimationSet& animSet = *chunk->mAnimSet;
+                for (Uint32 j = 0; j < animSet.NumberOfAnimations(); j++)
                 {
-                    std::unique_ptr<DeDuplicatedLvlChunk>& otherChunk = chunks[j];
-                    hasMatch = CompareAnims(*chunk, *otherChunk);
-                    if (hasMatch)
-                    {
-                        break;
-                    }
-                }
-                if (hasMatch)
-                {
-                    // Merge the found duplicate with the original
+                    auto deDuplicatedAnimation = std::make_unique<DeDuplicatedAnimation>();
+                    deDuplicatedAnimation->mAnimation = animSet.AnimationAt(j);
+                    deDuplicatedAnimation->mAnimationIndex = j;
+                    deDuplicatedAnimation->mContainingChunk = chunk.get();
+                    mDeDuplicatedAnimations.push_back(std::move(deDuplicatedAnimation));
                 }
             }
         }
@@ -571,30 +574,28 @@ int main(int /*argc*/, char** /*argv*/)
             jsonxx::Array resources;
 
             jsonxx::Object animsObject;
- 
-            std::vector<std::unique_ptr<DeDuplicatedLvlChunk>>& chunks = mLvlChunkReducer.UniqueChunks();
-            for (const std::unique_ptr<DeDuplicatedLvlChunk>& chunk : chunks)
+
+            for (const std::unique_ptr<DeDuplicatedAnimation>& deDupedAnim : mDeDuplicatedAnimations)
             {
-                for (Uint32 i = 0; i < chunk->mAnimSet->NumberOfAnimations(); i++)
-                {
-                    jsonxx::Object anim;
+     
+                jsonxx::Object anim;
 
-                    // Generated globally unique name
-                    const std::string strName = 
-                        chunk->mChunk->mFileName + "_" + 
-                        std::to_string(chunk->mChunk->mChunk->Id()) + 
-                        "_" +
-                        ToString(chunk->mChunk->mDataSet) + 
-                        std::to_string(i + 1);
+                // Generated globally unique name
+                const std::string strName = 
+                    deDupedAnim->mContainingChunk->mChunk->mFileName + "_" +
+                    std::to_string(deDupedAnim->mContainingChunk->mChunk->mChunk->Id()) +
+                    "_" +
+                    ToString(deDupedAnim->mContainingChunk->mChunk->mDataSet) +
+                    "_" +
+                    std::to_string(deDupedAnim->mAnimationIndex);
 
-                    anim
-                        << "name"
-                        << strName;
+                anim
+                    << "name"
+                    << strName;
 
-                    animsObject << "anims" << anim;
-                    resources << animsObject;
-                }
-
+                animsObject << "anims" << anim;
+                resources << animsObject;
+                
                 /*
                 // Guessed blending mode
                 anim << "blend_mode" << 1;
