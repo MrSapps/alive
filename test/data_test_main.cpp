@@ -98,6 +98,12 @@ struct DeDuplicatedLvlChunk
     std::vector<std::unique_ptr<LvlFileChunk>> mDuplicates;
 };
 
+bool CompareFrames(const Oddlib::Animation::Frame& /*frame1*/, const Oddlib::Animation::Frame& /*frame2*/)
+{
+    // TODO: figure out if the 2 frames are similar enough to be called the same
+    return false;
+}
+
 struct DeDuplicatedAnimation
 {
     const Oddlib::Animation* mAnimation;
@@ -105,9 +111,24 @@ struct DeDuplicatedAnimation
     DeDuplicatedLvlChunk* mContainingChunk;
     std::vector<DeDuplicatedLvlChunk*> mDuplicates;
 
-    bool operator == (const DeDuplicatedAnimation& /*other*/)
+    bool operator == (const DeDuplicatedAnimation& other)
     {
-        return true;
+        if (mAnimation->NumFrames() == other.mAnimation->NumFrames() &&
+            mAnimation->Fps() == other.mAnimation->Fps())
+        {
+            for (Uint32 i = 0; i < mAnimation->NumFrames(); i++)
+            {
+                const Oddlib::Animation::Frame& frame1 = mAnimation->GetFrame(i);
+                const Oddlib::Animation::Frame& frame2 = other.mAnimation->GetFrame(i);
+                // Compare if frame images are "similar"
+                if (!CompareFrames(frame1, frame2))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 };
 
