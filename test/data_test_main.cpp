@@ -104,6 +104,11 @@ struct DeDuplicatedAnimation
     Uint32 mAnimationIndex;
     DeDuplicatedLvlChunk* mContainingChunk;
     std::vector<DeDuplicatedLvlChunk*> mDuplicates;
+
+    bool operator == (const DeDuplicatedAnimation& /*other*/)
+    {
+        return true;
+    }
 };
 
 bool ChunksAreEqual(const LvlFileChunk& c1, const LvlFileChunk& c2)
@@ -567,6 +572,31 @@ int main(int /*argc*/, char** /*argv*/)
                     mDeDuplicatedAnimations.push_back(std::move(deDuplicatedAnimation));
                 }
             }
+
+            for (size_t i = 0; i < mDeDuplicatedAnimations.size(); i++)
+            {
+                std::unique_ptr<DeDuplicatedAnimation>& ddAnim = mDeDuplicatedAnimations[i];
+                auto it = mDeDuplicatedAnimations.begin() + i + 1;
+                while(it != mDeDuplicatedAnimations.end())
+                {
+                    std::unique_ptr<DeDuplicatedAnimation>& otherDdAnim = *it;
+                    if (*ddAnim == *otherDdAnim)
+                    {
+                        // Consume the others chunk as a duplicate
+                        ddAnim->mDuplicates.push_back(otherDdAnim->mContainingChunk);
+
+                        // And take it out of the list of unique anims
+                        assert(otherDdAnim->mDuplicates.empty());
+                        it = mDeDuplicatedAnimations.erase(it);
+                    }
+                    else
+                    {
+                        // Move on to checking the next one
+                        ++it;
+                    }
+                }
+            }
+
         }
 
         void ToJson()
