@@ -9,9 +9,7 @@
 #include "oddlib/compressiontype6or7aepsx.hpp"
 #include "logger.hpp"
 #include "sdl_raii.hpp"
-#include "lodepng/lodepng.h"
 #include <assert.h>
-#include <fstream>
 #include <array>
 
 namespace Oddlib
@@ -257,30 +255,7 @@ namespace Oddlib
     {
         if (mSpriteSheet)
         {
-            lodepng::State state = {};
-
-            // input color type
-            state.info_raw.colortype = LCT_RGBA;
-            state.info_raw.bitdepth = 8;
-
-            // output color type
-            state.info_png.color.colortype = LCT_RGBA;
-            state.info_png.color.bitdepth = 8;
-            state.encoder.auto_convert = 0;
-
-            // encode to PNG
-            std::vector<unsigned char> out;
-            lodepng::encode(out, (const unsigned char*)mSpriteSheet->pixels, mSpriteSheet->w, mSpriteSheet->h, state);
-
-            // write out PNG buffer
-            std::ofstream fileStream;
-            fileStream.open((mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".png").c_str(), std::ios::binary);
-            if (!fileStream.is_open())
-            {
-                throw Exception("Can't open output file");
-            }
-
-            fileStream.write(reinterpret_cast<const char*>(out.data()), out.size());
+            SDLHelpers::SaveSurfaceAsPng((mFileName + "_" + mDataSetName + "_id_" + std::to_string(mId) + ".png").c_str(), mSpriteSheet.get());
         }
     }
 

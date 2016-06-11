@@ -98,8 +98,22 @@ struct DeDuplicatedLvlChunk
     std::vector<std::unique_ptr<LvlFileChunk>> mDuplicates;
 };
 
-bool CompareFrames(const Oddlib::Animation::Frame& /*frame1*/, const Oddlib::Animation::Frame& /*frame2*/)
+bool CompareFrames(const Oddlib::Animation::Frame& frame1, const Oddlib::Animation::Frame& frame2)
 {
+    SDL_Rect stretchRect;
+    stretchRect.x = 0;
+    stretchRect.y = 0;
+    stretchRect.w = frame2.mFrame->w;
+    stretchRect.h = frame2.mFrame->h;
+
+    SDL_SurfacePtr frame1Scaled = SDLHelpers::ScaledCopy(frame1.mFrame, &stretchRect);
+
+    /*
+    SDLHelpers::SaveSurfaceAsPng("frame1_scaled.png", frame1Scaled.get());
+    SDLHelpers::SaveSurfaceAsPng("frame1.png", frame1.mFrame);
+    SDLHelpers::SaveSurfaceAsPng("frame2.png", frame2.mFrame);
+    */
+
     // TODO: figure out if the 2 frames are similar enough to be called the same
     return false;
 }
@@ -620,6 +634,26 @@ int main(int /*argc*/, char** /*argv*/)
 
         }
 
+        void Dump()
+        {
+            for (const std::unique_ptr<DeDuplicatedAnimation>& deDupedAnim : mDeDuplicatedAnimations)
+            {
+                auto stream = deDupedAnim->mContainingChunk->mChunk->mChunk->Stream();
+                Oddlib::AnimSerializer as(*stream, IsPsx(deDupedAnim->mContainingChunk->mChunk->mDataSet));
+                
+                const std::string name = deDupedAnim->mContainingChunk->mChunk->mFileName + "_" +
+                    std::to_string(deDupedAnim->mContainingChunk->mChunk->mChunk->Id()) +
+                    "_" +
+                    ToString(deDupedAnim->mContainingChunk->mChunk->mDataSet) +
+                    "_" +
+                    std::to_string(deDupedAnim->mAnimationIndex);
+
+                Oddlib::DebugAnimationSpriteSheet dss(as, name, 
+                    deDupedAnim->mContainingChunk->mChunk->mChunk->Id(), 
+                    ToString(deDupedAnim->mContainingChunk->mChunk->mDataSet));
+            }
+        }
+
         void ToJson()
         {
             jsonxx::Array resources;
@@ -810,6 +844,7 @@ int main(int /*argc*/, char** /*argv*/)
     db.MergePcAndPsx();
 
     db.ToJson();
+    db.Dump();
 
     return 0;
 }
