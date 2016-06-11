@@ -14,6 +14,7 @@
 #include <cassert>
 #include "jsonxx/jsonxx.h"
 #include "resourcemapper.hpp"
+#include "phash.hpp"
 
 enum eDataSetType
 {
@@ -107,6 +108,11 @@ bool CompareFrames(const Oddlib::Animation::Frame& frame1, const Oddlib::Animati
     stretchRect.h = frame2.mFrame->h;
 
     SDL_SurfacePtr frame1Scaled = SDLHelpers::ScaledCopy(frame1.mFrame, &stretchRect);
+
+    const Uint64 h1 = pHash(frame1.mFrame);
+    const Uint64 h2 = pHash(frame2.mFrame);
+
+    hamming_distance(h1, h2);
 
     /*
     SDLHelpers::SaveSurfaceAsPng("frame1_scaled.png", frame1Scaled.get());
