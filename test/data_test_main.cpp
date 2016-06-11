@@ -101,25 +101,37 @@ struct DeDuplicatedLvlChunk
 
 bool CompareFrames(const Oddlib::Animation::Frame& frame1, const Oddlib::Animation::Frame& frame2)
 {
-    SDL_Rect stretchRect;
-    stretchRect.x = 0;
-    stretchRect.y = 0;
-    stretchRect.w = frame2.mFrame->w;
-    stretchRect.h = frame2.mFrame->h;
-
-    SDL_SurfacePtr frame1Scaled = SDLHelpers::ScaledCopy(frame1.mFrame, &stretchRect);
-
     const Uint64 h1 = pHash(frame1.mFrame);
     const Uint64 h2 = pHash(frame2.mFrame);
+    const Uint32 distance = hamming_distance(h1, h2);
 
-    hamming_distance(h1, h2);
+    if (distance <= 22)
+    {
+        return true;
+    }
+    else
+    {
+        /*
+        const Uint32 w = frame1.mFrame->w + frame2.mFrame->w;
+        const Uint32 h = std::max(frame1.mFrame->h, frame2.mFrame->h);
 
-    /*
-    SDLHelpers::SaveSurfaceAsPng("frame1_scaled.png", frame1Scaled.get());
-    SDLHelpers::SaveSurfaceAsPng("frame1.png", frame1.mFrame);
-    SDLHelpers::SaveSurfaceAsPng("frame2.png", frame2.mFrame);
-    */
+        SDL_SurfacePtr combined(SDL_CreateRGBSurface(0,
+            w, h,
+            frame1.mFrame->format->BitsPerPixel,
+            frame1.mFrame->format->Rmask,
+            frame1.mFrame->format->Gmask,
+            frame1.mFrame->format->Bmask,
+            frame1.mFrame->format->Amask));
 
+        SDL_BlitSurface(frame1.mFrame, NULL, combined.get(), NULL);
+
+        SDL_Rect dstRect = { frame1.mFrame->w, 0, frame2.mFrame->w, frame2.mFrame->h };
+        SDL_BlitSurface(frame2.mFrame, NULL, combined.get(), &dstRect);
+
+        SDLHelpers::SaveSurfaceAsPng(("distance_" + std::to_string(distance) + ".png").c_str(), combined.get());
+        */
+    }
+  
     // TODO: figure out if the 2 frames are similar enough to be called the same
     return false;
 }
@@ -198,7 +210,7 @@ private:
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
-            if (file->FileName() != "ABEBLOW.BAN") // Limit testing to this 1 file for now
+            if (file->FileName() != "ABEBSIC.BAN") // Limit testing to this 1 file for now
             {
                 continue;
             }
@@ -850,7 +862,7 @@ int main(int /*argc*/, char** /*argv*/)
     db.MergePcAndPsx();
 
     db.ToJson();
-    db.Dump();
+    //db.Dump();
 
     return 0;
 }
