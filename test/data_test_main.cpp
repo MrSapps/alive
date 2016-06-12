@@ -136,12 +136,82 @@ bool CompareFrames(const Oddlib::Animation::Frame& frame1, const Oddlib::Animati
     return false;
 }
 
+struct LocationFileInfo
+{
+    bool operator < (const LocationFileInfo& other) const
+    {
+        return std::tie(mFileName, mChunkId, mAnimIndex) < std::tie(other.mFileName, other.mChunkId, other.mAnimIndex);
+    }
+
+    std::string mFileName;
+    Uint32 mChunkId;
+    Uint32 mAnimIndex;
+};
+
+struct LocationData
+{
+    bool operator < (const LocationData& other) const
+    {
+        return std::tie(mDataSet) < std::tie(other.mDataSet);
+    }
+
+    eDataSetType mDataSet;
+    std::set<LocationFileInfo> mData;
+};
+
 struct DeDuplicatedAnimation
 {
+private:
+    void HandleLvlChunk(std::set<LocationData>& vec, const LvlFileChunk& chunk)
+    {
+        LocationData d = {};
+        d.mDataSet = chunk.mDataSet;
+        
+        LocationFileInfo fileInfo = {};
+        fileInfo.mChunkId = chunk.mChunk->Id();
+        fileInfo.mFileName = chunk.mFileName;
+        fileInfo.mAnimIndex = mAnimationIndex;
+
+        auto it = vec.find(d);
+        if (it != std::end(vec))
+        {
+            LocationData copy = *it;
+            copy.mData.insert(fileInfo);
+            vec.erase(it);
+            vec.insert(copy);
+        }
+        else
+        {
+            d.mData.insert(fileInfo);
+            vec.insert(d);
+        }
+    }
+
+    void HandleDeDuplicatedChunk(std::set<LocationData>& vec, const DeDuplicatedLvlChunk& chunk)
+    {
+        HandleLvlChunk(vec, *chunk.mChunk);
+        for (const std::unique_ptr<LvlFileChunk>& lvlChunk : chunk.mDuplicates)
+        {
+            HandleLvlChunk(vec, *lvlChunk);
+        }
+    }
+
+public:
     const Oddlib::Animation* mAnimation;
     Uint32 mAnimationIndex;
     DeDuplicatedLvlChunk* mContainingChunk;
     std::vector<DeDuplicatedLvlChunk*> mDuplicates;
+
+    std::set<LocationData> Locations()
+    {
+        std::set<LocationData> r;
+        HandleDeDuplicatedChunk(r, *mContainingChunk);
+        for (const DeDuplicatedLvlChunk* chunk : mDuplicates)
+        {
+            HandleDeDuplicatedChunk(r, *chunk);
+        }
+        return r;
+    }
 
     bool operator == (const DeDuplicatedAnimation& other)
     {
@@ -210,14 +280,23 @@ private:
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
-            if (file->FileName() != "ABEBSIC.BAN") // Limit testing to this 1 file for now
+            /*
+            if (file->FileName() != "ABEBLOW.BAN") // Limit testing to this 1 file for now
             {
                 continue;
             }
+            */
 
             for (auto j = 0u; j < file->ChunkCount(); j++)
             {
                 auto chunk = file->ChunkByIndex(j);
+                
+                if (chunk->Id() != 1037)
+                {
+                    break;
+                }
+                
+
                 if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm')) // Only care about Anim resources at the moment
                 {
                     bool deDuplicatedChunkAlreadyExists = false;
@@ -421,6 +500,31 @@ private:
 };
 */
 
+static int MaxW(const Oddlib::Animation& anim)
+{
+    int ret = 0;
+    for (Uint32 i = 0; i < anim.NumFrames(); i++)
+    {
+        if (anim.GetFrame(i).mFrame->w > ret)
+        {
+            ret = anim.GetFrame(i).mFrame->w;
+        }
+    }
+    return ret;
+}
+
+static int MaxH(const Oddlib::Animation& anim)
+{
+    int ret = 0;
+    for (Uint32 i = 0; i < anim.NumFrames(); i++)
+    {
+        if (anim.GetFrame(i).mFrame->h > ret)
+        {
+            ret = anim.GetFrame(i).mFrame->h;
+        }
+    }
+    return ret;
+}
 
 int main(int /*argc*/, char** /*argv*/)
 {
@@ -666,9 +770,39 @@ int main(int /*argc*/, char** /*argv*/)
                     "_" +
                     std::to_string(deDupedAnim->mAnimationIndex);
 
+
+                const int frameW = MaxW(*deDupedAnim->mAnimation);
+                const int w = frameW * deDupedAnim->mAnimation->NumFrames();
+                const int h = MaxH(*deDupedAnim->mAnimation);
+                const auto& calcFrame = deDupedAnim->mAnimation->GetFrame(0);
+                SDL_SurfacePtr sprites(SDL_CreateRGBSurface(0,
+                    w, h,
+                    calcFrame.mFrame->format->BitsPerPixel,
+                    calcFrame.mFrame->format->Rmask,
+                    calcFrame.mFrame->format->Gmask,
+                    calcFrame.mFrame->format->Bmask,
+                    calcFrame.mFrame->format->Amask));
+                SDL_SetSurfaceBlendMode(sprites.get(), SDL_BLENDMODE_NONE);
+
+                int xpos = 0;
+                for (Uint32 i = 0; i < deDupedAnim->mAnimation->NumFrames(); i++)
+                {
+                    const Oddlib::Animation::Frame& frame = deDupedAnim->mAnimation->GetFrame(i);
+
+                    SDL_Rect dstRect = { xpos, h - frame.mFrame->h, frame.mFrame->w, frame.mFrame->h };
+                    xpos += frame.mFrame->w;
+
+                    SDL_BlitSurface(frame.mFrame, NULL, sprites.get(), &dstRect);
+
+                }
+
+                SDLHelpers::SaveSurfaceAsPng((name + ".png").c_str(), sprites.get());
+
+                /*
                 Oddlib::DebugAnimationSpriteSheet dss(as, name, 
                     deDupedAnim->mContainingChunk->mChunk->mChunk->Id(), 
                     ToString(deDupedAnim->mContainingChunk->mChunk->mDataSet));
+                */
             }
         }
 
@@ -680,7 +814,6 @@ int main(int /*argc*/, char** /*argv*/)
 
             for (const std::unique_ptr<DeDuplicatedAnimation>& deDupedAnim : mDeDuplicatedAnimations)
             {
-     
                 jsonxx::Object anim;
 
                 // Generated globally unique name
@@ -696,27 +829,37 @@ int main(int /*argc*/, char** /*argv*/)
                     << "name"
                     << strName;
 
-                animsObject << "anims" << anim;
-                resources << animsObject;
-                
-                /*
                 // Guessed blending mode
                 anim << "blend_mode" << 1;
 
                 // TODO: Semi trans flag
                 // TODO: pallet res id?
+                
 
                 jsonxx::Array locations;
 
+                std::set<LocationData> locs = deDupedAnim->Locations();
+                for (const LocationData& loc : locs)
+                {
+                    jsonxx::Object location;
+                    jsonxx::Array files;
+                    location << "dataset" << std::string(ToString(loc.mDataSet));
+                    for (const LocationFileInfo& fileInfo : loc.mData)
+                    {
+                        jsonxx::Object fileObj;
+                        fileObj << "filename" << fileInfo.mFileName;
+                        fileObj << "id" << fileInfo.mChunkId;
+                        fileObj << "index" << fileInfo.mAnimIndex;
+                        files << fileObj;
+                    }
+                    location << "files" << files;
+                    locations << location;
+                }
 
                 anim << "locations" << locations;
 
-                anims << anim;
-
-                // TODO: Index array for each data set
-                */
-
-               
+                animsObject << "anims" << anim;
+                resources << animsObject;
             }
            
 
@@ -862,7 +1005,7 @@ int main(int /*argc*/, char** /*argv*/)
     db.MergePcAndPsx();
 
     db.ToJson();
-    //db.Dump();
+    db.Dump();
 
     return 0;
 }
