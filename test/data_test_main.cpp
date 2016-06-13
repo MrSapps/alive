@@ -148,51 +148,24 @@ struct LocationFileInfo
     Uint32 mAnimIndex;
 };
 
-struct LocationData
-{
-    bool operator < (const LocationData& other) const
-    {
-        return std::tie(mDataSet) < std::tie(other.mDataSet);
-    }
-
-    eDataSetType mDataSet;
-    std::set<LocationFileInfo> mData;
-};
-
 struct DeDuplicatedAnimation
 {
 private:
-    void HandleLvlChunk(std::set<LocationData>& vec, const LvlFileChunk& chunk)
-    {
-        LocationData d = {};
-        d.mDataSet = chunk.mDataSet;
-        
+    void HandleLvlChunk(std::map<eDataSetType, std::set<LocationFileInfo>>& vec, const LvlFileChunk& chunk, Uint32 animIdx)
+    { 
         LocationFileInfo fileInfo = {};
         fileInfo.mChunkId = chunk.mChunk->Id();
         fileInfo.mFileName = chunk.mFileName;
-        fileInfo.mAnimIndex = mAnimationIndex;
-
-        auto it = vec.find(d);
-        if (it != std::end(vec))
-        {
-            LocationData copy = *it;
-            copy.mData.insert(fileInfo);
-            vec.erase(it);
-            vec.insert(copy);
-        }
-        else
-        {
-            d.mData.insert(fileInfo);
-            vec.insert(d);
-        }
+        fileInfo.mAnimIndex = animIdx;
+        vec[chunk.mDataSet].insert(fileInfo);
     }
 
-    void HandleDeDuplicatedChunk(std::set<LocationData>& vec, const DeDuplicatedLvlChunk& chunk)
+    void HandleDeDuplicatedChunk(std::map<eDataSetType, std::set<LocationFileInfo>>& vec, const DeDuplicatedLvlChunk& chunk, Uint32 animIdx)
     {
-        HandleLvlChunk(vec, *chunk.mChunk);
+        HandleLvlChunk(vec, *chunk.mChunk, animIdx);
         for (const std::unique_ptr<LvlFileChunk>& lvlChunk : chunk.mDuplicates)
         {
-            HandleLvlChunk(vec, *lvlChunk);
+            HandleLvlChunk(vec, *lvlChunk, animIdx);
         }
     }
 
@@ -200,15 +173,15 @@ public:
     const Oddlib::Animation* mAnimation;
     Uint32 mAnimationIndex;
     DeDuplicatedLvlChunk* mContainingChunk;
-    std::vector<DeDuplicatedLvlChunk*> mDuplicates;
+    std::vector<std::pair<Uint32, DeDuplicatedLvlChunk*>> mDuplicates;
 
-    std::set<LocationData> Locations()
+    std::map<eDataSetType, std::set<LocationFileInfo>> Locations()
     {
-        std::set<LocationData> r;
-        HandleDeDuplicatedChunk(r, *mContainingChunk);
-        for (const DeDuplicatedLvlChunk* chunk : mDuplicates)
+        std::map<eDataSetType, std::set<LocationFileInfo>> r;
+        HandleDeDuplicatedChunk(r, *mContainingChunk, mAnimationIndex);
+        for (const auto& chunkPair : mDuplicates)
         {
-            HandleDeDuplicatedChunk(r, *chunk);
+            HandleDeDuplicatedChunk(r, *chunkPair.second, chunkPair.first);
         }
         return r;
     }
@@ -280,22 +253,22 @@ private:
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
-            /*
-            if (file->FileName() != "ABEBLOW.BAN") // Limit testing to this 1 file for now
+            
+            if (file->FileName() != "ABEBSIC.BAN") // Limit testing to this 1 file for now
             {
                 continue;
             }
-            */
+            
 
             for (auto j = 0u; j < file->ChunkCount(); j++)
             {
                 auto chunk = file->ChunkByIndex(j);
-                
+                /*
                 if (chunk->Id() != 1037)
                 {
                     break;
                 }
-                
+                */
 
                 if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm')) // Only care about Anim resources at the moment
                 {
@@ -740,7 +713,7 @@ int main(int /*argc*/, char** /*argv*/)
                     if (*ddAnim == *otherDdAnim)
                     {
                         // Consume the others chunk as a duplicate
-                        ddAnim->mDuplicates.push_back(otherDdAnim->mContainingChunk);
+                        ddAnim->mDuplicates.push_back(std::make_pair(otherDdAnim->mAnimationIndex, otherDdAnim->mContainingChunk));
 
                         // And take it out of the list of unique anims
                         assert(otherDdAnim->mDuplicates.empty());
@@ -836,15 +809,18 @@ int main(int /*argc*/, char** /*argv*/)
                 // TODO: pallet res id?
                 
 
-                jsonxx::Array locations;
+                jsonxx::Array locationsArray;
 
-                std::set<LocationData> locs = deDupedAnim->Locations();
-                for (const LocationData& loc : locs)
+                std::map<eDataSetType, std::set<LocationFileInfo>> locationMap = deDupedAnim->Locations();
+                for (const auto& dataSetFileInfoPair : locationMap)
                 {
-                    jsonxx::Object location;
+                    const eDataSetType dataSet = dataSetFileInfoPair.first;
+                    const std::set<LocationFileInfo>& locations = dataSetFileInfoPair.second;
+
+                    jsonxx::Object locationObj;
                     jsonxx::Array files;
-                    location << "dataset" << std::string(ToString(loc.mDataSet));
-                    for (const LocationFileInfo& fileInfo : loc.mData)
+                    locationObj << "dataset" << std::string(ToString(dataSet));
+                    for (const LocationFileInfo& fileInfo : locations)
                     {
                         jsonxx::Object fileObj;
                         fileObj << "filename" << fileInfo.mFileName;
@@ -852,11 +828,11 @@ int main(int /*argc*/, char** /*argv*/)
                         fileObj << "index" << fileInfo.mAnimIndex;
                         files << fileObj;
                     }
-                    location << "files" << files;
-                    locations << location;
+                    locationObj << "files" << files;
+                    locationsArray << locationObj;
                 }
 
-                anim << "locations" << locations;
+                anim << "locations" << locationsArray;
 
                 animsObject << "anims" << anim;
                 resources << animsObject;
