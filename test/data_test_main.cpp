@@ -246,13 +246,15 @@ public:
     }
 
     std::vector<std::unique_ptr<DeDuplicatedLvlChunk>>& UniqueChunks() { return mDeDuplicatedLvlFileChunks; }
-
+    const std::map<eDataSetType, std::map<std::string, std::set<std::string>>>& LvlContent() const { return mLvlToDataSetMap; }
 private:
     void MergeReduce(std::unique_ptr<Oddlib::LvlArchive> lvl, const std::string& lvlName, eDataSetType dataSet)
     {
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
+      
+            AddLvlMapping(dataSet, lvlName, file->FileName());
             
             if (file->FileName() != "ABEBSIC.BAN") // Limit testing to this 1 file for now
             {
@@ -306,7 +308,20 @@ private:
             }
         }
 
-        mLvls.push_back(std::move(lvl));
+        AddLvl(std::move(lvl));
+    }
+
+    void AddLvl(std::unique_ptr<Oddlib::LvlArchive> lvl)
+    {
+        mLvls.emplace_back(std::move(lvl));
+    }
+
+    // Map of which LVL's live in what data set
+    std::map<eDataSetType, std::map<std::string, std::set<std::string>>> mLvlToDataSetMap; // E.g AoPc, AoPsx, AoPcDemo, AoPsxDemo -> R1.LVL
+
+    void AddLvlMapping(eDataSetType eType, const std::string& lvlName, const std::string& file)
+    {
+        mLvlToDataSetMap[eType][lvlName].insert(file);
     }
 
     // Open LVLS (required because chunks must have the parent lvl in scope)
@@ -839,14 +854,13 @@ int main(int /*argc*/, char** /*argv*/)
             }
            
 
-            /*
             // Map of which LVL's live in what data set
-            for (const auto& dataSetPair : mLvlToDataSetMap)
+            for (const auto& dataSetPair : mLvlChunkReducer.LvlContent())
             {
                 jsonxx::Object dataSet;
-                const std::string strName = DataTest::ToString(dataSetPair.first);
+                const std::string strName = ToString(dataSetPair.first);
                 dataSet << "data_set_name" << strName;
-                dataSet << "is_psx" << dataSetPair.second.begin()->second.mIsPsx;
+                dataSet << "is_psx" << IsPsx(dataSetPair.first);
 
                 jsonxx::Array lvlsArray;
 
@@ -857,7 +871,7 @@ int main(int /*argc*/, char** /*argv*/)
                     lvlObj << "name" << lvlData.first;
 
                     jsonxx::Array lvlContent;
-                    const std::set<std::string>& content = lvlData.second.mFiles;
+                    const std::set<std::string>& content = lvlData.second;
                     for (const auto& lvlFile : content)
                     {
                         lvlContent << lvlFile;
@@ -870,7 +884,6 @@ int main(int /*argc*/, char** /*argv*/)
 
                 resources << dataSet;
             }
-            */
 
             std::ofstream jsonFile("test.json");
             if (!jsonFile.is_open())
@@ -941,21 +954,7 @@ int main(int /*argc*/, char** /*argv*/)
         }
         */
 
-
-
-        /*
-        void AddLvlMapping(eDataSetType eType, const std::string& lvlName, bool isPsx, const std::set<std::string>& files)
-        {
-            auto it = mLvlToDataSetMap[eType].find(lvlName);
-            if (it == std::end(mLvlToDataSetMap[eType]))
-            {
-                mLvlToDataSetMap[eType][lvlName] = LvlData{ isPsx, files };
-            }
-        }
-        */
-
     private:
-
         LvlFileChunkReducer mLvlChunkReducer;
     };
 
