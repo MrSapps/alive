@@ -849,7 +849,7 @@ int main(int /*argc*/, char** /*argv*/)
 
                 anim << "locations" << locationsArray;
 
-                animsObject << "anims" << anim;
+                animsObject << "animation" << anim;
                 resources << animsObject;
             }
            

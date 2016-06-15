@@ -911,39 +911,40 @@ public:
         Parse(jsonData);
     }
 
-    struct AnimMapping
+    struct AnimMappingData
     {
         std::string mFile;
         Uint32 mId;
-        Uint32 mBlendingMode;
-        Uint32 mIndex;
+        Uint32 mAnimationIndex;
     };
 
-    std::pair<AnimMapping*, std::map<std::string, std::vector<std::pair<bool, std::string>>>*> Find(const char* resourceName)
+    struct AnimMapping
     {
-        auto am = mAnimMaps.find(resourceName);
+        Uint32 mBlendingMode;
+        std::vector<AnimMappingData> mFiles;
+    };
+
+    const AnimMapping* Find(const char* resourceName, const char* dataSetName)
+    {
+        const auto& am = mAnimMaps.find(resourceName);
         if (am != std::end(mAnimMaps))
         {
-            auto fl = mFileLocations.find(am->second.mFile);
-            if (fl != std::end(mFileLocations))
+            const auto& it = am->second.find(dataSetName);
+            if (it != std::end(am->second))
             {
-                return std::make_pair(&am->second, &fl->second);
-            }
-            else
-            {
-                return std::make_pair(&am->second, nullptr);
+                return &it->second;
             }
         }
-        return std::make_pair(nullptr, nullptr);
+        return nullptr;
     }
 
-    void AddAnimMapping(const std::string& resourceName, const AnimMapping& mapping)
+    void AddAnimMapping(const std::string& resourceName, const std::string& dataSetName, const AnimMapping& mapping)
     {
-        mAnimMaps[resourceName] = mapping;
+        mAnimMaps[resourceName][dataSetName] = mapping;
     }
 private:
 
-    std::map<std::string, AnimMapping> mAnimMaps;
+    std::map<std::string, std::map<std::string, AnimMapping>> mAnimMaps;
 
     void Parse(const std::string& json)
     {
@@ -956,9 +957,10 @@ private:
         for (size_t rootObjIndex = 0; rootObjIndex < root.size(); rootObjIndex++)
         {
             jsonxx::Object obj = root.get<jsonxx::Object>(static_cast<unsigned int>(rootObjIndex));
-            if (obj.has<jsonxx::Array>("anims"))
+            if (obj.has<jsonxx::Object>("animation"))
             {
-                ParseAnimResourceJson(obj);
+                jsonxx::Object& animationObj = obj.get<jsonxx::Object>("animation");
+                ParseAnimResourceJson(animationObj);
             }
             else if (obj.has<jsonxx::Array>("lvls"))
             {
@@ -995,26 +997,33 @@ private:
 
     void ParseAnimResourceJson(const jsonxx::Object& obj)
     {
-        const jsonxx::Array& anims = obj.get<jsonxx::Array>("anims");
+        const auto& name = obj.get<jsonxx::String>("name");
+        const auto blendMode = static_cast<Uint32>(obj.get<jsonxx::Number>("blend_mode"));
+        const jsonxx::Array& locations = obj.get<jsonxx::Array>("locations");
+ 
+        AnimMapping mapping;
+        mapping.mBlendingMode = blendMode;
 
-        const auto& file = obj.get<jsonxx::String>("file");
-        const auto id = static_cast<Uint32>(obj.get<jsonxx::Number>("id"));
-
-        for (size_t i = 0; i < anims.size(); i++)
+        for (size_t i = 0; i < locations.size(); i++)
         {
-            AnimMapping mapping;
-            mapping.mFile = file;
-            mapping.mId = static_cast<Uint32>(id);
+            AnimMappingData data;
+            const jsonxx::Object& locationRecord = locations.get<jsonxx::Object>(static_cast<Uint32>(i));
 
-            const jsonxx::Object& animRecord = anims.get<jsonxx::Object>(static_cast<Uint32>(i));
+            const std::string& dataSetName = locationRecord.get<jsonxx::String>("dataset");
+            const jsonxx::Array& files = locationRecord.get<jsonxx::Array>("files");
 
-            const auto& name = animRecord.get<jsonxx::String>("name");
-            const auto blendMode = animRecord.get<jsonxx::Number>("blend_mode");
-            mapping.mBlendingMode = static_cast<Uint32>(blendMode);
-            mapping.mIndex = static_cast<Uint32>(i);
+            for (size_t j = 0; j < files.size(); j++)
+            {
+                const jsonxx::Object& fileRecord = files.get<jsonxx::Object>(static_cast<Uint32>(j));
+                data.mFile = fileRecord.get<jsonxx::String>("filename");
+                data.mId = static_cast<Uint32>(fileRecord.get<jsonxx::Number>("id"));
+                data.mAnimationIndex = static_cast<Uint32>(fileRecord.get<jsonxx::Number>("index"));
 
-            AddAnimMapping(name, mapping);
+                mapping.mFiles.push_back(data);
+            }
+            AddAnimMapping(name, dataSetName, mapping);
         }
+     
     }
 
 };
@@ -1214,6 +1223,8 @@ public:
     Resource<Animation> Locate(const char* resourceName, const std::string& dataSetName);
 
 private:
+    Oddlib::LvlArchive::FileChunk* OpenChunk(const char* dataSetName, const char* fileName, Uint32 chunkId);
+
     ResourceMapper mResMapper;
     DataPaths mDataPaths;
     ResourceCache mResourceCache;

@@ -71,6 +71,13 @@ bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
     return ret;
 }
 
+Oddlib::LvlArchive::FileChunk* ResourceLocator::OpenChunk(const char* /*dataSetName*/, const char* /*fileName*/, Uint32 /*chunkId*/)
+{
+    // TODO
+    //mResMapper.Find(fileName)->Find(dataSetName);
+    // std::map<std::string, std::map<std::string, std::vector<std::pair<bool,std::string>>>> mFileLocations
+    return nullptr;
+}
 
 Resource<Animation> ResourceLocator::Locate(const char* resourceName)
 {
@@ -85,7 +92,7 @@ Resource<Animation> ResourceLocator::Locate(const char* resourceName)
 
     // For each data set attempt to find resourceName by mapping
     // to a LVL/file/chunk. Or in the case of a mod dataset something else.
-    const auto animMapping = mResMapper.Find(resourceName);
+   
     for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
     {
         if (fs.mIsMod)
@@ -98,38 +105,27 @@ Resource<Animation> ResourceLocator::Locate(const char* resourceName)
         }
         else
         {
-            if (animMapping.first && animMapping.second)
+            const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName, fs.mDataSetName.c_str());
+            if (animMapping)
             {
-                auto& animMap = *animMapping.second;
-                auto it = animMap.find(fs.mDataSetName);
-                if (it != animMap.end())
+                for (const ResourceMapper::AnimMappingData& animData : animMapping->mFiles)
                 {
-                    for (const auto& lvlNameIsPsxPair : it->second)
-                    {
-                        auto lvlFile = fs.mFileSystem->Open(lvlNameIsPsxPair.second);
-                        if (lvlFile)
-                        {
-                            Oddlib::LvlArchive lvlArchive(std::move(lvlFile));
-                            Oddlib::LvlArchive::File* lvlFile = lvlArchive.FileByName(animMapping.first->mFile);
-                            if (lvlFile)
-                            {
-                                Oddlib::LvlArchive::FileChunk* chunk = lvlFile->ChunkById(animMapping.first->mId);
-                                if (chunk)
-                                {
-                                    LOG_INFO(resourceName
-                                        << " located in data set " << fs.mDataSetName
-                                        << " mapped to " << fs.mFileSystem->FsPath()
-                                        << " in lvl archive " << lvlNameIsPsxPair.second
-                                        << " in lvl file " << animMapping.first->mFile
-                                        << " with lvl file chunk id " << animMapping.first->mId
-                                        << " at anim index " << animMapping.first->mIndex
-                                        << " is psx " << lvlNameIsPsxPair.first);
+                    Oddlib::LvlArchive::FileChunk* chunk = OpenChunk(fs.mDataSetName.c_str(), animData.mFile.c_str(), animData.mId);
+                    
+                    // TODO: Log out the other info
+                    LOG_INFO(resourceName
+                        << " located in data set " << fs.mDataSetName
+                        << " mapped to " << fs.mFileSystem->FsPath()
+                        // << " in lvl archive " << lvlNameIsPsxPair.second
+                        // << " in lvl file " << animData.mFile
+                        << " with lvl file chunk id " << animData.mId
+                        << " at anim index " << animData.mAnimationIndex
+                        );
+//                        << " is psx " << lvlNameIsPsxPair.first);
 
-                                    return Resource<Animation>(resNameHash, mResourceCache, chunk->Stream(), lvlNameIsPsxPair.first, animMapping.first->mIndex);
-                                }
-                            }
-                        }
-                    }
+                    // TODO: Obtain IsPsx for the data set
+                    return Resource<Animation>(resNameHash, mResourceCache, chunk->Stream(), 
+                        false /*animMapping->mIsPsx*/, animData.mAnimationIndex);
                 }
             }
         }
