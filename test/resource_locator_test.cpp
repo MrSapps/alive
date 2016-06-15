@@ -131,18 +131,21 @@ TEST(ResourceLocator, ParseResourceMap)
 
     ResourceMapper mapper(fs, "resource_maps.json");
     
-    const ResourceMapper::AnimMapping* r0 = mapper.FindAnimation("AoPc", "I don't exist");
+    const ResourceMapper::AnimMapping* r0 = mapper.FindAnimation("I don't exist", "AoPc");
     ASSERT_EQ(nullptr, r0);
 
-    const ResourceMapper::AnimMapping* r1 = mapper.FindAnimation("AoPc", "ABEBSIC.BAN_10_AePc_0");
+    const ResourceMapper::AnimMapping* r1 = mapper.FindAnimation("ABEBSIC.BAN_10_AePc_1", "AoPc");
     ASSERT_NE(nullptr, r1);
     ASSERT_EQ(2u, r1->mFiles.size());
 
-    ASSERT_EQ("SLIGZ.BND", r1->mFiles[0].mFile);
-    ASSERT_EQ(0u, r1->mFiles[0].mId);
+    ASSERT_EQ("ABEBSIC.BAN", r1->mFiles[0].mFile);
+    ASSERT_EQ(1u, r1->mFiles[0].mAnimationIndex);
+    ASSERT_EQ(10u, r1->mFiles[0].mId);
 
-    ASSERT_EQ("SLIGZ.BND", r1->mFiles[1].mFile);
-    ASSERT_EQ(0u, r1->mFiles[1].mId);
+    ASSERT_EQ("ANOTHER.BAN", r1->mFiles[1].mFile);
+    ASSERT_EQ(99u, r1->mFiles[1].mAnimationIndex);
+    ASSERT_EQ(50u, r1->mFiles[1].mId);
+
 
 
     ASSERT_EQ(1u, r1->mBlendingMode);
