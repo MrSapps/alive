@@ -131,10 +131,10 @@ TEST(ResourceLocator, ParseResourceMap)
 
     ResourceMapper mapper(fs, "resource_maps.json");
     
-    const ResourceMapper::AnimMapping* r0 = mapper.Find("I don't exist").first;
+    const ResourceMapper::AnimMapping* r0 = mapper.FindAnimation("AoPc", "I don't exist");
     ASSERT_EQ(nullptr, r0);
 
-    const ResourceMapper::AnimMapping* r1 = mapper.Find("ABEBSIC.BAN_10_AePc_0").first;
+    const ResourceMapper::AnimMapping* r1 = mapper.FindAnimation("AoPc", "ABEBSIC.BAN_10_AePc_0");
     ASSERT_NE(nullptr, r1);
     ASSERT_EQ(2u, r1->mFiles.size());
 
@@ -190,8 +190,8 @@ TEST(ResourceLocator, LocateAnimation)
 
     DataPaths paths(fs, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
     ResourceMapper mapper;
-    mapper.AddAnimMapping("SLIGZ.BND_417_1", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
-    mapper.AddAnimMapping("SLIGZ.BND_417_2", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
+    mapper.AddAnimMapping("SLIGZ.BND_417_1", "AoPc", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
+    mapper.AddAnimMapping("SLIGZ.BND_417_2", "AoPc", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
 
     ResourceLocator locator(std::move(mapper), std::move(paths));
 
@@ -322,7 +322,7 @@ TEST(ResourceLocator, Construct)
     // create the resource mapper loading the resource maps from the json db
     DataPaths dataPaths2(fs, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
     ResourceMapper mapper;
-    mapper.AddAnimMapping("SLIGZ.BND_417_1", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
+    mapper.AddAnimMapping("SLIGZ.BND_417_1", "AoPc", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
 
     ResourceLocator resourceLocator(std::move(mapper), std::move(dataPaths2));
     

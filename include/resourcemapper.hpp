@@ -924,7 +924,7 @@ public:
         std::vector<AnimMappingData> mFiles;
     };
 
-    const AnimMapping* Find(const char* resourceName, const char* dataSetName)
+    const AnimMapping* FindAnimation(const char* resourceName, const char* dataSetName)
     {
         const auto& am = mAnimMaps.find(resourceName);
         if (am != std::end(mAnimMaps))
@@ -938,10 +938,26 @@ public:
         return nullptr;
     }
 
+    const std::vector<std::pair<bool, std::string>>* FindFileLocation(const char* dataSetName, const char* fileName)
+    {
+        auto fileIt = mFileLocations.find(fileName);
+        if (fileIt != std::end(mFileLocations))
+        {
+            auto dataSetIt = fileIt->second.find(dataSetName);
+            if (dataSetIt != std::end(fileIt->second))
+            {
+                return &dataSetIt->second;
+            }
+        }
+        return nullptr;
+    }
+
+    // Used in testing only - todo make protected
     void AddAnimMapping(const std::string& resourceName, const std::string& dataSetName, const AnimMapping& mapping)
     {
         mAnimMaps[resourceName][dataSetName] = mapping;
     }
+
 private:
 
     std::map<std::string, std::map<std::string, AnimMapping>> mAnimMaps;
@@ -1001,11 +1017,11 @@ private:
         const auto blendMode = static_cast<Uint32>(obj.get<jsonxx::Number>("blend_mode"));
         const jsonxx::Array& locations = obj.get<jsonxx::Array>("locations");
  
-        AnimMapping mapping;
-        mapping.mBlendingMode = blendMode;
-
         for (size_t i = 0; i < locations.size(); i++)
         {
+            AnimMapping mapping;
+            mapping.mBlendingMode = blendMode;
+
             AnimMappingData data;
             const jsonxx::Object& locationRecord = locations.get<jsonxx::Object>(static_cast<Uint32>(i));
 
@@ -1021,7 +1037,8 @@ private:
 
                 mapping.mFiles.push_back(data);
             }
-            AddAnimMapping(name, dataSetName, mapping);
+
+            mAnimMaps[name][dataSetName] = mapping;
         }
      
     }
@@ -1223,7 +1240,6 @@ public:
     Resource<Animation> Locate(const char* resourceName, const std::string& dataSetName);
 
 private:
-    Oddlib::LvlArchive::FileChunk* OpenChunk(const char* dataSetName, const char* fileName, Uint32 chunkId);
 
     ResourceMapper mResMapper;
     DataPaths mDataPaths;

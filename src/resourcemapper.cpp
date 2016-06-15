@@ -71,14 +71,6 @@ bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
     return ret;
 }
 
-Oddlib::LvlArchive::FileChunk* ResourceLocator::OpenChunk(const char* /*dataSetName*/, const char* /*fileName*/, Uint32 /*chunkId*/)
-{
-    // TODO
-    //mResMapper.Find(fileName)->Find(dataSetName);
-    // std::map<std::string, std::map<std::string, std::vector<std::pair<bool,std::string>>>> mFileLocations
-    return nullptr;
-}
-
 Resource<Animation> ResourceLocator::Locate(const char* resourceName)
 {
     const size_t resNameHash = StringHash(resourceName);
@@ -105,27 +97,44 @@ Resource<Animation> ResourceLocator::Locate(const char* resourceName)
         }
         else
         {
-            const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName, fs.mDataSetName.c_str());
+            const ResourceMapper::AnimMapping* animMapping = mResMapper.FindAnimation(resourceName, fs.mDataSetName.c_str());
             if (animMapping)
             {
                 for (const ResourceMapper::AnimMappingData& animData : animMapping->mFiles)
                 {
-                    Oddlib::LvlArchive::FileChunk* chunk = OpenChunk(fs.mDataSetName.c_str(), animData.mFile.c_str(), animData.mId);
-                    
-                    // TODO: Log out the other info
-                    LOG_INFO(resourceName
-                        << " located in data set " << fs.mDataSetName
-                        << " mapped to " << fs.mFileSystem->FsPath()
-                        // << " in lvl archive " << lvlNameIsPsxPair.second
-                        // << " in lvl file " << animData.mFile
-                        << " with lvl file chunk id " << animData.mId
-                        << " at anim index " << animData.mAnimationIndex
-                        );
-//                        << " is psx " << lvlNameIsPsxPair.first);
+                    const std::vector<std::pair<bool, std::string>>* fileLocations = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), animData.mFile.c_str());
+                    if (fileLocations)
+                    {
+                        for (const std::pair<bool, std::string>& lvlNameIsPsxPair : *fileLocations)
+                        {
+                            // Open the LVL archive
+                            auto lvlStream = fs.mFileSystem->Open(lvlNameIsPsxPair.second);
+                            if (lvlStream)
+                            {
+                                // Open the file within the archive
+                                Oddlib::LvlArchive lvl(std::move(lvlStream));
+                                auto lvlFile = lvl.FileByName(animData.mFile);
+                                if (lvlFile)
+                                {
+                                    // Get the chunk within the file that lives in the lvl
+                                    Oddlib::LvlArchive::FileChunk* chunk = lvlFile->ChunkById(animData.mId);
 
-                    // TODO: Obtain IsPsx for the data set
-                    return Resource<Animation>(resNameHash, mResourceCache, chunk->Stream(), 
-                        false /*animMapping->mIsPsx*/, animData.mAnimationIndex);
+                                    LOG_INFO(resourceName
+                                        << " located in data set " << fs.mDataSetName
+                                        << " mapped to " << fs.mFileSystem->FsPath()
+                                        << " in lvl archive " << lvlNameIsPsxPair.second
+                                        << " in lvl file " << animData.mFile
+                                        << " with lvl file chunk id " << animData.mId
+                                        << " at anim index " << animData.mAnimationIndex
+                                        << " is psx " << lvlNameIsPsxPair.first);
+
+                                    // Construct the animation from the chunk bytes
+                                    return Resource<Animation>(resNameHash, mResourceCache, chunk->Stream(),
+                                        lvlNameIsPsxPair.first, animData.mAnimationIndex);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
