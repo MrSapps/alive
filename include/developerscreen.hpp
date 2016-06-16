@@ -13,13 +13,15 @@ public:
           mSound(sound),
           mLevel(level),
           mFsOld(fs),
-          mResourceLocator(resMapper)
+          mResourceLocator(resMapper),
+          mAnimResourceGroup(mResourceLocator)
     {
-
+        Init();
     }
     virtual void Update() override;
     virtual void Render(int w, int h, Renderer& renderer) override;
 private:
+    void Init();
     void RenderAnimationSelector(Renderer& renderer);
 
     struct GuiContext *mGui = nullptr;
@@ -27,5 +29,9 @@ private:
     Sound& mSound;
     Level& mLevel;
     FileSystem& mFsOld;
+
     ResourceLocator& mResourceLocator;
+    ResourceGroup<Animation> mAnimResourceGroup;
+    std::set<Animation*> mLoadedAnims;
+    
 };

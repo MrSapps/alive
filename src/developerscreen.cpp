@@ -7,6 +7,11 @@
 #include "sound.hpp"
 #include "gridmap.hpp"
 
+void DevloperScreen::Init()
+{
+    
+}
+
 void DevloperScreen::Update()
 {
     //mFmv.Play("INGRDNT.DDV");
@@ -83,28 +88,35 @@ void DevloperScreen::RenderAnimationSelector(Renderer& renderer)
     gui_begin_window(mGui, "Animations");
 
     // TODO: At least AoPsx fails to find res due to case sensitive file names
-    static auto r = mResourceLocator.Locate("ABEBSIC.BAN_10_AePc_0");
+
     renderer.beginLayer(gui_layer(mGui));
-    r->Animate(renderer);
+    for (Animation* anim : mLoadedAnims)
+    {
+        anim->Animate(renderer);
+    }
     renderer.endLayer();
 
-    /*
-    for (auto& res : resources)
+    auto res = mResourceLocator.DebugUi(renderer, mGui);
+    if (std::get<0>(res))
     {
-        gui_checkbox(mGui, res.first.c_str(), &res.second->mDisplay);
-        if (res.second->mDisplay)
-        {
-            Oddlib::LvlArchive::FileChunk* chunk = res.second->mFileChunk;
-            if (!res.second->mAnim)
-            {
-                res.second->mAnim = Oddlib::LoadAnimations(*chunk->Stream(), false);
-            }
+        const char* resourceName = std::get<0>(res);
+        const char* dataSetName = std::get<1>(res);
+        bool load = std::get<2>(res);
 
-            renderer.beginLayer(gui_layer(mGui));
-            res.second->Animate(renderer);
-            renderer.endLayer();
+        Animation* anim = mAnimResourceGroup.Get(resourceName, dataSetName);
+        if (anim)
+        {
+            if (load)
+            {
+                mLoadedAnims.insert(anim);
+            }
+            else
+            {
+                // Don't unload, just remove from rendering list
+                mLoadedAnims.erase(anim);
+            }
         }
+
     }
-    */
     gui_end_window(mGui);
 }

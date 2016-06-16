@@ -959,6 +959,20 @@ public:
         mAnimMaps[resourceName][dataSetName] = mapping;
     }
 
+    // Debug UI
+    std::tuple<const char*, const char*, bool> DebugUi(class Renderer& renderer, struct GuiContext* gui);
+
+    struct UiItem
+    {
+        std::string mLabel;
+        std::vector<std::pair<std::string, bool>> mItems;
+    };
+
+    struct UiContext
+    {
+        std::vector<UiItem> mItems;
+    };
+    UiContext mUi;
 private:
 
     std::map<std::string, std::map<std::string, AnimMapping>> mAnimMaps;
@@ -1160,13 +1174,16 @@ public:
         return mDataPaths;
     }
 
-    std::unique_ptr<Animation> Locate(const char* resourceName, size_t* dataSetNameHash = nullptr);
+    std::unique_ptr<Animation> Locate(const char* resourceName);
 
     // This method should be used for debugging only - i.e so we can compare what resource X looks like
     // in dataset A and B.
-    std::unique_ptr<Animation> Locate(const char* resourceName, const std::string& dataSetName);
+    std::unique_ptr<Animation> Locate(const char* resourceName, const char* dataSetName);
 
+    std::tuple<const char*, const char*, bool> DebugUi(class Renderer& renderer, struct GuiContext* gui);
 private:
+    std::unique_ptr<Animation> DoLocate(const DataPaths::FileSystemInfo& fs, const char* resourceName);
+
     ResourceMapper mResMapper;
     DataPaths mDataPaths;
 };
@@ -1207,9 +1224,9 @@ private:
             return cached;
         }
 
-        auto res = dataSetName ? 
+        auto res = dataSetName ?
             mResourceLocator.Locate(resourceName, dataSetName)
-          : mResourceLocator.Locate(resourceName, &dataSetNameHash);
+            : mResourceLocator.Locate(resourceName);
 
         if (res)
         {
