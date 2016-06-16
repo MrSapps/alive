@@ -20,7 +20,7 @@
 #ifdef _WIN32
 #define NOMINMAX
 #include <windows.h>
-#include "../rsc/resource.h"
+#include "rsc\resource.h"
 #include "SDL_syswm.h"
 #include "stdthread.h"
 

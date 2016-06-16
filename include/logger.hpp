@@ -98,7 +98,15 @@ struct None
 template<typename List>
 struct LogData
 {
+    LogData() = delete;
     List list;
+};
+
+template<>
+struct LogData<None>
+{
+    LogData() = default;
+    None list;
 };
 
 template<typename List>
