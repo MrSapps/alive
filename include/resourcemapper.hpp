@@ -1110,8 +1110,7 @@ class ResourceCache
 public:
     void Add(size_t resourceNameHash, size_t dataSetNameHash, std::unique_ptr<T> resource)
     {
-        auto it = mCache.find(std::make_pair(resourceNameHash, dataSetNameHash));
-        assert(it == std::end(mCache));
+        assert(mCache.find(std::make_pair(resourceNameHash, dataSetNameHash)) == std::end(mCache));
 
         mCache[std::make_pair(resourceNameHash, dataSetNameHash)] = std::move(resource);
     }
