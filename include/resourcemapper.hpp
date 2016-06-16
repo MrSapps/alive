@@ -56,6 +56,7 @@ inline size_t StringHash(const std::string& s)
     return StringHash(s.c_str());
 }
 
+
 inline std::vector<Uint8> StringToVector(const std::string& str)
 {
     return std::vector<Uint8>(str.begin(), str.end());
@@ -1045,14 +1046,7 @@ private:
 
 };
 
-class ResourceBase
-{
-public:
-    virtual ~ResourceBase() = default;
-    virtual void Reload() = 0;
-};
-
-class Animation : public ResourceBase
+class Animation
 {
 public:
     Animation() = delete;
@@ -1103,11 +1097,6 @@ public:
         rend.destroyTexture(textureId);
     }
 
-    virtual void Reload() override
-    {
-        // TODO
-    }
-
 private:
     Uint32 counter = 0;
     Uint32 frameNum = 0;
@@ -1115,18 +1104,21 @@ private:
     std::unique_ptr<Oddlib::AnimationSet> mAnim;
 };
 
-// TODO: Handle resources that have been loaded via explicit dataset name
+template<class T>
 class ResourceCache
 {
 public:
-    void Add(size_t resourceHash, std::shared_ptr<ResourceBase> resource)
+    void Add(size_t resourceNameHash, size_t dataSetNameHash, std::unique_ptr<T> resource)
     {
-        mCache[resourceHash] = resource;
+        auto it = mCache.find(std::make_pair(resourceNameHash, dataSetNameHash));
+        assert(it == std::end(mCache));
+
+        mCache[std::make_pair(resourceNameHash, dataSetNameHash)] = std::move(resource);
     }
 
-    void Remove(size_t resourceHash)
+    void Remove(size_t resourceNameHash, size_t dataSetNameHash)
     {
-        auto it = mCache.find(resourceHash);
+        auto it = mCache.find(std::make_pair(resourceNameHash, dataSetNameHash));
         if (it != std::end(mCache))
         {
             auto sPtr = it->second.lock();
@@ -1137,89 +1129,72 @@ public:
         }
     }
 
-    template<class T>
-    std::shared_ptr<T> Find(size_t resourceHash)
+    T* Find(size_t resourceNameHash, size_t dataSetNameHash)
     {
-        auto it = mCache.find(resourceHash);
+        auto it = mCache.find(std::make_pair(resourceNameHash, dataSetNameHash));
         if (it != std::end(mCache))
         {
-            auto sPtr = it->second.lock();
-            if (!sPtr)
-            {
-                mCache.erase(it);
-                return nullptr;
-            }
-            return std::static_pointer_cast<T>(sPtr);
+            return it->second.get();
         }
         return nullptr;
     }
 private:
-    std::unordered_map<size_t, std::weak_ptr<ResourceBase>> mCache;
+    std::map<std::pair<size_t, size_t>, std::unique_ptr<T>> mCache;
 };
 
+class ResourceLocator;
+
 template<class T>
-class Resource
+class ResourceGroup
 {
 public:
-    Resource() = delete;
-
-    Resource(ResourceCache& cache, std::shared_ptr<T> ptr, size_t resourceNameHash)
-        : mResourceNameHash(resourceNameHash), mCache(cache)
+    explicit ResourceGroup(ResourceLocator& locator)
+        : mResourceLocator(locator)
     {
-        mPtr = ptr;
+
     }
 
-    Resource(const Resource& rhs)
-        : mCache(rhs.mCache)
+    T* Get(const char* resourceName, const char* dataSetName)
     {
-        *this = rhs;
+        const size_t resNameHash = StringHash(resourceName);
+        const size_t dataSetNameHash = StringHash(dataSetName);
+        return DoGet(resourceName, dataSetName, resNameHash, dataSetNameHash);
     }
 
-    Resource& operator = (const Resource& rhs)
+    T* Get(const char* resourceName)
     {
-        if (this != &rhs)
-        {
-            mResourceNameHash = rhs.mResourceNameHash;
-            mPtr = rhs.mPtr;
-        }
-        return *this;
-    }
-
-    Resource(size_t resourceNameHash, ResourceCache& cache, std::unique_ptr<Oddlib::IStream> stream, bool isPsx, Uint32 animIndex)
-        : mResourceNameHash(resourceNameHash), mCache(cache)
-    {
-        mPtr = std::make_shared<T>(std::move(stream), isPsx, animIndex);
-        mCache.Add(mResourceNameHash, mPtr);
-    }
-
-    ~Resource()
-    {
-        mCache.Remove(mResourceNameHash);
-    }
-
-    void Reload()
-    {
-        mPtr->Reload();
-    }
-
-    T* Ptr()
-    {
-        return mPtr.get();
+        const size_t resNameHash = StringHash(resourceName);
+        return DoGet(resourceName, nullptr, resNameHash, 0);
     }
 
 private:
-    std::shared_ptr<T> mPtr;
-    size_t mResourceNameHash;
-    ResourceCache& mCache;
-};
+    T* DoGet(const char* resourceName, const char* dataSetName, size_t resNameHash, size_t dataSetNameHash)
+    {
+        auto cached = mResourceCache.Find(resNameHash, dataSetNameHash);
+        if (cached)
+        {
+            return cached;
+        }
 
+        auto res = dataSetName ? mResourceLocator.Locate(resourceName, dataSetName) : mResourceLocator.Locate(resourceName);
+        if (res)
+        {
+            auto rawPtr = res.get();
+            mResourceCache.Add(resNameHash, dataSetNameHash, std::move(res));
+            return rawPtr;
+        }
+        return nullptr;
+    }
+
+    ResourceCache<T> mResourceCache;
+    ResourceLocator& mResourceLocator;
+};
 
 class ResourceLocator
 {
 public:
     ResourceLocator(const ResourceLocator&) = delete;
     ResourceLocator& operator =(const ResourceLocator&) = delete;
-
 
     ResourceLocator(ResourceMapper&& resourceMapper, DataPaths&& dataPaths)
         : mResMapper(std::move(resourceMapper)), mDataPaths(std::move(dataPaths))
@@ -1233,15 +1208,13 @@ public:
         return mDataPaths;
     }
 
-    Resource<Animation> Locate(const char* resourceName);
+    std::unique_ptr<Animation> Locate(const char* resourceName);
 
     // This method should be used for debugging only - i.e so we can compare what resource X looks like
     // in dataset A and B.
-    Resource<Animation> Locate(const char* resourceName, const std::string& dataSetName);
+    std::unique_ptr<Animation> Locate(const char* resourceName, const std::string& dataSetName);
 
 private:
-
     ResourceMapper mResMapper;
     DataPaths mDataPaths;
-    ResourceCache mResourceCache;
 };

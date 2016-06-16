@@ -106,21 +106,34 @@ TEST(InMemoryFileSystem, FileExists)
     ASSERT_TRUE(fs.FileExists("/Root.txt"));
 }
 
-TEST(ResourceLocator, Cache)
+TEST(ResourceLocator, DISABLED_ResourceGroup)
 {
-    ResourceCache cache;
+    InMemoryFileSystem fs;
 
-    const size_t resNameHash = StringHash("foo");
-    ASSERT_EQ(nullptr, cache.Find<Animation>(resNameHash));
-    {
-        Resource<Animation> res1(resNameHash, cache, nullptr, false, 0);
+    fs.AddFile("C:\\dataset_location2\\SLIGZ.BND", "test"); // For SLIGZ.BND_417_1, 2nd call should be cached
 
-        std::shared_ptr<Animation> cached = cache.Find<Animation>(resNameHash);
-        ASSERT_NE(nullptr, cached);
-        ASSERT_EQ(cached.get(), res1.Ptr());
-    }
-    ASSERT_EQ(nullptr, cache.Find<Animation>(resNameHash));
+    DataPaths paths(fs, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
+    ResourceMapper mapper;
+    mapper.AddAnimMapping("SLIGZ.BND_417_1", "AoPc", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
+    mapper.AddAnimMapping("BLAH.BND_417_2", "AePc", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
+
+    ResourceLocator locator(std::move(mapper), std::move(paths));
+
+    ResourceGroup<Animation> group(locator);
+
+    ASSERT_EQ(nullptr, group.Get("foo"));
+    ASSERT_EQ(nullptr, group.Get("foo", "bar"));
+
+    ASSERT_NE(nullptr, group.Get("SLIGZ.BND_417_1"));
+    ASSERT_NE(nullptr, group.Get("SLIGZ.BND_417_1", "AoPc"));
+    ASSERT_EQ(nullptr, group.Get("SLIGZ.BND_417_1", "AePc"));
+
+    ASSERT_NE(nullptr, group.Get("BLAH.BND_417_2"));
+    ASSERT_NE(nullptr, group.Get("BLAH.BND_417_2", "AePc"));
+    ASSERT_EQ(nullptr, group.Get("BLAH.BND_417_2", "AoPc"));
+
 }
+
 
 TEST(ResourceLocator, ParseResourceMap)
 {
@@ -198,15 +211,12 @@ TEST(ResourceLocator, LocateAnimation)
 
     ResourceLocator locator(std::move(mapper), std::move(paths));
 
-    Resource<Animation> resMapped1 = locator.Locate("SLIGZ.BND_417_1");
-    resMapped1.Reload();
+    std::unique_ptr<Animation> resMapped1 = locator.Locate("SLIGZ.BND_417_1");
 
-    Resource<Animation> resMapped2 = locator.Locate("SLIGZ.BND_417_1");
-    resMapped2.Reload();
+    std::unique_ptr<Animation> resMapped2 = locator.Locate("SLIGZ.BND_417_1");
 
     // Can explicitly set the dataset to obtain it from a known location
     auto resDirect = locator.Locate("SLIGZ.BND_417_1", "AePc");
-    resDirect.Reload();
 }
 
 TEST(ResourceLocator, LocateAnimationMod)
@@ -336,9 +346,7 @@ TEST(ResourceLocator, Construct)
 
 
     // Now we can obtain resources
-    Resource<Animation> resMapped1 = resourceLocator.Locate("SLIGZ.BND_417_1");
-    resMapped1.Reload();
-
+    std::unique_ptr<Animation> resMapped1 = resourceLocator.Locate("SLIGZ.BND_417_1");
 }
 
 TEST(ResourceLocator, GameDefinitionDeps)

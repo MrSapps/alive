@@ -71,20 +71,10 @@ bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
     return ret;
 }
 
-Resource<Animation> ResourceLocator::Locate(const char* resourceName)
+std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName)
 {
-    const size_t resNameHash = StringHash(resourceName);
-
-    // Check if the resource is cached
-    std::shared_ptr<Animation> cachedRes = mResourceCache.Find<Animation>(resNameHash);
-    if (cachedRes)
-    {
-        return Resource<Animation>(mResourceCache, cachedRes, resNameHash);
-    }
-
     // For each data set attempt to find resourceName by mapping
-    // to a LVL/file/chunk. Or in the case of a mod dataset something else.
-   
+    // to a LVL/file/chunk. Or in the case of a mod dataset something else.   
     for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
     {
         if (fs.mIsMod)
@@ -129,7 +119,7 @@ Resource<Animation> ResourceLocator::Locate(const char* resourceName)
                                         << " is psx " << lvlNameIsPsxPair.first);
 
                                     // Construct the animation from the chunk bytes
-                                    return Resource<Animation>(resNameHash, mResourceCache, chunk->Stream(),
+                                    return std::make_unique<Animation>(chunk->Stream(),
                                         lvlNameIsPsxPair.first, animData.mAnimationIndex);
                                 }
                             }
@@ -139,38 +129,10 @@ Resource<Animation> ResourceLocator::Locate(const char* resourceName)
             }
         }
     }
-
-    // TODO
-    return Resource<Animation>(StringHash(""), mResourceCache, nullptr, false, 0);
+    return nullptr;
 }
 
-Resource<Animation> ResourceLocator::Locate(const char* resourceName, const std::string& dataSetName)
+std::unique_ptr<Animation> ResourceLocator::Locate(const char* /*resourceName*/, const std::string& /*dataSetName*/)
 {
-    const std::string uniqueName = std::string(resourceName) + dataSetName;
-    const size_t resNameHash = StringHash(uniqueName);
-
-    // Check if the resource is cached
-    std::shared_ptr<Animation> cachedRes = mResourceCache.Find<Animation>(resNameHash);
-    if (cachedRes)
-    {
-        return Resource<Animation>(mResourceCache, cachedRes, resNameHash);
-    }
-
-    // TODO: Have bespoke method to find animations - pass in possible dataset names
-    //const ResourceMapper::AnimMapping* animMapping = mResMapper.Find(resourceName);
-    //if (animMapping)
-        {
-            // TODO: Handle mod zips
-            // TODO: Find resource in specific data set 
-            //const auto& lvlFileToFind = animMapping->mFile;
-            /*
-            auto stream = mDataPaths.Open(lvlFileToFind, dataSetName);
-            if (stream)
-            {
-            return Resource<T>(resNameHash, mResourceCache, std::move(stream));
-            }*/
-        }
-
-    // TODO
-    return Resource<Animation>(StringHash(""), mResourceCache, nullptr, false, 0);
+    return nullptr;
 }

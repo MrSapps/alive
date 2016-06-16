@@ -83,9 +83,9 @@ void DevloperScreen::RenderAnimationSelector(Renderer& renderer)
     gui_begin_window(mGui, "Animations");
 
     // TODO: At least AoPsx fails to find res due to case sensitive file names
-    static Resource<Animation> r = mResourceLocator.Locate("ABEBSIC.BAN_10_28");
+    static auto r = mResourceLocator.Locate("ABEBSIC.BAN_10_28");
     renderer.beginLayer(gui_layer(mGui));
-    r.Ptr()->Animate(renderer);
+    r->Animate(renderer);
     renderer.endLayer();
 
     /*
