@@ -1142,12 +1142,44 @@ private:
     std::map<std::pair<size_t, size_t>, std::unique_ptr<T>> mCache;
 };
 
-class ResourceLocator;
+
+class ResourceLocator
+{
+public:
+    ResourceLocator(const ResourceLocator&) = delete;
+    ResourceLocator& operator =(const ResourceLocator&) = delete;
+
+    ResourceLocator(ResourceMapper&& resourceMapper, DataPaths&& dataPaths)
+        : mResMapper(std::move(resourceMapper)), mDataPaths(std::move(dataPaths))
+    {
+
+    }
+
+    // TOOD: Provide limited interface to this?
+    DataPaths& GetDataPaths()
+    {
+        return mDataPaths;
+    }
+
+    std::unique_ptr<Animation> Locate(const char* resourceName);
+
+    // This method should be used for debugging only - i.e so we can compare what resource X looks like
+    // in dataset A and B.
+    std::unique_ptr<Animation> Locate(const char* resourceName, const std::string& dataSetName);
+
+private:
+    ResourceMapper mResMapper;
+    DataPaths mDataPaths;
+};
 
 template<class T>
 class ResourceGroup
 {
 public:
+    ResourceGroup() = delete;
+    ResourceGroup(const ResourceGroup&) = delete;
+    ResourceGroup& operator = (const ResourceGroup&) = delete;
+
     explicit ResourceGroup(ResourceLocator& locator)
         : mResourceLocator(locator)
     {
@@ -1188,33 +1220,4 @@ private:
 
     ResourceCache<T> mResourceCache;
     ResourceLocator& mResourceLocator;
-};
-
-class ResourceLocator
-{
-public:
-    ResourceLocator(const ResourceLocator&) = delete;
-    ResourceLocator& operator =(const ResourceLocator&) = delete;
-
-    ResourceLocator(ResourceMapper&& resourceMapper, DataPaths&& dataPaths)
-        : mResMapper(std::move(resourceMapper)), mDataPaths(std::move(dataPaths))
-    {
-
-    }
-
-    // TOOD: Provide limited interface to this?
-    DataPaths& GetDataPaths()
-    {
-        return mDataPaths;
-    }
-
-    std::unique_ptr<Animation> Locate(const char* resourceName);
-
-    // This method should be used for debugging only - i.e so we can compare what resource X looks like
-    // in dataset A and B.
-    std::unique_ptr<Animation> Locate(const char* resourceName, const std::string& dataSetName);
-
-private:
-    ResourceMapper mResMapper;
-    DataPaths mDataPaths;
 };
