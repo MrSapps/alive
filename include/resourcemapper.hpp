@@ -1161,7 +1161,7 @@ public:
         return mDataPaths;
     }
 
-    std::unique_ptr<Animation> Locate(const char* resourceName);
+    std::unique_ptr<Animation> Locate(const char* resourceName, size_t* dataSetNameHash = nullptr);
 
     // This method should be used for debugging only - i.e so we can compare what resource X looks like
     // in dataset A and B.
@@ -1208,7 +1208,10 @@ private:
             return cached;
         }
 
-        auto res = dataSetName ? mResourceLocator.Locate(resourceName, dataSetName) : mResourceLocator.Locate(resourceName);
+        auto res = dataSetName ? 
+            mResourceLocator.Locate(resourceName, dataSetName)
+          : mResourceLocator.Locate(resourceName, &dataSetNameHash);
+
         if (res)
         {
             auto rawPtr = res.get();

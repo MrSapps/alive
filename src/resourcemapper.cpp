@@ -71,10 +71,10 @@ bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
     return ret;
 }
 
-std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName)
+std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName, size_t* dataSetNameHash)
 {
     // For each data set attempt to find resourceName by mapping
-    // to a LVL/file/chunk. Or in the case of a mod dataset something else.   
+    // to a LVL/file/chunk. Or in the case of a mod dataset something else.
     for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
     {
         if (fs.mIsMod)
@@ -117,6 +117,11 @@ std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName)
                                         << " with lvl file chunk id " << animData.mId
                                         << " at anim index " << animData.mAnimationIndex
                                         << " is psx " << lvlNameIsPsxPair.first);
+
+                                    if (dataSetNameHash)
+                                    {
+                                        *dataSetNameHash = StringHash(fs.mDataSetName);
+                                    }
 
                                     // Construct the animation from the chunk bytes
                                     return std::make_unique<Animation>(chunk->Stream(),
