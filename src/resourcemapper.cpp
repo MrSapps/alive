@@ -44,7 +44,7 @@ bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
             LOG_INFO("Creating ISO FS for " << path);
             ret = std::make_unique<CdIsoFileSystem>(path.c_str());
         }
-        else if (string_util::ends_with(path, ".zip", true))
+        else if (string_util::ends_with(path, ".zip", true) || string_util::ends_with(path, ".exe", true))
         {
             LOG_INFO("Creating ZIP FS for " << path);
             ret = std::make_unique<ZipFileSystem>(path.c_str(), fs);

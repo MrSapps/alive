@@ -86,18 +86,21 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
             // We do so check that the pos after the stucture + comment len == file size
             // and then seek to the central directory pos and check that it == correct magic
             mEndOfCentralDirectoryRecord.DeSerialize(*mStream);
-            if (mEndOfCentralDirectoryRecord.mCommentSize + mStream->Pos() == fileSize)
-            {
-                mStream->Seek(mEndOfCentralDirectoryRecord.mCentralDirectoryStartOffset);
 
-                Uint32 cdrMagic = 0;
-                mStream->ReadUInt32(cdrMagic);
-                if (cdrMagic == kCentralDirectory)
-                {
-                    // Must be a valid ZIP and we are now at the CDR location
-                    mStream->Seek(mStream->Pos() - sizeof(cdrMagic));
-                    return true;
-                }
+            mStream->Seek(mEndOfCentralDirectoryRecord.mCentralDirectoryStartOffset);
+
+            Uint32 cdrMagic = 0;
+            mStream->ReadUInt32(cdrMagic);
+            if (cdrMagic == kCentralDirectory)
+            {
+                // Must be a valid ZIP and we are now at the CDR location
+                mStream->Seek(mStream->Pos() - sizeof(cdrMagic));
+                return true;
+            }
+
+            else
+            {
+                searchPos++;
             }
         }
         else
@@ -208,6 +211,7 @@ std::unique_ptr<Oddlib::IStream> ZipFileSystem::Open(const std::string& fileName
         return nullptr;
     }
 
+    // TODO: Wrap a stream around the compressed data, loading the whole thing is memory heavy and slow
     auto compressedSize = r.mLocalFileHeader.mDataDescriptor.mCompressedSize;
     if (compressedSize > 0)
     {
