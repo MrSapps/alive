@@ -72,7 +72,7 @@ bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
     return ret;
 }
 
-std::tuple<const char*, const char*, bool> ResourceMapper::DebugUi(class Renderer& /*renderer*/, GuiContext* gui)
+std::vector<std::tuple<const char*, const char*, bool>> ResourceMapper::DebugUi(class Renderer& /*renderer*/, GuiContext* gui)
 {
     // Collect the UI data/state
     if (mUi.mItems.empty())
@@ -81,34 +81,38 @@ std::tuple<const char*, const char*, bool> ResourceMapper::DebugUi(class Rendere
         {
             // "Resource" name
             UiItem item;
-            item.mLabel = animMap.first;
+            std::string dataSets = " (";
             for (const std::pair<std::string, AnimMapping>& mapping : animMap.second)
             {
                 // Each dataset this resource lives in
-                item.mItems.push_back(std::make_pair(mapping.first, false));
+                item.mItems.push_back(mapping.first);
+                dataSets += mapping.first + " ";
             }
+            dataSets += ")";
+            item.mLabel = animMap.first + dataSets;
+            item.mResourceName = animMap.first;
             mUi.mItems.push_back(item);
         }
     }
 
     // Render it
-    std::tuple<const char*, const char*, bool> ret;
+    std::vector<std::tuple<const char*, const char*, bool>> ret;
     int i = 0;
     for (UiItem& item : mUi.mItems)
     {
-        gui_label(gui, item.mLabel.c_str());
-        for (std::pair<std::string, bool>& subItem : item.mItems)
+        if (gui_checkbox(gui, gui_str(gui, "checkbox_%i|%s", i++, item.mLabel.c_str()), &item.mLoad))
         {
-            if (gui_checkbox(gui, gui_str(gui, "checkbox_%i|%s", i++, subItem.first.c_str()), &subItem.second))
+            for (const std::string& subItem : item.mItems)
             {
-                ret = std::make_tuple(item.mLabel.c_str(), subItem.first.c_str(), subItem.second);
+                ret.emplace_back(std::make_tuple(subItem.c_str(), item.mResourceName.c_str(), item.mLoad));
             }
+           
         }
     }
     return ret;
 }
 
-std::tuple<const char*, const char*, bool> ResourceLocator::DebugUi(class Renderer& renderer, GuiContext* gui)
+std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi(class Renderer& renderer, GuiContext* gui)
 {
     return mResMapper.DebugUi(renderer, gui);
 }
@@ -190,7 +194,7 @@ std::unique_ptr<Animation> ResourceLocator::DoLocate(const DataPaths::FileSystem
 
                             // Construct the animation from the chunk bytes
                             return std::make_unique<Animation>(chunk->Stream(),
-                                lvlNameIsPsxPair.first, animData.mAnimationIndex);
+                                lvlNameIsPsxPair.first, animData.mAnimationIndex, fs.mDataSetName);
                         }
                     }
                 }

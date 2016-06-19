@@ -207,10 +207,12 @@ namespace Oddlib
     class AnimationSet
     {
     public:
-        AnimationSet(AnimSerializer& as);
+        explicit AnimationSet(AnimSerializer& as);
         Uint32 NumberOfAnimations() const;
         const Animation* AnimationAt(Uint32 idx) const;
         SDL_Surface* FrameByOffset(Uint32 offset) const;
+        Uint32 MaxW() const { return mMaxW; }
+        Uint32 MaxH() const { return mMaxH; }
     private:
         SDL_SurfacePtr MakeFrame(AnimSerializer& as, const AnimSerializer::DecodedFrame& df, Uint32 offsetData);
 
@@ -218,6 +220,9 @@ namespace Oddlib
 
         // Map of frame offsets to frame images
         std::map<Uint32, SDL_SurfacePtr> mFrames;
+
+        Uint32 mMaxW = 0;
+        Uint32 mMaxH = 0;
     };
 
 }

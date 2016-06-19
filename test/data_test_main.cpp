@@ -256,11 +256,12 @@ private:
       
             AddLvlMapping(dataSet, lvlName, file->FileName());
             
+            /*
             if (file->FileName() != "ABEBSIC.BAN") // Limit testing to this 1 file for now
             {
                 continue;
             }
-            
+            */
 
             for (auto j = 0u; j < file->ChunkCount(); j++)
             {

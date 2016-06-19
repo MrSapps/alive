@@ -960,12 +960,14 @@ public:
     }
 
     // Debug UI
-    std::tuple<const char*, const char*, bool> DebugUi(class Renderer& renderer, struct GuiContext* gui);
+    std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui);
 
     struct UiItem
     {
+        std::string mResourceName;
         std::string mLabel;
-        std::vector<std::pair<std::string, bool>> mItems;
+        bool mLoad = false;
+        std::vector<std::string> mItems;
     };
 
     struct UiContext
@@ -1065,7 +1067,8 @@ class Animation
 public:
     Animation() = delete;
 
-    Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx, Uint32 animIndex)
+    Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx, Uint32 animIndex, const std::string& sourceDataSet)
+        : mIsPsx(isPsx), mSourceDataSet(sourceDataSet)
     {
         animNum = animIndex;
 
@@ -1082,40 +1085,57 @@ public:
         const Oddlib::Animation* anim = mAnim->AnimationAt(animNum);
         const Oddlib::Animation::Frame& frame = anim->GetFrame(frameNum);
         counter++;
-        if (counter > 25)
+        if (counter > 3)
         {
             counter = 0;
             frameNum++;
             if (frameNum >= anim->NumFrames())
             {
                 frameNum = 0;
-                /*
-                animNum++;
-                if (animNum >= mAnim->NumberOfAnimations())
-                {
-                    animNum = 0;
-                }*/
             }
         }
 
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
 
-        int scale = 2;
-        float xpos = 500.0f + (frame.mOffX*scale);
-        float ypos = 800.0f + (frame.mOffY*scale);
+        // TODO: AePcDemo still has PSX scaling, AoPc and AoPcDemo had rounding errors in their offset scaling
+        float xpos = static_cast<float>(frame.mOffX) / 1.0f;// 1.73913043478f;
+        xpos = mXPos + (xpos * mScale);
+
+        float ypos = mYPos + (frame.mOffY*mScale);
         // LOG_INFO("Pos " << xpos << "," << ypos);
         BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
         Color color = Color::white();
-        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w*scale), static_cast<float>(frame.mFrame->h*scale), color, blend);
+        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w* ScaleX()), static_cast<float>(frame.mFrame->h*mScale), color, blend);
 
         rend.destroyTexture(textureId);
+
+        rend.text(xpos, ypos, mSourceDataSet.c_str());
     }
 
+    void SetXPos(Sint32 xpos) { mXPos = xpos; }
+    void SetYPos(Sint32 ypos) { mYPos = ypos; }
+    Sint32 XPos() const { return mXPos; }
+    Sint32 YPos() const { return mYPos; }
+    Uint32 MaxW() const { return static_cast<Uint32>(mAnim->MaxW()*ScaleX()); }
+    Uint32 MaxH() const { return static_cast<Uint32>(mAnim->MaxH()*mScale); }
+
 private:
+    float ScaleX() const
+    {
+        // PC needs to be down scaled by 640/368=1.73913043478
+        return mIsPsx ? (mScale) : (mScale / 1.73913043478f);
+    }
+
+    bool mIsPsx = false;
     Uint32 counter = 0;
     Uint32 frameNum = 0;
     Uint32 animNum = 0;
     std::unique_ptr<Oddlib::AnimationSet> mAnim;
+
+    Sint32 mXPos = 500;
+    Sint32 mYPos = 800;
+    float mScale = 3;
+    std::string mSourceDataSet;
 };
 
 template<class T>
@@ -1180,7 +1200,7 @@ public:
     // in dataset A and B.
     std::unique_ptr<Animation> Locate(const char* resourceName, const char* dataSetName);
 
-    std::tuple<const char*, const char*, bool> DebugUi(class Renderer& renderer, struct GuiContext* gui);
+    std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui);
 private:
     std::unique_ptr<Animation> DoLocate(const DataPaths::FileSystemInfo& fs, const char* resourceName);
 

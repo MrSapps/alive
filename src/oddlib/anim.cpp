@@ -24,7 +24,7 @@ namespace Oddlib
 
             // Frame image
             tmp.mFrame = animSet.FrameByOffset(frameInfo->mFrameHeaderOffset);
-            
+
             // Offset
             tmp.mOffX = frameInfo->mOffx;
             tmp.mOffY = frameInfo->mOffy;
@@ -45,6 +45,9 @@ namespace Oddlib
 
     AnimationSet::AnimationSet(AnimSerializer& as)
     {
+        mMaxW = as.MaxW();
+        mMaxH = as.MaxH();
+
         // Add all frames
         for (auto it : as.UniqueFrames())
         {
@@ -152,7 +155,7 @@ namespace Oddlib
     void DebugAnimationSpriteSheet::DebugDecodeAllFrames(AnimSerializer& as)
     {
         BeginFrames(as.MaxW(), as.MaxH(), static_cast<int>(as.UniqueFrames().size()));
-        
+
         for (auto it : as.UniqueFrames())
         {
             auto frameData = as.ReadAndDecompressFrame(it);
@@ -218,14 +221,14 @@ namespace Oddlib
             bytes[1] = (offsetData >> 16) & 0xFF;
             bytes[2] = (offsetData >> 8) & 0xFF;
             bytes[3] = offsetData & 0xFF;
-            
+
 
             srcRect.x = bytes[3];
             srcRect.y = bytes[2];
             srcRect.w = bytes[1];
             srcRect.h = bytes[0];
 
-       
+
             dstRect.w = srcRect.w;
             dstRect.h = srcRect.h;
 

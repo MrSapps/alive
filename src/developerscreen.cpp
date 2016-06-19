@@ -90,33 +90,38 @@ void DevloperScreen::RenderAnimationSelector(Renderer& renderer)
     // TODO: At least AoPsx fails to find res due to case sensitive file names
 
     renderer.beginLayer(gui_layer(mGui));
+    Sint32 spacer = 0;
     for (Animation* anim : mLoadedAnims)
     {
+        anim->SetXPos(200 + spacer);
         anim->Animate(renderer);
+        spacer += anim->MaxW();
     }
     renderer.endLayer();
 
-    auto res = mResourceLocator.DebugUi(renderer, mGui);
-    if (std::get<0>(res))
+    auto animsToLoad = mResourceLocator.DebugUi(renderer, mGui);
+    for (const auto& res : animsToLoad)
     {
-        const char* resourceName = std::get<0>(res);
-        const char* dataSetName = std::get<1>(res);
-        bool load = std::get<2>(res);
-
-        Animation* anim = mAnimResourceGroup.Get(resourceName, dataSetName);
-        if (anim)
+        if (std::get<0>(res))
         {
-            if (load)
+            const char* dataSetName = std::get<0>(res);
+            const char* resourceName = std::get<1>(res);
+            bool load = std::get<2>(res);
+
+            Animation* anim = mAnimResourceGroup.Get(resourceName, dataSetName);
+            if (anim)
             {
-                mLoadedAnims.insert(anim);
-            }
-            else
-            {
-                // Don't unload, just remove from rendering list
-                mLoadedAnims.erase(anim);
+                if (load)
+                {
+                    mLoadedAnims.insert(anim);
+                }
+                else
+                {
+                    // Don't unload, just remove from rendering list
+                    mLoadedAnims.erase(anim);
+                }
             }
         }
-
     }
     gui_end_window(mGui);
 }
