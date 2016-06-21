@@ -825,6 +825,44 @@ int main(int /*argc*/, char** /*argv*/)
                 // TODO: pallet res id?
                 
 
+                WriteAnimLocations(anim, deDupedAnim);
+
+                WriteAnimFrameOffsets(anim, deDupedAnim);
+
+                animsObject << "animation" << anim;
+                resources << animsObject;
+            }
+           
+            WriteLvlContentMappings(resources);
+
+
+            std::ofstream jsonFile("test.json");
+            if (!jsonFile.is_open())
+            {
+                abort();
+            }
+            jsonFile << resources.json().c_str() << std::endl;
+        }
+
+        private:
+            void WriteAnimFrameOffsets(jsonxx::Object& anim, const std::unique_ptr<DeDuplicatedAnimation>& /*deDupedAnim*/)
+            {
+                jsonxx::Array frameOffsetsArray;
+
+                // TODO
+                for (int i = 0; i < 10; i++)
+                {
+                    jsonxx::Object frameOffsetObj;
+                    frameOffsetObj << "x" << 1;
+                    frameOffsetObj << "y" << 2;
+                    frameOffsetsArray << frameOffsetObj;
+                }
+
+                anim << "frame_offsets" << frameOffsetsArray;
+            }
+
+            void WriteAnimLocations(jsonxx::Object& anim, const std::unique_ptr<DeDuplicatedAnimation>& deDupedAnim)
+            {
                 jsonxx::Array locationsArray;
 
                 std::map<eDataSetType, std::set<LocationFileInfo>> locationMap = deDupedAnim->Locations();
@@ -849,52 +887,42 @@ int main(int /*argc*/, char** /*argv*/)
                 }
 
                 anim << "locations" << locationsArray;
-
-                animsObject << "animation" << anim;
-                resources << animsObject;
             }
-           
 
-            // Map of which LVL's live in what data set
-            for (const auto& dataSetPair : mLvlChunkReducer.LvlContent())
+            void WriteLvlContentMappings(jsonxx::Array& resources)
             {
-                jsonxx::Object dataSet;
-                const std::string strName = ToString(dataSetPair.first);
-                dataSet << "data_set_name" << strName;
-                dataSet << "is_psx" << IsPsx(dataSetPair.first);
 
-                jsonxx::Array lvlsArray;
-
-            
-                for (const auto& lvlData : dataSetPair.second)
+                // Map of which LVL's live in what data set
+                for (const auto& dataSetPair : mLvlChunkReducer.LvlContent())
                 {
-                    jsonxx::Object lvlObj;
-                    lvlObj << "name" << lvlData.first;
+                    jsonxx::Object dataSet;
+                    const std::string strName = ToString(dataSetPair.first);
+                    dataSet << "data_set_name" << strName;
+                    dataSet << "is_psx" << IsPsx(dataSetPair.first);
 
-                    jsonxx::Array lvlContent;
-                    const std::set<std::string>& content = lvlData.second;
-                    for (const auto& lvlFile : content)
+                    jsonxx::Array lvlsArray;
+
+
+                    for (const auto& lvlData : dataSetPair.second)
                     {
-                        lvlContent << lvlFile;
+                        jsonxx::Object lvlObj;
+                        lvlObj << "name" << lvlData.first;
+
+                        jsonxx::Array lvlContent;
+                        const std::set<std::string>& content = lvlData.second;
+                        for (const auto& lvlFile : content)
+                        {
+                            lvlContent << lvlFile;
+                        }
+                        lvlObj << "files" << lvlContent;
+                        lvlsArray << lvlObj;
                     }
-                    lvlObj << "files" << lvlContent;
-                    lvlsArray << lvlObj;
+                    dataSet << "lvls" << lvlsArray;
+
+
+                    resources << dataSet;
                 }
-                dataSet << "lvls" << lvlsArray;
-            
-
-                resources << dataSet;
             }
-
-            std::ofstream jsonFile("test.json");
-            if (!jsonFile.is_open())
-            {
-                abort();
-            }
-            jsonFile << resources.json().c_str() << std::endl;
-        }
-
-        private:
 
             /*
         void AddNumAnimationsMapping(Uint32 resId, Uint32 numAnims)
