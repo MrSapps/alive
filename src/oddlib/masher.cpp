@@ -359,6 +359,7 @@ namespace Oddlib
         0x0000003C, 0x0000003D, 0x00000036, 0x0000002F, 0x00000037, 0x0000003E, 0x0000003F, 0x0000098E // TODO: Last value too large?
     };
 
+    // Same as PSXMDECDecoder::RL_ZSCAN_MATRIX
     const Uint32 g_block_related_unknown_dword_42B0C4[64] =
     {
         0x00000000, 0x00000001, 0x00000008, 0x00000010, 0x00000009, 0x00000002, 0x00000003, 0x0000000A,
