@@ -912,29 +912,36 @@ public:
         Parse(jsonData);
     }
 
-    struct AnimMappingData
+    struct AnimFile
     {
         std::string mFile;
         Uint32 mId;
         Uint32 mAnimationIndex;
     };
 
-    struct AnimMapping
+    struct AnimFileLocations
     {
-        Uint32 mBlendingMode;
-        std::vector<AnimMappingData> mFiles;
+        std::string mDataSetName;
+        std::vector<AnimFile> mFiles;
     };
 
-    const AnimMapping* FindAnimation(const char* resourceName, const char* dataSetName)
+    struct AnimMapping
+    {
+        // Shared between all data sets, the default blending mode
+        Uint32 mBlendingMode;
+
+        std::vector<AnimFileLocations> mLocations;
+
+        // Shared between all data sets, the frame offsets
+        std::vector<std::pair<Sint32, Sint32>> mFrameOffsets;
+    };
+
+    const AnimMapping* FindAnimation(const char* resourceName)
     {
         const auto& am = mAnimMaps.find(resourceName);
         if (am != std::end(mAnimMaps))
         {
-            const auto& it = am->second.find(dataSetName);
-            if (it != std::end(am->second))
-            {
-                return &it->second;
-            }
+            return &am->second;
         }
         return nullptr;
     }
@@ -954,9 +961,9 @@ public:
     }
 
     // Used in testing only - todo make protected
-    void AddAnimMapping(const std::string& resourceName, const std::string& dataSetName, const AnimMapping& mapping)
+    void AddAnimMapping(const std::string& resourceName, const AnimMapping& mapping)
     {
-        mAnimMaps[resourceName][dataSetName] = mapping;
+        mAnimMaps[resourceName] = mapping;
     }
 
     // Debug UI
@@ -977,7 +984,7 @@ public:
     UiContext mUi;
 private:
 
-    std::map<std::string, std::map<std::string, AnimMapping>> mAnimMaps;
+    std::map<std::string, AnimMapping> mAnimMaps;
 
     void Parse(const std::string& json)
     {
@@ -1030,49 +1037,58 @@ private:
 
     void ParseAnimResourceJson(const jsonxx::Object& obj)
     {
-        const auto& name = obj.get<jsonxx::String>("name");
+        AnimMapping animMapping;
+
         const auto blendMode = static_cast<Uint32>(obj.get<jsonxx::Number>("blend_mode"));
-        ParseAnimResourceLocations(obj, name, blendMode);
-        ParseAnimFrameOffsets(obj);
+        animMapping.mBlendingMode = blendMode;
+
+        ParseAnimResourceLocations(obj, animMapping);
+        ParseAnimFrameOffsets(obj, animMapping);
+
+        const auto& name = obj.get<jsonxx::String>("name");
+        mAnimMaps[name] = animMapping;
     }
 
-    void ParseAnimResourceLocations(const jsonxx::Object& obj, const std::string& name, Uint32 blendMode)
+    void ParseAnimResourceLocations(const jsonxx::Object& obj, AnimMapping& animMapping)
     {
         const jsonxx::Array& locations = obj.get<jsonxx::Array>("locations");
         for (size_t i = 0; i < locations.size(); i++)
         {
-            AnimMapping mapping;
-            mapping.mBlendingMode = blendMode;
-
-            AnimMappingData data;
             const jsonxx::Object& locationRecord = locations.get<jsonxx::Object>(static_cast<Uint32>(i));
 
-            const std::string& dataSetName = locationRecord.get<jsonxx::String>("dataset");
-            const jsonxx::Array& files = locationRecord.get<jsonxx::Array>("files");
+            AnimFileLocations animFileLocations;
+            animFileLocations.mDataSetName = locationRecord.get<jsonxx::String>("dataset");
 
+            const jsonxx::Array& files = locationRecord.get<jsonxx::Array>("files");
             for (size_t j = 0; j < files.size(); j++)
             {
-                const jsonxx::Object& fileRecord = files.get<jsonxx::Object>(static_cast<Uint32>(j));
-                data.mFile = fileRecord.get<jsonxx::String>("filename");
-                data.mId = static_cast<Uint32>(fileRecord.get<jsonxx::Number>("id"));
-                data.mAnimationIndex = static_cast<Uint32>(fileRecord.get<jsonxx::Number>("index"));
+                AnimFile animFile;
 
-                mapping.mFiles.push_back(data);
+                const jsonxx::Object& fileRecord = files.get<jsonxx::Object>(static_cast<Uint32>(j));
+                animFile.mFile = fileRecord.get<jsonxx::String>("filename");
+                animFile.mId = static_cast<Uint32>(fileRecord.get<jsonxx::Number>("id"));
+                animFile.mAnimationIndex = static_cast<Uint32>(fileRecord.get<jsonxx::Number>("index"));
+
+                animFileLocations.mFiles.push_back(animFile);
             }
 
-            mAnimMaps[name][dataSetName] = mapping;
+            animMapping.mLocations.push_back(animFileLocations);
         }
     }
 
-    void ParseAnimFrameOffsets(const jsonxx::Object& obj)
+    void ParseAnimFrameOffsets(const jsonxx::Object& obj, AnimMapping& animMapping)
     {
-        const jsonxx::Array& frameOffsets = obj.get<jsonxx::Array>("frame_offsets");
-        for (size_t i = 0; i < frameOffsets.size(); i++)
+        if (obj.has<jsonxx::Array>("frame_offsets"))
         {
-            const jsonxx::Object& frameOffset = frameOffsets.get<jsonxx::Object>(static_cast<Uint32>(i));
-            static_cast<Sint32>(frameOffset.get<jsonxx::Number>("x"));
-            static_cast<Sint32>(frameOffset.get<jsonxx::Number>("y"));
-            // TODO
+            const jsonxx::Array& frameOffsets = obj.get<jsonxx::Array>("frame_offsets");
+            for (size_t i = 0; i < frameOffsets.size(); i++)
+            {
+                const jsonxx::Object& frameOffsetJsonObj = frameOffsets.get<jsonxx::Object>(static_cast<Uint32>(i));
+                const std::pair<Sint32, Sint32> frameOffset = std::make_pair(
+                    static_cast<Sint32>(frameOffsetJsonObj.get<jsonxx::Number>("x")),
+                    static_cast<Sint32>(frameOffsetJsonObj.get<jsonxx::Number>("y")));
+                animMapping.mFrameOffsets.emplace_back(frameOffset);
+            }
         }
     }
 };
@@ -1082,12 +1098,14 @@ class Animation
 public:
     Animation() = delete;
 
-    Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx, Uint32 animIndex, const std::string& sourceDataSet)
-        : mIsPsx(isPsx), mSourceDataSet(sourceDataSet)
+    Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx, Uint32 defaultBlendingMode, const std::vector<std::pair<Sint32, Sint32>>& psxFrameOffsets, Uint32 animIndex, const std::string& sourceDataSet)
+        : mIsPsx(isPsx), mSourceDataSet(sourceDataSet), mPsxFrameOffsets(psxFrameOffsets)
     {
         animNum = animIndex;
 
         // TODO
+        std::ignore = defaultBlendingMode;
+       
         if (stream)
         {
             Oddlib::AnimSerializer as(*stream, isPsx);
@@ -1099,6 +1117,23 @@ public:
     {
         const Oddlib::Animation* anim = mAnim->AnimationAt(animNum);
         const Oddlib::Animation::Frame& frame = anim->GetFrame(frameNum);
+
+        const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
+
+        // TODO: AePcDemo still has PSX scaling, AoPc and AoPcDemo had rounding errors in their offset scaling
+        float xpos = static_cast<float>(mPsxFrameOffsets[frameNum].first) / (mIsPsx ? 1.73913043478f : 1.73913043478f); // TODO: This is wrong, AePsx offsets in AoPc/psx seems to not work
+        xpos = mXPos + (xpos * mScale);
+
+        float ypos = mYPos + (mPsxFrameOffsets[frameNum].second*mScale);
+        // LOG_INFO("Pos " << xpos << "," << ypos);
+        BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
+        Color color = Color::white();
+        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w* ScaleX()), static_cast<float>(frame.mFrame->h*mScale), color, blend);
+
+        rend.destroyTexture(textureId);
+
+        rend.text(xpos, ypos, mSourceDataSet.c_str());
+
         counter++;
         if (counter > 3)
         {
@@ -1110,21 +1145,6 @@ public:
             }
         }
 
-        const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
-
-        // TODO: AePcDemo still has PSX scaling, AoPc and AoPcDemo had rounding errors in their offset scaling
-        float xpos = static_cast<float>(frame.mOffX) / 1.0f;// 1.73913043478f;
-        xpos = mXPos + (xpos * mScale);
-
-        float ypos = mYPos + (frame.mOffY*mScale);
-        // LOG_INFO("Pos " << xpos << "," << ypos);
-        BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
-        Color color = Color::white();
-        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w* ScaleX()), static_cast<float>(frame.mFrame->h*mScale), color, blend);
-
-        rend.destroyTexture(textureId);
-
-        rend.text(xpos, ypos, mSourceDataSet.c_str());
     }
 
     void SetXPos(Sint32 xpos) { mXPos = xpos; }
@@ -1151,6 +1171,7 @@ private:
     Sint32 mYPos = 800;
     float mScale = 3;
     std::string mSourceDataSet;
+    const std::vector<std::pair<Sint32, Sint32>>& mPsxFrameOffsets;
 };
 
 template<class T>
@@ -1217,7 +1238,7 @@ public:
 
     std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui);
 private:
-    std::unique_ptr<Animation> DoLocate(const DataPaths::FileSystemInfo& fs, const char* resourceName);
+    std::unique_ptr<Animation> DoLocate(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
 
     ResourceMapper mResMapper;
     DataPaths mDataPaths;

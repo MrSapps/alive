@@ -114,8 +114,36 @@ TEST(ResourceLocator, DISABLED_ResourceGroup)
 
     DataPaths paths(fs, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
     ResourceMapper mapper;
-    mapper.AddAnimMapping("SLIGZ.BND_417_1", "AoPc", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
-    mapper.AddAnimMapping("BLAH.BND_417_2", "AePc", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
+    mapper.AddAnimMapping("SLIGZ.BND_417_1",
+    {
+        1, 
+        std::vector < ResourceMapper::AnimFileLocations > 
+        { 
+            ResourceMapper::AnimFileLocations
+            { 
+                "AoPc", 
+                std::vector<ResourceMapper::AnimFile> 
+                {
+                    ResourceMapper::AnimFile { "SLIGZ.BND", 417, 1 }
+                }
+            }
+        }
+    });
+    mapper.AddAnimMapping("BLAH.BND_417_2", 
+    { 
+        1, 
+        std::vector < ResourceMapper::AnimFileLocations >
+        { 
+            ResourceMapper::AnimFileLocations
+            {
+                "AoPc", 
+                std::vector<ResourceMapper::AnimFile>
+                {
+                    ResourceMapper::AnimFile { "SLIGZ.BND", 417, 1 }
+                }
+            }
+        } 
+    });
 
     ResourceLocator locator(std::move(mapper), std::move(paths));
 
@@ -144,22 +172,39 @@ TEST(ResourceLocator, ParseResourceMap)
 
     ResourceMapper mapper(fs, "resource_maps.json");
     
-    const ResourceMapper::AnimMapping* r0 = mapper.FindAnimation("I don't exist", "AoPc");
+    const ResourceMapper::AnimMapping* r0 = mapper.FindAnimation("I don't exist");
     ASSERT_EQ(nullptr, r0);
 
-    const ResourceMapper::AnimMapping* r1 = mapper.FindAnimation("ABEBSIC.BAN_10_AePc_1", "AoPc");
+    const ResourceMapper::AnimMapping* r1 = mapper.FindAnimation("ABEBSIC.BAN_10_AePc_1");
     ASSERT_NE(nullptr, r1);
-    ASSERT_EQ(2u, r1->mFiles.size());
+    
+    // Check location mappings
+    ASSERT_EQ(2u, r1->mLocations.size());
+    ASSERT_EQ(2u, r1->mLocations[0].mFiles.size());
+    ASSERT_EQ(1u, r1->mLocations[1].mFiles.size());
 
-    ASSERT_EQ("ABEBSIC.BAN", r1->mFiles[0].mFile);
-    ASSERT_EQ(1u, r1->mFiles[0].mAnimationIndex);
-    ASSERT_EQ(10u, r1->mFiles[0].mId);
+    ASSERT_EQ("AoPc", r1->mLocations[0].mDataSetName);
+    ASSERT_EQ("ABEBSIC.BAN", r1->mLocations[0].mFiles[0].mFile);
+    ASSERT_EQ(1u, r1->mLocations[0].mFiles[0].mAnimationIndex);
+    ASSERT_EQ(10u, r1->mLocations[0].mFiles[0].mId);
 
-    ASSERT_EQ("ANOTHER.BAN", r1->mFiles[1].mFile);
-    ASSERT_EQ(99u, r1->mFiles[1].mAnimationIndex);
-    ASSERT_EQ(50u, r1->mFiles[1].mId);
+    ASSERT_EQ("ANOTHER.BAN", r1->mLocations[0].mFiles[1].mFile);
+    ASSERT_EQ(99u, r1->mLocations[0].mFiles[1].mAnimationIndex);
+    ASSERT_EQ(50u, r1->mLocations[0].mFiles[1].mId);
 
-    // TODO: Check FrameOffsets
+    ASSERT_EQ("AoPcDemo", r1->mLocations[1].mDataSetName);
+    ASSERT_EQ("ABEBSIC.BAN", r1->mLocations[1].mFiles[0].mFile);
+    ASSERT_EQ(1u, r1->mLocations[1].mFiles[0].mAnimationIndex);
+    ASSERT_EQ(10u, r1->mLocations[1].mFiles[0].mId);
+
+    // Check FrameOffsets
+    ASSERT_EQ(2u, r1->mFrameOffsets.size());
+
+    ASSERT_EQ(-12, r1->mFrameOffsets[0].first);
+    ASSERT_EQ(-37, r1->mFrameOffsets[0].second);
+
+    ASSERT_EQ(99, r1->mFrameOffsets[1].first);
+    ASSERT_EQ(0, r1->mFrameOffsets[1].second);
 
     ASSERT_EQ(1u, r1->mBlendingMode);
 }
@@ -206,8 +251,37 @@ TEST(ResourceLocator, LocateAnimation)
 
     DataPaths paths(fs, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
     ResourceMapper mapper;
-    mapper.AddAnimMapping("SLIGZ.BND_417_1", "AoPc", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
-    mapper.AddAnimMapping("SLIGZ.BND_417_2", "AoPc", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
+    mapper.AddAnimMapping("BLAH.BND_417_1",
+    {
+        1,
+        std::vector < ResourceMapper::AnimFileLocations >
+        {
+            ResourceMapper::AnimFileLocations
+            {
+                "AoPc",
+                std::vector<ResourceMapper::AnimFile>
+                {
+                    ResourceMapper::AnimFile{ "SLIGZ.BND", 417, 1 }
+                }
+            }
+        }
+    });
+
+    mapper.AddAnimMapping("BLAH.BND_417_2",
+    {
+        1,
+        std::vector < ResourceMapper::AnimFileLocations >
+        {
+            ResourceMapper::AnimFileLocations
+            {
+                "AoPc",
+                std::vector<ResourceMapper::AnimFile>
+                {
+                    ResourceMapper::AnimFile{ "SLIGZ.BND", 417, 1 }
+                }
+            }
+        }
+    });
 
     ResourceLocator locator(std::move(mapper), std::move(paths));
 
@@ -335,7 +409,21 @@ TEST(ResourceLocator, Construct)
     // create the resource mapper loading the resource maps from the json db
     DataPaths dataPaths2(fs, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
     ResourceMapper mapper;
-    mapper.AddAnimMapping("SLIGZ.BND_417_1", "AoPc", { 1, std::vector < ResourceMapper::AnimMappingData > { ResourceMapper::AnimMappingData{ "SLIGZ.BND", 417, 1 }} });
+    mapper.AddAnimMapping("BLAH.BND_417_1",
+    {
+        1,
+        std::vector < ResourceMapper::AnimFileLocations >
+        {
+            ResourceMapper::AnimFileLocations
+            {
+                "AoPc",
+                std::vector<ResourceMapper::AnimFile>
+                {
+                    ResourceMapper::AnimFile{ "SLIGZ.BND", 417, 1 }
+                }
+            }
+        }
+    });
 
     ResourceLocator resourceLocator(std::move(mapper), std::move(dataPaths2));
     

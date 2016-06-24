@@ -891,17 +891,22 @@ int main(int /*argc*/, char** /*argv*/)
             {
                 jsonxx::Array frameOffsetsArray;
                 const Oddlib::Animation* animPtr = GetAnimationWithCorrectOffsets(deDupedAnim);
-                for (Uint32 j = 0; j < animPtr->NumFrames(); j++)
+                // If for some reason there was only AoPc and no Psx match was found this can happen
+                // but if the anim duplicate finder is working correctly it should never happen in theory
+                if (animPtr)
                 {
-                    const Oddlib::Animation::Frame& frame = animPtr->GetFrame(j);
-                    jsonxx::Object frameOffsetObj;
-                    frameOffsetObj << "x" << frame.mOffX;
-                    frameOffsetObj << "y" << frame.mOffY;
-                    frameOffsetsArray << frameOffsetObj;
+                    for (Uint32 j = 0; j < animPtr->NumFrames(); j++)
+                    {
+                        const Oddlib::Animation::Frame& frame = animPtr->GetFrame(j);
+                        jsonxx::Object frameOffsetObj;
+                        frameOffsetObj << "x" << frame.mOffX;
+                        frameOffsetObj << "y" << frame.mOffY;
+                        frameOffsetsArray << frameOffsetObj;
 
-                    // TOOD: Probably need collision rectangle data too
+                        // TOOD: Probably need collision rectangle data too
+                    }
+                    anim << "frame_offsets" << frameOffsetsArray;
                 }
-                anim << "frame_offsets" << frameOffsetsArray;
             }
 
             void WriteAnimLocations(jsonxx::Object& anim, const std::unique_ptr<DeDuplicatedAnimation>& deDupedAnim)
@@ -1052,7 +1057,7 @@ int main(int /*argc*/, char** /*argv*/)
     db.MergePcAndPsx();
 
     db.ToJson();
-    db.Dump();
+    //db.Dump();
 
     return 0;
 }

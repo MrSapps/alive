@@ -93,7 +93,7 @@ void DevloperScreen::RenderAnimationSelector(Renderer& renderer)
     Sint32 spacer = 0;
     for (Animation* anim : mLoadedAnims)
     {
-        anim->SetXPos(200 + spacer);
+        anim->SetXPos(70 + spacer);
         anim->Animate(renderer);
         spacer += anim->MaxW();
     }
@@ -113,6 +113,7 @@ void DevloperScreen::RenderAnimationSelector(Renderer& renderer)
             {
                 if (load)
                 {
+                    // TODO: Keep load order intact! This is required to check that RequiredDataSets ordering is honoured
                     mLoadedAnims.insert(anim);
                 }
                 else

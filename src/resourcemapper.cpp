@@ -82,11 +82,11 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceMapper::DebugUi(
             // "Resource" name
             UiItem item;
             std::string dataSets = " (";
-            for (const std::pair<std::string, AnimMapping>& mapping : animMap.second)
+            for (const AnimFileLocations& mapping : animMap.second.mLocations)
             {
                 // Each dataset this resource lives in
-                item.mItems.push_back(mapping.first);
-                dataSets += mapping.first + " ";
+                item.mItems.push_back(mapping.mDataSetName);
+                dataSets += mapping.mDataSetName + " ";
             }
             dataSets += ")";
             item.mLabel = animMap.first + dataSets;
@@ -133,7 +133,13 @@ std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName)
         }
         else
         {
-            auto ret = DoLocate(fs, resourceName);
+            const ResourceMapper::AnimMapping* animMapping = mResMapper.FindAnimation(resourceName);
+            if (!animMapping)
+            {
+                return nullptr;
+            }
+
+            auto ret = DoLocate(fs, resourceName, *animMapping);
             if (ret)
             {
                 return ret;
@@ -149,7 +155,13 @@ std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName, con
     {
         if (fs.mDataSetName == dataSetName)
         {
-            auto ret = DoLocate(fs, resourceName);
+            const ResourceMapper::AnimMapping* animMapping = mResMapper.FindAnimation(resourceName);
+            if (!animMapping)
+            {
+                return nullptr;
+            }
+
+            auto ret = DoLocate(fs, resourceName, *animMapping);
             if (ret)
             {
                 return ret;
@@ -159,47 +171,63 @@ std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName, con
     return nullptr;
 }
 
-std::unique_ptr<Animation> ResourceLocator::DoLocate(const DataPaths::FileSystemInfo& fs, const char* resourceName)
+std::unique_ptr<Animation> ResourceLocator::DoLocate(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping)
 {
-    const ResourceMapper::AnimMapping* animMapping = mResMapper.FindAnimation(resourceName, fs.mDataSetName.c_str());
-    if (animMapping)
+    // Each each mapping in the resource record that has matched resourceName
+    for (const ResourceMapper::AnimFileLocations& location : animMapping.mLocations)
     {
-        for (const ResourceMapper::AnimMappingData& animData : animMapping->mFiles)
+        // Check if the mapping applies to the data set that fs is
+        if (location.mDataSetName == fs.mDataSetName)
         {
-            const std::vector<std::pair<bool, std::string>>* fileLocations = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), animData.mFile.c_str());
-            if (fileLocations)
+            // Loop through all the locations in the data set where resourceName lives
+            for (const ResourceMapper::AnimFile& animFile : location.mFiles)
             {
-                for (const std::pair<bool, std::string>& lvlNameIsPsxPair : *fileLocations)
+                // Now find all of the LVLs where animFile lives
+                const std::vector<std::pair<bool, std::string>>* fileLocations = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), animFile.mFile.c_str());
+                if (fileLocations)
                 {
-                    // Open the LVL archive
-                    auto lvlStream = fs.mFileSystem->Open(lvlNameIsPsxPair.second);
-                    if (lvlStream)
+                    // Loop through each LVL and see if animFile exists there
+                    for (const std::pair<bool, std::string>& lvlNameIsPsxPair : *fileLocations)
                     {
-                        // Open the file within the archive
-                        Oddlib::LvlArchive lvl(std::move(lvlStream));
-                        auto lvlFile = lvl.FileByName(animData.mFile);
-                        if (lvlFile)
+                        // Open the LVL archive
+                        auto lvlStream = fs.mFileSystem->Open(lvlNameIsPsxPair.second);
+                        if (lvlStream)
                         {
-                            // Get the chunk within the file that lives in the lvl
-                            Oddlib::LvlArchive::FileChunk* chunk = lvlFile->ChunkById(animData.mId);
+                            // Open the file within the archive
+                            Oddlib::LvlArchive lvl(std::move(lvlStream));
+                            auto lvlFile = lvl.FileByName(animFile.mFile);
+                            if (lvlFile)
+                            {
+                                // Get the chunk within the file that lives in the lvl
+                                Oddlib::LvlArchive::FileChunk* chunk = lvlFile->ChunkById(animFile.mId);
+                                if (chunk)
+                                {
+                                    LOG_INFO(resourceName
+                                        << " located in data set " << fs.mDataSetName
+                                        << " mapped to " << fs.mFileSystem->FsPath()
+                                        << " in lvl archive " << lvlNameIsPsxPair.second
+                                        << " in lvl file " << animFile.mFile
+                                        << " with lvl file chunk id " << animFile.mId
+                                        << " at anim index " << animFile.mAnimationIndex
+                                        << " is psx " << lvlNameIsPsxPair.first);
 
-                            LOG_INFO(resourceName
-                                << " located in data set " << fs.mDataSetName
-                                << " mapped to " << fs.mFileSystem->FsPath()
-                                << " in lvl archive " << lvlNameIsPsxPair.second
-                                << " in lvl file " << animData.mFile
-                                << " with lvl file chunk id " << animData.mId
-                                << " at anim index " << animData.mAnimationIndex
-                                << " is psx " << lvlNameIsPsxPair.first);
-
-                            // Construct the animation from the chunk bytes
-                            return std::make_unique<Animation>(chunk->Stream(),
-                                lvlNameIsPsxPair.first, animData.mAnimationIndex, fs.mDataSetName);
+                                    // Construct the animation from the chunk bytes
+                                    return std::make_unique<Animation>(
+                                        chunk->Stream(),
+                                        lvlNameIsPsxPair.first,
+                                        animMapping.mBlendingMode,
+                                        animMapping.mFrameOffsets,
+                                        animFile.mAnimationIndex,
+                                        fs.mDataSetName);
+                                }
+                            }
                         }
                     }
                 }
             }
         }
     }
+
+
     return nullptr;
 }
