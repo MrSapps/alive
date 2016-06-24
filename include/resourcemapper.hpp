@@ -1032,8 +1032,13 @@ private:
     {
         const auto& name = obj.get<jsonxx::String>("name");
         const auto blendMode = static_cast<Uint32>(obj.get<jsonxx::Number>("blend_mode"));
+        ParseAnimResourceLocations(obj, name, blendMode);
+        ParseAnimFrameOffsets(obj);
+    }
+
+    void ParseAnimResourceLocations(const jsonxx::Object& obj, const std::string& name, Uint32 blendMode)
+    {
         const jsonxx::Array& locations = obj.get<jsonxx::Array>("locations");
- 
         for (size_t i = 0; i < locations.size(); i++)
         {
             AnimMapping mapping;
@@ -1057,9 +1062,19 @@ private:
 
             mAnimMaps[name][dataSetName] = mapping;
         }
-     
     }
 
+    void ParseAnimFrameOffsets(const jsonxx::Object& obj)
+    {
+        const jsonxx::Array& frameOffsets = obj.get<jsonxx::Array>("frame_offsets");
+        for (size_t i = 0; i < frameOffsets.size(); i++)
+        {
+            const jsonxx::Object& frameOffset = frameOffsets.get<jsonxx::Object>(static_cast<Uint32>(i));
+            static_cast<Sint32>(frameOffset.get<jsonxx::Number>("x"));
+            static_cast<Sint32>(frameOffset.get<jsonxx::Number>("y"));
+            // TODO
+        }
+    }
 };
 
 class Animation

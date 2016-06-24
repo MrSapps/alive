@@ -845,19 +845,62 @@ int main(int /*argc*/, char** /*argv*/)
         }
 
         private:
-            void WriteAnimFrameOffsets(jsonxx::Object& anim, const std::unique_ptr<DeDuplicatedAnimation>& /*deDupedAnim*/)
+            bool HasCorrectPsxFrameOffsets(const eDataSetType dataType)
+            {
+                switch (dataType)
+                {
+                case eAoPsx:
+                case eAoPsxDemo:
+                case eAePc: // TODO: Has PSX scales?
+                case eAePcDemo:
+                case eAePsxCd1:
+                case eAePsxCd2:
+                case eAePsxDemo:
+                    return true;
+
+                default:
+                    return false;
+                }
+            }
+
+            const Oddlib::Animation* GetAnimationWithCorrectOffsets(const std::unique_ptr<DeDuplicatedAnimation>& anim)
+            {
+                // AoPc and AoPsxDemo have scaled offsets with rounding errors
+                // AePc and AePcDemo have unscaled offsets
+                // AePsxCd1/2, AePcsDemo, AoPsx and AoPsxDemo have correct offsets
+                // Thus we attempt to write out *Psx or AePc* offsets which can then be correctly
+                // scaled by the engine for AoPc and yields consistent logic for offset handling.
+                if (HasCorrectPsxFrameOffsets(anim->mContainingChunk->mChunk->mDataSet))
+                {
+                    return anim->mAnimation;
+                }
+                else
+                {
+                    for (const auto& chunkPair : anim->mDuplicates)
+                    {
+                        if (HasCorrectPsxFrameOffsets(chunkPair.second->mChunk->mDataSet))
+                        {
+                            return chunkPair.second->mAnimSet->AnimationAt(chunkPair.first);
+                        }
+                    }
+                }
+                return nullptr;
+            }
+
+            void WriteAnimFrameOffsets(jsonxx::Object& anim, const std::unique_ptr<DeDuplicatedAnimation>& deDupedAnim)
             {
                 jsonxx::Array frameOffsetsArray;
-
-                // TODO
-                for (int i = 0; i < 10; i++)
+                const Oddlib::Animation* animPtr = GetAnimationWithCorrectOffsets(deDupedAnim);
+                for (Uint32 j = 0; j < animPtr->NumFrames(); j++)
                 {
+                    const Oddlib::Animation::Frame& frame = animPtr->GetFrame(j);
                     jsonxx::Object frameOffsetObj;
-                    frameOffsetObj << "x" << 1;
-                    frameOffsetObj << "y" << 2;
+                    frameOffsetObj << "x" << frame.mOffX;
+                    frameOffsetObj << "y" << frame.mOffY;
                     frameOffsetsArray << frameOffsetObj;
-                }
 
+                    // TOOD: Probably need collision rectangle data too
+                }
                 anim << "frame_offsets" << frameOffsetsArray;
             }
 
