@@ -1121,10 +1121,14 @@ public:
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
 
         // TODO: AePcDemo still has PSX scaling, AoPc and AoPcDemo had rounding errors in their offset scaling
-        float xpos = static_cast<float>(mPsxFrameOffsets[frameNum].first) / (mIsPsx ? 1.73913043478f : 1.73913043478f); // TODO: This is wrong, AePsx offsets in AoPc/psx seems to not work
+
+        // Using AePsx scaled coords on AoPc seems to go quite wrong sometimes, for example in SWITCH1
+        float xpos = mIsPsx ? static_cast<float>(frame.mOffX) : static_cast<float>(mPsxFrameOffsets[frameNum].first / 1.73913043478f);
         xpos = mXPos + (xpos * mScale);
 
-        float ypos = mYPos + (mPsxFrameOffsets[frameNum].second*mScale);
+        float ypos = mIsPsx ? static_cast<float>(frame.mOffY) : mPsxFrameOffsets[frameNum].second;
+        ypos = mYPos + (ypos *mScale);
+
         // LOG_INFO("Pos " << xpos << "," << ypos);
         BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
         Color color = Color::white();
