@@ -836,7 +836,7 @@ int main(int /*argc*/, char** /*argv*/)
             WriteLvlContentMappings(resources);
 
 
-            std::ofstream jsonFile("test.json");
+            std::ofstream jsonFile("..\\data\\resources.json");
             if (!jsonFile.is_open())
             {
                 abort();
@@ -849,14 +849,21 @@ int main(int /*argc*/, char** /*argv*/)
             {
                 switch (dataType)
                 {
-                case eAoPsx:
-                case eAoPsxDemo:
+                case eAePc:
+                case eAePsxCd1:
+                case eAePsxCd2:
+                    return true;
+
+//                case eAoPsx:
+               // case eAoPsxDemo:
+                    /*
                 case eAePc: // TODO: Has PSX scales?
                 case eAePcDemo:
                 case eAePsxCd1:
                 case eAePsxCd2:
                 case eAePsxDemo:
-                    return true;
+                */
+                   // return true;
 
                 default:
                     return false;

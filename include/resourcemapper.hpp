@@ -1101,7 +1101,7 @@ public:
     Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx, Uint32 defaultBlendingMode, const std::vector<std::pair<Sint32, Sint32>>& psxFrameOffsets, Uint32 animIndex, const std::string& sourceDataSet)
         : mIsPsx(isPsx), mSourceDataSet(sourceDataSet), mPsxFrameOffsets(psxFrameOffsets)
     {
-        animNum = animIndex;
+        mAnimNum = animIndex;
 
         // TODO
         std::ignore = defaultBlendingMode;
@@ -1115,37 +1115,66 @@ public:
     
     void Animate(Renderer& rend)
     {
-        const Oddlib::Animation* anim = mAnim->AnimationAt(animNum);
-        const Oddlib::Animation::Frame& frame = anim->GetFrame(frameNum);
+        const Oddlib::Animation* anim = mAnim->AnimationAt(mAnimNum);
+        const Oddlib::Animation::Frame& frame = anim->GetFrame(mFrameNum);
 
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
 
         // TODO: AePcDemo still has PSX scaling, AoPc and AoPcDemo had rounding errors in their offset scaling
 
         // Using AePsx scaled coords on AoPc seems to go quite wrong sometimes, for example in SWITCH1
-        float xpos = mIsPsx ? static_cast<float>(frame.mOffX) : static_cast<float>(mPsxFrameOffsets[frameNum].first / 1.73913043478f);
+
+        const bool scaleOffsetsUp = mSourceDataSet == "AePc" || mSourceDataSet == "AePcDemo";
+        
+        // TODO: Need a better way to handle bad offsets, maybe by changing to using a "has rounding error" table of xcoords instead
+
+        const bool usePsxRippedOffsets = false;// (mSourceDataSet == "AoPc") || (mSourceDataSet == "AoPcDemo");
+        const bool scaleOffsetsDown = false;// usePsxRippedOffsets;// mSourceDataSet == "AoPc" || mSourceDataSet == "AoPcDemo";
+
+        float xpos = 0.0f;
+        if (usePsxRippedOffsets)
+        {
+            xpos = scaleOffsetsDown ? static_cast<float>(mPsxFrameOffsets[mFrameNum].first / 1.73913043478f) : static_cast<float>(mPsxFrameOffsets[mFrameNum].first);
+        }
+        else
+        {
+            xpos = scaleOffsetsUp ? static_cast<float>(frame.mOffX / 1.73913043478f) : static_cast<float>(frame.mOffX);
+        }
+
         xpos = mXPos + (xpos * mScale);
 
-        float ypos = mIsPsx ? static_cast<float>(frame.mOffY) : mPsxFrameOffsets[frameNum].second;
+        float ypos = 0.0f;
+        if (usePsxRippedOffsets)
+        {
+            // y is never scaled so its only xoffsets that get broken
+//            ypos = static_cast<float>(mPsxFrameOffsets[mFrameNum].second);
+            ypos = static_cast<float>(frame.mOffY);
+        }
+        else
+        {
+            ypos = static_cast<float>(frame.mOffY);
+        }
+
         ypos = mYPos + (ypos *mScale);
 
         // LOG_INFO("Pos " << xpos << "," << ypos);
         BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
         Color color = Color::white();
-        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w* ScaleX()), static_cast<float>(frame.mFrame->h*mScale), color, blend);
+        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w) * ScaleX(), static_cast<float>(frame.mFrame->h)*mScale, color, blend);
 
         rend.destroyTexture(textureId);
 
-        rend.text(xpos, ypos, mSourceDataSet.c_str());
+        rend.text(xpos, ypos, 
+            (mSourceDataSet + " scale: " + std::to_string(scaleOffsetsUp) + " use ripped " + std::to_string(usePsxRippedOffsets)).c_str());
 
-        counter++;
-        if (counter > 3)
+        mCounter++;
+        if (mCounter > 3)
         {
-            counter = 0;
-            frameNum++;
-            if (frameNum >= anim->NumFrames())
+            mCounter = 0;
+            mFrameNum++;
+            if (mFrameNum >= anim->NumFrames())
             {
-                frameNum = 0;
+                mFrameNum = 0;
             }
         }
 
@@ -1166,9 +1195,9 @@ private:
     }
 
     bool mIsPsx = false;
-    Uint32 counter = 0;
-    Uint32 frameNum = 0;
-    Uint32 animNum = 0;
+    Uint32 mCounter = 0;
+    Uint32 mFrameNum = 0;
+    Uint32 mAnimNum = 0;
     std::unique_ptr<Oddlib::AnimationSet> mAnim;
 
     Sint32 mXPos = 500;

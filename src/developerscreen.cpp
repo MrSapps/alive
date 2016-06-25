@@ -95,7 +95,7 @@ void DevloperScreen::RenderAnimationSelector(Renderer& renderer)
     {
         anim->SetXPos(70 + spacer);
         anim->Animate(renderer);
-        spacer += anim->MaxW();
+        spacer += (anim->MaxW() + (anim->MaxW()/3));
     }
     renderer.endLayer();
 
