@@ -849,12 +849,13 @@ int main(int /*argc*/, char** /*argv*/)
             {
                 switch (dataType)
                 {
-                case eAePc:
-                case eAePsxCd1:
-                case eAePsxCd2:
+                //case eAePc:
+                //case eAePsxCd1:
+                //case eAePsxCd2:
+                case eAePcDemo: // Results in fractional offsets, these seems to "fix" Ao anim offsets but many are missing from the demo
                     return true;
 
-//                case eAoPsx:
+                //case eAoPsx:
                // case eAoPsxDemo:
                     /*
                 case eAePc: // TODO: Has PSX scales?

@@ -1120,28 +1120,23 @@ public:
 
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
 
-        // TODO: AePcDemo still has PSX scaling, AoPc and AoPcDemo had rounding errors in their offset scaling
 
-        // Using AePsx scaled coords on AoPc seems to go quite wrong sometimes, for example in SWITCH1
+        // AePc* has psx sized offsets
+        const bool scaleOffsets = mSourceDataSet == "AePc" || mSourceDataSet == "AePcDemo";
 
-        const bool scaleOffsetsUp = mSourceDataSet == "AePc" || mSourceDataSet == "AePcDemo";
-        
-        // TODO: Need a better way to handle bad offsets, maybe by changing to using a "has rounding error" table of xcoords instead
-
-        const bool usePsxRippedOffsets = false;// (mSourceDataSet == "AoPc") || (mSourceDataSet == "AoPcDemo");
-        const bool scaleOffsetsDown = false;// usePsxRippedOffsets;// mSourceDataSet == "AoPc" || mSourceDataSet == "AoPcDemo";
+        // Most AoPc* has errors in offsets that cause animations to "jiggle" for the most part using the ripped
+        // AePcDemo offsets sorts this out
+        const bool usePsxRippedOffsets = (mSourceDataSet == "AoPc") || (mSourceDataSet == "AoPcDemo");
 
         float xpos = 0.0f;
-        if (usePsxRippedOffsets)
+        if (usePsxRippedOffsets && mPsxFrameOffsets.empty() == false)
         {
-            xpos = scaleOffsetsDown ? static_cast<float>(mPsxFrameOffsets[mFrameNum].first / 1.73913043478f) : static_cast<float>(mPsxFrameOffsets[mFrameNum].first);
+            xpos = scaleOffsets || usePsxRippedOffsets ? static_cast<float>(mPsxFrameOffsets[mFrameNum].first / 1.73913043478f) : static_cast<float>(mPsxFrameOffsets[mFrameNum].first);
         }
         else
         {
-            xpos = scaleOffsetsUp ? static_cast<float>(frame.mOffX / 1.73913043478f) : static_cast<float>(frame.mOffX);
+            xpos = scaleOffsets ? static_cast<float>(frame.mOffX / 1.73913043478f) : static_cast<float>(frame.mOffX);
         }
-
-        xpos = mXPos + (xpos * mScale);
 
         float ypos = 0.0f;
         if (usePsxRippedOffsets)
@@ -1155,8 +1150,13 @@ public:
             ypos = static_cast<float>(frame.mOffY);
         }
 
-        ypos = mYPos + (ypos *mScale);
+        float oldY = ypos;
+        float oldX = xpos;
 
+        ypos = mYPos + (ypos * mScale);
+        xpos = mXPos + (xpos * mScale);
+
+    
         // LOG_INFO("Pos " << xpos << "," << ypos);
         BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
         Color color = Color::white();
@@ -1165,14 +1165,22 @@ public:
         rend.destroyTexture(textureId);
 
         rend.text(xpos, ypos, 
-            (mSourceDataSet + " scale: " + std::to_string(scaleOffsetsUp) + " use ripped " + std::to_string(usePsxRippedOffsets)).c_str());
+            (mSourceDataSet 
+             //+ " w: " + std::to_string(frame.mFrame->w)
+             //+ " h: " +  std::to_string(frame.mFrame->h)
+             //+ "\n"
+             + " x: " + std::to_string(oldX)
+             + " y: " + std::to_string(oldY)
+             + " f: " + std::to_string(mFrameNum)
+
+             ).c_str());
 
         mCounter++;
-        if (mCounter > 3)
+        if (mCounter > 5)
         {
             mCounter = 0;
             mFrameNum++;
-            if (mFrameNum >= anim->NumFrames())
+            if (mFrameNum >= anim->NumFrames() /*|| mFrameNum >= 2*/)
             {
                 mFrameNum = 0;
             }
