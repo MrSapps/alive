@@ -87,19 +87,31 @@ void DevloperScreen::RenderAnimationSelector(Renderer& renderer)
 {
     gui_begin_window(mGui, "Animations");
 
-    // TODO: At least AoPsx fails to find res due to case sensitive file names
+    bool resetStates = false;
+    if (gui_button(mGui, "Reset states"))
+    {
+        resetStates = true;
+    }
+
+    static char filterString[64] = {};
+    gui_textfield(mGui, "Filter", filterString, sizeof(filterString));
+
 
     renderer.beginLayer(gui_layer(mGui));
     Sint32 spacer = 0;
     for (Animation* anim : mLoadedAnims)
     {
+        if (resetStates)
+        {
+            anim->Restart();
+        }
         anim->SetXPos(70 + spacer);
         anim->Animate(renderer);
         spacer += (anim->MaxW() + (anim->MaxW()/3));
     }
     renderer.endLayer();
 
-    auto animsToLoad = mResourceLocator.DebugUi(renderer, mGui);
+    auto animsToLoad = mResourceLocator.DebugUi(renderer, mGui, filterString);
     for (const auto& res : animsToLoad)
     {
         if (std::get<0>(res))
@@ -113,7 +125,7 @@ void DevloperScreen::RenderAnimationSelector(Renderer& renderer)
             {
                 if (load)
                 {
-                    // TODO: Keep load order intact! This is required to check that RequiredDataSets ordering is honoured
+                    // TODO: Keep load order intact! This is required to check that RequiredDataSets ordering is honored
                     mLoadedAnims.insert(anim);
                 }
                 else

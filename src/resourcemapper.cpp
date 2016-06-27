@@ -72,7 +72,7 @@ bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
     return ret;
 }
 
-std::vector<std::tuple<const char*, const char*, bool>> ResourceMapper::DebugUi(class Renderer& /*renderer*/, GuiContext* gui)
+std::vector<std::tuple<const char*, const char*, bool>> ResourceMapper::DebugUi(class Renderer& /*renderer*/, GuiContext* gui, const char* filter)
 {
     // Collect the UI data/state
     if (mUi.mItems.empty())
@@ -82,6 +82,7 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceMapper::DebugUi(
             // "Resource" name
             UiItem item;
             std::string dataSets = " (";
+
             for (const AnimFileLocations& mapping : animMap.second.mLocations)
             {
                 // Each dataset this resource lives in
@@ -91,6 +92,7 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceMapper::DebugUi(
             dataSets += ")";
             item.mLabel = animMap.first + dataSets;
             item.mResourceName = animMap.first;
+
             mUi.mItems.push_back(item);
         }
     }
@@ -100,21 +102,40 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceMapper::DebugUi(
     int i = 0;
     for (UiItem& item : mUi.mItems)
     {
-        if (gui_checkbox(gui, gui_str(gui, "checkbox_%i|%s", i++, item.mLabel.c_str()), &item.mLoad))
+        bool found = false;
+        if (filter[0] != '\0')
         {
             for (const std::string& subItem : item.mItems)
             {
-                ret.emplace_back(std::make_tuple(subItem.c_str(), item.mResourceName.c_str(), item.mLoad));
+                if (subItem == filter)
+                {
+                    found = true;
+                    break;
+                }
             }
-           
+        }
+        else
+        {
+            found = true;
+        }
+
+        if (found)
+        {
+            if (gui_checkbox(gui, gui_str(gui, "checkbox_%i|%s", i++, item.mLabel.c_str()), &item.mLoad))
+            {
+                for (const std::string& subItem : item.mItems)
+                {
+                    ret.emplace_back(std::make_tuple(subItem.c_str(), item.mResourceName.c_str(), item.mLoad));
+                }
+            }
         }
     }
     return ret;
 }
 
-std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi(class Renderer& renderer, GuiContext* gui)
+std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi(class Renderer& renderer, GuiContext* gui, const char* filter)
 {
-    return mResMapper.DebugUi(renderer, gui);
+    return mResMapper.DebugUi(renderer, gui, filter);
 }
 
 std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName)

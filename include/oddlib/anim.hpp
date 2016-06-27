@@ -196,11 +196,17 @@ namespace Oddlib
         Uint32 NumFrames() const { return static_cast<Uint32>(mFrames.size()); }
         Uint32 Fps() const { return mFps; }
         Uint32 LoopStartFrame() const { return mLoopStartFrame; }
+        bool Loop() const { return mbLoop; }
+        bool FlipX() const { return mbFlipX; }
+        bool FlipY() const { return mbFlipY; }
         const Frame& GetFrame(Uint32 idx) const;
     private:
         Uint32 mFps = 0;
         Uint32 mLoopStartFrame = 0;
         std::vector<Frame> mFrames;
+        bool mbLoop = false;
+        bool mbFlipX = false;
+        bool mbFlipY = false;
     };
 
 

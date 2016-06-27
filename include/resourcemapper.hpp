@@ -967,7 +967,7 @@ public:
     }
 
     // Debug UI
-    std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui);
+    std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui, const char* filter);
 
     struct UiItem
     {
@@ -1176,16 +1176,30 @@ public:
              ).c_str());
 
         mCounter++;
-        if (mCounter > 5)
+        // TODO: Figure out the real speed of what Fps means
+        // also don't tie update speed to the game frame rate
+        if (mCounter > 5 * anim->Fps())
         {
             mCounter = 0;
             mFrameNum++;
-            if (mFrameNum >= anim->NumFrames() /*|| mFrameNum >= 2*/)
+            if (mFrameNum >= anim->NumFrames())
             {
-                mFrameNum = 0;
+                if (anim->Loop())
+                {
+                    mFrameNum = anim->LoopStartFrame();
+                }
+                else
+                {
+                    mFrameNum = anim->NumFrames() - 1;
+                }
             }
         }
 
+    }
+
+    void Restart()
+    {
+        mFrameNum = 0;
     }
 
     void SetXPos(Sint32 xpos) { mXPos = xpos; }
@@ -1277,7 +1291,7 @@ public:
     // in dataset A and B.
     std::unique_ptr<Animation> Locate(const char* resourceName, const char* dataSetName);
 
-    std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui);
+    std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui, const char* filter);
 private:
     std::unique_ptr<Animation> DoLocate(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
 

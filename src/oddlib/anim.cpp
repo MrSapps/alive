@@ -18,6 +18,11 @@ namespace Oddlib
     {
         mFps = animHeader.mFps;
         mLoopStartFrame = animHeader.mLoopStartFrame;
+
+        mbLoop = (animHeader.mFlags & AnimSerializer::AnimationHeader::eLoopFlag) > 0;
+        mbFlipX = (animHeader.mFlags & AnimSerializer::AnimationHeader::eFlipXFlag) > 0;
+        mbFlipY = (animHeader.mFlags & AnimSerializer::AnimationHeader::eFlipYFlag) > 0;
+
         for (const std::unique_ptr<AnimSerializer::FrameInfoHeader>& frameInfo : animHeader.mFrameInfos)
         {
             Frame tmp;
