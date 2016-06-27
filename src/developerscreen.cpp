@@ -18,6 +18,11 @@ void DevloperScreen::Update()
     mFmv.Update();
     mSound.Update();
     mLevel.Update();
+
+    for (Animation* anim : mLoadedAnims)
+    {
+        anim->Update();
+    }
 }
 
 void DevloperScreen::Render(int w, int h, Renderer& renderer)
@@ -106,7 +111,7 @@ void DevloperScreen::RenderAnimationSelector(Renderer& renderer)
             anim->Restart();
         }
         anim->SetXPos(70 + spacer);
-        anim->Animate(renderer);
+        anim->Render(renderer);
         spacer += (anim->MaxW() + (anim->MaxW()/3));
     }
     renderer.endLayer();

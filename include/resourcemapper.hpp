@@ -1113,13 +1113,35 @@ public:
         }
     }
     
-    void Animate(Renderer& rend)
+    void Update()
+    {
+        const Oddlib::Animation* anim = mAnim->AnimationAt(mAnimNum);
+        mCounter++;
+        // We double the update rate because we run logic at 60fps where as the original game runs it at 30
+        if (mCounter > anim->Fps() *2)
+        {
+            mCounter = 0;
+            mFrameNum++;
+            if (mFrameNum >= anim->NumFrames())
+            {
+                if (anim->Loop())
+                {
+                    mFrameNum = anim->LoopStartFrame();
+                }
+                else
+                {
+                    mFrameNum = anim->NumFrames() - 1;
+                }
+            }
+        }
+    }
+
+    void Render(Renderer& rend)
     {
         const Oddlib::Animation* anim = mAnim->AnimationAt(mAnimNum);
         const Oddlib::Animation::Frame& frame = anim->GetFrame(mFrameNum);
 
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
-
 
         // AePc* has psx sized offsets
         const bool scaleOffsets = mSourceDataSet == "AePc" || mSourceDataSet == "AePcDemo";
@@ -1142,7 +1164,7 @@ public:
         if (usePsxRippedOffsets)
         {
             // y is never scaled so its only xoffsets that get broken
-//            ypos = static_cast<float>(mPsxFrameOffsets[mFrameNum].second);
+            //            ypos = static_cast<float>(mPsxFrameOffsets[mFrameNum].second);
             ypos = static_cast<float>(frame.mOffY);
         }
         else
@@ -1156,7 +1178,7 @@ public:
         ypos = mYPos + (ypos * mScale);
         xpos = mXPos + (xpos * mScale);
 
-    
+
         // LOG_INFO("Pos " << xpos << "," << ypos);
         BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
         Color color = Color::white();
@@ -1164,36 +1186,16 @@ public:
 
         rend.destroyTexture(textureId);
 
-        rend.text(xpos, ypos, 
-            (mSourceDataSet 
-             //+ " w: " + std::to_string(frame.mFrame->w)
-             //+ " h: " +  std::to_string(frame.mFrame->h)
-             //+ "\n"
-             + " x: " + std::to_string(oldX)
-             + " y: " + std::to_string(oldY)
-             + " f: " + std::to_string(mFrameNum)
+        rend.text(xpos, ypos,
+            (mSourceDataSet
+            //+ " w: " + std::to_string(frame.mFrame->w)
+            //+ " h: " +  std::to_string(frame.mFrame->h)
+            //+ "\n"
+            +" x: " + std::to_string(oldX)
+            + " y: " + std::to_string(oldY)
+            + " f: " + std::to_string(mFrameNum)
 
-             ).c_str());
-
-        mCounter++;
-        // TODO: Figure out the real speed of what Fps means
-        // also don't tie update speed to the game frame rate
-        if (mCounter > 5 * anim->Fps())
-        {
-            mCounter = 0;
-            mFrameNum++;
-            if (mFrameNum >= anim->NumFrames())
-            {
-                if (anim->Loop())
-                {
-                    mFrameNum = anim->LoopStartFrame();
-                }
-                else
-                {
-                    mFrameNum = anim->NumFrames() - 1;
-                }
-            }
-        }
+            ).c_str());
 
     }
 

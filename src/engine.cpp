@@ -142,6 +142,7 @@ void Engine::InitSubSystems()
 }
 
 // TODO: Using averaging value or anything that is more accurate than this
+typedef std::chrono::high_resolution_clock THighResClock;
 class BasicFramesPerSecondCounter
 {
 public:
@@ -166,7 +167,6 @@ public:
     }
 
 private:
-    typedef std::chrono::high_resolution_clock THighResClock;
     THighResClock::time_point mStartedTime = {};
     Uint32 mFramesPassed = 0;
     THighResClock::duration mFrameStartTime = {};
@@ -182,10 +182,19 @@ static char* WindowTitle(float fps)
 int Engine::Run()
 {
     BasicFramesPerSecondCounter fpsCounter;
+    auto startTime = THighResClock::now();
 
     while (mCurrentState)
     {
-        Update();
+        // Limit update to 60fps
+        const THighResClock::duration totalRunTime = THighResClock::now() - startTime;
+        const Sint64 timePassed = std::chrono::duration_cast<std::chrono::nanoseconds>(totalRunTime).count();
+        if (timePassed >= 16666666)
+        {
+            Update();
+            startTime = THighResClock::now();
+        }
+
         Render();
         fpsCounter.Update([&](float fps)
         {
