@@ -257,7 +257,7 @@ private:
             AddLvlMapping(dataSet, lvlName, file->FileName());
             
             /*
-            if (file->FileName() != "ABEBSIC.BAN") // Limit testing to this 1 file for now
+            if (file->FileName() != "ABEBLOW.BAN") // Limit testing to this 1 file for now
             {
                 continue;
             }
@@ -266,8 +266,9 @@ private:
             for (auto j = 0u; j < file->ChunkCount(); j++)
             {
                 auto chunk = file->ChunkByIndex(j);
+                
                 /*
-                if (chunk->Id() != 1037)
+                if (chunk->Id() != 25)
                 {
                     break;
                 }
@@ -502,6 +503,7 @@ static int MaxW(const Oddlib::Animation& anim)
     return ret;
 }
 
+/*
 static int MaxH(const Oddlib::Animation& anim)
 {
     int ret = 0;
@@ -514,6 +516,7 @@ static int MaxH(const Oddlib::Animation& anim)
     }
     return ret;
 }
+*/
 
 int main(int /*argc*/, char** /*argv*/)
 {
@@ -668,25 +671,7 @@ int main(int /*argc*/, char** /*argv*/)
         void Merge(IFileSystem& fs, eDataSetType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         {
             mLvlChunkReducer.MergeReduce(fs, resourcePath, lvls, eType);
-            /*
-            for (const auto& lvl : lvls)
-            {
-                AddLvlMapping(eType, lvl, isPsx, reducer.LvlFileContent(lvl));
-            }*/
         }
-
-        /*
-        bool CompareAnims(DeDuplicatedLvlChunk& lhs, DeDuplicatedLvlChunk& rhs)
-        {
-            // TODO: Check if 2 animations are "the same enough" to actually "be the same"
-            const Oddlib::Animation* anim = lhs.mAnimSet->AnimationAt(0);
-            const Oddlib::Animation::Frame& frame = anim->GetFrame(0);
-
-            std::ignore = frame;
-
-            return false;
-        }
-        */
 
         void MergePcAndPsx()
         {
@@ -719,6 +704,13 @@ int main(int /*argc*/, char** /*argv*/)
                 }
             }
 
+            // De-duplicating all anims and checking that each data set actually has all of the required
+            // anims for the base game to work is too time consuming. Instead we allow any anim to be loaded
+            // from any dataset from any of its per data set dups.
+            // AePc is taken as the "gold" dataset, so this will always be required to play any game as
+            // anims animations, bomb animations etc will come from this dataset.
+
+            /*
             for (size_t i = 0; i < mDeDuplicatedAnimations.size(); i++)
             {
                 std::unique_ptr<DeDuplicatedAnimation>& ddAnim = mDeDuplicatedAnimations[i];
@@ -742,7 +734,7 @@ int main(int /*argc*/, char** /*argv*/)
                     }
                 }
             }
-
+            */
         }
 
         void Dump()
@@ -751,7 +743,7 @@ int main(int /*argc*/, char** /*argv*/)
             {
                 auto stream = deDupedAnim->mContainingChunk->mChunk->mChunk->Stream();
                 Oddlib::AnimSerializer as(*stream, IsPsx(deDupedAnim->mContainingChunk->mChunk->mDataSet));
-                
+
                 const std::string name = deDupedAnim->mContainingChunk->mChunk->mFileName + "_" +
                     std::to_string(deDupedAnim->mContainingChunk->mChunk->mChunk->Id()) +
                     "_" +
@@ -788,9 +780,9 @@ int main(int /*argc*/, char** /*argv*/)
                 SDLHelpers::SaveSurfaceAsPng((name + ".png").c_str(), sprites.get());
 
                 /*
-                Oddlib::DebugAnimationSpriteSheet dss(as, name, 
-                    deDupedAnim->mContainingChunk->mChunk->mChunk->Id(), 
-                    ToString(deDupedAnim->mContainingChunk->mChunk->mDataSet));
+                Oddlib::DebugAnimationSpriteSheet dss(as, name,
+                deDupedAnim->mContainingChunk->mChunk->mChunk->Id(),
+                ToString(deDupedAnim->mContainingChunk->mChunk->mDataSet));
                 */
             }
         }
@@ -1065,7 +1057,7 @@ int main(int /*argc*/, char** /*argv*/)
     db.MergePcAndPsx();
 
     db.ToJson();
-    //db.Dump();
+   // db.Dump();
 
     return 0;
 }
