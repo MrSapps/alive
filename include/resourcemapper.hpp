@@ -1146,31 +1146,8 @@ public:
         // AePc* has psx sized offsets
         const bool scaleOffsets = mSourceDataSet == "AePc" || mSourceDataSet == "AePcDemo";
 
-        // Most AoPc* has errors in offsets that cause animations to "jiggle" for the most part using the ripped
-        // AePcDemo offsets sorts this out
-        const bool usePsxRippedOffsets = (mSourceDataSet == "AoPc") || (mSourceDataSet == "AoPcDemo");
-
-        float xpos = 0.0f;
-        if (usePsxRippedOffsets && mPsxFrameOffsets.empty() == false)
-        {
-            xpos = scaleOffsets || usePsxRippedOffsets ? static_cast<float>(mPsxFrameOffsets[mFrameNum].first / 1.73913043478f) : static_cast<float>(mPsxFrameOffsets[mFrameNum].first);
-        }
-        else
-        {
-            xpos = scaleOffsets ? static_cast<float>(frame.mOffX / 1.73913043478f) : static_cast<float>(frame.mOffX);
-        }
-
-        float ypos = 0.0f;
-        if (usePsxRippedOffsets)
-        {
-            // y is never scaled so its only xoffsets that get broken
-            //            ypos = static_cast<float>(mPsxFrameOffsets[mFrameNum].second);
-            ypos = static_cast<float>(frame.mOffY);
-        }
-        else
-        {
-            ypos = static_cast<float>(frame.mOffY);
-        }
+        float xpos = scaleOffsets ? static_cast<float>(frame.mOffX / 1.73913043478f) : static_cast<float>(frame.mOffX);
+        float ypos = static_cast<float>(frame.mOffY);
 
         float oldY = ypos;
         float oldX = xpos;
@@ -1178,25 +1155,33 @@ public:
         ypos = mYPos + (ypos * mScale);
         xpos = mXPos + (xpos * mScale);
 
-
-        // LOG_INFO("Pos " << xpos << "," << ypos);
         BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
         Color color = Color::white();
         rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w) * ScaleX(), static_cast<float>(frame.mFrame->h)*mScale, color, blend);
 
         rend.destroyTexture(textureId);
 
+        // Render bounding box
+        rend.beginLayer(2);
+        rend.beginPath();
+        ::Color c{ 0.0f, 0.0f, 0.0f, 1.0f };
+        rend.fillColor(c);
+        rend.resetTransform();
+        rend.rect(
+            mXPos + (static_cast<float>(frame.mBX) * mScale),
+            mYPos + (static_cast<float>(frame.mBY) * mScale),
+            static_cast<float>(std::abs(frame.mBX - frame.mBW)) * mScale,
+            static_cast<float>(std::abs(frame.mBY - frame.mBH)) * mScale);
+        rend.fill();
+        rend.endLayer();
+
         rend.text(xpos, ypos,
             (mSourceDataSet
-            //+ " w: " + std::to_string(frame.mFrame->w)
-            //+ " h: " +  std::to_string(frame.mFrame->h)
-            //+ "\n"
             +" x: " + std::to_string(oldX)
             + " y: " + std::to_string(oldY)
             + " f: " + std::to_string(mFrameNum)
 
             ).c_str());
-
     }
 
     void Restart()

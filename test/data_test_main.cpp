@@ -503,7 +503,6 @@ static int MaxW(const Oddlib::Animation& anim)
     return ret;
 }
 
-/*
 static int MaxH(const Oddlib::Animation& anim)
 {
     int ret = 0;
@@ -516,7 +515,6 @@ static int MaxH(const Oddlib::Animation& anim)
     }
     return ret;
 }
-*/
 
 int main(int /*argc*/, char** /*argv*/)
 {
