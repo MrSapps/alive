@@ -395,8 +395,23 @@ Renderer::Renderer(const char *fontPath)
     mDestroyTextureList.reserve(8);
 }
 
+void Renderer::destroyTextures()
+{
+    if (!mDestroyTextureList.empty())
+    {
+        for (size_t i = 0; i < mDestroyTextureList.size(); ++i)
+        {
+            GLuint tex = (GLuint)mDestroyTextureList[i];
+            GL(glDeleteTextures(1, &tex));
+        }
+        mDestroyTextureList.clear();
+    }
+}
+
 Renderer::~Renderer()
 {
+    destroyTextures();
+
     { // Delete vector rendering
         if (g_FontTexture)
         {
@@ -578,12 +593,7 @@ void Renderer::endFrame()
         nvgEndFrame(mNanoVg);
     mDrawCmds.clear(); // Don't release memory, just reset count
 
-    for (size_t i = 0; i < mDestroyTextureList.size(); ++i)
-    {
-        GLuint tex = (GLuint)mDestroyTextureList[i];
-        GL(glDeleteTextures(1, &tex));
-    }
-    mDestroyTextureList.clear();
+    destroyTextures();
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)

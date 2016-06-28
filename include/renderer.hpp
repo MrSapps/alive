@@ -173,6 +173,7 @@ public:
     void textBounds(int x, int y, const char *msg, float bounds[4]);
 
 private:
+    void destroyTextures();
     void pushCmd(DrawCmd cmd);
 
     // Vector rendering
