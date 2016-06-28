@@ -237,7 +237,6 @@ std::unique_ptr<Animation> ResourceLocator::DoLocate(const DataPaths::FileSystem
                                         chunk->Stream(),
                                         lvlNameIsPsxPair.first,
                                         animMapping.mBlendingMode,
-                                        animMapping.mFrameOffsets,
                                         animFile.mAnimationIndex,
                                         fs.mDataSetName);
                                 }

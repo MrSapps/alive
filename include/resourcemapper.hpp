@@ -922,6 +922,9 @@ public:
     struct AnimFileLocations
     {
         std::string mDataSetName;
+
+        // Where copies of this animation file chunk live, usually each LVL
+        // has the file chunk duplicated a few times.
         std::vector<AnimFile> mFiles;
     };
 
@@ -930,10 +933,8 @@ public:
         // Shared between all data sets, the default blending mode
         Uint32 mBlendingMode;
 
+        // Which datasets this animation lives in
         std::vector<AnimFileLocations> mLocations;
-
-        // Shared between all data sets, the frame offsets
-        std::vector<std::pair<Sint32, Sint32>> mFrameOffsets;
     };
 
     const AnimMapping* FindAnimation(const char* resourceName)
@@ -1043,7 +1044,6 @@ private:
         animMapping.mBlendingMode = blendMode;
 
         ParseAnimResourceLocations(obj, animMapping);
-        ParseAnimFrameOffsets(obj, animMapping);
 
         const auto& name = obj.get<jsonxx::String>("name");
         mAnimMaps[name] = animMapping;
@@ -1075,22 +1075,6 @@ private:
             animMapping.mLocations.push_back(animFileLocations);
         }
     }
-
-    void ParseAnimFrameOffsets(const jsonxx::Object& obj, AnimMapping& animMapping)
-    {
-        if (obj.has<jsonxx::Array>("frame_offsets"))
-        {
-            const jsonxx::Array& frameOffsets = obj.get<jsonxx::Array>("frame_offsets");
-            for (size_t i = 0; i < frameOffsets.size(); i++)
-            {
-                const jsonxx::Object& frameOffsetJsonObj = frameOffsets.get<jsonxx::Object>(static_cast<Uint32>(i));
-                const std::pair<Sint32, Sint32> frameOffset = std::make_pair(
-                    static_cast<Sint32>(frameOffsetJsonObj.get<jsonxx::Number>("x")),
-                    static_cast<Sint32>(frameOffsetJsonObj.get<jsonxx::Number>("y")));
-                animMapping.mFrameOffsets.emplace_back(frameOffset);
-            }
-        }
-    }
 };
 
 class Animation
@@ -1098,8 +1082,8 @@ class Animation
 public:
     Animation() = delete;
 
-    Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx, Uint32 defaultBlendingMode, const std::vector<std::pair<Sint32, Sint32>>& psxFrameOffsets, Uint32 animIndex, const std::string& sourceDataSet)
-        : mIsPsx(isPsx), mSourceDataSet(sourceDataSet), mPsxFrameOffsets(psxFrameOffsets)
+    Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx, Uint32 defaultBlendingMode, Uint32 animIndex, const std::string& sourceDataSet)
+        : mIsPsx(isPsx), mSourceDataSet(sourceDataSet)
     {
         mAnimNum = animIndex;
 
@@ -1211,7 +1195,6 @@ private:
     Sint32 mYPos = 800;
     float mScale = 3;
     std::string mSourceDataSet;
-    const std::vector<std::pair<Sint32, Sint32>>& mPsxFrameOffsets;
 };
 
 template<class T>

@@ -165,7 +165,7 @@ TEST(ResourceLocator, DISABLED_ResourceGroup)
 
 TEST(ResourceLocator, ParseResourceMap)
 {
-    const std::string resourceMapsJson = R"([{"animation":{"blend_mode":1, "frame_offsets" : [{ "x": -12, "y": -37 }, {"x": 99, "y": 0 }], "locations":[{"dataset":"AoPc","files":[{"filename":"ABEBSIC.BAN","id":10,"index":1},{"filename":"ANOTHER.BAN","id":50,"index":99}]},{"dataset":"AoPcDemo","files":[{"filename":"ABEBSIC.BAN","id":10,"index":1}]}],"name":"ABEBSIC.BAN_10_AePc_1"}}])";
+    const std::string resourceMapsJson = R"([{"animation":{"blend_mode":1, "locations":[{"dataset":"AoPc","files":[{"filename":"ABEBSIC.BAN","id":10,"index":1},{"filename":"ANOTHER.BAN","id":50,"index":99}]},{"dataset":"AoPcDemo","files":[{"filename":"ABEBSIC.BAN","id":10,"index":1}]}],"name":"ABEBSIC.BAN_10_AePc_1"}}])";
 
     InMemoryFileSystem fs;
     fs.AddFile("resource_maps.json", resourceMapsJson);
@@ -196,15 +196,6 @@ TEST(ResourceLocator, ParseResourceMap)
     ASSERT_EQ("ABEBSIC.BAN", r1->mLocations[1].mFiles[0].mFile);
     ASSERT_EQ(1u, r1->mLocations[1].mFiles[0].mAnimationIndex);
     ASSERT_EQ(10u, r1->mLocations[1].mFiles[0].mId);
-
-    // Check FrameOffsets
-    ASSERT_EQ(2u, r1->mFrameOffsets.size());
-
-    ASSERT_EQ(-12, r1->mFrameOffsets[0].first);
-    ASSERT_EQ(-37, r1->mFrameOffsets[0].second);
-
-    ASSERT_EQ(99, r1->mFrameOffsets[1].first);
-    ASSERT_EQ(0, r1->mFrameOffsets[1].second);
 
     ASSERT_EQ(1u, r1->mBlendingMode);
 }

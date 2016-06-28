@@ -817,7 +817,11 @@ int main(int /*argc*/, char** /*argv*/)
 
                 WriteAnimLocations(anim, deDupedAnim);
 
-                WriteAnimFrameOffsets(anim, deDupedAnim);
+                // We don't attempt to Fix Ao*Pc offsets anymore as we use
+                // AePc anims for most things. The only Ao anims used are the ones
+                // unique to Ao which are usually correct or only have slightly "jiggly" offsets
+
+                //WriteAnimFrameOffsets(anim, deDupedAnim);
 
                 animsObject << "animation" << anim;
                 resources << animsObject;
