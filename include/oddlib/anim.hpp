@@ -97,18 +97,20 @@ namespace Oddlib
             std::vector<std::unique_ptr<FrameInfoHeader>> mFrameInfos;
         };
 
+        struct Point
+        {
+            Sint16 x = 0;
+            Sint16 y = 0;
+        };
+
         struct FrameInfoHeader
         {
             Uint32 mFrameHeaderOffset = 0;
             Uint32 mMagic = 0;
 
-            // Top left
-            Sint16 mColx = 0;
-            Sint16 mColy = 0;
-
-            // Bottom right
-            Sint16 mColw = 0;
-            Sint16 mColh = 0;
+            // Collision bounding rectangle
+            Point mTopLeft;
+            Point mBottomRight;
 
             Sint16 mOffx = 0;
             Sint16 mOffy = 0;
@@ -178,21 +180,26 @@ namespace Oddlib
     public:
         Animation(const AnimSerializer::AnimationHeader& animHeader, const AnimationSet& animSet);
 
+        struct BoundingBoxPoint
+        {
+            Sint32 x;
+            Sint32 y;
+        };
+
         struct Frame
         {
             // Frame offset for correct positioning
-            int mOffX;
-            int mOffY;
+            Sint32 mOffX;
+            Sint32 mOffY;
 
             // Bounding box
-            int mBX;
-            int mBY;
-            int mBW;
-            int mBH;
+            BoundingBoxPoint mTopLeft;
+            BoundingBoxPoint mBottomRight;
 
             // Image pixel data - pointer as data is sometimes shared between frames
             SDL_Surface* mFrame;
         };
+
         Uint32 NumFrames() const { return static_cast<Uint32>(mFrames.size()); }
         Uint32 Fps() const { return mFps; }
         Uint32 LoopStartFrame() const { return mLoopStartFrame; }

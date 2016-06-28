@@ -1141,8 +1141,6 @@ public:
         const Oddlib::Animation* anim = mAnim->AnimationAt(mAnimNum);
         const Oddlib::Animation::Frame& frame = anim->GetFrame(mFrameNum);
 
-        const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
-
         // AePc* has psx sized offsets
         const bool scaleOffsets = mSourceDataSet == "AePc" || mSourceDataSet == "AePcDemo";
 
@@ -1155,32 +1153,32 @@ public:
         ypos = mYPos + (ypos * mScale);
         xpos = mXPos + (xpos * mScale);
 
+        // Render sprite as textured quad
         BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
         Color color = Color::white();
+        const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
         rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w) * ScaleX(), static_cast<float>(frame.mFrame->h)*mScale, color, blend);
-
         rend.destroyTexture(textureId);
 
         // Render bounding box
-        rend.beginLayer(2);
         rend.beginPath();
-        ::Color c{ 0.0f, 0.0f, 0.0f, 1.0f };
-        rend.fillColor(c);
+        ::Color c{ 1.0f, 0.0f, 1.0f, 1.0f };
+        rend.strokeColor(c);
         rend.resetTransform();
         rend.rect(
-            mXPos + (static_cast<float>(frame.mBX) * mScale),
-            mYPos + (static_cast<float>(frame.mBY) * mScale),
-            static_cast<float>(std::abs(frame.mBX - frame.mBW)) * mScale,
-            static_cast<float>(std::abs(frame.mBY - frame.mBH)) * mScale);
-        rend.fill();
-        rend.endLayer();
+            mXPos + (static_cast<float>(frame.mTopLeft.x) * mScale),
+            mYPos + (static_cast<float>(frame.mTopLeft.y) * mScale),
+            static_cast<float>(std::abs(frame.mTopLeft.x - frame.mBottomRight.x)) * mScale,
+            static_cast<float>(std::abs(frame.mTopLeft.y - frame.mBottomRight.y)) * mScale);
+        rend.stroke();
+        rend.closePath();
 
+        // Render frame pos and frame number
         rend.text(xpos, ypos,
             (mSourceDataSet
             +" x: " + std::to_string(oldX)
             + " y: " + std::to_string(oldY)
             + " f: " + std::to_string(mFrameNum)
-
             ).c_str());
     }
 

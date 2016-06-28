@@ -30,15 +30,15 @@ namespace Oddlib
             // Frame image
             tmp.mFrame = animSet.FrameByOffset(frameInfo->mFrameHeaderOffset);
 
-            // Offset
+            // Frame offset so animation "looks" correct
             tmp.mOffX = frameInfo->mOffx;
             tmp.mOffY = frameInfo->mOffy;
 
-            // Collision info
-            tmp.mBX = frameInfo->mColx;
-            tmp.mBY = frameInfo->mColy;
-            tmp.mBW = frameInfo->mColw;
-            tmp.mBH = frameInfo->mColh;
+            // Collision bounding rectangle
+            tmp.mTopLeft.x = frameInfo->mTopLeft.x;
+            tmp.mTopLeft.y = frameInfo->mTopLeft.y;
+            tmp.mBottomRight.x = frameInfo->mBottomRight.x;
+            tmp.mBottomRight.y = frameInfo->mBottomRight.y;
             mFrames.push_back(tmp);
         }
     }
@@ -518,12 +518,12 @@ namespace Oddlib
                 mStream.ReadSInt16(frameInfo->mOffy);
 
 
-                mStream.ReadSInt16(frameInfo->mColx);
-                mStream.ReadSInt16(frameInfo->mColy);
+                mStream.ReadSInt16(frameInfo->mTopLeft.x);
+                mStream.ReadSInt16(frameInfo->mTopLeft.y);
 
           
-                mStream.ReadSInt16(frameInfo->mColw);
-                mStream.ReadSInt16(frameInfo->mColh);
+                mStream.ReadSInt16(frameInfo->mBottomRight.x);
+                mStream.ReadSInt16(frameInfo->mBottomRight.y);
 
                 animationHeader->mFrameInfos.emplace_back(std::move(frameInfo));
             }
