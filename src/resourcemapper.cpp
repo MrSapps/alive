@@ -2,6 +2,8 @@
 #include "zipfilesystem.hpp"
 #include "gui.h"
 
+const /*static*/ float Animation::kPcToPsxScaleFactor = 1.73913043478f;
+
 bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
 {
     mActiveDataPaths.clear();
@@ -204,14 +206,14 @@ std::unique_ptr<Animation> ResourceLocator::DoLocate(const DataPaths::FileSystem
             for (const ResourceMapper::AnimFile& animFile : location.mFiles)
             {
                 // Now find all of the LVLs where animFile lives
-                const std::vector<std::pair<bool, std::string>>* fileLocations = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), animFile.mFile.c_str());
+                const std::vector<ResourceMapper::DataSetFileAttributes>* fileLocations = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), animFile.mFile.c_str());
                 if (fileLocations)
                 {
                     // Loop through each LVL and see if animFile exists there
-                    for (const std::pair<bool, std::string>& lvlNameIsPsxPair : *fileLocations)
+                    for (const ResourceMapper::DataSetFileAttributes& dataSetFileAttributes : *fileLocations)
                     {
                         // Open the LVL archive
-                        auto lvlStream = fs.mFileSystem->Open(lvlNameIsPsxPair.second);
+                        auto lvlStream = fs.mFileSystem->Open(dataSetFileAttributes.mLvlName);
                         if (lvlStream)
                         {
                             // Open the file within the archive
@@ -226,16 +228,18 @@ std::unique_ptr<Animation> ResourceLocator::DoLocate(const DataPaths::FileSystem
                                     LOG_INFO(resourceName
                                         << " located in data set " << fs.mDataSetName
                                         << " mapped to " << fs.mFileSystem->FsPath()
-                                        << " in lvl archive " << lvlNameIsPsxPair.second
+                                        << " in lvl archive " << dataSetFileAttributes.mLvlName
                                         << " in lvl file " << animFile.mFile
                                         << " with lvl file chunk id " << animFile.mId
                                         << " at anim index " << animFile.mAnimationIndex
-                                        << " is psx " << lvlNameIsPsxPair.first);
+                                        << " is psx " << dataSetFileAttributes.mIsPsx
+                                        << " scale frame offsets " << dataSetFileAttributes.mScaleFrameOffsets);
 
                                     // Construct the animation from the chunk bytes
                                     return std::make_unique<Animation>(
                                         chunk->Stream(),
-                                        lvlNameIsPsxPair.first,
+                                        dataSetFileAttributes.mIsPsx,
+                                        dataSetFileAttributes.mScaleFrameOffsets,
                                         animMapping.mBlendingMode,
                                         animFile.mAnimationIndex,
                                         fs.mDataSetName);

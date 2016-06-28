@@ -947,7 +947,19 @@ public:
         return nullptr;
     }
 
-    const std::vector<std::pair<bool, std::string>>* FindFileLocation(const char* dataSetName, const char* fileName)
+    struct DataSetFileAttributes
+    {
+        // LVL this data set file lives in
+        std::string mLvlName;
+
+        // Is this lvl a PSX lvl?
+        bool mIsPsx;
+
+        // Do we need to scale the frame offsets down to make them correct?
+        bool mScaleFrameOffsets;
+    };
+
+    const std::vector<DataSetFileAttributes>* FindFileLocation(const char* dataSetName, const char* fileName)
     {
         auto fileIt = mFileLocations.find(fileName);
         if (fileIt != std::end(mFileLocations))
@@ -1010,7 +1022,7 @@ private:
         }
     }
 
-    std::map<std::string, std::map<std::string, std::vector<std::pair<bool,std::string>>>> mFileLocations;
+    std::map<std::string, std::map<std::string, std::vector<DataSetFileAttributes>>> mFileLocations;
 
     void ParseFileLocations(const jsonxx::Object& obj)
     {
@@ -1018,9 +1030,11 @@ private:
         // the json file maps a data set, if its PSX or not, its lvls and lvl contents.
         // But we want to map a file name to what LVLs it lives in, and a LVL to what data sets it lives in
         // and if that data set is PSX or not.
-        const std::string& dataSetName = obj.get<jsonxx::String>("data_set_name");
-        const bool isPsx = obj.get<jsonxx::Boolean>("is_psx");
-        
+        DataSetFileAttributes dataSetAttributes;
+        const std::string& dataSetName = obj.get<jsonxx::String>("data_set_name");;
+        dataSetAttributes.mIsPsx = obj.get<jsonxx::Boolean>("is_psx");
+        dataSetAttributes.mScaleFrameOffsets = obj.get<jsonxx::Boolean>("scale_frame_offsets");
+
         const jsonxx::Array& lvls = obj.get<jsonxx::Array>("lvls");
         for (size_t i = 0; i < lvls.size(); i++)
         {
@@ -1031,7 +1045,8 @@ private:
             JsonDeserializer::ReadStringArray(lvlRecord, "files", lvlFiles);
             for (const std::string& fileName : lvlFiles)
             {
-                mFileLocations[fileName][dataSetName].push_back(std::make_pair(isPsx, lvlName));
+                dataSetAttributes.mLvlName = lvlName;
+                mFileLocations[fileName][dataSetName].push_back(dataSetAttributes);
             }
         }
     }
@@ -1082,8 +1097,8 @@ class Animation
 public:
     Animation() = delete;
 
-    Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx, Uint32 defaultBlendingMode, Uint32 animIndex, const std::string& sourceDataSet)
-        : mIsPsx(isPsx), mSourceDataSet(sourceDataSet)
+    Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx, bool scaleFrameOffsets, Uint32 defaultBlendingMode, Uint32 animIndex, const std::string& sourceDataSet)
+        : mIsPsx(isPsx), mScaleFrameOffsets(scaleFrameOffsets), mSourceDataSet(sourceDataSet)
     {
         mAnimNum = animIndex;
 
@@ -1120,15 +1135,12 @@ public:
         }
     }
 
-    void Render(Renderer& rend)
+    void Render(Renderer& rend) const
     {
         const Oddlib::Animation* anim = mAnim->AnimationAt(mAnimNum);
         const Oddlib::Animation::Frame& frame = anim->GetFrame(mFrameNum);
 
-        // AePc* has psx sized offsets
-        const bool scaleOffsets = mSourceDataSet == "AePc" || mSourceDataSet == "AePcDemo";
-
-        float xpos = scaleOffsets ? static_cast<float>(frame.mOffX / 1.73913043478f) : static_cast<float>(frame.mOffX);
+        float xpos = mScaleFrameOffsets ? static_cast<float>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<float>(frame.mOffX);
         float ypos = static_cast<float>(frame.mOffY);
 
         float oldY = ypos;
@@ -1179,13 +1191,17 @@ public:
     Uint32 MaxH() const { return static_cast<Uint32>(mAnim->MaxH()*mScale); }
 
 private:
+    // 640 (pc xres) / 368 (psx xres) = 1.73913043478 scale factor
+    const static float kPcToPsxScaleFactor;
+
     float ScaleX() const
     {
-        // PC needs to be down scaled by 640/368=1.73913043478
-        return mIsPsx ? (mScale) : (mScale / 1.73913043478f);
+        // PC sprites have a bigger width as they are higher resolution
+        return mIsPsx ? (mScale) : (mScale / kPcToPsxScaleFactor);
     }
 
     bool mIsPsx = false;
+    bool mScaleFrameOffsets = false;
     Uint32 mCounter = 0;
     Uint32 mFrameNum = 0;
     Uint32 mAnimNum = 0;

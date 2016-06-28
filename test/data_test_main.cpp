@@ -949,6 +949,7 @@ int main(int /*argc*/, char** /*argv*/)
                     const std::string strName = ToString(dataSetPair.first);
                     dataSet << "data_set_name" << strName;
                     dataSet << "is_psx" << IsPsx(dataSetPair.first);
+                    dataSet << "scale_frame_offsets" << (dataSetPair.first == eAePc || dataSetPair.first == eAePcDemo);
 
                     jsonxx::Array lvlsArray;
 
