@@ -63,7 +63,9 @@ template<typename... Args>
 inline Uint64 StringHash(Args... args)
 {
     Uint64 result = Detail::kFnvOffsetBais;
-    std::initializer_list<int>
+    // Cast to void since initializer_list isn't actually used, its just here so that we 
+    // can call HashInternal for each parameter
+    (void)std::initializer_list<int>
     {
         (Detail::HashInternal(result, std::forward<Args>(args)), 0)...
     };
