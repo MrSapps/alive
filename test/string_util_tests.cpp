@@ -4,16 +4,16 @@
 
 TEST(StringHash, hash)
 {
-    ASSERT_EQ(18029688879280032679, StringHash("Hello"));
-    ASSERT_EQ(6660822392957675945, StringHash(" world"));
-    ASSERT_EQ(13583674344491166159, StringHash("Hello world"));
-    ASSERT_EQ(13583674344491166159, StringHash("Hello", " world"));
+    ASSERT_EQ(18029688879280032679U, StringHash("Hello"));
+    ASSERT_EQ(6660822392957675945U, StringHash(" world"));
+    ASSERT_EQ(13583674344491166159U, StringHash("Hello world"));
+    ASSERT_EQ(13583674344491166159U, StringHash("Hello", " world"));
 
     const std::string hello = "Hello";
     const std::string world = " world";
-    ASSERT_EQ(13583674344491166159, StringHash(hello, world));
-    ASSERT_EQ(13583674344491166159, StringHash(hello, " world"));
-    ASSERT_EQ(13583674344491166159, StringHash("Hello", world));
+    ASSERT_EQ(13583674344491166159U, StringHash(hello, world));
+    ASSERT_EQ(13583674344491166159U, StringHash(hello, " world"));
+    ASSERT_EQ(13583674344491166159U, StringHash("Hello", world));
 }
 
 TEST(string_util, replace_all_char)
