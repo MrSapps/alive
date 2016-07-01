@@ -18,7 +18,7 @@
 #include "string_util.hpp"
 #include "oddlib/cdromfilesystem.hpp"
 #include "logger.hpp"
-
+#include <initializer_list>
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/anim.hpp"
 #include "renderer.hpp"
@@ -39,23 +39,36 @@ namespace JsonDeserializer
     }
 }
 
-inline size_t StringHash(const char* s)
+namespace Detail
 {
-    // FNV hasher
-    size_t result = 2166136261U;
-    while (*s)
+    const auto kFnvOffsetBais = 14695981039346656037U;
+    const auto kFnvPrime = 1099511628211U;
+
+    inline void HashInternal(Uint64& result, const char* s)
     {
-        result = (16777619 * result) ^ static_cast<unsigned char>(*s);
-        s++;
+        while (*s)
+        {
+            result = (kFnvPrime * result) ^ static_cast<unsigned char>(*s);
+            s++;
+        }
     }
+
+    inline void HashInternal(Uint64& result, const std::string& s)
+    {
+        HashInternal(result, s.c_str());
+    }
+}
+
+template<typename... Args>
+inline Uint64 StringHash(Args... args)
+{
+    Uint64 result = Detail::kFnvOffsetBais;
+    std::initializer_list<int>
+    {
+        (Detail::HashInternal(result, std::forward<Args>(args)), 0)...
+    };
     return result;
 }
-
-inline size_t StringHash(const std::string& s)
-{
-    return StringHash(s.c_str());
-}
-
 
 inline std::vector<Uint8> StringToVector(const std::string& str)
 {
@@ -1217,14 +1230,14 @@ template<class T>
 class ResourceCache
 {
 public:
-    void Add(size_t resourceNameHash, size_t dataSetNameHash, std::unique_ptr<T> resource)
+    void Add(Uint64 resourceNameHash, Uint64 dataSetNameHash, std::unique_ptr<T> resource)
     {
         assert(mCache.find(std::make_pair(resourceNameHash, dataSetNameHash)) == std::end(mCache));
 
         mCache[std::make_pair(resourceNameHash, dataSetNameHash)] = std::move(resource);
     }
 
-    void Remove(size_t resourceNameHash, size_t dataSetNameHash)
+    void Remove(Uint64 resourceNameHash, Uint64 dataSetNameHash)
     {
         auto it = mCache.find(std::make_pair(resourceNameHash, dataSetNameHash));
         if (it != std::end(mCache))
@@ -1237,7 +1250,7 @@ public:
         }
     }
 
-    T* Find(size_t resourceNameHash, size_t dataSetNameHash)
+    T* Find(Uint64 resourceNameHash, Uint64 dataSetNameHash)
     {
         auto it = mCache.find(std::make_pair(resourceNameHash, dataSetNameHash));
         if (it != std::end(mCache))
@@ -1247,7 +1260,7 @@ public:
         return nullptr;
     }
 private:
-    std::map<std::pair<size_t, size_t>, std::unique_ptr<T>> mCache;
+    std::map<std::pair<Uint64, Uint64>, std::unique_ptr<T>> mCache;
 };
 
 
@@ -1299,8 +1312,8 @@ public:
 
     T* Get(const char* resourceName, const char* dataSetName)
     {
-        const size_t resNameHash = StringHash(resourceName);
-        const size_t dataSetNameHash = StringHash(dataSetName);
+        const Uint64 resNameHash = StringHash(resourceName);
+        const Uint64 dataSetNameHash = StringHash(dataSetName);
         return DoGet(resourceName, dataSetName, resNameHash, dataSetNameHash);
     }
 
@@ -1311,7 +1324,7 @@ public:
     }
 
 private:
-    T* DoGet(const char* resourceName, const char* dataSetName, size_t resNameHash, size_t dataSetNameHash)
+    T* DoGet(const char* resourceName, const char* dataSetName, Uint64 resNameHash, Uint64 dataSetNameHash)
     {
         auto cached = mResourceCache.Find(resNameHash, dataSetNameHash);
         if (cached)
