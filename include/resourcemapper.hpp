@@ -1231,22 +1231,20 @@ private:
     std::string mSourceDataSet;
 };
 
-// requires Container to be an associative container type with key type
-// a raw pointer type
-template <typename Container>
+template<typename KeyType, typename ValueType>
 class AutoRemoveFromContainerDeleter
 {
 private:
+    using Container = std::map<KeyType, std::weak_ptr<ValueType>>;
     Container* mContainer;
-    Uint64 mKey;
-    using key_type = typename Container::key_type;
+    KeyType mKey;
 public:
-    explicit AutoRemoveFromContainerDeleter(Container* container, Uint64 key)
+    AutoRemoveFromContainerDeleter(Container* container, KeyType key)
         : mContainer(container), mKey(key)
     {
     }
 
-    void operator()(Oddlib::LvlArchive* ptr)
+    void operator()(ValueType* ptr)
     {
         mContainer->erase(mKey);
         delete ptr;
@@ -1263,7 +1261,8 @@ public:
     std::shared_ptr<Oddlib::LvlArchive> AddLvl(std::unique_ptr<Oddlib::LvlArchive> lvl, const std::string& dataSetName, const std::string& lvlFileName)
     {
         const Uint64 key = StringHash(dataSetName, lvlFileName);
-        std::shared_ptr<Oddlib::LvlArchive> managedLvl(lvl.release(), AutoRemoveFromContainerDeleter<decltype(mOpenLvls)>(&mOpenLvls, key));
+        assert(mOpenLvls.find(key) == std::end(mOpenLvls));
+        std::shared_ptr<Oddlib::LvlArchive> managedLvl(lvl.release(), AutoRemoveFromContainerDeleter<Uint64, Oddlib::LvlArchive>(&mOpenLvls, key));
         mOpenLvls.insert(std::make_pair(key, managedLvl));
         return managedLvl;
     }
@@ -1279,41 +1278,9 @@ public:
         return nullptr;
     }
 
-    /*
-    Oddlib::AnimationSet* GetAnimationSet(const char* resourceName, const char* dataSetName = nullptr)
-    {
-        Uint64 nameHash = StringHash(resourceName, dataSetName);
-
-        return nullptr;
-    }
-    */
-
 private:
     std::map<Uint64, std::weak_ptr<Oddlib::LvlArchive>> mOpenLvls;
-
-    /*
-    T* DoGet(const char* resourceName, const char* dataSetName, Uint64 resNameHash, Uint64 dataSetNameHash)
-    {
-    auto cached = mResourceCache.Find(resNameHash, dataSetNameHash);
-    if (cached)
-    {
-    return cached;
-    }
-
-    auto res = dataSetName ?
-    mResourceLocator.Locate(resourceName, dataSetName)
-    : mResourceLocator.Locate(resourceName);
-
-    if (res)
-    {
-    auto rawPtr = res.get();
-    mResourceCache.Add(resNameHash, dataSetNameHash, std::move(res));
-    return rawPtr;
-    }
-    return nullptr;
-    }
-    */
-
+    std::map<Uint64, std::weak_ptr<Oddlib::AnimationSet>> mAnimationSets;
 };
 
 class ResourceLocator
