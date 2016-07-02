@@ -49,7 +49,7 @@ AliveAudioSoundbank::AliveAudioSoundbank(Oddlib::LvlArchive& archive, std::strin
 
 AliveAudioSoundbank::AliveAudioSoundbank(std::string lvlPath, std::string vabID, AliveAudio& aliveAudio)
 {
-    Oddlib::LvlArchive archive = Oddlib::LvlArchive(lvlPath);
+    Oddlib::LvlArchive archive(lvlPath);
     Oddlib::LvlArchive::File * vhFile = archive.FileByName(vabID + ".VH");
     Oddlib::LvlArchive::File * vbFile = archive.FileByName(vabID + ".VB");
 
