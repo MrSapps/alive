@@ -1251,18 +1251,18 @@ private:
         return mIsPsx ? (mScale) : (mScale / kPcToPsxScaleFactor);
     }
 
-    bool mIsPsx = false;
-    bool mScaleFrameOffsets = false;
-    Uint32 mCounter = 0;
-    Uint32 mFrameNum = 0;
-    Uint32 mAnimNum = 0;
 
     AnimationSetHolder mAnim;
+    bool mIsPsx = false;
+    bool mScaleFrameOffsets = false;
+    std::string mSourceDataSet;
+
+    Uint32 mCounter = 0;
+    Uint32 mFrameNum = 0;
 
     Sint32 mXPos = 500;
     Sint32 mYPos = 800;
     float mScale = 3;
-    std::string mSourceDataSet;
 };
 
 template<typename KeyType, typename ValueType>
