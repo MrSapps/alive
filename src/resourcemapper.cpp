@@ -232,34 +232,42 @@ std::unique_ptr<Animation> ResourceLocator::DoLocate(const DataPaths::FileSystem
                         auto lvlPtr = OpenLvl(*fs.mFileSystem, fs.mDataSetName, dataSetFileAttributes.mLvlName);
                         if (lvlPtr)
                         {
-                            // Open the file within the archive
-                            auto lvlFile = lvlPtr->FileByName(animFile.mFile);
-                            if (lvlFile)
+                            auto animSetPtr = mCache.GetAnimSet(fs.mDataSetName, dataSetFileAttributes.mLvlName, animFile.mFile, animFile.mId);
+                            if (!animSetPtr)
                             {
-                                // Get the chunk within the file that lives in the lvl
-                                Oddlib::LvlArchive::FileChunk* chunk = lvlFile->ChunkById(animFile.mId);
-                                if (chunk)
+                                // Open the file within the archive
+                                auto lvlFile = lvlPtr->FileByName(animFile.mFile);
+                                if (lvlFile)
                                 {
-                                    LOG_INFO(resourceName
-                                        << " located in data set " << fs.mDataSetName
-                                        << " mapped to " << fs.mFileSystem->FsPath()
-                                        << " in lvl archive " << dataSetFileAttributes.mLvlName
-                                        << " in lvl file " << animFile.mFile
-                                        << " with lvl file chunk id " << animFile.mId
-                                        << " at anim index " << animFile.mAnimationIndex
-                                        << " is psx " << dataSetFileAttributes.mIsPsx
-                                        << " scale frame offsets " << dataSetFileAttributes.mScaleFrameOffsets);
+                                    // Get the chunk within the file that lives in the lvl
+                                    Oddlib::LvlArchive::FileChunk* chunk = lvlFile->ChunkById(animFile.mId);
+                                    if (chunk)
+                                    {
+                                        LOG_INFO(resourceName
+                                            << " located in data set " << fs.mDataSetName
+                                            << " mapped to " << fs.mFileSystem->FsPath()
+                                            << " in lvl archive " << dataSetFileAttributes.mLvlName
+                                            << " in lvl file " << animFile.mFile
+                                            << " with lvl file chunk id " << animFile.mId
+                                            << " at anim index " << animFile.mAnimationIndex
+                                            << " is psx " << dataSetFileAttributes.mIsPsx
+                                            << " scale frame offsets " << dataSetFileAttributes.mScaleFrameOffsets);
 
-                                    // Construct the animation from the chunk bytes
-                                    return std::make_unique<Animation>(
-                                        chunk->Stream(),
-                                        dataSetFileAttributes.mIsPsx,
-                                        dataSetFileAttributes.mScaleFrameOffsets,
-                                        animMapping.mBlendingMode,
-                                        animFile.mAnimationIndex,
-                                        fs.mDataSetName);
+                                        auto stream = chunk->Stream();
+                                        Oddlib::AnimSerializer as(*stream, dataSetFileAttributes.mIsPsx);
+                                        animSetPtr = mCache.AddAnimSet(std::make_unique<Oddlib::AnimationSet>(as), fs.mDataSetName, dataSetFileAttributes.mLvlName, animFile.mFile, animFile.mId);
+                                    }
                                 }
                             }
+
+                            // Construct the animation from the chunk bytes
+                            return std::make_unique<Animation>(
+                                Animation::AnimationSetHolder(lvlPtr, animSetPtr, animFile.mAnimationIndex),
+                                dataSetFileAttributes.mIsPsx,
+                                dataSetFileAttributes.mScaleFrameOffsets,
+                                animMapping.mBlendingMode,
+                                fs.mDataSetName);
+
                         }
                     }
                 }

@@ -60,6 +60,15 @@ namespace Detail
     {
         HashInternal(result, s.c_str());
     }
+
+    // Treat each byte of Uint32 as unsigned char in FNV hashing
+    inline void HashInternal(Uint64 result, Uint32 value)
+    {
+        result = (kFnvPrime * result) ^ static_cast<unsigned char>(value >> 24);
+        result = (kFnvPrime * result) ^ static_cast<unsigned char>(value >> 16);
+        result = (kFnvPrime * result) ^ static_cast<unsigned char>(value >> 8);
+        result = (kFnvPrime * result) ^ static_cast<unsigned char>(value);
+    }
 }
 
 template<typename... Args>
@@ -1113,41 +1122,66 @@ private:
 class Animation
 {
 public:
+    // Keeps the LVL and AnimSet shared pointers in scope for as long as the Animation lives.
+    // On destruction if its the last instance of the lvl/animset the lvl will be closed and removed
+    // from the cache, and the animset will be deleted/freed.
+    struct AnimationSetHolder
+    {
+    public:
+        AnimationSetHolder(std::shared_ptr<Oddlib::LvlArchive> sLvlPtr, std::shared_ptr<Oddlib::AnimationSet> sAnimSetPtr, Uint32 animIdx)
+            : mLvlPtr(sLvlPtr), mAnimSetPtr(sAnimSetPtr)
+        {
+            mAnim = mAnimSetPtr->AnimationAt(animIdx);
+        }
+
+        const Oddlib::Animation& Animation() const
+        {
+            return *mAnim;
+        }
+
+        Uint32 MaxW() const 
+        {
+            return mAnimSetPtr->MaxW();
+        }
+
+        Uint32 MaxH() const
+        {
+            return mAnimSetPtr->MaxH();
+        }
+    private:
+        std::shared_ptr<Oddlib::LvlArchive> mLvlPtr;
+        std::shared_ptr<Oddlib::AnimationSet> mAnimSetPtr;
+        const Oddlib::Animation* mAnim;
+    };
+
+    Animation(const Animation&) = delete;
+    Animation& operator = (const Animation&) = delete;
     Animation() = delete;
 
-    Animation(std::unique_ptr<Oddlib::IStream> stream, bool isPsx, bool scaleFrameOffsets, Uint32 defaultBlendingMode, Uint32 animIndex, const std::string& sourceDataSet)
-        : mIsPsx(isPsx), mScaleFrameOffsets(scaleFrameOffsets), mSourceDataSet(sourceDataSet)
+    Animation(AnimationSetHolder anim, bool isPsx, bool scaleFrameOffsets, Uint32 defaultBlendingMode, const std::string& sourceDataSet)
+        : mAnim(anim), mIsPsx(isPsx), mScaleFrameOffsets(scaleFrameOffsets), mSourceDataSet(sourceDataSet)
     {
-        mAnimNum = animIndex;
-
         // TODO
         std::ignore = defaultBlendingMode;
-       
-        if (stream)
-        {
-            Oddlib::AnimSerializer as(*stream, isPsx);
-            mAnim = std::make_unique<Oddlib::AnimationSet>(as);
-        }
     }
     
     void Update()
     {
-        const Oddlib::Animation* anim = mAnim->AnimationAt(mAnimNum);
         mCounter++;
         // We double the update rate because we run logic at 60fps where as the original game runs it at 30
-        if (mCounter > anim->Fps() *2)
+        if (mCounter > mAnim.Animation().Fps() * 2)
         {
             mCounter = 0;
             mFrameNum++;
-            if (mFrameNum >= anim->NumFrames())
+            if (mFrameNum >= mAnim.Animation().NumFrames())
             {
-                if (anim->Loop())
+                if (mAnim.Animation().Loop())
                 {
-                    mFrameNum = anim->LoopStartFrame();
+                    mFrameNum = mAnim.Animation().LoopStartFrame();
                 }
                 else
                 {
-                    mFrameNum = anim->NumFrames() - 1;
+                    mFrameNum = mAnim.Animation().NumFrames() - 1;
                 }
             }
         }
@@ -1155,8 +1189,7 @@ public:
 
     void Render(Renderer& rend) const
     {
-        const Oddlib::Animation* anim = mAnim->AnimationAt(mAnimNum);
-        const Oddlib::Animation::Frame& frame = anim->GetFrame(mFrameNum);
+        const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
 
         float xpos = mScaleFrameOffsets ? static_cast<float>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<float>(frame.mOffX);
         float ypos = static_cast<float>(frame.mOffY);
@@ -1205,8 +1238,8 @@ public:
     void SetYPos(Sint32 ypos) { mYPos = ypos; }
     Sint32 XPos() const { return mXPos; }
     Sint32 YPos() const { return mYPos; }
-    Uint32 MaxW() const { return static_cast<Uint32>(mAnim->MaxW()*ScaleX()); }
-    Uint32 MaxH() const { return static_cast<Uint32>(mAnim->MaxH()*mScale); }
+    Uint32 MaxW() const { return static_cast<Uint32>(mAnim.MaxW()*ScaleX()); }
+    Uint32 MaxH() const { return static_cast<Uint32>(mAnim.MaxH()*mScale); }
 
 private:
     // 640 (pc xres) / 368 (psx xres) = 1.73913043478 scale factor
@@ -1223,7 +1256,8 @@ private:
     Uint32 mCounter = 0;
     Uint32 mFrameNum = 0;
     Uint32 mAnimNum = 0;
-    std::unique_ptr<Oddlib::AnimationSet> mAnim;
+
+    AnimationSetHolder mAnim;
 
     Sint32 mXPos = 500;
     Sint32 mYPos = 800;
@@ -1258,27 +1292,51 @@ public:
     ResourceCache(const ResourceCache&) = delete;
     ResourceCache& operator = (const ResourceCache&) = delete;
 
-    std::shared_ptr<Oddlib::LvlArchive> AddLvl(std::unique_ptr<Oddlib::LvlArchive> lvl, const std::string& dataSetName, const std::string& lvlFileName)
+    std::shared_ptr<Oddlib::LvlArchive> AddLvl(std::unique_ptr<Oddlib::LvlArchive> uptr, const std::string& dataSetName, const std::string& lvlArchiveFileName)
     {
-        const Uint64 key = StringHash(dataSetName, lvlFileName);
-        assert(mOpenLvls.find(key) == std::end(mOpenLvls));
-        std::shared_ptr<Oddlib::LvlArchive> managedLvl(lvl.release(), AutoRemoveFromContainerDeleter<Uint64, Oddlib::LvlArchive>(&mOpenLvls, key));
-        mOpenLvls.insert(std::make_pair(key, managedLvl));
-        return managedLvl;
+        const Uint64 key = StringHash(dataSetName, lvlArchiveFileName);
+        return Add(key, mOpenLvls, std::move(uptr));
     }
 
     std::shared_ptr<Oddlib::LvlArchive> GetLvl(const std::string& dataSetName, const std::string& lvlFileName)
     {
         const Uint64 key = StringHash(dataSetName, lvlFileName);
-        auto it = mOpenLvls.find(key);
-        if (it != std::end(mOpenLvls))
+        return Get<Oddlib::LvlArchive>(key, mOpenLvls);
+    }
+
+    std::shared_ptr<Oddlib::AnimationSet> AddAnimSet(std::unique_ptr<Oddlib::AnimationSet> uptr, const std::string& dataSetName, const std::string& lvlArchiveFileName, const std::string& lvlFileName, Uint32 chunkId)
+    {
+        const Uint64 key = StringHash(dataSetName, lvlArchiveFileName, lvlFileName, chunkId);
+        return Add(key, mAnimationSets, std::move(uptr));
+    }
+
+    std::shared_ptr<Oddlib::AnimationSet> GetAnimSet(const std::string& dataSetName, const std::string& lvlArchiveFileName, const std::string& lvlFileName, Uint32 chunkId)
+    {
+        const Uint64 key = StringHash(dataSetName, lvlArchiveFileName, lvlFileName, chunkId);
+        return Get<Oddlib::AnimationSet>(key, mAnimationSets);
+    }
+
+private:
+    template<class ObjectType, class Container>
+    std::shared_ptr<ObjectType> Add(Uint64 key, Container& container, std::unique_ptr<ObjectType> uptr)
+    {
+        assert(container.find(key) == std::end(container));
+        std::shared_ptr<ObjectType> sptr(uptr.release(), AutoRemoveFromContainerDeleter<Uint64, ObjectType>(&container, key));
+        container.insert(std::make_pair(key, sptr));
+        return sptr;
+    }
+
+    template<class ObjectType, class Container>
+    std::shared_ptr<ObjectType> Get(Uint64 key, Container& container)
+    {
+        auto it = container.find(key);
+        if (it != std::end(container))
         {
             return it->second.lock();
         }
         return nullptr;
     }
 
-private:
     std::map<Uint64, std::weak_ptr<Oddlib::LvlArchive>> mOpenLvls;
     std::map<Uint64, std::weak_ptr<Oddlib::AnimationSet>> mAnimationSets;
 };
