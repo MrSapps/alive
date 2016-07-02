@@ -3,10 +3,10 @@
 #include "engine.hpp"
 #include "resourcemapper.hpp"
 
-class DevloperScreen : public EngineState
+class DeveloperScreen : public EngineState
 {
 public:
-    DevloperScreen(GuiContext* gui, IEngineStateChanger& stateChanger, class Fmv& fmv, class Sound& sound, class Level& level, class FileSystem& fs, ResourceLocator& resMapper)
+    DeveloperScreen(GuiContext* gui, IEngineStateChanger& stateChanger, class Fmv& fmv, class Sound& sound, class Level& level, class FileSystem& fs, ResourceLocator& resMapper)
         : EngineState(stateChanger), 
           mGui(gui),
           mFmv(fmv),

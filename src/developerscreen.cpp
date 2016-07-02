@@ -7,12 +7,12 @@
 #include "sound.hpp"
 #include "gridmap.hpp"
 
-void DevloperScreen::Init()
+void DeveloperScreen::Init()
 {
     
 }
 
-void DevloperScreen::Update()
+void DeveloperScreen::Update()
 {
     //mFmv.Play("INGRDNT.DDV");
     mFmv.Update();
@@ -25,7 +25,7 @@ void DevloperScreen::Update()
     }
 }
 
-void DevloperScreen::Render(int w, int h, Renderer& renderer)
+void DeveloperScreen::Render(int w, int h, Renderer& renderer)
 {
     //DebugRender();
 
@@ -88,7 +88,7 @@ void DevloperScreen::Render(int w, int h, Renderer& renderer)
     }
 }
 
-void DevloperScreen::RenderAnimationSelector(Renderer& renderer)
+void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)
 {
     gui_begin_window(mGui, "Animations");
 
