@@ -66,7 +66,7 @@ namespace Oddlib
             FileChunk* ChunkByIndex(Uint32 index) { return mChunks[index].get(); }
             FileChunk* ChunkByType(Uint32 type);
             size_t ChunkCount() const { return mChunks.size(); }
-            // Deugging feature
+            // Debugging feature
             void SaveChunks();
         private:
             void LoadChunks(IStream& stream, Uint32 fileSize);
@@ -77,6 +77,7 @@ namespace Oddlib
         explicit LvlArchive(const std::string& fileName);
         explicit LvlArchive(std::vector<Uint8>&& data);
         explicit LvlArchive(std::unique_ptr<IStream> stream);
+        ~LvlArchive();
 
         File* FileByName(const std::string& fileName);
         File* FileByIndex(Uint32 index) { return mFiles[index].get(); }

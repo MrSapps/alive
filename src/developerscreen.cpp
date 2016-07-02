@@ -19,7 +19,7 @@ void DeveloperScreen::Update()
     mSound.Update();
     mLevel.Update();
 
-    for (Animation* anim : mLoadedAnims)
+    for (auto& anim : mLoadedAnims)
     {
         anim->Update();
     }
@@ -104,7 +104,7 @@ void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)
 
     renderer.beginLayer(gui_layer(mGui));
     Sint32 spacer = 0;
-    for (Animation* anim : mLoadedAnims)
+    for (auto& anim : mLoadedAnims)
     {
         if (resetStates)
         {
@@ -125,17 +125,20 @@ void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)
             const char* resourceName = std::get<1>(res);
             bool load = std::get<2>(res);
 
-            Animation* anim = mAnimResourceGroup.Get(resourceName, dataSetName);
+            auto anim = mResourceLocator.Locate(resourceName, dataSetName);
+//            Animation* anim = mAnimResourceGroup.Get(resourceName, dataSetName);
             if (anim)
             {
                 if (load)
                 {
                     // TODO: Keep load order intact! This is required to check that RequiredDataSets ordering is honored
-                    mLoadedAnims.insert(anim);
+                    mLoadedAnims.insert(std::move(anim));
                 }
                 else
                 {
                     // Don't unload, just remove from rendering list
+
+                    // TODO: This is now wrong and won't remove
                     mLoadedAnims.erase(anim);
                 }
             }

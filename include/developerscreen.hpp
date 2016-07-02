@@ -13,8 +13,7 @@ public:
           mSound(sound),
           mLevel(level),
           mFsOld(fs),
-          mResourceLocator(resMapper),
-          mAnimResourceGroup(mResourceLocator)
+          mResourceLocator(resMapper)
     {
         Init();
     }
@@ -31,7 +30,6 @@ private:
     FileSystem& mFsOld;
 
     ResourceLocator& mResourceLocator;
-    ResourceGroup<Animation> mAnimResourceGroup;
-    std::set<Animation*> mLoadedAnims;
+    std::set<std::unique_ptr<Animation>> mLoadedAnims;
     
 };

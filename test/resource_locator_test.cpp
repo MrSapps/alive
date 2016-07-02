@@ -106,6 +106,7 @@ TEST(InMemoryFileSystem, FileExists)
     ASSERT_TRUE(fs.FileExists("/Root.txt"));
 }
 
+/*
 TEST(ResourceLocator, DISABLED_ResourceGroup)
 {
     InMemoryFileSystem fs;
@@ -147,7 +148,7 @@ TEST(ResourceLocator, DISABLED_ResourceGroup)
 
     ResourceLocator locator(std::move(mapper), std::move(paths));
 
-    ResourceGroup<Animation> group(locator);
+    ResourceCache<Animation> group(locator);
 
     ASSERT_EQ(nullptr, group.Get("foo"));
     ASSERT_EQ(nullptr, group.Get("foo", "bar"));
@@ -159,9 +160,8 @@ TEST(ResourceLocator, DISABLED_ResourceGroup)
     ASSERT_NE(nullptr, group.Get("BLAH.BND_417_2"));
     ASSERT_NE(nullptr, group.Get("BLAH.BND_417_2", "AePc"));
     ASSERT_EQ(nullptr, group.Get("BLAH.BND_417_2", "AoPc"));
-
 }
-
+*/
 
 TEST(ResourceLocator, ParseResourceMap)
 {

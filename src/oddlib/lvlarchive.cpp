@@ -171,6 +171,11 @@ namespace Oddlib
         Load();
     }
 
+    LvlArchive::~LvlArchive()
+    {
+        TRACE_ENTRYEXIT;
+    }
+
     void LvlArchive::Load()
     {
         // Read and validate the header

@@ -46,10 +46,13 @@ namespace Detail
 
     inline void HashInternal(Uint64& result, const char* s)
     {
-        while (*s)
+        if (s)
         {
-            result = (kFnvPrime * result) ^ static_cast<unsigned char>(*s);
-            s++;
+            while (*s)
+            {
+                result = (kFnvPrime * result) ^ static_cast<unsigned char>(*s);
+                s++;
+            }
         }
     }
 
@@ -1228,43 +1231,90 @@ private:
     std::string mSourceDataSet;
 };
 
-template<class T>
+// requires Container to be an associative container type with key type
+// a raw pointer type
+template <typename Container>
+class AutoRemoveFromContainerDeleter
+{
+private:
+    Container* mContainer;
+    Uint64 mKey;
+    using key_type = typename Container::key_type;
+public:
+    explicit AutoRemoveFromContainerDeleter(Container* container, Uint64 key)
+        : mContainer(container), mKey(key)
+    {
+    }
+
+    void operator()(Oddlib::LvlArchive* ptr)
+    {
+        mContainer->erase(mKey);
+        delete ptr;
+    }
+};
+
 class ResourceCache
 {
 public:
-    void Add(Uint64 resourceNameHash, Uint64 dataSetNameHash, std::unique_ptr<T> resource)
-    {
-        assert(mCache.find(std::make_pair(resourceNameHash, dataSetNameHash)) == std::end(mCache));
+    ResourceCache() = default;
+    ResourceCache(const ResourceCache&) = delete;
+    ResourceCache& operator = (const ResourceCache&) = delete;
 
-        mCache[std::make_pair(resourceNameHash, dataSetNameHash)] = std::move(resource);
+    std::shared_ptr<Oddlib::LvlArchive> AddLvl(std::unique_ptr<Oddlib::LvlArchive> lvl, const std::string& dataSetName, const std::string& lvlFileName)
+    {
+        const Uint64 key = StringHash(dataSetName, lvlFileName);
+        std::shared_ptr<Oddlib::LvlArchive> managedLvl(lvl.release(), AutoRemoveFromContainerDeleter<decltype(mOpenLvls)>(&mOpenLvls, key));
+        mOpenLvls.insert(std::make_pair(key, managedLvl));
+        return managedLvl;
     }
 
-    void Remove(Uint64 resourceNameHash, Uint64 dataSetNameHash)
+    std::shared_ptr<Oddlib::LvlArchive> GetLvl(const std::string& dataSetName, const std::string& lvlFileName)
     {
-        auto it = mCache.find(std::make_pair(resourceNameHash, dataSetNameHash));
-        if (it != std::end(mCache))
+        const Uint64 key = StringHash(dataSetName, lvlFileName);
+        auto it = mOpenLvls.find(key);
+        if (it != std::end(mOpenLvls))
         {
-            auto sPtr = it->second.lock();
-            if (!sPtr)
-            {
-                mCache.erase(it);
-            }
-        }
-    }
-
-    T* Find(Uint64 resourceNameHash, Uint64 dataSetNameHash)
-    {
-        auto it = mCache.find(std::make_pair(resourceNameHash, dataSetNameHash));
-        if (it != std::end(mCache))
-        {
-            return it->second.get();
+            return it->second.lock();
         }
         return nullptr;
     }
-private:
-    std::map<std::pair<Uint64, Uint64>, std::unique_ptr<T>> mCache;
-};
 
+    /*
+    Oddlib::AnimationSet* GetAnimationSet(const char* resourceName, const char* dataSetName = nullptr)
+    {
+        Uint64 nameHash = StringHash(resourceName, dataSetName);
+
+        return nullptr;
+    }
+    */
+
+private:
+    std::map<Uint64, std::weak_ptr<Oddlib::LvlArchive>> mOpenLvls;
+
+    /*
+    T* DoGet(const char* resourceName, const char* dataSetName, Uint64 resNameHash, Uint64 dataSetNameHash)
+    {
+    auto cached = mResourceCache.Find(resNameHash, dataSetNameHash);
+    if (cached)
+    {
+    return cached;
+    }
+
+    auto res = dataSetName ?
+    mResourceLocator.Locate(resourceName, dataSetName)
+    : mResourceLocator.Locate(resourceName);
+
+    if (res)
+    {
+    auto rawPtr = res.get();
+    mResourceCache.Add(resNameHash, dataSetNameHash, std::move(res));
+    return rawPtr;
+    }
+    return nullptr;
+    }
+    */
+
+};
 
 class ResourceLocator
 {
@@ -1293,60 +1343,9 @@ public:
     std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui, const char* filter);
 private:
     std::unique_ptr<Animation> DoLocate(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
+    std::shared_ptr<Oddlib::LvlArchive> OpenLvl(IFileSystem& fs, const std::string& dataSetName, const std::string& lvlName);
 
+    ResourceCache mCache;
     ResourceMapper mResMapper;
     DataPaths mDataPaths;
-};
-
-template<class T>
-class ResourceGroup
-{
-public:
-    ResourceGroup() = delete;
-    ResourceGroup(const ResourceGroup&) = delete;
-    ResourceGroup& operator = (const ResourceGroup&) = delete;
-
-    explicit ResourceGroup(ResourceLocator& locator)
-        : mResourceLocator(locator)
-    {
-
-    }
-
-    T* Get(const char* resourceName, const char* dataSetName)
-    {
-        const Uint64 resNameHash = StringHash(resourceName);
-        const Uint64 dataSetNameHash = StringHash(dataSetName);
-        return DoGet(resourceName, dataSetName, resNameHash, dataSetNameHash);
-    }
-
-    T* Get(const char* resourceName)
-    {
-        const size_t resNameHash = StringHash(resourceName);
-        return DoGet(resourceName, nullptr, resNameHash, 0);
-    }
-
-private:
-    T* DoGet(const char* resourceName, const char* dataSetName, Uint64 resNameHash, Uint64 dataSetNameHash)
-    {
-        auto cached = mResourceCache.Find(resNameHash, dataSetNameHash);
-        if (cached)
-        {
-            return cached;
-        }
-
-        auto res = dataSetName ?
-            mResourceLocator.Locate(resourceName, dataSetName)
-            : mResourceLocator.Locate(resourceName);
-
-        if (res)
-        {
-            auto rawPtr = res.get();
-            mResourceCache.Add(resNameHash, dataSetNameHash, std::move(res));
-            return rawPtr;
-        }
-        return nullptr;
-    }
-
-    ResourceCache<T> mResourceCache;
-    ResourceLocator& mResourceLocator;
 };

@@ -194,6 +194,23 @@ std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName, con
     return nullptr;
 }
 
+std::shared_ptr<Oddlib::LvlArchive> ResourceLocator::OpenLvl(IFileSystem& fs, const std::string& dataSetName, const std::string& lvlName)
+{
+    auto lvlPtr = mCache.GetLvl(dataSetName, lvlName);
+    if (!lvlPtr)
+    {
+        // Try to open new lvl since it wasn't in the cache
+        auto lvlStream = fs.Open(lvlName);
+        if (lvlStream)
+        {
+            // Cache this lvl
+            auto lvl = std::make_unique<Oddlib::LvlArchive>(std::move(lvlStream));
+            lvlPtr = mCache.AddLvl(std::move(lvl), dataSetName, lvlName);
+        }
+    }
+    return lvlPtr;
+}
+
 std::unique_ptr<Animation> ResourceLocator::DoLocate(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping)
 {
     // Each each mapping in the resource record that has matched resourceName
@@ -212,13 +229,11 @@ std::unique_ptr<Animation> ResourceLocator::DoLocate(const DataPaths::FileSystem
                     // Loop through each LVL and see if animFile exists there
                     for (const ResourceMapper::DataSetFileAttributes& dataSetFileAttributes : *fileLocations)
                     {
-                        // Open the LVL archive
-                        auto lvlStream = fs.mFileSystem->Open(dataSetFileAttributes.mLvlName);
-                        if (lvlStream)
+                        auto lvlPtr = OpenLvl(*fs.mFileSystem, fs.mDataSetName, dataSetFileAttributes.mLvlName);
+                        if (lvlPtr)
                         {
                             // Open the file within the archive
-                            Oddlib::LvlArchive lvl(std::move(lvlStream));
-                            auto lvlFile = lvl.FileByName(animFile.mFile);
+                            auto lvlFile = lvlPtr->FileByName(animFile.mFile);
                             if (lvlFile)
                             {
                                 // Get the chunk within the file that lives in the lvl
