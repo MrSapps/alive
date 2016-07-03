@@ -17,6 +17,8 @@ public:
     {
         Init();
     }
+
+    virtual void Input(InputState& input) override;
     virtual void Update() override;
     virtual void Render(int w, int h, Renderer& renderer) override;
 private:
@@ -31,5 +33,10 @@ private:
 
     ResourceLocator& mResourceLocator;
     std::vector<std::unique_ptr<Animation>> mLoadedAnims;
-    
+
+    // Not owned
+    Animation* mSelected = nullptr;
+
+    Sint32 mXDelta = 0;
+    Sint32 mYDelta = 0;
 };

@@ -16,6 +16,22 @@ public:
     virtual void ToState(std::unique_ptr<class EngineState> state) = 0;
 };
 
+class InputState
+{
+public:
+    enum EPressedState
+    {
+        eHeld = 0x1,
+        eDown = 0x2,
+        eUp = 0x4,
+    };
+    Uint32 mLeftMouseState = 0;
+    Uint32 mRightMouseState = 0;
+
+    Sint32 mMouseX = 0;
+    Sint32 mMouseY = 0;
+};
+
 class EngineState
 {
 public:
@@ -23,6 +39,7 @@ public:
     EngineState& operator = (const EngineState&) = delete;
     EngineState(IEngineStateChanger& stateChanger) : mStateChanger(stateChanger)  { }
     virtual ~EngineState() = default;
+    virtual void Input(InputState& input) = 0;
     virtual void Update() = 0;
     virtual void Render(int w, int h, class Renderer& renderer) = 0;
 protected:
@@ -89,4 +106,6 @@ protected:
     std::unique_ptr<EngineState> mCurrentState;
     std::unique_ptr<EngineState> mNextState;
     std::vector<GameDefinition> mGameDefinitions;
+
+    InputState mInputState;
 };

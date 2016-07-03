@@ -7,6 +7,11 @@ void GameSelectionScreen::Update()
 
 }
 
+void GameSelectionScreen::Input(InputState& /*input*/)
+{
+
+}
+
 void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
 {
     gui_begin_window(mGui, "Select game");

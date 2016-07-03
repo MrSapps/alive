@@ -1234,6 +1234,24 @@ public:
         mFrameNum = 0;
     }
 
+    bool Collision(Sint32 x, Sint32 y) const
+    {
+        const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
+
+        // TODO: Refactor rect calcs
+        float xpos = mScaleFrameOffsets ? static_cast<float>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<float>(frame.mOffX);
+        float ypos = static_cast<float>(frame.mOffY);
+
+        ypos = mYPos + (ypos * mScale);
+        xpos = mXPos + (xpos * mScale);
+
+        float w = static_cast<float>(frame.mFrame->w) * ScaleX();
+        float h = static_cast<float>(frame.mFrame->h) * mScale;
+
+
+        return PointInRect(static_cast<float>(x), static_cast<float>(y), xpos, ypos, w, h);
+    }
+
     void SetXPos(Sint32 xpos) { mXPos = xpos; }
     void SetYPos(Sint32 ypos) { mYPos = ypos; }
     Sint32 XPos() const { return mXPos; }
@@ -1242,6 +1260,15 @@ public:
     Uint32 MaxH() const { return static_cast<Uint32>(mAnim.MaxH()*mScale); }
 
 private:
+    bool PointInRect(float px, float py, float x, float y, float w, float h) const
+    {
+        if (px < x) return false;
+        if (py < y) return false;
+        if (px >= x + w) return false;
+        if (py >= y + h) return false;
+        return true;
+    }
+
     // 640 (pc xres) / 368 (psx xres) = 1.73913043478 scale factor
     const static float kPcToPsxScaleFactor;
 

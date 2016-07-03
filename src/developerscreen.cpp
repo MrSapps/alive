@@ -12,6 +12,58 @@ void DeveloperScreen::Init()
     
 }
 
+void DeveloperScreen::Input(InputState& input)
+{
+    // Set the "selected" animation
+    if (!mSelected && input.mLeftMouseState & InputState::eDown)
+    {
+        LOG_INFO("Get selected");
+        for (auto& anim : mLoadedAnims)
+        {
+            if (anim->Collision(input.mMouseX, input.mMouseY))
+            {
+                mSelected = anim.get();
+
+                mXDelta = std::abs(mSelected->XPos() - input.mMouseX);
+                mYDelta = std::abs(mSelected->YPos() - input.mMouseY);
+
+                LOG_INFO("Got selected");
+                return;
+            }
+        }
+    }
+    
+    // Move the "selected" animation
+    if (mSelected && input.mLeftMouseState & InputState::eHeld)
+    {
+        LOG_INFO("Move selected to " << input.mMouseX << "," << input.mMouseY);
+        mSelected->SetXPos(mXDelta + input.mMouseX);
+        mSelected->SetYPos(mYDelta + input.mMouseY);
+    }
+
+    if (input.mLeftMouseState & InputState::eUp)
+    {
+        LOG_INFO("Release");
+        mSelected = nullptr;
+    }
+
+    // When the right button is released delete the "selected" animation
+    if (input.mRightMouseState & InputState::eUp)
+    {
+        LOG_INFO("Delete selected");
+
+        for (auto it = mLoadedAnims.begin(); it != mLoadedAnims.end(); it++)
+        {
+            if ((*it)->Collision(input.mMouseX, input.mMouseY))
+            {
+                mLoadedAnims.erase(it);
+                break;
+            }
+        }
+        mSelected = nullptr;
+    }
+}
+
 void DeveloperScreen::Update()
 {
     //mFmv.Play("INGRDNT.DDV");
@@ -115,7 +167,7 @@ void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)
         {
             anim->Restart();
         }
-        anim->SetXPos(70 + spacer);
+        //anim->SetXPos(70 + spacer);
         anim->Render(renderer);
         spacer += (anim->MaxW() + (anim->MaxW()/3));
     }
