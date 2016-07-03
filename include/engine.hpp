@@ -39,7 +39,22 @@ public:
 
     virtual void ToState(std::unique_ptr<EngineState> state) override
     {
-        mCurrentState = std::move(state);
+        if (!state)
+        {
+            mCurrentState = nullptr;
+            mNextState = nullptr;
+        }
+        else
+        {
+            if (!mCurrentState)
+            {
+                mCurrentState = std::move(state);
+            }
+            else
+            {
+                mNextState = std::move(state);
+            }
+        }
     }
 private:
     void Update();
@@ -72,5 +87,6 @@ protected:
     struct GuiContext *mGui = nullptr;
 
     std::unique_ptr<EngineState> mCurrentState;
+    std::unique_ptr<EngineState> mNextState;
     std::vector<GameDefinition> mGameDefinitions;
 };

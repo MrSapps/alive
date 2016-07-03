@@ -98,6 +98,11 @@ void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)
         resetStates = true;
     }
 
+    if (gui_button(mGui, "Clear all"))
+    {
+        mLoadedAnims.clear();
+    }
+
     static char filterString[64] = {};
     gui_textfield(mGui, "Filter", filterString, sizeof(filterString));
 
@@ -124,22 +129,12 @@ void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)
             const char* dataSetName = std::get<0>(res);
             const char* resourceName = std::get<1>(res);
             bool load = std::get<2>(res);
-
-            auto anim = mResourceLocator.Locate(resourceName, dataSetName);
-//            Animation* anim = mAnimResourceGroup.Get(resourceName, dataSetName);
-            if (anim)
+            if (load)
             {
-                if (load)
+                auto anim = mResourceLocator.Locate(resourceName, dataSetName);
+                if (anim)
                 {
-                    // TODO: Keep load order intact! This is required to check that RequiredDataSets ordering is honored
-                    mLoadedAnims.insert(std::move(anim));
-                }
-                else
-                {
-                    // Don't unload, just remove from rendering list
-
-                    // TODO: This is now wrong and won't remove
-                    mLoadedAnims.erase(anim);
+                    mLoadedAnims.push_back(std::move(anim));
                 }
             }
         }

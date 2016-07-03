@@ -30,6 +30,6 @@ private:
     FileSystem& mFsOld;
 
     ResourceLocator& mResourceLocator;
-    std::set<std::unique_ptr<Animation>> mLoadedAnims;
+    std::vector<std::unique_ptr<Animation>> mLoadedAnims;
     
 };

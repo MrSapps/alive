@@ -21,7 +21,6 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
 
     }
 
-    bool gotoDevMode = false;
     if (gui_button(mGui, "Start game"))
     {
         const GameDefinition& userSelectedGameDef = *mVisibleGameDefinitions[mSelectedGameDefintionIndex];
@@ -88,15 +87,9 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
             auto res = mResLocator.Locate("ABEBSIC.BAN_10_31");
             //res = mResourceLocator->Locate<Animation>("ABEBSIC.BAN_10_31", "AePc");
 
-            gotoDevMode = true;
+            mStateChanger.ToState(std::make_unique<DeveloperScreen>(mGui, mStateChanger, mFmv, mSound, mLevel, mFsOld, mResLocator));
         }
     }
 
     gui_end_window(mGui);
-    if (gotoDevMode)
-    {
-        // "this" will be deleted after this call, so must be last call in the function
-
-        mStateChanger.ToState(std::make_unique<DeveloperScreen>(mGui, mStateChanger, mFmv, mSound, mLevel, mFsOld, mResLocator));
-    }
 }

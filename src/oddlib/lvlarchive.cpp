@@ -174,6 +174,10 @@ namespace Oddlib
     LvlArchive::~LvlArchive()
     {
         TRACE_ENTRYEXIT;
+        if (mStream)
+        {
+            LOG_INFO("Closing LVL: " << mStream->Name());
+        }
     }
 
     void LvlArchive::Load()

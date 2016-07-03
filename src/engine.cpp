@@ -206,6 +206,12 @@ int Engine::Run()
 
 void Engine::Update()
 {
+    // 1 frame delay to next state so "delete this" during call to ToState isn't an issue
+    if (mNextState)
+    {
+        mCurrentState = std::move(mNextState);
+    }
+
     { // Reset gui input
         for (int i = 0; i < GUI_KEY_COUNT; ++i)
             mGui->key_state[i] = 0;
