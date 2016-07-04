@@ -271,6 +271,12 @@ std::vector<std::string> ZipFileSystem::EnumerateFiles(const std::string& direct
     return ret;
 }
 
+std::vector<std::string> ZipFileSystem::EnumerateFolders(const std::string& /*directory*/)
+{
+    LOG_ERROR("Not implemented");
+    abort();
+}
+
 bool ZipFileSystem::FileExists(const std::string& fileName)
 {
     for (size_t i = 0; i < mRecords.size(); i++)

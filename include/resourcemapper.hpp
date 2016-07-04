@@ -102,6 +102,8 @@ public:
     virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) = 0;
 
     virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) = 0;
+    virtual std::vector<std::string> EnumerateFolders(const std::string& directory) = 0;
+
     virtual bool FileExists(const std::string& fileName) = 0;
     virtual std::string FsPath() const = 0;
 
@@ -197,6 +199,7 @@ public:
     }
 
 #ifdef _WIN32
+private:
     struct FindCloseDeleter
     {
         typedef HANDLE pointer;
@@ -210,19 +213,27 @@ public:
     };
     typedef std::unique_ptr<HANDLE, FindCloseDeleter> FindCloseHandle;
 
-    virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override
+    std::vector<std::string> DoEnumerate(const std::string& directory, bool files, const char* filter)
     {
         std::vector<std::string> ret;
         WIN32_FIND_DATA findData = {};
-        const std::string dirPath = ExpandPath(directory) + "/" + filter;
+        // Wild carding is supported directly by the host OS API
+        const std::string dirPath = ExpandPath(directory) + (filter ?  std::string("/") + filter : "/*");
         FindCloseHandle ptr(::FindFirstFile(dirPath.c_str(), &findData));
         if (ptr.get() != INVALID_HANDLE_VALUE)
         {
             do
             {
-                if (!IsDots(findData.cFileName) && !(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+                if (!IsDots(findData.cFileName))
                 {
-                    ret.emplace_back(findData.cFileName);
+                    if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !files)
+                    {
+                        ret.emplace_back(findData.cFileName);
+                    }
+                    else if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && files)
+                    {
+                        ret.emplace_back(findData.cFileName);
+                    }
                 }
             } while (::FindNextFile(ptr.get(), &findData));
             LOG_INFO(ret.size() << " items enumerated from " << dirPath);
@@ -233,6 +244,18 @@ public:
         }
         return ret;
     }
+
+public:
+    virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override
+    {
+        return DoEnumerate(directory, true, filter);
+    }
+
+    virtual std::vector<std::string> EnumerateFolders(const std::string& directory) override
+    {
+        return DoEnumerate(directory, false, nullptr);
+    }
+
 #else
     struct closedirDeleter
     {
@@ -274,6 +297,14 @@ public:
         }
         return ret;
     }
+
+    virtual std::vector<std::string> EnumerateFolders(const std::string& /*directory*/) override
+    {
+        // TODO
+        LOG_ERROR("not implemeneted");
+        abort();
+    }
+
 #endif
 
 #ifdef _WIN32
@@ -398,6 +429,11 @@ public:
         return mFs.EnumerateFiles(LimitPath(directory), filter);
     }
 
+    virtual std::vector<std::string> EnumerateFolders(const std::string& directory) override final
+    {
+        return mFs.EnumerateFolders(LimitPath(directory));
+    }
+
     virtual bool FileExists(const std::string& fileName) override final
     {
         return mFs.FileExists(LimitPath(fileName));
@@ -443,8 +479,15 @@ public:
     virtual std::vector<std::string> EnumerateFiles(const std::string& /*directory*/, const char* /*filter*/) override
     {
         // TODO
+        LOG_ERROR("Not implemented");
         abort();
-        //return std::vector<std::string> { };
+    }
+
+    virtual std::vector<std::string> EnumerateFolders(const std::string& /*directory*/) override
+    {
+        // TODO
+        LOG_ERROR("Not implemented");
+        abort();
     }
 
     virtual bool FileExists(const std::string& fileName) override

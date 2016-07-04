@@ -467,25 +467,66 @@ bool Engine::InitSDL()
     return true;
 }
 
-void Engine::AddGameDefinitionsFrom(const char* path, bool areMods)
+void Engine::AddGameDefinitionsFrom(const char* path)
 {
     const auto jsonFiles = mFileSystem->EnumerateFiles(path, "*.json");
     for (const auto& gameDef : jsonFiles)
     {
-        mGameDefinitions.emplace_back(*mFileSystem, (std::string(path) + "/" + gameDef).c_str(), areMods);
+        mGameDefinitions.emplace_back(*mFileSystem, (std::string(path) + "/" + gameDef).c_str(), false);
+    }
+}
+
+void Engine::AddModDefinitionsFrom(const char* path)
+{
+    std::string strPath(path);
+    AddDirectoryBasedModDefinitionsFrom(strPath);
+    AddZipsedModDefinitionsFrom(strPath);
+}
+
+void Engine::AddDirectoryBasedModDefinitionsFrom(std::string path)
+{
+    const auto possibleModDirs = mFileSystem->EnumerateFolders(path);
+    for (const auto& possibleModDir : possibleModDirs)
+    {
+        auto modDefinitionFiles = mFileSystem->EnumerateFiles(path + "/" + possibleModDir, "game.json");
+        if (!modDefinitionFiles.empty())
+        {
+            auto fs = IFileSystem::Factory(*mFileSystem, path + "/" + possibleModDir + "/");
+            if (fs->Init())
+            {
+                mGameDefinitions.emplace_back(*fs, modDefinitionFiles[0].c_str(), true);
+            }
+        }
+    }
+}
+
+void Engine::AddZipsedModDefinitionsFrom(std::string path)
+{
+    const auto possibleModZips = mFileSystem->EnumerateFiles(path, "*.zip");
+    for (const auto& possibleModZip : possibleModZips)
+    {
+        auto fs = IFileSystem::Factory(*mFileSystem, path + "/" + possibleModZip);
+        if (fs->Init())
+        {
+            auto modDefinitionFiles = fs->EnumerateFiles("", "game.json");
+            if (!modDefinitionFiles.empty())
+            {
+                mGameDefinitions.emplace_back(*fs, modDefinitionFiles[0].c_str(), true);
+            }
+        }
     }
 }
 
 void Engine::InitResources()
 {
     // load the enumerated "built in" game defs
-    AddGameDefinitionsFrom("{GameDir}/data/GameDefinitions", false);
+    AddGameDefinitionsFrom("{GameDir}/data/GameDefinitions");
 
     // load the enumerated "mod" game defs
-    AddGameDefinitionsFrom("{UserDir}/Mods", true);
+    AddModDefinitionsFrom("{UserDir}/Mods");
 
     // The engine probably won't ship with any mods, but while under development look here too
-    AddGameDefinitionsFrom("{GameDir}/data/Mods", true);
+    AddModDefinitionsFrom("{GameDir}/data/Mods");
 
     // create the resource mapper loading the resource maps from the json db
     DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");

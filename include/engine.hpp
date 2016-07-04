@@ -78,7 +78,10 @@ private:
     void Render();
     bool InitSDL();
     int LoadNanoVgFonts(struct NVGcontext* vg);
-    void AddGameDefinitionsFrom(const char* path, bool areMods);
+    void AddGameDefinitionsFrom(const char* path);
+    void AddModDefinitionsFrom(const char* path);
+    void AddDirectoryBasedModDefinitionsFrom(std::string path);
+    void AddZipsedModDefinitionsFrom(std::string path);
     void InitResources();
     void InitGL();
     void RenderVideoUi();

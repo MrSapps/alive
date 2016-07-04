@@ -93,6 +93,23 @@ public:
         return ret;
     }
 
+    virtual std::vector<std::string> EnumerateFolders(const std::string& directory) override
+    {
+        Directory* dir = FindPath(directory, true);
+        std::vector<std::string> ret;
+        if (!dir)
+        {
+            return ret;
+        }
+
+        for (const Directory& dir : dir->mChildren)
+        {
+            ret.emplace_back(dir.mName);
+        }
+
+        return ret;
+    }
+
     virtual bool FileExists(const std::string& fileName) override
     {
         DirectoryAndFileName path(fileName);
