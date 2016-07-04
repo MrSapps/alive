@@ -102,7 +102,7 @@ public:
             return ret;
         }
 
-        for (const Directory& dir : dir->mChildren)
+        for (const Directory& dir : dir.mChildren)
         {
             ret.emplace_back(dir.mName);
         }
