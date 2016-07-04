@@ -1321,40 +1321,40 @@ public:
 
     std::shared_ptr<Oddlib::LvlArchive> AddLvl(std::unique_ptr<Oddlib::LvlArchive> uptr, const std::string& dataSetName, const std::string& lvlArchiveFileName)
     {
-        const Uint64 key = StringHash(dataSetName, lvlArchiveFileName);
+        std::string key = dataSetName + lvlArchiveFileName;
         return Add(key, mOpenLvls, std::move(uptr));
     }
 
-    std::shared_ptr<Oddlib::LvlArchive> GetLvl(const std::string& dataSetName, const std::string& lvlFileName)
+    std::shared_ptr<Oddlib::LvlArchive> GetLvl(const std::string& dataSetName, const std::string& lvlArchiveFileName)
     {
-        const Uint64 key = StringHash(dataSetName, lvlFileName);
+        std::string key = dataSetName + lvlArchiveFileName;
         return Get<Oddlib::LvlArchive>(key, mOpenLvls);
     }
 
     std::shared_ptr<Oddlib::AnimationSet> AddAnimSet(std::unique_ptr<Oddlib::AnimationSet> uptr, const std::string& dataSetName, const std::string& lvlArchiveFileName, const std::string& lvlFileName, Uint32 chunkId)
     {
-        const Uint64 key = StringHash(dataSetName, lvlArchiveFileName, lvlFileName, chunkId);
+        std::string key = dataSetName + lvlArchiveFileName + lvlFileName + std::to_string(chunkId);
         return Add(key, mAnimationSets, std::move(uptr));
     }
 
     std::shared_ptr<Oddlib::AnimationSet> GetAnimSet(const std::string& dataSetName, const std::string& lvlArchiveFileName, const std::string& lvlFileName, Uint32 chunkId)
     {
-        const Uint64 key = StringHash(dataSetName, lvlArchiveFileName, lvlFileName, chunkId);
+        std::string key = dataSetName + lvlArchiveFileName + lvlFileName + std::to_string(chunkId);
         return Get<Oddlib::AnimationSet>(key, mAnimationSets);
     }
 
 private:
     template<class ObjectType, class Container>
-    std::shared_ptr<ObjectType> Add(Uint64 key, Container& container, std::unique_ptr<ObjectType> uptr)
+    std::shared_ptr<ObjectType> Add(std::string& key, Container& container, std::unique_ptr<ObjectType> uptr)
     {
         assert(container.find(key) == std::end(container));
-        std::shared_ptr<ObjectType> sptr(uptr.release(), AutoRemoveFromContainerDeleter<Uint64, ObjectType>(&container, key));
+        std::shared_ptr<ObjectType> sptr(uptr.release(), AutoRemoveFromContainerDeleter<std::string, ObjectType>(&container, key));
         container.insert(std::make_pair(key, sptr));
         return sptr;
     }
 
     template<class ObjectType, class Container>
-    std::shared_ptr<ObjectType> Get(Uint64 key, Container& container)
+    std::shared_ptr<ObjectType> Get(std::string& key, Container& container)
     {
         auto it = container.find(key);
         if (it != std::end(container))
@@ -1364,8 +1364,8 @@ private:
         return nullptr;
     }
 
-    std::map<Uint64, std::weak_ptr<Oddlib::LvlArchive>> mOpenLvls;
-    std::map<Uint64, std::weak_ptr<Oddlib::AnimationSet>> mAnimationSets;
+    std::map<std::string, std::weak_ptr<Oddlib::LvlArchive>> mOpenLvls;
+    std::map<std::string, std::weak_ptr<Oddlib::AnimationSet>> mAnimationSets;
 };
 
 class ResourceLocator
