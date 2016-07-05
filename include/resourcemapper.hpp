@@ -1387,17 +1387,17 @@ public:
     }
 
 private:
-    template<class ObjectType, class Container>
-    std::shared_ptr<ObjectType> Add(std::string& key, Container& container, std::unique_ptr<ObjectType> uptr)
+    template<class ObjectType, class KeyType, class Container>
+    std::shared_ptr<ObjectType> Add(KeyType& key, Container& container, std::unique_ptr<ObjectType> uptr)
     {
         assert(container.find(key) == std::end(container));
-        std::shared_ptr<ObjectType> sptr(uptr.release(), AutoRemoveFromContainerDeleter<std::string, ObjectType>(&container, key));
+        std::shared_ptr<ObjectType> sptr(uptr.release(), AutoRemoveFromContainerDeleter<KeyType, ObjectType>(&container, key));
         container.insert(std::make_pair(key, sptr));
         return sptr;
     }
 
-    template<class ObjectType, class Container>
-    std::shared_ptr<ObjectType> Get(std::string& key, Container& container)
+    template<class ObjectType, class KeyType, class Container>
+    std::shared_ptr<ObjectType> Get(KeyType& key, Container& container)
     {
         auto it = container.find(key);
         if (it != std::end(container))
