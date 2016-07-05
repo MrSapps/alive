@@ -519,6 +519,8 @@ void Engine::AddZipsedModDefinitionsFrom(std::string path)
 
 void Engine::InitResources()
 {
+    TRACE_ENTRYEXIT;
+
     // load the enumerated "built in" game defs
     AddGameDefinitionsFrom("{GameDir}/data/GameDefinitions");
 

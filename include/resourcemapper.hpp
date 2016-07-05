@@ -519,11 +519,11 @@ public:
         return mMetaPaths.find(id) != std::end(mMetaPaths);
     }
 
-    std::string Identify(IFileSystem& fs, const std::string& path) const
+    std::string Identify(IFileSystem& fs) const
     {
         for (const auto& dataPathId : mDataPathIds)
         {
-            if (MatchPathWithDataPathId(fs, dataPathId, path))
+            if (DoMatchPathWithDataPathId(fs, dataPathId))
             {
                 return dataPathId.first;
             }
@@ -585,16 +585,6 @@ private:
             return true;
         }
 
-        return false;
-    }
-
-    bool MatchPathWithDataPathId(IFileSystem& fs, const std::pair<std::string, DataPathFiles>& dataPathId, const std::string& path) const
-    {
-        auto dataSetFs = IFileSystem::Factory(fs, path);
-        if (dataSetFs)
-        {
-            return DoMatchPathWithDataPathId(*dataSetFs, dataPathId);
-        }
         return false;
     }
 
@@ -669,19 +659,23 @@ public:
     DataPaths(IFileSystem& fs, const char* dataSetsIdsFileName, const char* dataPathFileName)
         : mIds(fs, dataSetsIdsFileName)
     {
+        TRACE_ENTRYEXIT;
         if (fs.FileExists(dataPathFileName))
         {
             auto stream = fs.Open(dataPathFileName);
             std::vector<std::string> paths = Parse(stream->LoadAllToString());
+
             for (const auto& path : paths)
             {
-                std::string id = mIds.Identify(fs, path);
+                auto dataSetFs = IFileSystem::Factory(fs, path);
+
+                std::string id = mIds.Identify(*dataSetFs);
                 if (id.empty())
                 {
                     LOG_ERROR("Path " << path << " could not be identified");
                     continue;
                 }
-              
+
                 auto it = mPaths.find(id);
                 if (it == std::end(mPaths))
                 {
@@ -690,10 +684,10 @@ public:
                 }
                 else
                 {
-                    LOG_INFO("Path " << path 
-                        << " identified as " << id 
+                    LOG_INFO("Path " << path
+                        << " identified as " << id
                         << " but ignoring because we already have the following path "
-                        << it->second 
+                        << it->second
                         << " for " << id);
                 }
             }
@@ -1071,6 +1065,8 @@ private:
 
     void Parse(const std::string& json)
     {
+        TRACE_ENTRYEXIT;
+
         jsonxx::Array root;
         if (!root.parse(json))
         {
@@ -1101,7 +1097,7 @@ private:
         // But we want to map a file name to what LVLs it lives in, and a LVL to what data sets it lives in
         // and if that data set is PSX or not.
         DataSetFileAttributes dataSetAttributes;
-        const std::string& dataSetName = obj.get<jsonxx::String>("data_set_name");;
+        const std::string& dataSetName = obj.get<jsonxx::String>("data_set_name");
         dataSetAttributes.mIsPsx = obj.get<jsonxx::Boolean>("is_psx");
         dataSetAttributes.mScaleFrameOffsets = obj.get<jsonxx::Boolean>("scale_frame_offsets");
 
