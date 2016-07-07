@@ -81,6 +81,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate/common
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/rapidjson/include
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

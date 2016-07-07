@@ -23,17 +23,60 @@
 #include "oddlib/anim.hpp"
 #include "renderer.hpp"
 
+// Remove more windows.h pollution
+#undef GetObject
+#undef min
+#undef max
+
+
+#if defined(_MSC_VER) && _MSC_VER > 1800
+#pragma warning(push)
+#pragma warning(disable:4464)
+#endif
+#include "rapidjson/document.h"
+#if defined(_MSC_VER) && _MSC_VER > 1800
+#pragma warning(pop)
+#endif
+
 namespace JsonDeserializer
 {
-    template<typename T>
-    void ReadStringArray(const jsonxx::Object& jsonObject, const std::string& jsonArrayName, T& resultingStrings)
+    namespace Detail
     {
-        if (jsonObject.has<jsonxx::Array>(jsonArrayName))
+        template<class SizeType>
+        void Reserve(std::vector<std::string>& c, SizeType size)
         {
-            const jsonxx::Array& stringArray = jsonObject.get<jsonxx::Array>(jsonArrayName);
-            for (const auto& f : stringArray.values())
+            c.reserve(size);
+        }
+
+        template<class SizeType>
+        void Reserve(std::set<std::string>& /*c*/, SizeType /*size*/)
+        {
+            // Can't preallocate a set
+        }
+
+        template<class ElementType>
+        void Add(std::vector<std::string>& c, ElementType element)
+        {
+            c.push_back(element);
+        }
+
+        template<class ElementType>
+        void Add(std::set<std::string>& c, ElementType element)
+        {
+            c.insert(element);
+        }
+    }
+
+    template<typename ObjectType, typename StringVector>
+    void ReadStringArray(const char* jsonArrayName, const ObjectType& jsonObject, StringVector& result)
+    {
+        if (jsonObject.HasMember(jsonArrayName))
+        {
+            const auto& jsonArray = jsonObject[jsonArrayName].GetArray();
+            Detail::Reserve(result, jsonArray.Size());
+            for (const auto& arrayElement : jsonArray)
             {
-                resultingStrings.insert(resultingStrings.end(), f->get<jsonxx::String>());
+                Detail::Add(result, arrayElement.GetString());
             }
         }
     }
@@ -590,27 +633,28 @@ private:
 
     void Parse(const std::string& json)
     {
-        jsonxx::Object root;
-        root.parse(json);
-        if (root.has<jsonxx::Object>("data_set_ids"))
+        rapidjson::Document document;
+        document.Parse(json.c_str());
+
+        if (document.HasMember("data_set_ids"))
         {
-            jsonxx::Object dataSetIds = root.get<jsonxx::Object>("data_set_ids");
-            for (const auto& v : dataSetIds.kv_map())
+            const auto& dataSetIds = document["data_set_ids"].GetObject();
+            for (auto it = dataSetIds.MemberBegin(); it != dataSetIds.MemberEnd(); ++it)
             {
-                const jsonxx::Object& dataSetId = dataSetIds.get<jsonxx::Object>(v.first);
+                const auto& dataSetId = it->value.GetObject();
 
                 DataPathFiles dpFiles;
-                JsonDeserializer::ReadStringArray(dataSetId, "contains_any", dpFiles.mContainAnyOf);
-                JsonDeserializer::ReadStringArray(dataSetId, "contains_all", dpFiles.mContainAllOf);
-                JsonDeserializer::ReadStringArray(dataSetId, "not_contains", dpFiles.mMustNotContain);
+                JsonDeserializer::ReadStringArray("contains_any", dataSetId, dpFiles.mContainAnyOf);
+                JsonDeserializer::ReadStringArray("contains_all", dataSetId, dpFiles.mContainAllOf);
+                JsonDeserializer::ReadStringArray("not_contains", dataSetId, dpFiles.mMustNotContain);
 
                 if (dpFiles.mContainAnyOf.empty() && dpFiles.mContainAllOf.empty() && dpFiles.mMustNotContain.empty())
                 {
-                    mMetaPaths.insert(v.first);
+                    mMetaPaths.insert(it->name.GetString());
                 }
                 else
                 {
-                    mDataPathIds[v.first] = dpFiles;
+                    mDataPathIds[it->name.GetString()] = dpFiles;
                 }
             }
         }
@@ -764,12 +808,12 @@ private:
     std::vector<std::string> Parse(const std::string& json)
     {
         std::vector<std::string> paths;
-        jsonxx::Object root;
-        root.parse(json);
-        if (root.has<jsonxx::Array>("paths"))
-        {
-            JsonDeserializer::ReadStringArray(root, "paths", paths);
-        }
+
+        rapidjson::Document document;
+        document.Parse(json.c_str());
+
+        JsonDeserializer::ReadStringArray("paths", document, paths);
+
         return paths;
     }
 
@@ -1067,48 +1111,46 @@ private:
     {
         TRACE_ENTRYEXIT;
 
-        jsonxx::Array root;
-        if (!root.parse(json))
-        {
-            throw std::runtime_error("Can't parse resource map json");
-        }
+        rapidjson::Document document;
+        document.Parse(json.c_str());
 
-        for (size_t rootObjIndex = 0; rootObjIndex < root.size(); rootObjIndex++)
+        const auto& docRootArray = document.GetArray();
+
+        for (auto& it : docRootArray)
         {
-            jsonxx::Object obj = root.get<jsonxx::Object>(static_cast<unsigned int>(rootObjIndex));
-            if (obj.has<jsonxx::Object>("animation"))
+            if (it.HasMember("animation"))
             {
-                jsonxx::Object& animationObj = obj.get<jsonxx::Object>("animation");
-                ParseAnimResourceJson(animationObj);
+                const auto& obj = it["animation"].GetObject();
+                ParseAnimResourceJson(obj);
             }
-            else if (obj.has<jsonxx::Array>("lvls"))
+            else if (it.HasMember("lvls"))
             {
-                ParseFileLocations(obj);
+                ParseFileLocations(it);
             }
         }
     }
 
     std::map<std::string, std::map<std::string, std::vector<DataSetFileAttributes>>> mFileLocations;
 
-    void ParseFileLocations(const jsonxx::Object& obj)
+    template<typename JsonObject>
+    void ParseFileLocations(const JsonObject& obj)
     {
         // This is slightly tricky as we reverse the mapping of the data that is in the json file
         // the json file maps a data set, if its PSX or not, its lvls and lvl contents.
         // But we want to map a file name to what LVLs it lives in, and a LVL to what data sets it lives in
         // and if that data set is PSX or not.
         DataSetFileAttributes dataSetAttributes;
-        const std::string& dataSetName = obj.get<jsonxx::String>("data_set_name");
-        dataSetAttributes.mIsPsx = obj.get<jsonxx::Boolean>("is_psx");
-        dataSetAttributes.mScaleFrameOffsets = obj.get<jsonxx::Boolean>("scale_frame_offsets");
+        const std::string& dataSetName = obj["data_set_name"].GetString();
+        dataSetAttributes.mIsPsx = obj["is_psx"].GetBool();
+        dataSetAttributes.mScaleFrameOffsets = obj["scale_frame_offsets"].GetBool();
 
-        const jsonxx::Array& lvls = obj.get<jsonxx::Array>("lvls");
-        for (size_t i = 0; i < lvls.size(); i++)
+        const auto& lvls = obj["lvls"].GetArray();
+        for (const auto& lvlRecord : lvls)
         {
-            const jsonxx::Object& lvlRecord = lvls.get<jsonxx::Object>(static_cast<Uint32>(i));
-            const std::string& lvlName = lvlRecord.get<jsonxx::String>("name");
+            const std::string& lvlName = lvlRecord["name"].GetString();
 
             std::set<std::string> lvlFiles;
-            JsonDeserializer::ReadStringArray(lvlRecord, "files", lvlFiles);
+            JsonDeserializer::ReadStringArray("files", lvlRecord, lvlFiles);
             for (const std::string& fileName : lvlFiles)
             {
                 dataSetAttributes.mLvlName = lvlName;
@@ -1117,38 +1159,37 @@ private:
         }
     }
 
-    void ParseAnimResourceJson(const jsonxx::Object& obj)
+    template<typename JsonObject>
+    void ParseAnimResourceJson(const JsonObject& obj)
     {
         AnimMapping animMapping;
 
-        const auto blendMode = static_cast<Uint32>(obj.get<jsonxx::Number>("blend_mode"));
-        animMapping.mBlendingMode = blendMode;
+        animMapping.mBlendingMode = obj["blend_mode"].GetInt();
 
         ParseAnimResourceLocations(obj, animMapping);
 
-        const auto& name = obj.get<jsonxx::String>("name");
+        const auto& name = obj["name"].GetString();
         mAnimMaps[name] = animMapping;
     }
 
-    void ParseAnimResourceLocations(const jsonxx::Object& obj, AnimMapping& animMapping)
+    template<typename JsonObject>
+    void ParseAnimResourceLocations(const JsonObject& obj, AnimMapping& animMapping)
     {
-        const jsonxx::Array& locations = obj.get<jsonxx::Array>("locations");
-        for (size_t i = 0; i < locations.size(); i++)
+        const auto& locations = obj["locations"].GetArray();
+        for (auto& locationRecord : locations)
         {
-            const jsonxx::Object& locationRecord = locations.get<jsonxx::Object>(static_cast<Uint32>(i));
-
             AnimFileLocations animFileLocations;
-            animFileLocations.mDataSetName = locationRecord.get<jsonxx::String>("dataset");
+            animFileLocations.mDataSetName = locationRecord["dataset"].GetString();
 
-            const jsonxx::Array& files = locationRecord.get<jsonxx::Array>("files");
-            for (size_t j = 0; j < files.size(); j++)
+            const auto& files = locationRecord["files"].GetArray();
+            animFileLocations.mFiles.reserve(files.Size());
+            for (auto& file : files)
             {
                 AnimFile animFile;
 
-                const jsonxx::Object& fileRecord = files.get<jsonxx::Object>(static_cast<Uint32>(j));
-                animFile.mFile = fileRecord.get<jsonxx::String>("filename");
-                animFile.mId = static_cast<Uint32>(fileRecord.get<jsonxx::Number>("id"));
-                animFile.mAnimationIndex = static_cast<Uint32>(fileRecord.get<jsonxx::Number>("index"));
+                animFile.mFile = file["filename"].GetString();
+                animFile.mId = file["id"].GetInt();
+                animFile.mAnimationIndex = file["index"].GetInt();
 
                 animFileLocations.mFiles.push_back(animFile);
             }
