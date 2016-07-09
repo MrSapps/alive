@@ -183,7 +183,7 @@ void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)
             bool load = std::get<2>(res);
             if (load)
             {
-                auto anim = mResourceLocator.Locate(resourceName, dataSetName);
+                auto anim = mResourceLocator.LocateAnimation(resourceName, dataSetName);
                 if (anim)
                 {
                     mLoadedAnims.push_back(std::move(anim));

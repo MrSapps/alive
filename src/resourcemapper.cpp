@@ -140,7 +140,7 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
     return mResMapper.DebugUi(renderer, gui, filter);
 }
 
-std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName)
+std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resourceName)
 {
     // For each data set attempt to find resourceName by mapping
     // to a LVL/file/chunk. Or in the case of a mod dataset something else.
@@ -162,7 +162,7 @@ std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName)
                 return nullptr;
             }
 
-            auto ret = DoLocate(fs, resourceName, *animMapping);
+            auto ret = DoLocateAnimation(fs, resourceName, *animMapping);
             if (ret)
             {
                 return ret;
@@ -172,7 +172,7 @@ std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName)
     return nullptr;
 }
 
-std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName, const char* dataSetName)
+std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resourceName, const char* dataSetName)
 {
     for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
     {
@@ -184,7 +184,7 @@ std::unique_ptr<Animation> ResourceLocator::Locate(const char* resourceName, con
                 return nullptr;
             }
 
-            auto ret = DoLocate(fs, resourceName, *animMapping);
+            auto ret = DoLocateAnimation(fs, resourceName, *animMapping);
             if (ret)
             {
                 return ret;
@@ -211,7 +211,7 @@ std::shared_ptr<Oddlib::LvlArchive> ResourceLocator::OpenLvl(IFileSystem& fs, co
     return lvlPtr;
 }
 
-std::unique_ptr<Animation> ResourceLocator::DoLocate(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping)
+std::unique_ptr<Animation> ResourceLocator::DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping)
 {
     // Each each mapping in the resource record that has matched resourceName
     for (const ResourceMapper::AnimFileLocations& location : animMapping.mLocations)

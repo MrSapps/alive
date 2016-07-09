@@ -1489,15 +1489,15 @@ public:
         return mDataPaths;
     }
 
-    std::unique_ptr<Animation> Locate(const char* resourceName);
+    std::unique_ptr<Animation> LocateAnimation(const char* resourceName);
 
     // This method should be used for debugging only - i.e so we can compare what resource X looks like
     // in dataset A and B.
-    std::unique_ptr<Animation> Locate(const char* resourceName, const char* dataSetName);
+    std::unique_ptr<Animation> LocateAnimation(const char* resourceName, const char* dataSetName);
 
     std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui, const char* filter);
 private:
-    std::unique_ptr<Animation> DoLocate(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
+    std::unique_ptr<Animation> DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
     std::shared_ptr<Oddlib::LvlArchive> OpenLvl(IFileSystem& fs, const std::string& dataSetName, const std::string& lvlName);
 
     ResourceCache mCache;
