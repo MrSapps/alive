@@ -300,6 +300,7 @@ public:
     }
 
 #else
+private:
     struct closedirDeleter
     {
         typedef DIR* pointer;
@@ -310,7 +311,7 @@ public:
     };
     typedef std::unique_ptr<DIR, closedirDeleter> closedirHandle;
 
-    virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override
+    std::vector<std::string> DoEnumerate(const std::string& directory, const char* filter, bool files)
     {
         std::vector<std::string> ret;
         const std::string dirPath = ExpandPath(directory) + "/";
@@ -320,15 +321,33 @@ public:
             dirent* ent = nullptr;
             do
             {
-                const std::string strFilter(filter);
                 ent = readdir(dir.get());
                 if (ent)
                 {
-                    const std::string dirName = ent->d_name;
-                    if (!IsDots(dirName) && WildCardMatcher(dirName, strFilter, IgnoreCase))
+                    const std::string itemName = ent->d_name;
+                    if (!IsDots(itemName))
                     {
-                        ret.emplace_back(dirName);
-                        LOG_INFO("Name is " << dirName);
+                        bool add = true;
+                        if (filter)
+                        {
+                            const std::string strFilter(filter);
+                            add = WildCardMatcher(itemName, strFilter, IgnoreCase);
+                        }
+
+                        if (add)
+                        {
+                            struct stat statbuf;
+                            LOG_INFO("Stat of " << dirPath + "/" + itemName);
+                            if (stat((dirPath + "/" + itemName).c_str(), &statbuf) == 0)
+                            {
+                                const bool isFile = !S_ISDIR(statbuf.st_mode);
+                                if ((files && isFile) || (!files && !isFile))
+                                {
+                                    ret.emplace_back(itemName);
+                                    LOG_INFO("Name is " << itemName);
+                                }
+                            }
+                        }
                     }
                 }
             } while (ent);
@@ -341,11 +360,15 @@ public:
         return ret;
     }
 
-    virtual std::vector<std::string> EnumerateFolders(const std::string& /*directory*/) override
+public:
+    virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override
     {
-        // TODO
-        LOG_ERROR("not implemeneted");
-        abort();
+        return DoEnumerate(directory, filter, true);
+    }
+
+    virtual std::vector<std::string> EnumerateFolders(const std::string& directory) override
+    {
+        return DoEnumerate(directory, nullptr, false);
     }
 
 #endif
@@ -360,8 +383,8 @@ public:
 #else
     bool FileExists(const std::string& fileName) override
     {
-        struct stat buffer = {};
-        return stat(ExpandPath(fileName).c_str(), &buffer) == 0;
+        struct stat statbuf = {};
+        return stat(ExpandPath(fileName).c_str(), &statbuf) == 0 && !S_ISDIR(statbuf.st_mode);
     }
 #endif
 
