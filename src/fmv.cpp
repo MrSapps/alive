@@ -62,8 +62,6 @@ static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w
 class IMovie : public IAudioPlayer
 {
 public:
-    static std::unique_ptr<IMovie> Factory(const std::string& fmvName, IAudioController& audioController, FileSystem& fs, const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs);
-
     IMovie(IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles)
         : mAudioController(controller), mSubTitles(std::move(subtitles))
     {
@@ -542,40 +540,24 @@ private:
     std::vector<Uint8> mFramePixels;
 };
 
-/*static*/ std::unique_ptr<IMovie> IMovie::Factory(
-    const std::string& fmvName, 
-    IAudioController& audioController, 
-    FileSystem& fs, 
-    const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
+/*static*/ std::unique_ptr<IMovie> FmvFactory(
+    IAudioController& audioController,
+    std::unique_ptr<Oddlib::IStream> stream
+    )
 {
     TRACE_ENTRYEXIT;
 
-    // TODO: UI will pass in PSX name of "BA\\BA.MOV" which is wrong, once json mapping is done
-    // only PC names should be passed in here which might result in BA.MOV being opened instead
-
-    // TODO: PSX fmv seems to have a lot of "black" at the end - probably json data is incorrect or needs tweaking?
-    auto stream = fs.ResourcePaths().OpenFmv(fmvName, true);
-    if (!stream)
-    {
-        throw Oddlib::Exception("FMV not found");
-    }
-
     // Try to open any corresponding subtitle file
-    const std::string subTitleFileName = "data/subtitles/" + fmvName + ".SRT";
+   
     std::unique_ptr<SubTitleParser> subTitles;
 
-    // Look in game data so mods can override it first
-    auto subsStream = fs.ResourcePaths().Open(subTitleFileName);
-    if (!subsStream)
-    {
-        // Fall back to the ones shipped with the engine
-        subsStream = fs.GameData().Open(subTitleFileName);
-    }
-
+    /*
+    const std::string subTitleFileName = "data/subtitles/" + fmvName + ".SRT";
     if (subsStream)
     {
         subTitles = std::make_unique<SubTitleParser>(std::move(subsStream));
     }
+    */
 
     char idBuffer[4] = {};
     stream->ReadBytes(reinterpret_cast<Sint8*>(idBuffer), sizeof(idBuffer));
@@ -591,31 +573,11 @@ private:
     }
     else
     {
-        auto fmvData = allFmvs.find(fmvName);
-        if (fmvData != std::end(allFmvs))
-        {
-            if (!fmvData->second.empty())
-            {
-                if (fmvData->second.size() > 1)
-                {
-                    LOG_ERROR("More than one FMV mapping");
-                    assert(false);
-                }
-                auto section = fmvData->second[0];
+        /*
+        // Only PSX FMV's have many in a single file
+        return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), section.mStartSector, section.mNumberOfSectors);
+        */
 
-                // TODO FIX ME: Should this always be a 1:1 mapping? If yes remove vector
-                // else here we need to know which one to pick.
-
-                // Check if the PSX file containing the FMV exists
-                //const std::vector<GameData::FmvSection>& sections = fmvData->second;
-                //for (const GameData::FmvSection& section : sections)
-                {
-
-                    // Only PSX FMV's have many in a single file
-                    return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), section.mStartSector, section.mNumberOfSectors);
-                }
-            }
-        }
 
         LOG_ERROR("Failed to find sectors info for PSX FMV in game data - all of it will be played");
         return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), 0, 0);
@@ -684,24 +646,22 @@ public:
             }
         }
 
-        //if (ImGui::ListBoxHeader("##", ImVec2(ImGui::GetWindowWidth() - 15, ImGui::GetWindowSize().y - 95)))
+
+        for (size_t i = 0; i < mListBoxItems.size(); i++)
         {
-            for (size_t i = 0; i < mListBoxItems.size(); i++)
+            if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
             {
-                if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
-                {
-                    mListBoxSelectedItem = static_cast<int>(i);
-                }
+                mListBoxSelectedItem = static_cast<int>(i);
             }
-            //ImGui::ListBoxFooter();
         }
+
 
         if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
         {
             try
             {
                 const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-                mFmv = IMovie::Factory(fmvName, mAudioController, mFileSystem, allFmvs);
+                mFmv = FmvFactory(mAudioController, nullptr);
                 mListBoxSelectedItem = -1;
             }
             catch (const Oddlib::Exception& ex)
@@ -728,13 +688,13 @@ Fmv::~Fmv()
 
 }
 
-void Fmv::Play(const std::string& name)
+void Fmv::Play(const std::string& /*name*/)
 {
     if (!mFmv)
     {
         try
         {
-            mFmv = IMovie::Factory(name, mAudioController, mFileSystem, mGameData.Fmvs());
+            mFmv = FmvFactory(mAudioController, nullptr);
         }
         catch (const Oddlib::Exception& ex)
         {

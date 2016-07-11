@@ -1,6 +1,7 @@
 #include "resourcemapper.hpp"
 #include "zipfilesystem.hpp"
 #include "gui.h"
+#include "fmv.hpp"
 
 const /*static*/ float Animation::kPcToPsxScaleFactor = 1.73913043478f;
 
@@ -135,9 +136,78 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceMapper::DebugUi(
     return ret;
 }
 
+ResourceLocator::ResourceLocator(ResourceMapper&& resourceMapper, DataPaths&& dataPaths)
+    : mResMapper(std::move(resourceMapper)), mDataPaths(std::move(dataPaths))
+{
+
+}
+
+ResourceLocator::~ResourceLocator()
+{
+
+}
+
 std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi(class Renderer& renderer, GuiContext* gui, const char* filter)
 {
     return mResMapper.DebugUi(renderer, gui, filter);
+}
+
+std::unique_ptr<IMovie> ResourceLocator::LocateFmv(const char* resourceName)
+{
+    for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+    {
+        if (fs.mIsMod)
+        {
+            // TODO: Look up the override in the mod fs
+
+        }
+        else
+        {
+            const ResourceMapper::FmvMapping* fmvMapping = mResMapper.FindFmv(resourceName);
+            if (!fmvMapping)
+            {
+                return nullptr;
+            }
+
+            auto ret = DoLocateFmv(fs, *fmvMapping);
+            if (ret)
+            {
+                return ret;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+
+std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping)
+{
+    // Each each mapping in the resource record that has matched resourceName
+    for (const ResourceMapper::FmvFileLocations& location : fmvMapping.mLocations)
+    {
+        // Check if the mapping applies to the data set that fs is
+        if (location.mDataSetName == fs.mDataSetName)
+        {
+            // Loop through all the locations in the data set where resourceName lives
+            for (const std::string& file : location.mFiles)
+            {
+                if (fs.mFileSystem->FileExists(file))
+                {
+                    auto stream = fs.mFileSystem->Open(file);
+                    if (stream)
+                    {
+                        // TODO: Call FmvFactory - move setting IAudioController to Play
+
+                        // TODO: Grab subtitles from GameFs
+                        this->mDataPaths.GameFs();
+                    }
+                }
+            }
+        }
+    }
+
+    return nullptr;
 }
 
 std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resourceName)
@@ -148,7 +218,7 @@ std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resource
     {
         if (fs.mIsMod)
         {
-            // TODO: Look up the override in the zip fs
+            // TODO: Look up the override in the mod fs
 
             // If this name is not a known resource then it is a new resource for this mod
 
@@ -274,7 +344,5 @@ std::unique_ptr<Animation> ResourceLocator::DoLocateAnimation(const DataPaths::F
             }
         }
     }
-
-
     return nullptr;
 }

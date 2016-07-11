@@ -13,6 +13,12 @@ class FileSystem;
 class Renderer;
 struct GuiContext;
 
+class IMovie;
+
+static std::unique_ptr<IMovie> FmvFactory(
+    IAudioController& audioController,
+    std::unique_ptr<Oddlib::IStream> stream);
+
 class Fmv
 {
 public:

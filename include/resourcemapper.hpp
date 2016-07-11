@@ -712,6 +712,7 @@ public:
     DataPaths& operator = (const DataPaths&) = delete;
 
     DataPaths(DataPaths&& other)
+        : mGameFs(other.mGameFs)
     {
         *this = std::move(other);
     }
@@ -724,7 +725,7 @@ public:
     }
 
     DataPaths(IFileSystem& fs, const char* dataSetsIdsFileName, const char* dataPathFileName)
-        : mIds(fs, dataSetsIdsFileName)
+        : mGameFs(fs), mIds(fs, dataSetsIdsFileName)
     {
         TRACE_ENTRYEXIT;
         if (fs.FileExists(dataPathFileName))
@@ -822,6 +823,7 @@ public:
         std::unique_ptr<IFileSystem> mFileSystem;
     };
     const std::vector<FileSystemInfo>& ActiveDataPaths() const { return mActiveDataPaths; }
+    IFileSystem& GameFs() const { return mGameFs; }
 private:
 
     std::vector<FileSystemInfo> mActiveDataPaths;
@@ -839,6 +841,9 @@ private:
 
         return paths;
     }
+
+    // The "owner" file system
+    IFileSystem& mGameFs;
 
     // To match to what a game def wants (AePcCd1, AoDemoPsx etc)
     // we use SLUS codes for PSX or if it contains ABEWIN.EXE etc then its AoPc.
@@ -1058,6 +1063,30 @@ public:
         // has the file chunk duplicated a few times.
         std::vector<AnimFile> mFiles;
     };
+
+
+    struct FmvFileLocations
+    {
+        std::string mDataSetName;
+        std::vector<std::string> mFiles;
+    };
+
+    struct FmvMapping
+    {
+        std::vector<FmvFileLocations> mLocations;
+    };
+
+    const FmvMapping* FindFmv(const char* resourceName)
+    {
+        const auto it = mFmvMaps.find(resourceName);
+        if (it != std::end(mFmvMaps))
+        {
+            return &it->second;
+        }
+        return nullptr;
+    }
+
+    std::map<std::string, FmvMapping> mFmvMaps;
 
     struct AnimMapping
     {
@@ -1476,18 +1505,16 @@ class ResourceLocator
 public:
     ResourceLocator(const ResourceLocator&) = delete;
     ResourceLocator& operator =(const ResourceLocator&) = delete;
-
-    ResourceLocator(ResourceMapper&& resourceMapper, DataPaths&& dataPaths)
-        : mResMapper(std::move(resourceMapper)), mDataPaths(std::move(dataPaths))
-    {
-
-    }
+    ResourceLocator(ResourceMapper&& resourceMapper, DataPaths&& dataPaths);
+    ~ResourceLocator();
 
     // TOOD: Provide limited interface to this?
     DataPaths& GetDataPaths()
     {
         return mDataPaths;
     }
+
+    std::unique_ptr<class IMovie> LocateFmv(const char* resourceName);
 
     std::unique_ptr<Animation> LocateAnimation(const char* resourceName);
 
@@ -1498,6 +1525,9 @@ public:
     std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui, const char* filter);
 private:
     std::unique_ptr<Animation> DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
+
+    std::unique_ptr<IMovie> DoLocateFmv(const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping);
+
     std::shared_ptr<Oddlib::LvlArchive> OpenLvl(IFileSystem& fs, const std::string& dataSetName, const std::string& lvlName);
 
     ResourceCache mCache;
