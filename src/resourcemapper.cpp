@@ -152,6 +152,7 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
     return mResMapper.DebugUi(renderer, gui, filter);
 }
 
+/*
 std::unique_ptr<IMovie> ResourceLocator::LocateFmv(const char* resourceName)
 {
     for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
@@ -179,8 +180,9 @@ std::unique_ptr<IMovie> ResourceLocator::LocateFmv(const char* resourceName)
 
     return nullptr;
 }
+*/
 
-
+/*
 std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping)
 {
     // Each each mapping in the resource record that has matched resourceName
@@ -209,6 +211,7 @@ std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(const DataPaths::FileSystem
 
     return nullptr;
 }
+*/
 
 std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resourceName)
 {

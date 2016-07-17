@@ -789,7 +789,8 @@ int main(int /*argc*/, char** /*argv*/)
         {
             jsonxx::Array resources;
 
-            jsonxx::Object animsObject;
+            jsonxx::Array animations;
+
 
             for (const std::unique_ptr<DeDuplicatedAnimation>& deDupedAnim : mDeDuplicatedAnimations)
             {
@@ -823,10 +824,14 @@ int main(int /*argc*/, char** /*argv*/)
 
                 //WriteAnimFrameOffsets(anim, deDupedAnim);
 
-                animsObject << "animation" << anim;
-                resources << animsObject;
+                animations << anim;
             }
-           
+
+            jsonxx::Object animationsContainter;
+            animationsContainter << "animations" << animations;
+
+            resources << animationsContainter;
+
             WriteLvlContentMappings(resources);
 
 

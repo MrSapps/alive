@@ -165,39 +165,118 @@ TEST(ResourceLocator, DISABLED_ResourceGroup)
 
 TEST(ResourceLocator, ParseResourceMap)
 {
-    const std::string resourceMapsJson = R"([{"animation":{"blend_mode":1, "locations":[{"dataset":"AoPc","files":[{"filename":"ABEBSIC.BAN","id":10,"index":1},{"filename":"ANOTHER.BAN","id":50,"index":99}]},{"dataset":"AoPcDemo","files":[{"filename":"ABEBSIC.BAN","id":10,"index":1}]}],"name":"ABEBSIC.BAN_10_AePc_1"}}])";
+    const std::string resourceMapsJson = 
+        R"(
+[{
+    "animations": [{
+        "blend_mode": 1,
+        "locations": [{
+            "dataset": "AoPc",
+            "files": [{
+                "filename": "ABEBSIC.BAN",
+                "id": 10,
+                "index": 1
+            }, {
+                "filename": "ANOTHER.BAN",
+                "id": 50,
+                "index": 99
+            }]
+        }, {
+            "dataset": "AoPcDemo",
+            "files": [{
+                "filename": "ABEBSIC.BAN",
+                "id": 10,
+                "index": 1
+            }]
+        }],
+        "name": "ABEBSIC.BAN_10_AePc_1"
+    }],
+    "fmvs": [{
+        "locations": [{
+            "dataset": "AePc",
+            "file": "TRAIN2.DDV"
+        },
+        {
+            "dataset": "AoPsx",
+            "file": "BLAH.MOV",
+            "start_sector": 12345,
+            "end_sector": 56789
+        }
+        ],
+        "name": "TRAIN2_DDV_AePc"
+    }, {
+        "locations": [{
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 12359,
+            "end_sector": 12877
+        }],
+        "name": "F2_MOV_22_AoPsx"
+    }]
+}]
+)";
 
     InMemoryFileSystem fs;
     fs.AddFile("resource_maps.json", resourceMapsJson);
 
     ResourceMapper mapper(fs, "resource_maps.json");
-    
-    const ResourceMapper::AnimMapping* r0 = mapper.FindAnimation("I don't exist");
-    ASSERT_EQ(nullptr, r0);
 
-    const ResourceMapper::AnimMapping* r1 = mapper.FindAnimation("ABEBSIC.BAN_10_AePc_1");
-    ASSERT_NE(nullptr, r1);
-    
-    // Check location mappings
-    ASSERT_EQ(2u, r1->mLocations.size());
-    ASSERT_EQ(2u, r1->mLocations[0].mFiles.size());
-    ASSERT_EQ(1u, r1->mLocations[1].mFiles.size());
+    {
+        const ResourceMapper::AnimMapping* r0 = mapper.FindAnimation("I don't exist");
+        ASSERT_EQ(nullptr, r0);
 
-    ASSERT_EQ("AoPc", r1->mLocations[0].mDataSetName);
-    ASSERT_EQ("ABEBSIC.BAN", r1->mLocations[0].mFiles[0].mFile);
-    ASSERT_EQ(1u, r1->mLocations[0].mFiles[0].mAnimationIndex);
-    ASSERT_EQ(10u, r1->mLocations[0].mFiles[0].mId);
+        const ResourceMapper::AnimMapping* r1 = mapper.FindAnimation("ABEBSIC.BAN_10_AePc_1");
+        ASSERT_NE(nullptr, r1);
 
-    ASSERT_EQ("ANOTHER.BAN", r1->mLocations[0].mFiles[1].mFile);
-    ASSERT_EQ(99u, r1->mLocations[0].mFiles[1].mAnimationIndex);
-    ASSERT_EQ(50u, r1->mLocations[0].mFiles[1].mId);
+        // Check location mappings
+        ASSERT_EQ(2u, r1->mLocations.size());
+        ASSERT_EQ(2u, r1->mLocations[0].mFiles.size());
+        ASSERT_EQ(1u, r1->mLocations[1].mFiles.size());
 
-    ASSERT_EQ("AoPcDemo", r1->mLocations[1].mDataSetName);
-    ASSERT_EQ("ABEBSIC.BAN", r1->mLocations[1].mFiles[0].mFile);
-    ASSERT_EQ(1u, r1->mLocations[1].mFiles[0].mAnimationIndex);
-    ASSERT_EQ(10u, r1->mLocations[1].mFiles[0].mId);
+        ASSERT_EQ("AoPc", r1->mLocations[0].mDataSetName);
+        ASSERT_EQ("ABEBSIC.BAN", r1->mLocations[0].mFiles[0].mFile);
+        ASSERT_EQ(1u, r1->mLocations[0].mFiles[0].mAnimationIndex);
+        ASSERT_EQ(10u, r1->mLocations[0].mFiles[0].mId);
 
-    ASSERT_EQ(1u, r1->mBlendingMode);
+        ASSERT_EQ("ANOTHER.BAN", r1->mLocations[0].mFiles[1].mFile);
+        ASSERT_EQ(99u, r1->mLocations[0].mFiles[1].mAnimationIndex);
+        ASSERT_EQ(50u, r1->mLocations[0].mFiles[1].mId);
+
+        ASSERT_EQ("AoPcDemo", r1->mLocations[1].mDataSetName);
+        ASSERT_EQ("ABEBSIC.BAN", r1->mLocations[1].mFiles[0].mFile);
+        ASSERT_EQ(1u, r1->mLocations[1].mFiles[0].mAnimationIndex);
+        ASSERT_EQ(10u, r1->mLocations[1].mFiles[0].mId);
+
+        ASSERT_EQ(1u, r1->mBlendingMode);
+    }
+
+    {
+        const ResourceMapper::FmvMapping* r0 = mapper.FindFmv("I don't exist");
+        ASSERT_EQ(nullptr, r0);
+
+        const ResourceMapper::FmvMapping* r1 = mapper.FindFmv("TRAIN2_DDV_AePc");
+        ASSERT_NE(nullptr, r1);
+
+        ASSERT_EQ(2u, r1->mLocations.size());
+        ASSERT_EQ("AePc", r1->mLocations[0].mDataSetName);
+        ASSERT_EQ("TRAIN2.DDV", r1->mLocations[0].mFileName);
+        ASSERT_EQ(0u, r1->mLocations[0].mStartSector);
+        ASSERT_EQ(0u, r1->mLocations[0].mEndSector);
+
+        ASSERT_EQ("AoPsx", r1->mLocations[1].mDataSetName);
+        ASSERT_EQ("BLAH.MOV", r1->mLocations[1].mFileName);
+        ASSERT_EQ(12345u, r1->mLocations[1].mStartSector);
+        ASSERT_EQ(56789u, r1->mLocations[1].mEndSector);
+
+        const ResourceMapper::FmvMapping* r3 = mapper.FindFmv("F2_MOV_22_AoPsx");
+        ASSERT_NE(nullptr, r3);
+
+        ASSERT_EQ(1u, r3->mLocations.size());
+        ASSERT_EQ("AoPsx", r3->mLocations[0].mDataSetName);
+        ASSERT_EQ("F2.MOV", r3->mLocations[0].mFileName);
+        ASSERT_EQ(12359u, r3->mLocations[0].mStartSector);
+        ASSERT_EQ(12877u, r3->mLocations[0].mEndSector);
+    }
 }
 
 TEST(ResourceLocator, ParseGameDefinition)

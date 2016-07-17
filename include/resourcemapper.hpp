@@ -1065,15 +1065,18 @@ public:
     };
 
 
-    struct FmvFileLocations
+
+    struct FmvFileLocation
     {
         std::string mDataSetName;
-        std::vector<std::string> mFiles;
+        std::string mFileName;
+        Uint32 mStartSector;
+        Uint32 mEndSector;
     };
 
     struct FmvMapping
     {
-        std::vector<FmvFileLocations> mLocations;
+        std::vector<FmvFileLocation> mLocations;
     };
 
     const FmvMapping* FindFmv(const char* resourceName)
@@ -1170,12 +1173,25 @@ private:
 
         for (auto& it : docRootArray)
         {
-            if (it.HasMember("animation"))
+            if (it.HasMember("animations"))
             {
-                const auto& obj = it["animation"].GetObject();
-                ParseAnimResourceJson(obj);
+                const auto& animationsArray = it["animations"].GetArray();
+                for (auto& obj : animationsArray)
+                {
+                    ParseAnimResourceJson(obj);
+                }
             }
-            else if (it.HasMember("lvls"))
+            
+            if (it.HasMember("fmvs"))
+            {
+                const auto& fmvsArray = it["fmvs"].GetArray();
+                for (auto& obj : fmvsArray)
+                {
+                    ParseFmvResourceJson(obj);
+                }
+            }
+            
+            if (it.HasMember("lvls"))
             {
                 ParseFileLocations(it);
             }
@@ -1214,18 +1230,29 @@ private:
     template<typename JsonObject>
     void ParseAnimResourceJson(const JsonObject& obj)
     {
-        AnimMapping animMapping;
+        AnimMapping mapping;
 
-        animMapping.mBlendingMode = obj["blend_mode"].GetInt();
+        mapping.mBlendingMode = obj["blend_mode"].GetInt();
 
-        ParseAnimResourceLocations(obj, animMapping);
+        ParseAnimResourceLocations(obj, mapping);
 
         const auto& name = obj["name"].GetString();
-        mAnimMaps[name] = animMapping;
+        mAnimMaps[name] = mapping;
     }
 
     template<typename JsonObject>
-    void ParseAnimResourceLocations(const JsonObject& obj, AnimMapping& animMapping)
+    void ParseFmvResourceJson(const JsonObject& obj)
+    {
+        FmvMapping mapping;
+
+        ParseFmvResourceLocations(obj, mapping);
+
+        const auto& name = obj["name"].GetString();
+        mFmvMaps[name] = mapping;
+    }
+
+    template<typename JsonObject>
+    void ParseAnimResourceLocations(const JsonObject& obj, AnimMapping& mapping)
     {
         const auto& locations = obj["locations"].GetArray();
         for (auto& locationRecord : locations)
@@ -1246,7 +1273,25 @@ private:
                 animFileLocations.mFiles.push_back(animFile);
             }
 
-            animMapping.mLocations.push_back(animFileLocations);
+            mapping.mLocations.push_back(animFileLocations);
+        }
+    }
+
+    template<typename JsonObject>
+    void ParseFmvResourceLocations(const JsonObject& obj, FmvMapping& mapping)
+    {
+        const auto& locations = obj["locations"].GetArray();
+        for (auto& locationRecord : locations)
+        {
+            FmvFileLocation fmvFileLocation = {};
+            fmvFileLocation.mDataSetName = locationRecord["dataset"].GetString();
+            fmvFileLocation.mFileName = locationRecord["file"].GetString();
+            if (locationRecord.HasMember("start_sector"))
+            {
+                fmvFileLocation.mStartSector = locationRecord["start_sector"].GetInt();
+                fmvFileLocation.mEndSector = locationRecord["end_sector"].GetInt();
+            }
+            mapping.mLocations.push_back(fmvFileLocation);
         }
     }
 };
@@ -1514,7 +1559,7 @@ public:
         return mDataPaths;
     }
 
-    std::unique_ptr<class IMovie> LocateFmv(const char* resourceName);
+   // std::unique_ptr<class IMovie> LocateFmv(const char* resourceName);
 
     std::unique_ptr<Animation> LocateAnimation(const char* resourceName);
 
@@ -1526,7 +1571,7 @@ public:
 private:
     std::unique_ptr<Animation> DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
 
-    std::unique_ptr<IMovie> DoLocateFmv(const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping);
+   // std::unique_ptr<IMovie> DoLocateFmv(const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping);
 
     std::shared_ptr<Oddlib::LvlArchive> OpenLvl(IFileSystem& fs, const std::string& dataSetName, const std::string& lvlName);
 
