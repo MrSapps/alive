@@ -1035,6 +1035,7 @@ public:
         if (this != &rhs)
         {
             mAnimMaps = std::move(rhs.mAnimMaps);
+            mFmvMaps = std::move(rhs.mFmvMaps);
             mFileLocations = std::move(rhs.mFileLocations);
         }
         return *this;
