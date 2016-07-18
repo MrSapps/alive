@@ -539,7 +539,8 @@ public:
 
     virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) override
     {
-        return mRawCdImage.ReadFile(fileName, false);
+        // Only PSX FMV's need raw sector reading, everything else is a "normal" file
+        return mRawCdImage.ReadFile(fileName, string_util::ends_with(fileName, ".MOV", true));
     }
 
     virtual std::vector<std::string> EnumerateFiles(const std::string& /*directory*/, const char* /*filter*/) override
@@ -1295,6 +1296,8 @@ private:
             mapping.mLocations.push_back(fmvFileLocation);
         }
     }
+
+    friend class FmvUi;
 };
 
 class Animation
@@ -1560,7 +1563,7 @@ public:
         return mDataPaths;
     }
 
-    std::unique_ptr<class IMovie> LocateFmv(const char* resourceName);
+    std::unique_ptr<class IMovie> LocateFmv(class IAudioController& audioController, const char* resourceName);
 
     std::unique_ptr<Animation> LocateAnimation(const char* resourceName);
 
@@ -1572,11 +1575,13 @@ public:
 private:
     std::unique_ptr<Animation> DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
 
-    std::unique_ptr<IMovie> DoLocateFmv(const char* resourceName, const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping);
+    std::unique_ptr<IMovie> DoLocateFmv(IAudioController& audioController, const char* resourceName, const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping);
 
     std::shared_ptr<Oddlib::LvlArchive> OpenLvl(IFileSystem& fs, const std::string& dataSetName, const std::string& lvlName);
 
     ResourceCache mCache;
     ResourceMapper mResMapper;
     DataPaths mDataPaths;
+
+    friend class FmvUi;
 };

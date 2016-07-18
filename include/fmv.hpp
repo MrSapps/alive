@@ -72,7 +72,7 @@ private:
 class Fmv
 {
 public:
-    Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs);
+    Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs, class ResourceLocator& resourceLocator);
     virtual ~Fmv();
     void Play(const std::string& name);
     bool IsPlaying() const;
@@ -80,6 +80,7 @@ public:
     void Update();
     virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
 protected:
+    ResourceLocator& mResourceLocator;
     GameData& mGameData;
     IAudioController& mAudioController;
     FileSystem& mFileSystem;
@@ -90,7 +91,7 @@ protected:
 class DebugFmv : public Fmv
 {
 public:
-    DebugFmv(GameData& gameData, IAudioController& audioController, FileSystem& fs);
+    DebugFmv(GameData& gameData, IAudioController& audioController, FileSystem& fs, ResourceLocator& resourceLocator);
     virtual ~DebugFmv();
     virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH) override;
 private:

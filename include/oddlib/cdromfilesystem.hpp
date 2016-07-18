@@ -338,7 +338,7 @@ public:
         {
             mSector = mDr.location.little;
             mStream->Seek(mSector * kRawSectorSize);
-            mSector = 0;
+            //mSector = 0;
         }
 
         virtual Oddlib::IStream* Clone() override

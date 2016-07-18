@@ -153,8 +153,14 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
 }
 
 
-std::unique_ptr<IMovie> ResourceLocator::LocateFmv(const char* resourceName)
+std::unique_ptr<IMovie> ResourceLocator::LocateFmv(IAudioController& audioController, const char* resourceName)
 {
+    const ResourceMapper::FmvMapping* fmvMapping = mResMapper.FindFmv(resourceName);
+    if (!fmvMapping)
+    {
+        return nullptr;
+    }
+
     for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
     {
         if (fs.mIsMod)
@@ -164,13 +170,7 @@ std::unique_ptr<IMovie> ResourceLocator::LocateFmv(const char* resourceName)
         }
         else
         {
-            const ResourceMapper::FmvMapping* fmvMapping = mResMapper.FindFmv(resourceName);
-            if (!fmvMapping)
-            {
-                return nullptr;
-            }
-
-            auto ret = DoLocateFmv(resourceName, fs, *fmvMapping);
+            auto ret = DoLocateFmv(audioController, resourceName, fs, *fmvMapping);
             if (ret)
             {
                 return ret;
@@ -182,7 +182,7 @@ std::unique_ptr<IMovie> ResourceLocator::LocateFmv(const char* resourceName)
 }
 
 
-std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(const char* resourceName, const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping)
+std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(IAudioController& audioController, const char* resourceName, const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping)
 {
     // Each each mapping in the resource record that has matched resourceName
     for (const ResourceMapper::FmvFileLocation& location : fmvMapping.mLocations)
@@ -205,20 +205,23 @@ std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(const char* resourceName, c
                             subTitles = std::make_unique<SubTitleParser>(std::move(subsStream));
                         }
                     }
-
-                    // TODO: Call FmvFactory - move setting IAudioController to Play
-                    //return IMovie::Factory(std::move(stream), std::move(subTitles), location.mStartSector, location.mEndSector);
+                    return IMovie::Factory(audioController, std::move(stream), std::move(subTitles), location.mStartSector, location.mEndSector);
                 }
             }
         }
     }
-
     return nullptr;
 }
 
 
 std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resourceName)
 {
+    const ResourceMapper::AnimMapping* animMapping = mResMapper.FindAnimation(resourceName);
+    if (!animMapping)
+    {
+        return nullptr;
+    }
+
     // For each data set attempt to find resourceName by mapping
     // to a LVL/file/chunk. Or in the case of a mod dataset something else.
     for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
@@ -233,12 +236,6 @@ std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resource
         }
         else
         {
-            const ResourceMapper::AnimMapping* animMapping = mResMapper.FindAnimation(resourceName);
-            if (!animMapping)
-            {
-                return nullptr;
-            }
-
             auto ret = DoLocateAnimation(fs, resourceName, *animMapping);
             if (ret)
             {

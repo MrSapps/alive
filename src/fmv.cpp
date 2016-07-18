@@ -7,6 +7,7 @@
 #include "proxy_nanovg.h"
 #include "stdthread.h"
 #include "renderer.hpp"
+#include "resourcemapper.hpp"
 
 class AutoMouseCursorHide
 {
@@ -573,16 +574,17 @@ private:
     int mListBoxSelectedItem = -1;
     std::vector<const char*> mListBoxItems;
     std::unique_ptr<class IMovie>& mFmv;
+    ResourceLocator& mResourceLocator;
 public:
     FmvUi(const FmvUi&) = delete;
     FmvUi& operator = (const FmvUi&) = delete;
-    FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController, FileSystem& fs)
-        : mFmv(fmv), mAudioController(audioController), mFileSystem(fs)
+    FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController, FileSystem& fs, ResourceLocator& resourceLocator)
+        : mFmv(fmv), mAudioController(audioController), mFileSystem(fs), mResourceLocator(resourceLocator)
     {
         mFilterString[0] = '\0';
     }
 
-    void DrawVideoSelectionUi(GuiContext& gui, const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
+    void DrawVideoSelectionUi(GuiContext& gui)
     {
         std::string name = "Video player";
         gui_begin_window(&gui, name.c_str());
@@ -590,16 +592,15 @@ public:
         gui_textfield(&gui, "Filter", mFilterString, sizeof(mFilterString));
 
         mListBoxItems.clear();
-        mListBoxItems.reserve(allFmvs.size());
+        mListBoxItems.reserve(mResourceLocator.mResMapper.mFmvMaps.size());
 
-        for (const auto& fmv : allFmvs)
+        for (const auto& fmv : mResourceLocator.mResMapper.mFmvMaps)
         {
             if (guiStringFilter(fmv.first.c_str(), mFilterString))
             {
                 mListBoxItems.emplace_back(fmv.first.c_str());
             }
         }
-
 
         for (size_t i = 0; i < mListBoxItems.size(); i++)
         {
@@ -609,19 +610,12 @@ public:
             }
         }
 
-
         if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
         {
-            try
-            {
-                const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-                mFmv = IMovie::Factory(mAudioController, nullptr, nullptr, 0, 0);
-                mListBoxSelectedItem = -1;
-            }
-            catch (const Oddlib::Exception& ex)
-            {
-                LOG_ERROR("Exception: " << ex.what());
-            }
+            const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
+            mFmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
+
+            mListBoxSelectedItem = -1;
         }
 
         gui_end_window(&gui);
@@ -632,8 +626,8 @@ private:
 };
 
 
-Fmv::Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs)
-    : mGameData(gameData), mAudioController(audioController), mFileSystem(fs)
+Fmv::Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs, ResourceLocator& resourceLocator)
+    : mResourceLocator(resourceLocator), mGameData(gameData), mAudioController(audioController), mFileSystem(fs)
 {
 }
 
@@ -642,18 +636,11 @@ Fmv::~Fmv()
 
 }
 
-void Fmv::Play(const std::string& /*name*/)
+void Fmv::Play(const std::string& name)
 {
     if (!mFmv)
     {
-        try
-        {
-            mFmv = IMovie::Factory(mAudioController, nullptr, nullptr, 0, 0);
-        }
-        catch (const Oddlib::Exception& ex)
-        {
-            LOG_ERROR("Exception: " << ex.what());
-        }
+        mFmv = mResourceLocator.LocateFmv(mAudioController, name.c_str());
     }
 }
 
@@ -686,8 +673,8 @@ void Fmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     }
 }
 
-DebugFmv::DebugFmv(GameData& gameData, IAudioController& audioController, FileSystem& fs) 
-    : Fmv(gameData, audioController, fs)
+DebugFmv::DebugFmv(GameData& gameData, IAudioController& audioController, FileSystem& fs, ResourceLocator& resourceLocator)
+    : Fmv(gameData, audioController, fs, resourceLocator)
 {
 
 }
@@ -713,8 +700,8 @@ void DebugFmv::RenderVideoUi(GuiContext& gui)
     {
         if (!mFmvUi)
         {
-            mFmvUi = std::make_unique<FmvUi>(mFmv, mAudioController, mFileSystem);
+            mFmvUi = std::make_unique<FmvUi>(mFmv, mAudioController, mFileSystem, mResourceLocator);
         }
-        mFmvUi->DrawVideoSelectionUi(gui, mGameData.Fmvs());
+        mFmvUi->DrawVideoSelectionUi(gui);
     }
 }
