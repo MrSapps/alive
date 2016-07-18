@@ -8,7 +8,7 @@
 #include "oddlib/PSXMDECDecoder.h"
 #include "core/audiobuffer.hpp"
 #include "subtitles.hpp"
-#include <mutex>
+#include "stdthread.h"
 #include <GL/gl3w.h>
 
 class GameData;
