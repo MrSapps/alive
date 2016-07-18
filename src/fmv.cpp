@@ -145,13 +145,14 @@ void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int
 
     }
 
+    // TODO: If lag then video frames get dropped, fix so that we at least
+    // try to update the video frame at some point!
     if (!played && !mVideoBuffer.empty())
     {
         Frame& f = mVideoBuffer.front();
         RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
     }
-
-    if (!played && mVideoBuffer.empty())
+    else if (!played && mVideoBuffer.empty())
     {
         Frame& f = mLast;
         RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
@@ -510,24 +511,13 @@ private:
     std::vector<Uint8> mFramePixels;
 };
 
-/*static*/ std::unique_ptr<IMovie> FmvFactory(
+
+/*static*/ std::unique_ptr<IMovie> IMovie::Factory(
     IAudioController& audioController,
-    std::unique_ptr<Oddlib::IStream> stream
-    )
+    std::unique_ptr<Oddlib::IStream> stream,
+    std::unique_ptr<SubTitleParser> subTitles,
+    Uint32 startSector, Uint32 endSector)
 {
-    TRACE_ENTRYEXIT;
-
-    // Try to open any corresponding subtitle file
-   
-    std::unique_ptr<SubTitleParser> subTitles;
-
-    /*
-    const std::string subTitleFileName = "data/subtitles/" + fmvName + ".SRT";
-    if (subsStream)
-    {
-        subTitles = std::make_unique<SubTitleParser>(std::move(subsStream));
-    }
-    */
 
     char idBuffer[4] = {};
     stream->ReadBytes(reinterpret_cast<Sint8*>(idBuffer), sizeof(idBuffer));
@@ -543,14 +533,8 @@ private:
     }
     else
     {
-        /*
-        // Only PSX FMV's have many in a single file
-        return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), section.mStartSector, section.mNumberOfSectors);
-        */
-
-
-        LOG_ERROR("Failed to find sectors info for PSX FMV in game data - all of it will be played");
-        return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), 0, 0);
+        const auto numberofSectors = endSector - startSector;
+        return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), startSector, numberofSectors);
     }
 }
 
@@ -631,7 +615,7 @@ public:
             try
             {
                 const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-                mFmv = FmvFactory(mAudioController, nullptr);
+                mFmv = IMovie::Factory(mAudioController, nullptr, nullptr, 0, 0);
                 mListBoxSelectedItem = -1;
             }
             catch (const Oddlib::Exception& ex)
@@ -664,7 +648,7 @@ void Fmv::Play(const std::string& /*name*/)
     {
         try
         {
-            mFmv = FmvFactory(mAudioController, nullptr);
+            mFmv = IMovie::Factory(mAudioController, nullptr, nullptr, 0, 0);
         }
         catch (const Oddlib::Exception& ex)
         {

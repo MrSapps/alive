@@ -18,16 +18,15 @@ class Renderer;
 struct GuiContext;
 
 
-
-/*
-static std::unique_ptr<IMovie> FmvFactory(
-    IAudioController& audioController,
-    std::unique_ptr<Oddlib::IStream> stream);
-    */
-
 class IMovie : public IAudioPlayer
 {
 public:
+    static std::unique_ptr<IMovie> Factory(
+        IAudioController& audioController,
+        std::unique_ptr<Oddlib::IStream> stream,
+        std::unique_ptr<SubTitleParser> subtitles,
+        Uint32 startSector, Uint32 endSector);
+
     IMovie(IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles);
 
     virtual ~IMovie();

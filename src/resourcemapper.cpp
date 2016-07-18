@@ -170,7 +170,7 @@ std::unique_ptr<IMovie> ResourceLocator::LocateFmv(const char* resourceName)
                 return nullptr;
             }
 
-            auto ret = DoLocateFmv(fs, *fmvMapping);
+            auto ret = DoLocateFmv(resourceName, fs, *fmvMapping);
             if (ret)
             {
                 return ret;
@@ -182,7 +182,7 @@ std::unique_ptr<IMovie> ResourceLocator::LocateFmv(const char* resourceName)
 }
 
 
-std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping)
+std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(const char* resourceName, const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping)
 {
     // Each each mapping in the resource record that has matched resourceName
     for (const ResourceMapper::FmvFileLocation& location : fmvMapping.mLocations)
@@ -195,10 +195,19 @@ std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(const DataPaths::FileSystem
                 auto stream = fs.mFileSystem->Open(location.mFileName);
                 if (stream)
                 {
-                    // TODO: Call FmvFactory - move setting IAudioController to Play
+                    std::unique_ptr<SubTitleParser> subTitles;
+                    const std::string subTitleFileName = "data/subtitles/" + std::string(resourceName) + ".SRT";
+                    if (mDataPaths.GameFs().FileExists(subTitleFileName))
+                    {
+                        auto subsStream = mDataPaths.GameFs().Open(subTitleFileName);
+                        if (subsStream)
+                        {
+                            subTitles = std::make_unique<SubTitleParser>(std::move(subsStream));
+                        }
+                    }
 
-                    // TODO: Grab subtitles from GameFs
-                    this->mDataPaths.GameFs();
+                    // TODO: Call FmvFactory - move setting IAudioController to Play
+                    //return IMovie::Factory(std::move(stream), std::move(subTitles), location.mStartSector, location.mEndSector);
                 }
             }
         }
