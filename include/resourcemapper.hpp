@@ -1560,7 +1560,7 @@ public:
         return mDataPaths;
     }
 
-   // std::unique_ptr<class IMovie> LocateFmv(const char* resourceName);
+    std::unique_ptr<class IMovie> LocateFmv(const char* resourceName);
 
     std::unique_ptr<Animation> LocateAnimation(const char* resourceName);
 
@@ -1572,7 +1572,7 @@ public:
 private:
     std::unique_ptr<Animation> DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
 
-   // std::unique_ptr<IMovie> DoLocateFmv(const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping);
+    std::unique_ptr<IMovie> DoLocateFmv(const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping);
 
     std::shared_ptr<Oddlib::LvlArchive> OpenLvl(IFileSystem& fs, const std::string& dataSetName, const std::string& lvlName);
 

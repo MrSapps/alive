@@ -152,7 +152,7 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
     return mResMapper.DebugUi(renderer, gui, filter);
 }
 
-/*
+
 std::unique_ptr<IMovie> ResourceLocator::LocateFmv(const char* resourceName)
 {
     for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
@@ -180,30 +180,25 @@ std::unique_ptr<IMovie> ResourceLocator::LocateFmv(const char* resourceName)
 
     return nullptr;
 }
-*/
 
-/*
+
 std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping)
 {
     // Each each mapping in the resource record that has matched resourceName
-    for (const ResourceMapper::FmvFileLocations& location : fmvMapping.mLocations)
+    for (const ResourceMapper::FmvFileLocation& location : fmvMapping.mLocations)
     {
         // Check if the mapping applies to the data set that fs is
         if (location.mDataSetName == fs.mDataSetName)
         {
-            // Loop through all the locations in the data set where resourceName lives
-            for (const std::string& file : location.mFiles)
+            if (fs.mFileSystem->FileExists(location.mFileName))
             {
-                if (fs.mFileSystem->FileExists(file))
+                auto stream = fs.mFileSystem->Open(location.mFileName);
+                if (stream)
                 {
-                    auto stream = fs.mFileSystem->Open(file);
-                    if (stream)
-                    {
-                        // TODO: Call FmvFactory - move setting IAudioController to Play
+                    // TODO: Call FmvFactory - move setting IAudioController to Play
 
-                        // TODO: Grab subtitles from GameFs
-                        this->mDataPaths.GameFs();
-                    }
+                    // TODO: Grab subtitles from GameFs
+                    this->mDataPaths.GameFs();
                 }
             }
         }
@@ -211,7 +206,7 @@ std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(const DataPaths::FileSystem
 
     return nullptr;
 }
-*/
+
 
 std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resourceName)
 {

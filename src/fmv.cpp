@@ -1,12 +1,9 @@
 #include "fmv.hpp"
 #include "gui.h"
-#include "core/audiobuffer.hpp"
 #include "oddlib/cdromfilesystem.hpp"
 #include "gamedata.hpp"
 #include "logger.hpp"
 #include "filesystem.hpp"
-#include "subtitles.hpp"
-#include <GL/gl3w.h>
 #include "proxy_nanovg.h"
 #include "stdthread.h"
 #include "renderer.hpp"
@@ -59,206 +56,179 @@ static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w
     rend.text(xpos - adjust, ypos - adjust, msg);
 }
 
-class IMovie : public IAudioPlayer
-{
-public:
-    IMovie(IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles)
+IMovie::IMovie(IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles)
         : mAudioController(controller), mSubTitles(std::move(subtitles))
+{
+    // TODO: Add to interface - must be added/removed outside of ctor/dtor due
+    // to data race issues
+    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+    mAudioController.AddPlayer(this);
+}
+
+IMovie:: ~IMovie()
+{
+    // TODO: Data race fix
+    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+    mAudioController.RemovePlayer(this);
+}
+
+
+// Main thread context
+void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int /*screenH*/)
+{
+    // TODO: Populate mAudioBuffer and mVideoBuffer
+    // for up to N buffered frames
+    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+
+    while (NeedBuffer())
     {
-        // TODO: Add to interface - must be added/removed outside of ctor/dtor due
-        // to data race issues
-        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-        mAudioController.AddPlayer(this);
+        FillBuffers();
     }
 
-    virtual ~IMovie()
+    /*
+    int num = -1;
+    if (!mVideoBuffer.empty())
     {
-        // TODO: Data race fix
-        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-        mAudioController.RemovePlayer(this);
+        num = mVideoBuffer.begin()->mFrameNum;
+    }*/
+
+    //        std::cout << "Playing frame num " << mVideoFrameIndex << " first buffered frame is " << num << " samples played " << (size_t)mConsumedAudioBytes << std::endl;
+
+    // 10063 is audio freq of 37800/15fps = 2520 * num frames(6420) = 16178400
+
+    // 37800/15
+    //  37800/15fps = 2520 samples per frame, 5040 bytes
+    //  6420 * 5040 = 32356800*2=64713600
+    // 10063 is 64608768(total audio bytes) / 6420(num frames) = 10063 bytes per frame
+    // Total audio bytes is 64607760
+    // Total audio bytes is 64607760
+    // IMovie::Play[E] Audio buffer underflow want 5040 bytes  have 1008 bytes
+    // Total audio bytes is 64608768
+
+    // 2016 samples every 4 sectors, num sectors = file size / 2048?
+    
+    const auto videoFrameIndex = mConsumedAudioBytes / mAudioBytesPerFrame;// 10063;
+    //std::cout << "Total audio bytes is " << mConsumedAudioBytes << std::endl;
+    const char *current_subs = nullptr;
+    if (mSubTitles)
+    {
+        // We assume the FPS is always 15, thus 1000/15=66.66 so frame number * 66 = number of msecs into the video
+        const auto& subs = mSubTitles->Find((videoFrameIndex * 66)+200);
+        if (!subs.empty())
+        {
+            // TODO: Render all active subs, not just the first one
+            current_subs = subs[0]->Text().c_str();
+            if (subs.size() > 1)
+            {
+                LOG_WARNING("Too many active subtitles " << subs.size());
+            }
+        }
     }
 
-    virtual bool EndOfStream() = 0;
-    virtual bool NeedBuffer() = 0;
-    virtual void FillBuffers() = 0;
-
-    // Main thread context
-    void OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int /*screenH*/)
+    bool played = false;
+    while (!mVideoBuffer.empty())
     {
-        // TODO: Populate mAudioBuffer and mVideoBuffer
-        // for up to N buffered frames
-        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-
-        while (NeedBuffer())
+        Frame& f = mVideoBuffer.front();
+        if (f.mFrameNum < videoFrameIndex)
         {
-            FillBuffers();
+            mVideoBuffer.pop_front();
+            continue;
         }
 
-        /*
-        int num = -1;
-        if (!mVideoBuffer.empty())
+        if (f.mFrameNum == videoFrameIndex)
         {
-            num = mVideoBuffer.begin()->mFrameNum;
-        }*/
-
-        //        std::cout << "Playing frame num " << mVideoFrameIndex << " first buffered frame is " << num << " samples played " << (size_t)mConsumedAudioBytes << std::endl;
-
-        // 10063 is audio freq of 37800/15fps = 2520 * num frames(6420) = 16178400
-
-        // 37800/15
-        //  37800/15fps = 2520 samples per frame, 5040 bytes
-        //  6420 * 5040 = 32356800*2=64713600
-        // 10063 is 64608768(total audio bytes) / 6420(num frames) = 10063 bytes per frame
-        // Total audio bytes is 64607760
-        // Total audio bytes is 64607760
-        // IMovie::Play[E] Audio buffer underflow want 5040 bytes  have 1008 bytes
-        // Total audio bytes is 64608768
-
-        // 2016 samples every 4 sectors, num sectors = file size / 2048?
-        
-        const auto videoFrameIndex = mConsumedAudioBytes / mAudioBytesPerFrame;// 10063;
-        //std::cout << "Total audio bytes is " << mConsumedAudioBytes << std::endl;
-        const char *current_subs = nullptr;
-        if (mSubTitles)
-        {
-            // We assume the FPS is always 15, thus 1000/15=66.66 so frame number * 66 = number of msecs into the video
-            const auto& subs = mSubTitles->Find((videoFrameIndex * 66)+200);
-            if (!subs.empty())
-            {
-                // TODO: Render all active subs, not just the first one
-                current_subs = subs[0]->Text().c_str();
-                if (subs.size() > 1)
-                {
-                    LOG_WARNING("Too many active subtitles " << subs.size());
-                }
-            }
-        }
-
-        bool played = false;
-        while (!mVideoBuffer.empty())
-        {
-            Frame& f = mVideoBuffer.front();
-            if (f.mFrameNum < videoFrameIndex)
-            {
-                mVideoBuffer.pop_front();
-                continue;
-            }
-
-            if (f.mFrameNum == videoFrameIndex)
-            {
-                mLast = f;
-                RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
-                played = true;
-                break;
-            }
-
-        }
-
-        if (!played && !mVideoBuffer.empty())
-        {
-            Frame& f = mVideoBuffer.front();
+            mLast = f;
             RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
+            played = true;
+            break;
         }
-
-        if (!played && mVideoBuffer.empty())
-        {
-            Frame& f = mLast;
-            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
-        }
-
-        while (NeedBuffer())
-        {
-            FillBuffers();
-        }
-
-
 
     }
 
-    // Main thread context
-    bool IsEnd()
+    if (!played && !mVideoBuffer.empty())
     {
-        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-        const auto ret = EndOfStream() && mAudioBuffer.empty();
-        if (ret && !mVideoBuffer.empty())
-        {
-            LOG_ERROR("Still " << mVideoBuffer.size() << " frames left after audio finished");
-        }
-        return ret;
+        Frame& f = mVideoBuffer.front();
+        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
     }
 
-protected:
-    // Audio thread context, from IAudioPlayer
-    virtual void Play(Uint8* stream, Uint32 len) override
+    if (!played && mVideoBuffer.empty())
     {
-        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-
-        // Consume mAudioBuffer and update the amount of consumed bytes
-        size_t have = mAudioBuffer.size()/sizeof(int16_t);
-        size_t take = len/sizeof(float);
-        if (take > have)
-        {
-            // Buffer underflow - we don't have enough data to fill the requested buffer
-            // audio glitches ahoy!
-            LOG_ERROR("Audio buffer underflow want " << take << " samples " << " have " << have << " samples");
-            take = have;
-        }
-
-        float *floatOutStream = reinterpret_cast<float*>(stream);
-        for (auto i = 0u; i < take; i++)
-        {
-            uint8_t low = mAudioBuffer[i*sizeof(int16_t)];
-            uint8_t high = mAudioBuffer[i*sizeof(int16_t) + 1];
-            int16_t fixed = (int16_t)(low | (high << 8));
-            floatOutStream[i] = fixed / 32768.0f;
-        }
-        mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take*sizeof(int16_t));
-        mConsumedAudioBytes += take*sizeof(int16_t);
+        Frame& f = mLast;
+        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
     }
 
-    void RenderFrame(Renderer &rend, GuiContext &gui, int width, int height, const GLvoid *pixels, const char *subtitles)
+    while (NeedBuffer())
     {
-        // TODO: Optimize - should update 1 texture rather than creating per frame
-        int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
-
-        gui_begin_window(&gui, "FMV");
-        int x, y, w, h;
-        gui_turtle_pos(&gui, &x, &y);
-        gui_window_client_size(&gui, &w, &h);
-
-        rend.beginLayer(gui_layer(&gui) + 1);
-        rend.drawQuad(texhandle, static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
-
-        if (subtitles)
-            RenderSubtitles(rend, subtitles, x, y, w, h);
-
-        rend.endLayer();
-
-        gui_end_window(&gui);
-
-        rend.destroyTexture(texhandle);
+        FillBuffers();
     }
 
-protected:
-    struct Frame
+
+
+}
+
+// Main thread context
+bool IMovie::IsEnd()
+{
+    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+    const auto ret = EndOfStream() && mAudioBuffer.empty();
+    if (ret && !mVideoBuffer.empty())
     {
-        size_t mFrameNum;
-        Uint32 mW;
-        Uint32 mH;
-        std::vector<Uint8> mPixels;
-    };
-    Frame mLast;
-    size_t mFrameCounter = 0;
-    size_t mConsumedAudioBytes = 0;
-    std::mutex mAudioBufferMutex;
-    std::deque<Uint8> mAudioBuffer;
-    std::deque<Frame> mVideoBuffer;
-    IAudioController& mAudioController;
-    int mAudioBytesPerFrame = 1;
-    std::unique_ptr<SubTitleParser> mSubTitles;
-private:
-    //AutoMouseCursorHide mHideMouseCursor;
-};
+        LOG_ERROR("Still " << mVideoBuffer.size() << " frames left after audio finished");
+    }
+    return ret;
+}
+
+// Audio thread context, from IAudioPlayer
+void IMovie::Play(Uint8* stream, Uint32 len)
+{
+    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+
+    // Consume mAudioBuffer and update the amount of consumed bytes
+    size_t have = mAudioBuffer.size()/sizeof(int16_t);
+    size_t take = len/sizeof(float);
+    if (take > have)
+    {
+        // Buffer underflow - we don't have enough data to fill the requested buffer
+        // audio glitches ahoy!
+        LOG_ERROR("Audio buffer underflow want " << take << " samples " << " have " << have << " samples");
+        take = have;
+    }
+
+    float *floatOutStream = reinterpret_cast<float*>(stream);
+    for (auto i = 0u; i < take; i++)
+    {
+        uint8_t low = mAudioBuffer[i*sizeof(int16_t)];
+        uint8_t high = mAudioBuffer[i*sizeof(int16_t) + 1];
+        int16_t fixed = (int16_t)(low | (high << 8));
+        floatOutStream[i] = fixed / 32768.0f;
+    }
+    mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take*sizeof(int16_t));
+    mConsumedAudioBytes += take*sizeof(int16_t);
+}
+
+void IMovie::RenderFrame(Renderer &rend, GuiContext &gui, int width, int height, const GLvoid *pixels, const char *subtitles)
+{
+    // TODO: Optimize - should update 1 texture rather than creating per frame
+    int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
+
+    gui_begin_window(&gui, "FMV");
+    int x, y, w, h;
+    gui_turtle_pos(&gui, &x, &y);
+    gui_window_client_size(&gui, &w, &h);
+
+    rend.beginLayer(gui_layer(&gui) + 1);
+    rend.drawQuad(texhandle, static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
+
+    if (subtitles)
+        RenderSubtitles(rend, subtitles, x, y, w, h);
+
+    rend.endLayer();
+
+    gui_end_window(&gui);
+
+    rend.destroyTexture(texhandle);
+}
+
 
 // PSX MOV/STR format, all PSX game versions use this.
 class MovMovie : public IMovie
