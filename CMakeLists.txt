@@ -269,9 +269,9 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(UNIX AND NOT APPLE)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg gl3w stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate gl3w)
 ELSE()
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg gl3w stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate gl3w)
 ENDIF()
 
 #cotire(Alive)
