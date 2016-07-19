@@ -207,6 +207,7 @@ add_library(oddlib STATIC
 )
 
 SET(alivelib_src
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
     include/core/audiobuffer.hpp
     src/core/audiobuffer.cpp
     include/fmv.hpp
