@@ -14,7 +14,7 @@ namespace Oddlib
     public:
         PsxBits(const PsxBits&) = delete;
         PsxBits& operator = (const PsxBits&) = delete;
-        PsxBits(IStream& stream, bool includeLengthInStripSize, bool singleSlice);
+        PsxBits(IStream& stream, bool includeLengthInStripSize, bool singleSlice, std::shared_ptr<Oddlib::LvlArchive>& lvl);
         virtual SDL_Surface* GetSurface() const override;
         bool IncludeLength() const { return mIncludeLengthInStripSize; }
     private:

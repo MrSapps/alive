@@ -7,7 +7,8 @@ namespace Oddlib
     const auto green_mask = 0x7E0;
     const auto blue_mask = 0x1F;
 
-    AoBitsPc::AoBitsPc(IStream& stream)
+    AoBitsPc::AoBitsPc(IStream& stream, std::shared_ptr<Oddlib::LvlArchive>& lvl)
+        : IBits(lvl)
     {
         mSurface.reset(SDL_CreateRGBSurface(0, 640, 240, 16, red_mask, green_mask, blue_mask, 0));
         GenerateImage(stream);

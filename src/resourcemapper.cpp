@@ -2,6 +2,7 @@
 #include "zipfilesystem.hpp"
 #include "gui.h"
 #include "fmv.hpp"
+#include "oddlib/bits_factory.hpp"
 
 const /*static*/ float Animation::kPcToPsxScaleFactor = 1.73913043478f;
 
@@ -152,6 +153,38 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
     return mResMapper.DebugUi(renderer, gui, filter);
 }
 
+std::unique_ptr<Oddlib::IBits> ResourceLocator::LocateCamera(const char* resourceName)
+{
+    for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+    {
+        if (fs.mIsMod)
+        {
+            // TODO: Look up the override in the mod fs
+        }
+        else
+        {
+            const std::vector<ResourceMapper::DataSetFileAttributes>* locationsInThisDataSet = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), resourceName);
+            if (locationsInThisDataSet)
+            {
+                for (const ResourceMapper::DataSetFileAttributes& attributes : *locationsInThisDataSet)
+                {
+                    std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, attributes.mLvlName);
+                    if (lvl)
+                    {
+                        auto lvlFile = lvl->FileByName(resourceName);
+                        if (lvlFile)
+                        {
+                            auto chunk = lvlFile->ChunkByType(Oddlib::MakeType('B', 'i', 't', 's'));
+                            auto stream = chunk->Stream();
+                            return Oddlib::MakeBits(*stream, lvl);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
 
 std::unique_ptr<IMovie> ResourceLocator::LocateFmv(IAudioController& audioController, const char* resourceName)
 {

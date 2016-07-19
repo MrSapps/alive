@@ -38,6 +38,11 @@
 #pragma warning(pop)
 #endif
 
+namespace Oddlib
+{
+    class IBits;
+}
+
 namespace JsonDeserializer
 {
     namespace Detail
@@ -1563,6 +1568,7 @@ public:
         return mDataPaths;
     }
 
+    std::unique_ptr<Oddlib::IBits> LocateCamera(const char* resourceName);
     std::unique_ptr<class IMovie> LocateFmv(class IAudioController& audioController, const char* resourceName);
 
     std::unique_ptr<Animation> LocateAnimation(const char* resourceName);

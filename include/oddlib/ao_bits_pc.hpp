@@ -13,7 +13,7 @@ namespace Oddlib
     public:
         AoBitsPc(const AoBitsPc&) = delete;
         AoBitsPc& operator = (const AoBitsPc&) = delete;
-        explicit AoBitsPc(IStream& stream);
+        AoBitsPc(IStream& stream, std::shared_ptr<Oddlib::LvlArchive>& lvl);
 
         // Returns observing pointer to surface
         virtual SDL_Surface* GetSurface() const override;

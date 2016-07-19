@@ -101,7 +101,8 @@ namespace Oddlib
     const auto green_mask = 0x7E0;
     const auto blue_mask = 0x1F;
 
-    AeBitsPc::AeBitsPc(IStream& stream)
+    AeBitsPc::AeBitsPc(IStream& stream, std::shared_ptr<Oddlib::LvlArchive>& lvl)
+        : IBits(lvl)
     {
         GenerateImage(stream);
     }

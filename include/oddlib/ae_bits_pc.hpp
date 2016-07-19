@@ -14,7 +14,7 @@ namespace Oddlib
     public:
         AeBitsPc(const AeBitsPc&) = delete;
         AeBitsPc& operator = (const AeBitsPc&) = delete;
-        explicit AeBitsPc(IStream& stream);
+        AeBitsPc(IStream& stream, std::shared_ptr<Oddlib::LvlArchive>& lvl);
         virtual SDL_Surface* GetSurface() const override;
     private:
         void vlc_decode(const std::vector<Uint16>& aCamSeg, std::vector<Uint16>& aDst);

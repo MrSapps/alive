@@ -143,16 +143,16 @@ namespace Oddlib
         abort();
     }
 
-    std::unique_ptr<IBits> MakeBits(IStream& stream)
+    std::unique_ptr<IBits> MakeBits(IStream& stream, std::shared_ptr<Oddlib::LvlArchive>& lvl)
     {
         const eCameraType cameraType = GetCameraType(stream);
         switch (cameraType)
         {
-            case eAoPsxDemo: return std::make_unique<PsxBits>(stream, false, true);
-            case eAePsx:     return std::make_unique<PsxBits>(stream, true, false);
-            case eAoPsx:     return std::make_unique<PsxBits>(stream, false, false);
-            case eAoPc:      return std::make_unique<AoBitsPc>(stream);
-            case eAePc:      return std::make_unique<AeBitsPc>(stream);
+        case eAoPsxDemo: return std::make_unique<PsxBits>(stream, false, true, lvl);
+        case eAePsx:     return std::make_unique<PsxBits>(stream, true, false, lvl);
+        case eAoPsx:     return std::make_unique<PsxBits>(stream, false, false, lvl);
+        case eAoPc:      return std::make_unique<AoBitsPc>(stream, lvl);
+        case eAePc:      return std::make_unique<AeBitsPc>(stream, lvl);
         }
         abort();
     }
