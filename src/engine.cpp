@@ -131,7 +131,7 @@ bool Engine::Init()
 void Engine::InitSubSystems()
 {
     mRenderer = std::make_unique<Renderer>((mFileSystem_old.GameData().BasePath() + "/data/Roboto-Regular.ttf").c_str());
-    mFmv = std::make_unique<DebugFmv>(mGameData, mAudioHandler, mFileSystem_old, *mResourceLocator);
+    mFmv = std::make_unique<DebugFmv>(mAudioHandler, *mResourceLocator);
     mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem_old);
     mLevel = std::make_unique<Level>(mGameData, mAudioHandler, mFileSystem_old);
 

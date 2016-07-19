@@ -13,7 +13,6 @@
 
 class GameData;
 class IAudioController;
-class FileSystem;
 class Renderer;
 struct GuiContext;
 
@@ -72,7 +71,7 @@ private:
 class Fmv
 {
 public:
-    Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs, class ResourceLocator& resourceLocator);
+    Fmv(IAudioController& audioController, class ResourceLocator& resourceLocator);
     virtual ~Fmv();
     void Play(const std::string& name);
     bool IsPlaying() const;
@@ -81,9 +80,7 @@ public:
     virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
 protected:
     ResourceLocator& mResourceLocator;
-    GameData& mGameData;
     IAudioController& mAudioController;
-    FileSystem& mFileSystem;
     std::unique_ptr<class IMovie> mFmv;
 
 };
@@ -91,7 +88,7 @@ protected:
 class DebugFmv : public Fmv
 {
 public:
-    DebugFmv(GameData& gameData, IAudioController& audioController, FileSystem& fs, ResourceLocator& resourceLocator);
+    DebugFmv(IAudioController& audioController, ResourceLocator& resourceLocator);
     virtual ~DebugFmv();
     virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH) override;
 private:

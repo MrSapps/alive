@@ -1,9 +1,7 @@
 #include "fmv.hpp"
 #include "gui.h"
-#include "oddlib/cdromfilesystem.hpp"
 #include "gamedata.hpp"
 #include "logger.hpp"
-#include "filesystem.hpp"
 #include "proxy_nanovg.h"
 #include "stdthread.h"
 #include "renderer.hpp"
@@ -578,8 +576,8 @@ private:
 public:
     FmvUi(const FmvUi&) = delete;
     FmvUi& operator = (const FmvUi&) = delete;
-    FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController, FileSystem& fs, ResourceLocator& resourceLocator)
-        : mFmv(fmv), mAudioController(audioController), mFileSystem(fs), mResourceLocator(resourceLocator)
+    FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController, ResourceLocator& resourceLocator)
+        : mFmv(fmv), mAudioController(audioController), mResourceLocator(resourceLocator)
     {
         mFilterString[0] = '\0';
     }
@@ -622,12 +620,11 @@ public:
     }
 private:
     IAudioController& mAudioController;
-    FileSystem& mFileSystem;
 };
 
 
-Fmv::Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs, ResourceLocator& resourceLocator)
-    : mResourceLocator(resourceLocator), mGameData(gameData), mAudioController(audioController), mFileSystem(fs)
+Fmv::Fmv(IAudioController& audioController, ResourceLocator& resourceLocator)
+    : mResourceLocator(resourceLocator), mAudioController(audioController)
 {
 }
 
@@ -673,8 +670,8 @@ void Fmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     }
 }
 
-DebugFmv::DebugFmv(GameData& gameData, IAudioController& audioController, FileSystem& fs, ResourceLocator& resourceLocator)
-    : Fmv(gameData, audioController, fs, resourceLocator)
+DebugFmv::DebugFmv(IAudioController& audioController, ResourceLocator& resourceLocator)
+    : Fmv(audioController, resourceLocator)
 {
 
 }
@@ -700,7 +697,7 @@ void DebugFmv::RenderVideoUi(GuiContext& gui)
     {
         if (!mFmvUi)
         {
-            mFmvUi = std::make_unique<FmvUi>(mFmv, mAudioController, mFileSystem, mResourceLocator);
+            mFmvUi = std::make_unique<FmvUi>(mFmv, mAudioController, mResourceLocator);
         }
         mFmvUi->DrawVideoSelectionUi(gui);
     }
