@@ -207,7 +207,6 @@ add_library(oddlib STATIC
 )
 
 SET(alivelib_src
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
     include/core/audiobuffer.hpp
     src/core/audiobuffer.cpp
     include/fmv.hpp
@@ -258,6 +257,7 @@ endif()
 add_executable(Alive MACOSX_BUNDLE
     ${WIN32_RESOURCES_SRC}
     src/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 
 if(UNIX AND NOT APPLE)
@@ -273,6 +273,7 @@ TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
 add_executable(Integration
   ${WIN32_RESOURCES_SRC}
   test/integration_main.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 TARGET_LINK_LIBRARIES(Integration ${Alive_Libs})
 
@@ -280,6 +281,7 @@ add_executable(DataTool
   ${WIN32_RESOURCES_SRC}
   test/data_test_main.cpp
   test/phash.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
 
