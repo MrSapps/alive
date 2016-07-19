@@ -85,14 +85,6 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-
-SET(gl3w_src 
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
-)
-
-add_library(gl3w STATIC ${gl3w_src})
-SET_PROPERTY(TARGET gl3w PROPERTY FOLDER "3rdparty")
-
 SET(lodepng_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/lodepng/lodepng.cpp
 )
@@ -215,6 +207,7 @@ add_library(oddlib STATIC
 )
 
 SET(alivelib_src
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
     include/core/audiobuffer.hpp
     src/core/audiobuffer.cpp
     include/fmv.hpp
@@ -269,9 +262,9 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(UNIX AND NOT APPLE)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate gl3w)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate)
 ELSE()
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate gl3w)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate)
 ENDIF()
 
 #cotire(Alive)
@@ -285,11 +278,10 @@ TARGET_LINK_LIBRARIES(Integration ${Alive_Libs})
 
 add_executable(DataTool
   ${WIN32_RESOURCES_SRC}
-  ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
   test/data_test_main.cpp
   test/phash.hpp
 )
-TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs} gl3w)
+TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
 
 
 
