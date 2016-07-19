@@ -572,7 +572,6 @@ private:
     int mListBoxSelectedItem = -1;
     std::vector<const char*> mListBoxItems;
     std::unique_ptr<class IMovie>& mFmv;
-    ResourceLocator& mResourceLocator;
 public:
     FmvUi(const FmvUi&) = delete;
     FmvUi& operator = (const FmvUi&) = delete;
@@ -620,6 +619,7 @@ public:
     }
 private:
     IAudioController& mAudioController;
+    ResourceLocator& mResourceLocator;
 };
 
 
