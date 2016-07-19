@@ -288,7 +288,7 @@ add_executable(DataTool
   test/data_test_main.cpp
   test/phash.hpp
 )
-TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
+TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs} gl3w)
 
 
 
