@@ -285,6 +285,7 @@ TARGET_LINK_LIBRARIES(Integration ${Alive_Libs})
 
 add_executable(DataTool
   ${WIN32_RESOURCES_SRC}
+  ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
   test/data_test_main.cpp
   test/phash.hpp
 )
