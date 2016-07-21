@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "fmv.hpp"
 #include "oddlib/bits_factory.hpp"
+#include "lodepng/lodepng.h"
 
 const /*static*/ float Animation::kPcToPsxScaleFactor = 1.73913043478f;
 
@@ -155,11 +156,63 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
 
 std::unique_ptr<Oddlib::IBits> ResourceLocator::LocateCamera(const char* resourceName)
 {
+    std::string deltaName;
+    std::string modName;
+
     for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
     {
         if (fs.mIsMod)
         {
             // TODO: Look up the override in the mod fs
+            if (modName.empty())
+            {
+                modName = std::string(resourceName) + ".png";
+            }
+
+            if (fs.mFileSystem->FileExists(modName))
+            {
+                auto stream = fs.mFileSystem->Open(modName);
+            }
+
+            if (deltaName.empty())
+            {
+                deltaName = std::string(resourceName) + ".cam.bmp.png"; // TODO: Rename to something sane
+
+                // TODO: Also requires the original file to work
+            }
+
+            if (fs.mFileSystem->FileExists(deltaName))
+            {
+                auto stream = fs.mFileSystem->Open(deltaName);
+
+                lodepng::State state = {};
+
+                // input color type
+                state.info_raw.colortype = LCT_RGB;
+                state.info_raw.bitdepth = 8;
+
+                // output color type
+                state.info_png.color.colortype = LCT_RGB;
+                state.info_png.color.bitdepth = 8;
+                state.encoder.auto_convert = 0;
+
+                // decode PNG
+                std::vector<unsigned char> out;
+                std::vector<unsigned char> in = Oddlib::IStream::ReadAll(*stream);
+
+                unsigned int w = 0;
+                unsigned int h = 0;
+                const auto decodeRet = lodepng::decode(out, w, h, state, in);
+                if (decodeRet == 0)
+                {
+
+                }
+                else
+                {
+                    LOG_ERROR(lodepng_error_text(decodeRet));
+                }
+            }
+
         }
         else
         {

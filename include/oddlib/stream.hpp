@@ -11,6 +11,18 @@ namespace Oddlib
     class IStream
     {
     public:
+        static std::vector<Uint8> ReadAll(IStream& stream)
+        {
+            const auto oldPos = stream.Pos();
+            stream.Seek(0);
+            const auto size = stream.Size();
+
+            std::vector<Uint8> allStreamBytes(size);
+            stream.ReadBytes(allStreamBytes.data(), allStreamBytes.size());
+            stream.Seek(oldPos);
+            return allStreamBytes;
+        }
+
         virtual ~IStream() = default;
         virtual IStream* Clone() = 0;
         virtual IStream* Clone(Uint32 start, Uint32 size) = 0;
@@ -36,14 +48,8 @@ namespace Oddlib
             {
                 return false;
             }
-            const auto pos = Pos();
-            Seek(0);
-            const auto size = Size();
-
-            std::vector<Uint8> allStreamBytes(size);
-            ReadBytes(allStreamBytes.data(), allStreamBytes.size());
-            Seek(pos);
-
+            
+            auto allStreamBytes = ReadAll(*this);
             s.write(reinterpret_cast<const char*>(allStreamBytes.data()), allStreamBytes.size());
             return true;
         }
