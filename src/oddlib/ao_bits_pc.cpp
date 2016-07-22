@@ -7,8 +7,7 @@ namespace Oddlib
     const auto green_mask = 0x7E0;
     const auto blue_mask = 0x1F;
 
-    AoBitsPc::AoBitsPc(IStream& stream, std::shared_ptr<Oddlib::LvlArchive>& lvl)
-        : IBits(lvl)
+    AoBitsPc::AoBitsPc(IStream& stream)
     {
         mSurface.reset(SDL_CreateRGBSurface(0, 640, 240, 16, red_mask, green_mask, blue_mask, 0));
         GenerateImage(stream);
@@ -47,6 +46,10 @@ namespace Oddlib
             dstRect.h = 240;
             SDL_BlitSurface(strip.get(), NULL, mSurface.get(), &dstRect);
         } 
+        if (mSurface->format->format != SDL_PIXELFORMAT_RGB24)
+        {
+            mSurface.reset(SDL_ConvertSurfaceFormat(mSurface.get(), SDL_PIXELFORMAT_RGB24, 0));
+        }
     }
 
 }

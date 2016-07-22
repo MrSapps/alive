@@ -997,7 +997,10 @@ private:
         mName = root.get<jsonxx::String>("Name");
         mDescription = root.get<jsonxx::String>("Description");
         mAuthor = root.get<jsonxx::String>("Author");
-        mInitialLevel = root.get<jsonxx::String>("InitialLevel");
+        if (root.has<jsonxx::String>("InitialLevel"))
+        {
+            mInitialLevel = root.get<jsonxx::String>("InitialLevel");
+        }
         mDataSetName = root.get<jsonxx::String>("DatasetName");
         if (root.has<jsonxx::Boolean>("Hidden"))
         {
@@ -1582,6 +1585,8 @@ private:
     std::unique_ptr<Animation> DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
 
     std::unique_ptr<IMovie> DoLocateFmv(IAudioController& audioController, const char* resourceName, const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping);
+
+    std::unique_ptr<Oddlib::IBits> DoLocateCamera(const char* resourceName, bool ignoreMods);
 
     std::shared_ptr<Oddlib::LvlArchive> OpenLvl(IFileSystem& fs, const std::string& dataSetName, const std::string& lvlName);
 

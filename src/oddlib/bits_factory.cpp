@@ -143,16 +143,39 @@ namespace Oddlib
         abort();
     }
 
-    std::unique_ptr<IBits> MakeBits(IStream& stream, std::shared_ptr<Oddlib::LvlArchive>& lvl)
+    class Bits : public IBits
+    {
+    public:
+        Bits(SDL_SurfacePtr camImage)
+            : mCameraImage(std::move(camImage))
+        {
+
+        }
+
+        virtual SDL_Surface* GetSurface() const override
+        {
+            return mCameraImage.get();
+        }
+
+    private:
+        SDL_SurfacePtr mCameraImage;
+    };
+
+    std::unique_ptr<IBits> MakeBits(SDL_SurfacePtr camImage)
+    {
+        return std::make_unique<Bits>(std::move(camImage));
+    }
+
+    std::unique_ptr<IBits> MakeBits(IStream& stream)
     {
         const eCameraType cameraType = GetCameraType(stream);
         switch (cameraType)
         {
-        case eAoPsxDemo: return std::make_unique<PsxBits>(stream, false, true, lvl);
-        case eAePsx:     return std::make_unique<PsxBits>(stream, true, false, lvl);
-        case eAoPsx:     return std::make_unique<PsxBits>(stream, false, false, lvl);
-        case eAoPc:      return std::make_unique<AoBitsPc>(stream, lvl);
-        case eAePc:      return std::make_unique<AeBitsPc>(stream, lvl);
+        case eAoPsxDemo: return std::make_unique<PsxBits>(stream, false, true);
+        case eAePsx:     return std::make_unique<PsxBits>(stream, true, false);
+        case eAoPsx:     return std::make_unique<PsxBits>(stream, false, false);
+        case eAoPc:      return std::make_unique<AoBitsPc>(stream);
+        case eAePc:      return std::make_unique<AeBitsPc>(stream);
         }
         abort();
     }

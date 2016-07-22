@@ -10,8 +10,8 @@ namespace Oddlib
     const auto green_mask = 0x7E0;
     const auto blue_mask = 0x1F;
 
-    PsxBits::PsxBits(IStream& stream, bool includeLengthInStripSize, bool singleSlice, std::shared_ptr<Oddlib::LvlArchive>& lvl)
-        : IBits(lvl), mIncludeLengthInStripSize(includeLengthInStripSize)
+    PsxBits::PsxBits(IStream& stream, bool includeLengthInStripSize, bool singleSlice)
+        : mIncludeLengthInStripSize(includeLengthInStripSize)
     {
         mSurface.reset(SDL_CreateRGBSurface(0, 368, 240, 16, red_mask, green_mask, blue_mask, 0));
         GenerateImage(stream, singleSlice);
@@ -92,6 +92,12 @@ namespace Oddlib
             {
                 break;
             }
-        } 
+        }
+
+        if (mSurface->format->format != SDL_PIXELFORMAT_RGB24)
+        {
+            mSurface.reset(SDL_ConvertSurfaceFormat(mSurface.get(), SDL_PIXELFORMAT_RGB24, 0));
+        }
     }
+
 }

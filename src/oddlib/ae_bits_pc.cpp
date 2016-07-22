@@ -101,8 +101,7 @@ namespace Oddlib
     const auto green_mask = 0x7E0;
     const auto blue_mask = 0x1F;
 
-    AeBitsPc::AeBitsPc(IStream& stream, std::shared_ptr<Oddlib::LvlArchive>& lvl)
-        : IBits(lvl)
+    AeBitsPc::AeBitsPc(IStream& stream)
     {
         GenerateImage(stream);
     }
@@ -146,6 +145,10 @@ namespace Oddlib
         }
 
         mSurface.reset(SDL_CreateRGBSurfaceFrom(g_vram, 640, 240, 16, 640 * sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+        if (mSurface->format->format != SDL_PIXELFORMAT_RGB24)
+        {
+            mSurface.reset(SDL_ConvertSurfaceFormat(mSurface.get(), SDL_PIXELFORMAT_RGB24, 0));
+        }
     }
 
     void AeBitsPc::vlc_decode(const std::vector<Uint16>& aCamSeg, std::vector<Uint16>& aDst)
