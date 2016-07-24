@@ -5,17 +5,6 @@
 #include "oddlib/bits_factory.hpp"
 #include "lodepng/lodepng.h"
 
-#ifdef _CRT_SECURE_NO_WARNINGS
-#   undef _CRT_SECURE_NO_WARNINGS // stb_image.h might redefine _CRT_SECURE_NO_WARNINGS
-#   include "stb_image.h"
-#   ifndef _CRT_SECURE_NO_WARNINGS
-#       define _CRT_SECURE_NO_WARNINGS
-#   endif
-#else
-#   include "stb_image.h"
-#endif
-
-
 const /*static*/ float Animation::kPcToPsxScaleFactor = 1.73913043478f;
 
 bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
@@ -167,7 +156,120 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
 
 std::unique_ptr<Oddlib::IBits> ResourceLocator::LocateCamera(const char* resourceName)
 {
+    LOG_INFO("Requesting camera " << resourceName);
     return DoLocateCamera(resourceName, false);
+}
+
+static bool CanDeltaBeApplied(int camW, int camH, int deltaW, int deltaH)
+{
+    if (camW == 640 && deltaW == 1440 && camH == 240 && deltaH == 1080)
+    {
+        return true;
+    }
+    return false;
+}
+
+static SDL_SurfacePtr LoadPng(Oddlib::IStream& stream)
+{
+    lodepng::State state = {};
+
+    // input color type
+    state.info_raw.colortype = LCT_RGB;
+    state.info_raw.bitdepth = 8;
+
+    // output color type
+    state.info_png.color.colortype = LCT_RGB;
+    state.info_png.color.bitdepth = 8;
+    state.encoder.auto_convert = 0;
+
+    // decode PNG
+    std::vector<unsigned char> out;
+    std::vector<unsigned char> in = Oddlib::IStream::ReadAll(stream);
+
+    unsigned int w = 0;
+    unsigned int h = 0;
+
+    const auto decodeRet = lodepng::decode(out, w, h, state, in);
+
+    if (decodeRet == 0)
+    {
+        SDL_SurfacePtr scaled;
+        scaled.reset(SDL_CreateRGBSurfaceFrom(out.data(), w, h, 24, w * 3, 0xFF, 0x00FF, 0x0000FF, 0));
+
+        SDL_SurfacePtr ownedBuffer(SDL_CreateRGBSurface(0, w, h, 24, 0xFF, 0x00FF, 0x0000FF, 0));
+        SDL_BlitSurface(scaled.get(), NULL, ownedBuffer.get(), NULL);
+        return ownedBuffer;
+    }
+    else
+    {
+        LOG_ERROR(lodepng_error_text(decodeRet));
+    }
+    return nullptr;
+}
+
+static void ApplyDelta(SDL_Surface* deltaSurface, SDL_Surface* originalCameraSurface)
+{
+    auto dst = static_cast<Uint8*>(deltaSurface->pixels);
+    auto w = static_cast<unsigned int>(deltaSurface->w);
+    auto h = static_cast<unsigned int>(deltaSurface->h);
+
+    uint8_t *src = static_cast<uint8_t*>(originalCameraSurface->pixels);
+    // Apply delta image over linearly interpolated game cam image
+    for (auto y = 0u; y < h; ++y)
+    {
+        const float src_rel_y = 1.f*y / (h - 1); // 0..1
+        for (auto x = 0u; x < w; ++x)
+        {
+            const float src_rel_x = 1.f*x / (w - 1); // 0..1
+
+            int src_x = (int)floor(src_rel_x*originalCameraSurface->w - 0.5f);
+            int src_y = (int)floor(src_rel_y*originalCameraSurface->h - 0.5f);
+
+            int src_x_plus = src_x + 1;
+            int src_y_plus = src_y + 1;
+
+            float lerp_x = src_rel_x*originalCameraSurface->w - (src_x + 0.5f);
+            float lerp_y = src_rel_y*originalCameraSurface->h - (src_y + 0.5f);
+            assert(lerp_x >= 0.0f);
+            assert(lerp_x <= 1.0f);
+            assert(lerp_y >= 0.0f);
+            assert(lerp_y <= 1.0f);
+
+            // Limit source pixels inside image
+            src_x = std::max(src_x, 0);
+            src_y = std::max(src_y, 0);
+            src_x_plus = std::min(src_x_plus, originalCameraSurface->w - 1);
+            src_y_plus = std::min(src_y_plus, originalCameraSurface->h - 1);
+
+            // Indices to four neighboring pixels
+            const int src_indices[4] =
+            {
+                src_x * 3 + originalCameraSurface->pitch*src_y,
+                src_x_plus * 3 + originalCameraSurface->pitch*src_y,
+                src_x * 3 + originalCameraSurface->pitch*src_y_plus,
+                src_x_plus * 3 + originalCameraSurface->pitch*src_y_plus
+            };
+
+            const int dst_ix = (x + w*y) * 3;
+
+            for (int comp = 0; comp < 3; ++comp)
+            {
+                // 4 neighboring texels
+                float a = src[src_indices[0] + comp] / 255.f;
+                float b = src[src_indices[1] + comp] / 255.f;
+                float c = src[src_indices[2] + comp] / 255.f;
+                float d = src[src_indices[3] + comp] / 255.f;
+
+                // 2d linear interpolation
+                float orig = (a*(1 - lerp_x) + b*lerp_x)*(1 - lerp_y) + (c*(1 - lerp_x) + d*lerp_x)*lerp_y;
+                float delta = dst[dst_ix + comp] / 255.f;
+
+                // "Grain extract" has been used in creating the delta image
+                float merged = orig + delta - 0.5f;
+                dst[dst_ix + comp] = (uint8_t)(std::max(std::min(merged * 255 + 0.5f, 255.f), 0.0f));
+            }
+        }
+    }
 }
 
 std::unique_ptr<Oddlib::IBits> ResourceLocator::DoLocateCamera(const char* resourceName, bool ignoreMods)
@@ -184,40 +286,15 @@ std::unique_ptr<Oddlib::IBits> ResourceLocator::DoLocateCamera(const char* resou
                 modName = std::string(resourceName) + ".png";
             }
 
-            // TODO: Refactor PNG loading
+            // Check for mod trying to fully replace camera with its own, or simply a new camera
             if (fs.mFileSystem->FileExists(modName))
             {
                 auto stream = fs.mFileSystem->Open(modName);
-
-                lodepng::State state = {};
-
-                // input color type
-                state.info_raw.colortype = LCT_RGB;
-                state.info_raw.bitdepth = 8;
-
-                // output color type
-                state.info_png.color.colortype = LCT_RGB;
-                state.info_png.color.bitdepth = 8;
-                state.encoder.auto_convert = 0;
-
-                // decode PNG
-                std::vector<unsigned char> out;
-                std::vector<unsigned char> in = Oddlib::IStream::ReadAll(*stream);
-
-                unsigned int w = 0;
-                unsigned int h = 0;
-
-                const auto decodeRet = lodepng::decode(out, w, h, state, in);
-
-                if (decodeRet == 0)
+                auto surface = LoadPng(*stream);
+                if (surface)
                 {
-                    SDL_SurfacePtr scaled;
-                    scaled.reset(SDL_CreateRGBSurfaceFrom(out.data(), w, h, 24, w * 3, 0xFF, 0x00FF, 0x0000FF, 0));
-
-                    SDL_SurfacePtr ownedBuffer(SDL_CreateRGBSurface(0, w, h, 24, 0xFF, 0x00FF, 0x0000FF, 0));
-                    SDL_BlitSurface(scaled.get(), NULL, ownedBuffer.get(), NULL);
-
-                    return Oddlib::MakeBits(std::move(ownedBuffer));
+                    LOG_INFO("Loaded new or replacement camera from mod " << fs.mDataSetName);
+                    return Oddlib::MakeBits(std::move(surface));
                 }
             }
 
@@ -229,108 +306,19 @@ std::unique_ptr<Oddlib::IBits> ResourceLocator::DoLocateCamera(const char* resou
             if (fs.mFileSystem->FileExists(deltaName))
             {
                 auto cam = DoLocateCamera(resourceName, true);
-               
-
                 if (cam)
                 {
-                    auto surf = cam->GetSurface();
-
-                    auto stream = fs.mFileSystem->Open(deltaName);
-
-                    lodepng::State state = {};
-
-                    // input color type
-                    state.info_raw.colortype = LCT_RGB;
-                    state.info_raw.bitdepth = 8;
-
-                    // output color type
-                    state.info_png.color.colortype = LCT_RGB;
-                    state.info_png.color.bitdepth = 8;
-                    state.encoder.auto_convert = 0;
-
-                    // decode PNG
-                    std::vector<unsigned char> out;
-                    std::vector<unsigned char> in = Oddlib::IStream::ReadAll(*stream);
-
-                    unsigned int w = 0;
-                    unsigned int h = 0;
-
-                    const auto decodeRet = lodepng::decode(out, w, h, state, in);
-
-                    // Delta images upscale by 3x. If the delta /3 isn't the size of the original camera
-                    // then it can't be applied.
-                    if (decodeRet == 0 && surf->w == static_cast<int>(w/3) && surf->h == static_cast<int>(h/3))
+                    auto originalCameraSurface = cam->GetSurface();
+                    auto deltaPngStream = fs.mFileSystem->Open(deltaName);
+                    auto deltaSurface = LoadPng(*deltaPngStream);
+                    if (deltaSurface)
                     {
-                        auto dst = out.data();
-
-                        uint8_t *src = static_cast<uint8_t*>(surf->pixels);
-                        // Apply delta image over linearly interpolated game cam image
-                        for (auto y = 0u; y < h; ++y)
+                        if (CanDeltaBeApplied(originalCameraSurface->w, originalCameraSurface->h, deltaSurface->w, deltaSurface->h))
                         {
-                            const float src_rel_y = 1.f*y / (h - 1); // 0..1
-                            for (auto x = 0u; x < w; ++x)
-                            {
-                                const float src_rel_x = 1.f*x / (w - 1); // 0..1
-
-                                int src_x = (int)floor(src_rel_x*surf->w - 0.5f);
-                                int src_y = (int)floor(src_rel_y*surf->h - 0.5f);
-
-                                int src_x_plus = src_x + 1;
-                                int src_y_plus = src_y + 1;
-
-                                float lerp_x = src_rel_x*surf->w - (src_x + 0.5f);
-                                float lerp_y = src_rel_y*surf->h - (src_y + 0.5f);
-                                assert(lerp_x >= 0.0f);
-                                assert(lerp_x <= 1.0f);
-                                assert(lerp_y >= 0.0f);
-                                assert(lerp_y <= 1.0f);
-
-                                // Limit source pixels inside image
-                                src_x = std::max(src_x, 0);
-                                src_y = std::max(src_y, 0);
-                                src_x_plus = std::min(src_x_plus, surf->w - 1);
-                                src_y_plus = std::min(src_y_plus, surf->h - 1);
-
-                                // Indices to four neighboring pixels
-                                const int src_indices[4] =
-                                {
-                                    src_x * 3 + surf->pitch*src_y,
-                                    src_x_plus * 3 + surf->pitch*src_y,
-                                    src_x * 3 + surf->pitch*src_y_plus,
-                                    src_x_plus * 3 + surf->pitch*src_y_plus
-                                };
-
-                                const int dst_ix = (x + w*y) * 3;
-
-                                for (int comp = 0; comp < 3; ++comp)
-                                {
-                                    // 4 neighboring texels
-                                    float a = src[src_indices[0] + comp] / 255.f;
-                                    float b = src[src_indices[1] + comp] / 255.f;
-                                    float c = src[src_indices[2] + comp] / 255.f;
-                                    float d = src[src_indices[3] + comp] / 255.f;
-
-                                    // 2d linear interpolation
-                                    float orig = (a*(1 - lerp_x) + b*lerp_x)*(1 - lerp_y) + (c*(1 - lerp_x) + d*lerp_x)*lerp_y;
-                                    float delta = dst[dst_ix + comp] / 255.f;
-
-                                    // "Grain extract" has been used in creating the delta image
-                                    float merged = orig + delta - 0.5f;
-                                    dst[dst_ix + comp] = (uint8_t)(std::max(std::min(merged * 255 + 0.5f, 255.f), 0.0f));
-                                }
-                            }
+                            ApplyDelta(deltaSurface.get(), originalCameraSurface);
+                            LOG_INFO("Applied camera upscaling delta from " << fs.mDataSetName);
+                            return Oddlib::MakeBits(std::move(deltaSurface));
                         }
-                        SDL_SurfacePtr scaled;
-                        scaled.reset(SDL_CreateRGBSurfaceFrom(dst, w, h, 24, w * 3, 0xFF, 0x00FF, 0x0000FF, 0));
-
-                        SDL_SurfacePtr ownedBuffer(SDL_CreateRGBSurface(0, w, h, 24, 0xFF, 0x00FF, 0x0000FF, 0));
-                        SDL_BlitSurface(scaled.get(), NULL, ownedBuffer.get(), NULL);
-
-                        return Oddlib::MakeBits(std::move(ownedBuffer));
-                    }
-                    else
-                    {
-                        LOG_ERROR(lodepng_error_text(decodeRet));
                     }
                 }
             }
@@ -350,6 +338,7 @@ std::unique_ptr<Oddlib::IBits> ResourceLocator::DoLocateCamera(const char* resou
                         {
                             auto chunk = lvlFile->ChunkByType(Oddlib::MakeType('B', 'i', 't', 's'));
                             auto stream = chunk->Stream();
+                            LOG_INFO("Loaded original camera from " << fs.mDataSetName);
                             return Oddlib::MakeBits(*stream);
                         }
                     }
