@@ -1201,6 +1201,15 @@ private:
                 }
             }
             
+            if (it.HasMember("paths"))
+            {
+                const auto& pathsArray = it["paths"].GetArray();
+                for (auto& obj : pathsArray)
+                {
+                    ParsePathResourceJson(obj);
+                }
+            }
+
             if (it.HasMember("lvls"))
             {
                 ParseFileLocations(it);
@@ -1259,6 +1268,13 @@ private:
 
         const auto& name = obj["name"].GetString();
         mFmvMaps[name] = mapping;
+    }
+
+    template<typename JsonObject>
+    void ParsePathResourceJson(const JsonObject& obj)
+    {
+        // TODO
+        std::ignore = obj;
     }
 
     template<typename JsonObject>

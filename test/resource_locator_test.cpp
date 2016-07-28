@@ -168,6 +168,22 @@ TEST(ResourceLocator, ParseResourceMap)
     const std::string resourceMapsJson = 
         R"(
 [{
+    "paths": [{
+        "collision_offset": 400,
+        "id": 1,
+        "locations": [{
+            "dataset": "AePc",
+            "file_name": "BAPATH.BND"
+        }, {
+            "dataset": "AePsxCd2",
+            "file_name": "BAPATH.BND"
+        }],
+        "number_of_screens_x": 6,
+        "nummer_of_screens_y": 8,
+        "object_indextable_offset": 7628,
+        "object_offset": 2460,
+        "resource_name": "BAPATH_1"
+    }],
     "animations": [{
         "blend_mode": 1,
         "locations": [{
@@ -195,14 +211,12 @@ TEST(ResourceLocator, ParseResourceMap)
         "locations": [{
             "dataset": "AePc",
             "file": "TRAIN2.DDV"
-        },
-        {
+        }, {
             "dataset": "AoPsx",
             "file": "BLAH.MOV",
             "start_sector": 12345,
             "end_sector": 56789
-        }
-        ],
+        }],
         "name": "TRAIN2_DDV_AePc"
     }, {
         "locations": [{
@@ -276,6 +290,12 @@ TEST(ResourceLocator, ParseResourceMap)
         ASSERT_EQ("F2.MOV", r3->mLocations[0].mFileName);
         ASSERT_EQ(12359u, r3->mLocations[0].mStartSector);
         ASSERT_EQ(12877u, r3->mLocations[0].mEndSector);
+    }
+
+    {
+        // TODO
+        // const ResourceMapper::PathMapping* r0 = mapper.FindPath("BAPATH_1");
+
     }
 }
 
