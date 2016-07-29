@@ -189,7 +189,7 @@ std::unique_ptr<Oddlib::Path> ResourceLocator::LocatePath(const char* resourceNa
                                         mapping->mObjectOffset,
                                         mapping->mNumberOfScreensX,
                                         mapping->mNumberOfScreensY,
-                                        false); // TODO Fix me, pass IsAo flag
+                                        attributes.mIsAo);
                                 }
                             }
 

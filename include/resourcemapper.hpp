@@ -1168,6 +1168,9 @@ public:
         // Is this lvl a PSX lvl?
         bool mIsPsx;
 
+        // Is this Ao or Ae data?
+        bool mIsAo;
+
         // Do we need to scale the frame offsets down to make them correct?
         bool mScaleFrameOffsets;
     };
@@ -1273,6 +1276,7 @@ private:
         DataSetFileAttributes dataSetAttributes;
         const std::string& dataSetName = obj["data_set_name"].GetString();
         dataSetAttributes.mIsPsx = obj["is_psx"].GetBool();
+        dataSetAttributes.mIsAo = obj["is_ao"].GetBool();
         dataSetAttributes.mScaleFrameOffsets = obj["scale_frame_offsets"].GetBool();
 
         const auto& lvls = obj["lvls"].GetArray();

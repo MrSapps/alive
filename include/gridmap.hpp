@@ -18,14 +18,13 @@ namespace Oddlib { class LvlArchive; class IBits; }
 class Level
 {
 public:
-    Level(GameData& gameData, IAudioController& audioController, ResourceLocator& locator, FileSystem& fs);
+    Level(IAudioController& audioController, ResourceLocator& locator, FileSystem& fs);
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
 private:
     void RenderDebugPathSelection(Renderer& rend, GuiContext& gui);
     std::unique_ptr<class GridMap> mMap;
     std::unique_ptr<Script> mScript;
-    GameData& mGameData;
     ResourceLocator& mLocator;
     FileSystem& mFs;
 };

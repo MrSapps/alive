@@ -12,8 +12,8 @@
 #include "resourcemapper.hpp"
 
 
-Level::Level(GameData& gameData, IAudioController& /*audioController*/, ResourceLocator& locator, FileSystem& fs)
-    : mGameData(gameData), mLocator(locator), mFs(fs)
+Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator, FileSystem& fs)
+    : mLocator(locator), mFs(fs)
 {
     mScript = std::make_unique<Script>();
     /*
