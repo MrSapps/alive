@@ -18,7 +18,7 @@ namespace Oddlib { class LvlArchive; class IBits; }
 class Level
 {
 public:
-    Level(IAudioController& audioController, ResourceLocator& locator, FileSystem& fs);
+    Level(IAudioController& audioController, ResourceLocator& locator);
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
 private:
@@ -26,7 +26,6 @@ private:
     std::unique_ptr<class GridMap> mMap;
     std::unique_ptr<Script> mScript;
     ResourceLocator& mLocator;
-    FileSystem& mFs;
 };
 
 class GridScreen
