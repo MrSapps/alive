@@ -154,6 +154,54 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
     return mResMapper.DebugUi(renderer, gui, filter);
 }
 
+std::unique_ptr<Oddlib::Path> ResourceLocator::LocatePath(const char* resourceName)
+{
+    const ResourceMapper::PathMapping* mapping = mResMapper.FindPath(resourceName);
+    if (mapping)
+    {
+        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+        {
+            if (fs.mIsMod)
+            {
+                // TODO: Mod path
+            }
+            else
+            {
+                const ResourceMapper::PathLocation* pathLocation = mapping->Find(fs.mDataSetName);
+                if (pathLocation)
+                {
+                    const std::vector<ResourceMapper::DataSetFileAttributes>* locationsInThisDataSet = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), pathLocation->mDataSetFileName.c_str());
+                    if (locationsInThisDataSet)
+                    {
+                        for (const ResourceMapper::DataSetFileAttributes& attributes : *locationsInThisDataSet)
+                        {
+                            std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, attributes.mLvlName);
+                            if (lvl)
+                            {
+                                auto lvlFile = lvl->FileByName(pathLocation->mDataSetFileName);
+                                if (lvlFile)
+                                {
+                                    auto chunk = lvlFile->ChunkById(mapping->mId);
+                                    auto stream = chunk->Stream();
+                                    return std::make_unique<Oddlib::Path>(*stream,
+                                        mapping->mCollisionOffset,
+                                        mapping->mIndexTableOffset,
+                                        mapping->mObjectOffset,
+                                        mapping->mNumberOfScreensX,
+                                        mapping->mNumberOfScreensY,
+                                        false); // TODO Fix me, pass IsAo flag
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
 std::unique_ptr<Oddlib::IBits> ResourceLocator::LocateCamera(const char* resourceName)
 {
     LOG_INFO("Requesting camera " << resourceName);

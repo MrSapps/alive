@@ -22,6 +22,7 @@
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/anim.hpp"
 #include "renderer.hpp"
+#include "oddlib/path.hpp"
 
 // Remove more windows.h pollution
 #undef GetObject
@@ -1116,6 +1117,18 @@ public:
         Uint32 mNumberOfScreensX;
         Uint32 mNumberOfScreensY;
         std::vector<PathLocation> mLocations;
+
+        const PathLocation* Find(const std::string& dataSetName) const
+        {
+            for (const PathLocation& location : mLocations)
+            {
+                if (location.mDataSetName == dataSetName)
+                {
+                    return &location;
+                }
+            }
+            return nullptr;
+        }
     };
 
     const PathMapping* FindPath(const char* resourceName)
@@ -1200,6 +1213,8 @@ private:
     std::map<std::string, AnimMapping> mAnimMaps;
     std::map<std::string, FmvMapping> mFmvMaps;
     std::map<std::string, PathMapping> mPathMaps;
+
+    friend class Level; // TODO: Temp debug ui
 
     void Parse(const std::string& json)
     {
@@ -1632,6 +1647,8 @@ public:
         return mDataPaths;
     }
 
+
+    std::unique_ptr<Oddlib::Path> LocatePath(const char* resourceName);
     std::unique_ptr<Oddlib::IBits> LocateCamera(const char* resourceName);
     std::unique_ptr<class IMovie> LocateFmv(class IAudioController& audioController, const char* resourceName);
 
@@ -1655,5 +1672,6 @@ private:
     ResourceMapper mResMapper;
     DataPaths mDataPaths;
 
-    friend class FmvUi;
+    friend class FmvUi; // TODO: Temp debug ui
+    friend class Level; // TODO: Temp debug ui
 };

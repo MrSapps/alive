@@ -61,7 +61,7 @@ class GridMap
 public:
     GridMap(const GridMap&) = delete;
     GridMap& operator = (const GridMap&) = delete;
-    GridMap(const std::string& lvlName, Oddlib::Path& path, ResourceLocator& locator, Renderer& rend);
+    GridMap(Oddlib::Path& path, ResourceLocator& locator, Renderer& rend);
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
 private:
@@ -74,5 +74,5 @@ private:
 
     // TODO: This is not the in-game format
     std::vector<Oddlib::Path::CollisionItem> mCollisionItems;
-    bool mIsAo = false;
+    bool mIsAo;
 };

@@ -50,46 +50,15 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
 {
     gui_begin_window(&gui, "Paths");
 
-    static std::vector<std::pair<std::string, const GameData::PathEntry*>> items;
-    if (items.empty())
+    for (const auto& pathMap : mLocator.mResMapper.mPathMaps)
     {
-
-        for (const auto& pathGroup : mGameData.Paths())
+        if (gui_button(&gui, pathMap.first.c_str()))
         {
-            for (const auto& path : pathGroup.second)
+            std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(pathMap.first.c_str());
+            if (path)
             {
-                items.push_back(std::make_pair(pathGroup.first + " " + std::to_string(path.mPathChunkId), &path));
-            }
-        }
-    }
 
-    for (const auto& item : items)
-    {
-        if (gui_button(&gui, item.first.c_str()))
-        {
-            const GameData::PathEntry* entry = item.second;
-            const std::string baseLvlNameUpper = item.first.substr(0, 2); // R1, MI etc
-            std::string baseLvlNameLower = baseLvlNameUpper;
-
-            // Open the LVL
-            std::transform(baseLvlNameLower.begin(), baseLvlNameLower.end(), baseLvlNameLower.begin(), string_util::c_tolower);
-            const std::string lvlName = baseLvlNameLower + ".lvl";
-
-            LOG_INFO("Looking for LVL " << lvlName);
-
-            //auto path = mLocator.LocatePath();
-
-            auto chunkStream = mFs.ResourcePaths().OpenLvlFileChunkById(lvlName, baseLvlNameUpper + "PATH.BND", entry->mPathChunkId);
-            if (chunkStream)
-            {
-                Oddlib::Path path(*chunkStream,
-                    entry->mCollisionDataOffset,
-                    entry->mObjectIndexTableOffset,
-                    entry->mObjectDataOffset,
-                    entry->mMapXSize,
-                    entry->mMapYSize,
-                    entry->mIsAo);
-                mMap = std::make_unique<GridMap>(lvlName, path, mLocator, rend);
+                mMap = std::make_unique<GridMap>(*path, mLocator, rend);
             }
             else
             {
@@ -142,8 +111,8 @@ bool GridScreen::hasTexture() const
     return !onlySpaces;
 }
 
-GridMap::GridMap(const std::string& lvlName, Oddlib::Path& path, ResourceLocator& locator, Renderer& rend)
-    : mLvlName(lvlName), mCollisionItems(path.CollisionItems())
+GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, Renderer& rend)
+    : mCollisionItems(path.CollisionItems())
 {
     mIsAo = path.IsAo();
 
