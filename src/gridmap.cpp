@@ -11,15 +11,6 @@
 #include <cmath>
 #include "resourcemapper.hpp"
 
-#ifdef _CRT_SECURE_NO_WARNINGS
-#   undef _CRT_SECURE_NO_WARNINGS // stb_image.h might redefine _CRT_SECURE_NO_WARNINGS
-#   include "stb_image.h"
-#   ifndef _CRT_SECURE_NO_WARNINGS
-#       define _CRT_SECURE_NO_WARNINGS
-#   endif
-#else
-#   include "stb_image.h"
-#endif
 
 Level::Level(GameData& gameData, IAudioController& /*audioController*/, ResourceLocator& locator, FileSystem& fs)
     : mGameData(gameData), mLocator(locator), mFs(fs)
@@ -85,6 +76,8 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
             const std::string lvlName = baseLvlNameLower + ".lvl";
 
             LOG_INFO("Looking for LVL " << lvlName);
+
+            //auto path = mLocator.LocatePath();
 
             auto chunkStream = mFs.ResourcePaths().OpenLvlFileChunkById(lvlName, baseLvlNameUpper + "PATH.BND", entry->mPathChunkId);
             if (chunkStream)

@@ -170,16 +170,16 @@ TEST(ResourceLocator, ParseResourceMap)
 [{
     "paths": [{
         "collision_offset": 400,
-        "id": 1,
+        "id": 88,
         "locations": [{
             "dataset": "AePc",
             "file_name": "BAPATH.BND"
         }, {
             "dataset": "AePsxCd2",
-            "file_name": "BAPATH.BND"
+            "file_name": "BLOP.BND"
         }],
         "number_of_screens_x": 6,
-        "nummer_of_screens_y": 8,
+        "number_of_screens_y": 8,
         "object_indextable_offset": 7628,
         "object_offset": 2460,
         "resource_name": "BAPATH_1"
@@ -293,9 +293,24 @@ TEST(ResourceLocator, ParseResourceMap)
     }
 
     {
-        // TODO
-        // const ResourceMapper::PathMapping* r0 = mapper.FindPath("BAPATH_1");
+        const ResourceMapper::PathMapping* r0 = mapper.FindPath("I don't exist");
+        ASSERT_EQ(nullptr, r0);
 
+        const ResourceMapper::PathMapping* r1 = mapper.FindPath("BAPATH_1");
+        ASSERT_NE(nullptr, r1);
+        ASSERT_EQ(88u, r1->mId);
+        ASSERT_EQ(400u, r1->mCollisionOffset);
+        ASSERT_EQ(7628u, r1->mIndexTableOffset);
+        ASSERT_EQ(2460u, r1->mObjectOffset);
+        ASSERT_EQ(6u, r1->mNumberOfScreensX);
+        ASSERT_EQ(8u, r1->mNumberOfScreensY);
+
+        ASSERT_EQ(2u, r1->mLocations.size());
+        ASSERT_EQ("AePc", r1->mLocations[0].mDataSetName);
+        ASSERT_EQ("BAPATH.BND", r1->mLocations[0].mDataSetFileName);
+        
+        ASSERT_EQ("AePsxCd2", r1->mLocations[1].mDataSetName);
+        ASSERT_EQ("BLOP.BND", r1->mLocations[1].mDataSetFileName);
     }
 }
 

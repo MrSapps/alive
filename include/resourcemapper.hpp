@@ -1046,6 +1046,7 @@ public:
             mAnimMaps = std::move(rhs.mAnimMaps);
             mFmvMaps = std::move(rhs.mFmvMaps);
             mFileLocations = std::move(rhs.mFileLocations);
+            mPathMaps = std::move(rhs.mPathMaps);
         }
         return *this;
     }
@@ -1089,6 +1090,7 @@ public:
         std::vector<FmvFileLocation> mLocations;
     };
 
+
     const FmvMapping* FindFmv(const char* resourceName)
     {
         const auto it = mFmvMaps.find(resourceName);
@@ -1099,7 +1101,32 @@ public:
         return nullptr;
     }
 
-    std::map<std::string, FmvMapping> mFmvMaps;
+    struct PathLocation
+    {
+        std::string mDataSetName;
+        std::string mDataSetFileName;
+    };
+
+    struct PathMapping
+    {
+        Uint32 mId;
+        Uint32 mCollisionOffset;
+        Uint32 mIndexTableOffset;
+        Uint32 mObjectOffset;
+        Uint32 mNumberOfScreensX;
+        Uint32 mNumberOfScreensY;
+        std::vector<PathLocation> mLocations;
+    };
+
+    const PathMapping* FindPath(const char* resourceName)
+    {
+        const auto it = mPathMaps.find(resourceName);
+        if (it != std::end(mPathMaps))
+        {
+            return &it->second;
+        }
+        return nullptr;
+    }
 
     struct AnimMapping
     {
@@ -1171,6 +1198,8 @@ public:
 private:
 
     std::map<std::string, AnimMapping> mAnimMaps;
+    std::map<std::string, FmvMapping> mFmvMaps;
+    std::map<std::string, PathMapping> mPathMaps;
 
     void Parse(const std::string& json)
     {
@@ -1273,8 +1302,24 @@ private:
     template<typename JsonObject>
     void ParsePathResourceJson(const JsonObject& obj)
     {
-        // TODO
-        std::ignore = obj;
+        PathMapping mapping;
+        mapping.mId = obj["id"].GetInt();
+        mapping.mCollisionOffset = obj["collision_offset"].GetInt();
+        mapping.mIndexTableOffset = obj["object_indextable_offset"].GetInt();
+        mapping.mObjectOffset = obj["object_offset"].GetInt();
+        mapping.mNumberOfScreensX = obj["number_of_screens_x"].GetInt();
+        mapping.mNumberOfScreensY = obj["number_of_screens_y"].GetInt();
+
+        const auto& locations = obj["locations"].GetArray();
+        for (auto& locationRecord : locations)
+        {
+            const auto& dataSet = locationRecord["dataset"].GetString();
+            const auto& dataSetFileName = locationRecord["file_name"].GetString();
+            mapping.mLocations.push_back(PathLocation{ dataSet, dataSetFileName });
+        }
+
+        const auto& name = obj["resource_name"].GetString();
+        mPathMaps[name] = mapping;
     }
 
     template<typename JsonObject>
