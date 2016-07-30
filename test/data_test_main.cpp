@@ -221,7 +221,7 @@ public:
     LvlFileChunkReducer& operator = (const LvlFileChunkReducer&) = delete;
     LvlFileChunkReducer() = default;
 
-    void MergeReduce(IFileSystem& parentFs, const std::string& resourcePath, const std::vector<std::string>& lvlFiles, eDataSetType dataSet)
+    void MergeReduceLvlChunks(IFileSystem& parentFs, const std::string& resourcePath, const std::vector<std::string>& lvlFiles, eDataSetType dataSet)
     {
         auto fs = IFileSystem::Factory(parentFs, resourcePath);
         if (!fs->Init())
@@ -235,7 +235,7 @@ public:
             auto stream = fs->Open(lvl);
             if (stream)
             {
-                MergeReduce(std::make_unique<Oddlib::LvlArchive>(std::move(stream)), lvl, dataSet);
+                MergeReduceLvlChunks(std::make_unique<Oddlib::LvlArchive>(std::move(stream)), lvl, dataSet);
             }
             else
             {
@@ -248,33 +248,19 @@ public:
     std::vector<std::unique_ptr<DeDuplicatedLvlChunk>>& UniqueChunks() { return mDeDuplicatedLvlFileChunks; }
     const std::map<eDataSetType, std::map<std::string, std::set<std::string>>>& LvlContent() const { return mLvlToDataSetMap; }
 private:
-    void MergeReduce(std::unique_ptr<Oddlib::LvlArchive> lvl, const std::string& lvlName, eDataSetType dataSet)
+    void MergeReduceLvlChunks(std::unique_ptr<Oddlib::LvlArchive> lvl, const std::string& lvlName, eDataSetType dataSet)
     {
         for (auto i = 0u; i < lvl->FileCount(); i++)
         {
             auto file = lvl->FileByIndex(i);
       
             AddLvlMapping(dataSet, lvlName, file->FileName());
-            
-            /*
-            if (file->FileName() != "ABEBLOW.BAN") // Limit testing to this 1 file for now
-            {
-                continue;
-            }
-            */
 
             for (auto j = 0u; j < file->ChunkCount(); j++)
             {
                 auto chunk = file->ChunkByIndex(j);
-                
-                /*
-                if (chunk->Id() != 25)
-                {
-                    break;
-                }
-                */
 
-                if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm')) // Only care about Anim resources at the moment
+                //if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm')) // Only care about Anim resources at the moment
                 {
                     bool deDuplicatedChunkAlreadyExists = false;
 
@@ -666,12 +652,12 @@ int main(int /*argc*/, char** /*argv*/)
     public:
         Db() = default;
 
-        void Merge(IFileSystem& fs, eDataSetType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
+        void MergeDuplicatedLvlChunks(IFileSystem& fs, eDataSetType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         {
-            mLvlChunkReducer.MergeReduce(fs, resourcePath, lvls, eType);
+            mLvlChunkReducer.MergeReduceLvlChunks(fs, resourcePath, lvls, eType);
         }
 
-        void MergePcAndPsx()
+        void MergeDuplicateAnimations()
         {
             // Load the animation set for each unique Anim chunk
             std::vector<std::unique_ptr<DeDuplicatedLvlChunk>>& chunks = mLvlChunkReducer.UniqueChunks();
@@ -735,7 +721,7 @@ int main(int /*argc*/, char** /*argv*/)
             */
         }
 
-        void Dump()
+        void DumpAnimationSpriteSheets()
         {
             for (const std::unique_ptr<DeDuplicatedAnimation>& deDupedAnim : mDeDuplicatedAnimations)
             {
@@ -785,7 +771,7 @@ int main(int /*argc*/, char** /*argv*/)
             }
         }
 
-        void ToJson()
+        void AnimationsToJson()
         {
             jsonxx::Array resources;
 
@@ -1059,13 +1045,16 @@ int main(int /*argc*/, char** /*argv*/)
             // Defined struct is wrong
             abort();
         }
-        db.Merge(gameFs, data.first, data.second, *it->second);
+        db.MergeDuplicatedLvlChunks(gameFs, data.first, data.second, *it->second);
     }
 
-    db.MergePcAndPsx();
-
-    db.ToJson();
-   // db.Dump();
+    // db.MergeDuplicateAnimations();
+    // db.AnimationsToJson();
+    // db.DumpAnimationSpriteSheets();
+    
+    // db.MergeDuplicateSoundSequnces();
+    // db.MergeDuplicateVhandVbs();
+    // db.SoundsToJson();
 
     return 0;
 }
