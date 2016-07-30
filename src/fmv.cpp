@@ -203,7 +203,10 @@ void IMovie::Play(Uint8* stream, Uint32 len)
         uint8_t low = mAudioBuffer[i*sizeof(int16_t)];
         uint8_t high = mAudioBuffer[i*sizeof(int16_t) + 1];
         int16_t fixed = (int16_t)(low | (high << 8));
-        floatOutStream[i] = fixed / 32768.0f;
+
+        // TODO: Add a proper audio mixing alogrithm/API, this will clip/overflow and cause weridnes when
+        // 2 streams of diff sample rates are mixed
+        floatOutStream[i] += fixed / 32768.0f;
     }
     mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take*sizeof(int16_t));
     mConsumedAudioBytes += take*sizeof(int16_t);
