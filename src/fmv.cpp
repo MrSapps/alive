@@ -55,8 +55,11 @@ static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w
     rend.text(xpos - adjust, ypos - adjust, msg);
 }
 
-IMovie::IMovie(IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles)
-        : mAudioController(controller), mSubTitles(std::move(subtitles))
+// Make FMV window title unique, duplicates will cause a crash
+static int gId = 0;
+
+IMovie::IMovie(const std::string& resourceName, IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles)
+    : mAudioController(controller), mSubTitles(std::move(subtitles)), mName("FMV: " + resourceName + std::to_string(gId++))
 {
     // TODO: Add to interface - must be added/removed outside of ctor/dtor due
     // to data race issues
@@ -211,7 +214,7 @@ void IMovie::RenderFrame(Renderer &rend, GuiContext &gui, int width, int height,
     // TODO: Optimize - should update 1 texture rather than creating per frame
     int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
 
-    gui_begin_window(&gui, "FMV");
+    gui_begin_window(&gui, mName.c_str());
     int x, y, w, h;
     gui_turtle_pos(&gui, &x, &y);
     gui_window_client_size(&gui, &w, &h);
@@ -220,7 +223,9 @@ void IMovie::RenderFrame(Renderer &rend, GuiContext &gui, int width, int height,
     rend.drawQuad(texhandle, static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
 
     if (subtitles)
+    {
         RenderSubtitles(rend, subtitles, x, y, w, h);
+    }
 
     rend.endLayer();
 
@@ -236,14 +241,14 @@ class MovMovie : public IMovie
 protected:
     std::unique_ptr<Oddlib::IStream> mFmvStream;
     bool mPsx = false;
-    MovMovie(IAudioController& audioController, std::unique_ptr<SubTitleParser> subtitles)
-        : IMovie(audioController, std::move(subtitles))
+    MovMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<SubTitleParser> subtitles)
+        : IMovie(resourceName, audioController, std::move(subtitles))
     {
 
     }
 public:
-    MovMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles, Uint32 startSector, Uint32 numberOfSectors)
-        : IMovie(audioController, std::move(subtitles))
+    MovMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles, Uint32 startSector, Uint32 numberOfSectors)
+        : IMovie(resourceName, audioController, std::move(subtitles))
     {
         if (numberOfSectors == 0)
         {
@@ -430,8 +435,8 @@ private:
 class DDVMovie : public MovMovie
 {
 public:
-    DDVMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles)
-        : MovMovie(audioController, std::move(subtitles))
+    DDVMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles)
+        : MovMovie(resourceName, audioController, std::move(subtitles))
     {
         mPsx = false;
         mAudioBytesPerFrame = 10063; // TODO: Calculate
@@ -445,8 +450,8 @@ public:
 class MasherMovie : public IMovie
 {
 public:
-    MasherMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles)
-        : IMovie(audioController, std::move(subtitles))
+    MasherMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles)
+        : IMovie(resourceName, audioController, std::move(subtitles))
     {
         mMasher = std::make_unique<Oddlib::Masher>(std::move(stream));
 
@@ -512,6 +517,7 @@ private:
 
 
 /*static*/ std::unique_ptr<IMovie> IMovie::Factory(
+    const std::string& resourceName,
     IAudioController& audioController,
     std::unique_ptr<Oddlib::IStream> stream,
     std::unique_ptr<SubTitleParser> subTitles,
@@ -524,16 +530,16 @@ private:
     std::string idStr(idBuffer, 3);
     if (idStr == "DDV")
     {
-        return std::make_unique<MasherMovie>(audioController, std::move(stream), std::move(subTitles));
+        return std::make_unique<MasherMovie>(resourceName, audioController, std::move(stream), std::move(subTitles));
     }
     else if (idStr == "MOI")
     {
-        return std::make_unique<DDVMovie>(audioController, std::move(stream), std::move(subTitles));
+        return std::make_unique<DDVMovie>(resourceName, audioController, std::move(stream), std::move(subTitles));
     }
     else
     {
         const auto numberofSectors = endSector - startSector;
-        return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), startSector, numberofSectors);
+        return std::make_unique<MovMovie>(resourceName, audioController, std::move(stream), std::move(subTitles), startSector, numberofSectors);
     }
 }
 
@@ -571,12 +577,12 @@ private:
     char mFilterString[64];
     int mListBoxSelectedItem = -1;
     std::vector<const char*> mListBoxItems;
-    std::unique_ptr<class IMovie>& mFmv;
+    std::vector<std::unique_ptr<class IMovie>>& mFmvs;
 public:
     FmvUi(const FmvUi&) = delete;
     FmvUi& operator = (const FmvUi&) = delete;
-    FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController, ResourceLocator& resourceLocator)
-        : mFmv(fmv), mAudioController(audioController), mResourceLocator(resourceLocator)
+    FmvUi(std::vector<std::unique_ptr<class IMovie>>& fmv, IAudioController& audioController, ResourceLocator& resourceLocator)
+        : mFmvs(fmv), mAudioController(audioController), mResourceLocator(resourceLocator)
     {
         mFilterString[0] = '\0';
     }
@@ -610,8 +616,11 @@ public:
         if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
         {
             const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-            mFmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
-
+            auto fmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
+            if (fmv)
+            {
+                mFmvs.emplace_back(std::move(fmv));
+            }
             mListBoxSelectedItem = -1;
         }
 
@@ -635,38 +644,41 @@ Fmv::~Fmv()
 
 void Fmv::Play(const std::string& name)
 {
-    if (!mFmv)
-    {
-        mFmv = mResourceLocator.LocateFmv(mAudioController, name.c_str());
-    }
+    auto fmv = mResourceLocator.LocateFmv(mAudioController, name.c_str());
+    mFmvs.emplace_back(std::move(fmv));
 }
 
 bool Fmv::IsPlaying() const
 {
-    return mFmv != nullptr;
+    return mFmvs.empty() == false;
 }
 
 void Fmv::Stop()
 {
-    mFmv = nullptr;
+    mFmvs.clear();
 }
 
 void Fmv::Update()
 {
-    if (mFmv)
+    auto it = mFmvs.begin();
+    while (it != mFmvs.end())
     {
-        if (mFmv->IsEnd())
+        if ((*it)->IsEnd())
         {
-            mFmv = nullptr;
+            it = mFmvs.erase(it);
+        }
+        else
+        {
+            it++;
         }
     }
 }
 
 void Fmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 {
-    if (mFmv)
+    for (auto& fmv : mFmvs)
     {
-        mFmv->OnRenderFrame(rend, gui, screenW, screenH);
+        fmv->OnRenderFrame(rend, gui, screenW, screenH);
     }
 }
 
@@ -685,20 +697,14 @@ void DebugFmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 {
     Fmv::Render(rend, gui, screenW, screenH);
 
-    if (!mFmv)
-    {
-        RenderVideoUi(gui);
-    }
+    RenderVideoUi(gui);
 }
 
 void DebugFmv::RenderVideoUi(GuiContext& gui)
 {
-    if (!mFmv)
+    if (!mFmvUi)
     {
-        if (!mFmvUi)
-        {
-            mFmvUi = std::make_unique<FmvUi>(mFmv, mAudioController, mResourceLocator);
-        }
-        mFmvUi->DrawVideoSelectionUi(gui);
+        mFmvUi = std::make_unique<FmvUi>(mFmvs, mAudioController, mResourceLocator);
     }
+    mFmvUi->DrawVideoSelectionUi(gui);
 }

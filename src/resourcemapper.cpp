@@ -449,7 +449,7 @@ std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(IAudioController& audioCont
                             subTitles = std::make_unique<SubTitleParser>(std::move(subsStream));
                         }
                     }
-                    return IMovie::Factory(audioController, std::move(stream), std::move(subTitles), location.mStartSector, location.mEndSector);
+                    return IMovie::Factory(resourceName, audioController, std::move(stream), std::move(subTitles), location.mStartSector, location.mEndSector);
                 }
             }
         }

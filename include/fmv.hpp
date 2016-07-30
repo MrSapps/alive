@@ -21,12 +21,13 @@ class IMovie : public IAudioPlayer
 {
 public:
     static std::unique_ptr<IMovie> Factory(
+        const std::string& resourceName,
         IAudioController& audioController,
         std::unique_ptr<Oddlib::IStream> stream,
         std::unique_ptr<SubTitleParser> subtitles,
         Uint32 startSector, Uint32 endSector);
 
-    IMovie(IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles);
+    IMovie(const std::string& resourceName, IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles);
 
     virtual ~IMovie();
 
@@ -63,6 +64,7 @@ protected:
     IAudioController& mAudioController;
     int mAudioBytesPerFrame = 1;
     std::unique_ptr<SubTitleParser> mSubTitles;
+    std::string mName;
 private:
     //AutoMouseCursorHide mHideMouseCursor;
 };
@@ -71,6 +73,8 @@ private:
 class Fmv
 {
 public:
+    Fmv(const Fmv&) = delete;
+    Fmv& operator = (const Fmv&) = delete;
     Fmv(IAudioController& audioController, class ResourceLocator& resourceLocator);
     virtual ~Fmv();
     void Play(const std::string& name);
@@ -81,8 +85,7 @@ public:
 protected:
     ResourceLocator& mResourceLocator;
     IAudioController& mAudioController;
-    std::unique_ptr<class IMovie> mFmv;
-
+    std::vector<std::unique_ptr<class IMovie>> mFmvs;
 };
 
 class DebugFmv : public Fmv
