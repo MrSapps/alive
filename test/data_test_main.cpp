@@ -255,42 +255,48 @@ private:
             auto file = lvl->FileByIndex(i);
       
             AddLvlMapping(dataSet, lvlName, file->FileName());
-
-            for (auto j = 0u; j < file->ChunkCount(); j++)
+            if (
+                string_util::ends_with(file->FileName(), ".VH") ||
+                string_util::ends_with(file->FileName(), ".VB") ||
+                string_util::ends_with(file->FileName(), ".BSQ")
+                )
             {
-                auto chunk = file->ChunkByIndex(j);
-
-                //if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm')) // Only care about Anim resources at the moment
+                for (auto j = 0u; j < file->ChunkCount(); j++)
                 {
-                    bool deDuplicatedChunkAlreadyExists = false;
+                    auto chunk = file->ChunkByIndex(j);
 
-                    // Read this chunk only once
-                    auto chunkInfo = std::make_unique<LvlFileChunk>();
-                    chunkInfo->mChunk = chunk;
-                    chunkInfo->mDataSet = dataSet;
-                    chunkInfo->mFileName = file->FileName();
-                    chunkInfo->mLvlName = lvlName;
-                    chunkInfo->mData = chunk->ReadData();
-
-                    // Find if this chunk exists
-                    for (std::unique_ptr<DeDuplicatedLvlChunk>& deDuplicatedChunk : mDeDuplicatedLvlFileChunks)
+                    //if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm')) // Only care about Anim resources at the moment
                     {
-                        if (ChunksAreEqual(*deDuplicatedChunk->mChunk, *chunkInfo))
+                        bool deDuplicatedChunkAlreadyExists = false;
+
+                        // Read this chunk only once
+                        auto chunkInfo = std::make_unique<LvlFileChunk>();
+                        chunkInfo->mChunk = chunk;
+                        chunkInfo->mDataSet = dataSet;
+                        chunkInfo->mFileName = file->FileName();
+                        chunkInfo->mLvlName = lvlName;
+                        chunkInfo->mData = chunk->ReadData();
+
+                        // Find if this chunk exists
+                        for (std::unique_ptr<DeDuplicatedLvlChunk>& deDuplicatedChunk : mDeDuplicatedLvlFileChunks)
                         {
-                            // Since it exists add the chunk as a duplicate
-                            deDuplicatedChunkAlreadyExists = true;
-                            deDuplicatedChunk->mDuplicates.push_back(std::move(chunkInfo));
-                            deDuplicatedChunk->mDuplicates.back()->mData = std::vector<Uint8>(); // Don't keep many copies of the same buffer
-                            break;
+                            if (ChunksAreEqual(*deDuplicatedChunk->mChunk, *chunkInfo))
+                            {
+                                // Since it exists add the chunk as a duplicate
+                                deDuplicatedChunkAlreadyExists = true;
+                                deDuplicatedChunk->mDuplicates.push_back(std::move(chunkInfo));
+                                deDuplicatedChunk->mDuplicates.back()->mData = std::vector<Uint8>(); // Don't keep many copies of the same buffer
+                                break;
+                            }
                         }
-                    }
 
-                    if (!deDuplicatedChunkAlreadyExists)
-                    {
-                        // Otherwise add it as a unique chunk
-                        auto deDuplicatedChunk = std::make_unique<DeDuplicatedLvlChunk>();
-                        deDuplicatedChunk->mChunk = std::move(chunkInfo);
-                        mDeDuplicatedLvlFileChunks.push_back(std::move(deDuplicatedChunk));
+                        if (!deDuplicatedChunkAlreadyExists)
+                        {
+                            // Otherwise add it as a unique chunk
+                            auto deDuplicatedChunk = std::make_unique<DeDuplicatedLvlChunk>();
+                            deDuplicatedChunk->mChunk = std::move(chunkInfo);
+                            mDeDuplicatedLvlFileChunks.push_back(std::move(deDuplicatedChunk));
+                        }
                     }
                 }
             }
@@ -655,6 +661,17 @@ int main(int /*argc*/, char** /*argv*/)
         void MergeDuplicatedLvlChunks(IFileSystem& fs, eDataSetType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         {
             mLvlChunkReducer.MergeReduceLvlChunks(fs, resourcePath, lvls, eType);
+        }
+
+        void MergeDuplicateSoundSequnces()
+        {
+
+
+        }
+
+        void SoundsToJson()
+        {
+
         }
 
         void MergeDuplicateAnimations()
@@ -1052,9 +1069,9 @@ int main(int /*argc*/, char** /*argv*/)
     // db.AnimationsToJson();
     // db.DumpAnimationSpriteSheets();
     
-    // db.MergeDuplicateSoundSequnces();
+    db.MergeDuplicateSoundSequnces();
     // db.MergeDuplicateVhandVbs();
-    // db.SoundsToJson();
+    db.SoundsToJson();
 
     return 0;
 }
