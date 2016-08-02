@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <vector>
 #include "SDL_stdinc.h"
+#include "oddlib/stream.hpp"
 
 class PSXADPCMDecoder
 {
@@ -12,6 +13,8 @@ public:
         uint8_t *arg_adpcm_frame,
         bool arg_stereo);
 
+
+    void VagTest(Oddlib::IStream& stream);
 
 public:
 #pragma pack(push)
