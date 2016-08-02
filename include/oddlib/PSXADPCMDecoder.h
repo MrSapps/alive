@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <vector>
-#include "SDL_Stdinc.h"
+#include "SDL_stdinc.h"
 
 class PSXADPCMDecoder
 {
