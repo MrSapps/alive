@@ -616,22 +616,19 @@ public:
             }
         }
 
-        static bool hacked = true;
-        if (hacked)
+
+        mListBoxSelectedItem = 0;
+        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
         {
-            mListBoxSelectedItem = 0;
-            //        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
+            const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
+            auto fmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
+            if (fmv)
             {
-                const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-                auto fmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
-                if (fmv)
-                {
-                    mFmvs.emplace_back(std::move(fmv));
-                }
-                mListBoxSelectedItem = -1;
+                mFmvs.emplace_back(std::move(fmv));
             }
-            hacked = false;
+            mListBoxSelectedItem = -1;
         }
+
         gui_end_window(&gui);
     }
 private:
