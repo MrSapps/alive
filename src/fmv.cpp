@@ -332,7 +332,7 @@ public:
         const int kXaFrameDataSize = 2016;
         const int kNumAudioChannels = 2;
         const int kBytesPerSample = 2;
-        std::vector<unsigned char> outPtr(kXaFrameDataSize * kNumAudioChannels * kBytesPerSample);
+        std::vector<Sint16> outPtr((kXaFrameDataSize * kNumAudioChannels * kBytesPerSample) / 2);
         
         if (mDemuxBuffer.empty())
         {
@@ -360,7 +360,6 @@ public:
             const auto kMagic = mPsx ? 0x80010160 : 0x4b494b41;
             if (w.mAkikMagic != kMagic)
             {
-                uint16_t numBytes = 0;
                 if (mPsx)
                 {
                     /*
@@ -373,22 +372,23 @@ public:
                     RawCdImage::CDXASector* rawXa = (RawCdImage::CDXASector*)&w;
                     if (rawXa->subheader.coding_info != 0)
                     {
-                        numBytes = mAdpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), &rawXa->data[0], true);
+                        mAdpcm.DecodeFrameToPCM(outPtr, &rawXa->data[0], true);
                     }
                     else
                     {
                         // Blank/empty audio frame, play silence so video stays in sync
-                        numBytes = 2016 * 2 * 2;
+                        //numBytes = 2016 * 2 * 2;
                     }
                 }
                 else
                 {
-                    numBytes = mAdpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), (uint8_t *)&w.mAkikMagic, true);
+                     mAdpcm.DecodeFrameToPCM(outPtr, (uint8_t *)&w.mAkikMagic, true);
                 }
-
-                for (int i = 0; i < numBytes; i++)
+              
+                for (auto i = 0u; i < outPtr.size(); i++)
                 {
-                    mAudioBuffer.push_back(outPtr[i]);
+                    mAudioBuffer.push_back(outPtr[i] & 0xFF);
+                    mAudioBuffer.push_back(static_cast<unsigned char>(outPtr[i] >> 8));
                 }
 
                 // Must be VALE
@@ -616,17 +616,22 @@ public:
             }
         }
 
-        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
+        static bool hacked = true;
+        if (hacked)
         {
-            const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-            auto fmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
-            if (fmv)
+            mListBoxSelectedItem = 0;
+            //        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
             {
-                mFmvs.emplace_back(std::move(fmv));
+                const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
+                auto fmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
+                if (fmv)
+                {
+                    mFmvs.emplace_back(std::move(fmv));
+                }
+                mListBoxSelectedItem = -1;
             }
-            mListBoxSelectedItem = -1;
+            hacked = false;
         }
-
         gui_end_window(&gui);
     }
 private:
