@@ -616,8 +616,6 @@ public:
             }
         }
 
-
-        mListBoxSelectedItem = 0;
         if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
         {
             const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
