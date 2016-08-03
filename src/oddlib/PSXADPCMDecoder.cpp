@@ -1,4 +1,5 @@
 #include "oddlib/PSXADPCMDecoder.h"
+#include "logger.hpp"
 #include <algorithm>
 
 // Pos / neg Tables
@@ -32,94 +33,99 @@ static int MinMax(int number, int min, int max)
     return number;
 }
 
-void PSXADPCMDecoder::VagTest(Oddlib::IStream& stream)
+static bool AreEqual(const char* f1, const char* f2)
 {
-    stream.Seek(0x40);
+    Oddlib::Stream s1(f1);
+    const auto d1 = Oddlib::IStream::ReadAll(s1);
+    Oddlib::Stream s2(f2);
+    const auto d2 = Oddlib::IStream::ReadAll(s2);
+    return d1 == d2;
+}
 
-    double f[5][2] = { { 0.0, 0.0 },
-    { 60.0 / 64.0, 0.0 },
-    { 115.0 / 64.0, -52.0 / 64.0 },
-    { 98.0 / 64.0, -55.0 / 64.0 },
-    { 122.0 / 64.0, -60.0 / 64.0 } };
+static int SignExtend(int s)
+{
+    if (s & 0x8000)
+    {
+        s |= 0xffff0000;
+    }
+    return s;
+}
 
-    double samples[28];
-    double  s_2 = 0.0;
-    double  s_1 = 0.0;
+void PSXADPCMDecoder::VagTest(const char* fileName)
+{
+    double samples[28] = {};
 
-    std::vector<Uint8> output;
+
+    FILE* pcm = nullptr;
+
+    static double old = 0.0;
+    static double older = 0.0;
+
+    Oddlib::Stream file(fileName);
+    file.Seek(64);
+
+    pcm = fopen("TESTING.PCM", "wb");
 
     for (;;)
     {
-        Uint8 predict_nr = 0;
-        stream.ReadUInt8(predict_nr);
-        
-        int shift_factor = predict_nr & 0xf;
-        predict_nr >>= 4;
-
+        Uint8 filter = 0;
+        file.ReadUInt8(filter);
+        const int shift = filter & 0xf;
+        filter >>= 4;
 
         Uint8 flags = 0;
-        stream.ReadUInt8(flags);
-
-        if (flags & 0x1) // todo bit 0 or 1?
+        file.ReadUInt8(flags);
+        if (flags & 1) // EOF flag, checking for == 7 is wrong
         {
-            std::ofstream rawData("Raw.dat", std::ios::binary);
-            rawData.write((const char*)output.data(), output.size());
-            return;
+            break;
+        }
+        else if ((flags & 4) > 0)
+        {
+            // flags & 2 == loop?
+            // flags & 4 == sampler loop?
+
+            // TODO: Handle loop flag
+            LOG_INFO("TODO: Sampler loop");
         }
 
-
-        for (int i = 0; i < 28; i += 2)
+        for (int i = 0; i < 28; i += 2) 
         {
-            Uint8 d = 0;
-            stream.ReadUInt8(d);
-            Uint32 s = (d & 0xf) << 12;
-            if (s & 0x8000)
-            {
-                s |= 0xffff0000;
-            }
-            samples[i] = (double)(s >> shift_factor);
+            Uint8 tmp;
+            file.ReadUInt8(tmp);
+            int d = tmp;
+
+            int s = (d & 0x0f) << 12;
+            s = SignExtend(s);
+            samples[i] = (double)(s >> shift);
+            
             s = (d & 0xf0) << 8;
-            if (s & 0x8000)
-            {
-                s |= 0xffff0000;
-            }
-            samples[i + 1] = (double)(s >> shift_factor);
+            s = SignExtend(s);
+            samples[i + 1] = (double)(s >> shift);
         }
 
-        for (int i = 0; i < 28; i++)
+        for (int i = 0; i < 28; i++) 
         {
-            samples[i] = samples[i] + s_1 * f[predict_nr][0] + s_2 * f[predict_nr][1];
-            s_2 = s_1;
-            s_1 = samples[i];
-            short d = (short)(samples[i] + 0.5);
+            const double f0 = static_cast<double>(pos_adpcm_table[filter]) / 64.0f;
+            const double f1 = static_cast<double>(neg_adpcm_table[filter]) / 64.0f;
 
-            output.push_back(d & 0xff);
-            output.push_back(static_cast<unsigned char>(d >> 8));
+            samples[i] = samples[i] + old * f0 + older * f1;
+            older = old;
+            old = samples[i];
+
+            const int d = (int)(samples[i] + 0.5);
+            fputc(d & 0xff, pcm);
+            fputc(d >> 8, pcm);
         }
+        
     }
 
-    /*
-   
-    const int f0 = pos_adpcm_table[filter];
-    const int f1 = neg_adpcm_table[filter];
+    fclose(pcm);
 
-    int older = 0;
-    int old = 0;
-    int nibble = 0;
-
-    for (int d = 0; d < 28/2; d++)
+    if (!AreEqual("GOLD.PCM", "TESTING.PCM"))
     {
-        const int t = Signed4bit((Uint8)((sampleData[d] >> (nibble * 4)) & 0xF));
-        int s = (short)((t << shift) + ((old * f0 + older * f1 + 32) / 64));
-        s = static_cast<Uint16>(MinMax(s, -32768, 32767));
-
-        //out[dst] = static_cast<short>(s);
-        //dst += 2;
-
-        older = old;
-        old = static_cast<short>(s);
+        abort();
     }
-    */
+    exit(0);
 }
 
 static void DecodeBlock(

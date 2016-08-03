@@ -1,9 +1,14 @@
 #pragma once
 
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <stdint.h>
 #include <vector>
 #include "SDL_stdinc.h"
 #include "oddlib/stream.hpp"
+
 
 class PSXADPCMDecoder
 {
@@ -14,7 +19,7 @@ public:
         bool arg_stereo);
 
 
-    void VagTest(Oddlib::IStream& stream);
+    void VagTest(const char* fileName);
 
 public:
 #pragma pack(push)
