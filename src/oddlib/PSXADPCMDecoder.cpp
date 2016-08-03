@@ -33,6 +33,7 @@ static int MinMax(int number, int min, int max)
     return number;
 }
 
+
 static bool AreEqual(const char* f1, const char* f2)
 {
     Oddlib::Stream s1(f1);
@@ -41,6 +42,7 @@ static bool AreEqual(const char* f1, const char* f2)
     const auto d2 = Oddlib::IStream::ReadAll(s2);
     return d1 == d2;
 }
+
 
 static int SignExtend(int s)
 {
@@ -51,15 +53,32 @@ static int SignExtend(int s)
     return s;
 }
 
+
+static void DecodeNibble(bool firstNibble, int shift, int filter, int d, double& old, double& older, FILE* pcm)
+{
+    const double f0 = static_cast<double>(pos_adpcm_table[filter]) / 64.0f;
+    const double f1 = static_cast<double>(neg_adpcm_table[filter]) / 64.0f;
+
+    int s = firstNibble ? (d & 0x0f) << 12 : (d & 0xf0) << 8;
+    s = SignExtend(s);
+    
+    const double sample = static_cast<double>(s >> shift) + old * f0 + older * f1;
+
+    older = old;
+    old = sample;
+
+    const int x = (int)(sample + 0.5);
+    fputc(x & 0xff, pcm);
+    fputc(x >> 8, pcm);
+}
+
 void PSXADPCMDecoder::VagTest(const char* fileName)
 {
-    double samples[28] = {};
-
-
     FILE* pcm = nullptr;
 
-    static double old = 0.0;
-    static double older = 0.0;
+    // TODO: Retain across incremental calls
+    double old = 0.0;
+    double older = 0.0;
 
     Oddlib::Stream file(fileName);
     file.Seek(64);
@@ -68,11 +87,13 @@ void PSXADPCMDecoder::VagTest(const char* fileName)
 
     for (;;)
     {
+        // Filter and shift nibbles
         Uint8 filter = 0;
         file.ReadUInt8(filter);
         const int shift = filter & 0xf;
         filter >>= 4;
 
+        // Flags byte
         Uint8 flags = 0;
         file.ReadUInt8(flags);
         if (flags & 1) // EOF flag, checking for == 7 is wrong
@@ -88,35 +109,14 @@ void PSXADPCMDecoder::VagTest(const char* fileName)
             LOG_INFO("TODO: Sampler loop");
         }
 
-        for (int i = 0; i < 28; i += 2) 
+        // 14 bytes of data
+        for (int i = 0; i < 28/2; i++) 
         {
-            Uint8 tmp;
+            Uint8 tmp = 0;
             file.ReadUInt8(tmp);
-            int d = tmp;
-
-            int s = (d & 0x0f) << 12;
-            s = SignExtend(s);
-            samples[i] = (double)(s >> shift);
-            
-            s = (d & 0xf0) << 8;
-            s = SignExtend(s);
-            samples[i + 1] = (double)(s >> shift);
+            DecodeNibble(true, shift, filter, tmp, old, older, pcm);
+            DecodeNibble(false, shift, filter, tmp, old, older, pcm);
         }
-
-        for (int i = 0; i < 28; i++) 
-        {
-            const double f0 = static_cast<double>(pos_adpcm_table[filter]) / 64.0f;
-            const double f1 = static_cast<double>(neg_adpcm_table[filter]) / 64.0f;
-
-            samples[i] = samples[i] + old * f0 + older * f1;
-            older = old;
-            old = samples[i];
-
-            const int d = (int)(samples[i] + 0.5);
-            fputc(d & 0xff, pcm);
-            fputc(d >> 8, pcm);
-        }
-        
     }
 
     fclose(pcm);
@@ -135,8 +135,8 @@ static void DecodeBlock(
     Uint8 block,
     Uint8 nibble,
     short& dst,
-    short& old,
-    short& older)
+    double& old,
+    double& older)
 {
     // 4 blocks for each nibble, so 8 blocks total
     const int shift = (Uint8)(12 - (parameters[4 + block * 2 + nibble] & 0xF));
@@ -147,9 +147,11 @@ static void DecodeBlock(
 
     for (int d = 0; d < 28; d++)
     {
-        const int t = Signed4bit((Uint8)((samples[block + d * 4] >> (nibble * 4)) & 0xF));
+        const Uint8 value = samples[block + d * 4];
+        const int t = Signed4bit((Uint8)((value >> (nibble * 4)) & 0xF));
         int s = (short)((t << shift) + ((old * f0 + older * f1 + 32) / 64));
         s = static_cast<Uint16>(MinMax(s, -32768, 32767));
+       
 
         out[dst] = static_cast<short>(s);
         dst += 2;
@@ -162,12 +164,12 @@ static void DecodeBlock(
 static void Decode(const PSXADPCMDecoder::SoundFrame& sf, std::vector<Sint16>& out)
 {
     short dstLeft = 0;
-    static short oldLeft = 0;
-    static short olderLeft = 0;
+    static double oldLeft = 0;
+    static double olderLeft = 0;
     
     short dstRight = 1;
-    static short oldRight = 0;
-    static short olderRight = 0;
+    static double oldRight = 0;
+    static double olderRight = 0;
 
     for (int i = 0; i<18; i++)
     {
