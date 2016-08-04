@@ -223,5 +223,5 @@ public:
         std::vector<Uint8> iSampleData;
     };
 
-    std::array<PsxVag, 256> mVagOffsets;
+    std::vector<PsxVag> mVagOffsets;
 };

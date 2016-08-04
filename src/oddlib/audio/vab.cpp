@@ -70,10 +70,13 @@ void Vab::ReadVh(Oddlib::IStream& stream)
     }
 
     // VAG offset table..
-    for (int i = 0; i < 256; i++)
+    mVagOffsets.reserve(mHeader.iNumVags);
+    for (int i = 0; i < mHeader.iNumVags; i++)
     {
+        PsxVag tmp;
         Uint16 voff = 0;
         stream.ReadUInt16(voff);
-        mVagOffsets[i].mOffset = static_cast<Uint32>(voff) * 8;
+        tmp.mOffset = static_cast<Uint32>(voff)* 8;
+        mVagOffsets.push_back(tmp);
     }
 }
