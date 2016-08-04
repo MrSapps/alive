@@ -143,7 +143,7 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& /*aliveAudio*/)
     for (size_t i = 0; i < mVab.mVagOffsets.size(); i++)
     {
         auto sample = std::make_unique<AliveAudioSample>();
-        Uint32 size = mVab.mVagOffsets[i].iSampleData.size() / 2;
+        Uint32 size = static_cast<Uint32>(mVab.mVagOffsets[i].iSampleData.size() / 2);
         sample->m_SampleBuffer.resize(size);
         sample->mSampleSize = size;
         memcpy(sample->m_SampleBuffer.data(), mVab.mVagOffsets[i].iSampleData.data(), mVab.mVagOffsets[i].iSampleData.size());
