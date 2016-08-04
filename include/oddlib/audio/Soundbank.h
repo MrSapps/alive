@@ -51,10 +51,9 @@ class AliveAudio;
 class AliveAudioSoundbank
 {
 public:
-    ~AliveAudioSoundbank();
+    ~AliveAudioSoundbank() = default;
     AliveAudioSoundbank(const AliveAudioSoundbank&) = delete;
     AliveAudioSoundbank& operator = (const AliveAudioSoundbank&) = delete;
-    AliveAudioSoundbank(std::string fileName, AliveAudio& aliveAudio);
     AliveAudioSoundbank(std::string lvlPath, std::string vabName, AliveAudio& aliveAudio);
     AliveAudioSoundbank(Oddlib::LvlArchive& lvlArchive, std::string vabName, AliveAudio& aliveAudio);
 

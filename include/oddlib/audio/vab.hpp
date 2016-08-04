@@ -5,77 +5,78 @@
 #include <istream>
 #include <fstream>
 #include <memory>
+#include <array>
+#include "oddlib/stream.hpp"
 
 struct VabHeader
 {
-    VabHeader( std::istream& aStream )
+    VabHeader() = default;
+
+    VabHeader(Oddlib::IStream& aStream)
     {
-        Read( aStream );
+        Read(aStream);
     }
 
-    void Read( std::istream& aStream )
+    void Read(Oddlib::IStream& s)
     {
-        aStream.read( reinterpret_cast< char* > ( &iForm ), sizeof( iForm ) );
-        aStream.read( reinterpret_cast< char* > ( &iVersion ), sizeof( iVersion ) );
-        aStream.read( reinterpret_cast< char* > ( &iId ), sizeof( iId ) );
-        aStream.read( reinterpret_cast< char* > ( &iFileSize ), sizeof( iFileSize ) );
-        aStream.read( reinterpret_cast< char* > ( &iReserved0 ), sizeof( iReserved0 ) );
-        aStream.read( reinterpret_cast< char* > ( &iNumProgs ), sizeof( iNumProgs ) );
-        aStream.read( reinterpret_cast< char* > ( &iNumTones ), sizeof( iNumTones ) );
-        aStream.read( reinterpret_cast< char* > ( &iNumVags ), sizeof( iNumVags ) );
-        aStream.read( reinterpret_cast< char* > ( &iMasterVol ), sizeof( iMasterVol ) );
-        aStream.read( reinterpret_cast< char* > ( &iMasterPan ), sizeof( iMasterPan ) );
-        aStream.read( reinterpret_cast< char* > ( &iAttr1 ), sizeof( iAttr1 ) );
-        aStream.read( reinterpret_cast< char* > ( &iAttr2 ), sizeof( iAttr2 ) );
-        aStream.read( reinterpret_cast< char* > ( &iReserved1 ), sizeof( iReserved1 ) );
+        s.ReadUInt32(iForm);
+        s.ReadUInt32(iVersion);
+        s.ReadUInt32(iId);
+        s.ReadUInt32(iFileSize);
+        s.ReadUInt16(iReserved0);
+        s.ReadUInt16(iNumProgs);
+        s.ReadUInt16(iNumTones);
+        s.ReadUInt16(iNumVags);
+        s.ReadUInt8(iMasterVol);
+        s.ReadUInt8(iMasterPan);
+        s.ReadUInt8(iAttr1);
+        s.ReadUInt8(iAttr2);
+        s.ReadUInt32(iReserved1);
     }
 
-    unsigned int iForm;				// Always "VABp"
-    unsigned int iVersion;			// Header version
-    unsigned int iId;				// Bank Id
-    unsigned int iFileSize;			// File size
-    unsigned short int iReserved0;  // Not used
-    unsigned short int iNumProgs;
-    unsigned short int iNumTones;
-    unsigned short int iNumVags;
-    unsigned char iMasterVol;
-    unsigned char iMasterPan;
-    unsigned char iAttr1;
-    unsigned char iAttr2;
-    unsigned int iReserved1;
+    Uint32 iForm;       // Always "VABp"
+    Uint32 iVersion;    // Header version
+    Uint32 iId;         // Bank Id
+    Uint32 iFileSize;   // File size
+    Uint16 iReserved0;  // Not used
+    Uint16 iNumProgs;
+    Uint16 iNumTones;
+    Uint16 iNumVags;
+    Uint8 iMasterVol;
+    Uint8 iMasterPan;
+    Uint8 iAttr1;
+    Uint8 iAttr2;
+    Uint32 iReserved1;
 };
 
 //  program (instrument) level for example  "piano", "drum", "guitar" and "effect sound".
 struct VagAtr;
 struct ProgAtr
 {
-    ProgAtr( std::istream& aStream )
+    ProgAtr() = default;
+
+    void Read(Oddlib::IStream& s)
     {
-        Read( aStream );
+        s.ReadUInt8(iNumTones);
+        s.ReadUInt8(iVol);
+        s.ReadUInt8(iPriority);
+        s.ReadUInt8(iMode);
+        s.ReadUInt8(iPan);
+        s.ReadUInt8(iReserved0);
+        s.ReadUInt16(iAttr);
+        s.ReadUInt32(iReserved1);
+        s.ReadUInt32(iReserved2);
     }
 
-    void Read( std::istream& aStream )
-    {
-        aStream.read( reinterpret_cast< char* > ( &iNumTones ), sizeof( iNumTones ) );
-        aStream.read( reinterpret_cast< char* > ( &iVol ), sizeof( iVol ) );
-        aStream.read( reinterpret_cast< char* > ( &iPriority ), sizeof( iPriority ) );
-        aStream.read( reinterpret_cast< char* > ( &iMode ), sizeof( iMode ) );
-        aStream.read( reinterpret_cast< char* > ( &iPan ), sizeof( iPan ) );
-        aStream.read( reinterpret_cast< char* > ( &iReserved0 ), sizeof( iReserved0 ) );
-        aStream.read( reinterpret_cast< char* > ( &iAttr ), sizeof( iAttr ) );
-        aStream.read( reinterpret_cast< char* > ( &iReserved1 ), sizeof( iReserved1 ) );
-        aStream.read( reinterpret_cast< char* > ( &iReserved2 ), sizeof( iReserved2 ) );
-    }
-
-    unsigned char iNumTones; // Number of valid entries in iTones
-    unsigned char iVol;
-    unsigned char iPriority;
-    unsigned char iMode;
-    unsigned char iPan;
-    unsigned char iReserved0;
-    unsigned short int iAttr;
-    unsigned int iReserved1;
-    unsigned int iReserved2;
+    Uint8 iNumTones; // Number of valid entries in iTones
+    Uint8 iVol;
+    Uint8 iPriority;
+    Uint8 iMode;
+    Uint8 iPan;
+    Uint8 iReserved0;
+    Uint16 iAttr;
+    Uint32 iReserved1;
+    Uint32 iReserved2;
 
     // Pointers are not owned
     std::vector< VagAtr* > iTones;
@@ -83,68 +84,71 @@ struct ProgAtr
 
 struct VagAtr
 {
-    VagAtr( std::istream& aStream )
+    VagAtr(Oddlib::IStream& aStream )
     {
         Read( aStream );
     }
 
-    void Read( std::istream& aStream )
+    void Read(Oddlib::IStream& s)
     {
-        aStream.read( reinterpret_cast< char* > ( &iPriority ), sizeof( iPriority ) );
-        aStream.read( reinterpret_cast< char* > ( &iMode ), sizeof( iMode ) );
-        aStream.read( reinterpret_cast< char* > ( &iVol ), sizeof( iVol ) );
-        aStream.read( reinterpret_cast< char* > ( &iPan ), sizeof( iPan ) );
-        aStream.read( reinterpret_cast< char* > ( &iCenter ), sizeof( iCenter ) );
-        aStream.read( reinterpret_cast< char* > ( &iShift ), sizeof( iShift ) );
-        aStream.read( reinterpret_cast< char* > ( &iMin ), sizeof( iMin ) );
-        aStream.read( reinterpret_cast< char* > ( &iMax ), sizeof( iMax ) );
-        aStream.read( reinterpret_cast< char* > ( &iVibW ), sizeof( iVibW ) );
-        aStream.read( reinterpret_cast< char* > ( &iVibT ), sizeof( iVibT ) );
-        aStream.read( reinterpret_cast< char* > ( &iPorW ), sizeof( iPorW ) );
-        aStream.read( reinterpret_cast< char* > ( &iPorT ), sizeof( iPorT ) );
-        aStream.read( reinterpret_cast< char* > ( &iPitchBendMin ), sizeof( iPitchBendMin ) );
-        aStream.read( reinterpret_cast< char* > ( &iPitchBendMax ), sizeof( iPitchBendMax ) );
-        aStream.read( reinterpret_cast< char* > ( &iReserved1 ), sizeof( iReserved1 ) );
-        aStream.read( reinterpret_cast< char* > ( &iReserved2 ), sizeof( iReserved2 ) );
-        aStream.read( reinterpret_cast< char* > ( &iAdsr1 ), sizeof( iAdsr1 ) );
-        aStream.read( reinterpret_cast< char* > ( &iAdsr2 ), sizeof( iAdsr2 ) );
-        aStream.read( reinterpret_cast< char* > ( &iProg ), sizeof( iProg ) );
-        aStream.read( reinterpret_cast< char* > ( &iVag ), sizeof( iVag ) );
-        aStream.read( reinterpret_cast< char* > ( &iReserved[0] ), sizeof( iReserved ) );
+        s.ReadUInt8(iPriority);
+        s.ReadUInt8(iMode);
+        s.ReadUInt8(iVol);
+        s.ReadUInt8(iPan);
+        s.ReadUInt8(iCenter);
+        s.ReadUInt8(iShift);
+        s.ReadUInt8(iMin);
+        s.ReadUInt8(iMax);
+        s.ReadUInt8(iVibW);
+        s.ReadUInt8(iVibT);
+        s.ReadUInt8(iPorW);
+        s.ReadUInt8(iPorT);
+        s.ReadUInt8(iPitchBendMin);
+        s.ReadUInt8(iPitchBendMax);
+        s.ReadUInt8(iReserved1);
+        s.ReadUInt8(iReserved2);
+        s.ReadUInt16(iAdsr1);
+        s.ReadUInt16(iAdsr2);
+        s.ReadSInt16(iProg);
+        s.ReadSInt16(iVag);
+        s.ReadSInt16(iReserved[0]);
+        s.ReadSInt16(iReserved[1]);
+        s.ReadSInt16(iReserved[2]);
+        s.ReadSInt16(iReserved[3]);
     }
 
-    unsigned char iPriority;
+    Uint8 iPriority;
 
     // 0 = normal, 4 = reverb
-    unsigned char iMode;
+    Uint8 iMode;
 
     // volume 0-127
-    unsigned char iVol;
+    Uint8 iVol;
 
     // panning 0-127
-    unsigned char iPan;
+    Uint8 iPan;
 
     // "Default" note
-    unsigned char iCenter;
-    unsigned char iShift;
+    Uint8 iCenter;
+    Uint8 iShift;
     
     // Key range which this waveform maps to
-    unsigned char iMin;
-    unsigned char iMax;
+    Uint8 iMin;
+    Uint8 iMax;
     
     // Maybe these are not used?
-    unsigned char iVibW;
-    unsigned char iVibT;
-    unsigned char iPorW;
-    unsigned char iPorT;
+    Uint8 iVibW;
+    Uint8 iVibT;
+    Uint8 iPorW;
+    Uint8 iPorT;
     
     // Min/max pitch values
-    unsigned char iPitchBendMin;
-    unsigned char iPitchBendMax;
+    Uint8 iPitchBendMin;
+    Uint8 iPitchBendMax;
     
     // Not used
-    unsigned char iReserved1;
-    unsigned char iReserved2;
+    Uint8 iReserved1;
+    Uint8 iReserved2;
     
     // adsr1
     // 0-127 attack rate (byte)
@@ -155,28 +159,28 @@ struct VagAtr
     // 0-31 release rate (6bits)
     // 0-15 sustain rate (nibble)
     // 1+0.5+1+0.6+0.5=3.6 bytes
-    unsigned short int iAdsr1;
-    unsigned short int iAdsr2;
+    Uint16 iAdsr1;
+    Uint16 iAdsr2;
     
-    short int iProg; // Which progAttr we live in?
-    short int iVag;  // Sound index in the VB
-    short int iReserved[4];
+    Sint16 iProg; // Which progAttr we live in?
+    Sint16 iVag;  // Sound index in the VB
+    Sint16 iReserved[4];
 };
 
 // AE VB file entry - rather than having the sound data in the VB it actually just has
 // pointers into sounds.dat instead
 struct AEVh
 {
-    AEVh( std::istream& aStream )
+    AEVh( Oddlib::IStream& s )
     {
-        Read( aStream );
+        Read( s );
     }
 
-    void Read( std::istream& aStream )
+    void Read(Oddlib::IStream& s )
     {
-        aStream.read( reinterpret_cast< char* > ( &iLengthOrDuration ), sizeof( iLengthOrDuration ) );
-        aStream.read( reinterpret_cast< char* > ( &iUnusedByEngine ), sizeof( iUnusedByEngine ) );
-        aStream.read( reinterpret_cast< char* > ( &iFileOffset ), sizeof( iFileOffset ) );
+        s.ReadUInt32(iLengthOrDuration);
+        s.ReadUInt32(iUnusedByEngine);
+        s.ReadUInt32(iFileOffset);
     }
 
     unsigned int iLengthOrDuration;
@@ -194,18 +198,15 @@ struct AoVag
 class Vab
 {
 public:
-    Vab();
-    Vab( std::string aVhFile, std::string aVbFile );
-    void LoadVbFile( std::string aFileName );
-    void ReadVb( std::istream& aStream );
-    void LoadVhFile( std::string aFileName );
-    void ReadVh( std::istream& aStream );
+    Vab() = default;
+    void ReadVb(Oddlib::IStream& aStream );
+    void ReadVh(Oddlib::IStream& stream);
 
 public:
-    std::unique_ptr<VabHeader> mHeader;  // File header
+    VabHeader mHeader;
 
     // We have 128 programs in a VAB
-    std::vector< std::unique_ptr<ProgAtr> > mProgs;
+    std::array<ProgAtr,128> mProgs;
 
     // Which can have 16 tones or instruments which are mapped to key ranges
     // and a sample along with how to play that sample
@@ -213,6 +214,14 @@ public:
 
     // VAG Data body / (VB 254 VAG data) ("Samples" in AE?)
     // 512bytes /2 = 256 samps max
-    std::vector< std::unique_ptr<AEVh> > iOffs;
-    std::vector< std::unique_ptr<AoVag> > iAoVags;
+    //std::vector< std::unique_ptr<AEVh> > iOffs;
+    //std::vector< std::unique_ptr<AoVag> > iAoVags;
+
+    struct PsxVag
+    {
+        Uint32 mOffset;
+        std::vector<Uint8> iSampleData;
+    };
+
+    std::array<PsxVag, 256> mVagOffsets;
 };

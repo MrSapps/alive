@@ -4,6 +4,7 @@
 #include "core/audiobuffer.hpp"
 #include "logger.hpp"
 #include "filesystem.hpp"
+#include "resourcemapper.hpp"
 
 void Sound::BarLoop()
 {
@@ -20,16 +21,19 @@ void Sound::BarLoop()
 }
 
 
-void Sound::ChangeTheme(FileSystem& fs, const std::deque<std::string>& parts)
+void Sound::ChangeTheme(const std::deque<std::string>& parts)
 {
     try
     {
         const std::string lvlFileName = parts[0];
-        auto stream = fs.ResourcePaths().Open(lvlFileName);
-        if (stream)
+       // auto stream = mLocator.HackTemp(lvlFileName.c_str());
+       // if (stream)
         {
-            Oddlib::LvlArchive archive(std::move(stream));
-            mAliveAudio.LoadAllFromLvl(archive, parts[1], parts[2]); // vab, bsq
+            auto archive = mLocator.HackTemp2((parts[1] + ".VB").c_str());
+            if (archive)
+            {
+                mAliveAudio.LoadAllFromLvl(*archive, parts[1], parts[2]); // vab, bsq
+            }
         }
     }
     catch (const std::exception& ex)
@@ -38,8 +42,8 @@ void Sound::ChangeTheme(FileSystem& fs, const std::deque<std::string>& parts)
     }
 }
 
-Sound::Sound(GameData& gameData, IAudioController& audioController, FileSystem& fs)
-    : mGameData(gameData), mAudioController(audioController), mFs(fs)
+Sound::Sound(GameData& gameData, IAudioController& audioController, FileSystem& fs, ResourceLocator& locator)
+    : mGameData(gameData), mAudioController(audioController), mLocator(locator), mFs(fs)
 {
     mAudioController.AddPlayer(&mAliveAudio);
 }
@@ -80,17 +84,18 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
                 auto theme = themes.get<jsonxx::Object>(i);
 
                 const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".lvl";
-                auto stream = mFs.ResourcePaths().Open(lvlFileName);
-                if (stream)
+                auto vabName = theme.get<jsonxx::String>("vab", "null");
+                auto bsqName = theme.get<jsonxx::String>("seq", "null");
+                auto archive = mLocator.HackTemp2((vabName + ".VB").c_str());
+                if (archive)
                 {
-                    Oddlib::LvlArchive archive(std::move(stream));
-                    auto vabName = theme.get<jsonxx::String>("vab", "null");
-                    auto bsqName = theme.get<jsonxx::String>("seq", "null");
-
-                    Oddlib::LvlArchive::File* file = archive.FileByName(bsqName);
-                    for (auto j = 0u; j < file->ChunkCount(); j++)
+                    Oddlib::LvlArchive::File* file = archive->FileByName(bsqName);
+                    if (file)
                     {
-                        mThemes.push_back(lvlFileName + "!" + vabName + "!" + bsqName + "!" + std::to_string(j));
+                        for (auto j = 0u; j < file->ChunkCount(); j++)
+                        {
+                            mThemes.push_back(lvlFileName + "!" + vabName + "!" + bsqName + "!" + std::to_string(j));
+                        }
                     }
                 }
             }
@@ -116,7 +121,7 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
                 mSeqPlayer->m_QuarterCallback = [&]() { BarLoop(); };
                 const auto parts = string_util::split(mThemes[selectedIndex], '!');
                 int seqId = std::atoi(parts[3].c_str());
-                ChangeTheme(mFs, parts);
+                ChangeTheme(parts);
                 if (mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_FINISHED || mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_STOPPED)
                 {
                     if (seqId < static_cast<int>(mAliveAudio.m_LoadedSeqData.size()) && mSeqPlayer->LoadSequenceData(mAliveAudio.m_LoadedSeqData[seqId]) == 0)

@@ -54,7 +54,7 @@ static int SignExtend(int s)
 }
 
 
-static void DecodeNibble(bool firstNibble, int shift, int filter, int d, double& old, double& older, FILE* pcm)
+static void DecodeNibble(bool firstNibble, int shift, int filter, int d, double& old, double& older, FILE* pcm, std::vector<Uint8>* out = nullptr)
 {
     const double f0 = static_cast<double>(pos_adpcm_table[filter]) / 64.0f;
     const double f1 = static_cast<double>(neg_adpcm_table[filter]) / 64.0f;
@@ -68,8 +68,58 @@ static void DecodeNibble(bool firstNibble, int shift, int filter, int d, double&
     old = sample;
 
     const int x = (int)(sample + 0.5);
-    fputc(x & 0xff, pcm);
-    fputc(x >> 8, pcm);
+    if (pcm)
+    {
+        fputc(x & 0xff, pcm);
+        fputc(x >> 8, pcm);
+    }
+
+    if (out)
+    {
+        out->push_back(x & 0xff);
+        out->push_back(static_cast<Uint8>(x >> 8));
+    }
+}
+
+void PSXADPCMDecoder::DecodeVagStream(Oddlib::IStream& s, std::vector<Uint8>& out)
+{
+    double old = 0.0;
+    double older = 0.0;
+
+    for (;;)
+    {
+        // Filter and shift nibbles
+        Uint8 filter = 0;
+        s.ReadUInt8(filter);
+        const int shift = filter & 0xf;
+        filter >>= 4;
+
+        // Flags byte
+        Uint8 flags = 0;
+        s.ReadUInt8(flags);
+        if (flags & 1) // EOF flag, checking for == 7 is wrong
+        {
+            break;
+        }
+        else if ((flags & 4) > 0)
+        {
+            // flags & 2 == loop?
+            // flags & 4 == sampler loop?
+
+            // TODO: Handle loop flag
+            LOG_INFO("TODO: Sampler loop");
+        }
+
+        // 14 bytes of data
+        for (int i = 0; i < 28 / 2; i++)
+        {
+            Uint8 tmp = 0;
+            s.ReadUInt8(tmp);
+            DecodeNibble(true, shift, filter, tmp, old, older, nullptr, &out);
+            DecodeNibble(false, shift, filter, tmp, old, older, nullptr, &out);
+        }
+    }
+
 }
 
 void PSXADPCMDecoder::VagTest(const char* fileName)

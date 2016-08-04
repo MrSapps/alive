@@ -41,6 +41,7 @@ void AliveAudio::AliveInitAudio(FileSystem& fs)
     LoadJsonConfig("data/themes.json", fs);
     LoadJsonConfig("data/sfx_list.json", fs);
 
+    /*
     auto soundsDatSteam = fs.ResourcePaths().Open("sounds.dat");
     if (!soundsDatSteam)
     {
@@ -48,8 +49,9 @@ void AliveAudio::AliveInitAudio(FileSystem& fs)
     }
 
     m_SoundsDat = std::vector<unsigned char>(soundsDatSteam->Size() + 1); // Plus one, just in case interpolating tries to go that one byte further!
-
+    
     soundsDatSteam->ReadBytes(m_SoundsDat.data(), soundsDatSteam->Size());
+    */
 
     SDL_PauseAudio(0);
 }
@@ -360,26 +362,10 @@ void AliveAudio::ClearAllTrackVoices(int trackID, bool forceKill)
 
 }
 
-void AliveAudio::LoadSoundbank(char * fileName)
-{
-    ClearAllVoices(true);
-    m_CurrentSoundbank = std::make_unique<AliveAudioSoundbank>(fileName, *this);
-}
-
 void AliveAudio::SetSoundbank(std::unique_ptr<AliveAudioSoundbank> soundbank)
 {
     ClearAllVoices(true);
     m_CurrentSoundbank = std::move(soundbank);
-}
-
-void AliveAudio::LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile, FileSystem& fs)
-{
-    auto stream = fs.ResourcePaths().Open(lvlPath);
-    if (stream)
-    {
-        Oddlib::LvlArchive archive(std::move(stream));
-        LoadAllFromLvl(archive, vabID, seqFile);
-    }
 }
 
 void AliveAudio::LoadAllFromLvl(Oddlib::LvlArchive& archive, std::string vabID, std::string seqFile)
@@ -387,8 +373,11 @@ void AliveAudio::LoadAllFromLvl(Oddlib::LvlArchive& archive, std::string vabID, 
     m_LoadedSeqData.clear();
     SetSoundbank(std::make_unique<AliveAudioSoundbank>(archive, vabID, *this));
     auto file = archive.FileByName(seqFile);
-    for (size_t i = 0; i < file->ChunkCount(); i++)
+    if (file)
     {
-        m_LoadedSeqData.push_back(file->ChunkByIndex(static_cast<Uint32>(i))->ReadData());
+        for (size_t i = 0; i < file->ChunkCount(); i++)
+        {
+            m_LoadedSeqData.push_back(file->ChunkByIndex(static_cast<Uint32>(i))->ReadData());
+        }
     }
 }

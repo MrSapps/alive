@@ -50,10 +50,8 @@ public:
     void ClearAllVoices(bool forceKill = true);
     void ClearAllTrackVoices(int trackID, bool forceKill = false);
 
-    void LoadSoundbank(char * fileName);
     void SetSoundbank(std::unique_ptr<AliveAudioSoundbank> soundbank);
 
-    void LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile, FileSystem& fs);
     void LoadAllFromLvl(Oddlib::LvlArchive& lvlArchive, std::string vabID, std::string seqFile);
 
 

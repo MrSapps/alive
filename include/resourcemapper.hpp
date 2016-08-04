@@ -1651,6 +1651,9 @@ public:
         return mDataPaths;
     }
 
+    // TODO: Remove after sounds integrated correctly
+    std::shared_ptr<Oddlib::LvlArchive> HackTemp2(const char* fileToFind);
+    std::unique_ptr<Oddlib::IStream> HackTemp(const char* lvlFile);
 
     std::unique_ptr<Oddlib::Path> LocatePath(const char* resourceName);
     std::unique_ptr<Oddlib::IBits> LocateCamera(const char* resourceName);

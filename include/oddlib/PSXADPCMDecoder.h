@@ -20,6 +20,7 @@ public:
 
 
     void VagTest(const char* fileName);
+    void DecodeVagStream(Oddlib::IStream& s, std::vector<Uint8>& out);
 
 public:
 #pragma pack(push)

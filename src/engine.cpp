@@ -132,7 +132,7 @@ void Engine::InitSubSystems()
 {
     mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
     mFmv = std::make_unique<DebugFmv>(mAudioHandler, *mResourceLocator);
-    mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem_old);
+    mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem_old, *mResourceLocator);
     mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator);
 
     { // Init gui system
