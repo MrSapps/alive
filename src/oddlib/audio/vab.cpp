@@ -13,6 +13,7 @@ void Vab::ReadVb(Oddlib::IStream& s)
     // TODO: Some offsets might be duplicated
     for (PsxVag& vag : mVagOffsets)
     {
+
         s.Seek(vag.mOffset);
         PSXADPCMDecoder d;
         d.DecodeVagStream(s, vag.iSampleData);
@@ -70,13 +71,15 @@ void Vab::ReadVh(Oddlib::IStream& stream)
     }
 
     // VAG offset table..
+    Uint32 totalOffset = 0;
     mVagOffsets.reserve(mHeader.iNumVags);
     for (int i = 0; i < mHeader.iNumVags; i++)
     {
         PsxVag tmp;
         Uint16 voff = 0;
         stream.ReadUInt16(voff);
-        tmp.mOffset = static_cast<Uint32>(voff)* 8;
+        totalOffset += voff << 3;
+        tmp.mOffset = totalOffset;
         mVagOffsets.push_back(tmp);
     }
 }
