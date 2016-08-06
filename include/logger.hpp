@@ -28,7 +28,10 @@ enum colour
 };
 
 #ifdef _WIN32
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
+
 #include <windows.h>
 static void* gConsoleHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
 

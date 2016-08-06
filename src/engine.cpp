@@ -18,7 +18,9 @@
 
 
 #ifdef _WIN32
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <windows.h>
 #include "rsc\resource.h"
 #include "SDL_syswm.h"
@@ -47,12 +49,16 @@ void setWindowsIcon(SDL_Window *sdlWindow)
         if (hKernel32)
         {
             typedef BOOL(WINAPI *pSetConsoleIcon)(HICON icon);
+#ifdef _MSC_VER
 #pragma warning(push)
             // C4191: 'reinterpret_cast' : unsafe conversion from 'FARPROC' to 'pSetConsoleIcon'
             // This is a "feature" of GetProcAddress, so ignore.
 #pragma warning(disable:4191)
+#endif
             pSetConsoleIcon setConsoleIcon = reinterpret_cast<pSetConsoleIcon>(::GetProcAddress(hKernel32, "SetConsoleIcon"));
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
             if (setConsoleIcon)
             {
                 setConsoleIcon(icon);

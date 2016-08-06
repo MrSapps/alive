@@ -137,12 +137,12 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
 
             if (centerPan > 0)
             {
-                leftPan = 1.0f - abs(centerPan);
+                leftPan = 1.0f - std::abs(centerPan);
             }
 
             if (centerPan < 0)
             {
-                rightPan = 1.0f - abs(centerPan);
+                rightPan = 1.0f - std::abs(centerPan);
             }
 
             // TODO FIX ME

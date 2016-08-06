@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sdl_raii.hpp"
+#include <cmath>
 
 namespace
 {
@@ -48,8 +49,8 @@ inline Uint64 pHash(SDL_Surface* image)
                 for (int y = 0; y < 32; ++y)
                 {
                     acc += intensity[x][y]
-                        * cos(M_PI / 32.0 * (x + .5) * u)
-                        * cos(M_PI / 32.0 * (y + .5) * v);
+                        * std::cos(M_PI / 32.0 * (x + .5) * u)
+                        * std::cos(M_PI / 32.0 * (y + .5) * v);
                 }
             }
             seq[i++] = acc;

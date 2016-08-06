@@ -3,7 +3,7 @@
 #include "gui.h"
 #include "fmv.hpp"
 #include "oddlib/bits_factory.hpp"
-#include "lodepng/lodepng.h"
+#include <cmath>
 
 const /*static*/ float Animation::kPcToPsxScaleFactor = 1.73913043478f;
 
@@ -325,8 +325,8 @@ static void ApplyDelta(SDL_Surface* deltaSurface, SDL_Surface* originalCameraSur
         {
             const float src_rel_x = 1.f*x / (w - 1); // 0..1
 
-            int src_x = (int)floor(src_rel_x*originalCameraSurface->w - 0.5f);
-            int src_y = (int)floor(src_rel_y*originalCameraSurface->h - 0.5f);
+            int src_x = (int)std::floor(src_rel_x*originalCameraSurface->w - 0.5f);
+            int src_y = (int)std::floor(src_rel_y*originalCameraSurface->h - 0.5f);
 
             int src_x_plus = src_x + 1;
             int src_y_plus = src_y + 1;
