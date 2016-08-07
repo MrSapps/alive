@@ -11,8 +11,8 @@ AliveAudioSoundbank::AliveAudioSoundbank(Oddlib::LvlArchive& archive, std::strin
     auto vbStream = vbFile->ChunkByIndex(0)->Stream();
 
     Vab vab;
-    vab.ReadVh(*vhStream);
-    vab.ReadVb(*vbStream);
+    vab.ReadVh(*vhStream, true);
+    vab.ReadVb(*vbStream, true, false);
 
     InitFromVab(vab, aliveAudio);
 }
@@ -27,8 +27,8 @@ AliveAudioSoundbank::AliveAudioSoundbank(std::string lvlPath, std::string vabID,
     auto vbStream = vbFile->ChunkByIndex(0)->Stream();
 
     Vab vab;
-    vab.ReadVh(*vhStream);
-    vab.ReadVb(*vbStream);
+    vab.ReadVh(*vhStream, true);
+    vab.ReadVb(*vbStream, true, false);
 
     InitFromVab(vab, aliveAudio);
 }
@@ -138,75 +138,47 @@ static VolumeEnvelope PSXEnvelopeToADSR(uint16_t low, uint16_t high)
     return env;
 }
 
-void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& /*aliveAudio*/)
+void AliveAudioSoundbank::InitFromVab(Vab& vab, AliveAudio& /*aliveAudio*/)
 {
-    for (size_t i = 0; i < mVab.mVagOffsets.size(); i++)
+    for (const Vab::SampleData& sampleData : vab.mSamples)
     {
         auto sample = std::make_unique<AliveAudioSample>();
-        Uint32 size = static_cast<Uint32>(mVab.mVagOffsets[i].iSampleData.size() / 2);
+
+        // Get number of shorts required
+        const Uint32 size = static_cast<Uint32>(sampleData.mData.size() / sizeof(Uint16));
         sample->m_SampleBuffer.resize(size);
-        sample->mSampleSize = size;
-        memcpy(sample->m_SampleBuffer.data(), mVab.mVagOffsets[i].iSampleData.data(), mVab.mVagOffsets[i].iSampleData.size());
+
+        // Copy/convert from bytes to shorts
+        memcpy(sample->m_SampleBuffer.data(), sampleData.mData.data(), sampleData.mData.size());
 
         m_Samples.emplace_back(std::move(sample));
     }
-
-
-    /*
-    for (size_t i = 0; i < mVab.iOffs.size(); i++)
-    {
-        auto sample = std::make_unique<AliveAudioSample>();
-        if (mVab.iAoVags.size() > 0)
-        {
-            sample->mSampleSize = mVab.iAoVags[i]->iSize / sizeof(Uint16);
-            sample->m_SampleBuffer.resize(mVab.iAoVags[i]->iSize);
-            memcpy(sample->m_SampleBuffer.data(), mVab.iAoVags[i]->iSampleData.data(), sample->m_SampleBuffer.size() * sizeof(Uint16));
-        }
-        else
-        {
-            sample->mSampleSize = mVab.iOffs[i]->iLengthOrDuration / sizeof(Uint16);
-            sample->m_SampleBuffer.resize(sample->mSampleSize);
-            memcpy(sample->m_SampleBuffer.data(), aliveAudio.m_SoundsDat.data() + mVab.iOffs[i]->iFileOffset, sample->m_SampleBuffer.size() * sizeof(Uint16));
-
-        }
-        m_Samples.emplace_back(std::move(sample));
-    }
-
-    for (size_t i = 0; i < mVab.iAoVags.size(); i++)
-    {
-        auto sample = std::make_unique<AliveAudioSample>();
-        sample->mSampleSize = mVab.iAoVags[i]->iSize / sizeof(Uint16);
-        sample->m_SampleBuffer.resize(mVab.iAoVags[i]->iSize / sizeof(Uint16));
-        memcpy(sample->m_SampleBuffer.data(), mVab.iAoVags[i]->iSampleData.data(), mVab.iAoVags[i]->iSize);
-        m_Samples.emplace_back(std::move(sample));
-    }
-    */
 
     for (int i = 0; i < 128; i++)
     {
         auto program = std::make_unique<AliveAudioProgram>();
-        for (int t = 0; t < mVab.mProgs[i].iNumTones; t++)
+        for (int t = 0; t < vab.mProgs[i].iNumTones; t++)
         {
             auto tone = std::make_unique<AliveAudioTone>();
 
-            if (mVab.mProgs[i].iTones[t]->iVag == 0) // Some Tones have vag 0? Essentially null?
+            if (vab.mProgs[i].iTones[t]->iVag == 0) // Some Tones have vag 0? Essentially null?
             {
                 continue;
             }
 
-            tone->f_Volume = mVab.mProgs[i].iTones[t]->iVol / 127.0f;
-            tone->c_Center = mVab.mProgs[i].iTones[t]->iCenter;
-            tone->c_Shift = mVab.mProgs[i].iTones[t]->iShift;
-            tone->f_Pan = (mVab.mProgs[i].iTones[t]->iPan / 64.0f) - 1.0f;
-            tone->Min = mVab.mProgs[i].iTones[t]->iMin;
-            tone->Max = mVab.mProgs[i].iTones[t]->iMax;
-            tone->Pitch = mVab.mProgs[i].iTones[t]->iShift / 100.0f;
-            tone->Reverbate = (mVab.mProgs[i].iMode == 4);
-            tone->m_Sample = m_Samples[mVab.mProgs[i].iTones[t]->iVag - 1].get();
+            tone->f_Volume = vab.mProgs[i].iTones[t]->iVol / 127.0f;
+            tone->c_Center = vab.mProgs[i].iTones[t]->iCenter;
+            tone->c_Shift = vab.mProgs[i].iTones[t]->iShift;
+            tone->f_Pan = (vab.mProgs[i].iTones[t]->iPan / 64.0f) - 1.0f;
+            tone->Min = vab.mProgs[i].iTones[t]->iMin;
+            tone->Max = vab.mProgs[i].iTones[t]->iMax;
+            tone->Pitch = vab.mProgs[i].iTones[t]->iShift / 100.0f;
+            tone->Reverbate = (vab.mProgs[i].iMode == 4);
+            tone->m_Sample = m_Samples[vab.mProgs[i].iTones[t]->iVag - 1].get();
          
 #if 1 // Use nocash emu based ADSR calc
-            VolumeEnvelope env = PSXEnvelopeToADSR(  mVab.mProgs[i].iTones[t]->iAdsr1,
-                                                     mVab.mProgs[i].iTones[t]->iAdsr2);
+            VolumeEnvelope env = PSXEnvelopeToADSR(  vab.mProgs[i].iTones[t]->iAdsr1,
+                                                     vab.mProgs[i].iTones[t]->iAdsr2);
             tone->Env = env;
 
             if (env.AttackTime > 0.5) // This works until the loop database is added.
@@ -214,8 +186,8 @@ void AliveAudioSoundbank::InitFromVab(Vab& mVab, AliveAudio& /*aliveAudio*/)
                 tone->Loop = true;
             }
 #else
-            unsigned short ADSR1 = mVab.mProgs[i].iTones[t]->iAdsr1;
-            unsigned short ADSR2 = mVab.mProgs[i].iTones[t]->iAdsr2;
+            unsigned short ADSR1 = vab.mProgs[i].iTones[t]->iAdsr1;
+            unsigned short ADSR2 = vab.mProgs[i].iTones[t]->iAdsr2;
             REAL_ADSR realADSR = {};
             PSXConvADSR(&realADSR, ADSR1, ADSR2, false);
 

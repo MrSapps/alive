@@ -7,57 +7,77 @@
 #include <stdlib.h>
 #include <string.h>
 
-void Vab::ReadVb(Oddlib::IStream& s)
+void Vab::ReadVb(Oddlib::IStream& s, bool isPsx, bool useSoundsDat, Oddlib::IStream* soundsDatStream)
 {
+    mSamples.reserve(mHeader.iNumVags);
 
-    // TODO: Some offsets might be duplicated
-    for (PsxVag& vag : mVagOffsets)
+    if (isPsx)
     {
-
-        s.Seek(vag.mOffset);
-        PSXADPCMDecoder d;
-        d.DecodeVagStream(s, vag.iSampleData);
-
-        /*
-        static int i = 0;
-        std::string name = "raw_" + std::to_string(i++);
-        std::ofstream o(name.c_str(), std::ios::binary);
-        o.write((const char*)vag.iSampleData.data(), vag.iSampleData.size());
-        */
-    }
-
-    /*
-    auto streamSize = s.Size();
-    if (streamSize > 5120) // HACK: No exoddus vb is greater than 5kb
-    {
-        for (auto i = 0; i < mHeader.iNumVags; ++i)
+        // TODO: Some offsets might be duplicated
+        for (Uint32& vag : mVagOffsets)
         {
-            auto vag = std::make_unique<AoVag>();
-            s.ReadUInt32(vag->iSize);
-            s.ReadUInt32(vag->iSampleRate);
+            s.Seek(vag);
+            PSXADPCMDecoder d;
 
-            vag->iSampleData.resize(vag->iSize);
-            s.ReadBytes(vag->iSampleData.data(), vag->iSampleData.size());
-            iAoVags.emplace_back(std::move(vag));
+            // TODO: Calculate expected size to reduce mem allocs - based on next vag offset/EOF
+            std::vector<Uint8> data;
+            data.reserve(8000); // Guess to help debug perf
+            d.DecodeVagStream(s, data);
+            mSamples.emplace_back(SampleData{ data });
         }
     }
     else
     {
-        for (unsigned int i = 0; i < mHeader.iNumVags; i++)
+        if (useSoundsDat)
         {
-            iOffs.emplace_back(std::make_unique<AEVh>(s));
+            for (auto i = 0; i < mHeader.iNumVags; i++)
+            {
+                iOffs.emplace_back(AEVh(s));
+            }
+
+            // Read sample buffers out of sounds.dat stream
+            for (const AEVh& vhRec : iOffs)
+            {
+                soundsDatStream->Seek(vhRec.iFileOffset);
+                std::vector<Uint8> data(vhRec.iLengthOrDuration);
+                soundsDatStream->ReadBytes(data.data(), data.size());
+                mSamples.emplace_back(SampleData{ data });
+            }
         }
-    }*/
+        else
+        {
+            for (auto i = 0; i < mHeader.iNumVags; ++i)
+            {
+                Uint32 size = 0;
+                s.ReadUInt32(size);
+
+                // Not actually used for anything
+                Uint32 sampleRate = 0;
+                s.ReadUInt32(sampleRate);
+
+                if (size > 0)
+                {
+                    std::vector<Uint8> data(size);
+                    s.ReadBytes(data.data(), data.size());
+                    mSamples.emplace_back(SampleData{ data });
+                }
+                else
+                {
+                    // Keep even though empty so that vag index is still correct
+                    mSamples.emplace_back(SampleData{ std::vector<Uint8>() });
+                }
+            }
+        }
+    }
 }
 
-void Vab::ReadVh(Oddlib::IStream& stream)
+void Vab::ReadVh(Oddlib::IStream& stream, bool isPsx)
 {
     mHeader.Read(stream);
-    int tones = 0;
-    for (auto i = 0; i < 128; i++) // 128 = max progs
+
+    for (ProgAtr& prog : mProgs)
     {
-        mProgs[i].Read(stream);
-        tones += mProgs[i].iNumTones;
+        prog.Read(stream);
     }
 
     for (auto i = 0; i < mHeader.iNumProgs; i++)
@@ -70,16 +90,17 @@ void Vab::ReadVh(Oddlib::IStream& stream)
         }
     }
 
-    // VAG offset table..
-    Uint32 totalOffset = 0;
-    mVagOffsets.reserve(mHeader.iNumVags);
-    for (int i = 0; i < mHeader.iNumVags; i++)
+    if (isPsx)
     {
-        PsxVag tmp;
-        Uint16 voff = 0;
-        stream.ReadUInt16(voff);
-        totalOffset += voff << 3;
-        tmp.mOffset = totalOffset;
-        mVagOffsets.push_back(tmp);
+        // VAG offset table..
+        Uint32 totalOffset = 0;
+        mVagOffsets.reserve(mHeader.iNumVags);
+        for (int i = 0; i < mHeader.iNumVags; i++)
+        {
+            Uint16 voff = 0;
+            stream.ReadUInt16(voff);
+            totalOffset += voff << 3;
+            mVagOffsets.push_back(totalOffset);
+        }
     }
 }

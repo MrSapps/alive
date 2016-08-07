@@ -33,17 +33,6 @@ static int MinMax(int number, int min, int max)
     return number;
 }
 
-
-static bool AreEqual(const char* f1, const char* f2)
-{
-    Oddlib::Stream s1(f1);
-    const auto d1 = Oddlib::IStream::ReadAll(s1);
-    Oddlib::Stream s2(f2);
-    const auto d2 = Oddlib::IStream::ReadAll(s2);
-    return d1 == d2;
-}
-
-
 static int SignExtend(int s)
 {
     if (s & 0x8000)
@@ -107,7 +96,7 @@ void PSXADPCMDecoder::DecodeVagStream(Oddlib::IStream& s, std::vector<Uint8>& ou
             // flags & 4 == sampler loop?
 
             // TODO: Handle loop flag
-            LOG_INFO("TODO: Sampler loop");
+            //LOG_INFO("TODO: Sampler loop");
         }
 
         // 14 bytes of data
@@ -120,62 +109,6 @@ void PSXADPCMDecoder::DecodeVagStream(Oddlib::IStream& s, std::vector<Uint8>& ou
         }
     }
 
-}
-
-void PSXADPCMDecoder::VagTest(const char* fileName)
-{
-    FILE* pcm = nullptr;
-
-    // TODO: Retain across incremental calls
-    double old = 0.0;
-    double older = 0.0;
-
-    Oddlib::Stream file(fileName);
-    file.Seek(64);
-
-    pcm = fopen("TESTING.PCM", "wb");
-
-    for (;;)
-    {
-        // Filter and shift nibbles
-        Uint8 filter = 0;
-        file.ReadUInt8(filter);
-        const int shift = filter & 0xf;
-        filter >>= 4;
-
-        // Flags byte
-        Uint8 flags = 0;
-        file.ReadUInt8(flags);
-        if (flags & 1) // EOF flag, checking for == 7 is wrong
-        {
-            break;
-        }
-        else if ((flags & 4) > 0)
-        {
-            // flags & 2 == loop?
-            // flags & 4 == sampler loop?
-
-            // TODO: Handle loop flag
-            LOG_INFO("TODO: Sampler loop");
-        }
-
-        // 14 bytes of data
-        for (int i = 0; i < 28/2; i++) 
-        {
-            Uint8 tmp = 0;
-            file.ReadUInt8(tmp);
-            DecodeNibble(true, shift, filter, tmp, old, older, pcm);
-            DecodeNibble(false, shift, filter, tmp, old, older, pcm);
-        }
-    }
-
-    fclose(pcm);
-
-    if (!AreEqual("GOLD.PCM", "TESTING.PCM"))
-    {
-        abort();
-    }
-    exit(0);
 }
 
 static void DecodeBlock(

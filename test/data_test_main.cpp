@@ -15,6 +15,7 @@
 #include "jsonxx/jsonxx.h"
 #include "resourcemapper.hpp"
 #include "phash.hpp"
+#include "oddlib/audio/vab.hpp"
 
 enum eDataSetType
 {
@@ -663,10 +664,93 @@ int main(int /*argc*/, char** /*argv*/)
             mLvlChunkReducer.MergeReduceLvlChunks(fs, resourcePath, lvls, eType);
         }
 
+        struct VhVbPair
+        {
+            Oddlib::LvlArchive::File* mVh;
+            Oddlib::LvlArchive::File* mVb;
+        };
+
+        struct Sounds
+        {
+            std::vector<VhVbPair> mSoundSets;
+            std::vector<Oddlib::LvlArchive::File*> mSeqs;
+        };
+
+        struct AllSounds
+        {
+            std::map<eDataSetType, Sounds> mSounds;
+            std::vector<std::unique_ptr<Oddlib::LvlArchive>> mLvls;
+        };
+        AllSounds mSounds;
+
+        void CollectSounds(IFileSystem& parentFs, eDataSetType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
+        {
+            auto fs = IFileSystem::Factory(parentFs, resourcePath);
+            if (!fs->Init())
+            {
+                throw std::runtime_error("FS init failed");
+            }
+
+
+            Sounds& sounds = mSounds.mSounds[eType];
+            for (const std::string& lvl : lvls)
+            {
+                std::unique_ptr<Oddlib::LvlArchive> archive = std::make_unique<Oddlib::LvlArchive>(fs->Open(lvl));
+
+                for (Uint32 i = 0; i < archive->FileCount(); i++)
+                {
+                    Oddlib::LvlArchive::File* f = archive->FileByIndex(i);
+                    if (string_util::ends_with(f->FileName(), ".VH", true))
+                    {
+                        Oddlib::LvlArchive::File* vbFile = archive->FileByName(f->FileName().substr(0, f->FileName().length() - 2) + "VB");
+                        sounds.mSoundSets.push_back(VhVbPair{f, vbFile});
+                    }
+                    else if (string_util::ends_with(f->FileName(), ".BSQ", true))
+                    {
+                        sounds.mSeqs.push_back(f);
+                    }
+                }
+
+                mSounds.mLvls.push_back(std::move(archive));
+            }
+        }
+
         void MergeDuplicateSoundSequnces()
         {
+            Oddlib::Stream aePcSoundsDat("F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\sounds.dat");
+            for (const auto& soundMap : mSounds.mSounds)
+            {
+
+                const Sounds& s = soundMap.second;
+                for (const VhVbPair& vhVb : s.mSoundSets)
+                {
+                    auto vhStream = vhVb.mVh->ChunkByIndex(0)->Stream();
+              
+                    const bool kIsPsx = IsPsx(soundMap.first);
+
+                    Vab vab;
+                    vab.ReadVh(*vhStream, kIsPsx);
+
+                    const bool kUseSoundsDat = soundMap.first == eAePc;
+
+                    auto vbStream = vhVb.mVb->ChunkByIndex(0)->Stream();
+                    vab.ReadVb(*vbStream, kIsPsx, kUseSoundsDat, &aePcSoundsDat);
+                }
+            }
+
+            // TODO
+            // De-duplicate the raw sample data - check PC-PSX samples are equal after decoding
+            // Update VH to point to de-duplicated sample index
+            // De-duplicate VH programs - now that they have common sample index
 
 
+            // Update seq prog index to use de-duplicated VH progs
+            // De-duplicate seqs the same way as VH progs
+
+            // Write out deduplicated master sample DB and
+            // real to de-duplicated tone indexes so VH and SEQ can be remapped to reduced data
+
+            // Record which programs are not used, these will likely be the SFX?
         }
 
         void SoundsToJson()
@@ -1062,7 +1146,9 @@ int main(int /*argc*/, char** /*argv*/)
             // Defined struct is wrong
             abort();
         }
-        db.MergeDuplicatedLvlChunks(gameFs, data.first, data.second, *it->second);
+       // db.MergeDuplicatedLvlChunks(gameFs, data.first, data.second, *it->second);
+        db.CollectSounds(gameFs, data.first, data.second, *it->second);
+
     }
 
     // db.MergeDuplicateAnimations();

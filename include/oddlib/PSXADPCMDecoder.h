@@ -18,8 +18,6 @@ public:
         uint8_t *arg_adpcm_frame,
         bool arg_stereo);
 
-
-    void VagTest(const char* fileName);
     void DecodeVagStream(Oddlib::IStream& s, std::vector<Uint8>& out);
 
 public:

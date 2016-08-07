@@ -188,40 +188,32 @@ struct AEVh
     unsigned int iFileOffset;
 };
 
-struct AoVag
-{
-    unsigned int iSize;
-    unsigned int iSampleRate;
-    std::vector< unsigned char > iSampleData;
-};
-
 class Vab
 {
 public:
     Vab() = default;
-    void ReadVb(Oddlib::IStream& aStream );
-    void ReadVh(Oddlib::IStream& stream);
+    void ReadVb(Oddlib::IStream& aStream, bool isPsx, bool useSoundsDat, Oddlib::IStream* soundsDatStream = nullptr);
+    void ReadVh(Oddlib::IStream& stream, bool isPsx);
 
 public:
     VabHeader mHeader;
 
     // We have 128 programs in a VAB
-    std::array<ProgAtr,128> mProgs;
+    std::array<ProgAtr, 128> mProgs;
 
     // Which can have 16 tones or instruments which are mapped to key ranges
     // and a sample along with how to play that sample
     std::vector< std::unique_ptr<VagAtr> > mTones;
 
+    struct SampleData
+    {
+        std::vector<Uint8> mData;
+    };
+    std::vector<SampleData> mSamples;
+
+private:
     // VAG Data body / (VB 254 VAG data) ("Samples" in AE?)
     // 512bytes /2 = 256 samps max
-    //std::vector< std::unique_ptr<AEVh> > iOffs;
-    //std::vector< std::unique_ptr<AoVag> > iAoVags;
-
-    struct PsxVag
-    {
-        Uint32 mOffset;
-        std::vector<Uint8> iSampleData;
-    };
-
-    std::vector<PsxVag> mVagOffsets;
+    std::vector<AEVh> iOffs;
+    std::vector<Uint32> mVagOffsets;
 };
