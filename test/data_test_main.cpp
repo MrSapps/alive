@@ -668,6 +668,7 @@ int main(int /*argc*/, char** /*argv*/)
         {
             Oddlib::LvlArchive::File* mVh;
             Oddlib::LvlArchive::File* mVb;
+            std::unique_ptr<Vab> mVab;
         };
 
         struct Sounds
@@ -715,27 +716,60 @@ int main(int /*argc*/, char** /*argv*/)
             }
         }
 
+        const VhVbPair* Find(eDataSetType dataSet, const char* vab)
+        {
+            auto it = mSounds.mSounds.find(dataSet);
+            if (it != std::end(mSounds.mSounds))
+            {
+                for (const VhVbPair& vhVb : it->second.mSoundSets)
+                {
+                    if (vhVb.mVh->FileName() == vab)
+                    {
+                        return &vhVb;
+                    }
+                }
+            }
+            return nullptr;
+        }
+
+        void Compare(const Vab& v1, const Vab& v2)
+        {
+            if (v1.mSamples.size() != v2.mSamples.size())
+            {
+                abort();
+            }
+        }
+
         void MergeDuplicateSoundSequnces()
         {
             Oddlib::Stream aePcSoundsDat("F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\sounds.dat");
-            for (const auto& soundMap : mSounds.mSounds)
+            for (auto& soundMap : mSounds.mSounds)
             {
-
-                const Sounds& s = soundMap.second;
-                for (const VhVbPair& vhVb : s.mSoundSets)
+                Sounds& s = soundMap.second;
+                for (VhVbPair& vhVb : s.mSoundSets)
                 {
                     auto vhStream = vhVb.mVh->ChunkByIndex(0)->Stream();
               
                     const bool kIsPsx = IsPsx(soundMap.first);
 
-                    Vab vab;
-                    vab.ReadVh(*vhStream, kIsPsx);
+                    auto vab = std::make_unique<Vab>();
+                    vab->ReadVh(*vhStream, kIsPsx);
 
                     const bool kUseSoundsDat = soundMap.first == eAePc;
 
                     auto vbStream = vhVb.mVb->ChunkByIndex(0)->Stream();
-                    vab.ReadVb(*vbStream, kIsPsx, kUseSoundsDat, &aePcSoundsDat);
+                    vab->ReadVb(*vbStream, kIsPsx, kUseSoundsDat, &aePcSoundsDat);
+
+                    vhVb.mVab = std::move(vab);
                 }
+            }
+
+            // Get RFSNDFX from R1.LVL for PSX and PC
+            const VhVbPair* pc = Find(eDataSetType::eAoPc, "RFSNDFX.VH");
+            const VhVbPair* psx = Find(eDataSetType::eAoPsx, "RFSNDFX.VH");
+            if (pc && psx)
+            {
+                Compare(*pc->mVab, *psx->mVab);
             }
 
             // TODO
