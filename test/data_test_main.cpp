@@ -666,6 +666,25 @@ int main(int /*argc*/, char** /*argv*/)
 
         struct VhVbPair
         {
+            VhVbPair(Oddlib::LvlArchive::File* vh, Oddlib::LvlArchive::File* vb)
+                : mVh(vh), mVb(vb)
+            {
+
+            }
+
+            VhVbPair(VhVbPair&& other)
+            {
+                *this = std::move(other);
+            }
+
+            VhVbPair& operator = (VhVbPair&& other)
+            {
+                mVh = other.mVh;
+                mVb = other.mVb;
+                mVab = std::move(other.mVab);
+                return *this;
+            }
+
             Oddlib::LvlArchive::File* mVh;
             Oddlib::LvlArchive::File* mVb;
             std::unique_ptr<Vab> mVab;
@@ -704,7 +723,7 @@ int main(int /*argc*/, char** /*argv*/)
                     if (string_util::ends_with(f->FileName(), ".VH", true))
                     {
                         Oddlib::LvlArchive::File* vbFile = archive->FileByName(f->FileName().substr(0, f->FileName().length() - 2) + "VB");
-                        sounds.mSoundSets.push_back(VhVbPair{f, vbFile});
+                        sounds.mSoundSets.push_back(VhVbPair(f, vbFile));
                     }
                     else if (string_util::ends_with(f->FileName(), ".BSQ", true))
                     {
