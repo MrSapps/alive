@@ -165,7 +165,7 @@ public:
         const Sint64 timeSinceLastFrameInMsecs = std::chrono::duration_cast<std::chrono::milliseconds>(totalRunTime - mFrameStartTime).count();
         if (timeSinceLastFrameInMsecs > 500 && mFramesPassed > 10)
         {
-            const float fps = static_cast<float>(static_cast<float>(mFramesPassed) / (static_cast<float>(timeSinceLastFrameInMsecs) / 1000.0f));
+            const f32 fps = static_cast<f32>(static_cast<f32>(mFramesPassed) / (static_cast<f32>(timeSinceLastFrameInMsecs) / 1000.0f));
             mFrameStartTime = totalRunTime;
             mFramesPassed = 0;
             fnUpdate(fps);
@@ -178,7 +178,7 @@ private:
     THighResClock::duration mFrameStartTime = {};
 };
 
-static char* WindowTitle(float fps)
+static char* WindowTitle(f32 fps)
 {
     static char buffer[128] = {};
     sprintf(buffer, ALIVE_VERSION_NAME_STR, fps);
@@ -202,7 +202,7 @@ int Engine::Run()
         }
 
         Render();
-        fpsCounter.Update([&](float fps)
+        fpsCounter.Update([&](f32 fps)
         {
             SDL_SetWindowTitle(mWindow, WindowTitle(fps));
         });

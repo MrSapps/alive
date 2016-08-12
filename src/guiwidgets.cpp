@@ -3,7 +3,7 @@
 #include "gui.h"
 #include "logger.hpp"
 
-void drawButton(void *void_rend, float x, float y, float w, float h, bool down, bool hover, int layer, float *s)
+void drawButton(void *void_rend, f32 x, f32 y, f32 w, f32 h, bool down, bool hover, int layer, f32 *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
@@ -12,7 +12,7 @@ void drawButton(void *void_rend, float x, float y, float w, float h, bool down, 
     else
         rend->resetScissor();
 
-    float cornerRadius = 4.0f;
+    f32 cornerRadius = 4.0f;
     Color gradBegin = { 1.f, 1.f, 1.f, 64 / 255.f };
     Color gradEnd = { 0.f, 0.f, 0.f, 64 / 255.f };
 
@@ -54,7 +54,7 @@ void drawButton(void *void_rend, float x, float y, float w, float h, bool down, 
     rend->endLayer();
 }
 
-void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool /*down*/, bool hover, int layer, float *s)
+void drawCheckBox(void *void_rend, f32 x, f32 y, f32 w, bool checked, bool /*down*/, bool hover, int layer, f32 *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
@@ -85,7 +85,7 @@ void drawCheckBox(void *void_rend, float x, float y, float w, bool checked, bool
     rend->endLayer();
 }
 
-void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, bool /*down*/, bool hover, int layer, float *s)
+void drawRadioButton(void *void_rend, f32 x, f32 y, f32 w, bool checked, bool /*down*/, bool hover, int layer, f32 *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
@@ -116,7 +116,7 @@ void drawRadioButton(void *void_rend, float x, float y, float w, bool checked, b
     rend->endLayer();
 }
 
-void drawTextBox(void *void_rend, float x, float y, float w, float h, bool active, bool hover, int layer, float *s)
+void drawTextBox(void *void_rend, f32 x, f32 y, f32 w, f32 h, bool active, bool hover, int layer, f32 *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
@@ -142,9 +142,9 @@ void drawTextBox(void *void_rend, float x, float y, float w, float h, bool activ
     rend->endLayer();
 }
 
-static const float g_gui_font_size = 16.f;
+static const f32 g_gui_font_size = 16.f;
 
-void drawText(void *void_rend, float x, float y, const char *text, int layer, float *s)
+void drawText(void *void_rend, f32 x, f32 y, const char *text, int layer, f32 *s)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer);
@@ -168,19 +168,19 @@ void calcTextSize(int ret[2], void *void_rend, const char *text)
     rend->fontSize(g_gui_font_size);
     rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
     rend->fontBlur(0);
-    float bounds[4];
+    f32 bounds[4];
     rend->textBounds(0, 0, text, bounds);
     ret[0] = (int)(bounds[2] - bounds[0]);
     ret[1] = (int)(bounds[3] - bounds[1]);
 }
 
-void drawTitleBar(void *void_rend, float x, float y, float w, float h, const char *title, bool focus, int layer)
+void drawTitleBar(void *void_rend, f32 x, f32 y, f32 w, f32 h, const char *title, bool focus, int layer)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer); // Makes window reordering possible
     rend->resetScissor();
 
-    float cornerRadius = 3.0f;
+    f32 cornerRadius = 3.0f;
     RenderPaint headerPaint;
 
     // Header
@@ -211,13 +211,13 @@ void drawTitleBar(void *void_rend, float x, float y, float w, float h, const cha
     rend->endLayer();
 }
 
-void drawPanel(void *void_rend, float x, float y, float w, float h, int layer)
+void drawPanel(void *void_rend, f32 x, f32 y, f32 w, f32 h, int layer)
 {
     Renderer *rend = (Renderer*)void_rend;
     rend->beginLayer(layer); // Makes window reordering possible
     rend->resetScissor();
 
-    float cornerRadius = 3.0f;
+    f32 cornerRadius = 3.0f;
     RenderPaint shadowPaint;
 
     // Window
@@ -247,16 +247,16 @@ void drawWidgets(GuiContext &gui, Renderer &rend)
     gui_draw_info(&gui, &draw_infos, &count);
     for (int i = 0; i < count; ++i) {
         GuiDrawInfo d = draw_infos[i];
-        float scissor_data[4];
-        scissor_data[0] = (float)d.scissor_pos[0];
-        scissor_data[1] = (float)d.scissor_pos[1];
-        scissor_data[2] = (float)d.scissor_size[0];
-        scissor_data[3] = (float)d.scissor_size[1];
-        float *s = d.has_scissor ? scissor_data : NULL;
-        float x = (float)d.pos[0];
-        float y = (float)d.pos[1];
-        float w = (float)d.size[0];
-        float h = (float)d.size[1];
+        f32 scissor_data[4];
+        scissor_data[0] = (f32)d.scissor_pos[0];
+        scissor_data[1] = (f32)d.scissor_pos[1];
+        scissor_data[2] = (f32)d.scissor_size[0];
+        scissor_data[3] = (f32)d.scissor_size[1];
+        f32 *s = d.has_scissor ? scissor_data : NULL;
+        f32 x = (f32)d.pos[0];
+        f32 y = (f32)d.pos[1];
+        f32 w = (f32)d.size[0];
+        f32 h = (f32)d.size[1];
 
         // Separate draw functions are artifacts of the old callback-based drawing api
         switch (d.type) {

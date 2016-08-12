@@ -36,14 +36,14 @@ class AliveAudio : public IAudioPlayer
 {
 public:
     std::vector<unsigned char> m_SoundsDat;
-    void PlayOneShot(int program, int note, float volume, float pitch = 0);
+    void PlayOneShot(int program, int note, f32 volume, f32 pitch = 0);
     void PlayOneShot(std::string soundID);
 
-    void NoteOn(int program, int note, char velocity, float pitch = 0, int trackID = 0, double trackDelay = 0);
+    void NoteOn(int program, int note, char velocity, f32 pitch = 0, int trackID = 0, double trackDelay = 0);
     void NoteOn(int program, int note, char velocity, int trackID = 0, double trackDelay = 0);
 
     void NoteOff(int program, int note, int trackID = 0);
-    void NoteOffDelay(int program, int note, int trackID = 0, float trackDelay = 0);
+    void NoteOffDelay(int program, int note, int trackID = 0, f32 trackDelay = 0);
 
     void DebugPlayFirstToneSample(int program, int tone);
 
@@ -67,20 +67,20 @@ public:
     AudioInterpolation Interpolation = AudioInterpolation_hermite;
     bool AntiAliasFilteringEnabled = false;
     bool ForceReverb = false;
-    float ReverbMix = 0.5f;
+    f32 ReverbMix = 0.5f;
     bool DebugDisableVoiceResampling = false;
 
 private:
     std::unique_ptr<AliveAudioSoundbank> m_CurrentSoundbank;
 
     std::vector<AliveAudioVoice *> m_Voices;
-    std::vector<float> m_DryChannelBuffer;
-    std::vector<float> m_ReverbChannelBuffer;
+    std::vector<f32> m_DryChannelBuffer;
+    std::vector<f32> m_ReverbChannelBuffer;
 
     stk::FreeVerb m_Reverb;
 
     void CleanVoices();
-    void AliveRenderAudio(float* AudioStream, int StreamLength);
+    void AliveRenderAudio(f32* AudioStream, int StreamLength);
 
     void LoadJsonConfig(std::string filePath, FileSystem& fs);
 };

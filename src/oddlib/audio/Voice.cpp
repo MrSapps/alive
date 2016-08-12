@@ -6,19 +6,19 @@
 #include <algorithm>
 
 template<class T>
-static float Lerp(T from, T to, float t)
+static f32 Lerp(T from, T to, f32 t)
 {
     return from + ((to - from)*t);
 }
 
-static float SampleSint16ToFloat(s16 v)
+static f32 SampleSint16ToFloat(s16 v)
 {
     return (v / 32767.0f);
 }
 
-float InterpCubic(float x0, float x1, float x2, float x3, float t)
+f32 InterpCubic(f32 x0, f32 x1, f32 x2, f32 x3, f32 t)
 {
-    float a0, a1, a2, a3;
+    f32 a0, a1, a2, a3;
     a0 = x3 - x2 - x0 + x1;
     a1 = x0 - x1 - a0;
     a2 = x2 - x0;
@@ -26,16 +26,16 @@ float InterpCubic(float x0, float x1, float x2, float x3, float t)
     return a0*(t*t*t) + a1*(t*t) + a2*t + a3;
 }
 
-float InterpHermite(float x0, float x1, float x2, float x3, float t)
+f32 InterpHermite(f32 x0, f32 x1, f32 x2, f32 x3, f32 t)
 {
-    float c0 = x1;
-    float c1 = .5F * (x2 - x0);
-    float c2 = x0 - (2.5F * x1) + (2 * x2) - (.5F * x3);
-    float c3 = (.5F * (x3 - x0)) + (1.5F * (x1 - x2));
+    f32 c0 = x1;
+    f32 c1 = .5F * (x2 - x0);
+    f32 c2 = x0 - (2.5F * x1) + (2 * x2) - (.5F * x3);
+    f32 c3 = (.5F * (x3 - x0)) + (1.5F * (x1 - x2));
     return (((((c3 * t) + c2) * t) + c1) * t) + c0;
 }
 
-float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antialiasFilteringEnabled*/)
+f32 AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antialiasFilteringEnabled*/)
 {
 	if (b_Dead)	// Don't return anything if dead. This voice should now be removed.
 	{
@@ -127,7 +127,7 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antial
     { // Actual sample calculation
         std::vector<u16>& sampleBuffer = m_Tone->m_Sample->m_SampleBuffer;
 
-        float sample = 0.0f;
+        f32 sample = 0.0f;
         if (interpolation == AudioInterpolation_none)
         {
             size_t off = (int)f_SampleOffset;
@@ -147,7 +147,7 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antial
                 LOG_ERROR("Sample buffer index out of bounds (interpolated)");
                 baseOffset = nextOffset = static_cast<int>(sampleBuffer.size() - 1);
             }
-            sample = SampleSint16ToFloat(static_cast<s16>(Lerp<s16>(sampleBuffer[baseOffset], sampleBuffer[nextOffset], static_cast<float>(f_SampleOffset - baseOffset))));
+            sample = SampleSint16ToFloat(static_cast<s16>(Lerp<s16>(sampleBuffer[baseOffset], sampleBuffer[nextOffset], static_cast<f32>(f_SampleOffset - baseOffset))));
         }
         else if (interpolation == AudioInterpolation_cubic || interpolation == AudioInterpolation_hermite)
         {
@@ -158,7 +158,7 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antial
             {
                 offsets[i] = (offsets[i - 1] + 1) % sampleBuffer.size(); // TODO: Don't assume looping
             }
-            float raw_samples[4] =
+            f32 raw_samples[4] =
             {
                 SampleSint16ToFloat(sampleBuffer[offsets[0]]),
                 SampleSint16ToFloat(sampleBuffer[offsets[1]]),
@@ -166,7 +166,7 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antial
                 SampleSint16ToFloat(sampleBuffer[offsets[3]]),
             };
 
-            float t = static_cast<float>(f_SampleOffset - floor(f_SampleOffset));
+            f32 t = static_cast<f32>(f_SampleOffset - floor(f_SampleOffset));
             assert(t >= 0.0 && t <= 1.0);
             if (interpolation == AudioInterpolation_cubic)
                 sample = InterpCubic(raw_samples[0], raw_samples[1], raw_samples[2], raw_samples[3], t);
@@ -174,6 +174,6 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antial
                 sample = InterpHermite(raw_samples[0], raw_samples[1], raw_samples[2], raw_samples[3], t);
         }
 
-        return static_cast<float>(sample * m_ADSR_Level * f_Velocity);
+        return static_cast<f32>(sample * m_ADSR_Level * f_Velocity);
     }
 }

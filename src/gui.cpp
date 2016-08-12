@@ -325,18 +325,18 @@ int gui_window_order(GuiContext *ctx, int handle)
 	return -1;
 }
 
-void pt_to_px(int px[2], int pt[2], float dpi_scale)
+void pt_to_px(int px[2], int pt[2], f32 dpi_scale)
 {
 	px[0] = (int)floorf(pt[0]*dpi_scale + 0.5f);
 	px[1] = (int)floorf(pt[1]*dpi_scale + 0.5f);
 }
 
-float pt_to_px_f32(float pt, float dpi_scale)
+f32 pt_to_px_f32(f32 pt, f32 dpi_scale)
 {
 	return pt*dpi_scale;
 }
 
-void px_to_pt(int pt[2], int px[2], float dpi_scale)
+void px_to_pt(int pt[2], int px[2], f32 dpi_scale)
 {
 	pt[0] = (int)floorf(px[0] / dpi_scale + 0.5f);
 	pt[1] = (int)floorf(px[1] / dpi_scale + 0.5f);
@@ -449,7 +449,7 @@ GUI_BOOL gui_is_inside_window(GuiContext *ctx, int size[2])
 	return GUI_TRUE;
 }
 
-void gui_start_dragging(GuiContext *ctx, float start_value[2])
+void gui_start_dragging(GuiContext *ctx, f32 start_value[2])
 {
 	assert(!ctx->dragging);
 	ctx->dragging = GUI_TRUE;
@@ -912,7 +912,7 @@ void gui_end_ex(GuiContext *ctx, DragDropData *dropdata)
 	}
 }
 
-void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, float max, float handle_rel_size, GUI_BOOL v, int length, GUI_BOOL show_text)
+void gui_slider_ex(GuiContext *ctx, const char *label, f32 *value, f32 min, f32 max, f32 handle_rel_size, GUI_BOOL v, int length, GUI_BOOL show_text)
 {
 	gui_begin(ctx, label);
 
@@ -937,7 +937,7 @@ void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, 
 	gui_button_logic(ctx, label, pos, bar_size, NULL, &went_down, &down, &hover);
 
 	if (went_down) {
-		GUI_DECL_V2(float, tmp, *value, 0);
+		GUI_DECL_V2(f32, tmp, *value, 0);
 		gui_start_dragging(ctx, tmp);
 	}
 
@@ -957,7 +957,7 @@ void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, 
 		}
 
 		{ // Handle
-			float rel_scroll = (*value - min) / (max - min);
+			f32 rel_scroll = (*value - min) / (max - min);
 			int handle_pos[2];
 			GUI_ASSIGN_V2(handle_pos, pos);
 			handle_pos[v] += (int)(rel_scroll*(bar_size[v] - scroll_handle_height));
@@ -1099,8 +1099,8 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, GUI_BOOL panel)
 		}
 
 		if (went_down) {
-			float v[2];
-			GUI_V2(v[c] = (float)pos[c]);
+			f32 v[2];
+			GUI_V2(v[c] = (f32)pos[c]);
 			gui_start_dragging(ctx, v);
 		}
 
@@ -1167,8 +1167,8 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, GUI_BOOL panel)
 						(ctx->key_state[GUI_KEY_LCTRL] & GUI_KEYSTATE_DOWN_BIT) &&
 						(ctx->key_state[GUI_KEY_LMB] & GUI_KEYSTATE_DOWN_BIT)) {
 					if (!ctx->dragging) {
-						float v[2];
-						GUI_V2(v[c] = (float)win->scroll[c]);
+						f32 v[2];
+						GUI_V2(v[c] = (f32)win->scroll[c]);
 						gui_start_dragging(ctx, v);
 					} else {
 						int v[2];
@@ -1177,9 +1177,9 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, GUI_BOOL panel)
 					}
 				}
 
-				float scroll = 1.f*win->scroll[d];
-				float rel_shown_area = 1.f*c_size[d]/win->last_bounding_size[d];
-				float max_comp_scroll = 1.f*max_scroll[d];
+				f32 scroll = 1.f*win->scroll[d];
+				f32 rel_shown_area = 1.f*c_size[d]/win->last_bounding_size[d];
+				f32 max_comp_scroll = 1.f*max_scroll[d];
 				gui_slider_ex(	ctx, scroll_label, &scroll, 0, max_comp_scroll, rel_shown_area, !!d,
 								size[d] - slider_layout.size[d] - d*win->bar_height, GUI_FALSE);
 				win->scroll[d] = (int)scroll;
@@ -1204,8 +1204,8 @@ void gui_begin_window_ex(GuiContext *ctx, const char *label, GUI_BOOL panel)
 		gui_button_logic(ctx, resize_label, handle_pos, handle_size, NULL, &went_down, &down, &hover);
 
 		if (went_down) {
-			float v[2];
-			GUI_V2(v[c] = (float)size[c]);
+			f32 v[2];
+			GUI_V2(v[c] = (f32)size[c]);
 			gui_start_dragging(ctx, v);
 		}
 
@@ -1409,7 +1409,7 @@ GUI_BOOL gui_radiobutton(GuiContext *ctx, const char *label, GUI_BOOL value)
 	return gui_checkbox_ex(ctx, label, &v, GUI_TRUE);
 }
 
-void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max)
+void gui_slider(GuiContext *ctx, const char *label, f32 *value, f32 min, f32 max)
 {
 	gui_slider_ex(ctx, label, value, min, max, 0.1f, GUI_FALSE, 0, GUI_TRUE);
 }

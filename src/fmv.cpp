@@ -21,27 +21,27 @@ public:
     }
 };
 
-static float Percent(float max, float percent)
+static f32 Percent(f32 max, f32 percent)
 {
     return (max / 100.0f) * percent;
 }
 
 static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w, int h)
 {
-    float xpos = 0.0f;
-    float ypos = static_cast<float>(y + h);
+    f32 xpos = 0.0f;
+    f32 ypos = static_cast<f32>(y + h);
 
     rend.fillColor(Color{ 0, 0, 0, 1 });
-    rend.fontSize(Percent(static_cast<float>(h), 6.7f));
+    rend.fontSize(Percent(static_cast<f32>(h), 6.7f));
     rend.textAlign(TEXT_ALIGN_TOP);
     
-    float bounds[4];
+    f32 bounds[4];
     rend.textBounds(static_cast<int>(xpos), static_cast<int>(ypos), msg, bounds);
 
-    //float fontX = bounds[0];
-    //float fontY = bounds[1];
-    float fontW = bounds[2] - bounds[0];
-    float fontH = bounds[3] - bounds[1];
+    //f32 fontX = bounds[0];
+    //f32 fontY = bounds[1];
+    f32 fontW = bounds[2] - bounds[0];
+    f32 fontH = bounds[3] - bounds[1];
 
     // Move off the bottom of the screen by half the font height
     ypos -= fontH + (fontH/2);
@@ -51,7 +51,7 @@ static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w
 
     rend.text(xpos, ypos, msg);
     rend.fillColor(Color{ 1, 1, 1, 1 });
-    float adjust = Percent(static_cast<float>(h), 0.3f);
+    f32 adjust = Percent(static_cast<f32>(h), 0.3f);
     rend.text(xpos - adjust, ypos - adjust, msg);
 }
 
@@ -188,7 +188,7 @@ void IMovie::Play(u8* stream, u32 len)
 
     // Consume mAudioBuffer and update the amount of consumed bytes
     size_t have = mAudioBuffer.size()/sizeof(int16_t);
-    size_t take = len/sizeof(float);
+    size_t take = len/sizeof(f32);
     if (take > have)
     {
         // Buffer underflow - we don't have enough data to fill the requested buffer
@@ -197,7 +197,7 @@ void IMovie::Play(u8* stream, u32 len)
         take = have;
     }
 
-    float *floatOutStream = reinterpret_cast<float*>(stream);
+    f32 *floatOutStream = reinterpret_cast<f32*>(stream);
     for (auto i = 0u; i < take; i++)
     {
         uint8_t low = mAudioBuffer[i*sizeof(int16_t)];
@@ -223,7 +223,7 @@ void IMovie::RenderFrame(Renderer &rend, GuiContext &gui, int width, int height,
     gui_window_client_size(&gui, &w, &h);
 
     rend.beginLayer(gui_layer(&gui) + 1);
-    rend.drawQuad(texhandle, static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
+    rend.drawQuad(texhandle, static_cast<f32>(x), static_cast<f32>(y), static_cast<f32>(w), static_cast<f32>(h));
 
     if (subtitles)
     {

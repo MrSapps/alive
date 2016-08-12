@@ -5,7 +5,7 @@
 #include "oddlib/bits_factory.hpp"
 #include <cmath>
 
-const /*static*/ float Animation::kPcToPsxScaleFactor = 1.73913043478f;
+const /*static*/ f32 Animation::kPcToPsxScaleFactor = 1.73913043478f;
 
 bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
 {
@@ -320,10 +320,10 @@ static void ApplyDelta(SDL_Surface* deltaSurface, SDL_Surface* originalCameraSur
     // Apply delta image over linearly interpolated game cam image
     for (auto y = 0u; y < h; ++y)
     {
-        const float src_rel_y = 1.f*y / (h - 1); // 0..1
+        const f32 src_rel_y = 1.f*y / (h - 1); // 0..1
         for (auto x = 0u; x < w; ++x)
         {
-            const float src_rel_x = 1.f*x / (w - 1); // 0..1
+            const f32 src_rel_x = 1.f*x / (w - 1); // 0..1
 
             int src_x = (int)std::floor(src_rel_x*originalCameraSurface->w - 0.5f);
             int src_y = (int)std::floor(src_rel_y*originalCameraSurface->h - 0.5f);
@@ -331,8 +331,8 @@ static void ApplyDelta(SDL_Surface* deltaSurface, SDL_Surface* originalCameraSur
             int src_x_plus = src_x + 1;
             int src_y_plus = src_y + 1;
 
-            float lerp_x = src_rel_x*originalCameraSurface->w - (src_x + 0.5f);
-            float lerp_y = src_rel_y*originalCameraSurface->h - (src_y + 0.5f);
+            f32 lerp_x = src_rel_x*originalCameraSurface->w - (src_x + 0.5f);
+            f32 lerp_y = src_rel_y*originalCameraSurface->h - (src_y + 0.5f);
             assert(lerp_x >= 0.0f);
             assert(lerp_x <= 1.0f);
             assert(lerp_y >= 0.0f);
@@ -358,17 +358,17 @@ static void ApplyDelta(SDL_Surface* deltaSurface, SDL_Surface* originalCameraSur
             for (int comp = 0; comp < 3; ++comp)
             {
                 // 4 neighboring texels
-                float a = src[src_indices[0] + comp] / 255.f;
-                float b = src[src_indices[1] + comp] / 255.f;
-                float c = src[src_indices[2] + comp] / 255.f;
-                float d = src[src_indices[3] + comp] / 255.f;
+                f32 a = src[src_indices[0] + comp] / 255.f;
+                f32 b = src[src_indices[1] + comp] / 255.f;
+                f32 c = src[src_indices[2] + comp] / 255.f;
+                f32 d = src[src_indices[3] + comp] / 255.f;
 
                 // 2d linear interpolation
-                float orig = (a*(1 - lerp_x) + b*lerp_x)*(1 - lerp_y) + (c*(1 - lerp_x) + d*lerp_x)*lerp_y;
-                float delta = dst[dst_ix + comp] / 255.f;
+                f32 orig = (a*(1 - lerp_x) + b*lerp_x)*(1 - lerp_y) + (c*(1 - lerp_x) + d*lerp_x)*lerp_y;
+                f32 delta = dst[dst_ix + comp] / 255.f;
 
                 // "Grain extract" has been used in creating the delta image
-                float merged = orig + delta - 0.5f;
+                f32 merged = orig + delta - 0.5f;
                 dst[dst_ix + comp] = (uint8_t)(std::max(std::min(merged * 255 + 0.5f, 255.f), 0.0f));
             }
         }

@@ -182,8 +182,8 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int, int)
     gui_begin_panel(&gui, "camArea");
     rend.beginLayer(gui_layer(&gui) + 1);
 
-    const float zoomBase = 1.2f;
-    const float oldZoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
+    const f32 zoomBase = 1.2f;
+    const f32 oldZoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
     bool zoomChanged = false;
     if (gui.key_state[GUI_KEY_LCTRL] & GUI_KEYSTATE_DOWN_BIT)
     {
@@ -193,7 +193,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int, int)
     // Cap zooming so that things don't clump in the upper left corner
     mZoomLevel = std::max(mZoomLevel, -12);
 
-    const float zoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
+    const f32 zoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
     // Use oldZoom because gui_set_frame_scroll below doesn't change scrolling in current frame. Could be changed though.
     const int camSize[2] = { (int)(1440*oldZoomMul), (int)(1080*oldZoomMul) }; // TODO: Native reso should be constant somewhere
     const int margin[2] = { (int)(3000*oldZoomMul), (int)(3000*oldZoomMul) };
@@ -205,7 +205,7 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int, int)
         worldFrameSize[1] = 480;
     }
     int worldCamSize[2] = {368, 240}; // Size of cam background in object coordinate system
-    float frameSize[2] = { 1.f * worldFrameSize[0]/worldCamSize[0] * camSize[0],
+    f32 frameSize[2] = { 1.f * worldFrameSize[0]/worldCamSize[0] * camSize[0],
                            1.f * worldFrameSize[1]/worldCamSize[1] * camSize[1] };
 
     // Zoom around cursor
@@ -213,17 +213,17 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int, int)
     {
         int scroll[2];
         gui_scroll(&gui, &scroll[0], &scroll[1]);
-        float scaledCursorPos[2] = { 1.f*gui.cursor_pos[0], 1.f*gui.cursor_pos[1] };
-        float oldClientPos[2] = { scroll[0] + scaledCursorPos[0], scroll[1] + scaledCursorPos[1] };
-        float worldPos[2] = { oldClientPos[0]*(1.f/oldZoomMul), oldClientPos[1]*(1.f/oldZoomMul) };
-        float newClientPos[2] = { worldPos[0]*zoomMul, worldPos[1]*zoomMul };
-        float newScreenPos[2] = { newClientPos[0] - scaledCursorPos[0], newClientPos[1] - scaledCursorPos[1] };
+        f32 scaledCursorPos[2] = { 1.f*gui.cursor_pos[0], 1.f*gui.cursor_pos[1] };
+        f32 oldClientPos[2] = { scroll[0] + scaledCursorPos[0], scroll[1] + scaledCursorPos[1] };
+        f32 worldPos[2] = { oldClientPos[0]*(1.f/oldZoomMul), oldClientPos[1]*(1.f/oldZoomMul) };
+        f32 newClientPos[2] = { worldPos[0]*zoomMul, worldPos[1]*zoomMul };
+        f32 newScreenPos[2] = { newClientPos[0] - scaledCursorPos[0], newClientPos[1] - scaledCursorPos[1] };
 
         gui_set_scroll(&gui, (int)(newScreenPos[0] + 0.5f), (int)(newScreenPos[1] + 0.5f));
     }
 
     // Draw cam backgrounds
-    float offset[2] = {0, 0};
+    f32 offset[2] = {0, 0};
     if (mIsAo)
     {
         offset[0] = 257.f * camSize[0] / worldCamSize[0];

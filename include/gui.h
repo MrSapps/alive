@@ -230,7 +230,7 @@ typedef struct GuiContext {
 
 	int drag_start_pos[2]; // Pixel coordinates
 	GUI_BOOL dragging;
-	float drag_start_value[2]; // Knob value, or xy position, or ...
+	f32 drag_start_value[2]; // Knob value, or xy position, or ...
 	DragDropData dragdropdata; // Data from gui component which is currently dragged
 
 	char written_text_buf[GUI_WRITTEN_TEXT_BUF_SIZE]; // Modified by gui_write_char
@@ -245,7 +245,7 @@ typedef struct GuiContext {
 	int window_count;
 
 	// This is used at mouse input and render dimensions. All gui calculations are done in pt.
-	float dpi_scale; // 1.0: pixels == points, 2.0: pixels == 2.0*points (gui size is doubled). 
+	f32 dpi_scale; // 1.0: pixels == points, 2.0: pixels == 2.0*points (gui size is doubled). 
 
 	GuiId hot_id, last_hot_id;
 	int hot_layer;
@@ -323,7 +323,7 @@ GUI_API GUI_BOOL gui_button(GuiContext *ctx, const char *label);
 GUI_API GUI_BOOL gui_selectable(GuiContext *ctx, const char *label, GUI_BOOL selected);
 GUI_API GUI_BOOL gui_checkbox(GuiContext *ctx, const char *label, GUI_BOOL *value);
 GUI_API GUI_BOOL gui_radiobutton(GuiContext *ctx, const char *label, GUI_BOOL value);
-GUI_API void gui_slider(GuiContext *ctx, const char *label, float *value, float min, float max);
+GUI_API void gui_slider(GuiContext *ctx, const char *label, f32 *value, f32 min, f32 max);
 GUI_API GUI_BOOL gui_textfield(GuiContext *ctx, const char *label, char *buf, int buf_size);
 GUI_API GUI_BOOL gui_intfield(GuiContext *ctx, const char *label, int *value);
 GUI_API void gui_label(GuiContext *ctx, const char *label);

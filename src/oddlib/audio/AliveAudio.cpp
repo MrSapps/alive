@@ -1,9 +1,9 @@
 #include "oddlib/audio/AliveAudio.h"
 #include "filesystem.hpp"
 
-static float RandFloat(float a, float b)
+static f32 RandFloat(f32 a, f32 b)
 {
-    return ((b - a)*((float)rand() / RAND_MAX)) + a;
+    return ((b - a)*((f32)rand() / RAND_MAX)) + a;
 }
 
 void AliveAudio::LoadJsonConfig(std::string filePath, FileSystem& fs)
@@ -79,9 +79,9 @@ void AliveAudio::CleanVoices()
 
 }
 
-void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
+void AliveAudio::AliveRenderAudio(f32 * AudioStream, int StreamLength)
 {
-    //static float tick = 0;
+    //static f32 tick = 0;
     //static int note = 0;
 
     //AliveAudioSoundbank * currentSoundbank = AliveAudio::m_CurrentSoundbank;
@@ -131,9 +131,9 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
                 continue;
             }
 
-            float centerPan = voice->m_Tone->f_Pan;
-            float leftPan = 1.0f;
-            float rightPan = 1.0f;
+            f32 centerPan = voice->m_Tone->f_Pan;
+            f32 leftPan = 1.0f;
+            f32 rightPan = 1.0f;
 
             if (centerPan > 0)
             {
@@ -146,9 +146,9 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
             }
 
             // TODO FIX ME
-            float  s = voice->GetSample(Interpolation, AntiAliasFilteringEnabled);
-            float leftSample = (s * leftPan);
-            float rightSample = (s * rightPan);
+            f32  s = voice->GetSample(Interpolation, AntiAliasFilteringEnabled);
+            f32 leftSample = (s * leftPan);
+            f32 rightSample = (s * rightPan);
 
             if (voice->m_Tone->Reverbate || ForceReverb)
             {
@@ -170,18 +170,18 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
     // TODO: Find a better way of feeding the data in
     for (int i = 0; i < StreamLength; i += 2)
     {
-        const float left = static_cast<float>(m_Reverb.tick(m_ReverbChannelBuffer[i], m_ReverbChannelBuffer[i + 1], 0));
-        const float right = static_cast<float>(m_Reverb.lastOut(1));
+        const f32 left = static_cast<f32>(m_Reverb.tick(m_ReverbChannelBuffer[i], m_ReverbChannelBuffer[i + 1], 0));
+        const f32 right = static_cast<f32>(m_Reverb.lastOut(1));
         m_ReverbChannelBuffer[i] = left;
         m_ReverbChannelBuffer[i + 1] = right;
     }
    
     for (int i = 0; i < StreamLength; i += 2)
     {
-        const float left = m_DryChannelBuffer[i] + m_ReverbChannelBuffer[i];
-        const float right = m_DryChannelBuffer[i + 1] + m_ReverbChannelBuffer[i + 1];
-        SDL_MixAudioFormat((u8 *)(AudioStream + i), (const u8*)&left, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
-        SDL_MixAudioFormat((u8 *)(AudioStream + i + 1), (const u8*)&right, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
+        const f32 left = m_DryChannelBuffer[i] + m_ReverbChannelBuffer[i];
+        const f32 right = m_DryChannelBuffer[i + 1] + m_ReverbChannelBuffer[i + 1];
+        SDL_MixAudioFormat((u8 *)(AudioStream + i), (const u8*)&left, AUDIO_F32, sizeof(f32), SDL_MIX_MAXVOLUME);
+        SDL_MixAudioFormat((u8 *)(AudioStream + i + 1), (const u8*)&right, AUDIO_F32, sizeof(f32), SDL_MIX_MAXVOLUME);
     }
 
     CleanVoices();
@@ -199,10 +199,10 @@ void AliveAudio::Play(u8* stream, u32 len)
     }
 
 
-    AliveRenderAudio(reinterpret_cast<float*>(stream), len / sizeof(float));
+    AliveRenderAudio(reinterpret_cast<f32*>(stream), len / sizeof(f32));
 }
 
-void AliveAudio::PlayOneShot(int program, int note, float volume, float pitch)
+void AliveAudio::PlayOneShot(int program, int note, f32 volume, f32 pitch)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
     for (auto& tone : m_CurrentSoundbank->m_Programs[program]->m_Tones)
@@ -229,13 +229,13 @@ void AliveAudio::PlayOneShot(std::string soundID)
         jsonxx::Object sndObj = soundList.get<jsonxx::Object>(static_cast<unsigned int>(i));
         if (sndObj.get<jsonxx::String>("id") == soundID)
         {
-            float randA = 0;
-            float randB = 0;
+            f32 randA = 0;
+            f32 randB = 0;
 
             if (sndObj.has<jsonxx::Array>("pitchrand"))
             {
-                randA = (float)sndObj.get<jsonxx::Array>("pitchrand").get<jsonxx::Number>(0);
-                randB = (float)sndObj.get<jsonxx::Array>("pitchrand").get<jsonxx::Number>(1);
+                randA = (f32)sndObj.get<jsonxx::Array>("pitchrand").get<jsonxx::Number>(0);
+                randB = (f32)sndObj.get<jsonxx::Array>("pitchrand").get<jsonxx::Number>(1);
             }
 
             PlayOneShot((int)sndObj.get<jsonxx::Number>("prog"), (int)sndObj.get<jsonxx::Number>("note"), 1.0f, RandFloat(randA, randB));
@@ -243,7 +243,7 @@ void AliveAudio::PlayOneShot(std::string soundID)
     }
 }
 
-void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, int trackID, double trackDelay)
+void AliveAudio::NoteOn(int program, int note, char velocity, f32 /*pitch*/, int trackID, double trackDelay)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
     for (auto& tone : m_CurrentSoundbank->m_Programs[program]->m_Tones)
@@ -280,7 +280,7 @@ void AliveAudio::NoteOff(int program, int note, int trackID)
     }
 }
 
-void AliveAudio::NoteOffDelay(int program, int note, int trackID, float trackDelay)
+void AliveAudio::NoteOffDelay(int program, int note, int trackID, f32 trackDelay)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
     for (auto& voice : m_Voices)

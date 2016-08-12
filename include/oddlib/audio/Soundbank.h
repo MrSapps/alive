@@ -17,10 +17,10 @@ class AliveAudioTone
 {
 public:
     // volume 0-1
-    float f_Volume;
+    f32 f_Volume;
 
     // panning -1 - 1
-    float f_Pan;
+    f32 f_Pan;
 
     // Root Key
     unsigned char c_Center;
@@ -30,7 +30,7 @@ public:
     unsigned char Min;
     unsigned char Max;
 
-    float Pitch;
+    f32 Pitch;
     bool Reverbate;
 
     VolumeEnvelope Env;

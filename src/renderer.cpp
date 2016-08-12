@@ -6,7 +6,7 @@
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4201) // nonstandard extension used : nameless struct/union
-#pragma warning(disable:4244) // conversion from 'int' to 'float', possible loss of data
+#pragma warning(disable:4244) // conversion from 'int' to 'f32', possible loss of data
 #if _MSC_VER >= 1900
 #pragma warning(disable:4459) // declaration of 'defaultFBO' hides global declaration
 #endif
@@ -52,8 +52,8 @@ static void assertOnGlError(const char *msg)
 
 struct TriMeshVertex
 {
-    float pos[2];
-    float uv[2];
+    f32 pos[2];
+    f32 uv[2];
     Color color;
 };
 
@@ -489,10 +489,10 @@ void Renderer::endFrame()
         case DrawCmdType_quad:
         {
             int texHandle = cmd.s.integer;
-            float x = cmd.s.f[0];
-            float y = cmd.s.f[1];
-            float w = cmd.s.f[2];
-            float h = cmd.s.f[3];
+            f32 x = cmd.s.f[0];
+            f32 y = cmd.s.f[1];
+            f32 w = cmd.s.f[2];
+            f32 h = cmd.s.f[3];
             BlendMode blend = cmd.s.blendMode;
             Color color = cmd.s.color;
 
@@ -644,7 +644,7 @@ void Renderer::destroyTexture(int handle)
     }
 }
 
-void Renderer::drawQuad(int texHandle, float x, float y, float w, float h, Color color, BlendMode blendMode)
+void Renderer::drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, Color color, BlendMode blendMode)
 {
     // Keep quad in the same position when flipping uv coords
     if (w < 0) {
@@ -682,7 +682,7 @@ void Renderer::strokeColor(Color c)
     pushCmd(cmd);
 }
 
-void Renderer::strokeWidth(float size)
+void Renderer::strokeWidth(f32 size)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_strokeWidth;
@@ -690,7 +690,7 @@ void Renderer::strokeWidth(float size)
     pushCmd(cmd);
 }
 
-void Renderer::fontSize(float s)
+void Renderer::fontSize(f32 s)
 {
     nvgFontSize(mNanoVg, s); // Must call nanovg because affects text size query
 
@@ -700,7 +700,7 @@ void Renderer::fontSize(float s)
     pushCmd(cmd);
 }
 
-void Renderer::fontBlur(float s)
+void Renderer::fontBlur(f32 s)
 {
     nvgFontBlur(mNanoVg, s); // Must call nanovg because affects text size query
 
@@ -720,7 +720,7 @@ void Renderer::textAlign(int align)
     pushCmd(cmd);
 }
 
-void Renderer::text(float x, float y, const char *msg)
+void Renderer::text(f32 x, f32 y, const char *msg)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_text;
@@ -745,7 +745,7 @@ void Renderer::beginPath()
     pushCmd(cmd);
 }
 
-void Renderer::moveTo(float x, float y)
+void Renderer::moveTo(f32 x, f32 y)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_moveTo;
@@ -754,7 +754,7 @@ void Renderer::moveTo(float x, float y)
     pushCmd(cmd);
 }
 
-void Renderer::lineTo(float x, float y)
+void Renderer::lineTo(f32 x, f32 y)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_lineTo;
@@ -784,7 +784,7 @@ void Renderer::stroke()
     pushCmd(cmd);
 }
 
-void Renderer::roundedRect(float x, float y, float w, float h, float r)
+void Renderer::roundedRect(f32 x, f32 y, f32 w, f32 h, f32 r)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_roundedRect;
@@ -796,7 +796,7 @@ void Renderer::roundedRect(float x, float y, float w, float h, float r)
     pushCmd(cmd);
 }
 
-void Renderer::rect(float x, float y, float w, float h)
+void Renderer::rect(f32 x, f32 y, f32 w, f32 h)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_rect;
@@ -807,7 +807,7 @@ void Renderer::rect(float x, float y, float w, float h)
     pushCmd(cmd);
 }
 
-void Renderer::circle(float x, float y, float r)
+void Renderer::circle(f32 x, f32 y, f32 r)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_circle;
@@ -833,7 +833,7 @@ void Renderer::fillPaint(RenderPaint p)
     pushCmd(cmd);
 }
 
-void Renderer::scissor(float x, float y, float w, float h)
+void Renderer::scissor(f32 x, f32 y, f32 w, f32 h)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_scissor;
@@ -876,27 +876,27 @@ static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
     return p;
 }
 
-RenderPaint Renderer::linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec)
+RenderPaint Renderer::linearGradient(f32 sx, f32 sy, f32 ex, f32 ey, Color sc, Color ec)
 {
     NVGpaint nvp = nvgLinearGradient(mNanoVg, sx, sy, ex, ey, nvgRGBAf(sc.r, sc.g, sc.b, sc.a), nvgRGBAf(ec.r, ec.g, ec.b, ec.a));
     return NVGpaintToRenderPaint(nvp);
 }
 
-RenderPaint Renderer::boxGradient(float x, float y, float w, float h,
-                                  float r, float f, Color icol, Color ocol)
+RenderPaint Renderer::boxGradient(f32 x, f32 y, f32 w, f32 h,
+                                  f32 r, f32 f, Color icol, Color ocol)
 {
     NVGpaint nvp = nvgBoxGradient(mNanoVg, x, y, w, h, r, f, nvgRGBAf(icol.r, icol.g, icol.b, icol.a), nvgRGBAf(ocol.r, ocol.g, ocol.b, ocol.a));
     return NVGpaintToRenderPaint(nvp);
 }
 
-RenderPaint Renderer::radialGradient(float cx, float cy, float inr, float outr, Color icol, Color ocol)
+RenderPaint Renderer::radialGradient(f32 cx, f32 cy, f32 inr, f32 outr, Color icol, Color ocol)
 {
     NVGpaint nvp = nvgRadialGradient(mNanoVg, cx, cy, inr, outr, 
                       nvgRGBAf(icol.r, icol.g, icol.b, icol.a), nvgRGBAf(ocol.r, ocol.g, ocol.b, ocol.a));
     return NVGpaintToRenderPaint(nvp);
 }
 
-void Renderer::textBounds(int x, int y, const char *msg, float bounds[4])
+void Renderer::textBounds(int x, int y, const char *msg, f32 bounds[4])
 {
     nvgTextBounds(mNanoVg, 1.f*x, 1.f*y, msg, nullptr, bounds);
 }

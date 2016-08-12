@@ -70,7 +70,7 @@ void SequencePlayer::m_PlayerThreadFunction()
                     }
                     break;
                 case ALIVE_MIDI_NOTE_OFF:
-                    mAliveAudio.NoteOffDelay(channels[m.Channel], m.Note, m_TrackID, static_cast<float>(MidiTimeToSample(m.TimeOffset))); // Fix this. Make note off's have an offset in the voice timeline.
+                    mAliveAudio.NoteOffDelay(channels[m.Channel], m.Note, m_TrackID, static_cast<f32>(MidiTimeToSample(m.TimeOffset))); // Fix this. Make note off's have an offset in the voice timeline.
                     break;
                 case ALIVE_MIDI_PROGRAM_CHANGE:
                     channels[m.Channel] = m.Special;

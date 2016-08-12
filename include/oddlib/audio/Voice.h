@@ -31,7 +31,7 @@ public:
     bool	m_UsesNoteOffDelay = false;
     double	f_NoteOffDelay = 0;
 
-    float GetSample(AudioInterpolation interpolation, bool antiAliasFilteringEnabled);
+    f32 GetSample(AudioInterpolation interpolation, bool antiAliasFilteringEnabled);
 
 private:
     double m_ADSR_Level = 0; // Value of the adsr curve at current time

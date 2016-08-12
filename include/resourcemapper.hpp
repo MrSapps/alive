@@ -1460,11 +1460,11 @@ public:
     {
         const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
 
-        float xpos = mScaleFrameOffsets ? static_cast<float>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<float>(frame.mOffX);
-        float ypos = static_cast<float>(frame.mOffY);
+        f32 xpos = mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX);
+        f32 ypos = static_cast<f32>(frame.mOffY);
 
-        float oldY = ypos;
-        float oldX = xpos;
+        f32 oldY = ypos;
+        f32 oldX = xpos;
 
         ypos = mYPos + (ypos * mScale);
         xpos = mXPos + (xpos * mScale);
@@ -1473,7 +1473,7 @@ public:
         BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
         Color color = Color::white();
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
-        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w) * ScaleX(), static_cast<float>(frame.mFrame->h)*mScale, color, blend);
+        rend.drawQuad(textureId, xpos, ypos, static_cast<f32>(frame.mFrame->w) * ScaleX(), static_cast<f32>(frame.mFrame->h)*mScale, color, blend);
         rend.destroyTexture(textureId);
 
         // Render bounding box
@@ -1482,10 +1482,10 @@ public:
         rend.strokeColor(c);
         rend.resetTransform();
         rend.rect(
-            mXPos + (static_cast<float>(frame.mTopLeft.x) * mScale),
-            mYPos + (static_cast<float>(frame.mTopLeft.y) * mScale),
-            static_cast<float>(std::abs(frame.mTopLeft.x - frame.mBottomRight.x)) * mScale,
-            static_cast<float>(std::abs(frame.mTopLeft.y - frame.mBottomRight.y)) * mScale);
+            mXPos + (static_cast<f32>(frame.mTopLeft.x) * mScale),
+            mYPos + (static_cast<f32>(frame.mTopLeft.y) * mScale),
+            static_cast<f32>(std::abs(frame.mTopLeft.x - frame.mBottomRight.x)) * mScale,
+            static_cast<f32>(std::abs(frame.mTopLeft.y - frame.mBottomRight.y)) * mScale);
         rend.stroke();
         rend.closePath();
 
@@ -1508,17 +1508,17 @@ public:
         const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
 
         // TODO: Refactor rect calcs
-        float xpos = mScaleFrameOffsets ? static_cast<float>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<float>(frame.mOffX);
-        float ypos = static_cast<float>(frame.mOffY);
+        f32 xpos = mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX);
+        f32 ypos = static_cast<f32>(frame.mOffY);
 
         ypos = mYPos + (ypos * mScale);
         xpos = mXPos + (xpos * mScale);
 
-        float w = static_cast<float>(frame.mFrame->w) * ScaleX();
-        float h = static_cast<float>(frame.mFrame->h) * mScale;
+        f32 w = static_cast<f32>(frame.mFrame->w) * ScaleX();
+        f32 h = static_cast<f32>(frame.mFrame->h) * mScale;
 
 
-        return PointInRect(static_cast<float>(x), static_cast<float>(y), xpos, ypos, w, h);
+        return PointInRect(static_cast<f32>(x), static_cast<f32>(y), xpos, ypos, w, h);
     }
 
     void SetXPos(s32 xpos) { mXPos = xpos; }
@@ -1529,7 +1529,7 @@ public:
     u32 MaxH() const { return static_cast<u32>(mAnim.MaxH()*mScale); }
 
 private:
-    bool PointInRect(float px, float py, float x, float y, float w, float h) const
+    bool PointInRect(f32 px, f32 py, f32 x, f32 y, f32 w, f32 h) const
     {
         if (px < x) return false;
         if (py < y) return false;
@@ -1539,9 +1539,9 @@ private:
     }
 
     // 640 (pc xres) / 368 (psx xres) = 1.73913043478 scale factor
-    const static float kPcToPsxScaleFactor;
+    const static f32 kPcToPsxScaleFactor;
 
-    float ScaleX() const
+    f32 ScaleX() const
     {
         // PC sprites have a bigger width as they are higher resolution
         return mIsPsx ? (mScale) : (mScale / kPcToPsxScaleFactor);
@@ -1558,7 +1558,7 @@ private:
 
     s32 mXPos = 500;
     s32 mYPos = 800;
-    float mScale = 3;
+    f32 mScale = 3;
 };
 
 template<typename KeyType, typename ValueType>
