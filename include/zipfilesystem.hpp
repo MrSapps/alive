@@ -121,7 +121,7 @@ private:
             if (mLocalFileHeader.mFileNameLength > 0)
             {
                 mLocalFileHeader.mFileName.resize(mLocalFileHeader.mFileNameLength);
-                stream.ReadBytes(reinterpret_cast<u8*>(&mLocalFileHeader.mFileName[0]), mLocalFileHeader.mFileName.size());
+                stream.Read(mLocalFileHeader.mFileName);
             }
 
             const u32 sizeOfExtraFieldAndFileComment = mLocalFileHeader.mExtraFieldLength + mFileCommentLength;

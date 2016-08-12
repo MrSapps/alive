@@ -219,7 +219,7 @@ std::unique_ptr<Oddlib::IStream> ZipFileSystem::Open(const std::string& fileName
         std::vector<u8> out(r.mLocalFileHeader.mDataDescriptor.mUnCompressedSize);
         size_t actualOut = 0;
 
-        mStream->ReadBytes(buffer.data(), buffer.size());
+        mStream->Read(buffer);
 
         if (r.mLocalFileHeader.mCompressionMethod == eDeflate)
         {

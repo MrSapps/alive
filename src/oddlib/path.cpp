@@ -54,7 +54,7 @@ namespace Oddlib
         std::array<u8, 8> nameBuffer;
         for (u32 i = 0; i < numberOfCameras; i++)
         {
-            stream.ReadBytes(nameBuffer.data(), nameBuffer.size());
+            stream.Read(nameBuffer);
             std::string tmpStr(reinterpret_cast<const char*>(nameBuffer.data()), nameBuffer.size());
             if (tmpStr[0] != 0)
             {

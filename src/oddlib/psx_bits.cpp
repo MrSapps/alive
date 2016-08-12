@@ -75,7 +75,7 @@ namespace Oddlib
             }
 
             std::vector<u8> buffer(len);
-            stream.ReadBytes(buffer.data(), buffer.size());
+            stream.Read(buffer);
             buffer.resize(buffer.size()*2 );
 
 

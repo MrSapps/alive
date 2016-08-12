@@ -33,7 +33,7 @@ namespace Oddlib
 
             // Read the raw image bytes
             buffer.resize(stripSize);
-            stream.ReadBytes(buffer.data(), buffer.size());
+            stream.Read(buffer);
 
             // Convert to an SDL surface
             SDL_SurfacePtr strip(SDL_CreateRGBSurfaceFrom(buffer.data(), 16, 240, 16, kStripSize*sizeof(u16), red_mask, green_mask, blue_mask, 0));

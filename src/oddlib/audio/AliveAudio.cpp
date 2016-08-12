@@ -48,9 +48,9 @@ void AliveAudio::AliveInitAudio(FileSystem& fs)
         throw Oddlib::Exception("sounds.dat not found");
     }
 
-    m_SoundsDat = std::vector<unsigned char>(soundsDatSteam->Size() + 1); // Plus one, just in case interpolating tries to go that one byte further!
+    m_SoundsDat = std::vector<unsigned char>(soundsDatSteam->Size()); // Plus one, just in case interpolating tries to go that one byte further!
     
-    soundsDatSteam->ReadBytes(m_SoundsDat.data(), soundsDatSteam->Size());
+    soundsDatSteam->Read(m_SoundsDat);
     */
 
     SDL_PauseAudio(0);

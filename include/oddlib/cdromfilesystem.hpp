@@ -370,7 +370,7 @@ public:
                 mSector++;
 
                 char subHeader[8] = {};
-                mStream->ReadBytes(reinterpret_cast<u8*>(subHeader), sizeof(subHeader));
+                mStream->Read(subHeader);
 
                 mPos += 2048;
                 mStream->Seek(mStream->Pos() - sizeof(subHeader));

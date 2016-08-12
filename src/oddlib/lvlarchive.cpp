@@ -22,7 +22,7 @@ namespace Oddlib
         if (mDataSize > 0)
         {
             mStream.Seek(mFilePos);
-            mStream.ReadBytes(r.data(), r.size());
+            mStream.Read(r);
         }
         return r;
     }
@@ -197,7 +197,7 @@ namespace Oddlib
         for (auto i = 0u; i < header.iNumFiles; i++)
         {
             FileRecord rec;
-            mStream->ReadBytes(reinterpret_cast<u8*>(&rec.iFileNameBytes[0]), sizeof(rec.iFileNameBytes));
+            mStream->Read(rec.iFileNameBytes);
             mStream->Read(rec.iStartSector);
             mStream->Read(rec.iNumSectors);
             mStream->Read(rec.iFileSize);

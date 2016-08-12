@@ -46,7 +46,7 @@ namespace Oddlib
 
         Seek(0);
         std::vector<u8> streamData(Size());
-        ReadBytes(streamData.data(), Size());
+        Read(streamData);
         Seek(oldPos);
 
         return new Stream(std::move(streamData));

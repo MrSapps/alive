@@ -128,9 +128,11 @@ namespace Oddlib
             {
                 // Raw segment from the CAM bits chunk
                 std::vector<u16> rawBitsFromFile;
+                rawBitsFromFile.resize(stripSize / sizeof(u16));
+                stream.Read(rawBitsFromFile);
+                
+                // The vlc_decode reads futher that what we read from the file, hence keep double size!
                 rawBitsFromFile.resize(stripSize);
-                stripSize = stripSize / sizeof(u16);
-                stream.ReadBytes(reinterpret_cast<u8*>(rawBitsFromFile.data()), rawBitsFromFile.size());
 
                 // Create a "VLC" buffer to store the decompressed data in.
                 std::vector<u16> vlcBuf;

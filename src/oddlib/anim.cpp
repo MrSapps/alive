@@ -328,7 +328,7 @@ namespace Oddlib
             frameStart = mHeader.mPaltSize;
 
             std::array<u8, 10> nulls = {};
-            mStream.ReadBytes(nulls.data(), nulls.size());
+            mStream.Read(nulls);
             bool allNulls = true;
             for (const auto& b : nulls)
             {
@@ -686,7 +686,7 @@ namespace Oddlib
 
                 if (!ret.mPixelData.empty())
                 {
-                    mStream.ReadBytes(ret.mPixelData.data(), ret.mPixelData.size());
+                    mStream.Read(ret.mPixelData);
                 }
                 else
                 {

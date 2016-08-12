@@ -40,7 +40,7 @@ void Vab::ReadVb(Oddlib::IStream& s, bool isPsx, bool useSoundsDat, Oddlib::IStr
             {
                 soundsDatStream->Seek(vhRec.iFileOffset);
                 std::vector<u8> data(vhRec.iLengthOrDuration);
-                soundsDatStream->ReadBytes(data.data(), data.size());
+                soundsDatStream->Read(data);
                 mSamples.emplace_back(SampleData{ data });
             }
         }
@@ -58,7 +58,7 @@ void Vab::ReadVb(Oddlib::IStream& s, bool isPsx, bool useSoundsDat, Oddlib::IStr
                 if (size > 0)
                 {
                     std::vector<u8> data(size);
-                    s.ReadBytes(data.data(), data.size());
+                    s.Read(data);
                     mSamples.emplace_back(SampleData{ data });
                 }
                 else

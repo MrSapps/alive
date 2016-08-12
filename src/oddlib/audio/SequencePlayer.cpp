@@ -151,7 +151,7 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
     stream.Read(seqHeader.mMagic);
     stream.Read(seqHeader.mVersion);
     stream.Read(seqHeader.mResolutionOfQuaterNote);
-    stream.ReadBytes(seqHeader.mTempo, sizeof(seqHeader.mTempo));
+    stream.Read(seqHeader.mTempo);
     stream.Read(seqHeader.mTimeSignatureBars);
     stream.Read(seqHeader.mTimeSignatureBeats);
 

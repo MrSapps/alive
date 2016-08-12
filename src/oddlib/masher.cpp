@@ -1200,7 +1200,7 @@ namespace Oddlib
 
                 // Video data
                 mVideoFrameData.resize(videoDataSize);
-                mStream->ReadBytes(mVideoFrameData.data(), videoDataSize);
+                mStream->Read(mVideoFrameData);
 
                 // Calc size of audio data
                 const uint32_t totalSize = mFrameSizes[mCurrentFrame];
@@ -1208,7 +1208,7 @@ namespace Oddlib
 
                 // Audio data
                 mAudioFrameData.resize(audioDataSize);
-                mStream->ReadBytes(mAudioFrameData.data(), audioDataSize);
+                mStream->Read(mAudioFrameData);
                 ParseVideoFrame(pixelBuffer);
                 ParseAudioFrame(audioBuffer);
             }
@@ -1223,7 +1223,7 @@ namespace Oddlib
             {
                 const uint32_t totalSize = mFrameSizes[mCurrentFrame];
                 mVideoFrameData.resize(totalSize);
-                mStream->ReadBytes(mVideoFrameData.data(), totalSize);
+                mStream->Read(mVideoFrameData);
                 ParseVideoFrame(pixelBuffer);
             }
             mCurrentFrame++;

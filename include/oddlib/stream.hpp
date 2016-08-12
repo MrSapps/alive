@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <memory>
+#include <array>
 #include <fstream>
 #include "SDL.h"
 #include "types.hpp"
@@ -30,6 +31,28 @@ namespace Oddlib
         {
             static_assert(std::is_fundamental<T>::value, "Can only read fundamental types");
             ReadBytes(reinterpret_cast<u8*>(&type), sizeof(type));
+        }
+
+        // Read a string
+        void Read(std::string& type)
+        {
+            ReadBytes(reinterpret_cast<u8*>(&type[0]), type.size());
+        }
+
+        // Read any vector of fundamental type
+        template<class T>
+        void Read(std::vector<T>& type)
+        {
+            static_assert(std::is_fundamental<T>::value, "Can only read vectors of fundamental types");
+            ReadBytes(reinterpret_cast<u8*>(type.data()), sizeof(T)*type.size());
+        }
+
+        // Read any std::array of fundamental type
+        template<class T, std::size_t count>
+        void Read(std::array<T, count>& type)
+        {
+            static_assert(std::is_fundamental<T>::value, "Can only read vectors of fundamental types");
+            ReadBytes(reinterpret_cast<u8*>(type.data()), sizeof(T)*type.size());
         }
 
         // Read any fixed array of fundamental type
