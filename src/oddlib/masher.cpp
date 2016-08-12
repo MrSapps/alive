@@ -10,7 +10,7 @@ namespace Oddlib
     void Masher::Read()
     {
         mStream->ReadUInt32(mFileHeader.mDdvTag);
-        if (mFileHeader.mDdvTag != MakeType('D', 'D', 'V', 0))
+        if (mFileHeader.mDdvTag != MakeType("DDV\0"))
         {
             LOG_ERROR("Invalid DDV magic tag " << mFileHeader.mDdvTag);
             throw InvalidDdv("Invalid DDV tag");

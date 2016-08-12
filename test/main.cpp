@@ -95,7 +95,7 @@ TEST(LvlArchive, ReadFiles)
     fileChunk = file->ChunkById(0x177a);
     ASSERT_NE(nullptr, fileChunk);
 
-    ASSERT_EQ(Oddlib::MakeType('A', 'n', 'i', 'm'), fileChunk->Type());
+    ASSERT_EQ(Oddlib::MakeType("Anim"), fileChunk->Type());
 
     file->SaveChunks();
 
@@ -2069,7 +2069,7 @@ TEST(LvlArchive, DISABLED_Integration)
         for (u32 j = 0; j < file->ChunkCount(); j++)
         {
             Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
-            if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
+            if (chunk->Type() == Oddlib::MakeType("Anim"))
             {
                 Oddlib::Stream stream(chunk->ReadData());
                 Oddlib::DebugDumpAnimationFrames(file->FileName(), chunk->Id(), stream, false, "unknown");

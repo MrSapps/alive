@@ -10,12 +10,9 @@
 
 namespace Oddlib
 {
-    inline u32 MakeType(u8 b4, u8 b3, u8 b2, u8 b1)
+    inline u32 MakeType(const char(&value)[5])
     {
-        return (static_cast<u32> (b1) << 24) +
-               (static_cast<u32> (b2) << 16) + 
-               (static_cast<u32> (b3) << 8) + 
-                static_cast<u32> (b4);
+        return(value[0]) | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
     }
 
     const static u32 KMaxLvlArchiveFileNameLength = 12;

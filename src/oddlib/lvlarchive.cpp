@@ -126,7 +126,7 @@ namespace Oddlib
             stream.ReadUInt32(header.iType);
             stream.ReadUInt32(header.iId);
 
-            const bool isEnd = header.iType == MakeType('E', 'n', 'd', '!');
+            const bool isEnd = header.iType == MakeType("End!");
             const u32 kChunkHeaderSize = sizeof(u32) * 4;
 
             if (!isEnd)
@@ -185,7 +185,7 @@ namespace Oddlib
         // Read and validate the header
         LvlHeader header;
         ReadHeader(header);
-        if (header.iNull1 != 0 || header.iNull2 != 0 || header.iMagic != MakeType('I', 'n', 'd', 'x'))
+        if (header.iNull1 != 0 || header.iNull2 != 0 || header.iMagic != MakeType("Indx"))
         {
             LOG_ERROR("Invalid LVL header");
             throw InvalidLvl("Invalid header");

@@ -359,7 +359,7 @@ public:
 
     void ReadFg1s()
     {
-        ForChunksOfType(Oddlib::MakeType('F', 'G', '1', ' '), [&](const std::string&, Oddlib::LvlArchive::FileChunk&, bool)
+        ForChunksOfType(Oddlib::MakeType("FG1 "), [&](const std::string&, Oddlib::LvlArchive::FileChunk&, bool)
         {
             // TODO: FG1 parsing
         });
@@ -367,7 +367,7 @@ public:
 
     void ReadFonts()
     {
-        ForChunksOfType(Oddlib::MakeType('F', 'o', 'n', 't'), [&](const std::string&, Oddlib::LvlArchive::FileChunk&, bool)
+        ForChunksOfType(Oddlib::MakeType("Font"), [&](const std::string&, Oddlib::LvlArchive::FileChunk&, bool)
         {
             // TODO: Font parsing
         });
@@ -377,7 +377,7 @@ public:
     /*
     void ReadAllPaths()
     {
-        ForChunksOfType(Oddlib::MakeType('P', 'a', 't', 'h'), [&](const std::string&, Oddlib::LvlArchive::FileChunk&, bool)
+        ForChunksOfType(Oddlib::MakeType("Path"), [&](const std::string&, Oddlib::LvlArchive::FileChunk&, bool)
         {
             // TODO: Load the game data json for the required hard coded data to load the path
             Oddlib::Path path(*chunk.Stream(),
@@ -391,7 +391,7 @@ public:
 
     void ReadAllCameras()
     {
-        ForChunksOfType(Oddlib::MakeType('B', 'i', 't', 's'), [&](const std::string&, Oddlib::LvlArchive::FileChunk& chunk, bool )
+        ForChunksOfType(Oddlib::MakeType("Bits"), [&](const std::string&, Oddlib::LvlArchive::FileChunk& chunk, bool )
         {
             auto bits = Oddlib::MakeBits(*chunk.Stream());
             Oddlib::IBits* ptr = nullptr;
@@ -465,7 +465,7 @@ public:
 
     void ReadAllAnimations()
     {
-        ForChunksOfType(Oddlib::MakeType('A', 'n', 'i', 'm'), [&](const std::string& fileName, Oddlib::LvlArchive::FileChunk& chunk, bool isPsx)
+        ForChunksOfType(Oddlib::MakeType("Anim"), [&](const std::string& fileName, Oddlib::LvlArchive::FileChunk& chunk, bool isPsx)
         {
             if (chunk.Id() == 0x1770)
             {
@@ -818,7 +818,7 @@ int main(int /*argc*/, char** /*argv*/)
             for (std::unique_ptr<DeDuplicatedLvlChunk>& chunk : chunks)
             {
                 Oddlib::LvlArchive::FileChunk* lvlFileChunk = chunk->mChunk->mChunk;
-                if (lvlFileChunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
+                if (lvlFileChunk->Type() == Oddlib::MakeType("Anim"))
                 {
                     auto stream = lvlFileChunk->Stream();
                     Oddlib::AnimSerializer as(*stream, IsPsx(chunk->mChunk->mDataSet));

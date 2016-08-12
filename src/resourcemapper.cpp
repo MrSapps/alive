@@ -439,7 +439,7 @@ std::unique_ptr<Oddlib::IBits> ResourceLocator::DoLocateCamera(const char* resou
                         auto lvlFile = lvl->FileByName(resourceName);
                         if (lvlFile)
                         {
-                            auto chunk = lvlFile->ChunkByType(Oddlib::MakeType('B', 'i', 't', 's'));
+                            auto chunk = lvlFile->ChunkByType(Oddlib::MakeType("Bits"));
                             auto stream = chunk->Stream();
                             LOG_INFO("Loaded original camera from " << fs.mDataSetName);
                             return Oddlib::MakeBits(*stream);
