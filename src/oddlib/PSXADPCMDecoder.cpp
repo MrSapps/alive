@@ -1,6 +1,7 @@
 #include "oddlib/PSXADPCMDecoder.h"
 #include "logger.hpp"
 #include <algorithm>
+#include "types.hpp"
 
 // Pos / neg Tables
 const short pos_adpcm_table[5] = { 0, +60, +115, +98, +122 };
@@ -42,15 +43,15 @@ static int SignExtend(int s)
     return s;
 }
 
-static void DecodeNibble(bool firstNibble, int shift, int filter, int d, double& old, double& older, FILE* pcm, std::vector<u8>* out = nullptr)
+static void DecodeNibble(bool firstNibble, int shift, int filter, int d, f64& old, f64& older, FILE* pcm, std::vector<u8>* out = nullptr)
 {
-    const double f0 = static_cast<double>(pos_adpcm_table[filter]) / 64.0f;
-    const double f1 = static_cast<double>(neg_adpcm_table[filter]) / 64.0f;
+    const f64 f0 = static_cast<f64>(pos_adpcm_table[filter]) / 64.0f;
+    const f64 f1 = static_cast<f64>(neg_adpcm_table[filter]) / 64.0f;
 
     int s = firstNibble ? (d & 0x0f) << 12 : (d & 0xf0) << 8;
     s = SignExtend(s);
     
-    const double sample = static_cast<double>(s >> shift) + old * f0 + older * f1;
+    const f64 sample = static_cast<f64>(s >> shift) + old * f0 + older * f1;
 
     older = old;
     old = sample;
@@ -71,8 +72,8 @@ static void DecodeNibble(bool firstNibble, int shift, int filter, int d, double&
 
 void PSXADPCMDecoder::DecodeVagStream(Oddlib::IStream& s, std::vector<u8>& out)
 {
-    double old = 0.0;
-    double older = 0.0;
+    f64 old = 0.0;
+    f64 older = 0.0;
 
     for (;;)
     {
@@ -117,8 +118,8 @@ static void DecodeBlock(
     u8 block,
     u8 nibble,
     short& dst,
-    double& old,
-    double& older)
+    f64& old,
+    f64& older)
 {
     // 4 blocks for each nibble, so 8 blocks total
     const int shift = (u8)(12 - (parameters[4 + block * 2 + nibble] & 0xF));
@@ -146,12 +147,12 @@ static void DecodeBlock(
 static void Decode(const PSXADPCMDecoder::SoundFrame& sf, std::vector<s16>& out)
 {
     short dstLeft = 0;
-    static double oldLeft = 0;
-    static double olderLeft = 0;
+    static f64 oldLeft = 0;
+    static f64 olderLeft = 0;
     
     short dstRight = 1;
-    static double oldRight = 0;
-    static double olderRight = 0;
+    static f64 oldRight = 0;
+    static f64 olderRight = 0;
 
     for (int i = 0; i<18; i++)
     {

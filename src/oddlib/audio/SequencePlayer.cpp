@@ -37,7 +37,7 @@ static u32 _MidiReadVarLen(Oddlib::Stream& stream)
     return ret;
 }
 
-double SequencePlayer::MidiTimeToSample(int time)
+f64 SequencePlayer::MidiTimeToSample(int time)
 {
     // This may, or may not be correct. // TODO: Revise
     return ((60 * time) / m_SongTempo) * (AliveAudioSampleRate / 500.0);

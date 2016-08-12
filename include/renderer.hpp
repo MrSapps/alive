@@ -1,6 +1,6 @@
-#ifndef ALIVE_RENDERER_HPP
-#define ALIVE_RENDERER_HPP
+#pragma once
 
+#include "types.hpp"
 #include <vector>
 
 #include <GL/gl3w.h>
@@ -199,5 +199,3 @@ private:
     std::vector<DrawCmd> mDrawCmds;
     std::vector<int> mDestroyTextureList;
 };
-
-#endif

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "types.hpp"
 #include "stream.hpp"
 #include "oddlib/exceptions.hpp"
 

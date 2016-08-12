@@ -86,7 +86,7 @@ static VolumeEnvelope PSXEnvelopeToADSR(uint16_t low, uint16_t high)
 
     VolumeEnvelope env = { 0 };
     const int maxAmplitude = 0x8000;
-    const double expMinAmplitude = 0.1; // Gotta have some threshold when approximating exp with linear curve
+    const f64 expMinAmplitude = 0.1; // Gotta have some threshold when approximating exp with linear curve
 
     { // Attack
         int64_t durationInSamples = 0;
@@ -117,18 +117,18 @@ static VolumeEnvelope PSXEnvelopeToADSR(uint16_t low, uint16_t high)
     { // Decay
         int step = 1 << std::max(0, decayShift - 11);
         int shift = 8 << std::max(0, 11 - decayShift);
-        double timeStep = step/44100.0;
-        double amplitudeShift = 1.0*shift / maxAmplitude;
+        f64 timeStep = step/44100.0;
+        f64 amplitudeShift = 1.0*shift / maxAmplitude;
 
-        double target = std::max(expMinAmplitude, env.SustainLevel);
+        f64 target = std::max(expMinAmplitude, env.SustainLevel);
         env.DecayTime = -log(target) / (amplitudeShift / timeStep);
     }
 
     { // Release
         int step = 1 << std::max(0, releaseShift - 11);
         int shift = 8 << std::max(0, 11 - releaseShift);
-        double timeStep = step/44100.0;
-        double amplitudeShift = 1.0*shift / maxAmplitude;
+        f64 timeStep = step/44100.0;
+        f64 amplitudeShift = 1.0*shift / maxAmplitude;
 
         // Exponential release is calculated at playback
         env.ExpRelease = (releaseMode == 1);

@@ -23,27 +23,27 @@ inline Uint64 pHash(SDL_Surface* image)
     SDL_SurfacePtr resizedImage = SDLHelpers::ScaledCopy(image, &resizeRect);
 
     // Convert from RGBA to HSV
-    double intensity[32][32] = {};
+    f64 intensity[32][32] = {};
     for (int x = 0; x < 32; x++)
     {
         for (int y = 0; y < 32; y++)
         {
             u32 pixel = get_pixel32(resizedImage.get(), x, y);
 
-            double tmp = static_cast<double>(pixel);
+            f64 tmp = static_cast<f64>(pixel);
             tmp = tmp / 4294967295;
             intensity[x][y] = tmp;
         }
     }
 
     // Discrete cosine transform
-    double seq[64] = {};
+    f64 seq[64] = {};
     unsigned i = 0;
     for (int u = 0; u < 8; ++u) 
     {
         for (int v = 0; v < 8; ++v)
         {
-            double acc = 0.0;
+            f64 acc = 0.0;
             for (int x = 0; x < 32; ++x) 
             {
                 for (int y = 0; y < 32; ++y)
@@ -57,7 +57,7 @@ inline Uint64 pHash(SDL_Surface* image)
         }
     }
 
-    double avg = 0.0;
+    f64 avg = 0.0;
     for (i = 1; i < 63; ++i)
     {
         avg += seq[i];

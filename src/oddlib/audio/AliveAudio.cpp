@@ -243,7 +243,7 @@ void AliveAudio::PlayOneShot(std::string soundID)
     }
 }
 
-void AliveAudio::NoteOn(int program, int note, char velocity, f32 /*pitch*/, int trackID, double trackDelay)
+void AliveAudio::NoteOn(int program, int note, char velocity, f32 /*pitch*/, int trackID, f64 trackDelay)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
     for (auto& tone : m_CurrentSoundbank->m_Programs[program]->m_Tones)
@@ -263,7 +263,7 @@ void AliveAudio::NoteOn(int program, int note, char velocity, f32 /*pitch*/, int
     }
 }
 
-void AliveAudio::NoteOn(int program, int note, char velocity, int trackID, double trackDelay)
+void AliveAudio::NoteOn(int program, int note, char velocity, int trackID, f64 trackDelay)
 {
     NoteOn(program, note, velocity, 0, trackID, trackDelay);
 }

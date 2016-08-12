@@ -146,6 +146,7 @@ SET_PROPERTY(TARGET minilua PROPERTY FOLDER "3rdparty")
 
 SET(oddlib_src
     src/gpuselect.cpp
+    include/types.hpp
     include/proxy_nanovg.h
     include/msvc_sdl_link.hpp
     include/stdthread.h

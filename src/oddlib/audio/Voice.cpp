@@ -85,7 +85,7 @@ f32 AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antialia
     {
         if (m_Tone->Env.ExpRelease)
         {
-            double delta = m_ADSR_Level*((1.0 / AliveAudioSampleRate) / m_Tone->Env.LinearReleaseTime); // Exp starts as fast as linear
+            f64 delta = m_ADSR_Level*((1.0 / AliveAudioSampleRate) / m_Tone->Env.LinearReleaseTime); // Exp starts as fast as linear
             if (delta < 0.000001)
                 delta = 0.000001; // Avoid denormals, and make sure that the voice ends some day
             m_ADSR_Level -= delta;
@@ -103,7 +103,7 @@ f32 AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antialia
     }
 
     // That constant is 2^(1/12)
-    double sampleFrameRateMul = pow(1.05946309436, i_Note - m_Tone->c_Center + m_Tone->Pitch + f_Pitch) * (44100.0 / AliveAudioSampleRate);
+    f64 sampleFrameRateMul = pow(1.05946309436, i_Note - m_Tone->c_Center + m_Tone->Pitch + f_Pitch) * (44100.0 / AliveAudioSampleRate);
     if (m_DebugDisableResampling)
         sampleFrameRateMul = 1.0f;
     f_SampleOffset += (sampleFrameRateMul);

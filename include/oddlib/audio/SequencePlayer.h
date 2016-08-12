@@ -73,7 +73,7 @@ public:
     void PlaySequence();
     void StopSequence();
 
-    double MidiTimeToSample(int time);
+    f64 MidiTimeToSample(int time);
     Uint64 GetPlaybackPositionSample();
 
     int m_TrackID = 1; // The track ID. Use this to seperate SoundFX from Music.
@@ -89,7 +89,7 @@ public:
     int m_SongBeginSample = 0;	// Not relative.
     int m_PrevBar = 0;
     int m_TimeSignatureBars = 0;
-    double m_SongTempo = 1.0f;
+    f64 m_SongTempo = 1.0f;
     void m_PlayerThreadFunction();
 
 private:

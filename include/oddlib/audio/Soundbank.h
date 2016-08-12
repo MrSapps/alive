@@ -1,15 +1,16 @@
 #pragma once
 
+#include "types.hpp"
 #include "Sample.h"
 #include <memory>
 
 // Extended ADSR
 struct VolumeEnvelope
 {
-    double AttackTime;
-    double DecayTime;
-    double SustainLevel;
-    double LinearReleaseTime;
+    f64 AttackTime;
+    f64 DecayTime;
+    f64 SustainLevel;
+    f64 LinearReleaseTime;
     bool ExpRelease;
 };
 
