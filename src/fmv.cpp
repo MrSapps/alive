@@ -372,7 +372,7 @@ public:
                     RawCdImage::CDXASector* rawXa = (RawCdImage::CDXASector*)&w;
                     if (rawXa->subheader.coding_info != 0)
                     {
-                        mAdpcm.DecodeFrameToPCM(outPtr, &rawXa->data[0], true);
+                        mAdpcm.DecodeFrameToPCM(outPtr, &rawXa->data[0]);
                     }
                     else
                     {
@@ -382,7 +382,7 @@ public:
                 }
                 else
                 {
-                     mAdpcm.DecodeFrameToPCM(outPtr, (uint8_t *)&w.mAkikMagic, true);
+                     mAdpcm.DecodeFrameToPCM(outPtr, (uint8_t *)&w.mAkikMagic);
                 }
               
                 for (auto i = 0u; i < outPtr.size(); i++)

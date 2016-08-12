@@ -165,7 +165,7 @@ static void Decode(const PSXADPCMDecoder::SoundFrame& sf, std::vector<Sint16>& o
     }
 }
 
-void PSXADPCMDecoder::DecodeFrameToPCM(std::vector<Sint16>& out, uint8_t *arg_adpcm_frame, bool /*arg_stereo*/)
+void PSXADPCMDecoder::DecodeFrameToPCM(std::vector<Sint16>& out, uint8_t* arg_adpcm_frame)
 {
     const PSXADPCMDecoder::SoundFrame* sf = reinterpret_cast<const PSXADPCMDecoder::SoundFrame*>(arg_adpcm_frame);
     Decode(*sf, out);

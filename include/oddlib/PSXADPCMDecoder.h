@@ -14,10 +14,7 @@ class PSXADPCMDecoder
 {
 public:
     PSXADPCMDecoder() = default;
-    void DecodeFrameToPCM(std::vector<Sint16>& out,
-        uint8_t *arg_adpcm_frame,
-        bool arg_stereo);
-
+    void DecodeFrameToPCM(std::vector<Sint16>& out, uint8_t *arg_adpcm_frame);
     void DecodeVagStream(Oddlib::IStream& s, std::vector<Uint8>& out);
 
 public:
