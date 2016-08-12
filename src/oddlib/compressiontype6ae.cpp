@@ -15,7 +15,7 @@ namespace Oddlib
         }
         else
         {
-            srcByte = ReadUInt8(stream);
+            srcByte = ReadU8(stream);
             readLo = !readLo;
             return srcByte & 0xF;
         }

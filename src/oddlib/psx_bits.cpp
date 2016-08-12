@@ -66,11 +66,11 @@ namespace Oddlib
             }
             else
             {
-                stream.ReadUInt16(len);
+                stream.Read(len);
                 if (mIncludeLengthInStripSize)
                 {
                     u16 dummy = 0;
-                    stream.ReadUInt16(dummy);
+                    stream.Read(dummy);
                 }
             }
 

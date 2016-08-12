@@ -121,10 +121,10 @@ namespace Oddlib
         while (stream.Pos() < (stream.Pos() + fileSize))
         {
             ChunkHeader header;
-            stream.ReadUInt32(header.iSize);
-            stream.ReadUInt32(header.iRefCount);
-            stream.ReadUInt32(header.iType);
-            stream.ReadUInt32(header.iId);
+            stream.Read(header.iSize);
+            stream.Read(header.iRefCount);
+            stream.Read(header.iType);
+            stream.Read(header.iId);
 
             const bool isEnd = header.iType == MakeType("End!");
             const u32 kChunkHeaderSize = sizeof(u32) * 4;
@@ -197,10 +197,10 @@ namespace Oddlib
         for (auto i = 0u; i < header.iNumFiles; i++)
         {
             FileRecord rec;
-            mStream->ReadBytes(&rec.iFileNameBytes[0], sizeof(rec.iFileNameBytes));
-            mStream->ReadUInt32(rec.iStartSector);
-            mStream->ReadUInt32(rec.iNumSectors);
-            mStream->ReadUInt32(rec.iFileSize);
+            mStream->ReadBytes(reinterpret_cast<u8*>(&rec.iFileNameBytes[0]), sizeof(rec.iFileNameBytes));
+            mStream->Read(rec.iStartSector);
+            mStream->Read(rec.iNumSectors);
+            mStream->Read(rec.iFileSize);
             recs.emplace_back(rec);
         }
 
@@ -224,13 +224,13 @@ namespace Oddlib
 
     void LvlArchive::ReadHeader(LvlHeader& header)
     {
-        mStream->ReadUInt32(header.iFirstFileOffset);
-        mStream->ReadUInt32(header.iNull1);
-        mStream->ReadUInt32(header.iMagic);
-        mStream->ReadUInt32(header.iNull2);
-        mStream->ReadUInt32(header.iNumFiles);
-        mStream->ReadUInt32(header.iUnknown1);
-        mStream->ReadUInt32(header.iUnknown2);
-        mStream->ReadUInt32(header.iUnknown3);
+        mStream->Read(header.iFirstFileOffset);
+        mStream->Read(header.iNull1);
+        mStream->Read(header.iMagic);
+        mStream->Read(header.iNull2);
+        mStream->Read(header.iNumFiles);
+        mStream->Read(header.iUnknown1);
+        mStream->Read(header.iUnknown2);
+        mStream->Read(header.iUnknown3);
     }
 }

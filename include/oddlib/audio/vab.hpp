@@ -19,19 +19,19 @@ struct VabHeader
 
     void Read(Oddlib::IStream& s)
     {
-        s.ReadUInt32(iForm);
-        s.ReadUInt32(iVersion);
-        s.ReadUInt32(iId);
-        s.ReadUInt32(iFileSize);
-        s.ReadUInt16(iReserved0);
-        s.ReadUInt16(iNumProgs);
-        s.ReadUInt16(iNumTones);
-        s.ReadUInt16(iNumVags);
-        s.ReadUInt8(iMasterVol);
-        s.ReadUInt8(iMasterPan);
-        s.ReadUInt8(iAttr1);
-        s.ReadUInt8(iAttr2);
-        s.ReadUInt32(iReserved1);
+        s.Read(iForm);
+        s.Read(iVersion);
+        s.Read(iId);
+        s.Read(iFileSize);
+        s.Read(iReserved0);
+        s.Read(iNumProgs);
+        s.Read(iNumTones);
+        s.Read(iNumVags);
+        s.Read(iMasterVol);
+        s.Read(iMasterPan);
+        s.Read(iAttr1);
+        s.Read(iAttr2);
+        s.Read(iReserved1);
     }
 
     u32 iForm;       // Always "VABp"
@@ -57,15 +57,15 @@ struct ProgAtr
 
     void Read(Oddlib::IStream& s)
     {
-        s.ReadUInt8(iNumTones);
-        s.ReadUInt8(iVol);
-        s.ReadUInt8(iPriority);
-        s.ReadUInt8(iMode);
-        s.ReadUInt8(iPan);
-        s.ReadUInt8(iReserved0);
-        s.ReadUInt16(iAttr);
-        s.ReadUInt32(iReserved1);
-        s.ReadUInt32(iReserved2);
+        s.Read(iNumTones);
+        s.Read(iVol);
+        s.Read(iPriority);
+        s.Read(iMode);
+        s.Read(iPan);
+        s.Read(iReserved0);
+        s.Read(iAttr);
+        s.Read(iReserved1);
+        s.Read(iReserved2);
     }
 
     u8 iNumTones; // Number of valid entries in iTones
@@ -91,30 +91,27 @@ struct VagAtr
 
     void Read(Oddlib::IStream& s)
     {
-        s.ReadUInt8(iPriority);
-        s.ReadUInt8(iMode);
-        s.ReadUInt8(iVol);
-        s.ReadUInt8(iPan);
-        s.ReadUInt8(iCenter);
-        s.ReadUInt8(iShift);
-        s.ReadUInt8(iMin);
-        s.ReadUInt8(iMax);
-        s.ReadUInt8(iVibW);
-        s.ReadUInt8(iVibT);
-        s.ReadUInt8(iPorW);
-        s.ReadUInt8(iPorT);
-        s.ReadUInt8(iPitchBendMin);
-        s.ReadUInt8(iPitchBendMax);
-        s.ReadUInt8(iReserved1);
-        s.ReadUInt8(iReserved2);
-        s.ReadUInt16(iAdsr1);
-        s.ReadUInt16(iAdsr2);
-        s.ReadSInt16(iProg);
-        s.ReadSInt16(iVag);
-        s.ReadSInt16(iReserved[0]);
-        s.ReadSInt16(iReserved[1]);
-        s.ReadSInt16(iReserved[2]);
-        s.ReadSInt16(iReserved[3]);
+        s.Read(iPriority);
+        s.Read(iMode);
+        s.Read(iVol);
+        s.Read(iPan);
+        s.Read(iCenter);
+        s.Read(iShift);
+        s.Read(iMin);
+        s.Read(iMax);
+        s.Read(iVibW);
+        s.Read(iVibT);
+        s.Read(iPorW);
+        s.Read(iPorT);
+        s.Read(iPitchBendMin);
+        s.Read(iPitchBendMax);
+        s.Read(iReserved1);
+        s.Read(iReserved2);
+        s.Read(iAdsr1);
+        s.Read(iAdsr2);
+        s.Read(iProg);
+        s.Read(iVag);
+        s.Read(iReserved);
     }
 
     u8 iPriority;
@@ -178,9 +175,9 @@ struct AEVh
 
     void Read(Oddlib::IStream& s )
     {
-        s.ReadUInt32(iLengthOrDuration);
-        s.ReadUInt32(iUnusedByEngine);
-        s.ReadUInt32(iFileOffset);
+        s.Read(iLengthOrDuration);
+        s.Read(iUnusedByEngine);
+        s.Read(iFileOffset);
     }
 
     unsigned int iLengthOrDuration;

@@ -27,7 +27,7 @@ static u32 _MidiReadVarLen(Oddlib::Stream& stream)
     u8 byte = 0;
     for (int i = 0; i < 4; ++i)
     {
-        stream.ReadUInt8(byte);
+        stream.Read(byte);
         ret = (ret << 7) | (byte & 0x7f);
         if (!(byte & 0x80))
         {
@@ -148,12 +148,12 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
 
     // Read the header
 
-    stream.ReadUInt32(seqHeader.mMagic);
-    stream.ReadUInt32(seqHeader.mVersion);
-    stream.ReadUInt16(seqHeader.mResolutionOfQuaterNote);
+    stream.Read(seqHeader.mMagic);
+    stream.Read(seqHeader.mVersion);
+    stream.Read(seqHeader.mResolutionOfQuaterNote);
     stream.ReadBytes(seqHeader.mTempo, sizeof(seqHeader.mTempo));
-    stream.ReadUInt8(seqHeader.mTimeSignatureBars);
-    stream.ReadUInt8(seqHeader.mTimeSignatureBeats);
+    stream.Read(seqHeader.mTimeSignatureBars);
+    stream.Read(seqHeader.mTimeSignatureBeats);
 
     int tempoValue = 0;
     for (int i = 0; i < 3; i++)
@@ -183,7 +183,7 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
 
         // Obtain the event/status byte
         u8 eventByte = 0;
-        stream.ReadUInt8(eventByte);
+        stream.Read(eventByte);
         if (eventByte < 0x80)
         {
             // Use running status
@@ -206,10 +206,10 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
         {
             // Meta event
             u8 metaCommand = 0;
-            stream.ReadUInt8(metaCommand);
+            stream.Read(metaCommand);
 
             u8 metaCommandLength = 0;
-            stream.ReadUInt8(metaCommandLength);
+            stream.Read(metaCommandLength);
 
             switch (metaCommand)
             {
@@ -250,7 +250,7 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
                 //int t = 0;
                 for (int i = 0; i < 3; i++)
                 {
-                    stream.ReadUInt8(tempoByte);
+                    stream.Read(tempoByte);
                     //t = tempoByte << 8 * i;
                 }
             }
@@ -278,10 +278,10 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
             case 0x9: // Note On
             {
                 u8 note = 0;
-                stream.ReadUInt8(note);
+                stream.Read(note);
 
                 u8 velocity = 0;
-                stream.ReadUInt8(velocity);
+                stream.Read(velocity);
                 if (velocity == 0) // If velocity is 0, then the sequence means to do "Note Off"
                 {
                     m_MessageList.push_back(AliveAudioMidiMessage(ALIVE_MIDI_NOTE_OFF, deltaTime, channel, note, velocity));
@@ -295,9 +295,9 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
             case 0x8: // Note Off
             {
                 u8 note = 0;
-                stream.ReadUInt8(note);
+                stream.Read(note);
                 u8 velocity = 0;
-                stream.ReadUInt8(velocity);
+                stream.Read(velocity);
 
                 m_MessageList.push_back(AliveAudioMidiMessage(ALIVE_MIDI_NOTE_OFF, deltaTime, channel, note, velocity));
             }
@@ -305,7 +305,7 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
             case 0xc: // Program Change
             {
                 u8 prog = 0;
-                stream.ReadUInt8(prog);
+                stream.Read(prog);
                 m_MessageList.push_back(AliveAudioMidiMessage(ALIVE_MIDI_PROGRAM_CHANGE, deltaTime, channel, 0, 0, prog));
             }
             break;
@@ -314,28 +314,28 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
                 u8 note = 0;
                 u8 pressure = 0;
 
-                stream.ReadUInt8(note);
-                stream.ReadUInt8(pressure);
+                stream.Read(note);
+                stream.Read(pressure);
             }
             break;
             case 0xb: // Controller Change
             {
                 u8 controller = 0;
                 u8 value = 0;
-                stream.ReadUInt8(controller);
-                stream.ReadUInt8(value);
+                stream.Read(controller);
+                stream.Read(value);
             }
             break;
             case 0xd: // After touch
             {
                 u8 value = 0;
-                stream.ReadUInt8(value);
+                stream.Read(value);
             }
             break;
             case 0xe: // Pitch Bend
             {
                 u16 bend = 0;
-                stream.ReadUInt16(bend);
+                stream.Read(bend);
             }
             break;
             case 0xf: // Sysex len

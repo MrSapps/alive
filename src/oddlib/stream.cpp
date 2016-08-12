@@ -66,34 +66,6 @@ namespace Oddlib
         }
     }
 
-    void Stream::ReadUInt8(u8& output)
-    {
-        DoRead<decltype(output)>(mStream, output);
-    }
-
-    void Stream::ReadUInt32(u32& output)
-    {
-        DoRead<decltype(output)>(mStream, output);
-    }
-
-    void Stream::ReadUInt16(u16& output)
-    {
-        DoRead<decltype(output)>(mStream, output);
-    }
-
-    void Stream::ReadSInt16(s16& output)
-    {
-        DoRead<decltype(output)>(mStream, output);
-    }
-
-    void Stream::ReadBytes(s8* pDest, size_t destSize)
-    {
-        if (!mStream->read(reinterpret_cast<char*>(pDest), destSize))
-        {
-            throw Exception("ReadBytes failure");
-        }
-    }
-
     void Stream::ReadBytes(u8* pDest, size_t destSize)
     {
         if (!mStream->read(reinterpret_cast<char*>(pDest), destSize))

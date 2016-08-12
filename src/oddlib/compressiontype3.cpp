@@ -11,13 +11,13 @@ namespace Oddlib
             if (bitCounter == 14)
             {
                 bitCounter = 30;
-                src_data = (ReadUint16(stream) << 14) | src_data;
+                src_data = (ReadU16(stream) << 14) | src_data;
             }
         }
         else
         {
             bitCounter = 32;
-            src_data = ReadUint32(stream);
+            src_data = ReadU32(stream);
         }
         bitCounter -= 6;
     }

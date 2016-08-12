@@ -12,14 +12,14 @@ namespace Oddlib
 
         // Get the length of the destination buffer
         u32 nDestinationLength = 0;
-        stream.ReadUInt32(nDestinationLength);
+        stream.Read(nDestinationLength);
 
         std::vector<u8> decompressedData(nDestinationLength);
         u32 dstPos = 0;
         while (dstPos < nDestinationLength)
         {
             // get code byte
-            const u8 c = ReadUInt8(stream);
+            const u8 c = ReadU8(stream);
 
             // 0x80 = 0b10000000 = RLE flag
             // 0xc7 = 0b01111100 = bytes to use for length
@@ -30,7 +30,7 @@ namespace Oddlib
                 const u32 nCopyLength = ((c & 0x7C) >> 2) + 3;
 
                 // The last 2 bits plus the next byte gives us the destination of the copy
-                const u8 c1 = ReadUInt8(stream);
+                const u8 c1 = ReadU8(stream);
                 const u32 nPosition = ((c & 0x03) << 8) + c1 + 1;
                 const u32 startIndex = dstPos - nPosition;
 
@@ -44,7 +44,7 @@ namespace Oddlib
                 // Here the value is the number of literals to copy
                 for (int i = 0; i < c + 1; i++)
                 {
-                    decompressedData[dstPos++] = ReadUInt8(stream);
+                    decompressedData[dstPos++] = ReadU8(stream);
                 }
             }
         }

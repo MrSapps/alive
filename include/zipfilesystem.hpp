@@ -32,13 +32,13 @@ private:
 
         void DeSerialize(Oddlib::IStream& stream)
         {
-            stream.ReadUInt16(mThisDiskNumber);
-            stream.ReadUInt16(mStartCentralDirectoryDiskNumber);
-            stream.ReadUInt16(mNumEntriesInCentaralDirectoryOnThisDisk);
-            stream.ReadUInt16(mNumEntriesInCentaralDirectory);
-            stream.ReadUInt32(mCentralDirectorySize);
-            stream.ReadUInt32(mCentralDirectoryStartOffset);
-            stream.ReadUInt16(mCommentSize);
+            stream.Read(mThisDiskNumber);
+            stream.Read(mStartCentralDirectoryDiskNumber);
+            stream.Read(mNumEntriesInCentaralDirectoryOnThisDisk);
+            stream.Read(mNumEntriesInCentaralDirectory);
+            stream.Read(mCentralDirectorySize);
+            stream.Read(mCentralDirectoryStartOffset);
+            stream.Read(mCommentSize);
         }
     };
 
@@ -60,9 +60,9 @@ private:
 
         void DeSerialize(Oddlib::IStream& stream)
         {
-            stream.ReadUInt32(mCrc32);
-            stream.ReadUInt32(mCompressedSize);
-            stream.ReadUInt32(mUnCompressedSize);
+            stream.Read(mCrc32);
+            stream.Read(mCompressedSize);
+            stream.Read(mUnCompressedSize);
         }
     };
 
@@ -83,14 +83,14 @@ private:
 
         void DeSerialize(Oddlib::IStream& stream)
         {
-            stream.ReadUInt16(mMinVersionRequiredToExtract);
-            stream.ReadUInt16(mGeneralPurposeFlags);
-            stream.ReadUInt16(mCompressionMethod);
-            stream.ReadUInt16(mFileLastModifiedTime);
-            stream.ReadUInt16(mFileLastModifiedDate);
+            stream.Read(mMinVersionRequiredToExtract);
+            stream.Read(mGeneralPurposeFlags);
+            stream.Read(mCompressionMethod);
+            stream.Read(mFileLastModifiedTime);
+            stream.Read(mFileLastModifiedDate);
             mDataDescriptor.DeSerialize(stream);
-            stream.ReadUInt16(mFileNameLength);
-            stream.ReadUInt16(mExtraFieldLength);
+            stream.Read(mFileNameLength);
+            stream.Read(mExtraFieldLength);
         }
     };
 
@@ -110,13 +110,13 @@ private:
 
         void DeSerialize(Oddlib::IStream& stream)
         {
-            stream.ReadUInt16(mCreatedByVersion);
+            stream.Read(mCreatedByVersion);
             mLocalFileHeader.DeSerialize(stream);
-            stream.ReadUInt16(mFileCommentLength);
-            stream.ReadUInt16(mFileDiskNumber);
-            stream.ReadUInt16(mInternalFileAttributes);
-            stream.ReadUInt32(mExternalFileAttributes);
-            stream.ReadUInt32(mRelativeLocalFileHeaderOffset);
+            stream.Read(mFileCommentLength);
+            stream.Read(mFileDiskNumber);
+            stream.Read(mInternalFileAttributes);
+            stream.Read(mExternalFileAttributes);
+            stream.Read(mRelativeLocalFileHeaderOffset);
 
             if (mLocalFileHeader.mFileNameLength > 0)
             {

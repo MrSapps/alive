@@ -79,13 +79,13 @@ void PSXADPCMDecoder::DecodeVagStream(Oddlib::IStream& s, std::vector<u8>& out)
     {
         // Filter and shift nibbles
         u8 filter = 0;
-        s.ReadUInt8(filter);
+        s.Read(filter);
         const int shift = filter & 0xf;
         filter >>= 4;
 
         // Flags byte
         u8 flags = 0;
-        s.ReadUInt8(flags);
+        s.Read(flags);
         if (flags & 1) // EOF flag, checking for == 7 is wrong
         {
             break;
@@ -103,7 +103,7 @@ void PSXADPCMDecoder::DecodeVagStream(Oddlib::IStream& s, std::vector<u8>& out)
         for (int i = 0; i < 28 / 2; i++)
         {
             u8 tmp = 0;
-            s.ReadUInt8(tmp);
+            s.Read(tmp);
             DecodeNibble(true, shift, filter, tmp, old, older, nullptr, &out);
             DecodeNibble(false, shift, filter, tmp, old, older, nullptr, &out);
         }

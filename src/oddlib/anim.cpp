@@ -277,9 +277,9 @@ namespace Oddlib
         : mIsPsx(bIsPsx), mStream(stream)
     {
         // Read the header
-        mStream.ReadUInt16(mHeader.mMaxW);
-        mStream.ReadUInt16(mHeader.mMaxH);
-        mStream.ReadUInt32(mHeader.mFrameTableOffSet);
+        mStream.Read(mHeader.mMaxW);
+        mStream.Read(mHeader.mMaxH);
+        mStream.Read(mHeader.mFrameTableOffSet);
         
         // Read the pallete
         const u32 frameStart = ParsePallete();
@@ -308,7 +308,7 @@ namespace Oddlib
     {
         u32 frameStart = 0;
 
-        mStream.ReadUInt32(mHeader.mPaltSize);
+        mStream.Read(mHeader.mPaltSize);
         mClutOffset = static_cast<u32>(mStream.Pos());
         if (mHeader.mPaltSize == 0)
         {
@@ -316,7 +316,7 @@ namespace Oddlib
             // actually the palt size.
             mbIsAoFile = false;
             mClutOffset = static_cast<u32>(mStream.Pos());
-            mStream.ReadUInt32(mHeader.mPaltSize);
+            mStream.Read(mHeader.mPaltSize);
         }
         else
         {
@@ -343,10 +343,10 @@ namespace Oddlib
                 mStream.Seek(frameStart);
 
                 u32 paltOffset = 0;
-                mStream.ReadUInt32(paltOffset);
+                mStream.Read(paltOffset);
                 mStream.Seek(paltOffset);
                 mClutOffset = static_cast<u32>(mStream.Pos());
-                mStream.ReadUInt32(mHeader.mPaltSize);
+                mStream.Read(mHeader.mPaltSize);
             }
             else
             {
@@ -361,7 +361,7 @@ namespace Oddlib
         for (auto i = 0u; i < mHeader.mPaltSize; i++)
         {
             u16 tmp = 0;
-            mStream.ReadUInt16(tmp);
+            mStream.Read(tmp);
 
             unsigned int oldPixel = tmp;
 
@@ -414,16 +414,16 @@ namespace Oddlib
     {
         // Collect all animation sets
         auto hdr = std::make_unique<AnimationHeader>();
-        mStream.ReadUInt16(hdr->mFps);
-        mStream.ReadUInt16(hdr->mNumFrames);
-        mStream.ReadUInt16(hdr->mLoopStartFrame);
-        mStream.ReadUInt16(hdr->mFlags);
+        mStream.Read(hdr->mFps);
+        mStream.Read(hdr->mNumFrames);
+        mStream.Read(hdr->mLoopStartFrame);
+        mStream.Read(hdr->mFlags);
         
         // Read the offsets to each frame info
         hdr->mFrameInfoOffsets.resize(hdr->mNumFrames);
         for (auto& offset : hdr->mFrameInfoOffsets)
         {
-            mStream.ReadUInt32(offset);
+            mStream.Read(offset);
         }
 
         // The first set is usually the last set. Either way when we get to the end of the file from
@@ -451,10 +451,10 @@ namespace Oddlib
                 // *really* starts (and why we'll end up where we started after parsing down this list)
                 auto frmHdr = std::make_unique<FrameInfoHeader>();
 
-                mStream.ReadUInt32(frmHdr->mFrameHeaderOffset);
-                mStream.ReadUInt32(frmHdr->mMagic);
-                // stream.ReadUInt16(frmHdr->points);
-                // stream.ReadUInt16(frmHdr->triggers);
+                mStream.Read(frmHdr->mFrameHeaderOffset);
+                mStream.Read(frmHdr->mMagic);
+                // stream.Read(frmHdr->points);
+                // stream.Read(frmHdr->triggers);
 
                 // if (frmHdr->points != 0x3)
                 {
@@ -510,20 +510,20 @@ namespace Oddlib
                 // to the same image data
                 //mUniqueFrameHeaderStreamOffsets.insert(stream.Pos());
 
-                mStream.ReadUInt32(frameInfo->mFrameHeaderOffset);
-                mStream.ReadUInt32(frameInfo->mMagic);
+                mStream.Read(frameInfo->mFrameHeaderOffset);
+                mStream.Read(frameInfo->mMagic);
 
 
-                mStream.ReadSInt16(frameInfo->mOffx);
-                mStream.ReadSInt16(frameInfo->mOffy);
+                mStream.Read(frameInfo->mOffx);
+                mStream.Read(frameInfo->mOffy);
 
 
-                mStream.ReadSInt16(frameInfo->mTopLeft.x);
-                mStream.ReadSInt16(frameInfo->mTopLeft.y);
+                mStream.Read(frameInfo->mTopLeft.x);
+                mStream.Read(frameInfo->mTopLeft.y);
 
           
-                mStream.ReadSInt16(frameInfo->mBottomRight.x);
-                mStream.ReadSInt16(frameInfo->mBottomRight.y);
+                mStream.Read(frameInfo->mBottomRight.x);
+                mStream.Read(frameInfo->mBottomRight.y);
 
                 animationHeader->mFrameInfos.emplace_back(std::move(frameInfo));
             }
@@ -623,14 +623,14 @@ namespace Oddlib
         }
 
         FrameHeader frameHeader;
-        mStream.ReadUInt32(frameHeader.mClutOffset);
+        mStream.Read(frameHeader.mClutOffset);
 
 
-        mStream.ReadUInt8(frameHeader.mWidth);
-        mStream.ReadUInt8(frameHeader.mHeight);
-        mStream.ReadUInt8(frameHeader.mColourDepth);
-        mStream.ReadUInt8(frameHeader.mCompressionType);
-        mStream.ReadUInt32(frameHeader.mFrameDataSize);
+        mStream.Read(frameHeader.mWidth);
+        mStream.Read(frameHeader.mHeight);
+        mStream.Read(frameHeader.mColourDepth);
+        mStream.Read(frameHeader.mCompressionType);
+        mStream.Read(frameHeader.mFrameDataSize);
 
         u32 nTextureWidth = 0;
         u32 actualWidth = 0;

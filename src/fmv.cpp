@@ -528,7 +528,7 @@ private:
 {
 
     char idBuffer[4] = {};
-    stream->ReadBytes(reinterpret_cast<s8*>(idBuffer), sizeof(idBuffer));
+    stream->Read(idBuffer);
     stream->Seek(0);
     std::string idStr(idBuffer, 3);
     if (idStr == "DDV")

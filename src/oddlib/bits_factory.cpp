@@ -12,28 +12,28 @@ namespace Oddlib
     static bool IsAePsxCam(IStream& stream)
     {
         u16 size = 0;
-        stream.ReadUInt16(size);
+        stream.Read(size);
 
         u16 nulls = 0;
-        stream.ReadUInt16(nulls);
+        stream.Read(nulls);
         if (nulls != 0)
         {
             return false;
         }
 
         u16 temp = 0;
-        stream.ReadUInt16(temp);
+        stream.Read(temp);
 
         // [00 38] [xx xx] [02 00]
-        stream.ReadUInt16(temp);
+        stream.Read(temp);
         if (temp != 0x3800)
         {
             return false;
         }
 
-        stream.ReadUInt16(temp);
+        stream.Read(temp);
 
-        stream.ReadUInt16(temp);
+        stream.Read(temp);
         if (temp != 0x0002)
         {
             return false;
@@ -46,10 +46,10 @@ namespace Oddlib
     {
         // Look for a pattern of [00 38]
         u16 size = 0;
-        stream.ReadUInt16(size);
+        stream.Read(size);
 
         u16 temp = 0;
-        stream.ReadUInt16(temp);
+        stream.Read(temp);
         if (temp != 0x3800)
         {
             return false;
@@ -104,7 +104,7 @@ namespace Oddlib
             }
 
             u16 stripSize = 0;
-            stream.ReadUInt16(stripSize);
+            stream.Read(stripSize);
             if (stripSize != aoStripSize)
             {
                 allStripsAreAoSize = false;

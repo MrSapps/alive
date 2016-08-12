@@ -360,31 +360,6 @@ public:
                 mIncludeSubHeader);
         }
 
-        virtual void ReadUInt8(u8& output) override
-        {
-            ReadBytes(reinterpret_cast<u8*>(&output), sizeof(u8));
-        }
-
-        virtual void ReadUInt32(u32& output) override
-        {
-            ReadBytes(reinterpret_cast<u8*>(&output), sizeof(u32));
-        }
-
-        virtual void ReadUInt16(u16& output) override
-        {
-            ReadBytes(reinterpret_cast<u8*>(&output), sizeof(u16));
-        }
-
-        virtual void ReadSInt16(s16& output) override
-        {
-            ReadBytes(reinterpret_cast<u8*>(&output), sizeof(s16));
-        }
-
-        virtual void ReadBytes(s8* pDest, size_t destSize) override
-        {
-            ReadBytes(reinterpret_cast<u8*>(pDest), destSize);
-        }
-
         virtual void ReadBytes(u8* pDest, size_t destSize) override
         {
             // Raw CD sector reading mode is only used for FMV's we assume that
@@ -395,7 +370,7 @@ public:
                 mSector++;
 
                 char subHeader[8] = {};
-                mStream->ReadBytes(reinterpret_cast<s8*>(subHeader), sizeof(subHeader));
+                mStream->ReadBytes(reinterpret_cast<u8*>(subHeader), sizeof(subHeader));
 
                 mPos += 2048;
                 mStream->Seek(mStream->Pos() - sizeof(subHeader));
@@ -412,7 +387,7 @@ public:
                     if (posWithinSector == 0)
                     {
                         char subHeader[24] = {};
-                        mStream->ReadBytes(reinterpret_cast<s8*>(subHeader), sizeof(subHeader));
+                        mStream->ReadBytes(reinterpret_cast<u8*>(subHeader), sizeof(subHeader));
                     }
                     else if (posWithinSector >= 24)
                     {

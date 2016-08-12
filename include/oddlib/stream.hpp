@@ -24,14 +24,25 @@ namespace Oddlib
             return allStreamBytes;
         }
 
+        // Read any fundamental type
+        template<class T>
+        void Read(T& type)
+        {
+            static_assert(std::is_fundamental<T>::value, "Can only read fundamental types");
+            ReadBytes(reinterpret_cast<u8*>(&type), sizeof(type));
+        }
+
+        // Read any fixed array of fundamental type
+        template<typename T, std::size_t count>
+        void Read(T(&value)[count])
+        {
+            static_assert(std::is_fundamental<T>::value, "Can only read fundamental types");
+            ReadBytes(reinterpret_cast<u8*>(&value[0]), sizeof(T)* count);
+        }
+
         virtual ~IStream() = default;
         virtual IStream* Clone() = 0;
         virtual IStream* Clone(u32 start, u32 size) = 0;
-        virtual void ReadUInt8(u8& output) = 0;
-        virtual void ReadUInt32(u32& output) = 0;
-        virtual void ReadUInt16(u16& output) = 0;
-        virtual void ReadSInt16(s16& output) = 0;
-        virtual void ReadBytes(s8* pDest, size_t destSize) = 0;
         virtual void ReadBytes(u8* pDest, size_t destSize) = 0;
         virtual void Seek(size_t pos) = 0;
         virtual size_t Pos() const = 0;
@@ -56,24 +67,25 @@ namespace Oddlib
         }
     };
 
-    inline u16 ReadUint16(IStream& stream)
+
+    inline u16 ReadU16(IStream& stream)
     {
         u16 ret = 0;
-        stream.ReadUInt16(ret);
+        stream.Read(ret);
         return ret;
     }
 
-    inline u32 ReadUint32(IStream& stream)
+    inline u32 ReadU32(IStream& stream)
     {
         u32 ret = 0;
-        stream.ReadUInt32(ret);
+        stream.Read(ret);
         return ret;
     }
 
-    inline u8 ReadUInt8(IStream& stream)
+    inline u8 ReadU8(IStream& stream)
     {
         u8 ret = 0;
-        stream.ReadUInt8(ret);
+        stream.Read(ret);
         return ret;
     }
 
@@ -84,11 +96,6 @@ namespace Oddlib
         explicit Stream(std::vector<u8>&& data);
         virtual IStream* Clone() override;
         virtual IStream* Clone(u32 start, u32 size) override;
-        virtual void ReadUInt8(u8& output) override;
-        virtual void ReadUInt32(u32& output) override;
-        virtual void ReadUInt16(u16& output) override;
-        virtual void ReadSInt16(s16& output) override;
-        virtual void ReadBytes(s8* pDest, size_t destSize) override;
         virtual void ReadBytes(u8* pDest, size_t destSize) override;
         virtual void Seek(size_t pos) override;
         virtual size_t Pos() const override;

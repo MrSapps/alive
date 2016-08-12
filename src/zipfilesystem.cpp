@@ -43,7 +43,7 @@ bool ZipFileSystem::LoadCentralDirectoryRecords()
     for (auto i = 0; i < mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory; i++)
     {
         u32 cdrMagic = 0;
-        mStream->ReadUInt32(cdrMagic);
+        mStream->Read(cdrMagic);
         if (cdrMagic != kCentralDirectory)
         {
             LOG_ERROR("Missing central directory record for item " << i);
@@ -80,7 +80,7 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
         // Keep moving backwards and see if we have the magic marker for an ECRD yet
         u32 magic = 0;
         mStream->Seek(fileSize - searchPos);
-        mStream->ReadUInt32(magic);
+        mStream->Read(magic);
         if (magic == kEndOfCentralDirectory)
         {
             // We do so check that the pos after the stucture + comment len == file size
@@ -90,7 +90,7 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
             mStream->Seek(mEndOfCentralDirectoryRecord.mCentralDirectoryStartOffset);
 
             u32 cdrMagic = 0;
-            mStream->ReadUInt32(cdrMagic);
+            mStream->Read(cdrMagic);
             if (cdrMagic == kCentralDirectory)
             {
                 // Must be a valid ZIP and we are now at the CDR location
@@ -136,7 +136,7 @@ std::unique_ptr<Oddlib::IStream> ZipFileSystem::Open(const std::string& fileName
 
     mStream->Seek(r.mRelativeLocalFileHeaderOffset);
     u32 magic = 0;
-    mStream->ReadUInt32(magic);
+    mStream->Read(magic);
     if (magic != kLocalFileHeader)
     {
         LOG_ERROR("Local file header missing");

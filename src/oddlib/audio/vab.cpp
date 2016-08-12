@@ -49,11 +49,11 @@ void Vab::ReadVb(Oddlib::IStream& s, bool isPsx, bool useSoundsDat, Oddlib::IStr
             for (auto i = 0; i < mHeader.iNumVags; ++i)
             {
                 u32 size = 0;
-                s.ReadUInt32(size);
+                s.Read(size);
 
                 // Not actually used for anything
                 u32 sampleRate = 0;
-                s.ReadUInt32(sampleRate);
+                s.Read(sampleRate);
 
                 if (size > 0)
                 {
@@ -98,7 +98,7 @@ void Vab::ReadVh(Oddlib::IStream& stream, bool isPsx)
         for (int i = 0; i < mHeader.iNumVags; i++)
         {
             u16 voff = 0;
-            stream.ReadUInt16(voff);
+            stream.Read(voff);
             totalOffset += voff << 3;
             mVagOffsets.push_back(totalOffset);
         }

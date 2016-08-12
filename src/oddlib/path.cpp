@@ -69,16 +69,16 @@ namespace Oddlib
         for (u32 i = 0; i < numberOfCollisionItems; i++)
         {
             CollisionItem tmp = {};
-            stream.ReadUInt16(tmp.mP1.mX);
-            stream.ReadUInt16(tmp.mP1.mY);
-            stream.ReadUInt16(tmp.mP2.mX);
-            stream.ReadUInt16(tmp.mP2.mY);
-            stream.ReadUInt16(tmp.mType);
+            stream.Read(tmp.mP1.mX);
+            stream.Read(tmp.mP1.mY);
+            stream.Read(tmp.mP2.mX);
+            stream.Read(tmp.mP2.mY);
+            stream.Read(tmp.mType);
             for (int j = 0; j < 4; j++)
             {
-                stream.ReadUInt16(tmp.mUnknown[j]);
+                stream.Read(tmp.mUnknown[j]);
             }
-            stream.ReadUInt16(tmp.mLineLength);
+            stream.Read(tmp.mLineLength);
             mCollisionItems.emplace_back(tmp);
         }
     }
@@ -98,7 +98,7 @@ namespace Oddlib
         for (u32 i = 0; i < numberOfCameras; i++)
         {
             u32 offset = 0;
-            stream.ReadUInt32(offset);
+            stream.Read(offset);
             cameraObjectOffsets.push_back(offset);
         }
         
@@ -113,9 +113,9 @@ namespace Oddlib
                 for (;;)
                 {
                     MapObject mapObject;
-                    stream.ReadUInt16(mapObject.mFlags);
-                    stream.ReadUInt16(mapObject.mLength);
-                    stream.ReadUInt32(mapObject.mType);
+                    stream.Read(mapObject.mFlags);
+                    stream.Read(mapObject.mLength);
+                    stream.Read(mapObject.mType);
 
                     LOG_INFO("Object TLV: " << mapObject.mType << " " << mapObject.mLength << " " << mapObject.mLength);
                    
@@ -123,22 +123,22 @@ namespace Oddlib
                     {
                         // Don't know what this is for
                         u32 unknownData = 0;
-                        stream.ReadUInt32(unknownData);
+                        stream.Read(unknownData);
                     }
 
 
-                    stream.ReadUInt16(mapObject.mRectTopLeft.mX);
-                    stream.ReadUInt16(mapObject.mRectTopLeft.mY);
+                    stream.Read(mapObject.mRectTopLeft.mX);
+                    stream.Read(mapObject.mRectTopLeft.mY);
 
                     // Ao duplicated the first two parts of data for some reason
                     if (mIsAo)
                     {
                         u32 duplicatedXY = 0;
-                        stream.ReadUInt32(duplicatedXY);
+                        stream.Read(duplicatedXY);
                     }
 
-                    stream.ReadUInt16(mapObject.mRectBottomRight.mX);
-                    stream.ReadUInt16(mapObject.mRectBottomRight.mY);
+                    stream.Read(mapObject.mRectBottomRight.mX);
+                    stream.Read(mapObject.mRectBottomRight.mY);
 
                     if (mapObject.mLength > 0)
                     {

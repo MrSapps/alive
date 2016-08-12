@@ -12,7 +12,7 @@ namespace Oddlib
     {
         if (bitCounter < 16)
         {
-            const int srcBits = ReadUint16(stream) << bitCounter;
+            const int srcBits = ReadU16(stream) << bitCounter;
             bitCounter += 16;
             srcWorkBits |= srcBits;
         }

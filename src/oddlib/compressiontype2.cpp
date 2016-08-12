@@ -10,7 +10,7 @@ namespace Oddlib
         {
             return false;
         }
-        const s32 src3Bytes = ReadUInt8(stream) | (ReadUint16(stream) << 8);
+        const s32 src3Bytes = ReadU8(stream) | (ReadU16(stream) << 8);
         remainingCount--;
 
         // TODO: Should write each byte by itself
@@ -51,7 +51,7 @@ namespace Oddlib
         while (remainder)
         {
             remainder--;
-            ret[dstPos++] = ReadUInt8(stream);
+            ret[dstPos++] = ReadU8(stream);
         }
 
         return ret;

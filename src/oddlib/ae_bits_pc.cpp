@@ -122,7 +122,7 @@ namespace Oddlib
         {
             // Read the size of the image strip
             u16 stripSize = 0;
-            stream.ReadUInt16(stripSize);
+            stream.Read(stripSize);
 
             if (stripSize > 0)
             {
