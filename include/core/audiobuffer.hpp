@@ -3,6 +3,7 @@
 #include <set>
 #include <atomic>
 #include <SDL.h>
+#include "types.hpp"
 
 class IAudioPlayer;
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SDL.h"
 #include <vector>
+#include "types.hpp"
 
 namespace Oddlib
 {

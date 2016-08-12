@@ -7,6 +7,7 @@
 #include "string_util.hpp"
 #include "oddlib/stream.hpp"
 #include "oddlib/exceptions.hpp"
+#include "types.hpp"
 
 namespace Oddlib
 {

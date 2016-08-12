@@ -7,6 +7,7 @@
 #include "SDL.h"
 #include "sdl_raii.hpp"
 #include <string>
+#include "types.hpp"
 
 namespace Oddlib
 {

@@ -3,7 +3,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include "SDL_types.h"
+#include "types.hpp"
 
 class FileSystem;
 

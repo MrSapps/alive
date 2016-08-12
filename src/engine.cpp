@@ -577,7 +577,7 @@ void Engine::InitGL()
     SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &a);
     SDL_GL_GetAttribute(SDL_GL_BUFFER_SIZE, &bufferSize);
     SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &doubleBuffer);
-    LOG_INFO("GL settings r " << r << " g " << g << " b " << b << " bufferSize " << bufferSize << " f64 buffer " << doubleBuffer);
+    LOG_INFO("GL settings r " << r << " g " << g << " b " << b << " bufferSize " << bufferSize << " double buffer " << doubleBuffer);
 
     SDL_GL_SetSwapInterval(0); // No vsync for gui, for responsiveness
 

@@ -6,7 +6,7 @@
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4201) // nonstandard extension used : nameless struct/union
-#pragma warning(disable:4244) // conversion from 'int' to 'f32', possible loss of data
+#pragma warning(disable:4244) // conversion from 'int' to 'float', possible loss of data
 #if _MSC_VER >= 1900
 #pragma warning(disable:4459) // declaration of 'defaultFBO' hides global declaration
 #endif

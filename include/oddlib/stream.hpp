@@ -5,6 +5,7 @@
 #include <memory>
 #include <fstream>
 #include "SDL.h"
+#include "types.hpp"
 
 namespace Oddlib
 {

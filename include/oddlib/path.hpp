@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include "types.hpp"
 
 namespace Oddlib
 {
