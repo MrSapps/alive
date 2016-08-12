@@ -110,8 +110,8 @@ namespace Detail
         HashInternal(result, s.c_str());
     }
 
-    // Treat each byte of Uint32 as unsigned char in FNV hashing
-    inline void HashInternal(Uint64 result, Uint32 value)
+    // Treat each byte of u32 as unsigned char in FNV hashing
+    inline void HashInternal(Uint64 result, u32 value)
     {
         result = (kFnvPrime * result) ^ static_cast<unsigned char>(value >> 24);
         result = (kFnvPrime * result) ^ static_cast<unsigned char>(value >> 16);
@@ -133,9 +133,9 @@ inline Uint64 StringHash(Args... args)
     return result;
 }
 
-inline std::vector<Uint8> StringToVector(const std::string& str)
+inline std::vector<u8> StringToVector(const std::string& str)
 {
-    return std::vector<Uint8>(str.begin(), str.end());
+    return std::vector<u8>(str.begin(), str.end());
 }
 
 class IFileSystem
@@ -1014,7 +1014,7 @@ private:
             mRequiredDataSets.reserve(requiredSets.size());
             for (size_t i = 0; i < requiredSets.size(); i++)
             {
-                mRequiredDataSets.emplace_back(requiredSets.get<jsonxx::String>(static_cast<Uint32>(i)));
+                mRequiredDataSets.emplace_back(requiredSets.get<jsonxx::String>(static_cast<u32>(i)));
             }
         }
     }
@@ -1063,8 +1063,8 @@ public:
     struct AnimFile
     {
         std::string mFile;
-        Uint32 mId;
-        Uint32 mAnimationIndex;
+        u32 mId;
+        u32 mAnimationIndex;
     };
 
     struct AnimFileLocations
@@ -1082,8 +1082,8 @@ public:
     {
         std::string mDataSetName;
         std::string mFileName;
-        Uint32 mStartSector;
-        Uint32 mEndSector;
+        u32 mStartSector;
+        u32 mEndSector;
     };
 
     struct FmvMapping
@@ -1110,12 +1110,12 @@ public:
 
     struct PathMapping
     {
-        Uint32 mId;
-        Uint32 mCollisionOffset;
-        Uint32 mIndexTableOffset;
-        Uint32 mObjectOffset;
-        Uint32 mNumberOfScreensX;
-        Uint32 mNumberOfScreensY;
+        u32 mId;
+        u32 mCollisionOffset;
+        u32 mIndexTableOffset;
+        u32 mObjectOffset;
+        u32 mNumberOfScreensX;
+        u32 mNumberOfScreensY;
         std::vector<PathLocation> mLocations;
 
         const PathLocation* Find(const std::string& dataSetName) const
@@ -1144,7 +1144,7 @@ public:
     struct AnimMapping
     {
         // Shared between all data sets, the default blending mode
-        Uint32 mBlendingMode;
+        u32 mBlendingMode;
 
         // Which datasets this animation lives in
         std::vector<AnimFileLocations> mLocations;
@@ -1397,7 +1397,7 @@ public:
     struct AnimationSetHolder
     {
     public:
-        AnimationSetHolder(std::shared_ptr<Oddlib::LvlArchive> sLvlPtr, std::shared_ptr<Oddlib::AnimationSet> sAnimSetPtr, Uint32 animIdx)
+        AnimationSetHolder(std::shared_ptr<Oddlib::LvlArchive> sLvlPtr, std::shared_ptr<Oddlib::AnimationSet> sAnimSetPtr, u32 animIdx)
             : mLvlPtr(sLvlPtr), mAnimSetPtr(sAnimSetPtr)
         {
             mAnim = mAnimSetPtr->AnimationAt(animIdx);
@@ -1408,12 +1408,12 @@ public:
             return *mAnim;
         }
 
-        Uint32 MaxW() const 
+        u32 MaxW() const 
         {
             return mAnimSetPtr->MaxW();
         }
 
-        Uint32 MaxH() const
+        u32 MaxH() const
         {
             return mAnimSetPtr->MaxH();
         }
@@ -1427,7 +1427,7 @@ public:
     Animation& operator = (const Animation&) = delete;
     Animation() = delete;
 
-    Animation(AnimationSetHolder anim, bool isPsx, bool scaleFrameOffsets, Uint32 defaultBlendingMode, const std::string& sourceDataSet)
+    Animation(AnimationSetHolder anim, bool isPsx, bool scaleFrameOffsets, u32 defaultBlendingMode, const std::string& sourceDataSet)
         : mAnim(anim), mIsPsx(isPsx), mScaleFrameOffsets(scaleFrameOffsets), mSourceDataSet(sourceDataSet)
     {
         // TODO
@@ -1503,7 +1503,7 @@ public:
         mFrameNum = 0;
     }
 
-    bool Collision(Sint32 x, Sint32 y) const
+    bool Collision(s32 x, s32 y) const
     {
         const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
 
@@ -1521,12 +1521,12 @@ public:
         return PointInRect(static_cast<float>(x), static_cast<float>(y), xpos, ypos, w, h);
     }
 
-    void SetXPos(Sint32 xpos) { mXPos = xpos; }
-    void SetYPos(Sint32 ypos) { mYPos = ypos; }
-    Sint32 XPos() const { return mXPos; }
-    Sint32 YPos() const { return mYPos; }
-    Uint32 MaxW() const { return static_cast<Uint32>(mAnim.MaxW()*ScaleX()); }
-    Uint32 MaxH() const { return static_cast<Uint32>(mAnim.MaxH()*mScale); }
+    void SetXPos(s32 xpos) { mXPos = xpos; }
+    void SetYPos(s32 ypos) { mYPos = ypos; }
+    s32 XPos() const { return mXPos; }
+    s32 YPos() const { return mYPos; }
+    u32 MaxW() const { return static_cast<u32>(mAnim.MaxW()*ScaleX()); }
+    u32 MaxH() const { return static_cast<u32>(mAnim.MaxH()*mScale); }
 
 private:
     bool PointInRect(float px, float py, float x, float y, float w, float h) const
@@ -1553,11 +1553,11 @@ private:
     bool mScaleFrameOffsets = false;
     std::string mSourceDataSet;
 
-    Uint32 mCounter = 0;
-    Uint32 mFrameNum = 0;
+    u32 mCounter = 0;
+    u32 mFrameNum = 0;
 
-    Sint32 mXPos = 500;
-    Sint32 mYPos = 800;
+    s32 mXPos = 500;
+    s32 mYPos = 800;
     float mScale = 3;
 };
 
@@ -1600,13 +1600,13 @@ public:
         return Get<Oddlib::LvlArchive>(key, mOpenLvls);
     }
 
-    std::shared_ptr<Oddlib::AnimationSet> AddAnimSet(std::unique_ptr<Oddlib::AnimationSet> uptr, const std::string& dataSetName, const std::string& lvlArchiveFileName, const std::string& lvlFileName, Uint32 chunkId)
+    std::shared_ptr<Oddlib::AnimationSet> AddAnimSet(std::unique_ptr<Oddlib::AnimationSet> uptr, const std::string& dataSetName, const std::string& lvlArchiveFileName, const std::string& lvlFileName, u32 chunkId)
     {
         std::string key = dataSetName + lvlArchiveFileName + lvlFileName + std::to_string(chunkId);
         return Add(key, mAnimationSets, std::move(uptr));
     }
 
-    std::shared_ptr<Oddlib::AnimationSet> GetAnimSet(const std::string& dataSetName, const std::string& lvlArchiveFileName, const std::string& lvlFileName, Uint32 chunkId)
+    std::shared_ptr<Oddlib::AnimationSet> GetAnimSet(const std::string& dataSetName, const std::string& lvlArchiveFileName, const std::string& lvlFileName, u32 chunkId)
     {
         std::string key = dataSetName + lvlArchiveFileName + lvlFileName + std::to_string(chunkId);
         return Get<Oddlib::AnimationSet>(key, mAnimationSets);

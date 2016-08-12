@@ -90,7 +90,7 @@ struct LvlFileChunk
     std::string mLvlName;
     std::string mFileName;
     Oddlib::LvlArchive::FileChunk* mChunk;
-    std::vector<Uint8> mData;
+    std::vector<u8> mData;
 };
 
 struct DeDuplicatedLvlChunk
@@ -104,7 +104,7 @@ bool CompareFrames(const Oddlib::Animation::Frame& frame1, const Oddlib::Animati
 {
     const Uint64 h1 = pHash(frame1.mFrame);
     const Uint64 h2 = pHash(frame2.mFrame);
-    const Uint32 distance = hamming_distance(h1, h2);
+    const u32 distance = hamming_distance(h1, h2);
 
     if (distance <= 22)
     {
@@ -113,8 +113,8 @@ bool CompareFrames(const Oddlib::Animation::Frame& frame1, const Oddlib::Animati
     else
     {
         /*
-        const Uint32 w = frame1.mFrame->w + frame2.mFrame->w;
-        const Uint32 h = std::max(frame1.mFrame->h, frame2.mFrame->h);
+        const u32 w = frame1.mFrame->w + frame2.mFrame->w;
+        const u32 h = std::max(frame1.mFrame->h, frame2.mFrame->h);
 
         SDL_SurfacePtr combined(SDL_CreateRGBSurface(0,
             w, h,
@@ -145,14 +145,14 @@ struct LocationFileInfo
     }
 
     std::string mFileName;
-    Uint32 mChunkId;
-    Uint32 mAnimIndex;
+    u32 mChunkId;
+    u32 mAnimIndex;
 };
 
 struct DeDuplicatedAnimation
 {
 private:
-    void HandleLvlChunk(std::map<eDataSetType, std::set<LocationFileInfo>>& vec, const LvlFileChunk& chunk, Uint32 animIdx)
+    void HandleLvlChunk(std::map<eDataSetType, std::set<LocationFileInfo>>& vec, const LvlFileChunk& chunk, u32 animIdx)
     { 
         LocationFileInfo fileInfo = {};
         fileInfo.mChunkId = chunk.mChunk->Id();
@@ -161,7 +161,7 @@ private:
         vec[chunk.mDataSet].insert(fileInfo);
     }
 
-    void HandleDeDuplicatedChunk(std::map<eDataSetType, std::set<LocationFileInfo>>& vec, const DeDuplicatedLvlChunk& chunk, Uint32 animIdx)
+    void HandleDeDuplicatedChunk(std::map<eDataSetType, std::set<LocationFileInfo>>& vec, const DeDuplicatedLvlChunk& chunk, u32 animIdx)
     {
         HandleLvlChunk(vec, *chunk.mChunk, animIdx);
         for (const std::unique_ptr<LvlFileChunk>& lvlChunk : chunk.mDuplicates)
@@ -172,9 +172,9 @@ private:
 
 public:
     const Oddlib::Animation* mAnimation;
-    Uint32 mAnimationIndex;
+    u32 mAnimationIndex;
     DeDuplicatedLvlChunk* mContainingChunk;
-    std::vector<std::pair<Uint32, DeDuplicatedLvlChunk*>> mDuplicates;
+    std::vector<std::pair<u32, DeDuplicatedLvlChunk*>> mDuplicates;
 
     std::map<eDataSetType, std::set<LocationFileInfo>> Locations()
     {
@@ -192,7 +192,7 @@ public:
         if (mAnimation->NumFrames() == other.mAnimation->NumFrames() &&
             mAnimation->Fps() == other.mAnimation->Fps())
         {
-            for (Uint32 i = 0; i < mAnimation->NumFrames(); i++)
+            for (u32 i = 0; i < mAnimation->NumFrames(); i++)
             {
                 const Oddlib::Animation::Frame& frame1 = mAnimation->GetFrame(i);
                 const Oddlib::Animation::Frame& frame2 = other.mAnimation->GetFrame(i);
@@ -286,7 +286,7 @@ private:
                                 // Since it exists add the chunk as a duplicate
                                 deDuplicatedChunkAlreadyExists = true;
                                 deDuplicatedChunk->mDuplicates.push_back(std::move(chunkInfo));
-                                deDuplicatedChunk->mDuplicates.back()->mData = std::vector<Uint8>(); // Don't keep many copies of the same buffer
+                                deDuplicatedChunk->mDuplicates.back()->mData = std::vector<u8>(); // Don't keep many copies of the same buffer
                                 break;
                             }
                         }
@@ -343,7 +343,7 @@ public:
     }
 
  
-    void ForChunksOfType(Uint32 type, std::function<void(const std::string&, Oddlib::LvlArchive::FileChunk&, bool)> cb)
+    void ForChunksOfType(u32 type, std::function<void(const std::string&, Oddlib::LvlArchive::FileChunk&, bool)> cb)
     {
         for (auto chunkPair : mReducer.Chunks())
         {
@@ -486,7 +486,7 @@ private:
 static int MaxW(const Oddlib::Animation& anim)
 {
     int ret = 0;
-    for (Uint32 i = 0; i < anim.NumFrames(); i++)
+    for (u32 i = 0; i < anim.NumFrames(); i++)
     {
         if (anim.GetFrame(i).mFrame->w > ret)
         {
@@ -499,7 +499,7 @@ static int MaxW(const Oddlib::Animation& anim)
 static int MaxH(const Oddlib::Animation& anim)
 {
     int ret = 0;
-    for (Uint32 i = 0; i < anim.NumFrames(); i++)
+    for (u32 i = 0; i < anim.NumFrames(); i++)
     {
         if (anim.GetFrame(i).mFrame->h > ret)
         {
@@ -717,7 +717,7 @@ int main(int /*argc*/, char** /*argv*/)
             {
                 std::unique_ptr<Oddlib::LvlArchive> archive = std::make_unique<Oddlib::LvlArchive>(fs->Open(lvl));
 
-                for (Uint32 i = 0; i < archive->FileCount(); i++)
+                for (u32 i = 0; i < archive->FileCount(); i++)
                 {
                     Oddlib::LvlArchive::File* f = archive->FileByIndex(i);
                     if (string_util::ends_with(f->FileName(), ".VH", true))
@@ -832,7 +832,7 @@ int main(int /*argc*/, char** /*argv*/)
             {
                 std::unique_ptr<DeDuplicatedLvlChunk>& chunk = chunks[i];
                 Oddlib::AnimationSet& animSet = *chunk->mAnimSet;
-                for (Uint32 j = 0; j < animSet.NumberOfAnimations(); j++)
+                for (u32 j = 0; j < animSet.NumberOfAnimations(); j++)
                 {
                     auto deDuplicatedAnimation = std::make_unique<DeDuplicatedAnimation>();
                     deDuplicatedAnimation->mAnimation = animSet.AnimationAt(j);
@@ -904,7 +904,7 @@ int main(int /*argc*/, char** /*argv*/)
                 SDL_SetSurfaceBlendMode(sprites.get(), SDL_BLENDMODE_NONE);
 
                 int xpos = 0;
-                for (Uint32 i = 0; i < deDupedAnim->mAnimation->NumFrames(); i++)
+                for (u32 i = 0; i < deDupedAnim->mAnimation->NumFrames(); i++)
                 {
                     const Oddlib::Animation::Frame& frame = deDupedAnim->mAnimation->GetFrame(i);
 
@@ -1042,7 +1042,7 @@ int main(int /*argc*/, char** /*argv*/)
                 // but if the anim duplicate finder is working correctly it should never happen in theory
                 if (animPtr)
                 {
-                    for (Uint32 j = 0; j < animPtr->NumFrames(); j++)
+                    for (u32 j = 0; j < animPtr->NumFrames(); j++)
                     {
                         const Oddlib::Animation::Frame& frame = animPtr->GetFrame(j);
                         jsonxx::Object frameOffsetObj;
@@ -1121,7 +1121,7 @@ int main(int /*argc*/, char** /*argv*/)
             }
 
             /*
-        void AddNumAnimationsMapping(Uint32 resId, Uint32 numAnims)
+        void AddNumAnimationsMapping(u32 resId, u32 numAnims)
         {
             // TODO: Must store num anims for each dataset for saving indexes
             // in ToJson

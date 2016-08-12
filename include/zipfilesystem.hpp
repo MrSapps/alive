@@ -17,17 +17,17 @@ public:
     virtual std::string FsPath() const override;
 
 private:
-    const Uint32 kEndOfCentralDirectory = 0x06054b50;
-    const Uint32 kEndOfCentralDirectoryRecordSizeWithMagic = 22;
+    const u32 kEndOfCentralDirectory = 0x06054b50;
+    const u32 kEndOfCentralDirectoryRecordSizeWithMagic = 22;
     struct EndOfCentralDirectoryRecord
     {
-        Uint16 mThisDiskNumber = 0;
-        Uint16 mStartCentralDirectoryDiskNumber = 0;
-        Uint16 mNumEntriesInCentaralDirectoryOnThisDisk = 0;
-        Uint16 mNumEntriesInCentaralDirectory = 0;
-        Uint32 mCentralDirectorySize = 0;
-        Uint32 mCentralDirectoryStartOffset = 0;
-        Uint16 mCommentSize = 0;
+        u16 mThisDiskNumber = 0;
+        u16 mStartCentralDirectoryDiskNumber = 0;
+        u16 mNumEntriesInCentaralDirectoryOnThisDisk = 0;
+        u16 mNumEntriesInCentaralDirectory = 0;
+        u32 mCentralDirectorySize = 0;
+        u32 mCentralDirectoryStartOffset = 0;
+        u16 mCommentSize = 0;
         // [comment data]
 
         void DeSerialize(Oddlib::IStream& stream)
@@ -54,9 +54,9 @@ private:
     // DataDescriptor signature = 0x08074b50
     struct DataDescriptor
     {
-        Uint32 mCrc32;
-        Uint32 mCompressedSize;
-        Uint32 mUnCompressedSize;
+        u32 mCrc32;
+        u32 mCompressedSize;
+        u32 mUnCompressedSize;
 
         void DeSerialize(Oddlib::IStream& stream)
         {
@@ -66,17 +66,17 @@ private:
         }
     };
 
-    const Uint32 kLocalFileHeader = 0x04034b50;
+    const u32 kLocalFileHeader = 0x04034b50;
     struct LocalFileHeader
     {
-        Uint16 mMinVersionRequiredToExtract;
-        Uint16 mGeneralPurposeFlags;
-        Uint16 mCompressionMethod;
-        Uint16 mFileLastModifiedTime;
-        Uint16 mFileLastModifiedDate;
+        u16 mMinVersionRequiredToExtract;
+        u16 mGeneralPurposeFlags;
+        u16 mCompressionMethod;
+        u16 mFileLastModifiedTime;
+        u16 mFileLastModifiedDate;
         DataDescriptor mDataDescriptor;
-        Uint16 mFileNameLength;
-        Uint16 mExtraFieldLength;
+        u16 mFileNameLength;
+        u16 mExtraFieldLength;
         std::string mFileName;
 
         // extra field
@@ -94,16 +94,16 @@ private:
         }
     };
 
-    const Uint32 kCentralDirectory = 0x02014b50;
+    const u32 kCentralDirectory = 0x02014b50;
     struct CentralDirectoryRecord
     {
-        Uint16 mCreatedByVersion;
+        u16 mCreatedByVersion;
         LocalFileHeader mLocalFileHeader;
-        Uint16 mFileCommentLength;
-        Uint16 mFileDiskNumber; // Where file starts
-        Uint16 mInternalFileAttributes;
-        Uint32 mExternalFileAttributes;
-        Uint32 mRelativeLocalFileHeaderOffset;
+        u16 mFileCommentLength;
+        u16 mFileDiskNumber; // Where file starts
+        u16 mInternalFileAttributes;
+        u32 mExternalFileAttributes;
+        u32 mRelativeLocalFileHeaderOffset;
         // file name
         // extra field
         // file comment
@@ -121,10 +121,10 @@ private:
             if (mLocalFileHeader.mFileNameLength > 0)
             {
                 mLocalFileHeader.mFileName.resize(mLocalFileHeader.mFileNameLength);
-                stream.ReadBytes(reinterpret_cast<Uint8*>(&mLocalFileHeader.mFileName[0]), mLocalFileHeader.mFileName.size());
+                stream.ReadBytes(reinterpret_cast<u8*>(&mLocalFileHeader.mFileName[0]), mLocalFileHeader.mFileName.size());
             }
 
-            const Uint32 sizeOfExtraFieldAndFileComment = mLocalFileHeader.mExtraFieldLength + mFileCommentLength;
+            const u32 sizeOfExtraFieldAndFileComment = mLocalFileHeader.mExtraFieldLength + mFileCommentLength;
             if (sizeOfExtraFieldAndFileComment > 0)
             {
                 stream.Seek(stream.Pos() + sizeOfExtraFieldAndFileComment);

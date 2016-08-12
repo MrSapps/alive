@@ -32,7 +32,7 @@ bool GameData::LoadFmvDb(FileSystem& fs)
             //const std::string& gameName = v.first;
 
             const jsonxx::Array& ar = fmvObj.get<jsonxx::Array>(v.first);
-            for (Uint32 i = 0; i < static_cast<Uint32>(ar.size()); i++)
+            for (u32 i = 0; i < static_cast<u32>(ar.size()); i++)
             {
                 // Read out the record
                 FmvSection section = {};
@@ -56,12 +56,12 @@ bool GameData::LoadFmvDb(FileSystem& fs)
                     section.mPsxFileName = subFmvObj.get<jsonxx::String>("file");
                     const jsonxx::Array& containsArray = subFmvObj.get<jsonxx::Array>("contains");
 
-                    for (Uint32 j = 0; j < static_cast<Uint32>(containsArray.size()); j++)
+                    for (u32 j = 0; j < static_cast<u32>(containsArray.size()); j++)
                     {
                         const jsonxx::Object& subFmvSettings = containsArray.get<jsonxx::Object>(j);;
                         pcFileName  = subFmvSettings.get<jsonxx::String>("name");
-                        section.mStartSector = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("start_sector"));
-                        section.mNumberOfSectors = static_cast<Uint32>(subFmvSettings.get<jsonxx::Number>("number_of_sectors"));
+                        section.mStartSector = static_cast<u32>(subFmvSettings.get<jsonxx::Number>("start_sector"));
+                        section.mNumberOfSectors = static_cast<u32>(subFmvSettings.get<jsonxx::Number>("number_of_sectors"));
 
                         // Grab a vector for the fmv name e.g "whatever.ddv"
                         auto it = mFmvDb.find(pcFileName);
@@ -105,7 +105,7 @@ bool GameData::LoadPathDb(FileSystem& fs)
     if (rootJsonObject.has<jsonxx::Array>("lvls"))
     {
         const auto& lvls = rootJsonObject.get<jsonxx::Array>("lvls");
-        for (Uint32 i = 0; i < static_cast<Uint32>(lvls.size()); i++)
+        for (u32 i = 0; i < static_cast<u32>(lvls.size()); i++)
         {
             const auto lvlEntry = lvls.get<jsonxx::Object>(i);
             const auto pathBndFileName = lvlEntry.get<jsonxx::String>("file_name");
@@ -113,17 +113,17 @@ bool GameData::LoadPathDb(FileSystem& fs)
 
             auto& pathDbIterator = mPathDb[pathBndFileName];
             const auto paths = lvlEntry.get<jsonxx::Array>("paths");
-            for (Uint32 j = 0; j < static_cast<Uint32>(paths.size()); j++)
+            for (u32 j = 0; j < static_cast<u32>(paths.size()); j++)
             {
                 const auto pathObj = paths.get<jsonxx::Object>(j);
                 pathDbIterator.emplace_back(PathEntry
                 {
-                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("id")),
-                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("collision")),
-                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("index")),
-                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("object")),
-                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("x")),
-                    static_cast<Uint32>(pathObj.get<jsonxx::Number>("y")),
+                    static_cast<u32>(pathObj.get<jsonxx::Number>("id")),
+                    static_cast<u32>(pathObj.get<jsonxx::Number>("collision")),
+                    static_cast<u32>(pathObj.get<jsonxx::Number>("index")),
+                    static_cast<u32>(pathObj.get<jsonxx::Number>("object")),
+                    static_cast<u32>(pathObj.get<jsonxx::Number>("x")),
+                    static_cast<u32>(pathObj.get<jsonxx::Number>("y")),
                     isAo
                 });
             }
@@ -143,12 +143,12 @@ bool GameData::LoadLvlDb(FileSystem& fs)
     if (rootJsonObject.has<jsonxx::Array>("lvls"))
     {
         const auto& lvls = rootJsonObject.get<jsonxx::Array>("lvls");
-        for (Uint32 i = 0; i < static_cast<Uint32>(lvls.size()); i++)
+        for (u32 i = 0; i < static_cast<u32>(lvls.size()); i++)
         {
             const auto lvlObj = lvls.get<jsonxx::Object>(i);
             const auto pcName = lvlObj.get<jsonxx::String>("name");
             const auto altNames = lvlObj.get<jsonxx::Array>("alt_names");
-            for (Uint32 j = 0; j < static_cast<Uint32>(altNames.size()); j++)
+            for (u32 j = 0; j < static_cast<u32>(altNames.size()); j++)
             {
                 const auto altName = altNames.get<jsonxx::String>(j);
                 fs.ResourcePaths().AddPcToPsxMapping(pcName, altName);

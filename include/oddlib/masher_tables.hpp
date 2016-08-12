@@ -4,9 +4,9 @@
 //#pragma pack(2)
 struct Tbl1
 {
-    Uint8 mBitsToShift;
+    u8 mBitsToShift;
     //char padding;
-    Uint16 mOutputWord;
+    u16 mOutputWord;
 };
 //#pragma pack(pop)
 //static_assert(sizeof(Tbl1) == 4, "Wrong size");
@@ -16,11 +16,11 @@ struct Tbl1
 //#pragma pack(2)
 struct Tbl2
 {
-    Uint8 mBitsToShift;
+    u8 mBitsToShift;
     // char padding;
-    Uint16 mOutputWord1;
-    Uint16 mOutputWord2;
-    Uint16 mOutputWord3;
+    u16 mOutputWord1;
+    u16 mOutputWord2;
+    u16 mOutputWord3;
 };
 //#pragma pack(pop)
 

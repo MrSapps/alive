@@ -122,9 +122,9 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, Renderer& rend)
         col.resize(path.YSize());
     }
 
-    for (Uint32 x = 0; x < path.XSize(); x++)
+    for (u32 x = 0; x < path.XSize(); x++)
     {
-        for (Uint32 y = 0; y < path.YSize(); y++)
+        for (u32 y = 0; y < path.YSize(); y++)
         {
             mScreens[x][y] = std::make_unique<GridScreen>(mLvlName, path.CameraByPosition(x, y), rend, locator);
         }

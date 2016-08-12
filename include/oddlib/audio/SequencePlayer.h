@@ -10,19 +10,19 @@
 
 struct SeqHeader
 {
-    Uint32 mMagic; // SEQp
-    Uint32 mVersion; // Seems to always be 1
-    Uint16 mResolutionOfQuaterNote;
-    Uint8 mTempo[3];
-    Uint8 mTimeSignatureBars;
-    Uint8 mTimeSignatureBeats;
+    u32 mMagic; // SEQp
+    u32 mVersion; // Seems to always be 1
+    u16 mResolutionOfQuaterNote;
+    u8 mTempo[3];
+    u8 mTimeSignatureBars;
+    u8 mTimeSignatureBeats;
 };
 
 struct SeqInfo
 {
-    Uint32 iLastTime = 0;
-    Sint32 iNumTimesToLoop = 0;
-    Uint8 running_status = 0;
+    u32 iLastTime = 0;
+    s32 iNumTimesToLoop = 0;
+    u8 running_status = 0;
 };
 
 // The types of Midi Messages the sequencer will play.
@@ -68,7 +68,7 @@ public:
     SequencePlayer(AliveAudio& aliveAudio);
     ~SequencePlayer();
 
-    int LoadSequenceData(std::vector<Uint8> seqData);
+    int LoadSequenceData(std::vector<u8> seqData);
     int LoadSequenceStream(Oddlib::Stream& stream);
     void PlaySequence();
     void StopSequence();

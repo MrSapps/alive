@@ -101,7 +101,7 @@ TEST(LvlArchive, ReadFiles)
 
 }
 
-const static Uint16 kLowCompression16BitExpected[0x3281] =
+const static u16 kLowCompression16BitExpected[0x3281] =
 {
     0x07FC, 0x0001, 0xFE00, 0x0002, 0x03FF, 0x0001, 0x03FF, 0x03FF,
     0xFE00, 0x0400, 0xFE00, 0x040C, 0x03FE, 0x03FE, 0x03FE, 0x07FF,
@@ -1731,7 +1731,7 @@ public:
 
     }
 
-    bool CompareDecodedFrameData(const std::vector<Uint16>& expected)
+    bool CompareDecodedFrameData(const std::vector<u16>& expected)
     {
         return mDecodedVideoFrameData == expected;
     }
@@ -1745,10 +1745,10 @@ TEST(Masher, all_colours_low_compression_15fps_8bit_mono_high_compression_5_fram
     ASSERT_TRUE(masher.HasAudio());
     ASSERT_EQ(258u, masher.Width());
     ASSERT_EQ(200u, masher.Height());
-    std::vector<Uint32> pixelBuffer(masher.Width() * masher.Height());
+    std::vector<u32> pixelBuffer(masher.Width() * masher.Height());
     ASSERT_TRUE(masher.Update(pixelBuffer.data(), nullptr));
     ASSERT_FALSE(masher.Update(pixelBuffer.data(), nullptr));
-    const std::vector<Uint16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
+    const std::vector<u16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
     ASSERT_TRUE(masher.CompareDecodedFrameData(expected));
 }
 
@@ -1761,10 +1761,10 @@ TEST(Masher, all_colours_high_compression_30_fps)
     ASSERT_EQ(false, masher.HasAudio());
     ASSERT_EQ(258, masher.Width());
     ASSERT_EQ(200, masher.Height());
-    std::vector<Uint32> pixelBuffer(masher.Width() * masher.Height());
+    std::vector<u32> pixelBuffer(masher.Width() * masher.Height());
     ASSERT_EQ(true, masher.Update(pixelBuffer.data(), nullptr));
     ASSERT_EQ(false, masher.Update(pixelBuffer.data(), nullptr));
-    const std::vector<Uint16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
+    const std::vector<u16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
     ASSERT_EQ(true, masher.CompareDecodedFrameData(expected));
     */
 }
@@ -1776,10 +1776,10 @@ TEST(Masher, all_colours_low_compression_30_fps)
     ASSERT_FALSE(masher.HasAudio());
     ASSERT_EQ(258u, masher.Width());
     ASSERT_EQ(200u, masher.Height());
-    std::vector<Uint32> pixelBuffer(masher.Width() * masher.Height());
+    std::vector<u32> pixelBuffer(masher.Width() * masher.Height());
     ASSERT_TRUE(masher.Update(pixelBuffer.data(), nullptr));
     ASSERT_FALSE(masher.Update(pixelBuffer.data(), nullptr));
-    const std::vector<Uint16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
+    const std::vector<u16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
     ASSERT_TRUE(masher.CompareDecodedFrameData(expected));
 }
 
@@ -1845,7 +1845,7 @@ TEST(Masher, stereo_16_high_compression_all_samples)
     ASSERT_TRUE(masher.HasAudio());
 
     // Valgrind reported we read/write 2 bytes out of bounds, so must be off by one error?
-    std::vector<Uint8> audioBuffer((masher.SingleAudioFrameSizeSamples() * 4));
+    std::vector<u8> audioBuffer((masher.SingleAudioFrameSizeSamples() * 4));
 
     // TODO: Verify the content of each decoded audio frame / VS \ on each channel
     while (masher.Update(nullptr, audioBuffer.data()));
@@ -1919,7 +1919,7 @@ TEST(CdFs, Read_FileSystemLimits)
     auto data = img.ReadFile("TEST\\SECTORS1\\EXAMPLE.TXT", false);
 
     const std::string expected = "dir entries go over 1 sector size";
-    std::vector<Uint8> buffer(expected.size());
+    std::vector<u8> buffer(expected.size());
     data->ReadBytes(buffer.data(), buffer.size());
 
     std::string strData(reinterpret_cast<char*>(buffer.data()), buffer.size());
@@ -2063,10 +2063,10 @@ TEST(LvlArchive, DISABLED_Integration)
     // TODO: Check for IDX file in LVL to know if its AO or not?
     Oddlib::LvlArchive lvl("s1.LVL");
 
-    for (Uint32 i = 0; i < lvl.FileCount(); i++)
+    for (u32 i = 0; i < lvl.FileCount(); i++)
     {
         Oddlib::LvlArchive::File* file = lvl.FileByIndex(i);
-        for (Uint32 j = 0; j < file->ChunkCount(); j++)
+        for (u32 j = 0; j < file->ChunkCount(); j++)
         {
             Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
             if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))

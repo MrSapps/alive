@@ -53,8 +53,8 @@ public:
     void AddPcToPsxMapping(const std::string& pcName, const std::string& psxName);
     std::unique_ptr<Oddlib::IStream> Open(const std::string& name);
     std::unique_ptr<Oddlib::IStream> OpenFmv(const std::string& name, bool pickBiggest = false);
-    std::unique_ptr<Oddlib::IStream> OpenLvlFileChunkById(const std::string& lvl, const std::string& name, Uint32 id);
-    std::unique_ptr<Oddlib::IStream> OpenLvlFileChunkByType(const std::string& lvl, const std::string& name, Uint32 type);
+    std::unique_ptr<Oddlib::IStream> OpenLvlFileChunkById(const std::string& lvl, const std::string& name, u32 id);
+    std::unique_ptr<Oddlib::IStream> OpenLvlFileChunkByType(const std::string& lvl, const std::string& name, u32 type);
 private:
     std::vector<std::string> GetAlternateNames(const std::string& name);
 

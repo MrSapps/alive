@@ -11,13 +11,13 @@ namespace Oddlib
     class IStream
     {
     public:
-        static std::vector<Uint8> ReadAll(IStream& stream)
+        static std::vector<u8> ReadAll(IStream& stream)
         {
             const auto oldPos = stream.Pos();
             stream.Seek(0);
             const auto size = stream.Size();
 
-            std::vector<Uint8> allStreamBytes(size);
+            std::vector<u8> allStreamBytes(size);
             stream.ReadBytes(allStreamBytes.data(), allStreamBytes.size());
             stream.Seek(oldPos);
             return allStreamBytes;
@@ -25,13 +25,13 @@ namespace Oddlib
 
         virtual ~IStream() = default;
         virtual IStream* Clone() = 0;
-        virtual IStream* Clone(Uint32 start, Uint32 size) = 0;
-        virtual void ReadUInt8(Uint8& output) = 0;
-        virtual void ReadUInt32(Uint32& output) = 0;
-        virtual void ReadUInt16(Uint16& output) = 0;
-        virtual void ReadSInt16(Sint16& output) = 0;
-        virtual void ReadBytes(Sint8* pDest, size_t destSize) = 0;
-        virtual void ReadBytes(Uint8* pDest, size_t destSize) = 0;
+        virtual IStream* Clone(u32 start, u32 size) = 0;
+        virtual void ReadUInt8(u8& output) = 0;
+        virtual void ReadUInt32(u32& output) = 0;
+        virtual void ReadUInt16(u16& output) = 0;
+        virtual void ReadSInt16(s16& output) = 0;
+        virtual void ReadBytes(s8* pDest, size_t destSize) = 0;
+        virtual void ReadBytes(u8* pDest, size_t destSize) = 0;
         virtual void Seek(size_t pos) = 0;
         virtual size_t Pos() const = 0;
         virtual size_t Size() const = 0;
@@ -55,23 +55,23 @@ namespace Oddlib
         }
     };
 
-    inline Uint16 ReadUint16(IStream& stream)
+    inline u16 ReadUint16(IStream& stream)
     {
-        Uint16 ret = 0;
+        u16 ret = 0;
         stream.ReadUInt16(ret);
         return ret;
     }
 
-    inline Uint32 ReadUint32(IStream& stream)
+    inline u32 ReadUint32(IStream& stream)
     {
-        Uint32 ret = 0;
+        u32 ret = 0;
         stream.ReadUInt32(ret);
         return ret;
     }
 
-    inline Uint8 ReadUInt8(IStream& stream)
+    inline u8 ReadUInt8(IStream& stream)
     {
-        Uint8 ret = 0;
+        u8 ret = 0;
         stream.ReadUInt8(ret);
         return ret;
     }
@@ -80,15 +80,15 @@ namespace Oddlib
     {
     public:
         explicit Stream(const std::string& fileName);
-        explicit Stream(std::vector<Uint8>&& data);
+        explicit Stream(std::vector<u8>&& data);
         virtual IStream* Clone() override;
-        virtual IStream* Clone(Uint32 start, Uint32 size) override;
-        virtual void ReadUInt8(Uint8& output) override;
-        virtual void ReadUInt32(Uint32& output) override;
-        virtual void ReadUInt16(Uint16& output) override;
-        virtual void ReadSInt16(Sint16& output) override;
-        virtual void ReadBytes(Sint8* pDest, size_t destSize) override;
-        virtual void ReadBytes(Uint8* pDest, size_t destSize) override;
+        virtual IStream* Clone(u32 start, u32 size) override;
+        virtual void ReadUInt8(u8& output) override;
+        virtual void ReadUInt32(u32& output) override;
+        virtual void ReadUInt16(u16& output) override;
+        virtual void ReadSInt16(s16& output) override;
+        virtual void ReadBytes(s8* pDest, size_t destSize) override;
+        virtual void ReadBytes(u8* pDest, size_t destSize) override;
         virtual void Seek(size_t pos) override;
         virtual size_t Pos() const override;
         virtual size_t Size() const override;

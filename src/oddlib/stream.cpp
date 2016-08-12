@@ -8,7 +8,7 @@
 
 namespace Oddlib
 {
-    Stream::Stream(std::vector<Uint8>&& data)
+    Stream::Stream(std::vector<u8>&& data)
     {
         mSize = data.size();
         auto s = std::make_unique<std::stringstream>();
@@ -45,14 +45,14 @@ namespace Oddlib
         auto oldPos = Pos();
 
         Seek(0);
-        std::vector<Uint8> streamData(Size());
+        std::vector<u8> streamData(Size());
         ReadBytes(streamData.data(), Size());
         Seek(oldPos);
 
         return new Stream(std::move(streamData));
     }
 
-    IStream* Stream::Clone(Uint32 /*start*/, Uint32 /*size*/)
+    IStream* Stream::Clone(u32 /*start*/, u32 /*size*/)
     {
         throw Exception("Sub clone not supported on direct file streams");
     }
@@ -66,27 +66,27 @@ namespace Oddlib
         }
     }
 
-    void Stream::ReadUInt8(Uint8& output)
+    void Stream::ReadUInt8(u8& output)
     {
         DoRead<decltype(output)>(mStream, output);
     }
 
-    void Stream::ReadUInt32(Uint32& output)
+    void Stream::ReadUInt32(u32& output)
     {
         DoRead<decltype(output)>(mStream, output);
     }
 
-    void Stream::ReadUInt16(Uint16& output)
+    void Stream::ReadUInt16(u16& output)
     {
         DoRead<decltype(output)>(mStream, output);
     }
 
-    void Stream::ReadSInt16(Sint16& output)
+    void Stream::ReadSInt16(s16& output)
     {
         DoRead<decltype(output)>(mStream, output);
     }
 
-    void Stream::ReadBytes(Sint8* pDest, size_t destSize)
+    void Stream::ReadBytes(s8* pDest, size_t destSize)
     {
         if (!mStream->read(reinterpret_cast<char*>(pDest), destSize))
         {
@@ -94,7 +94,7 @@ namespace Oddlib
         }
     }
 
-    void Stream::ReadBytes(Uint8* pDest, size_t destSize)
+    void Stream::ReadBytes(u8* pDest, size_t destSize)
     {
         if (!mStream->read(reinterpret_cast<char*>(pDest), destSize))
         {

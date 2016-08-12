@@ -20,15 +20,15 @@ namespace Oddlib
 
     void AoBitsPc::GenerateImage(IStream& stream)
     {
-        std::vector<Uint8> buffer;
+        std::vector<u8> buffer;
        
-        const Uint32 kStripSize = 16;
-        const Uint32 kNumStrips = 640 / kStripSize;
+        const u32 kStripSize = 16;
+        const u32 kNumStrips = 640 / kStripSize;
 
-        for (Uint32 i = 0; i < kNumStrips; i++)
+        for (u32 i = 0; i < kNumStrips; i++)
         {
             // Read the size of the image strip
-            Uint16 stripSize = 0;
+            u16 stripSize = 0;
             stream.ReadUInt16(stripSize);
 
             // Read the raw image bytes
@@ -36,7 +36,7 @@ namespace Oddlib
             stream.ReadBytes(buffer.data(), buffer.size());
 
             // Convert to an SDL surface
-            SDL_SurfacePtr strip(SDL_CreateRGBSurfaceFrom(buffer.data(), 16, 240, 16, kStripSize*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+            SDL_SurfacePtr strip(SDL_CreateRGBSurfaceFrom(buffer.data(), 16, 240, 16, kStripSize*sizeof(u16), red_mask, green_mask, blue_mask, 0));
 
             // Copy paste the strip into the full image
             SDL_Rect dstRect;

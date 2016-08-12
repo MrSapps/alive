@@ -43,7 +43,7 @@ namespace Oddlib
         }
     }
 
-    const Animation::Frame& Animation::GetFrame(Uint32 idx) const
+    const Animation::Frame& Animation::GetFrame(u32 idx) const
     {
         return mFrames[idx];
     }
@@ -71,9 +71,9 @@ namespace Oddlib
         }
     }
 
-    SDL_SurfacePtr AnimationSet::MakeFrame(AnimSerializer& as, const AnimSerializer::DecodedFrame& df, Uint32 offsetData)
+    SDL_SurfacePtr AnimationSet::MakeFrame(AnimSerializer& as, const AnimSerializer::DecodedFrame& df, u32 offsetData)
     {
-        std::vector<Uint32> pixels;
+        std::vector<u32> pixels;
         auto frame = as.ApplyPalleteToFrame(df.mFrameHeader, df.mFixedWidth, df.mPixelData, pixels);
 
         SDL_Rect dstRect;
@@ -124,17 +124,17 @@ namespace Oddlib
         return tmp;
     }
 
-    Uint32 AnimationSet::NumberOfAnimations() const
+    u32 AnimationSet::NumberOfAnimations() const
     {
-        return static_cast<Uint32>(mAnimations.size());
+        return static_cast<u32>(mAnimations.size());
     }
 
-    const Animation* AnimationSet::AnimationAt(Uint32 idx) const
+    const Animation* AnimationSet::AnimationAt(u32 idx) const
     {
         return mAnimations[idx].get();
     }
 
-    SDL_Surface* AnimationSet::FrameByOffset(Uint32 offset) const
+    SDL_Surface* AnimationSet::FrameByOffset(u32 offset) const
     {
         auto it = mFrames.find(offset);
         if (it != std::end(mFrames))
@@ -150,7 +150,7 @@ namespace Oddlib
         return std::make_unique<AnimationSet>(as);
     }
 
-    DebugAnimationSpriteSheet::DebugAnimationSpriteSheet(AnimSerializer& as, const std::string& fileName, Uint32 id, const char* dataSetName)
+    DebugAnimationSpriteSheet::DebugAnimationSpriteSheet(AnimSerializer& as, const std::string& fileName, u32 id, const char* dataSetName)
         : mFileName(fileName), mDataSetName(dataSetName), mId(id)
     {
         DebugDecodeAllFrames(as);
@@ -199,12 +199,12 @@ namespace Oddlib
         mSpriteSheet.reset(SDL_CreateRGBSurface(0, mSpritesX*w, mSpritesY*h, 32, red_mask, green_mask, blue_mask, alpha_mask));
     }
 
-    void DebugAnimationSpriteSheet::AddFrame(AnimSerializer& as, AnimSerializer::DecodedFrame& df, Uint32 offsetData)
+    void DebugAnimationSpriteSheet::AddFrame(AnimSerializer& as, AnimSerializer::DecodedFrame& df, u32 offsetData)
     {
         int xpos = mXPos * as.MaxW();
         int ypos = mYPos * as.MaxH();
 
-        std::vector<Uint32> pixels;
+        std::vector<u32> pixels;
         auto frame = as.ApplyPalleteToFrame(df.mFrameHeader, df.mFixedWidth, df.mPixelData, pixels);
 
 
@@ -267,7 +267,7 @@ namespace Oddlib
         }
     }
 
-    void DebugDumpAnimationFrames(const std::string& fileName, Uint32 id, IStream& stream, bool bIsPsx, const char* dataSetName)
+    void DebugDumpAnimationFrames(const std::string& fileName, u32 id, IStream& stream, bool bIsPsx, const char* dataSetName)
     {
         AnimSerializer as(stream, bIsPsx);
         DebugAnimationSpriteSheet dass(as, fileName, id, dataSetName);
@@ -282,7 +282,7 @@ namespace Oddlib
         mStream.ReadUInt32(mHeader.mFrameTableOffSet);
         
         // Read the pallete
-        const Uint32 frameStart = ParsePallete();
+        const u32 frameStart = ParsePallete();
 
         // Seek to frame table offset
         mStream.Seek(mHeader.mFrameTableOffSet);
@@ -304,18 +304,18 @@ namespace Oddlib
         }
     }
 
-    Uint32 AnimSerializer::ParsePallete()
+    u32 AnimSerializer::ParsePallete()
     {
-        Uint32 frameStart = 0;
+        u32 frameStart = 0;
 
         mStream.ReadUInt32(mHeader.mPaltSize);
-        mClutOffset = static_cast<Uint32>(mStream.Pos());
+        mClutOffset = static_cast<u32>(mStream.Pos());
         if (mHeader.mPaltSize == 0)
         {
-            // Assume its an Ae file if the palt size is zero, in this case the next Uint32 is
+            // Assume its an Ae file if the palt size is zero, in this case the next u32 is
             // actually the palt size.
             mbIsAoFile = false;
-            mClutOffset = static_cast<Uint32>(mStream.Pos());
+            mClutOffset = static_cast<u32>(mStream.Pos());
             mStream.ReadUInt32(mHeader.mPaltSize);
         }
         else
@@ -327,7 +327,7 @@ namespace Oddlib
             // format anim, else its "normal" AO format anim.
             frameStart = mHeader.mPaltSize;
 
-            std::array<Uint8, 10> nulls = {};
+            std::array<u8, 10> nulls = {};
             mStream.ReadBytes(nulls.data(), nulls.size());
             bool allNulls = true;
             for (const auto& b : nulls)
@@ -342,10 +342,10 @@ namespace Oddlib
             {
                 mStream.Seek(frameStart);
 
-                Uint32 paltOffset = 0;
+                u32 paltOffset = 0;
                 mStream.ReadUInt32(paltOffset);
                 mStream.Seek(paltOffset);
-                mClutOffset = static_cast<Uint32>(mStream.Pos());
+                mClutOffset = static_cast<u32>(mStream.Pos());
                 mStream.ReadUInt32(mHeader.mPaltSize);
             }
             else
@@ -360,7 +360,7 @@ namespace Oddlib
 
         for (auto i = 0u; i < mHeader.mPaltSize; i++)
         {
-            Uint16 tmp = 0;
+            u16 tmp = 0;
             mStream.ReadUInt16(tmp);
 
             unsigned int oldPixel = tmp;
@@ -461,7 +461,7 @@ namespace Oddlib
                     // I think there is always 3 points?
                     //  abort();
                 }
-                Uint32 headerDataToSkipSize = 0;
+                u32 headerDataToSkipSize = 0;
                 switch (frmHdr->mMagic)
                 {
                     // Always this for AO frames, and almost always this for AE frames
@@ -500,7 +500,7 @@ namespace Oddlib
     {
         for (const std::unique_ptr<AnimationHeader>& animationHeader : mAnimationHeaders)
         {
-            for (const Uint32 frameInfoOffset : animationHeader->mFrameInfoOffsets)
+            for (const u32 frameInfoOffset : animationHeader->mFrameInfoOffsets)
             {
                 mStream.Seek(frameInfoOffset);
 
@@ -542,14 +542,14 @@ namespace Oddlib
     }
 
     template<class T>
-    std::vector<Uint8> AnimSerializer::Decompress(AnimSerializer::FrameHeader& header, Uint32 finalW)
+    std::vector<u8> AnimSerializer::Decompress(AnimSerializer::FrameHeader& header, u32 finalW)
     {
         T decompressor;
         auto decompressedData = decompressor.Decompress(mStream, finalW, header.mWidth, header.mHeight, header.mFrameDataSize);
         return decompressedData;
     }
 
-    Uint32 AnimSerializer::GetPaltValue(Uint32 idx)
+    u32 AnimSerializer::GetPaltValue(u32 idx)
     {
         // ABEEND.BAN from the AO PSX demo goes out of bounds - probably why the resulting
         // beta image looks quite strange.
@@ -561,7 +561,7 @@ namespace Oddlib
         return mPalt[idx];
     }
 
-    SDL_SurfacePtr AnimSerializer::ApplyPalleteToFrame(const FrameHeader& header, Uint32 realWidth, const std::vector<Uint8>& decompressedData, std::vector<Uint32>& pixels)
+    SDL_SurfacePtr AnimSerializer::ApplyPalleteToFrame(const FrameHeader& header, u32 realWidth, const std::vector<u8>& decompressedData, std::vector<u32>& pixels)
     {
         // Apply the pallete
         if (header.mColourDepth == 8)
@@ -577,7 +577,7 @@ namespace Oddlib
             const auto green_mask = 0x00ff0000;
             const auto blue_mask = 0x0000ff00;
             const auto alpha_mask = 0x000000ff;
-            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), header.mWidth, header.mHeight, 32, realWidth*sizeof(Uint32), red_mask, green_mask, blue_mask, alpha_mask));
+            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), header.mWidth, header.mHeight, 32, realWidth*sizeof(u32), red_mask, green_mask, blue_mask, alpha_mask));
 
             return surface;
         }
@@ -598,7 +598,7 @@ namespace Oddlib
             const auto green_mask = 0x00ff0000;
             const auto blue_mask = 0x0000ff00;
             const auto alpha_mask = 0x000000ff;
-            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), header.mWidth, header.mHeight, 32, realWidth*sizeof(Uint32), red_mask, green_mask, blue_mask, alpha_mask));
+            SDL_SurfacePtr surface(SDL_CreateRGBSurfaceFrom(pixels.data(), header.mWidth, header.mHeight, 32, realWidth*sizeof(u32), red_mask, green_mask, blue_mask, alpha_mask));
 
             return surface;
         }
@@ -608,7 +608,7 @@ namespace Oddlib
         }
     }
 
-    AnimSerializer::DecodedFrame AnimSerializer::ReadAndDecompressFrame(Uint32 frameOffset)
+    AnimSerializer::DecodedFrame AnimSerializer::ReadAndDecompressFrame(u32 frameOffset)
     {
         DecodedFrame ret;
 
@@ -632,8 +632,8 @@ namespace Oddlib
         mStream.ReadUInt8(frameHeader.mCompressionType);
         mStream.ReadUInt32(frameHeader.mFrameDataSize);
 
-        Uint32 nTextureWidth = 0;
-        Uint32 actualWidth = 0;
+        u32 nTextureWidth = 0;
+        u32 actualWidth = 0;
         if (frameHeader.mColourDepth == 8)
         {
             nTextureWidth = ((frameHeader.mWidth + 3) / 2) & ~1;
@@ -653,7 +653,7 @@ namespace Oddlib
         {
             abort();
             //LOG_ERROR("Bad depth");
-            //return std::vector<Uint8>();
+            //return std::vector<u8>();
         }
         ret.mFixedWidth = actualWidth;
 

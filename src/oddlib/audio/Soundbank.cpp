@@ -145,7 +145,7 @@ void AliveAudioSoundbank::InitFromVab(Vab& vab, AliveAudio& /*aliveAudio*/)
         auto sample = std::make_unique<AliveAudioSample>();
 
         // Get number of shorts required
-        const Uint32 size = static_cast<Uint32>(sampleData.mData.size() / sizeof(Uint16));
+        const u32 size = static_cast<u32>(sampleData.mData.size() / sizeof(u16));
         sample->m_SampleBuffer.resize(size);
 
         // Copy/convert from bytes to shorts

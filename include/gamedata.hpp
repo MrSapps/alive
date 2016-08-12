@@ -19,20 +19,20 @@ public:
     struct FmvSection
     {
         std::string mPsxFileName;
-        Uint32 mStartSector;
-        Uint32 mNumberOfSectors;
+        u32 mStartSector;
+        u32 mNumberOfSectors;
     };  
 
     typedef std::map<std::string, std::vector<FmvSection>> FmvDb;
 
     struct PathEntry
     {
-        Uint32 mPathChunkId;
-        Uint32 mCollisionDataOffset;
-        Uint32 mObjectIndexTableOffset;
-        Uint32 mObjectDataOffset;
-        Uint32 mMapXSize;
-        Uint32 mMapYSize;
+        u32 mPathChunkId;
+        u32 mCollisionDataOffset;
+        u32 mObjectIndexTableOffset;
+        u32 mObjectDataOffset;
+        u32 mMapXSize;
+        u32 mMapYSize;
         bool mIsAo;
     };
 

@@ -21,10 +21,10 @@ static void _SndMidiSkipLength(Oddlib::Stream& stream, int skip)
 }
 
 // Midi stuff
-static Uint32 _MidiReadVarLen(Oddlib::Stream& stream)
+static u32 _MidiReadVarLen(Oddlib::Stream& stream)
 {
-    Uint32 ret = 0;
-    Uint8 byte = 0;
+    u32 ret = 0;
+    u8 byte = 0;
     for (int i = 0; i < 4; ++i)
     {
         stream.ReadUInt8(byte);
@@ -132,7 +132,7 @@ void SequencePlayer::PlaySequence()
     m_PlayerStateMutex.unlock();
 }
 
-int SequencePlayer::LoadSequenceData(std::vector<Uint8> seqData)
+int SequencePlayer::LoadSequenceData(std::vector<u8> seqData)
 {
     Oddlib::Stream stream(std::move(seqData));
 
@@ -177,12 +177,12 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
     for (;;)
     {
         // Read event delta time
-        Uint32 delta = _MidiReadVarLen(stream);
+        u32 delta = _MidiReadVarLen(stream);
         deltaTime += delta;
         //std::cout << "Delta: " << delta << " over all " << deltaTime << std::endl;
 
         // Obtain the event/status byte
-        Uint8 eventByte = 0;
+        u8 eventByte = 0;
         stream.ReadUInt8(eventByte);
         if (eventByte < 0x80)
         {
@@ -205,10 +205,10 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
         if (eventByte == 0xff)
         {
             // Meta event
-            Uint8 metaCommand = 0;
+            u8 metaCommand = 0;
             stream.ReadUInt8(metaCommand);
 
-            Uint8 metaCommandLength = 0;
+            u8 metaCommandLength = 0;
             stream.ReadUInt8(metaCommandLength);
 
             switch (metaCommand)
@@ -246,7 +246,7 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
             {
                 //std::cout << "Temp change" << std::endl;
                 // TODO: Not sure if this is correct
-                Uint8 tempoByte = 0;
+                u8 tempoByte = 0;
                 //int t = 0;
                 for (int i = 0; i < 3; i++)
                 {
@@ -258,7 +258,7 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
 
             default:
             {
-                //std::cout << "Unknown meta event " << Uint32(metaCommand) << std::endl;
+                //std::cout << "Unknown meta event " << u32(metaCommand) << std::endl;
                 // Skip unknown events
                 // TODO Might be wrong
                 _SndMidiSkipLength(stream, metaCommandLength);
@@ -272,15 +272,15 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
         }
         else
         {
-            const Uint8 channel = eventByte & 0xf;
+            const u8 channel = eventByte & 0xf;
             switch (eventByte >> 4)
             {
             case 0x9: // Note On
             {
-                Uint8 note = 0;
+                u8 note = 0;
                 stream.ReadUInt8(note);
 
-                Uint8 velocity = 0;
+                u8 velocity = 0;
                 stream.ReadUInt8(velocity);
                 if (velocity == 0) // If velocity is 0, then the sequence means to do "Note Off"
                 {
@@ -294,9 +294,9 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
             break;
             case 0x8: // Note Off
             {
-                Uint8 note = 0;
+                u8 note = 0;
                 stream.ReadUInt8(note);
-                Uint8 velocity = 0;
+                u8 velocity = 0;
                 stream.ReadUInt8(velocity);
 
                 m_MessageList.push_back(AliveAudioMidiMessage(ALIVE_MIDI_NOTE_OFF, deltaTime, channel, note, velocity));
@@ -304,15 +304,15 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
             break;
             case 0xc: // Program Change
             {
-                Uint8 prog = 0;
+                u8 prog = 0;
                 stream.ReadUInt8(prog);
                 m_MessageList.push_back(AliveAudioMidiMessage(ALIVE_MIDI_PROGRAM_CHANGE, deltaTime, channel, 0, 0, prog));
             }
             break;
             case 0xa: // Polyphonic key pressure (after touch)
             {
-                Uint8 note = 0;
-                Uint8 pressure = 0;
+                u8 note = 0;
+                u8 pressure = 0;
 
                 stream.ReadUInt8(note);
                 stream.ReadUInt8(pressure);
@@ -320,27 +320,27 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
             break;
             case 0xb: // Controller Change
             {
-                Uint8 controller = 0;
-                Uint8 value = 0;
+                u8 controller = 0;
+                u8 value = 0;
                 stream.ReadUInt8(controller);
                 stream.ReadUInt8(value);
             }
             break;
             case 0xd: // After touch
             {
-                Uint8 value = 0;
+                u8 value = 0;
                 stream.ReadUInt8(value);
             }
             break;
             case 0xe: // Pitch Bend
             {
-                Uint16 bend = 0;
+                u16 bend = 0;
                 stream.ReadUInt16(bend);
             }
             break;
             case 0xf: // Sysex len
             {
-                const Uint32 length = _MidiReadVarLen(stream);
+                const u32 length = _MidiReadVarLen(stream);
                 _SndMidiSkipLength(stream, length);
             }
             break;

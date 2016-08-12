@@ -269,7 +269,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::FindFile(const std::vect
 }
 
 // TODO: Change LVL archive interface so we can keep it open/cached here
-std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkById(const std::string& lvl, const std::string& name, Uint32 id)
+std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkById(const std::string& lvl, const std::string& name, u32 id)
 {
     auto stream = FindFile(GetAlternateNames(lvl), true);
     if (stream)
@@ -288,7 +288,7 @@ std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkById(con
     return nullptr;
 }
 
-std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkByType(const std::string& lvl, const std::string& name, Uint32 type)
+std::unique_ptr<Oddlib::IStream> ResourcePathAndModsFs::OpenLvlFileChunkByType(const std::string& lvl, const std::string& name, u32 type)
 {
     auto stream = FindFile(GetAlternateNames(lvl), true);
     if (stream)
@@ -414,7 +414,7 @@ void FileSystem::InitResourcePaths()
 
         for (size_t i = 0; i < resourcePaths.size(); i++)
         {
-            const jsonxx::Object& pathAndPriority = resourcePaths.get<jsonxx::Object>(static_cast<Uint32>(i));
+            const jsonxx::Object& pathAndPriority = resourcePaths.get<jsonxx::Object>(static_cast<u32>(i));
 
             const auto& path = pathAndPriority.get<jsonxx::String>("path");
             const auto& priority = pathAndPriority.get<jsonxx::Number>("priority");

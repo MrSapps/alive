@@ -42,7 +42,7 @@ bool ZipFileSystem::LoadCentralDirectoryRecords()
     mRecords.resize(mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory);
     for (auto i = 0; i < mEndOfCentralDirectoryRecord.mNumEntriesInCentaralDirectory; i++)
     {
-        Uint32 cdrMagic = 0;
+        u32 cdrMagic = 0;
         mStream->ReadUInt32(cdrMagic);
         if (cdrMagic != kCentralDirectory)
         {
@@ -68,7 +68,7 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
 
     // The max search size is the size of the structure and the max comment length, if there
     // isn't an ECDR within this range then its not a ZIP file.
-    size_t kMaxSearchPos = kEndOfCentralDirectoryRecordSizeWithMagic + std::numeric_limits<Uint16>::max();
+    size_t kMaxSearchPos = kEndOfCentralDirectoryRecordSizeWithMagic + std::numeric_limits<u16>::max();
     if (kMaxSearchPos > fileSize)
     {
         // But don't underflow on seeking
@@ -78,7 +78,7 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
     do
     {
         // Keep moving backwards and see if we have the magic marker for an ECRD yet
-        Uint32 magic = 0;
+        u32 magic = 0;
         mStream->Seek(fileSize - searchPos);
         mStream->ReadUInt32(magic);
         if (magic == kEndOfCentralDirectory)
@@ -89,7 +89,7 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
 
             mStream->Seek(mEndOfCentralDirectoryRecord.mCentralDirectoryStartOffset);
 
-            Uint32 cdrMagic = 0;
+            u32 cdrMagic = 0;
             mStream->ReadUInt32(cdrMagic);
             if (cdrMagic == kCentralDirectory)
             {
@@ -135,7 +135,7 @@ std::unique_ptr<Oddlib::IStream> ZipFileSystem::Open(const std::string& fileName
     CentralDirectoryRecord& r = mRecords[idx];
 
     mStream->Seek(r.mRelativeLocalFileHeaderOffset);
-    Uint32 magic = 0;
+    u32 magic = 0;
     mStream->ReadUInt32(magic);
     if (magic != kLocalFileHeader)
     {
@@ -215,8 +215,8 @@ std::unique_ptr<Oddlib::IStream> ZipFileSystem::Open(const std::string& fileName
     auto compressedSize = r.mLocalFileHeader.mDataDescriptor.mCompressedSize;
     if (compressedSize > 0)
     {
-        std::vector<Uint8> buffer(compressedSize);
-        std::vector<Uint8> out(r.mLocalFileHeader.mDataDescriptor.mUnCompressedSize);
+        std::vector<u8> buffer(compressedSize);
+        std::vector<u8> out(r.mLocalFileHeader.mDataDescriptor.mUnCompressedSize);
         size_t actualOut = 0;
 
         mStream->ReadBytes(buffer.data(), buffer.size());
@@ -245,7 +245,7 @@ std::unique_ptr<Oddlib::IStream> ZipFileSystem::Open(const std::string& fileName
 
         return std::make_unique<Oddlib::Stream>(std::move(out));
     }
-    return std::make_unique<Oddlib::Stream>(std::vector<Uint8>());
+    return std::make_unique<Oddlib::Stream>(std::vector<u8>());
 }
 
 std::vector<std::string> ZipFileSystem::EnumerateFiles(const std::string& directory, const char* filter)

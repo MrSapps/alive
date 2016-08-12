@@ -180,15 +180,15 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
     {
         const float left = m_DryChannelBuffer[i] + m_ReverbChannelBuffer[i];
         const float right = m_DryChannelBuffer[i + 1] + m_ReverbChannelBuffer[i + 1];
-        SDL_MixAudioFormat((Uint8 *)(AudioStream + i), (const Uint8*)&left, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
-        SDL_MixAudioFormat((Uint8 *)(AudioStream + i + 1), (const Uint8*)&right, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
+        SDL_MixAudioFormat((u8 *)(AudioStream + i), (const u8*)&left, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
+        SDL_MixAudioFormat((u8 *)(AudioStream + i + 1), (const u8*)&right, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
     }
 
     CleanVoices();
 }
 
 
-void AliveAudio::Play(Uint8* stream, Uint32 len)
+void AliveAudio::Play(u8* stream, u32 len)
 {
     if (m_DryChannelBuffer.size() != len)
     {
@@ -377,7 +377,7 @@ void AliveAudio::LoadAllFromLvl(Oddlib::LvlArchive& archive, std::string vabID, 
     {
         for (size_t i = 0; i < file->ChunkCount(); i++)
         {
-            m_LoadedSeqData.push_back(file->ChunkByIndex(static_cast<Uint32>(i))->ReadData());
+            m_LoadedSeqData.push_back(file->ChunkByIndex(static_cast<u32>(i))->ReadData());
         }
     }
 }

@@ -6,19 +6,19 @@
 
 namespace Oddlib
 {
-    Uint32 LvlArchive::FileChunk::Id() const
+    u32 LvlArchive::FileChunk::Id() const
     {
         return mId;
     }
 
-    Uint32 LvlArchive::FileChunk::Type() const
+    u32 LvlArchive::FileChunk::Type() const
     {
         return mType;
     }
 
-    std::vector<Uint8> LvlArchive::FileChunk::ReadData() const
+    std::vector<u8> LvlArchive::FileChunk::ReadData() const
     {
-        std::vector<Uint8> r(mDataSize);
+        std::vector<u8> r(mDataSize);
         if (mDataSize > 0)
         {
             mStream.Seek(mFilePos);
@@ -83,7 +83,7 @@ namespace Oddlib
         LoadChunks(stream, rec.iFileSize);
     }
 
-    LvlArchive::FileChunk* LvlArchive::File::ChunkById(Uint32 id)
+    LvlArchive::FileChunk* LvlArchive::File::ChunkById(u32 id)
     {
         LOG_INFO("Find chunk with id " << id);
         auto it = std::find_if(std::begin(mChunks), std::end(mChunks), [&] (std::unique_ptr<FileChunk>& chunk)
@@ -93,7 +93,7 @@ namespace Oddlib
         return it == std::end(mChunks) ? nullptr : it->get();
     }
 
-    LvlArchive::FileChunk* LvlArchive::File::ChunkByType(Uint32 type)
+    LvlArchive::FileChunk* LvlArchive::File::ChunkByType(u32 type)
     {
         LOG_INFO("Find chunk with type " << type);
         auto it = std::find_if(std::begin(mChunks), std::end(mChunks), [&](std::unique_ptr<FileChunk>& chunk)
@@ -116,7 +116,7 @@ namespace Oddlib
         }
     }
 
-    void LvlArchive::File::LoadChunks(IStream& stream, Uint32 fileSize)
+    void LvlArchive::File::LoadChunks(IStream& stream, u32 fileSize)
     {
         while (stream.Pos() < (stream.Pos() + fileSize))
         {
@@ -127,7 +127,7 @@ namespace Oddlib
             stream.ReadUInt32(header.iId);
 
             const bool isEnd = header.iType == MakeType('E', 'n', 'd', '!');
-            const Uint32 kChunkHeaderSize = sizeof(Uint32) * 4;
+            const u32 kChunkHeaderSize = sizeof(u32) * 4;
 
             if (!isEnd)
             {
@@ -164,7 +164,7 @@ namespace Oddlib
         Load();
     }
 
-    LvlArchive::LvlArchive(std::vector<Uint8>&& data)
+    LvlArchive::LvlArchive(std::vector<u8>&& data)
         : mStream(std::make_unique<Stream>(std::move(data)))
     {
         TRACE_ENTRYEXIT;

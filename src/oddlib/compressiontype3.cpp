@@ -25,7 +25,7 @@ namespace Oddlib
     // Function 0x004031E0 in AO
     // NOTE: A lot of the code in AbeWin.exe for this algorithm is dead, it attempts to gain some "other" buffer at the end of the
     // animation data which actually doesn't exist. Thus all this "extra" code does is write black pixels to an already black canvas.
-    std::vector<Uint8> CompressionType3::Decompress(IStream& stream, Uint32 finalW, Uint32 /*w*/, Uint32 h, Uint32 dataSize)
+    std::vector<u8> CompressionType3::Decompress(IStream& stream, u32 finalW, u32 /*w*/, u32 h, u32 dataSize)
     {
         size_t dstPos = 0;
         std::vector<unsigned char> buffer;

@@ -5,10 +5,10 @@
 
 namespace
 {
-    inline Uint32 get_pixel32(SDL_Surface *surface, int x, int y)
+    inline u32 get_pixel32(SDL_Surface *surface, int x, int y)
     {
         //Convert the pixels to 32 bit
-        Uint32 *pixels = (Uint32 *)surface->pixels;
+        u32 *pixels = (u32 *)surface->pixels;
 
         //Get the requested pixel
         return pixels[(y * surface->w) + x];
@@ -28,7 +28,7 @@ inline Uint64 pHash(SDL_Surface* image)
     {
         for (int y = 0; y < 32; y++)
         {
-            Uint32 pixel = get_pixel32(resizedImage.get(), x, y);
+            u32 pixel = get_pixel32(resizedImage.get(), x, y);
 
             double tmp = static_cast<double>(pixel);
             tmp = tmp / 4294967295;
@@ -75,7 +75,7 @@ inline Uint64 pHash(SDL_Surface* image)
     return retval;
 }
 
-inline Uint32 hamming_distance(Uint64 hash1, Uint64 hash2)
+inline u32 hamming_distance(Uint64 hash1, Uint64 hash2)
 {
     unsigned ret = 0;
     Uint64 hashBits = hash1 ^ hash2;

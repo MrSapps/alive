@@ -312,7 +312,7 @@ static SDL_SurfacePtr LoadPng(Oddlib::IStream& stream)
 
 static void ApplyDelta(SDL_Surface* deltaSurface, SDL_Surface* originalCameraSurface)
 {
-    auto dst = static_cast<Uint8*>(deltaSurface->pixels);
+    auto dst = static_cast<u8*>(deltaSurface->pixels);
     auto w = static_cast<unsigned int>(deltaSurface->w);
     auto h = static_cast<unsigned int>(deltaSurface->h);
 

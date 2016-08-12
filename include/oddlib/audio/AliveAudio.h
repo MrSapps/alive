@@ -55,12 +55,12 @@ public:
     void LoadAllFromLvl(Oddlib::LvlArchive& lvlArchive, std::string vabID, std::string seqFile);
 
 
-    std::vector<std::vector<Uint8>> m_LoadedSeqData;
+    std::vector<std::vector<u8>> m_LoadedSeqData;
     std::recursive_mutex voiceListMutex;
     jsonxx::Object m_Config;
     Uint64 currentSampleIndex = 0;
 
-    virtual void Play(Uint8* stream, Uint32 len) override;
+    virtual void Play(u8* stream, u32 len) override;
     void AliveInitAudio(FileSystem& fs);
 
     // Can be changed from outside class

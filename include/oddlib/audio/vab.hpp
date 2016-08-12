@@ -34,19 +34,19 @@ struct VabHeader
         s.ReadUInt32(iReserved1);
     }
 
-    Uint32 iForm;       // Always "VABp"
-    Uint32 iVersion;    // Header version
-    Uint32 iId;         // Bank Id
-    Uint32 iFileSize;   // File size
-    Uint16 iReserved0;  // Not used
-    Uint16 iNumProgs;
-    Uint16 iNumTones;
-    Uint16 iNumVags;
-    Uint8 iMasterVol;
-    Uint8 iMasterPan;
-    Uint8 iAttr1;
-    Uint8 iAttr2;
-    Uint32 iReserved1;
+    u32 iForm;       // Always "VABp"
+    u32 iVersion;    // Header version
+    u32 iId;         // Bank Id
+    u32 iFileSize;   // File size
+    u16 iReserved0;  // Not used
+    u16 iNumProgs;
+    u16 iNumTones;
+    u16 iNumVags;
+    u8 iMasterVol;
+    u8 iMasterPan;
+    u8 iAttr1;
+    u8 iAttr2;
+    u32 iReserved1;
 };
 
 //  program (instrument) level for example  "piano", "drum", "guitar" and "effect sound".
@@ -68,15 +68,15 @@ struct ProgAtr
         s.ReadUInt32(iReserved2);
     }
 
-    Uint8 iNumTones; // Number of valid entries in iTones
-    Uint8 iVol;
-    Uint8 iPriority;
-    Uint8 iMode;
-    Uint8 iPan;
-    Uint8 iReserved0;
-    Uint16 iAttr;
-    Uint32 iReserved1;
-    Uint32 iReserved2;
+    u8 iNumTones; // Number of valid entries in iTones
+    u8 iVol;
+    u8 iPriority;
+    u8 iMode;
+    u8 iPan;
+    u8 iReserved0;
+    u16 iAttr;
+    u32 iReserved1;
+    u32 iReserved2;
 
     // Pointers are not owned
     std::vector< VagAtr* > iTones;
@@ -117,38 +117,38 @@ struct VagAtr
         s.ReadSInt16(iReserved[3]);
     }
 
-    Uint8 iPriority;
+    u8 iPriority;
 
     // 0 = normal, 4 = reverb
-    Uint8 iMode;
+    u8 iMode;
 
     // volume 0-127
-    Uint8 iVol;
+    u8 iVol;
 
     // panning 0-127
-    Uint8 iPan;
+    u8 iPan;
 
     // "Default" note
-    Uint8 iCenter;
-    Uint8 iShift;
+    u8 iCenter;
+    u8 iShift;
     
     // Key range which this waveform maps to
-    Uint8 iMin;
-    Uint8 iMax;
+    u8 iMin;
+    u8 iMax;
     
     // Maybe these are not used?
-    Uint8 iVibW;
-    Uint8 iVibT;
-    Uint8 iPorW;
-    Uint8 iPorT;
+    u8 iVibW;
+    u8 iVibT;
+    u8 iPorW;
+    u8 iPorT;
     
     // Min/max pitch values
-    Uint8 iPitchBendMin;
-    Uint8 iPitchBendMax;
+    u8 iPitchBendMin;
+    u8 iPitchBendMax;
     
     // Not used
-    Uint8 iReserved1;
-    Uint8 iReserved2;
+    u8 iReserved1;
+    u8 iReserved2;
     
     // adsr1
     // 0-127 attack rate (byte)
@@ -159,12 +159,12 @@ struct VagAtr
     // 0-31 release rate (6bits)
     // 0-15 sustain rate (nibble)
     // 1+0.5+1+0.6+0.5=3.6 bytes
-    Uint16 iAdsr1;
-    Uint16 iAdsr2;
+    u16 iAdsr1;
+    u16 iAdsr2;
     
-    Sint16 iProg; // Which progAttr we live in?
-    Sint16 iVag;  // Sound index in the VB
-    Sint16 iReserved[4];
+    s16 iProg; // Which progAttr we live in?
+    s16 iVag;  // Sound index in the VB
+    s16 iReserved[4];
 };
 
 // AE VB file entry - rather than having the sound data in the VB it actually just has
@@ -207,7 +207,7 @@ public:
 
     struct SampleData
     {
-        std::vector<Uint8> mData;
+        std::vector<u8> mData;
     };
     std::vector<SampleData> mSamples;
 
@@ -215,5 +215,5 @@ private:
     // VAG Data body / (VB 254 VAG data) ("Samples" in AE?)
     // 512bytes /2 = 256 samps max
     std::vector<AEVh> iOffs;
-    std::vector<Uint32> mVagOffsets;
+    std::vector<u32> mVagOffsets;
 };

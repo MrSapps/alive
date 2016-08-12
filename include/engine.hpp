@@ -25,11 +25,11 @@ public:
         eDown = 0x2,
         eUp = 0x4,
     };
-    Uint32 mLeftMouseState = 0;
-    Uint32 mRightMouseState = 0;
+    u32 mLeftMouseState = 0;
+    u32 mRightMouseState = 0;
 
-    Sint32 mMouseX = 0;
-    Sint32 mMouseY = 0;
+    s32 mMouseX = 0;
+    s32 mMouseY = 0;
 };
 
 class EngineState

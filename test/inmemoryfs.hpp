@@ -9,7 +9,7 @@ private:
     struct File
     {
         std::string mName;
-        std::vector<Uint8> mData;
+        std::vector<u8> mData;
     };
 
     struct Directory
@@ -27,7 +27,7 @@ public:
         AddFile(strPath, StringToVector(content));
     }
 
-    void AddFile(std::string strPath, const std::vector<Uint8>& content)
+    void AddFile(std::string strPath, const std::vector<u8>& content)
     {
         DirectoryAndFileName path(strPath);
         Directory* dir = FindPath(path.mDir, true);
@@ -70,7 +70,7 @@ public:
         }
 
 
-        return std::make_unique<Oddlib::Stream>(std::vector<Uint8>(file->mData));
+        return std::make_unique<Oddlib::Stream>(std::vector<u8>(file->mData));
     }
 
     virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override

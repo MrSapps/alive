@@ -160,7 +160,7 @@ void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)
 
 
     renderer.beginLayer(gui_layer(mGui));
-    Sint32 spacer = 0;
+    s32 spacer = 0;
     for (auto& anim : mLoadedAnims)
     {
         if (resetStates)

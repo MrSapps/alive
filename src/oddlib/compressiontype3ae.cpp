@@ -27,9 +27,9 @@ static void ReadNextSource(Oddlib::IStream& stream, int& control_byte, T& dstInd
 namespace Oddlib
 {
     // Function 0x0040A6A0 in AE
-    std::vector<Uint8> CompressionType3Ae::Decompress(IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 /*dataSize*/)
+    std::vector<u8> CompressionType3Ae::Decompress(IStream& stream, u32 finalW, u32 w, u32 h, u32 /*dataSize*/)
     {
-        std::vector<Uint8> buffer(finalW*h);
+        std::vector<u8> buffer(finalW*h);
         
         //const auto streamStart = stream.Pos();
 

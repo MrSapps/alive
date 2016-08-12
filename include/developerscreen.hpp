@@ -37,6 +37,6 @@ private:
     // Not owned
     Animation* mSelected = nullptr;
 
-    Sint32 mXDelta = 0;
-    Sint32 mYDelta = 0;
+    s32 mXDelta = 0;
+    s32 mYDelta = 0;
 };

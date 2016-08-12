@@ -14,13 +14,13 @@ void Vab::ReadVb(Oddlib::IStream& s, bool isPsx, bool useSoundsDat, Oddlib::IStr
     if (isPsx)
     {
         // TODO: Some offsets might be duplicated
-        for (Uint32& vag : mVagOffsets)
+        for (u32& vag : mVagOffsets)
         {
             s.Seek(vag);
             PSXADPCMDecoder d;
 
             // TODO: Calculate expected size to reduce mem allocs - based on next vag offset/EOF
-            std::vector<Uint8> data;
+            std::vector<u8> data;
             data.reserve(8000); // Guess to help debug perf
             d.DecodeVagStream(s, data);
             mSamples.emplace_back(SampleData{ data });
@@ -39,7 +39,7 @@ void Vab::ReadVb(Oddlib::IStream& s, bool isPsx, bool useSoundsDat, Oddlib::IStr
             for (const AEVh& vhRec : iOffs)
             {
                 soundsDatStream->Seek(vhRec.iFileOffset);
-                std::vector<Uint8> data(vhRec.iLengthOrDuration);
+                std::vector<u8> data(vhRec.iLengthOrDuration);
                 soundsDatStream->ReadBytes(data.data(), data.size());
                 mSamples.emplace_back(SampleData{ data });
             }
@@ -48,23 +48,23 @@ void Vab::ReadVb(Oddlib::IStream& s, bool isPsx, bool useSoundsDat, Oddlib::IStr
         {
             for (auto i = 0; i < mHeader.iNumVags; ++i)
             {
-                Uint32 size = 0;
+                u32 size = 0;
                 s.ReadUInt32(size);
 
                 // Not actually used for anything
-                Uint32 sampleRate = 0;
+                u32 sampleRate = 0;
                 s.ReadUInt32(sampleRate);
 
                 if (size > 0)
                 {
-                    std::vector<Uint8> data(size);
+                    std::vector<u8> data(size);
                     s.ReadBytes(data.data(), data.size());
                     mSamples.emplace_back(SampleData{ data });
                 }
                 else
                 {
                     // Keep even though empty so that vag index is still correct
-                    mSamples.emplace_back(SampleData{ std::vector<Uint8>() });
+                    mSamples.emplace_back(SampleData{ std::vector<u8>() });
                 }
             }
         }
@@ -93,11 +93,11 @@ void Vab::ReadVh(Oddlib::IStream& stream, bool isPsx)
     if (isPsx)
     {
         // VAG offset table..
-        Uint32 totalOffset = 0;
+        u32 totalOffset = 0;
         mVagOffsets.reserve(mHeader.iNumVags);
         for (int i = 0; i < mHeader.iNumVags; i++)
         {
-            Uint16 voff = 0;
+            u16 voff = 0;
             stream.ReadUInt16(voff);
             totalOffset += voff << 3;
             mVagOffsets.push_back(totalOffset);

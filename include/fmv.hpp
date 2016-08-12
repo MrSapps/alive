@@ -25,7 +25,7 @@ public:
         IAudioController& audioController,
         std::unique_ptr<Oddlib::IStream> stream,
         std::unique_ptr<SubTitleParser> subtitles,
-        Uint32 startSector, Uint32 endSector);
+        u32 startSector, u32 endSector);
 
     IMovie(const std::string& resourceName, IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles);
 
@@ -42,7 +42,7 @@ protected:
     virtual void FillBuffers() = 0;
 
     // Audio thread context, from IAudioPlayer
-    virtual void Play(Uint8* stream, Uint32 len) override;
+    virtual void Play(u8* stream, u32 len) override;
 
 
     void RenderFrame(Renderer& rend, GuiContext& gui, int width, int height, const GLvoid* pixels, const char* subtitles);
@@ -51,15 +51,15 @@ protected:
     struct Frame
     {
         size_t mFrameNum;
-        Uint32 mW;
-        Uint32 mH;
-        std::vector<Uint8> mPixels;
+        u32 mW;
+        u32 mH;
+        std::vector<u8> mPixels;
     };
     Frame mLast;
     size_t mFrameCounter = 0;
     size_t mConsumedAudioBytes = 0;
     std::mutex mAudioBufferMutex;
-    std::deque<Uint8> mAudioBuffer;
+    std::deque<u8> mAudioBuffer;
     std::deque<Frame> mVideoBuffer;
     IAudioController& mAudioController;
     int mAudioBytesPerFrame = 1;

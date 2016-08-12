@@ -174,7 +174,7 @@ public:
 
 private:
     THighResClock::time_point mStartedTime = {};
-    Uint32 mFramesPassed = 0;
+    u32 mFramesPassed = 0;
     THighResClock::duration mFrameStartTime = {};
 };
 
@@ -354,7 +354,7 @@ void Engine::Update()
         {
             if (event.type == SDL_KEYDOWN && event.key.keysym.sym == 13)
             {
-                const Uint32 windowFlags = SDL_GetWindowFlags(mWindow);
+                const u32 windowFlags = SDL_GetWindowFlags(mWindow);
                 bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
                 SDL_SetWindowFullscreen(mWindow, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
                 //OnWindowResize();

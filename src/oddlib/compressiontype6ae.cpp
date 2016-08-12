@@ -6,7 +6,7 @@
 
 namespace Oddlib
 {
-    static Uint8 NextNibble(IStream& stream, bool& readLo, Uint8& srcByte)
+    static u8 NextNibble(IStream& stream, bool& readLo, u8& srcByte)
     {
         if (readLo)
         {
@@ -22,24 +22,24 @@ namespace Oddlib
     }
 
     // Function 0x0040A8A0 in AE
-    std::vector<Uint8> CompressionType6Ae::Decompress(IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 /*dataSize*/)
+    std::vector<u8> CompressionType6Ae::Decompress(IStream& stream, u32 finalW, u32 w, u32 h, u32 /*dataSize*/)
     {
-        std::vector<Uint8> out(finalW*h);
+        std::vector<u8> out(finalW*h);
 
         bool bNibbleToRead = false;
         bool bSkip = false;
-        Uint32 dstPos = 0;
+        u32 dstPos = 0;
 
         if (h > 0)
         {
-            Uint8 srcByte = 0;
-            Sint32 heightCounter = h;
+            u8 srcByte = 0;
+            s32 heightCounter = h;
             do
             {
-                Uint32 widthCounter = 0;
+                u32 widthCounter = 0;
                 while (widthCounter < w)
                 {
-                    Uint8 nibble = NextNibble(stream, bNibbleToRead, srcByte);
+                    u8 nibble = NextNibble(stream, bNibbleToRead, srcByte);
                     widthCounter += nibble;
 
                     if (nibble > 0)
@@ -66,7 +66,7 @@ namespace Oddlib
                     {
                         do
                         {
-                            const Uint8 data = NextNibble(stream, bNibbleToRead, srcByte);
+                            const u8 data = NextNibble(stream, bNibbleToRead, srcByte);
                             if (bSkip)
                             {
                                 out[dstPos++] |= 16 * data;

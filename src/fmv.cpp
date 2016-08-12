@@ -182,7 +182,7 @@ bool IMovie::IsEnd()
 }
 
 // Audio thread context, from IAudioPlayer
-void IMovie::Play(Uint8* stream, Uint32 len)
+void IMovie::Play(u8* stream, u32 len)
 {
     std::lock_guard<std::mutex> lock(mAudioBufferMutex);
 
@@ -250,7 +250,7 @@ protected:
 
     }
 public:
-    MovMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles, Uint32 startSector, Uint32 numberOfSectors)
+    MovMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles, u32 startSector, u32 numberOfSectors)
         : IMovie(resourceName, audioController, std::move(subtitles))
     {
         if (numberOfSectors == 0)
@@ -332,14 +332,14 @@ public:
         const int kXaFrameDataSize = 2016;
         const int kNumAudioChannels = 2;
         const int kBytesPerSample = 2;
-        std::vector<Sint16> outPtr((kXaFrameDataSize * kNumAudioChannels * kBytesPerSample) / 2);
+        std::vector<s16> outPtr((kXaFrameDataSize * kNumAudioChannels * kBytesPerSample) / 2);
         
         if (mDemuxBuffer.empty())
         {
             mDemuxBuffer.resize(1024 * 1024);
         }
 
-        std::vector<Uint8> pixelBuffer;
+        std::vector<u8> pixelBuffer;
         for (;;)
         {
 
@@ -348,7 +348,7 @@ public:
             {
                 return;
             }
-            mFmvStream->ReadBytes(reinterpret_cast<Uint8*>(&w), sizeof(w));
+            mFmvStream->ReadBytes(reinterpret_cast<u8*>(&w), sizeof(w));
 
             // PC sector must start with "MOIR" if video, else starts with "VALE"
             if (!mPsx && w.mSectorType != 0x52494f4d)
@@ -396,8 +396,8 @@ public:
             }
             else
             {
-                const Uint16 frameW = w.mWidth;
-                const Uint16 frameH = w.mHeight;
+                const u16 frameW = w.mWidth;
+                const u16 frameH = w.mHeight;
 
                 uint32_t bytes_to_copy = w.mFrameDataLen - w.mSectorNumberInFrame *kXaFrameDataSize;
                 if (bytes_to_copy > 0)
@@ -460,7 +460,7 @@ public:
 
         if (mMasher->HasAudio())
         {
-            mAudioController.SetAudioSpec(static_cast<Uint16>(mMasher->SingleAudioFrameSizeSamples()), mMasher->AudioSampleRate());
+            mAudioController.SetAudioSpec(static_cast<u16>(mMasher->SingleAudioFrameSizeSamples()), mMasher->AudioSampleRate());
         }
 
         if (mMasher->HasVideo())
@@ -493,8 +493,8 @@ public:
     {
         while (NeedBuffer())
         {
-            std::vector<Uint8> decodedAudioFrame(mMasher->SingleAudioFrameSizeSamples() * 2 * 2); // *2 if stereo
-            mAtEndOfStream = !mMasher->Update((Uint32*)mFramePixels.data(), decodedAudioFrame.data());
+            std::vector<u8> decodedAudioFrame(mMasher->SingleAudioFrameSizeSamples() * 2 * 2); // *2 if stereo
+            mAtEndOfStream = !mMasher->Update((u32*)mFramePixels.data(), decodedAudioFrame.data());
             if (!mAtEndOfStream)
             {
                 // Copy to audio threads buffer
@@ -515,7 +515,7 @@ public:
 private:
     bool mAtEndOfStream = false;
     std::unique_ptr<Oddlib::Masher> mMasher;
-    std::vector<Uint8> mFramePixels;
+    std::vector<u8> mFramePixels;
 };
 
 
@@ -524,11 +524,11 @@ private:
     IAudioController& audioController,
     std::unique_ptr<Oddlib::IStream> stream,
     std::unique_ptr<SubTitleParser> subTitles,
-    Uint32 startSector, Uint32 endSector)
+    u32 startSector, u32 endSector)
 {
 
     char idBuffer[4] = {};
-    stream->ReadBytes(reinterpret_cast<Sint8*>(idBuffer), sizeof(idBuffer));
+    stream->ReadBytes(reinterpret_cast<s8*>(idBuffer), sizeof(idBuffer));
     stream->Seek(0);
     std::string idStr(idBuffer, 3);
     if (idStr == "DDV")

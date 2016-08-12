@@ -11,7 +11,7 @@ static float Lerp(T from, T to, float t)
     return from + ((to - from)*t);
 }
 
-static float SampleSint16ToFloat(Sint16 v)
+static float SampleSint16ToFloat(s16 v)
 {
     return (v / 32767.0f);
 }
@@ -125,7 +125,7 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antial
     }
 
     { // Actual sample calculation
-        std::vector<Uint16>& sampleBuffer = m_Tone->m_Sample->m_SampleBuffer;
+        std::vector<u16>& sampleBuffer = m_Tone->m_Sample->m_SampleBuffer;
 
         float sample = 0.0f;
         if (interpolation == AudioInterpolation_none)
@@ -147,7 +147,7 @@ float AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antial
                 LOG_ERROR("Sample buffer index out of bounds (interpolated)");
                 baseOffset = nextOffset = static_cast<int>(sampleBuffer.size() - 1);
             }
-            sample = SampleSint16ToFloat(static_cast<Sint16>(Lerp<Sint16>(sampleBuffer[baseOffset], sampleBuffer[nextOffset], static_cast<float>(f_SampleOffset - baseOffset))));
+            sample = SampleSint16ToFloat(static_cast<s16>(Lerp<s16>(sampleBuffer[baseOffset], sampleBuffer[nextOffset], static_cast<float>(f_SampleOffset - baseOffset))));
         }
         else if (interpolation == AudioInterpolation_cubic || interpolation == AudioInterpolation_hermite)
         {
