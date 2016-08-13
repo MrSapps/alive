@@ -85,7 +85,7 @@ void DeveloperScreen::Render(int w, int h, Renderer& renderer)
     struct EditorUi
     {
         EditorUi()
-            : animationBrowserOpen(true)
+            : soundBrowserOpen(true)
         {
 
         }
