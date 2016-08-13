@@ -148,6 +148,9 @@ void AliveAudioSoundbank::InitFromVab(Vab& vab, AliveAudio& /*aliveAudio*/)
         const u32 size = static_cast<u32>(sampleData.mData.size() / sizeof(u16));
         sample->m_SampleBuffer.resize(size);
 
+        // TODO: Remove me and just use m_SampleBuffer.size()
+        sample->mSampleSize = size;
+
         // Copy/convert from bytes to shorts
         memcpy(sample->m_SampleBuffer.data(), sampleData.mData.data(), sampleData.mData.size());
 
