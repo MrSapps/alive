@@ -5,11 +5,11 @@ project(ALIVE)
 option(UseValgrind "UseValgrind" OFF)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}")
-#set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/cotire/CMake")
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/cotire/CMake")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/solar-cmake")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake")
 
-#include(cotire)
+include(cotire)
 include(Solar)
 
 # the RPATH to be used when installing
@@ -204,8 +204,10 @@ SET(oddlib_src
 )
 
 add_library(oddlib STATIC
-    ${oddlib_src}
+    src/oddlib/oddlib_pch.cpp ${oddlib_src}
 )
+set_target_properties(oddlib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/oddlib/oddlib_pch.h")
+cotire(oddlib)
 
 SET(alivelib_src
     include/core/audiobuffer.hpp
@@ -245,8 +247,10 @@ SET(alivelib_src
 )
 
 add_library(AliveLib STATIC
-    ${alivelib_src}
+    src/alivelib_pch.cpp ${alivelib_src}
 )
+set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
+cotire(AliveLib)
 
 if(WIN32)
 SET(WIN32_RESOURCES_SRC
