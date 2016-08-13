@@ -206,8 +206,11 @@ SET(oddlib_src
 add_library(oddlib STATIC
     src/oddlib/oddlib_pch.cpp ${oddlib_src}
 )
-set_target_properties(oddlib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/oddlib/oddlib_pch.h")
-cotire(oddlib)
+
+if (WIN32 AND MSVC)
+    set_target_properties(oddlib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/oddlib/oddlib_pch.h")
+    cotire(oddlib)
+endif()
 
 SET(alivelib_src
     include/core/audiobuffer.hpp
@@ -249,8 +252,10 @@ SET(alivelib_src
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
-set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
-cotire(AliveLib)
+if (WIN32 AND MSVC)
+    set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
+    cotire(AliveLib)
+endif()
 
 if(WIN32)
 SET(WIN32_RESOURCES_SRC
