@@ -788,7 +788,7 @@ int main(int /*argc*/, char** /*argv*/)
             const VhVbPair* psx = Find(eDataSetType::eAoPsx, "RFSNDFX.VH");
             if (pc && psx)
             {
-                Compare(*pc->mVab, *psx->mVab);
+              //  Compare(*pc->mVab, *psx->mVab);
             }
 
             // TODO
@@ -808,7 +808,34 @@ int main(int /*argc*/, char** /*argv*/)
 
         void SoundsToJson()
         {
+            jsonxx::Array resources;
 
+            jsonxx::Array musics;
+
+            for (auto& soundMap : mSounds.mSounds)
+            {
+                Sounds& s = soundMap.second;
+                for (VhVbPair& vhVb : s.mSoundSets)
+                {
+                    const bool kIsPsx = IsPsx(soundMap.first);
+
+                    jsonxx::Object music;
+                    music << "resource_name" << vhVb.mVh->FileName();
+
+                    musics << music;
+                }
+            }
+
+
+
+            resources << musics;
+
+            std::ofstream jsonFile("..\\data\\soundsz.json");
+            if (!jsonFile.is_open())
+            {
+                abort();
+            }
+            jsonFile << resources.json().c_str() << std::endl;
         }
 
         void MergeDuplicateAnimations()
