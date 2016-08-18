@@ -664,20 +664,20 @@ int main(int /*argc*/, char** /*argv*/)
             mLvlChunkReducer.MergeReduceLvlChunks(fs, resourcePath, lvls, eType);
         }
 
-        struct VhVbPair
+        struct LvlSoundInfo
         {
-            VhVbPair(Oddlib::LvlArchive::File* vh, Oddlib::LvlArchive::File* vb)
+            LvlSoundInfo(Oddlib::LvlArchive::File* vh, Oddlib::LvlArchive::File* vb)
                 : mVh(vh), mVb(vb)
             {
 
             }
 
-            VhVbPair(VhVbPair&& other)
+            LvlSoundInfo(LvlSoundInfo&& other)
             {
                 *this = std::move(other);
             }
 
-            VhVbPair& operator = (VhVbPair&& other)
+            LvlSoundInfo& operator = (LvlSoundInfo&& other)
             {
                 mVh = other.mVh;
                 mVb = other.mVb;
@@ -692,13 +692,15 @@ int main(int /*argc*/, char** /*argv*/)
 
         struct Sounds
         {
-            std::vector<VhVbPair> mSoundSets;
+            std::vector<LvlSoundInfo> mSoundSets;
             std::vector<Oddlib::LvlArchive::File*> mSeqs;
+            Oddlib::LvlArchive* mLvl;
+            std::string mLvlName;
         };
 
         struct AllSounds
         {
-            std::map<eDataSetType, Sounds> mSounds;
+            std::map<eDataSetType, std::map<std::string, Sounds>> mSounds;
             std::vector<std::unique_ptr<Oddlib::LvlArchive>> mLvls;
         };
         AllSounds mSounds;
@@ -712,39 +714,59 @@ int main(int /*argc*/, char** /*argv*/)
             }
 
 
-            Sounds& sounds = mSounds.mSounds[eType];
+          
             for (const std::string& lvl : lvls)
             {
+                Sounds& sounds = mSounds.mSounds[eType][lvl];
+
                 std::unique_ptr<Oddlib::LvlArchive> archive = std::make_unique<Oddlib::LvlArchive>(fs->Open(lvl));
+                std::vector<Oddlib::LvlArchive::File*> bsqFiles;
+
+                sounds.mLvl = archive.get();
+                sounds.mLvlName = lvl;
 
                 for (u32 i = 0; i < archive->FileCount(); i++)
                 {
                     Oddlib::LvlArchive::File* f = archive->FileByIndex(i);
                     if (string_util::ends_with(f->FileName(), ".VH", true))
                     {
+                        // Get matching VB
                         Oddlib::LvlArchive::File* vbFile = archive->FileByName(f->FileName().substr(0, f->FileName().length() - 2) + "VB");
-                        sounds.mSoundSets.push_back(VhVbPair(f, vbFile));
+                        
+                        // Store the VH/VB pair
+                        sounds.mSoundSets.push_back(LvlSoundInfo(f, vbFile));
                     }
                     else if (string_util::ends_with(f->FileName(), ".BSQ", true))
                     {
-                        sounds.mSeqs.push_back(f);
+                        bsqFiles.push_back(f);
                     }
                 }
 
+                if (bsqFiles.empty())
+                {
+                    // Should be at least 1 BSQ per LVL
+                    abort();
+                }
+
+                sounds.mSeqs = bsqFiles;
                 mSounds.mLvls.push_back(std::move(archive));
             }
         }
 
-        const VhVbPair* Find(eDataSetType dataSet, const char* vab)
+        const LvlSoundInfo* Find(eDataSetType dataSet, const char* lvl, const char* vab)
         {
             auto it = mSounds.mSounds.find(dataSet);
             if (it != std::end(mSounds.mSounds))
             {
-                for (const VhVbPair& vhVb : it->second.mSoundSets)
+                auto lvlIt = it->second.find(lvl);
+                if (lvlIt != std::end(it->second))
                 {
-                    if (vhVb.mVh->FileName() == vab)
+                    for (const LvlSoundInfo& vhVb : lvlIt->second.mSoundSets)
                     {
-                        return &vhVb;
+                        if (vhVb.mVh->FileName() == vab)
+                        {
+                            return &vhVb;
+                        }
                     }
                 }
             }
@@ -759,37 +781,45 @@ int main(int /*argc*/, char** /*argv*/)
             }
         }
 
-        void MergeDuplicateSoundSequnces()
+        void LoadVabs()
         {
+            /*
             Oddlib::Stream aePcSoundsDat("F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\sounds.dat");
             for (auto& soundMap : mSounds.mSounds)
             {
-                Sounds& s = soundMap.second;
-                for (VhVbPair& vhVb : s.mSoundSets)
+                std::map<std::string, Sounds>& lvlsSoundMap = soundMap.second;
+                for (auto& s : lvlsSoundMap)
                 {
-                    auto vhStream = vhVb.mVh->ChunkByIndex(0)->Stream();
-              
-                    const bool kIsPsx = IsPsx(soundMap.first);
+                    auto& soundSets = s.second.mSoundSets;
+                    for (auto& vhVb : soundSets)
+                    {
+                        auto vhStream = vhVb.mVh->ChunkByIndex(0)->Stream();
 
-                    auto vab = std::make_unique<Vab>();
-                    vab->ReadVh(*vhStream, kIsPsx);
+                        const bool kIsPsx = IsPsx(soundMap.first);
 
-                    const bool kUseSoundsDat = soundMap.first == eAePc;
+                        auto vab = std::make_unique<Vab>();
+                        vab->ReadVh(*vhStream, kIsPsx);
 
-                    auto vbStream = vhVb.mVb->ChunkByIndex(0)->Stream();
-                    vab->ReadVb(*vbStream, kIsPsx, kUseSoundsDat, &aePcSoundsDat);
+                        const bool kUseSoundsDat = soundMap.first == eAePc;
 
-                    vhVb.mVab = std::move(vab);
+                        auto vbStream = vhVb.mVb->ChunkByIndex(0)->Stream();
+                        vab->ReadVb(*vbStream, kIsPsx, kUseSoundsDat, &aePcSoundsDat);
+
+                        vhVb.mVab = std::move(vab);
+                    }
                 }
             }
+            */
 
             // Get RFSNDFX from R1.LVL for PSX and PC
-            const VhVbPair* pc = Find(eDataSetType::eAoPc, "RFSNDFX.VH");
-            const VhVbPair* psx = Find(eDataSetType::eAoPsx, "RFSNDFX.VH");
+            /*
+            const LvlSoundInfo* pc = Find(eDataSetType::eAoPc, "RFSNDFX.VH");
+            const LvlSoundInfo* psx = Find(eDataSetType::eAoPsx, "RFSNDFX.VH");
             if (pc && psx)
             {
               //  Compare(*pc->mVab, *psx->mVab);
             }
+            */
 
             // TODO
             // De-duplicate the raw sample data - check PC-PSX samples are equal after decoding
@@ -806,29 +836,106 @@ int main(int /*argc*/, char** /*argv*/)
             // Record which programs are not used, these will likely be the SFX?
         }
 
+        static std::string LvlCode(const std::string& lvl)
+        {
+            auto pos = lvl.find_last_of(".");
+            std::string r = lvl.substr(0, pos);
+            r = r.substr(r.length() - 2);
+            return r;
+        }
+
+        static std::string BsqName(const std::string& bsq)
+        {
+            auto pos = bsq.find_last_of(".");
+            std::string r = bsq.substr(0, pos);
+            return r;
+        }
+
         void SoundsToJson()
         {
+
             jsonxx::Array resources;
 
             jsonxx::Array musics;
+            jsonxx::Array vabs;
+            jsonxx::Array soundEffects;
 
+            // TODO: Check that AePsxCd1/2 can be merged
+            // TODO: Check that AePsxCd1/2/AePc and AoPsx/AoPc can be merged
+            // TODO: Trim off useless vab combos, XXENDER may only apply to the
+            // 2nd BSQ - which is merged in PC? Need to reduce these down
             for (auto& soundMap : mSounds.mSounds)
             {
-                Sounds& s = soundMap.second;
-                for (VhVbPair& vhVb : s.mSoundSets)
+                std::map<std::string, Sounds>& s = soundMap.second;
+                for (auto& lvlSounds : s)
                 {
-                    const bool kIsPsx = IsPsx(soundMap.first);
+                    // SEQs
+                    for (auto& bsq : lvlSounds.second.mSeqs)
+                    {
+                        for (u32 k = 0; k < bsq->ChunkCount(); k++)
+                        {
+                            for (LvlSoundInfo& vhVb : lvlSounds.second.mSoundSets)
+                            {
+                                jsonxx::Object music;
 
-                    jsonxx::Object music;
-                    music << "resource_name" << vhVb.mVh->FileName();
+                                // Needs lvl name since R1.LVL contains both R1SEQ and R2SEQ for example
+                                music << "resource_name"
+                                    <<
+                                    LvlCode(lvlSounds.second.mLvlName) + "_" +
+                                    BsqName(bsq->FileName()) + "_" +
+                                    std::to_string(k) + "_" +
+                                    BsqName(vhVb.mVh->FileName()) + "_" +
+                                    ToString(soundMap.first);
 
-                    musics << music;
+                                music << "sound_bank" <<
+                                    (LvlCode(lvlSounds.second.mLvlName) + "_"
+                                        + BsqName(vhVb.mVh->FileName()) + "_"
+                                        + ToString(soundMap.first));
+
+                                music << "data_set" << std::string(ToString(soundMap.first));
+                                music << "file_name" << bsq->FileName();
+                                music << "lvl" << lvlSounds.second.mLvlName;
+                                music << "index" << k;
+
+                                musics << music;
+                            }
+                        }
+                    }
+
+                    // VABs
+                    for (LvlSoundInfo& vhVb : lvlSounds.second.mSoundSets)
+                    {
+                        jsonxx::Object vab;
+                        vab << "resource_name"
+                            << (LvlCode(lvlSounds.second.mLvlName) + "_"
+                            + BsqName(vhVb.mVh->FileName()) + "_"
+                            + ToString(soundMap.first));
+                        vab << "data_set" << std::string(ToString(soundMap.first));
+                        vab << "lvl" << lvlSounds.second.mLvlName;
+
+                        vab << "vab_header" << BsqName(vhVb.mVh->FileName()) + ".VH";
+                        vab << "vab_body" << BsqName(vhVb.mVh->FileName()) + ".VB";
+
+                        vabs << vab;
+                    }
+
+                    // TODO: INSTRs
+                    /*
+                    jsonxx::Object soundEffect;
+                    soundEffects << "resource_name" << "sound_effect";
+                    soundEffects << soundEffect;
+                    */
+
+                    //soundEffect << "resource_name" <<
+                    // locations
+                    // program/tone/pitch rand/sound bank/dataset
                 }
             }
 
 
-
-            resources << musics;
+            resources << "musics" << musics;
+            resources << "sound_banks" << vabs;
+            resources << "sound_effects" << soundEffects;
 
             std::ofstream jsonFile("..\\data\\soundsz.json");
             if (!jsonFile.is_open())
@@ -1235,7 +1342,7 @@ int main(int /*argc*/, char** /*argv*/)
     // db.AnimationsToJson();
     // db.DumpAnimationSpriteSheets();
     
-    db.MergeDuplicateSoundSequnces();
+    db.LoadVabs();
     // db.MergeDuplicateVhandVbs();
     db.SoundsToJson();
 
