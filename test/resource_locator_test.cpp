@@ -168,6 +168,21 @@ TEST(ResourceLocator, ParseResourceMap)
     const std::string resourceMapsJson = 
         R"(
 [{
+    "musics": [{
+        "data_set": "AoPc",
+        "file_name": "C1SEQ.BSQ",
+        "index": 2,
+        "lvl": "c1.lvl",
+        "resource_name": "c1_C1SEQ_0_OPTSNDFX_AoPc",
+        "sound_bank": "c1_OPTSNDFX_AoPc"
+    }],
+    "sound_banks": [{
+        "data_set": "AoPc",
+        "lvl": "c1.lvl",
+        "resource_name": "c1_OPTSNDFX_AoPc",
+        "vab_body": "OPTSNDFX.VB",
+        "vab_header": "OPTSNDFX.VH"
+    }],
     "paths": [{
         "collision_offset": 400,
         "id": 88,
@@ -311,6 +326,31 @@ TEST(ResourceLocator, ParseResourceMap)
         
         ASSERT_EQ("AePsxCd2", r1->mLocations[1].mDataSetName);
         ASSERT_EQ("BLOP.BND", r1->mLocations[1].mDataSetFileName);
+    }
+
+    { 
+        const ResourceMapper::MusicMapping* r0 = mapper.FindMusic("I don't exist");
+        ASSERT_EQ(nullptr, r0);
+
+        const ResourceMapper::MusicMapping* r1 = mapper.FindMusic("c1_C1SEQ_0_OPTSNDFX_AoPc");
+        ASSERT_NE(nullptr, r1);
+        ASSERT_EQ("AoPc", r1->mDataSetName);
+        ASSERT_EQ("C1SEQ.BSQ", r1->mFileName);
+        ASSERT_EQ("c1.lvl", r1->mLvl);
+        ASSERT_EQ(2u, r1->mIndex);
+        ASSERT_EQ("c1_OPTSNDFX_AoPc", r1->mSoundBankName);
+    }
+
+    {
+        const ResourceMapper::SoundBankMapping* r0 = mapper.FindSoundBank("I don't exist");
+        ASSERT_EQ(nullptr, r0);
+
+        const ResourceMapper::SoundBankMapping* r1 = mapper.FindSoundBank("c1_OPTSNDFX_AoPc");
+        ASSERT_NE(nullptr, r1);
+        ASSERT_EQ("AoPc", r1->mDataSetName);
+        ASSERT_EQ("c1.lvl", r1->mLvl);
+        ASSERT_EQ("OPTSNDFX.VB", r1->mVabBody);
+        ASSERT_EQ("OPTSNDFX.VH", r1->mVabHeader);
     }
 }
 

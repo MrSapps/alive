@@ -933,9 +933,17 @@ int main(int /*argc*/, char** /*argv*/)
             }
 
 
-            resources << "musics" << musics;
-            resources << "sound_banks" << vabs;
-            resources << "sound_effects" << soundEffects;
+            jsonxx::Object musicsObj;
+            musicsObj << "musics" << musics;
+            resources << musicsObj;
+
+            jsonxx::Object vabsObj;
+            vabsObj << "sound_banks" << vabs;
+            resources << vabsObj;
+
+            jsonxx::Object soundEffectsObj;
+            soundEffectsObj << "sound_effects" << soundEffects;
+            resources << soundEffectsObj;
 
             std::ofstream jsonFile("..\\data\\soundsz.json");
             if (!jsonFile.is_open())

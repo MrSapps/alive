@@ -1048,6 +1048,7 @@ public:
             mFmvMaps = std::move(rhs.mFmvMaps);
             mFileLocations = std::move(rhs.mFileLocations);
             mPathMaps = std::move(rhs.mPathMaps);
+            mMusicMaps = std::move(rhs.mMusicMaps);
         }
         return *this;
     }
@@ -1130,6 +1131,43 @@ public:
             return nullptr;
         }
     };
+
+    struct MusicMapping
+    {
+        std::string mDataSetName;
+        std::string mFileName;
+        std::string mLvl;
+        std::string mSoundBankName;
+        u32 mIndex;
+    };
+
+    struct SoundBankMapping
+    {
+        std::string mDataSetName;
+        std::string mLvl;
+        std::string mVabBody;
+        std::string mVabHeader;
+    };
+
+    const MusicMapping* FindMusic(const char* resourceName)
+    {
+        const auto it = mMusicMaps.find(resourceName);
+        if (it != std::end(mMusicMaps))
+        {
+            return &it->second;
+        }
+        return nullptr;
+    }
+
+    const SoundBankMapping* FindSoundBank(const char* resourceName)
+    {
+        const auto it = mSoundBankMaps.find(resourceName);
+        if (it != std::end(mSoundBankMaps))
+        {
+            return &it->second;
+        }
+        return nullptr;
+    }
 
     const PathMapping* FindPath(const char* resourceName)
     {
@@ -1216,6 +1254,8 @@ private:
     std::map<std::string, AnimMapping> mAnimMaps;
     std::map<std::string, FmvMapping> mFmvMaps;
     std::map<std::string, PathMapping> mPathMaps;
+    std::map<std::string, MusicMapping> mMusicMaps;
+    std::map<std::string, SoundBankMapping> mSoundBankMaps;
 
     friend class Level; // TODO: Temp debug ui
 
@@ -1261,10 +1301,55 @@ private:
             {
                 ParseFileLocations(it);
             }
+
+            if (it.HasMember("musics"))
+            {
+                ParseMusics(it);
+            }
+
+            if (it.HasMember("sound_banks"))
+            {
+                ParseSoundBanks(it);
+            }
         }
     }
 
     std::map<std::string, std::map<std::string, std::vector<DataSetFileAttributes>>> mFileLocations;
+
+    template<typename JsonObject>
+    void ParseSoundBanks(const JsonObject& obj)
+    {
+        const auto& soundBanks = obj["sound_banks"].GetArray();
+        for (const auto& soundBank : soundBanks)
+        {
+            const std::string& name = soundBank["resource_name"].GetString();
+            SoundBankMapping mapping;
+            mapping.mDataSetName = soundBank["data_set"].GetString();
+            mapping.mLvl = soundBank["lvl"].GetString();
+            mapping.mVabBody = soundBank["vab_body"].GetString();
+            mapping.mVabHeader = soundBank["vab_header"].GetString();
+
+            mSoundBankMaps[name] = mapping;
+        }
+    }
+
+    template<typename JsonObject>
+    void ParseMusics(const JsonObject& obj)
+    {
+        const auto& musics = obj["musics"].GetArray();
+        for (const auto& musicRecord : musics)
+        {
+            const std::string& name = musicRecord["resource_name"].GetString();
+            MusicMapping mapping;
+            mapping.mSoundBankName = musicRecord["sound_bank"].GetString();
+            mapping.mDataSetName = musicRecord["data_set"].GetString();
+            mapping.mFileName = musicRecord["file_name"].GetString();
+            mapping.mIndex = musicRecord["index"].GetInt();
+            mapping.mLvl = musicRecord["lvl"].GetString();
+
+            mMusicMaps[name] = mapping;
+        }
+    }
 
     template<typename JsonObject>
     void ParseFileLocations(const JsonObject& obj)
