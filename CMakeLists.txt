@@ -60,9 +60,10 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
 endif ()
 
 
-if (UNIX AND NOT APPLE)
-FIND_PACKAGE(GTK COMPONENTS gtk)
-endif()
+#if (UNIX AND NOT APPLE)
+find_package (PkgConfig REQUIRED)
+pkg_check_modules (GTK3 REQUIRED gtk+-3.0)
+#endif()
 
 include_directories(
     include
@@ -89,7 +90,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/rapidjson/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${GTK_INCLUDE_DIR}
+    ${GTK3_INCLUDE_DIRS}
 )
 
 SET(nativefiledialog_src 
@@ -297,7 +298,7 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(UNIX AND NOT APPLE)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog ${GTK_LIBRARIES})
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES})
 ELSE()
     SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate nativefiledialog)
 ENDIF()
