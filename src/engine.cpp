@@ -101,18 +101,6 @@ bool Engine::Init()
 
         InitResources();
 
-        if (!mFileSystem_old.Init())
-        {
-            LOG_ERROR("File system old init failure");
-            return false;
-        }
-
-        if (!mGameData.Init(mFileSystem_old))
-        {
-            LOG_ERROR("Game data init failure");
-            return false;
-        }
-
         if (!InitSDL())
         {
             LOG_ERROR("SDL init failure");
@@ -123,7 +111,7 @@ bool Engine::Init()
 
         InitSubSystems();
 
-        ToState(std::make_unique<GameSelectionScreen>(*this, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, mFileSystem_old, *mResourceLocator, *mFileSystem));
+        ToState(std::make_unique<GameSelectionScreen>(*this, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, *mResourceLocator, *mFileSystem));
 
         return true;
     }
@@ -138,7 +126,7 @@ void Engine::InitSubSystems()
 {
     mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
     mFmv = std::make_unique<DebugFmv>(mAudioHandler, *mResourceLocator);
-    mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem_old, *mResourceLocator);
+    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator);
     mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator);
 
     { // Init gui system

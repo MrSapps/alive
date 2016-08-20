@@ -89,7 +89,6 @@ void DeveloperScreen::Render(int w, int h, Renderer& renderer)
         {
 
         }
-        bool resPathsOpen;
         bool fmvBrowserOpen;
         bool soundBrowserOpen;
         bool levelBrowserOpen;
@@ -100,7 +99,6 @@ void DeveloperScreen::Render(int w, int h, Renderer& renderer)
     static EditorUi editor;
 
     gui_begin_window(mGui, "Browsers");
-    gui_checkbox(mGui, "resPathsOpen|Resource paths", &editor.resPathsOpen);
     gui_checkbox(mGui, "fmvBrowserOpen|FMV browser", &editor.fmvBrowserOpen);
     gui_checkbox(mGui, "soundBrowserOpen|Sound browser", &editor.soundBrowserOpen);
     gui_checkbox(mGui, "levelBrowserOpen|Level browser", &editor.levelBrowserOpen);
@@ -108,11 +106,6 @@ void DeveloperScreen::Render(int w, int h, Renderer& renderer)
     gui_checkbox(mGui, "guiLayoutEditOpen|GUI layout editor", &editor.guiLayoutEditorOpen);
 
     gui_end_window(mGui);
-
-    if (editor.resPathsOpen)
-    {
-        mFsOld.DebugUi(*mGui);
-    }
 
     if (editor.fmvBrowserOpen)
     {

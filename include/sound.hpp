@@ -17,17 +17,15 @@ class Sound
 public:
     Sound(const Sound&) = delete;
     Sound& operator = (const Sound&) = delete;
-    Sound(GameData& gameData, IAudioController& audioController, FileSystem& fs, ResourceLocator& locator);
+    Sound(IAudioController& audioController, ResourceLocator& locator);
     ~Sound();
     void Update();
     void Render(GuiContext *gui, int w, int h);
 private:
     void BarLoop();
 private:
-    GameData& mGameData;
     IAudioController& mAudioController;
     ResourceLocator& mLocator;
-    FileSystem& mFs;
     std::unique_ptr<class SequencePlayer> mSeqPlayer;
     int mTargetSong = -1;
     bool mLoopSong = false;

@@ -6,13 +6,12 @@
 class DeveloperScreen : public EngineState
 {
 public:
-    DeveloperScreen(GuiContext* gui, IEngineStateChanger& stateChanger, class Fmv& fmv, class Sound& sound, class Level& level, class FileSystem& fs, ResourceLocator& resMapper)
+    DeveloperScreen(GuiContext* gui, IEngineStateChanger& stateChanger, class Fmv& fmv, class Sound& sound, class Level& level, ResourceLocator& resMapper)
         : EngineState(stateChanger), 
           mGui(gui),
           mFmv(fmv),
           mSound(sound),
           mLevel(level),
-          mFsOld(fs),
           mResourceLocator(resMapper)
     {
         Init();
@@ -29,7 +28,6 @@ private:
     Fmv& mFmv;
     Sound& mSound;
     Level& mLevel;
-    FileSystem& mFsOld;
 
     ResourceLocator& mResourceLocator;
     std::vector<std::unique_ptr<Animation>> mLoadedAnims;

@@ -3,7 +3,6 @@
 #include "gui.h"
 #include "core/audiobuffer.hpp"
 #include "logger.hpp"
-#include "filesystem.hpp"
 #include "resourcemapper.hpp"
 
 void Sound::BarLoop()
@@ -21,8 +20,8 @@ void Sound::BarLoop()
     }*/
 }
 
-Sound::Sound(GameData& gameData, IAudioController& audioController, FileSystem& fs, ResourceLocator& locator)
-    : mGameData(gameData), mAudioController(audioController), mLocator(locator), mFs(fs)
+Sound::Sound(IAudioController& audioController, ResourceLocator& locator)
+    : mAudioController(audioController), mLocator(locator)
 {
     mAudioController.AddPlayer(&mAliveAudio);
 }

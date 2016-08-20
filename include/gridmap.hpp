@@ -4,8 +4,6 @@
 #include <vector>
 #include <deque>
 #include "core/audiobuffer.hpp"
-#include "gamedata.hpp"
-#include "filesystem.hpp"
 #include "proxy_nanovg.h"
 #include "script.hpp"
 #include "oddlib/path.hpp"

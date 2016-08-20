@@ -12,7 +12,6 @@ public:
             class Fmv& fmv,
             class Sound& sound, 
             class Level& level,
-            class FileSystem& fs, 
             ResourceLocator& resLocator,
             IFileSystem& newFs)
       : EngineState(stateChanger), 
@@ -21,7 +20,6 @@ public:
         mFmv(fmv),
         mSound(sound),
         mLevel(level),
-        mFsOld(fs),
         mResLocator(resLocator),
         mFs(newFs)
     {
@@ -39,7 +37,6 @@ private:
     Fmv& mFmv;
     Sound& mSound;
     Level& mLevel;
-    FileSystem& mFsOld;
     ResourceLocator& mResLocator;
     size_t mSelectedGameDefintionIndex = 0;
     IFileSystem& mFs;

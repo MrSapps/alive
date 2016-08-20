@@ -6,11 +6,9 @@
 #include "oddlib/ae_bits_pc.hpp"
 #include "oddlib/psx_bits.hpp"
 #include "oddlib/anim.hpp"
-#include "filesystem.hpp"
 #include "logger.hpp"
 #include "stdthread.h"
 #include "msvc_sdl_link.hpp"
-#include "gamedata.hpp"
 #include <cassert>
 #include "jsonxx/jsonxx.h"
 #include "resourcemapper.hpp"

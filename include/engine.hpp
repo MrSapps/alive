@@ -1,7 +1,5 @@
 #pragma once
 
-#include "gamedata.hpp"
-#include "filesystem.hpp"
 #include <memory>
 #include "oddlib/masher.hpp"
 #include "SDL.h"
@@ -92,9 +90,7 @@ protected:
     // Audio must init early
     SdlAudioWrapper mAudioHandler;
 
-    FileSystem mFileSystem_old;
     std::unique_ptr<class IFileSystem> mFileSystem;
-    GameData mGameData;
  
     SDL_Window* mWindow = nullptr;
     SDL_GLContext mContext = nullptr;
