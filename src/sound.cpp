@@ -71,7 +71,7 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
     gui_end_window(gui);
 
     gui_begin_window(gui, "Audio output settings");
-    gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.AntiAliasFilteringEnabled);
+    gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.mAntiAliasFilteringEnabled);
 
     if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
         mAliveAudio.Interpolation = AudioInterpolation_none;

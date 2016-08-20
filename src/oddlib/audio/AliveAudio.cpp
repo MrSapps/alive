@@ -97,7 +97,7 @@ void AliveAudio::AliveRenderAudio(f32 * AudioStream, int StreamLength)
             }
 
             // TODO FIX ME
-            f32  s = voice->GetSample(Interpolation, AntiAliasFilteringEnabled);
+            f32  s = voice->GetSample(Interpolation, mAntiAliasFilteringEnabled);
             f32 leftSample = (s * leftPan);
             f32 rightSample = (s * rightPan);
 
