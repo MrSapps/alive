@@ -232,9 +232,6 @@ SET(alivelib_src
     include/developerscreen.hpp
     src/gameselectionscreen.cpp
     include/gameselectionscreen.hpp
-    src/gamedata.cpp
-    include/filesystem.hpp
-    src/filesystem.cpp
     include/gridmap.hpp
     src/gridmap.cpp
     include/gridobject.hpp
