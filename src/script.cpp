@@ -1,6 +1,6 @@
 #include "script.hpp"
-#include "filesystem.hpp"
 #include "logger.hpp"
+#include <string>
 
 extern "C"
 {
@@ -156,9 +156,10 @@ Script::~Script()
 
 }
 
-bool Script::Init(FileSystem& fs)
+bool Script::Init()
 {
-    const std::string myfile = fs.GameData().BasePath() + "data/scripts/main.lua";
+    // TODO: Add script loading to resource system
+    const std::string myfile = /*fs.GameData().BasePath() +*/ "data/scripts/main.lua";
 
 
     mScript = std::make_unique<LuaScript>();

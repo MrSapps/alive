@@ -7,7 +7,7 @@ class Script
 public:
     Script();
     ~Script();
-    bool Init(class FileSystem& fs);
+    bool Init();
     void Update();
 private:
     std::unique_ptr<class LuaScript> mScript;

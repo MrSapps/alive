@@ -1,6 +1,5 @@
 #include "fmv.hpp"
 #include "gui.h"
-#include "gamedata.hpp"
 #include "logger.hpp"
 #include "proxy_nanovg.h"
 #include "stdthread.h"
