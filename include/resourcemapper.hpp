@@ -1287,6 +1287,7 @@ private:
     std::map<std::string, SoundBankMapping> mSoundBankMaps;
 
     friend class Level; // TODO: Temp debug ui
+    friend class Sound; // TODO: Temp debug ui
 
     void Parse(const std::string& json)
     {
@@ -1788,10 +1789,6 @@ public:
         return mDataPaths;
     }
 
-    // TODO: Remove after sounds integrated correctly
-    std::shared_ptr<Oddlib::LvlArchive> HackTemp2(const char* fileToFind);
-    std::unique_ptr<Oddlib::IStream> HackTemp(const char* lvlFile);
-
     std::unique_ptr<ISoundEffect> LocateSoundEffect(const char* resourceName);
     std::unique_ptr<IMusic> LocateMusic(const char* resourceName);
 
@@ -1823,4 +1820,5 @@ private:
 
     friend class FmvUi; // TODO: Temp debug ui
     friend class Level; // TODO: Temp debug ui
+    friend class Sound; // TODO: Temp debug ui
 };

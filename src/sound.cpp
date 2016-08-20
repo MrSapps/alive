@@ -48,22 +48,24 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
 {
     gui_begin_window(gui, "Sound");
 
-    // TODO: List out all music resource names
-    if (gui_button(gui, "test"))
+    for (const auto& musicInfo : mLocator.mResMapper.mMusicMaps)
     {
-        std::unique_ptr<IMusic> music = mLocator.LocateMusic("MI_MISEQ_29_MINES_AePsxDemo");
-        if (music)
+        if (gui_button(gui, musicInfo.first.c_str()))
         {
-            mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
-            if (!mSeqPlayer)
+            std::unique_ptr<IMusic> music = mLocator.LocateMusic(musicInfo.first.c_str());
+            if (music)
             {
-                mSeqPlayer = std::make_unique<SequencePlayer>(mAliveAudio);
-            }
+                mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
+                if (!mSeqPlayer)
+                {
+                    mSeqPlayer = std::make_unique<SequencePlayer>(mAliveAudio);
+                }
 
-            auto soundBank = std::make_unique<AliveAudioSoundbank>(*music->mVab, mAliveAudio);
-            mAliveAudio.SetSoundbank(std::move(soundBank));
-            mSeqPlayer->LoadSequenceStream(*music->mSeqData);
-            mSeqPlayer->PlaySequence();
+                auto soundBank = std::make_unique<AliveAudioSoundbank>(*music->mVab, mAliveAudio);
+                mAliveAudio.SetSoundbank(std::move(soundBank));
+                mSeqPlayer->LoadSequenceStream(*music->mSeqData);
+                mSeqPlayer->PlaySequence();
+            }
         }
     }
 

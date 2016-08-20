@@ -156,62 +156,9 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
 }
 
 
-std::shared_ptr<Oddlib::LvlArchive> ResourceLocator::HackTemp2(const char* fileToFind)
-{
-    for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
-    {
-        if (!fs.mIsMod)
-        {
-            const std::vector<ResourceMapper::DataSetFileAttributes>* locationsInThisDataSet = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), fileToFind);
-            if (locationsInThisDataSet)
-            {
-                for (const ResourceMapper::DataSetFileAttributes& attributes : *locationsInThisDataSet)
-                {
-                    std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, attributes.mLvlName);
-                    if (lvl)
-                    {
-                        return lvl;
-                    }
-                }
-            }
-
-        }
-    }
-    return nullptr;
-}
-
-std::unique_ptr<Oddlib::IStream> ResourceLocator::HackTemp(const char* fileToFind)
-{
-    for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
-    {
-        if (!fs.mIsMod)
-        {
-            const std::vector<ResourceMapper::DataSetFileAttributes>* locationsInThisDataSet = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), fileToFind);
-            if (locationsInThisDataSet)
-            {
-                for (const ResourceMapper::DataSetFileAttributes& attributes : *locationsInThisDataSet)
-                {
-                    std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, attributes.mLvlName);
-                    if (lvl)
-                    {
-                        auto lvlFile = lvl->FileByName(fileToFind);
-                        if (lvlFile)
-                        {
-                            auto chunk = lvlFile->ChunkByIndex(0);
-                            return chunk->Stream();
-                        }
-                    }
-
-                }
-            }
-
-        }
-    }
-    return nullptr;
-}
-
 std::unique_ptr<ISoundEffect> ResourceLocator::LocateSoundEffect(const char* /*resourceName*/)
 {
+    // TODO
     return nullptr;
 }
 
