@@ -59,6 +59,11 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
   #message("RELEASE set")
 endif ()
 
+
+if (UNIX AND NOT APPLE)
+FIND_PACKAGE(GTK3 COMPONENTS gtk)
+endif()
+
 include_directories(
     include
     ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers
@@ -84,6 +89,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/rapidjson/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${GTK3_INCLUDE_DIRS}
 )
 
 SET(nativefiledialog_src 
@@ -101,7 +107,7 @@ if(UNIX AND APPLE)
 endif()
 
 if(WIN32)
-    SET(nativefiledialog_src ${nativefiledialog_src} ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_win.cpp)  
+    SET(nativefiledialog_src ${nativefiledialog_src} ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_win.cpp)
 endif()
 
 add_library(nativefiledialog STATIC ${nativefiledialog_src})
@@ -291,7 +297,7 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(UNIX AND NOT APPLE)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES})
 ELSE()
     SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate nativefiledialog)
 ENDIF()
