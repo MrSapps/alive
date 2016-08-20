@@ -89,7 +89,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/rapidjson/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${GTK_INCLUDE_DIRS}
+    ${GTK_INCLUDE_DIR}
 )
 
 SET(nativefiledialog_src 
