@@ -82,8 +82,30 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate/common
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/rapidjson/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+SET(nativefiledialog_src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include/nfd.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/common.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_common.c
+)
+
+if(UNIX AND NOT APPLE)
+    SET(nativefiledialog_src ${nativefiledialog_src} ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_gtk.c)
+endif()
+
+if(UNIX AND APPLE)
+    SET(nativefiledialog_src ${nativefiledialog_src} ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_cocoa.m)
+endif()
+
+if(WIN32)
+    SET(nativefiledialog_src ${nativefiledialog_src} ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_win.cpp)  
+endif()
+
+add_library(nativefiledialog STATIC ${nativefiledialog_src})
+SET_PROPERTY(TARGET nativefiledialog PROPERTY FOLDER "3rdparty")
 
 SET(lodepng_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/lodepng/lodepng.cpp
@@ -269,9 +291,9 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(UNIX AND NOT APPLE)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog)
 ELSE()
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate)
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate nativefiledialog)
 ENDIF()
 
 #cotire(Alive)
@@ -429,6 +451,8 @@ if (MSVC)
     endif()
     
     # Use default flags on 3rd party things that generate warnings on max levels
+    
+    set_source_files_properties(${nativefiledialog_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS /wd4018 /wd4267 /wd4334 /wd4244")
     set_source_files_properties(${libdeflate_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267 /wd4334 /wd4244")
     set_source_files_properties(${lodepng_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267 /wd4334")
     set_source_files_properties(${stk_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267")

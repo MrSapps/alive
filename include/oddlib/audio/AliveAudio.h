@@ -59,7 +59,7 @@ public:
 
     // Can be changed from outside class
     AudioInterpolation Interpolation = AudioInterpolation_hermite;
-    bool AntiAliasFilteringEnabled = false;
+    bool mAntiAliasFilteringEnabled = false;
     bool ForceReverb = false;
     f32 ReverbMix = 0.5f;
     bool DebugDisableVoiceResampling = false;

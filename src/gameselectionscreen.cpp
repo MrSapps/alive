@@ -1,6 +1,7 @@
 #include "gameselectionscreen.hpp"
 #include "developerscreen.hpp"
 #include "gui.h"
+#include "nfd.h"
 
 void GameSelectionScreen::Update()
 {
@@ -28,6 +29,23 @@ void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
 
     if (gui_button(mGui, "Start game"))
     {
+
+        nfdchar_t *outPath = NULL;
+        nfdresult_t result = NFD_OpenDialog(NULL, NULL, &outPath);
+
+        if (result == NFD_OKAY) {
+            puts("Success!");
+            puts(outPath);
+            free(outPath);
+        }
+        else if (result == NFD_CANCEL) {
+            puts("User pressed cancel.");
+        }
+        else {
+            printf("Error: %s\n", NFD_GetError());
+        }
+
+
         const GameDefinition& userSelectedGameDef = *mVisibleGameDefinitions[mSelectedGameDefintionIndex];
 
         DataSetMap requiredDataSets;

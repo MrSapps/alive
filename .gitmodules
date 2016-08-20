@@ -28,3 +28,6 @@
 [submodule "3rdParty/rapidjson"]
 	path = 3rdParty/rapidjson
 	url = https://github.com/miloyip/rapidjson.git
+[submodule "3rdParty/nativefiledialog"]
+	path = 3rdParty/nativefiledialog
+	url = https://github.com/mlabbe/nativefiledialog.git
