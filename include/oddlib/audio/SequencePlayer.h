@@ -7,6 +7,7 @@
 #include "oddlib/stream.hpp"
 #include "oddlib/audio/AliveAudio.h"
 #include "stdthread.h"
+#include "types.hpp"
 
 struct SeqHeader
 {
@@ -55,10 +56,10 @@ struct AliveAudioMidiMessage
         Special = special;
     }
     AliveAudioMidiMessageType Type;
-    int Channel;
-    int Note;
-    char Velocity;
-    int TimeOffset;
+    int Channel = 0;
+    int Note = 0;
+    char Velocity = 0;
+    int TimeOffset = 0;
     int Special = 0;
 };
 
@@ -68,15 +69,16 @@ public:
     SequencePlayer(AliveAudio& aliveAudio);
     ~SequencePlayer();
 
-    int LoadSequenceData(std::vector<u8> seqData);
-    int LoadSequenceStream(Oddlib::Stream& stream);
+
+    int LoadSequenceStream(Oddlib::IStream& stream);
     void PlaySequence();
     void StopSequence();
 
     f64 MidiTimeToSample(int time);
-    Uint64 GetPlaybackPositionSample();
+    u64 GetPlaybackPositionSample();
 
-    int m_TrackID = 1; // The track ID. Use this to seperate SoundFX from Music.
+    // TODO: Shouldn't really be required anymore
+    int m_TrackID = 1; // The track ID. Use this to separate SoundFX from Music.
     AliveAudioSequencerState m_PlayerState = ALIVE_SEQUENCER_STOPPED;
 
     // Gets called every time the play position is at 1/4 of the song.
@@ -90,7 +92,7 @@ public:
     int m_PrevBar = 0;
     int m_TimeSignatureBars = 0;
     f64 m_SongTempo = 1.0f;
-    void m_PlayerThreadFunction();
+    void PlayerThreadFunction();
 
 private:
     std::vector<AliveAudioMidiMessage> m_MessageList;

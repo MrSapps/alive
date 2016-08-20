@@ -1,60 +1,12 @@
 #include "oddlib/audio/AliveAudio.h"
 #include "filesystem.hpp"
 
+/*
 static f32 RandFloat(f32 a, f32 b)
 {
     return ((b - a)*((f32)rand() / RAND_MAX)) + a;
 }
-
-void AliveAudio::LoadJsonConfig(std::string filePath, FileSystem& fs)
-{
-    std::string jsonData = fs.GameData().Open(filePath)->LoadAllToString();
-    jsonxx::Object obj;
-    obj.parse(jsonData);
-
-    m_Config.import(obj);
-}
-
-void AliveAudio::AliveInitAudio(FileSystem& fs)
-{
-    /*
-    SDL_Init(SDL_INIT_AUDIO);
-    // UGLY FIX ALL OF THIS
-    // |
-    // V
-    SDL_AudioSpec waveSpec;
-    waveSpec.callback = AliveAudioSDLCallback;
-    waveSpec.userdata = nullptr;
-    waveSpec.channels = 2;
-    waveSpec.freq = AliveAudioSampleRate;
-    waveSpec.samples = 512;
-    waveSpec.format = AUDIO_F32;
-
-    // Open the audio device
-    if (SDL_OpenAudio(&waveSpec, NULL) < 0)
-    {
-        fprintf(stderr, "Failed to initialize audio: %s\n", SDL_GetError());
-        exit(-1);
-    }
-    */
-
-    LoadJsonConfig("data/themes.json", fs);
-    LoadJsonConfig("data/sfx_list.json", fs);
-
-    /*
-    auto soundsDatSteam = fs.ResourcePaths().Open("sounds.dat");
-    if (!soundsDatSteam)
-    {
-        throw Oddlib::Exception("sounds.dat not found");
-    }
-
-    m_SoundsDat = std::vector<unsigned char>(soundsDatSteam->Size()); // Plus one, just in case interpolating tries to go that one byte further!
-    
-    soundsDatSteam->Read(m_SoundsDat);
-    */
-
-    SDL_PauseAudio(0);
-}
+*/
 
 void AliveAudio::CleanVoices()
 {
@@ -202,6 +154,7 @@ void AliveAudio::Play(u8* stream, u32 len)
     AliveRenderAudio(reinterpret_cast<f32*>(stream), len / sizeof(f32));
 }
 
+/*
 void AliveAudio::PlayOneShot(int program, int note, f32 volume, f32 pitch)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
@@ -219,7 +172,9 @@ void AliveAudio::PlayOneShot(int program, int note, f32 volume, f32 pitch)
         }
     }
 }
+*/
 
+/*
 void AliveAudio::PlayOneShot(std::string soundID)
 {
     jsonxx::Array soundList = m_Config.get<jsonxx::Array>("sounds");
@@ -242,11 +197,12 @@ void AliveAudio::PlayOneShot(std::string soundID)
         }
     }
 }
+*/
 
 void AliveAudio::NoteOn(int program, int note, char velocity, f32 /*pitch*/, int trackID, f64 trackDelay)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
-    for (auto& tone : m_CurrentSoundbank->m_Programs[program]->m_Tones)
+    for (auto& tone : m_Soundbank->m_Programs[program]->m_Tones)
     {
         if (note >= tone->Min && note <= tone->Max)
         {
@@ -293,10 +249,12 @@ void AliveAudio::NoteOffDelay(int program, int note, int trackID, f32 trackDelay
     }
 }
 
+/*
 void AliveAudio::DebugPlayFirstToneSample(int program, int tone)
 {
     PlayOneShot(program, (m_CurrentSoundbank->m_Programs[program]->m_Tones[tone]->Min + m_CurrentSoundbank->m_Programs[program]->m_Tones[tone]->Max) / 2, 1);
 }
+*/
 
 void AliveAudio::ClearAllVoices(bool forceKill)
 {
@@ -365,19 +323,5 @@ void AliveAudio::ClearAllTrackVoices(int trackID, bool forceKill)
 void AliveAudio::SetSoundbank(std::unique_ptr<AliveAudioSoundbank> soundbank)
 {
     ClearAllVoices(true);
-    m_CurrentSoundbank = std::move(soundbank);
-}
-
-void AliveAudio::LoadAllFromLvl(Oddlib::LvlArchive& archive, std::string vabID, std::string seqFile)
-{
-    m_LoadedSeqData.clear();
-    SetSoundbank(std::make_unique<AliveAudioSoundbank>(archive, vabID, *this));
-    auto file = archive.FileByName(seqFile);
-    if (file)
-    {
-        for (size_t i = 0; i < file->ChunkCount(); i++)
-        {
-            m_LoadedSeqData.push_back(file->ChunkByIndex(static_cast<u32>(i))->ReadData());
-        }
-    }
+    m_Soundbank = std::move(soundbank);
 }

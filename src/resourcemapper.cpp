@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "fmv.hpp"
 #include "oddlib/bits_factory.hpp"
+#include "oddlib/audio/vab.hpp"
 #include <cmath>
 
 const /*static*/ f32 Animation::kPcToPsxScaleFactor = 1.73913043478f;
@@ -204,6 +205,98 @@ std::unique_ptr<Oddlib::IStream> ResourceLocator::HackTemp(const char* fileToFin
                 }
             }
 
+        }
+    }
+    return nullptr;
+}
+
+std::unique_ptr<ISoundEffect> ResourceLocator::LocateSoundEffect(const char* /*resourceName*/)
+{
+    return nullptr;
+}
+
+std::unique_ptr<IMusic> ResourceLocator::LocateMusic(const char* resourceName)
+{
+    const ResourceMapper::MusicMapping* mapping = mResMapper.FindMusic(resourceName);
+    if (mapping)
+    {
+        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+        {
+            if (fs.mIsMod)
+            {
+                // TODO: Mod music
+            }
+            else
+            {
+                if (fs.mDataSetName == mapping->mDataSetName)
+                {
+                    std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, mapping->mLvl);
+                    if (lvl)
+                    {
+                        auto lvlFile = lvl->FileByName(mapping->mFileName);
+                        if (lvlFile)
+                        {
+                            std::unique_ptr<Vab> vab = LocateSoundBank(mapping->mSoundBankName.c_str());
+                            if (vab)
+                            {
+                                auto chunk = lvlFile->ChunkByIndex(mapping->mIndex);
+                                auto stream = chunk->Stream();
+                                return std::make_unique<IMusic>(std::move(vab), std::move(stream));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+std::unique_ptr<Vab> ResourceLocator::LocateSoundBank(const char* resourceName)
+{
+    const ResourceMapper::SoundBankMapping* mapping = mResMapper.FindSoundBank(resourceName);
+    if (mapping)
+    {
+        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+        {
+            // Note: Its not possible to load a modded sound bank, instead sounds are replaced at
+            // the music/sound effect level
+            if (!fs.mIsMod && fs.mDataSetName == mapping->mDataSetName)
+            {
+                std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, mapping->mLvl);
+                if (lvl)
+                {
+                    // The attributes for the VB/VH should be the same, so just look up the VH attributes
+                    const ResourceMapper::DataSetFileAttributes* attributes = mResMapper.FindFileAttributes(mapping->mVabHeader, mapping->mDataSetName, mapping->mLvl);
+                    if (attributes)
+                    {
+                        auto vhFile = lvl->FileByName(mapping->mVabHeader);
+                        auto vbFile = lvl->FileByName(mapping->mVabBody);
+
+                        if (vhFile && vbFile)
+                        {
+                            auto vab = std::make_unique<Vab>();
+
+                            // Read VH
+                            auto vhStream = vhFile->ChunkByIndex(0)->Stream();
+                            vab->ReadVh(*vhStream, attributes->mIsPsx);
+
+                            // Get sounds.dat for VB if required
+                            const bool useSoundsDat = fs.mFileSystem->FileExists("sounds.dat");
+                            std::unique_ptr<Oddlib::IStream> soundsDatStream;
+                            if (useSoundsDat)
+                            {
+                                soundsDatStream = fs.mFileSystem->Open("sounds.dat");
+                            }
+
+                            // Read VB
+                            auto vbStream = vbFile->ChunkByIndex(0)->Stream();
+                            vab->ReadVb(*vbStream, attributes->mIsPsx, useSoundsDat, soundsDatStream.get());
+                            return vab;
+                        }
+                    }
+                }
+            }
         }
     }
     return nullptr;

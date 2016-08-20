@@ -15,13 +15,13 @@ SequencePlayer::~SequencePlayer()
 }
 
 // Midi stuff
-static void _SndMidiSkipLength(Oddlib::Stream& stream, int skip)
+static void SndMidiSkipLength(Oddlib::IStream& stream, int skip)
 {
     stream.Seek(stream.Pos() + skip);
 }
 
 // Midi stuff
-static u32 _MidiReadVarLen(Oddlib::Stream& stream)
+static u32 MidiReadVarLen(Oddlib::IStream& stream)
 {
     u32 ret = 0;
     u8 byte = 0;
@@ -44,7 +44,7 @@ f64 SequencePlayer::MidiTimeToSample(int time)
 }
 
 // TODO: This thread spin locks
-void SequencePlayer::m_PlayerThreadFunction()
+void SequencePlayer::PlayerThreadFunction()
 {
     int channels[16] = {};
 
@@ -107,7 +107,7 @@ void SequencePlayer::m_PlayerThreadFunction()
     }
 }
 
-Uint64 SequencePlayer::GetPlaybackPositionSample()
+u64 SequencePlayer::GetPlaybackPositionSample()
 {
     return mAliveAudio.currentSampleIndex - m_SongBeginSample;
 }
@@ -132,14 +132,7 @@ void SequencePlayer::PlaySequence()
     m_PlayerStateMutex.unlock();
 }
 
-int SequencePlayer::LoadSequenceData(std::vector<u8> seqData)
-{
-    Oddlib::Stream stream(std::move(seqData));
-
-    return LoadSequenceStream(stream);
-}
-
-int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
+int SequencePlayer::LoadSequenceStream(Oddlib::IStream& stream)
 {
     StopSequence();
     m_MessageList.clear();
@@ -177,7 +170,7 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
     for (;;)
     {
         // Read event delta time
-        u32 delta = _MidiReadVarLen(stream);
+        u32 delta = MidiReadVarLen(stream);
         deltaTime += delta;
         //std::cout << "Delta: " << delta << " over all " << deltaTime << std::endl;
 
@@ -261,7 +254,7 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
                 //std::cout << "Unknown meta event " << u32(metaCommand) << std::endl;
                 // Skip unknown events
                 // TODO Might be wrong
-                _SndMidiSkipLength(stream, metaCommandLength);
+                SndMidiSkipLength(stream, metaCommandLength);
             }
             }
         }
@@ -340,8 +333,8 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
             break;
             case 0xf: // Sysex len
             {
-                const u32 length = _MidiReadVarLen(stream);
-                _SndMidiSkipLength(stream, length);
+                const u32 length = MidiReadVarLen(stream);
+                SndMidiSkipLength(stream, length);
             }
             break;
             default:

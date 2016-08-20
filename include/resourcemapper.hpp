@@ -23,6 +23,7 @@
 #include "oddlib/anim.hpp"
 #include "renderer.hpp"
 #include "oddlib/path.hpp"
+#include "oddlib/audio/vab.hpp"
 
 // Remove more windows.h pollution
 #undef GetObject
@@ -1049,6 +1050,7 @@ public:
             mFileLocations = std::move(rhs.mFileLocations);
             mPathMaps = std::move(rhs.mPathMaps);
             mMusicMaps = std::move(rhs.mMusicMaps);
+            mSoundBankMaps = std::move(rhs.mSoundBankMaps);
         }
         return *this;
     }
@@ -1224,6 +1226,33 @@ public:
                 return &dataSetIt->second;
             }
         }
+        return nullptr;
+    }
+
+
+    const DataSetFileAttributes* FindFileAttributes(const std::string& fileName, const std::string& dataSetName, const std::string& lvlName)
+    {
+        auto fileNameIt = mFileLocations.find(fileName);
+        if (fileNameIt == std::end(mFileLocations))
+        {
+            return nullptr;
+        }
+
+        auto dataSetIt = fileNameIt->second.find(dataSetName);
+        if (dataSetIt == std::end(fileNameIt->second))
+        {
+            return nullptr;
+        }
+
+        // TODO: More performant look up
+        for (const DataSetFileAttributes& attr : dataSetIt->second)
+        {
+            if (attr.mLvlName == lvlName)
+            {
+                return &attr;
+            }
+        }
+
         return nullptr;
     }
 
@@ -1722,6 +1751,29 @@ private:
     std::map<std::string, std::weak_ptr<Oddlib::AnimationSet>> mAnimationSets;
 };
 
+// TODO: Provide higher level abstraction so this can be a vab/seq or ogg stream
+class IMusic
+{
+public:
+    IMusic(std::unique_ptr<Vab> vab, std::unique_ptr<Oddlib::IStream> seq)
+        : mVab(std::move(vab)), mSeqData(std::move(seq))
+    {
+
+    }
+
+    virtual ~IMusic() = default;
+
+    std::unique_ptr<Vab> mVab;
+    std::unique_ptr<Oddlib::IStream> mSeqData;
+};
+
+
+// TODO
+class ISoundEffect
+{
+
+};
+
 class ResourceLocator
 {
 public:
@@ -1740,10 +1792,13 @@ public:
     std::shared_ptr<Oddlib::LvlArchive> HackTemp2(const char* fileToFind);
     std::unique_ptr<Oddlib::IStream> HackTemp(const char* lvlFile);
 
+    std::unique_ptr<ISoundEffect> LocateSoundEffect(const char* resourceName);
+    std::unique_ptr<IMusic> LocateMusic(const char* resourceName);
+
+    // TODO: Should be returning higher level abstraction
     std::unique_ptr<Oddlib::Path> LocatePath(const char* resourceName);
     std::unique_ptr<Oddlib::IBits> LocateCamera(const char* resourceName);
     std::unique_ptr<class IMovie> LocateFmv(class IAudioController& audioController, const char* resourceName);
-
     std::unique_ptr<Animation> LocateAnimation(const char* resourceName);
 
     // This method should be used for debugging only - i.e so we can compare what resource X looks like
@@ -1752,6 +1807,8 @@ public:
 
     std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui, const char* filter);
 private:
+    std::unique_ptr<Vab> LocateSoundBank(const char* resourceName);
+
     std::unique_ptr<Animation> DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
 
     std::unique_ptr<IMovie> DoLocateFmv(IAudioController& audioController, const char* resourceName, const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping);

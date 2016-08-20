@@ -23,7 +23,6 @@ public:
     void Render(GuiContext *gui, int w, int h);
 private:
     void BarLoop();
-    void ChangeTheme(const std::deque<std::string>& parts);
 private:
     GameData& mGameData;
     IAudioController& mAudioController;

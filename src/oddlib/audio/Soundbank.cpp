@@ -2,34 +2,8 @@
 
 #include <algorithm>
 
-AliveAudioSoundbank::AliveAudioSoundbank(Oddlib::LvlArchive& archive, std::string vabID, AliveAudio& aliveAudio)
+AliveAudioSoundbank::AliveAudioSoundbank(Vab& vab, AliveAudio& aliveAudio)
 {
-    Oddlib::LvlArchive::File* vhFile = archive.FileByName(vabID + ".VH");
-    Oddlib::LvlArchive::File* vbFile = archive.FileByName(vabID + ".VB");
-
-    auto vhStream = vhFile->ChunkByIndex(0)->Stream();
-    auto vbStream = vbFile->ChunkByIndex(0)->Stream();
-
-    Vab vab;
-    vab.ReadVh(*vhStream, true);
-    vab.ReadVb(*vbStream, true, false);
-
-    InitFromVab(vab, aliveAudio);
-}
-
-AliveAudioSoundbank::AliveAudioSoundbank(std::string lvlPath, std::string vabID, AliveAudio& aliveAudio)
-{
-    Oddlib::LvlArchive archive(lvlPath);
-    Oddlib::LvlArchive::File* vhFile = archive.FileByName(vabID + ".VH");
-    Oddlib::LvlArchive::File* vbFile = archive.FileByName(vabID + ".VB");
-
-    auto vhStream = vhFile->ChunkByIndex(0)->Stream();
-    auto vbStream = vbFile->ChunkByIndex(0)->Stream();
-
-    Vab vab;
-    vab.ReadVh(*vhStream, true);
-    vab.ReadVb(*vbStream, true, false);
-
     InitFromVab(vab, aliveAudio);
 }
 
