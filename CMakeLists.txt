@@ -449,8 +449,8 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTI
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.lua" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/Roboto-Regular.ttf" DESTINATION "${DATA_DIR}")
 
+SET(OLD_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
- SET(OLD_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 if (MSVC)
     # Build cpp files on all cores
   
@@ -473,6 +473,10 @@ if (MSVC)
 else()
     set_source_files_properties(${stk_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-sign-compare")
     set_source_files_properties(${nanovg_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-unused-result")
+
+    # Take off C++11/14/17+ flags as this source contains objective C src which fails with these flags
+    # hence explicity set the old flags before we add C++XX etc
+    set_source_files_properties(${nativefiledialog_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS}")
 
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # C++14 by default
