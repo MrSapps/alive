@@ -476,7 +476,7 @@ else()
 
     # Take off C++11/14/17+ flags as this source contains objective C src which fails with these flags
     # hence explicity set the old flags before we add C++XX etc
-    set_source_files_properties(${nativefiledialog_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS}")
+    set_source_files_properties(${nativefiledialog_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} std=c++98")
 
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # C++14 by default
