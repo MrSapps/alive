@@ -42,12 +42,7 @@ set(ALIVE_VERSION_PATCH 0)
 # Enable Visual Studio solution "folders"
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON) 
 
-# On Linux gtest needs pthreads
-if (UNIX)
-    find_package (Threads)
-endif()
-
-if ( APPLE )
+if (APPLE)
 # Required to prevent runtime crash on 64bit OSX - however this breaks 32bit compile
   set ( CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000 -image_base 7fff04c4a000" )
 endif()
@@ -59,9 +54,18 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
   #message("RELEASE set")
 endif ()
 
+if(UNIX AND NOT APPLE)
+   set(LINUX TRUE)
+endif()
 
-if (UNIX AND NOT APPLE)
-FIND_PACKAGE(GTK COMPONENTS gtk)
+# On Linux gtest needs pthreads
+if (LINUX)
+    find_package (Threads)
+endif()
+
+if (LINUX)
+  find_package (PkgConfig REQUIRED)
+  pkg_check_modules (GTK3 REQUIRED gtk+-3.0)
 endif()
 
 include_directories(
@@ -89,7 +93,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/rapidjson/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${GTK_INCLUDE_DIR}
+    ${GTK3_INCLUDE_DIRS}
 )
 
 SET(nativefiledialog_src 
@@ -98,11 +102,11 @@ SET(nativefiledialog_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_common.c
 )
 
-if(UNIX AND NOT APPLE)
+if(LINUX)
     SET(nativefiledialog_src ${nativefiledialog_src} ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_gtk.c)
 endif()
 
-if(UNIX AND APPLE)
+if(APPLE)
     SET(nativefiledialog_src ${nativefiledialog_src} ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_cocoa.m)
 endif()
 
@@ -295,9 +299,9 @@ add_executable(Alive MACOSX_BUNDLE
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 
-if(UNIX AND NOT APPLE)
+if(LINUX)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog ${GTK_LIBRARIES})
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES})
 ELSE()
     SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate nativefiledialog)
 ENDIF()
@@ -445,8 +449,8 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTI
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.lua" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/Roboto-Regular.ttf" DESTINATION "${DATA_DIR}")
 
+SET(OLD_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
- SET(OLD_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 if (MSVC)
     # Build cpp files on all cores
   
@@ -469,6 +473,10 @@ if (MSVC)
 else()
     set_source_files_properties(${stk_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-sign-compare")
     set_source_files_properties(${nanovg_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-unused-result")
+
+    # Take off C++11/14/17+ flags as this source contains objective C src which fails with these flags
+    # hence explicity set the old flags before we add C++XX etc
+    set_source_files_properties(${nativefiledialog_src} PROPERTIES COMPILE_FLAGS "")
 
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # C++14 by default
@@ -505,9 +513,8 @@ if(WIN32)
     #    message("DEBUG installer build")
     #endif()
 elseif(APPLE)
-    # APPLE is also UNIX, so must check for APPLE before UNIX
     SET(CPACK_GENERATOR "DragNDrop")
-elseif(UNIX)
+elseif(LINUX)
     # On Linux generate TAR.GZ,DEB and RPM packages
     #Find out what architecture are we running on and set the package architecture 
 endif()
