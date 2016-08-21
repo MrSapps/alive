@@ -1,4 +1,9 @@
+if (APPLE)
+# We need a newer version on apple otherwise compling objective-c files fails when mixed with C/C++ source
+cmake_minimum_required(VERSION 3.1)
+else()
 cmake_minimum_required(VERSION 2.8)
+endif()
 
 project(ALIVE)
 
