@@ -78,6 +78,19 @@ bool DataPaths::SetActiveDataPaths(IFileSystem& fs, const DataSetMap& paths)
     return ret;
 }
 
+/*static*/ std::string IFileSystem::Parent(const std::string& path)
+{
+    std::string ret = path;
+    NormalizePath(ret);
+
+    auto pos = ret.find_last_of('/');
+    if (pos != std::string::npos)
+    {
+        ret = ret.substr(0, pos);
+    }
+    return ret;
+}
+
 std::vector<std::tuple<const char*, const char*, bool>> ResourceMapper::DebugUi(class Renderer& /*renderer*/, GuiContext* gui, const char* filter)
 {
     // Collect the UI data/state

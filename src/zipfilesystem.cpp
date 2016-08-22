@@ -60,11 +60,6 @@ bool ZipFileSystem::LoadCentralDirectoryRecords()
 bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
 {
     const size_t fileSize = mStream->Size();
-    bool found = false;
-
-    // The ECRD is at the end of the file, so start at the end of the file and work towards
-    // the front looking for it. We start at end-22 since the size of an ECRD is 22 bytes.
-    size_t searchPos = kEndOfCentralDirectoryRecordSizeWithMagic;
 
     // The max search size is the size of the structure and the max comment length, if there
     // isn't an ECDR within this range then its not a ZIP file.
@@ -75,40 +70,47 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
         kMaxSearchPos = fileSize;
     }
 
+    // Move to the earliest possible start pos for the ECDR
+    const u32 baseOffset = fileSize - kMaxSearchPos;
+    mStream->Seek(baseOffset);
+    std::string buffer;
+    buffer.resize(kMaxSearchPos);
+    mStream->Read(buffer);
+
+    const std::string needle = { 'P', 'K', 0x05, 0x06 }; // AKA kEndOfCentralDirectory
+
+    size_t hint = 0;
     do
     {
-        // Keep moving backwards and see if we have the magic marker for an ECRD yet
-        u32 magic = 0;
-        mStream->Seek(fileSize - searchPos);
-        mStream->Read(magic);
-        if (magic == kEndOfCentralDirectory)
+        hint = buffer.find(needle, hint);
+        if (hint != std::string::npos)
         {
-            // We do so check that the pos after the stucture + comment len == file size
-            // and then seek to the central directory pos and check that it == correct magic
-            mEndOfCentralDirectoryRecord.DeSerialize(*mStream);
+            mStream->Seek(baseOffset + hint);
 
-            mStream->Seek(mEndOfCentralDirectoryRecord.mCentralDirectoryStartOffset);
-
-            u32 cdrMagic = 0;
-            mStream->Read(cdrMagic);
-            if (cdrMagic == kCentralDirectory)
+            u32 magic = 0;
+            mStream->Read(magic);
+            if (magic == kEndOfCentralDirectory)
             {
-                // Must be a valid ZIP and we are now at the CDR location
-                mStream->Seek(mStream->Pos() - sizeof(cdrMagic));
-                return true;
+                // We do so check that the pos after the stucture + comment len == file size
+                // and then seek to the central directory pos and check that it == correct magic
+                mEndOfCentralDirectoryRecord.DeSerialize(*mStream);
+                if (mEndOfCentralDirectoryRecord.mCentralDirectoryStartOffset < fileSize - sizeof(u32))
+                {
+                    mStream->Seek(mEndOfCentralDirectoryRecord.mCentralDirectoryStartOffset);
+                    u32 cdrMagic = 0;
+                    mStream->Read(cdrMagic);
+                    if (cdrMagic == kCentralDirectory)
+                    {
+                        // Must be a valid ZIP and we are now at the CDR location
+                        mStream->Seek(mStream->Pos() - sizeof(cdrMagic));
+                        return true;
+                    }
+                }
             }
+            hint++;
+        }
+    } while (hint != std::string::npos);
 
-            else
-            {
-                searchPos++;
-            }
-        }
-        else
-        {
-            // Didn't find the ECDR so keep going towards the start of the file
-            searchPos++;
-        }
-    } while (!found || searchPos >= kMaxSearchPos);
     return false;
 }
 

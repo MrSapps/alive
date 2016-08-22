@@ -164,6 +164,7 @@ public:
     };
 
     static std::unique_ptr<IFileSystem> Factory(IFileSystem& fs, const std::string& path);
+    static std::string Parent(const std::string& path);
 protected:
     struct DirectoryAndFileName
     {
@@ -753,27 +754,39 @@ public:
         //mGameFs.Open(mPathsFileName);
     }
 
-    std::string Add(const std::string& path)
+    bool Add(const std::string& path, const std::string& expectedId = "")
     {
-        std::string id = Identify(path);
+        std::string pathCopy = path;
+        std::string id = Identify(pathCopy); // May change pathCopy to parent dir
         if (!id.empty())
         {
             auto it = mPaths.find(id);
             if (it == std::end(mPaths))
             {
-                LOG_INFO("Path " << path << " identified as " << id);
-                mPaths[id] = path;
+               
+                if (expectedId.empty() == false && id != expectedId)
+                {
+                    LOG_ERROR("Path " << pathCopy << " identified as " << id << " but we are looking for " << expectedId);
+                    return false;
+                }
+                else
+                {
+                    LOG_INFO("Path " << pathCopy << " identified as " << id);
+                    mPaths[id] = pathCopy;
+                    return true;
+                }
             }
             else
             {
-                LOG_INFO("Path " << path
+                LOG_INFO("Path " << pathCopy
                     << " identified as " << id
                     << " but ignoring because we already have the following path "
                     << it->second
                     << " for " << id);
+                return false;
             }
         }
-        return id;
+        return false;
     }
 
     const std::string& PathFor(const std::string& id)
@@ -840,16 +853,29 @@ public:
     IFileSystem& GameFs() const { return mGameFs; }
 private:
 
-    std::string Identify(const std::string& path) const
+    std::string Identify(std::string& path) const
     {
+        std::string id;
         auto dataSetFs = IFileSystem::Factory(mGameFs, path);
-
-        std::string id = mIds.Identify(*dataSetFs);
-        if (id.empty())
+        if (dataSetFs)
         {
-            LOG_ERROR("Path " << path << " could not be identified");
+            id = mIds.Identify(*dataSetFs);
         }
+        if (id.empty() || !dataSetFs)
+        {
+            LOG_WARNING("Path " << path << " could not be identified, trying parent directory..");
+            path = IFileSystem::Parent(path);
+            dataSetFs = IFileSystem::Factory(mGameFs, path);
+            if (dataSetFs)
+            {
+                id = mIds.Identify(*dataSetFs);
+            }
 
+            if (id.empty())
+            {
+                LOG_ERROR("Path " << path << " could not be identified");
+            }
+        }
         return id;
     }
 

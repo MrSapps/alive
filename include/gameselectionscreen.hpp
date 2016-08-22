@@ -31,6 +31,10 @@ public:
 private:
     void FilterGameDefinitions();
 
+    void RenderSelectGame();
+    void RenderFindDataSets();
+    void LoadGameDefinition();
+
     const std::vector<GameDefinition>& mGameDefinitions;
     std::vector<const GameDefinition*> mVisibleGameDefinitions;
     struct GuiContext *mGui = nullptr;
@@ -40,4 +44,13 @@ private:
     ResourceLocator& mResLocator;
     size_t mSelectedGameDefintionIndex = 0;
     IFileSystem& mFs;
+    enum class eState
+    {
+        eSelectGame,
+        eFindDataSets
+    };
+    eState mState = eState::eSelectGame;
+    std::vector<std::string> mMissingDataPaths;
+    std::vector<std::string> mRequiredDataSetNames;
+    DataSetMap mRequiredDataSets;
 };
