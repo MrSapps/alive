@@ -151,6 +151,7 @@ namespace Oddlib
     public:
         explicit MemoryStream(std::vector<u8>&& data);
         virtual IStream* Clone() override;
+        virtual IStream* Clone(u32 start, u32 size) override { return Stream<std::stringstream>::Clone(start, size); }
     };
 
     class FileStream :public Stream<std::fstream>
@@ -158,6 +159,7 @@ namespace Oddlib
     public:
         explicit FileStream(const std::string& fileName, ReadMode mode);
         virtual IStream* Clone() override;
+        virtual IStream* Clone(u32 start, u32 size) override { return Stream<std::fstream>::Clone(start, size); }
     private:
         ReadMode mMode = IStream::ReadMode::ReadOnly;
     };
