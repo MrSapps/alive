@@ -732,42 +732,48 @@ public:
         return *this;
     }
 
-    DataPaths(IFileSystem& fs, const char* dataSetsIdsFileName, const char* dataPathFileName)
-        : mGameFs(fs), mIds(fs, dataSetsIdsFileName)
+    DataPaths(IFileSystem& fs, const char* idsFileName, const char* pathsFileName)
+        : mGameFs(fs), mPathsFileName(pathsFileName), mIds(fs, idsFileName)
     {
         TRACE_ENTRYEXIT;
-        if (fs.FileExists(dataPathFileName))
+        if (mGameFs.FileExists(mPathsFileName))
         {
-            auto stream = fs.Open(dataPathFileName);
+            auto stream = mGameFs.Open(mPathsFileName);
             std::vector<std::string> paths = Parse(stream->LoadAllToString());
-
             for (const auto& path : paths)
             {
-                auto dataSetFs = IFileSystem::Factory(fs, path);
-
-                std::string id = mIds.Identify(*dataSetFs);
-                if (id.empty())
-                {
-                    LOG_ERROR("Path " << path << " could not be identified");
-                    continue;
-                }
-
-                auto it = mPaths.find(id);
-                if (it == std::end(mPaths))
-                {
-                    LOG_INFO("Path " << path << " identified as " << id);
-                    mPaths[id] = path;
-                }
-                else
-                {
-                    LOG_INFO("Path " << path
-                        << " identified as " << id
-                        << " but ignoring because we already have the following path "
-                        << it->second
-                        << " for " << id);
-                }
+                Add(path);
             }
         }
+    }
+
+    void Persist()
+    {
+        // TODO: Stream write support
+        //mGameFs.Open(mPathsFileName);
+    }
+
+    std::string Add(const std::string& path)
+    {
+        std::string id = Identify(path);
+        if (!id.empty())
+        {
+            auto it = mPaths.find(id);
+            if (it == std::end(mPaths))
+            {
+                LOG_INFO("Path " << path << " identified as " << id);
+                mPaths[id] = path;
+            }
+            else
+            {
+                LOG_INFO("Path " << path
+                    << " identified as " << id
+                    << " but ignoring because we already have the following path "
+                    << it->second
+                    << " for " << id);
+            }
+        }
+        return id;
     }
 
     const std::string& PathFor(const std::string& id)
@@ -834,6 +840,19 @@ public:
     IFileSystem& GameFs() const { return mGameFs; }
 private:
 
+    std::string Identify(const std::string& path) const
+    {
+        auto dataSetFs = IFileSystem::Factory(mGameFs, path);
+
+        std::string id = mIds.Identify(*dataSetFs);
+        if (id.empty())
+        {
+            LOG_ERROR("Path " << path << " could not be identified");
+        }
+
+        return id;
+    }
+
     std::vector<FileSystemInfo> mActiveDataPaths;
 
     std::map<std::string, std::string> mPaths;
@@ -852,6 +871,8 @@ private:
 
     // The "owner" file system
     IFileSystem& mGameFs;
+
+    std::string mPathsFileName;
 
     // To match to what a game def wants (AePcCd1, AoDemoPsx etc)
     // we use SLUS codes for PSX or if it contains ABEWIN.EXE etc then its AoPc.
