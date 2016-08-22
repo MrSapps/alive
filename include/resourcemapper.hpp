@@ -797,21 +797,7 @@ public:
         rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
         jsonDoc.Accept(writer);
 
-        const char* jsonString = strbuf.GetString();  // to examine the encoding..
-
-
-        /*
-        jsonxx::Object doc;
-        jsonxx::Array paths;
-
-        for (const auto& path : mPaths)
-        {
-            paths << ("\"" + path.second + "\"");
-        }
-
-        doc << "paths" << paths;
-        */
-
+        const char* jsonString = strbuf.GetString();
         auto stream = mGameFs.Create(mPathsFileName);
         stream->Write(std::string(jsonString));
     }
