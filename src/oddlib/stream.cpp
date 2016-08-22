@@ -40,7 +40,7 @@ namespace Oddlib
 
         auto s = std::make_unique<std::fstream>();
 
-        u32 flags = std::ios::binary | std::ios::ate;
+        std::ios_base::openmode flags = std::ios::binary | std::ios::ate;
         if (mMode == IStream::ReadMode::ReadOnly)
         {
             flags |= std::ios::in;
@@ -50,7 +50,7 @@ namespace Oddlib
             flags |= std::ios::in | std::ios::out | std::ios::trunc;
         }
 
-        s->open(fileName, flags);
+        s->open(fileName.c_str(), flags);
         if (!*s)
         {
             if (mMode == IStream::ReadMode::ReadOnly)
