@@ -3,6 +3,31 @@ void load_layout(GuiContext *ctx)
 	ctx->layout_count = 0;
 	{
 		GuiElementLayout l = {0};
+		l.id = 209116459;
+		GUI_FMT_STR(l.str, sizeof(l.str), "%s", "Select missing paths");
+		l.on_same_row = 0;
+		l.has_offset = 1;
+		l.offset[0] = 55;
+		l.offset[1] = 39;
+		l.has_size = 1;
+		l.size[0] = 237;
+		l.size[1] = 378;
+		l.prevent_resizing = 0;
+		l.align_left = 0;
+		l.align_right = 0;
+		l.align_top = 0;
+		l.align_bottom = 0;
+		l.padding[0] = 0;
+		l.padding[1] = 0;
+		l.padding[2] = 0;
+		l.padding[3] = 0;
+		l.gap[0] = 0;
+		l.gap[1] = 0;
+		append_element_layout(ctx, l);
+	}
+
+	{
+		GuiElementLayout l = {0};
 		l.id = 329413595;
 		GUI_FMT_STR(l.str, sizeof(l.str), "%s", "gui_bar");
 		l.on_same_row = 0;
