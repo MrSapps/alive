@@ -25,6 +25,17 @@
 #include "oddlib/path.hpp"
 #include "oddlib/audio/vab.hpp"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4464)
+#endif
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 // Remove more windows.h pollution
 #undef GetObject
 #undef min
@@ -769,18 +780,40 @@ public:
 
     void Persist()
     {
-        auto stream = mGameFs.Create(mPathsFileName);
+        rapidjson::Document jsonDoc;
+        jsonDoc.SetObject();
+        rapidjson::Value pathsArray(rapidjson::kArrayType);
+        rapidjson::Document::AllocatorType& allocator = jsonDoc.GetAllocator();
 
-        jsonxx::Array paths;
+        for (const auto& path : mPaths)
+        {
+            rapidjson::Value str;
+            str.SetString(path.second.c_str(), allocator);
+            pathsArray.PushBack(str, allocator);
+        }
+
+        jsonDoc.AddMember("paths", pathsArray, allocator);
+        rapidjson::StringBuffer strbuf;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
+        jsonDoc.Accept(writer);
+
+        const char* jsonString = strbuf.GetString();  // to examine the encoding..
+
 
         /*
-        for (const auto& id : mIds)
+        jsonxx::Object doc;
+        jsonxx::Array paths;
+
+        for (const auto& path : mPaths)
         {
-            paths << id.first;
+            paths << ("\"" + path.second + "\"");
         }
+
+        doc << "paths" << paths;
         */
 
-        stream->Write(paths.json());
+        auto stream = mGameFs.Create(mPathsFileName);
+        stream->Write(std::string(jsonString));
     }
 
     bool Add(const std::string& path, const std::string& expectedId = "")

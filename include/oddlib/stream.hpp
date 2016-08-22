@@ -5,6 +5,7 @@
 #include <memory>
 #include <array>
 #include <fstream>
+#include <sstream>
 #include "SDL.h"
 #include "types.hpp"
 
