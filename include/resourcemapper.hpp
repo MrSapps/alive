@@ -25,14 +25,14 @@
 #include "oddlib/path.hpp"
 #include "oddlib/audio/vab.hpp"
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER > 1800
 #pragma warning(push)
 #pragma warning(disable: 4464)
 #endif
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER > 1800
 #pragma warning(pop)
 #endif
 
