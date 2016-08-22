@@ -223,7 +223,7 @@ public:
     void MergeReduceLvlChunks(IFileSystem& parentFs, const std::string& resourcePath, const std::vector<std::string>& lvlFiles, eDataSetType dataSet)
     {
         auto fs = IFileSystem::Factory(parentFs, resourcePath);
-        if (!fs->Init())
+        if (!fs)
         {
             throw std::runtime_error("FS init failed");
         }
@@ -706,13 +706,11 @@ int main(int /*argc*/, char** /*argv*/)
         void CollectSounds(IFileSystem& parentFs, eDataSetType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         {
             auto fs = IFileSystem::Factory(parentFs, resourcePath);
-            if (!fs->Init())
+            if (!fs)
             {
                 throw std::runtime_error("FS init failed");
             }
 
-
-          
             for (const std::string& lvl : lvls)
             {
                 Sounds& sounds = mSounds.mSounds[eType][lvl];

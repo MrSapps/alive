@@ -84,6 +84,15 @@ void GameSelectionScreen::RenderFindDataSets()
             }
         }
     }
+
+    if (gui_button(mGui, "Back"))
+    {
+        mMissingDataPaths.clear();
+        mRequiredDataSetNames.clear();
+        mRequiredDataSets.clear();
+        mState = eState::eSelectGame;
+    }
+
     gui_end_window(mGui);
 
     if (regenerate)

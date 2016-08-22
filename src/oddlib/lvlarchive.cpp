@@ -29,7 +29,7 @@ namespace Oddlib
 
     std::unique_ptr<Oddlib::IStream> LvlArchive::FileChunk::Stream() const
     {
-        return std::make_unique<Oddlib::Stream>(ReadData());
+        return std::make_unique<MemoryStream>(ReadData());
     }
     
     bool LvlArchive::FileChunk::operator != (const FileChunk& rhs) const
@@ -151,7 +151,7 @@ namespace Oddlib
     // ===================================================================
 
     LvlArchive::LvlArchive(const std::string& fileName)
-        : mStream(std::make_unique<Stream>(fileName))
+        : mStream(std::make_unique<FileStream>(fileName, IStream::ReadMode::ReadOnly))
     {
         TRACE_ENTRYEXIT;
         Load();
@@ -165,7 +165,7 @@ namespace Oddlib
     }
 
     LvlArchive::LvlArchive(std::vector<u8>&& data)
-        : mStream(std::make_unique<Stream>(std::move(data)))
+        : mStream(std::make_unique<MemoryStream>(std::move(data)))
     {
         TRACE_ENTRYEXIT;
         Load();

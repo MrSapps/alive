@@ -13,6 +13,12 @@ namespace Oddlib
     class IStream
     {
     public:
+        enum class ReadMode
+        {
+            ReadOnly,
+            ReadWrite
+        };
+
         static std::vector<u8> ReadAll(IStream& stream)
         {
             const auto oldPos = stream.Pos();
@@ -63,10 +69,17 @@ namespace Oddlib
             ReadBytes(reinterpret_cast<u8*>(&value[0]), sizeof(T)* count);
         }
 
+        // Write a string
+        void Write(const std::string& type)
+        {
+            WriteBytes(reinterpret_cast<const u8*>(&type[0]), type.size());
+        }
+
         virtual ~IStream() = default;
         virtual IStream* Clone() = 0;
         virtual IStream* Clone(u32 start, u32 size) = 0;
         virtual void ReadBytes(u8* pDest, size_t destSize) = 0;
+        virtual void WriteBytes(const u8* pSrc, size_t srcSize) = 0;
         virtual void Seek(size_t pos) = 0;
         virtual size_t Pos() const = 0;
         virtual size_t Size() const = 0;
@@ -112,24 +125,39 @@ namespace Oddlib
         return ret;
     }
 
+    template<class T = std::ifstream>
     class Stream : public IStream
     {
     public:
-        explicit Stream(const std::string& fileName);
-        explicit Stream(std::vector<u8>&& data);
-        virtual IStream* Clone() override;
         virtual IStream* Clone(u32 start, u32 size) override;
         virtual void ReadBytes(u8* pDest, size_t destSize) override;
+        virtual void WriteBytes(const u8* pDest, size_t destSize) override;
         virtual void Seek(size_t pos) override;
         virtual size_t Pos() const override;
         virtual size_t Size() const override;
         virtual bool AtEnd() const override;
         virtual const std::string& Name() const override { return mName; }
         virtual std::string LoadAllToString() override;
-    private:
-        mutable std::unique_ptr<std::istream> mStream;
+    protected:
+        Stream() = default;
+        mutable std::unique_ptr<T> mStream;
         size_t mSize = 0;
         std::string mName;
-        bool mFromMemoryBuffer = false;
+    };
+
+    class MemoryStream : public Stream<std::stringstream>
+    {
+    public:
+        explicit MemoryStream(std::vector<u8>&& data);
+        virtual IStream* Clone() override;
+    };
+
+    class FileStream :public Stream<std::fstream>
+    {
+    public:
+        explicit FileStream(const std::string& fileName, ReadMode mode);
+        virtual IStream* Clone() override;
+    private:
+        ReadMode mMode = IStream::ReadMode::ReadOnly;
     };
 }

@@ -149,6 +149,8 @@ public:
     virtual ~IFileSystem() = default;
     
     virtual bool Init() { return true; }
+
+    virtual std::unique_ptr<Oddlib::IStream> Create(const std::string& fileName) = 0;
     virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) = 0;
 
     virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) = 0;
@@ -246,7 +248,12 @@ public:
 
     virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) override
     {
-        return std::make_unique<Oddlib::Stream>(ExpandPath(fileName));
+        return std::make_unique<Oddlib::FileStream>(ExpandPath(fileName), Oddlib::IStream::ReadMode::ReadOnly);
+    }
+
+    virtual std::unique_ptr<Oddlib::IStream> Create(const std::string& fileName) override
+    {
+        return std::make_unique<Oddlib::FileStream>(ExpandPath(fileName), Oddlib::IStream::ReadMode::ReadWrite);
     }
 
 #ifdef _WIN32
@@ -498,6 +505,11 @@ public:
         return mFs.Open(LimitPath(fileName));
     }
 
+    virtual std::unique_ptr<Oddlib::IStream> Create(const std::string& fileName) override final
+    {
+        return mFs.Create(LimitPath(fileName));
+    }
+
     virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override final
     {
         return mFs.EnumerateFiles(LimitPath(directory), filter);
@@ -549,6 +561,12 @@ public:
     {
         // Only PSX FMV's need raw sector reading, everything else is a "normal" file
         return mRawCdImage.ReadFile(fileName, string_util::ends_with(fileName, ".MOV", true));
+    }
+
+    virtual std::unique_ptr<Oddlib::IStream> Create(const std::string& /*fileName*/) override
+    {
+        TRACE_ENTRYEXIT;
+        throw Oddlib::Exception("Create is not implemented");
     }
 
     virtual std::vector<std::string> EnumerateFiles(const std::string& /*directory*/, const char* /*filter*/) override
@@ -728,6 +746,7 @@ public:
 
     DataPaths& operator = (DataPaths&& other)
     {
+        mPathsFileName = std::move(other.mPathsFileName);
         mIds = std::move(other.mIds);
         mPaths = std::move(other.mPaths);
         return *this;
@@ -750,8 +769,18 @@ public:
 
     void Persist()
     {
-        // TODO: Stream write support
-        //mGameFs.Open(mPathsFileName);
+        auto stream = mGameFs.Create(mPathsFileName);
+
+        jsonxx::Array paths;
+
+        /*
+        for (const auto& id : mIds)
+        {
+            paths << id.first;
+        }
+        */
+
+        stream->Write(paths.json());
     }
 
     bool Add(const std::string& path, const std::string& expectedId = "")

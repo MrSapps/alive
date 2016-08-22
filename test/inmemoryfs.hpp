@@ -70,7 +70,13 @@ public:
         }
 
 
-        return std::make_unique<Oddlib::Stream>(std::vector<u8>(file->mData));
+        return std::make_unique<Oddlib::MemoryStream>(std::vector<u8>(file->mData));
+    }
+
+    virtual std::unique_ptr<Oddlib::IStream> Create(const std::string& /*fileName*/) override
+    {
+        TRACE_ENTRYEXIT;
+        throw Oddlib::Exception("Create is not implemented");
     }
 
     virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override

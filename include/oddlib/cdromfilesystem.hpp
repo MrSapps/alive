@@ -5,6 +5,7 @@
 #include "oddlib/exceptions.hpp"
 #include "oddlib/exceptions.hpp"
 #include "oddlib/stream.hpp"
+#include "logger.hpp"
 #include <cassert>
 
 class InvalidCdImageException : public Oddlib::Exception
@@ -27,13 +28,13 @@ public:
     RawCdImage& operator = (const RawCdImage&) = delete;
 
     RawCdImage(const std::string& fileName)
-        : mStream(fileName)
+        : mStream(std::make_unique<Oddlib::FileStream>(fileName, Oddlib::IStream::ReadMode::ReadOnly))
     {
         ReadFileSystem();
     }
 
     RawCdImage(std::vector<u8>&& buffer)
-        : mStream(std::move(buffer))
+        : mStream(std::make_unique<Oddlib::MemoryStream>(std::move(buffer)))
     {
         ReadFileSystem();
     }
@@ -64,7 +65,7 @@ public:
         }
         // The raw cd bin image file stream will be cloned so that 2 open cd
         // files don't stomp on each others seek pos etc.
-        return std::make_unique<Stream>(record->mDr, record->mName, mStream, includeSubheaders);
+        return std::make_unique<CdFileStream>(record->mDr, record->mName, *mStream, includeSubheaders);
     }
 
 public:
@@ -309,7 +310,7 @@ public:
         do
         {
             //auto sizeToRead = dataSize;
-            Sector sector(dataSector++, mStream);
+            Sector sector(dataSector++, *mStream);
             //if (sizeToRead > sector.DataLength())
             {
                 //sizeToRead = sector.DataLength();
@@ -327,13 +328,13 @@ public:
         return data;
     }
 
-    class Stream : public Oddlib::IStream
+    class CdFileStream : public Oddlib::IStream
     {
     public:
-        Stream(const Stream&) = delete;
-        Stream& operator = (const Stream&) = delete;
+        CdFileStream(const CdFileStream&) = delete;
+        CdFileStream& operator = (const CdFileStream&) = delete;
 
-        Stream(const directory_record& dr, std::string name, Oddlib::IStream& stream, bool includeSubHeaders)
+        CdFileStream(const directory_record& dr, std::string name, Oddlib::IStream& stream, bool includeSubHeaders)
             : mIncludeSubHeader(includeSubHeaders), mDr(dr), mName(name), mStream(stream.Clone())
         {
             mSector = mDr.location.little;
@@ -343,7 +344,7 @@ public:
 
         virtual Oddlib::IStream* Clone() override
         {
-            return new Stream(mDr, mName, *mStream, mIncludeSubHeader);
+            return new CdFileStream(mDr, mName, *mStream, mIncludeSubHeader);
         }
 
         virtual Oddlib::IStream* Clone(u32 start, u32 size)
@@ -352,12 +353,18 @@ public:
             subDir.location.little += start;
             subDir.data_length.little = size * 2048;
             return new 
-                Stream(subDir, 
+                CdFileStream(subDir, 
                 mName + "sub(L"
                     + std::to_string(subDir.location.little) + "S" 
                     + std::to_string(subDir.data_length.little) + ")",
                 *mStream, 
                 mIncludeSubHeader);
+        }
+
+        virtual void WriteBytes(const u8* /*pSrc*/, size_t /*srcSize*/) override
+        {
+            TRACE_ENTRYEXIT;
+            throw Oddlib::Exception("WriteBytes not implemented");
         }
 
         virtual void ReadBytes(u8* pDest, size_t destSize) override
@@ -520,7 +527,7 @@ private:
 
         while (totalDataRead != dataSize)
         {
-            Sector sector(sectorNum++, mStream);
+            Sector sector(sectorNum++, *mStream);
             totalDataRead += sector.DataLength();
             directory_record* dr = (directory_record*)sector.DataPtr();
             while (dr->length)
@@ -562,7 +569,7 @@ private:
         do
         {
             secNum++;
-            Sector sector(secNum, mStream);
+            Sector sector(secNum, *mStream);
             volDesc = (volume_descriptor*)sector.DataPtr();
             if (volDesc->mType == 1)
             {
@@ -574,7 +581,7 @@ private:
         } while (volDesc->mType != 1);
     }
 
-    Oddlib::Stream mStream;
+    std::unique_ptr<Oddlib::IStream> mStream;
 public:
     struct DrWrapper
     {

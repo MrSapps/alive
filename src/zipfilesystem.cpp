@@ -71,7 +71,7 @@ bool ZipFileSystem::LocateEndOfCentralDirectoryRecord()
     }
 
     // Move to the earliest possible start pos for the ECDR
-    const u32 baseOffset = fileSize - kMaxSearchPos;
+    const size_t baseOffset = fileSize - kMaxSearchPos;
     mStream->Seek(baseOffset);
     std::string buffer;
     buffer.resize(kMaxSearchPos);
@@ -245,9 +245,15 @@ std::unique_ptr<Oddlib::IStream> ZipFileSystem::Open(const std::string& fileName
             out = buffer;
         }
 
-        return std::make_unique<Oddlib::Stream>(std::move(out));
+        return std::make_unique<Oddlib::MemoryStream>(std::move(out));
     }
-    return std::make_unique<Oddlib::Stream>(std::vector<u8>());
+    return std::make_unique<Oddlib::MemoryStream>(std::vector<u8>());
+}
+
+std::unique_ptr<Oddlib::IStream> ZipFileSystem::Create(const std::string& /*fileName*/)
+{
+    TRACE_ENTRYEXIT;
+    throw Oddlib::Exception("Create is not implemented");
 }
 
 std::vector<std::string> ZipFileSystem::EnumerateFiles(const std::string& directory, const char* filter)

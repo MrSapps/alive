@@ -486,7 +486,7 @@ void Engine::AddDirectoryBasedModDefinitionsFrom(std::string path)
         if (!modDefinitionFiles.empty())
         {
             auto fs = IFileSystem::Factory(*mFileSystem, path + "/" + possibleModDir + "/");
-            if (fs->Init())
+            if (fs)
             {
                 mGameDefinitions.emplace_back(*fs, modDefinitionFiles[0].c_str(), true);
             }
@@ -500,7 +500,7 @@ void Engine::AddZipsedModDefinitionsFrom(std::string path)
     for (const auto& possibleModZip : possibleModZips)
     {
         auto fs = IFileSystem::Factory(*mFileSystem, path + "/" + possibleModZip);
-        if (fs->Init())
+        if (fs)
         {
             auto modDefinitionFiles = fs->EnumerateFiles("", "game.json");
             if (!modDefinitionFiles.empty())

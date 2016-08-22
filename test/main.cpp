@@ -1740,7 +1740,7 @@ public:
 // Audio and video test
 TEST(Masher, all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave)
 {
-    TestMasher masher(std::make_unique<Oddlib::Stream>(get_all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave()));
+    TestMasher masher(std::make_unique<Oddlib::MemoryStream>(get_all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave()));
     ASSERT_TRUE(masher.HasVideo());
     ASSERT_TRUE(masher.HasAudio());
     ASSERT_EQ(258u, masher.Width());
@@ -1771,7 +1771,7 @@ TEST(Masher, all_colours_high_compression_30_fps)
 
 TEST(Masher, all_colours_low_compression_30_fps)
 {
-    TestMasher masher(std::make_unique<Oddlib::Stream>(get_all_colours_low_compression_30_fps()));
+    TestMasher masher(std::make_unique<Oddlib::MemoryStream>(get_all_colours_low_compression_30_fps()));
     ASSERT_TRUE(masher.HasVideo());
     ASSERT_FALSE(masher.HasAudio());
     ASSERT_EQ(258u, masher.Width());
@@ -1840,7 +1840,7 @@ TEST(Masher, stereo_8_low_compression_all_samples)
 
 TEST(Masher, stereo_16_high_compression_all_samples)
 {
-    TestMasher masher(std::make_unique<Oddlib::Stream>(get_stereo_16_high_compression_all_samples()));
+    TestMasher masher(std::make_unique<Oddlib::MemoryStream>(get_stereo_16_high_compression_all_samples()));
     ASSERT_FALSE(masher.HasVideo());
     ASSERT_TRUE(masher.HasAudio());
 
@@ -2071,7 +2071,7 @@ TEST(LvlArchive, DISABLED_Integration)
             Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
             if (chunk->Type() == Oddlib::MakeType("Anim"))
             {
-                Oddlib::Stream stream(chunk->ReadData());
+                Oddlib::MemoryStream stream(chunk->ReadData());
                 Oddlib::DebugDumpAnimationFrames(file->FileName(), chunk->Id(), stream, false, "unknown");
             }
         }
