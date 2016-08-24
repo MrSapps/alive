@@ -4,5 +4,5 @@
     "Author": "Oddworld Inhabitants",
     "InitialLevel": "mi_path1",
     "DatasetName": "AePsx",
-    "RequiredDatasets": [ "AePsxCd1", "AePsxCd2" ]
+    "RequiredDatasets": [ "AePsxCd1", "AePsxCd2", "AePc" ]
 }

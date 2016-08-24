@@ -3,5 +3,6 @@
   "Description" : "The original PC version of Oddworld Abe's Oddysee",
   "Author" : "Oddworld Inhabitants",
   "InitialLevel" : "r1_path1",
-  "DatasetName" : "AoPc"
+  "DatasetName": "AoPc",
+  "RequiredDatasets": [ "AePc" ]
 }

@@ -3,5 +3,6 @@
   "Description" : "The original PC demo of Oddworld Abe's Exoddus",
   "Author" : "Oddworld Inhabitants",
   "InitialLevel" : "mi_path1",
-  "DatasetName" : "AePcDemo"
+  "DatasetName": "AePcDemo",
+  "RequiredDatasets": [ "AePc" ]
 }
