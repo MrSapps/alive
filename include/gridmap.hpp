@@ -13,6 +13,18 @@ class Renderer;
 class ResourceLocator;
 
 namespace Oddlib { class LvlArchive; class IBits; }
+
+class Animation;
+class Player
+{
+public:
+    void Init(ResourceLocator& locator);
+    void Update();
+    void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+private:
+    std::vector<std::unique_ptr<Animation>> mAnims;
+};
+
 class Level
 {
 public:
@@ -24,6 +36,7 @@ private:
     std::unique_ptr<class GridMap> mMap;
     std::unique_ptr<Script> mScript;
     ResourceLocator& mLocator;
+    Player mPlayer;
 };
 
 class GridScreen

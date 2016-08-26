@@ -11,6 +11,20 @@
 #include <cmath>
 #include "resourcemapper.hpp"
 
+void Player::Init(ResourceLocator& locator)
+{
+    mAnims.push_back(locator.LocateAnimation("ABEBSIC.BAN_10_AePc_30"));
+}
+
+void Player::Update()
+{
+    //mAnims[0]->Update();
+}
+
+void Player::Render(Renderer& /*rend*/, GuiContext& /*gui*/, int /*screenW*/, int /*screenH*/)
+{
+    //mAnims[0]->Render(rend);
+}
 
 Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator)
     : mLocator(locator)
@@ -22,6 +36,10 @@ Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator)
         LOG_ERROR("Script init failed");
     }
     */
+
+    // FIX ME: Need a real state machine, here we construct level before
+    // a game is even selected, so we can't load any resources
+    mPlayer.Init(mLocator);
 }
 
 void Level::Update()
@@ -30,6 +48,8 @@ void Level::Update()
     {
         mMap->Update();
     }
+
+    mPlayer.Update();
 
     if (mScript)
     {
@@ -44,6 +64,8 @@ void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     {
         mMap->Render(rend, gui, screenW, screenH);
     }
+
+    mPlayer.Render(rend, gui, screenW, screenH);
 }
 
 void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
