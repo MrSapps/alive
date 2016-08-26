@@ -38,16 +38,14 @@ public:
     //void PlayOneShot(int program, int note, f32 volume, f32 pitch = 0);
     //void PlayOneShot(std::string soundID);
 
-    void NoteOn(int program, int note, char velocity, f32 pitch = 0, int trackID = 0, f64 trackDelay = 0);
-    void NoteOn(int program, int note, char velocity, int trackID = 0, f64 trackDelay = 0);
-
-    void NoteOff(int program, int note, int trackID = 0);
-    void NoteOffDelay(int program, int note, int trackID = 0, f32 trackDelay = 0);
+    void NoteOn(int program, int note, char velocity, f64 trackDelay = 0);
+    void NoteOff(int program, int note);
+    void NoteOffDelay(int program, int note, f32 trackDelay = 0);
 
     //void DebugPlayFirstToneSample(int program, int tone);
 
     void ClearAllVoices(bool forceKill = true);
-    void ClearAllTrackVoices(int trackID, bool forceKill = false);
+    void ClearAllTrackVoices(bool forceKill = false);
 
     void SetSoundbank(std::unique_ptr<AliveAudioSoundbank> soundbank);
 
@@ -76,5 +74,3 @@ private:
     void CleanVoices();
     void AliveRenderAudio(f32* AudioStream, int StreamLength);
 };
-
-///////////////

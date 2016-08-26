@@ -77,8 +77,6 @@ public:
     f64 MidiTimeToSample(int time);
     u64 GetPlaybackPositionSample();
 
-    // TODO: Shouldn't really be required anymore
-    int m_TrackID = 1; // The track ID. Use this to separate SoundFX from Music.
     AliveAudioSequencerState m_PlayerState = ALIVE_SEQUENCER_STOPPED;
 
     // Gets called every time the play position is at 1/4 of the song.

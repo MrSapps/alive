@@ -62,7 +62,7 @@ void SequencePlayer::PlayerThreadFunction()
                 switch (m.Type)
                 {
                 case ALIVE_MIDI_NOTE_ON:
-                    mAliveAudio.NoteOn(channels[m.Channel], m.Note, m.Velocity, m_TrackID, MidiTimeToSample(m.TimeOffset));
+                    mAliveAudio.NoteOn(channels[m.Channel], m.Note, m.Velocity, MidiTimeToSample(m.TimeOffset));
                     if (firstNote)
                     {
                         m_SongBeginSample = static_cast<int>(mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset));
@@ -70,7 +70,7 @@ void SequencePlayer::PlayerThreadFunction()
                     }
                     break;
                 case ALIVE_MIDI_NOTE_OFF:
-                    mAliveAudio.NoteOffDelay(channels[m.Channel], m.Note, m_TrackID, static_cast<f32>(MidiTimeToSample(m.TimeOffset))); // Fix this. Make note off's have an offset in the voice timeline.
+                    mAliveAudio.NoteOffDelay(channels[m.Channel], m.Note, static_cast<f32>(MidiTimeToSample(m.TimeOffset))); // Fix this. Make note off's have an offset in the voice timeline.
                     break;
                 case ALIVE_MIDI_PROGRAM_CHANGE:
                     channels[m.Channel] = m.Special;
@@ -114,7 +114,7 @@ u64 SequencePlayer::GetPlaybackPositionSample()
 
 void SequencePlayer::StopSequence()
 {
-    mAliveAudio.ClearAllTrackVoices(m_TrackID);
+    mAliveAudio.ClearAllTrackVoices();
     m_PlayerStateMutex.lock();
     m_PlayerState = ALIVE_SEQUENCER_STOPPED;
     m_PrevBar = 0;

@@ -198,7 +198,7 @@ void AliveAudio::PlayOneShot(std::string soundID)
 }
 */
 
-void AliveAudio::NoteOn(int program, int note, char velocity, f32 /*pitch*/, int trackID, f64 trackDelay)
+void AliveAudio::NoteOn(int program, int note, char velocity, f64 trackDelay)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
     for (auto& tone : m_Soundbank->m_Programs[program]->m_Tones)
@@ -210,7 +210,6 @@ void AliveAudio::NoteOn(int program, int note, char velocity, f32 /*pitch*/, int
             voice->m_Tone = tone.get();
             voice->i_Program = program;
             voice->f_Velocity = velocity / 127.0f;
-            voice->i_TrackID = trackID;
             voice->f_TrackDelay = trackDelay;
             voice->m_DebugDisableResampling = DebugDisableVoiceResampling;
             m_Voices.push_back(voice);
@@ -218,29 +217,24 @@ void AliveAudio::NoteOn(int program, int note, char velocity, f32 /*pitch*/, int
     }
 }
 
-void AliveAudio::NoteOn(int program, int note, char velocity, int trackID, f64 trackDelay)
-{
-    NoteOn(program, note, velocity, 0, trackID, trackDelay);
-}
-
-void AliveAudio::NoteOff(int program, int note, int trackID)
+void AliveAudio::NoteOff(int program, int note)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
     for (auto& voice : m_Voices)
     {
-        if (voice->i_Note == note && voice->i_Program == program && voice->i_TrackID == trackID)
+        if (voice->i_Note == note && voice->i_Program == program)
         {
             voice->b_NoteOn = false;
         }
     }
 }
 
-void AliveAudio::NoteOffDelay(int program, int note, int trackID, f32 trackDelay)
+void AliveAudio::NoteOffDelay(int program, int note, f32 trackDelay)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
     for (auto& voice : m_Voices)
     {
-        if (voice->i_Note == note && voice->i_Program == program && voice->i_TrackID == trackID && voice->f_TrackDelay < trackDelay && voice->f_NoteOffDelay <= 0)
+        if (voice->i_Note == note && voice->i_Program == program && voice->f_TrackDelay < trackDelay && voice->f_NoteOffDelay <= 0)
         {
             voice->m_UsesNoteOffDelay = true;
             voice->f_NoteOffDelay = trackDelay;
@@ -286,7 +280,7 @@ void AliveAudio::ClearAllVoices(bool forceKill)
 
 }
 
-void AliveAudio::ClearAllTrackVoices(int trackID, bool forceKill)
+void AliveAudio::ClearAllTrackVoices(bool forceKill)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
     std::vector<AliveAudioVoice *> deadVoices;
@@ -295,15 +289,13 @@ void AliveAudio::ClearAllTrackVoices(int trackID, bool forceKill)
     {
         if (forceKill)
         {
-            if (voice->i_TrackID == trackID) // Kill the voices no matter what. Cuts of any sounds = Ugly sound
-            {
-                deadVoices.push_back(voice);
-            }
+            // Kill the voices no matter what. Cuts of any sounds = Ugly sound
+            deadVoices.push_back(voice);
         }
         else
         {
             voice->b_NoteOn = false; // Send a note off to all of the notes though.
-            if (voice->i_TrackID == trackID && voice->f_SampleOffset == 0) // Let the voices that are CURRENTLY playing play.
+            if (voice->f_SampleOffset == 0) // Let the voices that are CURRENTLY playing play.
             {
                 deadVoices.push_back(voice);
             }

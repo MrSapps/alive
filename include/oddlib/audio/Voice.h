@@ -27,7 +27,6 @@ public:
     f64	f_Pitch = 0.0f;
     bool    m_DebugDisableResampling = false;
 
-    int		i_TrackID = 0; // This is used to distinguish between sounds fx and music
     f64	f_TrackDelay = 0; // Used by the sequencer for perfect timing
     bool	m_UsesNoteOffDelay = false;
     f64	f_NoteOffDelay = 0;
