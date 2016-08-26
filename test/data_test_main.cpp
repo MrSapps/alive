@@ -779,8 +779,8 @@ int main(int /*argc*/, char** /*argv*/)
 
         void LoadVabs()
         {
-            /*
-            Oddlib::Stream aePcSoundsDat("F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\sounds.dat");
+            
+            Oddlib::FileStream aePcSoundsDat("F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\sounds.dat", Oddlib::IStream::ReadMode::ReadOnly);
             for (auto& soundMap : mSounds.mSounds)
             {
                 std::map<std::string, Sounds>& lvlsSoundMap = soundMap.second;
@@ -805,7 +805,7 @@ int main(int /*argc*/, char** /*argv*/)
                     }
                 }
             }
-            */
+            
 
             // Get RFSNDFX from R1.LVL for PSX and PC
             /*
@@ -898,9 +898,9 @@ int main(int /*argc*/, char** /*argv*/)
                         }
                     }
 
-                    // VABs
                     for (LvlSoundInfo& vhVb : lvlSounds.second.mSoundSets)
                     {
+                        // VABs
                         jsonxx::Object vab;
                         vab << "resource_name"
                             << (LvlCode(lvlSounds.second.mLvlName) + "_"
@@ -913,21 +913,39 @@ int main(int /*argc*/, char** /*argv*/)
                         vab << "vab_body" << BsqName(vhVb.mVh->FileName()) + ".VB";
 
                         vabs << vab;
+
+                        // INSTRs/sounds effects
+
+                        // TODO: This mapping isn't right as each key in a program could be made of many 
+                        // tones! Might have to manually collect all SFX
+                        for (int progIdx = 0; progIdx < vhVb.mVab->mHeader.iNumProgs; progIdx++)
+                        {
+                            const ProgAtr& prog = vhVb.mVab->mProgs[progIdx];
+                            for (int toneIdx = 0; toneIdx < prog.iNumTones; toneIdx++)
+                            {
+                                const VagAtr& tone = *prog.iTones[toneIdx];
+
+                                jsonxx::Object soundEffect;
+                                soundEffect << "resource_name" << (LvlCode(lvlSounds.second.mLvlName) + "_"
+                                    + BsqName(vhVb.mVh->FileName()) + "_"
+                                    + "P" + std::to_string(progIdx) + "_"
+                                    + "T" + std::to_string(toneIdx) + "_"
+                                    + ToString(soundMap.first));
+
+                                soundEffect << "program" << progIdx;
+                                soundEffect << "tone" << toneIdx;
+                                soundEffect << "pitch" << tone.iShift;
+
+                                soundEffect << "data_set" << std::string(ToString(soundMap.first));
+                                soundEffect << "vab_header" << BsqName(vhVb.mVh->FileName()) + ".VH";
+                                soundEffect << "vab_body" << BsqName(vhVb.mVh->FileName()) + ".VB";
+
+                                soundEffects << soundEffect;
+                            }
+                        }
                     }
-
-                    // TODO: INSTRs
-                    /*
-                    jsonxx::Object soundEffect;
-                    soundEffects << "resource_name" << "sound_effect";
-                    soundEffects << soundEffect;
-                    */
-
-                    //soundEffect << "resource_name" <<
-                    // locations
-                    // program/tone/pitch rand/sound bank/dataset
                 }
             }
-
 
             jsonxx::Object musicsObj;
             musicsObj << "musics" << musics;
