@@ -32,10 +32,6 @@ void AliveAudio::CleanVoices()
 
 void AliveAudio::AliveRenderAudio(f32 * AudioStream, int StreamLength)
 {
-    //static f32 tick = 0;
-    //static int note = 0;
-
-    //AliveAudioSoundbank * currentSoundbank = AliveAudio::m_CurrentSoundbank;
 
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
 
@@ -232,12 +228,6 @@ void AliveAudio::NoteOffDelay(int program, int note, f32 trackDelay)
     }
 }
 
-/*
-void AliveAudio::DebugPlayFirstToneSample(int program, int tone)
-{
-    PlayOneShot(program, (m_CurrentSoundbank->m_Programs[program]->m_Tones[tone]->Min + m_CurrentSoundbank->m_Programs[program]->m_Tones[tone]->Max) / 2, 1);
-}
-*/
 
 void AliveAudio::ClearAllVoices(bool forceKill)
 {
