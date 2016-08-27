@@ -1,0 +1,8 @@
+{
+    "Name": "Oddworld Abe's Exoddus PSX CD2",
+    "Description": "The original PSX version of Oddworld Abe's Exoddus CD2",
+    "Author": "Oddworld Inhabitants",
+    "InitialLevel": "mi_path1",
+    "Hidden" :  true,
+    "DatasetName": "AePsxCd2"
+}

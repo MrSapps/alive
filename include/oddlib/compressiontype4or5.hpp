@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SDL.h"
 #include <vector>
+#include "types.hpp"
 
 namespace Oddlib
 {
@@ -10,7 +10,7 @@ namespace Oddlib
     {
     public:
         CompressionType4Or5() = default;
-        std::vector<Uint8> Decompress(IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 dataSize);
+        std::vector<u8> Decompress(IStream& stream, u32 finalW, u32 w, u32 h, u32 dataSize);
     };
 }
 

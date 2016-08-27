@@ -12,12 +12,12 @@ static void ReadNextSource(Oddlib::IStream& stream, int& control_byte, T& dstInd
         if (control_byte == 0xE) // Or 14
         {
             control_byte = 0x1Eu; // Or 30
-            dstIndex |= ReadUint16(stream) << 14;
+            dstIndex |= ReadU16(stream) << 14;
         }
     }
     else
     {
-        dstIndex = ReadUint32(stream);
+        dstIndex = ReadU32(stream);
         control_byte = 0x20u; // 32
     }
     control_byte -= 6;
@@ -27,9 +27,9 @@ static void ReadNextSource(Oddlib::IStream& stream, int& control_byte, T& dstInd
 namespace Oddlib
 {
     // Function 0x0040A6A0 in AE
-    std::vector<Uint8> CompressionType3Ae::Decompress(IStream& stream, Uint32 finalW, Uint32 w, Uint32 h, Uint32 /*dataSize*/)
+    std::vector<u8> CompressionType3Ae::Decompress(IStream& stream, u32 finalW, u32 w, u32 h, u32 /*dataSize*/)
     {
-        std::vector<Uint8> buffer(finalW*h);
+        std::vector<u8> buffer(finalW*h);
         
         //const auto streamStart = stream.Pos();
 

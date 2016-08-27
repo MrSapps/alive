@@ -8,27 +8,34 @@
 class GameData;
 class IAudioController;
 class FileSystem;
+class IFileSystem;
 struct GuiContext;
+class ResourceLocator;
 
 class Sound
 {
 public:
     Sound(const Sound&) = delete;
     Sound& operator = (const Sound&) = delete;
-    Sound(GameData& gameData, IAudioController& audioController, FileSystem& fs);
+    Sound(IAudioController& audioController, ResourceLocator& locator);
     ~Sound();
     void Update();
     void Render(GuiContext *gui, int w, int h);
 private:
     void BarLoop();
-    void ChangeTheme(FileSystem& fs, const std::deque<std::string>& parts);
 private:
-    GameData& mGameData;
+    void AudioSettingsUi(GuiContext* gui);
+    void MusicBrowserUi(GuiContext* gui);
+    void SoundEffectBrowserUi(GuiContext* gui);
+    bool mMusicBrowser = false;
+    bool mSoundEffectBrowser = false;
+
+    bool mAePc = false;
+    std::vector<std::string> mFilteredSoundEffectResources;
+private:
     IAudioController& mAudioController;
-    FileSystem& mFs;
+    ResourceLocator& mLocator;
+
     std::unique_ptr<class SequencePlayer> mSeqPlayer;
-    int mTargetSong = -1;
-    bool mLoopSong = false;
-    std::vector<std::string> mThemes;
     AliveAudio mAliveAudio;
 };

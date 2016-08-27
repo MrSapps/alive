@@ -9,7 +9,7 @@
 #include "SDL.h"
 #include "sample.lvl.g.h"
 #include "all_colours_high_compression_30_fps.ddv.g.h"
-#include "all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave.ddv.g.h"
+#include "ddv_test1.ddv.g.h"
 #include "all_colours_low_compression_30_fps.ddv.g.h"
 #include "all_colours_max_compression_30_fps.ddv.g.h"
 #include "all_colours_medium_compression_30_fps.ddv.g.h"
@@ -26,12 +26,16 @@
 #include "xa.bin.g.h"
 #include "subtitles.hpp"
 #include "msvc_sdl_link.hpp"
+#include <setjmp.h>
+
 
 int main(int argc, char** argv)
 {
+    ::testing::GTEST_FLAG(catch_exceptions) = false;
     ::testing::InitGoogleMock(&argc, argv);
     return RUN_ALL_TESTS();
 }
+
 
 TEST(LvlArchive, FileNotFound)
 {
@@ -60,7 +64,7 @@ static std::string FileChunkToString(Oddlib::LvlArchive::FileChunk& chunk)
 
 TEST(LvlArchive, ReadFiles)
 {
-    Oddlib::LvlArchive lvl(get_sample_lvl());
+    Oddlib::LvlArchive lvl(get_sample());
 
     // Check number of read files is correct
     ASSERT_EQ(3u, lvl.FileCount());
@@ -91,13 +95,13 @@ TEST(LvlArchive, ReadFiles)
     fileChunk = file->ChunkById(0x177a);
     ASSERT_NE(nullptr, fileChunk);
 
-    ASSERT_EQ(Oddlib::MakeType('A', 'n', 'i', 'm'), fileChunk->Type());
+    ASSERT_EQ(Oddlib::MakeType("Anim"), fileChunk->Type());
 
     file->SaveChunks();
 
 }
 
-const static Uint16 kLowCompression16BitExpected[0x3281] =
+const static u16 kLowCompression16BitExpected[0x3281] =
 {
     0x07FC, 0x0001, 0xFE00, 0x0002, 0x03FF, 0x0001, 0x03FF, 0x03FF,
     0xFE00, 0x0400, 0xFE00, 0x040C, 0x03FE, 0x03FE, 0x03FE, 0x07FF,
@@ -1727,7 +1731,7 @@ public:
 
     }
 
-    bool CompareDecodedFrameData(const std::vector<Uint16>& expected)
+    bool CompareDecodedFrameData(const std::vector<u16>& expected)
     {
         return mDecodedVideoFrameData == expected;
     }
@@ -1736,15 +1740,15 @@ public:
 // Audio and video test
 TEST(Masher, all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave)
 {
-    TestMasher masher(std::make_unique<Oddlib::Stream>(get_all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave()));
+    TestMasher masher(std::make_unique<Oddlib::MemoryStream>(get_all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave()));
     ASSERT_TRUE(masher.HasVideo());
     ASSERT_TRUE(masher.HasAudio());
     ASSERT_EQ(258u, masher.Width());
     ASSERT_EQ(200u, masher.Height());
-    std::vector<Uint32> pixelBuffer(masher.Width() * masher.Height());
+    std::vector<u32> pixelBuffer(masher.Width() * masher.Height());
     ASSERT_TRUE(masher.Update(pixelBuffer.data(), nullptr));
     ASSERT_FALSE(masher.Update(pixelBuffer.data(), nullptr));
-    const std::vector<Uint16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
+    const std::vector<u16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
     ASSERT_TRUE(masher.CompareDecodedFrameData(expected));
 }
 
@@ -1757,25 +1761,25 @@ TEST(Masher, all_colours_high_compression_30_fps)
     ASSERT_EQ(false, masher.HasAudio());
     ASSERT_EQ(258, masher.Width());
     ASSERT_EQ(200, masher.Height());
-    std::vector<Uint32> pixelBuffer(masher.Width() * masher.Height());
+    std::vector<u32> pixelBuffer(masher.Width() * masher.Height());
     ASSERT_EQ(true, masher.Update(pixelBuffer.data(), nullptr));
     ASSERT_EQ(false, masher.Update(pixelBuffer.data(), nullptr));
-    const std::vector<Uint16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
+    const std::vector<u16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
     ASSERT_EQ(true, masher.CompareDecodedFrameData(expected));
     */
 }
 
 TEST(Masher, all_colours_low_compression_30_fps)
 {
-    TestMasher masher(std::make_unique<Oddlib::Stream>(get_all_colours_low_compression_30_fps()));
+    TestMasher masher(std::make_unique<Oddlib::MemoryStream>(get_all_colours_low_compression_30_fps()));
     ASSERT_TRUE(masher.HasVideo());
     ASSERT_FALSE(masher.HasAudio());
     ASSERT_EQ(258u, masher.Width());
     ASSERT_EQ(200u, masher.Height());
-    std::vector<Uint32> pixelBuffer(masher.Width() * masher.Height());
+    std::vector<u32> pixelBuffer(masher.Width() * masher.Height());
     ASSERT_TRUE(masher.Update(pixelBuffer.data(), nullptr));
     ASSERT_FALSE(masher.Update(pixelBuffer.data(), nullptr));
-    const std::vector<Uint16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
+    const std::vector<u16> expected(std::begin(kLowCompression16BitExpected), std::end(kLowCompression16BitExpected));
     ASSERT_TRUE(masher.CompareDecodedFrameData(expected));
 }
 
@@ -1836,12 +1840,12 @@ TEST(Masher, stereo_8_low_compression_all_samples)
 
 TEST(Masher, stereo_16_high_compression_all_samples)
 {
-    TestMasher masher(std::make_unique<Oddlib::Stream>(get_stereo_16_high_compression_all_samples()));
+    TestMasher masher(std::make_unique<Oddlib::MemoryStream>(get_stereo_16_high_compression_all_samples()));
     ASSERT_FALSE(masher.HasVideo());
     ASSERT_TRUE(masher.HasAudio());
 
     // Valgrind reported we read/write 2 bytes out of bounds, so must be off by one error?
-    std::vector<Uint8> audioBuffer((masher.SingleAudioFrameSizeSamples() * 4));
+    std::vector<u8> audioBuffer((masher.SingleAudioFrameSizeSamples() * 4));
 
     // TODO: Verify the content of each decoded audio frame / VS \ on each channel
     while (masher.Update(nullptr, audioBuffer.data()));
@@ -1877,54 +1881,6 @@ TEST(Logger, Indentation)
     LOG_ERROR("Error test");
 }
 
-TEST(string_util, endsWith)
-{
-    std::string t1 = "LOLrofl";
-    std::string t2 = "roflLOL";
-    std::string t3 = "LroflL";
-    ASSERT_FALSE(string_util::ends_with(t1, "LOL"));
-    ASSERT_TRUE(string_util::ends_with(t1, "rofl"));
-    ASSERT_TRUE(string_util::ends_with(t2, "LOL"));
-    ASSERT_FALSE(string_util::ends_with(t2, "rofl"));
-    ASSERT_FALSE(string_util::ends_with(t3, "Lr"));
-    ASSERT_TRUE(string_util::ends_with(t3, ""));
-    ASSERT_TRUE(string_util::ends_with(t3, "lL"));
-}
-
-TEST(string_util, contains)
-{
-    std::string t1 = "LOLrofl";
-    std::string t2 = "roflLOL";
-    std::string t3 = "LroflL";
-    ASSERT_FALSE(string_util::contains(t1, "zzz"));
-    ASSERT_TRUE(string_util::contains(t1, "LOL"));
-    ASSERT_TRUE(string_util::contains(t1, "rofl"));
-    ASSERT_TRUE(string_util::contains(t2, "LOL"));
-    ASSERT_TRUE(string_util::contains(t2, "rofl"));
-    ASSERT_TRUE(string_util::contains(t3, "Lr"));
-    ASSERT_TRUE(string_util::contains(t3, ""));
-    ASSERT_TRUE(string_util::contains(t3, "lL"));
-}
-
-TEST(string_util, split)
-{
-    std::string splitMe = "Horse,battery,staple";
-    auto parts = string_util::split(splitMe, ',');
-    ASSERT_EQ(3u, parts.size());
-    ASSERT_EQ("Horse", parts[0]);
-    ASSERT_EQ("battery", parts[1]);
-    ASSERT_EQ("staple", parts[2]);
-}
-
-TEST(string_util, trim)
-{
-    ASSERT_EQ("lol lol", string_util::trim(" lol lol "));
-    ASSERT_EQ("", string_util::trim(""));
-    ASSERT_EQ("", string_util::trim(" "));
-    ASSERT_EQ("lol", string_util::trim("  lol"));
-    ASSERT_EQ("lol", string_util::trim("lol  "));
-}
-
 TEST(CdFs, Read_FileSystemLimits)
 {
     RawCdImage img(get_test());
@@ -1939,29 +1895,35 @@ TEST(CdFs, Read_FileSystemLimits)
     ASSERT_GT(img.FileExists("LEN_TEST\\123456.TXT"), 0);
     ASSERT_GT(img.FileExists("LEN_TEST\\1234567.TXT"), 0);
     ASSERT_GT(img.FileExists("LEN_TEST\\12345678.TXT"), 0);
+    
+    // Check case is ignored and mixed slashes
+    ASSERT_GT(img.FileExists("level1\\lvl1.TXT"), 0);
+    ASSERT_GT(img.FileExists("level1\\\\lvl1.TXT"), 0);
+    ASSERT_GT(img.FileExists("level1/lvl1.TXT"), 0);
+    ASSERT_GT(img.FileExists("/level1//lvl1.TXT"), 0);
 
     ASSERT_GT(img.FileExists("LEVEL1\\LVL1.TXT"), 0);
     ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LVL2.TXT"), 0);
-ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LVL3.TXT"), 0);
-ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LVL4.TXT"), 0);
-ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LVL5.TXT"), 0);
-ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LVL6.TXT"), 0);
-ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL7.TXT"), 0);
-ASSERT_EQ(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL77.TXT"), -1);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LVL3.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LVL4.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LVL5.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LVL6.TXT"), 0);
+    ASSERT_GT(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL7.TXT"), 0);
+    ASSERT_EQ(img.FileExists("LEVEL1\\LEVEL2\\LEVEL3\\LEVEL4\\LEVEL5\\LEVEL6\\LEVEL7\\LVL77.TXT"), -1);
 
-ASSERT_GT(img.FileExists("TEST\\SECTORS1\\EXAMPLE.TXT"), 0);
-ASSERT_GT(img.FileExists("TEST\\SECTORS2\\BIG.TXT"), 0);
-ASSERT_GT(img.FileExists("TEST\\XA1\\SMALL.TXT"), 0);
-ASSERT_GT(img.FileExists("TEST\\XA1\\BIG.TXT"), 0);
+    ASSERT_GT(img.FileExists("TEST\\SECTORS1\\EXAMPLE.TXT"), 0);
+    ASSERT_GT(img.FileExists("TEST\\SECTORS2\\BIG.TXT"), 0);
+    ASSERT_GT(img.FileExists("TEST\\XA1\\SMALL.TXT"), 0);
+    ASSERT_GT(img.FileExists("TEST\\XA1\\BIG.TXT"), 0);
 
-auto data = img.ReadFile("TEST\\SECTORS1\\EXAMPLE.TXT", false);
+    auto data = img.ReadFile("TEST\\SECTORS1\\EXAMPLE.TXT", false);
 
-const std::string expected = "dir entries go over 1 sector size";
-std::vector<Uint8> buffer(expected.size());
-data->ReadBytes(buffer.data(), buffer.size());
+    const std::string expected = "dir entries go over 1 sector size";
+    std::vector<u8> buffer(expected.size());
+    data->Read(buffer);
 
-std::string strData(reinterpret_cast<char*>(buffer.data()), buffer.size());
-ASSERT_EQ(expected, strData);
+    std::string strData(reinterpret_cast<char*>(buffer.data()), buffer.size());
+    ASSERT_EQ(expected, strData);
 }
 
 TEST(CdFs, Read_XaSectors)
@@ -2040,20 +2002,76 @@ TEST(SubTitleParser, Parse)
     }
 }
 
+class DtorTest
+{
+public:
+    DtorTest(const DtorTest&) = delete;
+    DtorTest& operator =(const DtorTest&) = delete;
+    DtorTest(int& var)
+        : mVar(var)
+    {
+        mVar++;
+    }
+
+    ~DtorTest()
+    {
+        mVar--;
+    }
+private:
+    int& mVar;
+};
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4611)
+#endif
+jmp_buf env;
+void DoJumper()
+{
+    longjmp(env, 1);
+}
+
+void WrapApi()
+{
+    if (setjmp(env))
+    {
+        return;
+    }
+    DoJumper();
+}
+
+void ExceptionTest(int& v)
+{
+    DtorTest test1(v);
+    DtorTest test2(v);
+    WrapApi();
+    DtorTest test3(v);
+}
+
+TEST(LuaExceptionHandling, DestructorsAreCalled)
+{
+    int v = 0;
+    ExceptionTest(v);
+    ASSERT_EQ(0, v);
+}
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 TEST(LvlArchive, DISABLED_Integration)
 {
     // TODO: Check for IDX file in LVL to know if its AO or not?
     Oddlib::LvlArchive lvl("s1.LVL");
 
-    for (Uint32 i = 0; i < lvl.FileCount(); i++)
+    for (u32 i = 0; i < lvl.FileCount(); i++)
     {
         Oddlib::LvlArchive::File* file = lvl.FileByIndex(i);
-        for (Uint32 j = 0; j < file->ChunkCount(); j++)
+        for (u32 j = 0; j < file->ChunkCount(); j++)
         {
             Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
-            if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
+            if (chunk->Type() == Oddlib::MakeType("Anim"))
             {
-                Oddlib::Stream stream(chunk->ReadData());
+                Oddlib::MemoryStream stream(chunk->ReadData());
                 Oddlib::DebugDumpAnimationFrames(file->FileName(), chunk->Id(), stream, false, "unknown");
             }
         }

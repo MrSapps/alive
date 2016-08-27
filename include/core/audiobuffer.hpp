@@ -3,6 +3,7 @@
 #include <set>
 #include <atomic>
 #include <SDL.h>
+#include "types.hpp"
 
 class IAudioPlayer;
 
@@ -12,14 +13,14 @@ public:
     virtual ~IAudioController() = default;
     virtual void AddPlayer(IAudioPlayer* player) = 0;
     virtual void RemovePlayer(IAudioPlayer* player) = 0;
-    virtual void SetAudioSpec(Uint16 frameSize, int freq) = 0;
+    virtual void SetAudioSpec(u16 frameSize, int freq) = 0;
 };
 
 class IAudioPlayer
 {
 public:
     virtual ~IAudioPlayer() = default;
-    virtual void Play(Uint8* stream, Uint32 len) = 0;
+    virtual void Play(u8* stream, u32 len) = 0;
 };
 
 class SdlAudioWrapper : public IAudioController
@@ -28,13 +29,13 @@ public:
     SdlAudioWrapper();
     virtual void AddPlayer(IAudioPlayer* player) override;
     virtual void RemovePlayer(IAudioPlayer* player) override;
-    virtual void SetAudioSpec(Uint16 frameSize, int freq) override;
+    virtual void SetAudioSpec(u16 frameSize, int freq) override;
     ~SdlAudioWrapper();
 private:
-    void Open(Uint16 frameSize, int freq);
+    void Open(u16 frameSize, int freq);
     void Close();
-    static void StaticAudioCallback(void *udata, Uint8 *stream, int len);
-    void AudioCallback(Uint8 *stream, int len);
+    static void StaticAudioCallback(void *udata, u8 *stream, int len);
+    void AudioCallback(u8 *stream, int len);
 private:
     std::set<IAudioPlayer*> mAudioPlayers;
     int mDevice = 0;

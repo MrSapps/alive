@@ -25,7 +25,7 @@ namespace Oddlib
     void PsxBits::GenerateImage(IStream& stream, bool singleSlice)
     {
 
-        Uint32 rmask, gmask, bmask, amask;
+        u32 rmask, gmask, bmask, amask;
 
         /* SDL interprets each pixel as a 32-bit number, so our masks must depend
         on the endianness (byte order) of the machine */
@@ -47,7 +47,7 @@ namespace Oddlib
         {
             PSXMDECDecoder mdec;
 
-            Uint16 w = 0;
+            u16 w = 0;
             if (singleSlice)
             {
                 w = 368;
@@ -59,23 +59,23 @@ namespace Oddlib
 
             SDL_SurfacePtr strip(SDL_CreateRGBSurface(0, w, 240, 32, rmask, gmask, bmask, amask));
 
-            Uint16 len = 0;
+            u16 len = 0;
             if (singleSlice)
             {
-                len = static_cast<Uint16>(stream.Size());
+                len = static_cast<u16>(stream.Size());
             }
             else
             {
-                stream.ReadUInt16(len);
+                stream.Read(len);
                 if (mIncludeLengthInStripSize)
                 {
-                    Uint16 dummy = 0;
-                    stream.ReadUInt16(dummy);
+                    u16 dummy = 0;
+                    stream.Read(dummy);
                 }
             }
 
-            std::vector<Uint8> buffer(len);
-            stream.ReadBytes(buffer.data(), buffer.size());
+            std::vector<u8> buffer(len);
+            stream.Read(buffer);
             buffer.resize(buffer.size()*2 );
 
 
@@ -92,6 +92,12 @@ namespace Oddlib
             {
                 break;
             }
-        } 
+        }
+
+        if (mSurface->format->format != SDL_PIXELFORMAT_RGB24)
+        {
+            mSurface.reset(SDL_ConvertSurfaceFormat(mSurface.get(), SDL_PIXELFORMAT_RGB24, 0));
+        }
     }
+
 }

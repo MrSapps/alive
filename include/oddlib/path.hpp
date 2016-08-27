@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include "types.hpp"
 
 namespace Oddlib
 {
@@ -15,17 +16,17 @@ namespace Oddlib
     public:
         struct Point
         {
-            Uint16 mX;
-            Uint16 mY;
+            u16 mX;
+            u16 mY;
         };
         static_assert(sizeof(Point) == 4, "Wrong point size");
 
         struct MapObject
         {
             // TLV
-            Uint16 mFlags;
-            Uint16 mLength;
-            Uint32 mType;
+            u16 mFlags;
+            u16 mLength;
+            u32 mType;
 
             // RECT
             Point mRectTopLeft;
@@ -33,7 +34,7 @@ namespace Oddlib
 
             // TODO: Set to biggest known size
             // Assume 64 bytes is the biggest length for now
-            std::array<Uint8, 512> mData;
+            std::array<u8, 512> mData;
         };
 
         class Camera
@@ -52,37 +53,37 @@ namespace Oddlib
         {
             Point mP1;
             Point mP2;
-            Uint16 mType;
+            u16 mType;
             // TODO Actually contains links to previous/next collision
             // item link depending on the type 
-            Uint16 mUnknown[4];
-            Uint16 mLineLength;
+            u16 mUnknown[4];
+            u16 mLineLength;
         };
         static_assert(sizeof(CollisionItem) == 20, "Wrong collision item size");
 
         Path(const Path&) = delete;
         Path& operator = (const Path&) = delete;
         Path(IStream& pathChunkStream, 
-             Uint32 collisionDataOffset,
-             Uint32 objectIndexTableOffset, 
-             Uint32 objectDataOffset,
-             Uint32 mapXSize, 
-             Uint32 mapYSize,
+             u32 collisionDataOffset,
+             u32 objectIndexTableOffset, 
+             u32 objectDataOffset,
+             u32 mapXSize, 
+             u32 mapYSize,
              bool isAo);
 
-        Uint32 XSize() const;
-        Uint32 YSize() const;
-        const Camera& CameraByPosition(Uint32 x, Uint32 y) const;
+        u32 XSize() const;
+        u32 YSize() const;
+        const Camera& CameraByPosition(u32 x, u32 y) const;
         const std::vector<CollisionItem>& CollisionItems() const { return mCollisionItems; }
         bool IsAo() const { return mIsAo; }
     private:
-        Uint32 mXSize = 0;
-        Uint32 mYSize = 0;
+        u32 mXSize = 0;
+        u32 mYSize = 0;
 
         void ReadCameraMap(IStream& stream);
 
-        void ReadCollisionItems(IStream& stream, Uint32 numberOfCollisionItems);
-        void ReadMapObjects(IStream& stream, Uint32 objectIndexTableOffset);
+        void ReadCollisionItems(IStream& stream, u32 numberOfCollisionItems);
+        void ReadMapObjects(IStream& stream, u32 objectIndexTableOffset);
 
         std::vector<Camera> mCameras;
 

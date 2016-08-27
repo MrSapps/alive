@@ -9,14 +9,14 @@ namespace Oddlib
 {
     void Masher::Read()
     {
-        mStream->ReadUInt32(mFileHeader.mDdvTag);
-        if (mFileHeader.mDdvTag != MakeType('D', 'D', 'V', 0))
+        mStream->Read(mFileHeader.mDdvTag);
+        if (mFileHeader.mDdvTag != MakeType("DDV\0"))
         {
             LOG_ERROR("Invalid DDV magic tag " << mFileHeader.mDdvTag);
             throw InvalidDdv("Invalid DDV tag");
         }
 
-        mStream->ReadUInt32(mFileHeader.mDdvVersion);
+        mStream->Read(mFileHeader.mDdvVersion);
         if (mFileHeader.mDdvVersion != 1)
         {
             // This is the only version seen in all of the known data
@@ -24,21 +24,21 @@ namespace Oddlib
             throw InvalidDdv("Wrong DDV version");
         }
 
-        mStream->ReadUInt32(mFileHeader.mContains);
-        mStream->ReadUInt32(mFileHeader.mFrameRate);
-        mStream->ReadUInt32(mFileHeader.mNumberOfFrames);
+        mStream->Read(mFileHeader.mContains);
+        mStream->Read(mFileHeader.mFrameRate);
+        mStream->Read(mFileHeader.mNumberOfFrames);
 
         mbHasVideo = (mFileHeader.mContains & 0x1) == 0x1;
         mbHasAudio = (mFileHeader.mContains & 0x2) == 0x2;
 
         if (mbHasVideo)
         {
-            mStream->ReadUInt32(mVideoHeader.mUnknown);
-            mStream->ReadUInt32(mVideoHeader.mWidth);
-            mStream->ReadUInt32(mVideoHeader.mHeight);
-            mStream->ReadUInt32(mVideoHeader.mMaxAudioFrameSize);
-            mStream->ReadUInt32(mVideoHeader.mMaxVideoFrameSize);
-            mStream->ReadUInt32(mVideoHeader.mKeyFrameRate);
+            mStream->Read(mVideoHeader.mUnknown);
+            mStream->Read(mVideoHeader.mWidth);
+            mStream->Read(mVideoHeader.mHeight);
+            mStream->Read(mVideoHeader.mMaxAudioFrameSize);
+            mStream->Read(mVideoHeader.mMaxVideoFrameSize);
+            mStream->Read(mVideoHeader.mKeyFrameRate);
 
             mNumMacroblocksX = (mVideoHeader.mWidth / 16);
             if (mVideoHeader.mWidth % 16 != 0)
@@ -55,17 +55,17 @@ namespace Oddlib
 
         if (mbHasAudio)
         {
-            mStream->ReadUInt32(mAudioHeader.mAudioFormat);
-            mStream->ReadUInt32(mAudioHeader.mSampleRate);
-            mStream->ReadUInt32(mAudioHeader.mMaxAudioFrameSize);
-            mStream->ReadUInt32(mAudioHeader.mSingleAudioFrameSize);
-            mStream->ReadUInt32(mAudioHeader.mNumberOfFramesInterleave);
+            mStream->Read(mAudioHeader.mAudioFormat);
+            mStream->Read(mAudioHeader.mSampleRate);
+            mStream->Read(mAudioHeader.mMaxAudioFrameSize);
+            mStream->Read(mAudioHeader.mSingleAudioFrameSize);
+            mStream->Read(mAudioHeader.mNumberOfFramesInterleave);
 
 
             for (uint32_t i = 0; i < mAudioHeader.mNumberOfFramesInterleave; i++)
             {
                 uint32_t tmp = 0;
-                mStream->ReadUInt32(tmp);
+                mStream->Read(tmp);
                 mAudioFrameSizes.emplace_back(tmp);
             }
         }
@@ -73,7 +73,7 @@ namespace Oddlib
         for (uint32_t i = 0; i < mFileHeader.mNumberOfFrames; i++)
         {
             uint32_t tmp = 0;
-            mStream->ReadUInt32(tmp);
+            mStream->Read(tmp);
             mFrameSizes.emplace_back(tmp);
         }
 
@@ -92,35 +92,35 @@ namespace Oddlib
         mAudioFrameData.resize(mVideoHeader.mMaxAudioFrameSize);
     }
 
-    static Uint16 GetHiWord(Uint32 v)
+    static u16 GetHiWord(u32 v)
     {
-        return static_cast<Uint16>((v >> 16) & 0xFFFF);
+        return static_cast<u16>((v >> 16) & 0xFFFF);
     }
 
 #ifndef MAKELONG
-#define MAKELONG(a, b)      ((((Uint16)(((a)) & 0xffff)) | ((Uint32)((Uint16)(((b)) & 0xffff))) << 16))
+#define MAKELONG(a, b)      ((((u16)(((a)) & 0xffff)) | ((u32)((u16)(((b)) & 0xffff))) << 16))
 #endif
 
-    static void SetLoWord(Uint32& v, Uint16 lo)
+    static void SetLoWord(u32& v, u16 lo)
     {
-        Uint16 hiWord = GetHiWord(v);
+        u16 hiWord = GetHiWord(v);
         v = MAKELONG(lo, hiWord);
     }
 
-    static void SetLoInt(int& v, Uint16 lo)
+    static void SetLoInt(int& v, u16 lo)
     {
-        Uint16 hiWord = GetHiWord(v);
+        u16 hiWord = GetHiWord(v);
         v = MAKELONG(lo, hiWord);
     }
 
-    static void SetHiWord(Uint32& v, Uint16 hi)
+    static void SetHiWord(u32& v, u16 hi)
     {
-        Uint16 loWord = v & 0xFFFF;
+        u16 loWord = v & 0xFFFF;
         v = MAKELONG(loWord, hi);
     }
 
 
-    static inline void CheckForEscapeCode(char& bitsToShiftBy, int& rawWord1, Uint16*& rawBitStreamPtr, Uint32& rawWord4, Uint32& v25)
+    static inline void CheckForEscapeCode(char& bitsToShiftBy, int& rawWord1, u16*& rawBitStreamPtr, u32& rawWord4, u32& v25)
     {
         // I think this is used as an escape code?
         if (bitsToShiftBy & 16)   // 0b10000 if bit 5 set
@@ -134,7 +134,7 @@ namespace Oddlib
         }
     }
 
-    static inline void OutputWordAndAdvance(Uint16*& rawBitStreamPtr, Uint32& rawWord4, unsigned short int*& pOut, char& numBitsToShiftBy, Uint32& v3)
+    static inline void OutputWordAndAdvance(u16*& rawBitStreamPtr, u32& rawWord4, unsigned short int*& pOut, char& numBitsToShiftBy, u32& v3)
     {
         *pOut++ = v3 >> (32 - 16);
 
@@ -147,32 +147,32 @@ namespace Oddlib
 #define MASK_13_BITS 0x1FFF
 #define MDEC_END 0xFE00u
 
-    static Uint32 GetBits(Uint32 value, Uint32 numBits)
+    static u32 GetBits(u32 value, u32 numBits)
     {
         return value >> (32 - numBits);
     }
 
-    static void SkipBits(Uint32& value, char numBits, char& bitPosCounter)
+    static void SkipBits(u32& value, char numBits, char& bitPosCounter)
     {
         value = value << numBits;
         bitPosCounter += numBits;
     }
 
-    int decode_bitstream(Uint16 *pFrameData, unsigned short int *pOutput)
+    int decode_bitstream(u16 *pFrameData, unsigned short int *pOutput)
     {
 
         unsigned int table_index_2 = 0;
         int ret = *pFrameData;
-        Uint32 v8 = *(Uint32*)(pFrameData + 1);
-        Uint16* rawBitStreamPtr = (pFrameData + 3);
+        u32 v8 = *(u32*)(pFrameData + 1);
+        u16* rawBitStreamPtr = (pFrameData + 3);
 
         v8 = (v8 << 16) | (v8 >> 16); // Swap words
 
-        Uint32 rawWord4 = GetBits(v8, 11);
+        u32 rawWord4 = GetBits(v8, 11);
 
         char bitsShiftedCounter = 0;
         SkipBits(v8, 11, bitsShiftedCounter);
-        Uint32 v3 = v8;
+        u32 v3 = v8;
 
         *pOutput++ = static_cast<unsigned short>(rawWord4); // store in output
 
@@ -227,7 +227,7 @@ namespace Oddlib
 
                                     SetLoWord(rawWord4, gTbl2[table_index_2].mOutputWord1);
 
-                                    if ((Uint16)rawWord4 != 0x7C1F) // 0b 11111 00000 11111
+                                    if ((u16)rawWord4 != 0x7C1F) // 0b 11111 00000 11111
                                     {
                                         break;
                                     }
@@ -237,7 +237,7 @@ namespace Oddlib
 
                                 *pOutput++ = static_cast<unsigned short>(rawWord4);
 
-                                if ((Uint16)rawWord4 == MDEC_END)
+                                if ((u16)rawWord4 == MDEC_END)
                                 {
                                     const int v15 = GetBits(v3, 11);
                                     SkipBits(v3, 11, bitsShiftedCounter);
@@ -256,10 +256,10 @@ namespace Oddlib
                                 }
 
                                 SetLoWord(rawWord4, gTbl2[table_index_2].mOutputWord2);
-                            } while (!(Uint16)rawWord4);
+                            } while (!(u16)rawWord4);
 
 
-                            if ((Uint16)rawWord4 != 0x7C1F)
+                            if ((u16)rawWord4 != 0x7C1F)
                             {
                                 break;
                             }
@@ -269,7 +269,7 @@ namespace Oddlib
 
                         *pOutput++ = static_cast<unsigned short>(rawWord4);
 
-                        if ((Uint16)rawWord4 == MDEC_END)
+                        if ((u16)rawWord4 == MDEC_END)
                         {
                             const int t11Bits = GetBits(v3, 11);
                             SkipBits(v3, 11, bitsShiftedCounter);
@@ -288,10 +288,10 @@ namespace Oddlib
 
                         SetLoWord(rawWord4, gTbl2[table_index_2].mOutputWord3);
 
-                    } while (!(Uint16)rawWord4);
+                    } while (!(u16)rawWord4);
 
 
-                    if ((Uint16)rawWord4 != 0x7C1F)
+                    if ((u16)rawWord4 != 0x7C1F)
                     {
                         break;
                     }
@@ -302,7 +302,7 @@ namespace Oddlib
 
                 *pOutput++ = static_cast<unsigned short>(rawWord4);
 
-            } while ((Uint16)rawWord4 != MDEC_END);
+            } while ((u16)rawWord4 != MDEC_END);
 
             const int tmp11Bits2 = GetBits(v3, 11);
             SkipBits(v3, 11, bitsShiftedCounter);
@@ -323,7 +323,7 @@ namespace Oddlib
         return ret;
     }
 
-    const Uint32 gQuant1_dword_42AEC8[64] =
+    const u32 gQuant1_dword_42AEC8[64] =
     {
         0x0000000C, 0x0000000B, 0x0000000A, 0x0000000C, 0x0000000E, 0x0000000E, 0x0000000D, 0x0000000E,
         0x00000010, 0x00000018, 0x00000013, 0x00000010, 0x00000011, 0x00000012, 0x00000018, 0x00000016,
@@ -335,7 +335,7 @@ namespace Oddlib
         0x0000004D, 0x0000005C, 0x00000078, 0x00000064, 0x00000067, 0x00000065, 0x00000063, 0x00000010
     };
 
-    const Uint32 gQaunt2_dword_42AFC4[64] =
+    const u32 gQaunt2_dword_42AFC4[64] =
     {
         0x00000010, 0x00000012, 0x00000012, 0x00000018, 0x00000015, 0x00000018, 0x0000002F, 0x0000001A,
         0x0000001A, 0x0000002F, 0x00000063, 0x00000042, 0x00000038, 0x00000042, 0x00000063, 0x00000063,
@@ -347,7 +347,7 @@ namespace Oddlib
         0x00000063, 0x00000063, 0x00000063, 0x00000063, 0x00000063, 0x00000063, 0x00000063, 0x00000063
     };
 
-    const Uint32 g_block_related_1_dword_42B0C8[64] =
+    const u32 g_block_related_1_dword_42B0C8[64] =
     {
         0x00000001, 0x00000008, 0x00000010, 0x00000009, 0x00000002, 0x00000003, 0x0000000A, 0x00000011,
         0x00000018, 0x00000020, 0x00000019, 0x00000012, 0x0000000B, 0x00000004, 0x00000005, 0x0000000C,
@@ -360,7 +360,7 @@ namespace Oddlib
     };
 
     // Same as PSXMDECDecoder::RL_ZSCAN_MATRIX
-    const Uint32 g_block_related_unknown_dword_42B0C4[64] =
+    const u32 g_block_related_unknown_dword_42B0C4[64] =
     {
         0x00000000, 0x00000001, 0x00000008, 0x00000010, 0x00000009, 0x00000002, 0x00000003, 0x0000000A,
         0x00000011, 0x00000018, 0x00000020, 0x00000019, 0x00000012, 0x0000000B, 0x00000004, 0x00000005,
@@ -372,7 +372,7 @@ namespace Oddlib
         0x00000035, 0x0000003C, 0x0000003D, 0x00000036, 0x0000002F, 0x00000037, 0x0000003E, 0x0000003F
     };
 
-    const Uint32 g_block_related_2_dword_42B0CC[64] =
+    const u32 g_block_related_2_dword_42B0CC[64] =
     {
         0x00000008, 0x00000010, 0x00000009, 0x00000002, 0x00000003, 0x0000000A, 0x00000011, 0x00000018,
         0x00000020, 0x00000019, 0x00000012, 0x0000000B, 0x00000004, 0x00000005, 0x0000000C, 0x00000013,
@@ -384,7 +384,7 @@ namespace Oddlib
         0x0000003D, 0x00000036, 0x0000002F, 0x00000037, 0x0000003E, 0x0000003F, 0x0000098E, 0x0000098E
     };
 
-    const Uint32 g_block_related_3_dword_42B0D0[64] =
+    const u32 g_block_related_3_dword_42B0D0[64] =
     {
         0x00000010, 0x00000009, 0x00000002, 0x00000003, 0x0000000A, 0x00000011, 0x00000018, 0x00000020,
         0x00000019, 0x00000012, 0x0000000B, 0x00000004, 0x00000005, 0x0000000C, 0x00000013, 0x0000001A,
@@ -396,20 +396,20 @@ namespace Oddlib
         0x00000036, 0x0000002F, 0x00000037, 0x0000003E, 0x0000003F, 0x0000098E, 0x0000098E, 0x0000F384
     };
 
-    Uint32 g_252_buffer_unk_635A0C[64] = {};
-    Uint32 g_252_buffer_unk_63580C[64] = {};
+    u32 g_252_buffer_unk_635A0C[64] = {};
+    u32 g_252_buffer_unk_63580C[64] = {};
 
     // Return val becomes param 1
     int16_t* ddv_func7_DecodeMacroBlock_impl(int16_t* bitstreamPtr, int16_t* outputBlockPtr, bool isYBlock)
     {
         int v1; // ebx@1
-        Uint32 *v2; // esi@1
-        Uint16* endPtr; // edx@3
-        Uint32 *output_q; // ebp@3
+        u32 *v2; // esi@1
+        u16* endPtr; // edx@3
+        u32 *output_q; // ebp@3
         unsigned int counter; // edi@3
-        Uint32* v6; // esi@3
-        Uint16* outptr; // edx@3
-        Uint16* dataPtr; // edx@5
+        u32* v6; // esi@3
+        u16* outptr; // edx@3
+        u16* dataPtr; // edx@5
         unsigned int macroBlockWord; // eax@6
         unsigned int blockNumberQ; // edi@9
         int index1; // eax@14
@@ -420,13 +420,13 @@ namespace Oddlib
         unsigned int v16; // ecx@15
         // int v17; // esi@15
         int idx; // ebx@16
-        Uint32 outVal = 0; // ecx@18
+        u32 outVal = 0; // ecx@18
         unsigned int macroBlockWord1; // eax@20
         //  int v21; // esi@21
         unsigned int v22; // edi@21
         int v23; // ebx@21
         //   signed int v24; // eax@21
-        Uint32 v25 = 0; // ecx@21
+        u32 v25 = 0; // ecx@21
         // DecodeMacroBlock_Struct *thisPtr; // [sp-4h] [bp-10h]@3
 
         v1 = isYBlock /*this->ZeroOrOneConstant*/;                 // off 14
@@ -439,9 +439,9 @@ namespace Oddlib
 
         v6 = v2;
         counter = 0;
-        outptr = (Uint16*)bitstreamPtr /*this->mOutput >> 1*/;
+        outptr = (u16*)bitstreamPtr /*this->mOutput >> 1*/;
         //thisPtr = this;
-        output_q = (Uint32*)outputBlockPtr /*this->mCoEffsBuffer*/;               // off 10 quantised coefficients
+        output_q = (u32*)outputBlockPtr /*this->mCoEffsBuffer*/;               // off 10 quantised coefficients
         endPtr = outptr - 1;
 
         do
@@ -453,7 +453,7 @@ namespace Oddlib
         dataPtr = endPtr + 1; // last use of endPtr
 
 
-        if (*(Uint8 *)(dataPtr - 1) & 1)        // has video flag?
+        if (*(u8 *)(dataPtr - 1) & 1)        // has video flag?
         {
 
             do
@@ -463,13 +463,13 @@ namespace Oddlib
                 {
                     break;
                 }
-                Uint32* v21 = (macroBlockWord1 >> 10) + v6;
+                u32* v21 = (macroBlockWord1 >> 10) + v6;
                 v22 = (macroBlockWord1 >> 10) + counter;
                 v23 = g_block_related_1_dword_42B0C8[v22];
                 signed int v24 = output_q[v23] + (macroBlockWord1 << 22);
                 SetHiWord(v25, GetHiWord(v24));
                 counter = v22 + 1;
-                SetLoWord(v25, static_cast<Uint16>((*(v21)* (v24 >> 22) + 4) >> 3));
+                SetLoWord(v25, static_cast<u16>((*(v21)* (v24 >> 22) + 4) >> 3));
                 v6 = v21 + 1;
                 output_q[v23] = v25;
             } while (counter < 63);                     // 63 AC values?
@@ -488,7 +488,7 @@ namespace Oddlib
                 v16 = macroBlockWord;
                 v14 = macroBlockWord << 22;
                 v16 >>= 10;
-                Uint32* v17 = v16 + v6;
+                u32* v17 = v16 + v6;
                 cnt = v16 + 1;
                 while (1)
                 {
@@ -503,7 +503,7 @@ namespace Oddlib
                 }
                 SetHiWord(outVal, GetHiWord(v14));
                 ++counter;
-                SetLoWord(outVal, static_cast<Uint16>((*(v17)* (v14 >> 22) + 4) >> 3));
+                SetLoWord(outVal, static_cast<u16>((*(v17)* (v14 >> 22) + 4) >> 3));
                 v6 = v17 + 1;
                 output_q[idx] = outVal;
                 if (counter >= 63)                      // 63 AC values?
@@ -622,26 +622,26 @@ namespace Oddlib
         return y * 8 + x;
     }
 
-    unsigned char Clamp(float v)
+    unsigned char Clamp(f32 v)
     {
         if (v < 0.0f) v = 0.0f;
         if (v > 255.0f) v = 255.0f;
         return (unsigned char)v;
     }
 
-    void SetElement(int x, int y, int width, Uint32* ptr, Uint32 value)
+    void SetElement(int x, int y, int width, u32* ptr, u32 value)
     {
         ptr[(width * y) + x] = value;
     }
 
-    static void ConvertYuvToRgbAndBlit(Uint32* pixelBuffer, int xoff, int yoff, int width, int height)
+    static void ConvertYuvToRgbAndBlit(u32* pixelBuffer, int xoff, int yoff, int width, int height)
     {
         // convert the Y1 Y2 Y3 Y4 and Cb and Cr blocks into a 16x16 array of (Y, Cb, Cr) pixels
         struct Macroblock_YCbCr_Struct
         {
-            float Y;
-            float Cb;
-            float Cr;
+            f32 Y;
+            f32 Cb;
+            f32 Cr;
         };
 
         std::array< std::array<Macroblock_YCbCr_Struct, 16>, 16> Macroblock_YCbCr = {};
@@ -650,20 +650,20 @@ namespace Oddlib
         {
             for (int y = 0; y < 8; y++)
             {
-                Macroblock_YCbCr[x][y].Y = static_cast<float>(Y1_block[To1d(x, y)]);
-                Macroblock_YCbCr[x + 8][y].Y = static_cast<float>(Y2_block[To1d(x, y)]);
-                Macroblock_YCbCr[x][y + 8].Y = static_cast<float>(Y3_block[To1d(x, y)]);
-                Macroblock_YCbCr[x + 8][y + 8].Y = static_cast<float>(Y4_block[To1d(x, y)]);
+                Macroblock_YCbCr[x][y].Y = static_cast<f32>(Y1_block[To1d(x, y)]);
+                Macroblock_YCbCr[x + 8][y].Y = static_cast<f32>(Y2_block[To1d(x, y)]);
+                Macroblock_YCbCr[x][y + 8].Y = static_cast<f32>(Y3_block[To1d(x, y)]);
+                Macroblock_YCbCr[x + 8][y + 8].Y = static_cast<f32>(Y4_block[To1d(x, y)]);
 
-                Macroblock_YCbCr[x * 2][y * 2].Cb = static_cast<float>(Cb_block[To1d(x, y)]);
-                Macroblock_YCbCr[x * 2 + 1][y * 2].Cb = static_cast<float>(Cb_block[To1d(x, y)]);
-                Macroblock_YCbCr[x * 2][y * 2 + 1].Cb = static_cast<float>(Cb_block[To1d(x, y)]);
-                Macroblock_YCbCr[x * 2 + 1][y * 2 + 1].Cb = static_cast<float>(Cb_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2][y * 2].Cb = static_cast<f32>(Cb_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2 + 1][y * 2].Cb = static_cast<f32>(Cb_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2][y * 2 + 1].Cb = static_cast<f32>(Cb_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2 + 1][y * 2 + 1].Cb = static_cast<f32>(Cb_block[To1d(x, y)]);
 
-                Macroblock_YCbCr[x * 2][y * 2].Cr = static_cast<float>(Cr_block[To1d(x, y)]);
-                Macroblock_YCbCr[x * 2 + 1][y * 2].Cr = static_cast<float>(Cr_block[To1d(x, y)]);
-                Macroblock_YCbCr[x * 2][y * 2 + 1].Cr = static_cast<float>(Cr_block[To1d(x, y)]);
-                Macroblock_YCbCr[x * 2 + 1][y * 2 + 1].Cr = static_cast<float>(Cr_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2][y * 2].Cr = static_cast<f32>(Cr_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2 + 1][y * 2].Cr = static_cast<f32>(Cr_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2][y * 2 + 1].Cr = static_cast<f32>(Cr_block[To1d(x, y)]);
+                Macroblock_YCbCr[x * 2 + 1][y * 2 + 1].Cr = static_cast<f32>(Cr_block[To1d(x, y)]);
             }
         }
 
@@ -682,9 +682,9 @@ namespace Oddlib
         {
             for (int y = 0; y < 16; y++)
             {
-                const float r = (Macroblock_YCbCr[x][y].Y) + 1.402f *  Macroblock_YCbCr[x][y].Cb;
-                const float g = (Macroblock_YCbCr[x][y].Y) - 0.3437f * Macroblock_YCbCr[x][y].Cr - 0.7143f * Macroblock_YCbCr[x][y].Cb;
-                const float b = (Macroblock_YCbCr[x][y].Y) + 1.772f *  Macroblock_YCbCr[x][y].Cr;
+                const f32 r = (Macroblock_YCbCr[x][y].Y) + 1.402f *  Macroblock_YCbCr[x][y].Cb;
+                const f32 g = (Macroblock_YCbCr[x][y].Y) - 0.3437f * Macroblock_YCbCr[x][y].Cr - 0.7143f * Macroblock_YCbCr[x][y].Cb;
+                const f32 b = (Macroblock_YCbCr[x][y].Y) + 1.772f *  Macroblock_YCbCr[x][y].Cr;
 
                 Macroblock_RGB[x][y].Red = Clamp(r);
                 Macroblock_RGB[x][y].Green = Clamp(g);
@@ -695,7 +695,7 @@ namespace Oddlib
                 int ypos = y + yoff;
                 if (xpos < width && ypos < height)
                 {
-                    Uint32 pixelValue = 0;
+                    u32 pixelValue = 0;
                     pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Blue;
                     pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Green;
                     pixelValue = (pixelValue << 8) + Macroblock_RGB[x][y].Red;
@@ -733,20 +733,20 @@ namespace Oddlib
                 g_252_buffer_unk_635A0C[i] = 16;
                 g_252_buffer_unk_63580C[i] = 16;
             }
-            // memset(&g_252_buffer_unk_635A0C[1], 16, 252  /*sizeof(g_252_buffer_unk_635A0C)*/); // Uint32[63]
+            // memset(&g_252_buffer_unk_635A0C[1], 16, 252  /*sizeof(g_252_buffer_unk_635A0C)*/); // u32[63]
             // memset(&g_252_buffer_unk_63580C[1], 16, 252 /*sizeof(g_252_buffer_unk_63580C)*/);
         }
 
     }
 
-    void Masher::ParseVideoFrame(Uint32* pixelBuffer)
+    void Masher::ParseVideoFrame(u32* pixelBuffer)
     {
         if (mNumMacroblocksX <= 0 || mNumMacroblocksY <= 0)
         {
             return;
         }
 
-        const int quantScale = decode_bitstream((Uint16*)mVideoFrameData.data(), mDecodedVideoFrameData.data());
+        const int quantScale = decode_bitstream((u16*)mVideoFrameData.data(), mDecodedVideoFrameData.data());
 
         after_block_decode_no_effect_q_impl(quantScale);
 
@@ -796,10 +796,10 @@ namespace Oddlib
     }
 
     int gBitCounter = 0;
-    Uint32 gFirstAudioFrameDWORD = 0;
+    u32 gFirstAudioFrameDWORD = 0;
     int gAudioFrameSizeBytes = 0;
-    Uint16* gTemp = nullptr;
-    Uint16** gAudioFrameDataPtr = &gTemp;
+    u16* gTemp = nullptr;
+    u16** gAudioFrameDataPtr = &gTemp;
     unsigned char gSndTbl_byte_62EEB0[256] = {};
 
     static int ReadNextAudioWord(int value)
@@ -815,15 +815,15 @@ namespace Oddlib
     }
 
 
-    int GetSoundTableValue(Sint16 tblIndex)
+    int GetSoundTableValue(s16 tblIndex)
     {
-        //Sint16 oldIdx = tblIndex;
+        //s16 oldIdx = tblIndex;
 
         int result; // eax@1
-        Sint16 positiveTblIdx; // ax@1
+        s16 positiveTblIdx; // ax@1
 
-        positiveTblIdx = static_cast<Sint16>(abs(tblIndex));
-        result = (Uint16)((Sint16)gSndTbl_byte_62EEB0[positiveTblIdx >> 7] << 7) | (Uint16)(positiveTblIdx >> gSndTbl_byte_62EEB0[positiveTblIdx >> 7]);
+        positiveTblIdx = static_cast<s16>(abs(tblIndex));
+        result = (u16)((s16)gSndTbl_byte_62EEB0[positiveTblIdx >> 7] << 7) | (u16)(positiveTblIdx >> gSndTbl_byte_62EEB0[positiveTblIdx >> 7]);
         if (tblIndex < 0)
         {
             result = -result;
@@ -837,10 +837,10 @@ namespace Oddlib
     }
 
 
-    int sub_408F50(Sint16 a1)
+    int sub_408F50(s16 a1)
     {
-        Sint16 v2 = static_cast<Sint16>(abs(a1));
-        int result = (Uint16)((v2 & 0x7F) << (v2 >> 7)) | (Uint16)(1 << ((v2 >> 7) - 2));
+        s16 v2 = static_cast<s16>(abs(a1));
+        int result = (u16)((v2 & 0x7F) << (v2 >> 7)) | (u16)(1 << ((v2 >> 7) - 2));
         if (a1 < 0)
         {
             result = -result;
@@ -859,32 +859,32 @@ namespace Oddlib
         return gBitCounter;
     }
 
-    int decode_16bit_audio_frame(Uint16 *outPtr, int numSamplesPerFrame)
+    int decode_16bit_audio_frame(u16 *outPtr, int numSamplesPerFrame)
     {
 
         unsigned int secondWord; // edx@1
-        Sint16 firstWord; // di@1
+        s16 firstWord; // di@1
 
         unsigned int thirdWord; // edx@4
 
-        Sint16 secondWordCopy; // di@4
+        s16 secondWordCopy; // di@4
 
         unsigned int fourthWord; // edx@6
         int secondWordCopyCopy; // ecx@6
-        Sint16 thirdWordCopy; // di@6
+        s16 thirdWordCopy; // di@6
 
 
         unsigned int fithWord; // edx@8
         int thirdWordCopyCopy; // ebx@8
-        Sint16 fourthWordCopy; // di@8
+        s16 fourthWordCopy; // di@8
 
         unsigned int fithHiWord; // edx@10
         int fourthWordCopyCopy; // ebp@10
-        Uint16 fithWordCopy; // di@10
+        u16 fithWordCopy; // di@10
 
-        Uint16 outputTmp; // dx@12
+        u16 outputTmp; // dx@12
 
-        Uint16 outputTmp1; // dx@14
+        u16 outputTmp1; // dx@14
 
         int loopOutput; // ebx@16
         int secondWordCopyCopyCopyCopy; // ecx@17
@@ -909,13 +909,13 @@ namespace Oddlib
         int counter; // [sp+40h] [bp+8h]@17
 
         gBitCounter -= 16;
-        firstWord = static_cast<Sint16>(gFirstAudioFrameDWORD);
+        firstWord = static_cast<s16>(gFirstAudioFrameDWORD);
         secondWord = gFirstAudioFrameDWORD >> 16;
 
         secondWord = ReadNextAudioWord(secondWord);
         gFirstAudioFrameDWORD >>= 16;
 
-        secondWordCopy = static_cast<Sint16>(secondWord);
+        secondWordCopy = static_cast<s16>(secondWord);
         gBitCounter -= 16;
         thirdWord = secondWord >> 16;
         const int bUseTbl = firstWord & 0xFFFF;
@@ -924,7 +924,7 @@ namespace Oddlib
 
 
         secondWordCopyCopy = secondWordCopy;
-        thirdWordCopy = static_cast<Sint16>(thirdWord);
+        thirdWordCopy = static_cast<s16>(thirdWord);
         gBitCounter -= 16;
         fourthWord = thirdWord >> 16;
         secondWordCopyCopyCopy = secondWordCopyCopy;
@@ -932,7 +932,7 @@ namespace Oddlib
         fourthWord = ReadNextAudioWord(fourthWord);
 
         thirdWordCopyCopy = thirdWordCopy;
-        fourthWordCopy = static_cast<Sint16>(fourthWord);
+        fourthWordCopy = static_cast<s16>(fourthWord);
         gBitCounter -= 16;
         fithWord = fourthWord >> 16;
         thirdWordCopyCopyCopy = thirdWordCopyCopy;
@@ -947,30 +947,30 @@ namespace Oddlib
         secondWordMask = 1 << (secondWordCopyCopyCopy - 1);
         thirdWordMask = 1 << (thirdWordCopyCopy - 1);
         forthWordMask = 1 << (fourthWordCopy - 1);
-        fithWordCopy = static_cast<Sint16>(fithWord);
+        fithWordCopy = static_cast<s16>(fithWord);
         fithHiWord = fithWord >> 16;
         gFirstAudioFrameDWORD = fithHiWord;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD); // or fithHiWord
 
 
         *outPtr = fithWordCopy;
-        fithWordCopyCopy = (Sint16)fithWordCopy;
+        fithWordCopyCopy = (s16)fithWordCopy;
         outPtr += gAudioFrameSizeBytes;
-        outputTmp = static_cast<Sint16>(gFirstAudioFrameDWORD);
+        outputTmp = static_cast<s16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
         gBitCounter -= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
 
-        outputTmpCopy = (Sint16)outputTmp;
+        outputTmpCopy = (s16)outputTmp;
         *outPtr = outputTmp;
         outPtr += gAudioFrameSizeBytes;
-        outputTmp1 = static_cast<Sint16>(gFirstAudioFrameDWORD);
+        outputTmp1 = static_cast<s16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
         gBitCounter -= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
-        loopOutput = (Sint16)outputTmp1;
+        loopOutput = (s16)outputTmp1;
         *outPtr = outputTmp1;
         outPtr += gAudioFrameSizeBytes;
         if (numSamplesPerFrame > 3)
@@ -981,7 +981,7 @@ namespace Oddlib
             for (;;)
             {
                 //            LOWORD(v45) = gFirstAudioFrameDWORD_dword_62EFB4 & secondWord_Unknown1;
-                SetLoInt(v45, static_cast<Uint16>(gFirstAudioFrameDWORD & secondWord_Unknown1)); // dword to word
+                SetLoInt(v45, static_cast<u16>(gFirstAudioFrameDWORD & secondWord_Unknown1)); // dword to word
 
 
                 gBitCounter -= secondWordCopyCopyCopyCopy;
@@ -997,9 +997,9 @@ namespace Oddlib
                 }
 
                 secondWord_Unknown2 = 1 << (secondWordCopyCopyCopy - 1);
-                v45 = (Sint16)v45;
+                v45 = (s16)v45;
 
-                if ((Sint16)v45 != secondWordMask)
+                if ((s16)v45 != secondWordMask)
                 {
                     break;
                 }
@@ -1016,8 +1016,8 @@ namespace Oddlib
                     fourthWordCopyCopy = fourthWordCopyCopyCopy;
                 }
                 secondWord_Unknown2 = thirdWordMask;
-                v45 = (Sint16)v45;
-                if ((Sint16)v45 != thirdWordMask)
+                v45 = (s16)v45;
+                if ((s16)v45 != thirdWordMask)
                 {
                     if (!(v45 & thirdWordMask))
                     {
@@ -1040,8 +1040,8 @@ namespace Oddlib
                     gBitCounter += 16;
                 }
 
-                v45 = (Sint16)v45;
-                if ((Sint16)v45 & forthWordMask)
+                v45 = (s16)v45;
+                if ((s16)v45 & forthWordMask)
                 {
                     v45 = -(v45 & ~forthWordMask);
                 }
@@ -1053,14 +1053,14 @@ namespace Oddlib
                 const int v58 = (v59 + v60) >> 1;
                 if (bUseTbl)
                 {
-                    const auto v61 = GetSoundTableValue(static_cast<Sint16>(v58)); // int to short
-                    loopOutput = (Sint16)sub_408F50(static_cast<Sint16>(v45 + v61)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
+                    const auto v61 = GetSoundTableValue(static_cast<s16>(v58)); // int to short
+                    loopOutput = (s16)sub_408F50(static_cast<s16>(v45 + v61)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
                 }
                 else
                 {
-                    loopOutput = (Sint16)(v58 + (Uint16)v45);
+                    loopOutput = (s16)(v58 + (u16)v45);
                 }
-                *outPtr = static_cast<Uint16>(loopOutput); // int to word
+                *outPtr = static_cast<u16>(loopOutput); // int to word
                 bCountIsOne = counter == 1;
                 outPtr += gAudioFrameSizeBytes;
                 --counter;
@@ -1083,19 +1083,19 @@ namespace Oddlib
 
 
 
-    Uint16* SetupAudioDecodePtrs(Uint16 *rawFrameBuffer)
+    u16* SetupAudioDecodePtrs(u16 *rawFrameBuffer)
     {
-        Uint16 *result; // eax@1
+        u16 *result; // eax@1
 
         *gAudioFrameDataPtr = rawFrameBuffer;
         result = rawFrameBuffer + 2;
-        gFirstAudioFrameDWORD = *(Uint32 *)rawFrameBuffer;
+        gFirstAudioFrameDWORD = *(u32 *)rawFrameBuffer;
         *gAudioFrameDataPtr = rawFrameBuffer + 2;
         gBitCounter = 32;
         return result;
     }
 
-    int Masher::decode_audio_frame(Uint16 *rawFrameBuffer, Uint16 *outPtr, signed int numSamplesPerFrame)
+    int Masher::decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame)
     {
         int result; // eax@2
 
@@ -1141,14 +1141,14 @@ namespace Oddlib
 
 
     // 0040DBB0
-    void Masher::do_decode_audio_frame(Uint8* audioBuffer)
+    void Masher::do_decode_audio_frame(u8* audioBuffer)
     {
         if (mbHasAudio)
         {
             //            SetAudioFrameSizeBytesAndBits(mAudioFrameSizeBytes, mAudioFrameSizeBits);
             SetAudioFrameSizeBytesAndBits(2);
 
-            decode_audio_frame((Uint16 *)mAudioFrameData.data(), (Uint16 *)audioBuffer, mAudioHeader.mSingleAudioFrameSize);
+            decode_audio_frame((u16 *)mAudioFrameData.data(), (u16 *)audioBuffer, mAudioHeader.mSingleAudioFrameSize);
             //++thisPtr->mAudioFrameNumber;
         }
         else
@@ -1173,7 +1173,7 @@ namespace Oddlib
     }
 
 
-    void Masher::ParseAudioFrame(Uint8* audioBuffer)
+    void Masher::ParseAudioFrame(u8* audioBuffer)
     {
         if (audioBuffer)
         {
@@ -1181,7 +1181,7 @@ namespace Oddlib
         }
     }
 
-    bool Masher::Update(Uint32* pixelBuffer, Uint8* audioBuffer)
+    bool Masher::Update(u32* pixelBuffer, u8* audioBuffer)
     {
         if (mCurrentFrame == 0)
         {
@@ -1197,11 +1197,11 @@ namespace Oddlib
                 // the size of the video data, and the audio data is
                 // the remaining data after this.
                 uint32_t videoDataSize = 0;
-                mStream->ReadUInt32(videoDataSize);
+                mStream->Read(videoDataSize);
 
                 // Video data
                 mVideoFrameData.resize(videoDataSize);
-                mStream->ReadBytes(mVideoFrameData.data(), videoDataSize);
+                mStream->Read(mVideoFrameData);
 
                 // Calc size of audio data
                 const uint32_t totalSize = mFrameSizes[mCurrentFrame];
@@ -1209,7 +1209,7 @@ namespace Oddlib
 
                 // Audio data
                 mAudioFrameData.resize(audioDataSize);
-                mStream->ReadBytes(mAudioFrameData.data(), audioDataSize);
+                mStream->Read(mAudioFrameData);
                 ParseVideoFrame(pixelBuffer);
                 ParseAudioFrame(audioBuffer);
             }
@@ -1224,7 +1224,7 @@ namespace Oddlib
             {
                 const uint32_t totalSize = mFrameSizes[mCurrentFrame];
                 mVideoFrameData.resize(totalSize);
-                mStream->ReadBytes(mVideoFrameData.data(), totalSize);
+                mStream->Read(mVideoFrameData);
                 ParseVideoFrame(pixelBuffer);
             }
             mCurrentFrame++;

@@ -11,13 +11,13 @@ namespace Oddlib
             if (bitCounter == 14)
             {
                 bitCounter = 30;
-                src_data = (ReadUint16(stream) << 14) | src_data;
+                src_data = (ReadU16(stream) << 14) | src_data;
             }
         }
         else
         {
             bitCounter = 32;
-            src_data = ReadUint32(stream);
+            src_data = ReadU32(stream);
         }
         bitCounter -= 6;
     }
@@ -25,7 +25,7 @@ namespace Oddlib
     // Function 0x004031E0 in AO
     // NOTE: A lot of the code in AbeWin.exe for this algorithm is dead, it attempts to gain some "other" buffer at the end of the
     // animation data which actually doesn't exist. Thus all this "extra" code does is write black pixels to an already black canvas.
-    std::vector<Uint8> CompressionType3::Decompress(IStream& stream, Uint32 finalW, Uint32 /*w*/, Uint32 h, Uint32 dataSize)
+    std::vector<u8> CompressionType3::Decompress(IStream& stream, u32 finalW, u32 /*w*/, u32 h, u32 dataSize)
     {
         size_t dstPos = 0;
         std::vector<unsigned char> buffer;

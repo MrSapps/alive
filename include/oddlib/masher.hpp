@@ -1,5 +1,6 @@
 #pragma once
 
+#include "types.hpp"
 #include "stream.hpp"
 #include "oddlib/exceptions.hpp"
 
@@ -25,24 +26,24 @@ namespace Oddlib
             Read();
         }
 
-        bool Update(Uint32* pixelBuffer, Uint8* audioBuffer);
+        bool Update(u32* pixelBuffer, u8* audioBuffer);
 
-        Uint32 Width() const  { return mVideoHeader.mWidth;  }
-        Uint32 Height() const { return mVideoHeader.mHeight; }
+        u32 Width() const  { return mVideoHeader.mWidth;  }
+        u32 Height() const { return mVideoHeader.mHeight; }
         bool HasVideo() const { return mbHasVideo; }
         bool HasAudio() const { return mbHasAudio; }
-        Uint32 SingleAudioFrameSizeSamples() const { return mAudioHeader.mSingleAudioFrameSize; }
-        Uint32 AudioSampleRate() const { return mAudioHeader.mSampleRate; }
-        Uint32 FrameNumber() const { return mCurrentFrame; }
-        Uint32 FrameRate() const { return mFileHeader.mFrameRate; }
-        Uint32 NumberOfFrames() const { return mFileHeader.mNumberOfFrames; }
+        u32 SingleAudioFrameSizeSamples() const { return mAudioHeader.mSingleAudioFrameSize; }
+        u32 AudioSampleRate() const { return mAudioHeader.mSampleRate; }
+        u32 FrameNumber() const { return mCurrentFrame; }
+        u32 FrameRate() const { return mFileHeader.mFrameRate; }
+        u32 NumberOfFrames() const { return mFileHeader.mNumberOfFrames; }
     private:
         void Read();
-        void ParseVideoFrame(Uint32* pixelBuffer);
+        void ParseVideoFrame(u32* pixelBuffer);
 
-        void ParseAudioFrame(Uint8* audioBuffer);
-        int decode_audio_frame(Uint16 *rawFrameBuffer, Uint16 *outPtr, signed int numSamplesPerFrame);
-        void do_decode_audio_frame(Uint8* audioBuffer);
+        void ParseAudioFrame(u8* audioBuffer);
+        int decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame);
+        void do_decode_audio_frame(u8* audioBuffer);
 
         struct DDVHeader
         {
@@ -92,9 +93,9 @@ namespace Oddlib
         std::vector<uint8_t> mVideoFrameData;
         std::vector<uint8_t> mAudioFrameData;
 
-        std::vector<Uint16> mMacroBlockBuffer;
+        std::vector<u16> mMacroBlockBuffer;
 
     protected:
-        std::vector<Uint16> mDecodedVideoFrameData;
+        std::vector<u16> mDecodedVideoFrameData;
     };
 }

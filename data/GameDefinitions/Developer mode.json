@@ -1,0 +1,8 @@
+{
+    "Name": "Developer mode",
+    "Description": "A 'fake' game definition which enables developer mode to view all game data",
+    "Author": "ALIVE team",
+    "InitialLevel": "not_used",
+    "DatasetName": "Developer",
+    "RequiredDatasets": [ "AePc", "AePcDemo", "AePsx", "AePsxDemo", "AoPc", "AoPcDemo", "AoPsx", "AoPsxDemo" ]
+}

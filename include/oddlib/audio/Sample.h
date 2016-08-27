@@ -11,6 +11,6 @@ public:
     AliveAudioSample(const AliveAudioSample&) = delete;
     AliveAudioSample& operator = (const AliveAudioSample&) = delete;
 
-    std::vector<Uint16> m_SampleBuffer;
+    std::vector<u16> m_SampleBuffer;
     unsigned int mSampleSize = 0;
 };

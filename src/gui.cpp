@@ -331,7 +331,7 @@ void pt_to_px(int px[2], int pt[2], float dpi_scale)
 	px[1] = (int)floorf(pt[1]*dpi_scale + 0.5f);
 }
 
-float pt_to_px_f32(float pt, float dpi_scale)
+float pt_to_px_float(float pt, float dpi_scale)
 {
 	return pt*dpi_scale;
 }

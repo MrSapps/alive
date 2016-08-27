@@ -11,29 +11,29 @@ namespace Oddlib
 {
     static bool IsAePsxCam(IStream& stream)
     {
-        Uint16 size = 0;
-        stream.ReadUInt16(size);
+        u16 size = 0;
+        stream.Read(size);
 
-        Uint16 nulls = 0;
-        stream.ReadUInt16(nulls);
+        u16 nulls = 0;
+        stream.Read(nulls);
         if (nulls != 0)
         {
             return false;
         }
 
-        Uint16 temp = 0;
-        stream.ReadUInt16(temp);
+        u16 temp = 0;
+        stream.Read(temp);
 
         // [00 38] [xx xx] [02 00]
-        stream.ReadUInt16(temp);
+        stream.Read(temp);
         if (temp != 0x3800)
         {
             return false;
         }
 
-        stream.ReadUInt16(temp);
+        stream.Read(temp);
 
-        stream.ReadUInt16(temp);
+        stream.Read(temp);
         if (temp != 0x0002)
         {
             return false;
@@ -45,11 +45,11 @@ namespace Oddlib
     static bool IsAoDemoPsxCam(IStream& stream)
     {
         // Look for a pattern of [00 38]
-        Uint16 size = 0;
-        stream.ReadUInt16(size);
+        u16 size = 0;
+        stream.Read(size);
 
-        Uint16 temp = 0;
-        stream.ReadUInt16(temp);
+        u16 temp = 0;
+        stream.Read(temp);
         if (temp != 0x3800)
         {
             return false;
@@ -103,8 +103,8 @@ namespace Oddlib
                 break;
             }
 
-            Uint16 stripSize = 0;
-            stream.ReadUInt16(stripSize);
+            u16 stripSize = 0;
+            stream.Read(stripSize);
             if (stripSize != aoStripSize)
             {
                 allStripsAreAoSize = false;
@@ -143,16 +143,39 @@ namespace Oddlib
         abort();
     }
 
+    class Bits : public IBits
+    {
+    public:
+        Bits(SDL_SurfacePtr camImage)
+            : mCameraImage(std::move(camImage))
+        {
+
+        }
+
+        virtual SDL_Surface* GetSurface() const override
+        {
+            return mCameraImage.get();
+        }
+
+    private:
+        SDL_SurfacePtr mCameraImage;
+    };
+
+    std::unique_ptr<IBits> MakeBits(SDL_SurfacePtr camImage)
+    {
+        return std::make_unique<Bits>(std::move(camImage));
+    }
+
     std::unique_ptr<IBits> MakeBits(IStream& stream)
     {
         const eCameraType cameraType = GetCameraType(stream);
         switch (cameraType)
         {
-            case eAoPsxDemo: return std::make_unique<PsxBits>(stream, false, true);
-            case eAePsx:     return std::make_unique<PsxBits>(stream, true, false);
-            case eAoPsx:     return std::make_unique<PsxBits>(stream, false, false);
-            case eAoPc:      return std::make_unique<AoBitsPc>(stream);
-            case eAePc:      return std::make_unique<AeBitsPc>(stream);
+        case eAoPsxDemo: return std::make_unique<PsxBits>(stream, false, true);
+        case eAePsx:     return std::make_unique<PsxBits>(stream, true, false);
+        case eAoPsx:     return std::make_unique<PsxBits>(stream, false, false);
+        case eAoPc:      return std::make_unique<AoBitsPc>(stream);
+        case eAePc:      return std::make_unique<AeBitsPc>(stream);
         }
         abort();
     }

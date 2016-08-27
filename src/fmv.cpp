@@ -1,16 +1,10 @@
 #include "fmv.hpp"
 #include "gui.h"
-#include "core/audiobuffer.hpp"
-#include "oddlib/cdromfilesystem.hpp"
-#include "gamedata.hpp"
 #include "logger.hpp"
-#include "filesystem.hpp"
-#include "subtitles.hpp"
-#include <GL/glew.h>
-#include "SDL_opengl.h"
 #include "proxy_nanovg.h"
 #include "stdthread.h"
 #include "renderer.hpp"
+#include "resourcemapper.hpp"
 
 class AutoMouseCursorHide
 {
@@ -26,27 +20,27 @@ public:
     }
 };
 
-static float Percent(float max, float percent)
+static f32 Percent(f32 max, f32 percent)
 {
     return (max / 100.0f) * percent;
 }
 
 static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w, int h)
 {
-    float xpos = 0.0f;
-    float ypos = static_cast<float>(y + h);
+    f32 xpos = 0.0f;
+    f32 ypos = static_cast<f32>(y + h);
 
     rend.fillColor(Color{ 0, 0, 0, 1 });
-    rend.fontSize(Percent(static_cast<float>(h), 6.7f));
+    rend.fontSize(Percent(static_cast<f32>(h), 6.7f));
     rend.textAlign(TEXT_ALIGN_TOP);
     
-    float bounds[4];
+    f32 bounds[4];
     rend.textBounds(static_cast<int>(xpos), static_cast<int>(ypos), msg, bounds);
 
-    //float fontX = bounds[0];
-    //float fontY = bounds[1];
-    float fontW = bounds[2] - bounds[0];
-    float fontH = bounds[3] - bounds[1];
+    //f32 fontX = bounds[0];
+    //f32 fontY = bounds[1];
+    f32 fontW = bounds[2] - bounds[0];
+    f32 fontH = bounds[3] - bounds[1];
 
     // Move off the bottom of the screen by half the font height
     ypos -= fontH + (fontH/2);
@@ -56,212 +50,192 @@ static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w
 
     rend.text(xpos, ypos, msg);
     rend.fillColor(Color{ 1, 1, 1, 1 });
-    float adjust = Percent(static_cast<float>(h), 0.3f);
+    f32 adjust = Percent(static_cast<f32>(h), 0.3f);
     rend.text(xpos - adjust, ypos - adjust, msg);
 }
 
-class IMovie : public IAudioPlayer
+// Make FMV window title unique, duplicates will cause a crash
+static int gId = 0;
+
+IMovie::IMovie(const std::string& resourceName, IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles)
+    : mAudioController(controller), mSubTitles(std::move(subtitles)), mName("FMV: " + resourceName + std::to_string(gId++))
 {
-public:
-    static std::unique_ptr<IMovie> Factory(const std::string& fmvName, IAudioController& audioController, FileSystem& fs, const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs);
+    // TODO: Add to interface - must be added/removed outside of ctor/dtor due
+    // to data race issues
+    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+    mAudioController.AddPlayer(this);
+}
 
-    IMovie(IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles)
-        : mAudioController(controller), mSubTitles(std::move(subtitles))
+IMovie:: ~IMovie()
+{
+    // TODO: Data race fix
+    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+    mAudioController.RemovePlayer(this);
+}
+
+
+// Main thread context
+void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int /*screenH*/)
+{
+    // TODO: Populate mAudioBuffer and mVideoBuffer
+    // for up to N buffered frames
+    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+
+    while (NeedBuffer())
     {
-        // TODO: Add to interface - must be added/removed outside of ctor/dtor due
-        // to data race issues
-        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-        mAudioController.AddPlayer(this);
+        FillBuffers();
     }
 
-    virtual ~IMovie()
+    /*
+    int num = -1;
+    if (!mVideoBuffer.empty())
     {
-        // TODO: Data race fix
-        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-        mAudioController.RemovePlayer(this);
+        num = mVideoBuffer.begin()->mFrameNum;
+    }*/
+
+    //        std::cout << "Playing frame num " << mVideoFrameIndex << " first buffered frame is " << num << " samples played " << (size_t)mConsumedAudioBytes << std::endl;
+
+    // 10063 is audio freq of 37800/15fps = 2520 * num frames(6420) = 16178400
+
+    // 37800/15
+    //  37800/15fps = 2520 samples per frame, 5040 bytes
+    //  6420 * 5040 = 32356800*2=64713600
+    // 10063 is 64608768(total audio bytes) / 6420(num frames) = 10063 bytes per frame
+    // Total audio bytes is 64607760
+    // Total audio bytes is 64607760
+    // IMovie::Play[E] Audio buffer underflow want 5040 bytes  have 1008 bytes
+    // Total audio bytes is 64608768
+
+    // 2016 samples every 4 sectors, num sectors = file size / 2048?
+    
+    const auto videoFrameIndex = mConsumedAudioBytes / mAudioBytesPerFrame;// 10063;
+    //std::cout << "Total audio bytes is " << mConsumedAudioBytes << std::endl;
+    const char *current_subs = nullptr;
+    if (mSubTitles)
+    {
+        // We assume the FPS is always 15, thus 1000/15=66.66 so frame number * 66 = number of msecs into the video
+        const auto& subs = mSubTitles->Find((videoFrameIndex * 66)+200);
+        if (!subs.empty())
+        {
+            // TODO: Render all active subs, not just the first one
+            current_subs = subs[0]->Text().c_str();
+            if (subs.size() > 1)
+            {
+                LOG_WARNING("Too many active subtitles " << subs.size());
+            }
+        }
     }
 
-    virtual bool EndOfStream() = 0;
-    virtual bool NeedBuffer() = 0;
-    virtual void FillBuffers() = 0;
-
-    // Main thread context
-    void OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int /*screenH*/)
+    bool played = false;
+    while (!mVideoBuffer.empty())
     {
-        // TODO: Populate mAudioBuffer and mVideoBuffer
-        // for up to N buffered frames
-        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-
-        while (NeedBuffer())
+        Frame& f = mVideoBuffer.front();
+        if (f.mFrameNum < videoFrameIndex)
         {
-            FillBuffers();
+            mVideoBuffer.pop_front();
+            continue;
         }
 
-        /*
-        int num = -1;
-        if (!mVideoBuffer.empty())
+        if (f.mFrameNum == videoFrameIndex)
         {
-            num = mVideoBuffer.begin()->mFrameNum;
-        }*/
-
-        //        std::cout << "Playing frame num " << mVideoFrameIndex << " first buffered frame is " << num << " samples played " << (size_t)mConsumedAudioBytes << std::endl;
-
-        // 10063 is audio freq of 37800/15fps = 2520 * num frames(6420) = 16178400
-
-        // 37800/15
-        //  37800/15fps = 2520 samples per frame, 5040 bytes
-        //  6420 * 5040 = 32356800*2=64713600
-        // 10063 is 64608768(total audio bytes) / 6420(num frames) = 10063 bytes per frame
-        // Total audio bytes is 64607760
-        // Total audio bytes is 64607760
-        // IMovie::Play[E] Audio buffer underflow want 5040 bytes  have 1008 bytes
-        // Total audio bytes is 64608768
-
-        // 2016 samples every 4 sectors, num sectors = file size / 2048?
-        
-        const auto videoFrameIndex = mConsumedAudioBytes / mAudioBytesPerFrame;// 10063;
-        //std::cout << "Total audio bytes is " << mConsumedAudioBytes << std::endl;
-        const char *current_subs = nullptr;
-        if (mSubTitles)
-        {
-            // We assume the FPS is always 15, thus 1000/15=66.66 so frame number * 66 = number of msecs into the video
-            const auto& subs = mSubTitles->Find((videoFrameIndex * 66)+200);
-            if (!subs.empty())
-            {
-                // TODO: Render all active subs, not just the first one
-                current_subs = subs[0]->Text().c_str();
-                if (subs.size() > 1)
-                {
-                    LOG_WARNING("Too many active subtitles " << subs.size());
-                }
-            }
-        }
-
-        bool played = false;
-        while (!mVideoBuffer.empty())
-        {
-            Frame& f = mVideoBuffer.front();
-            if (f.mFrameNum < videoFrameIndex)
-            {
-                mVideoBuffer.pop_front();
-                continue;
-            }
-
-            if (f.mFrameNum == videoFrameIndex)
-            {
-                mLast = f;
-                RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
-                played = true;
-                break;
-            }
-
-        }
-
-        if (!played && !mVideoBuffer.empty())
-        {
-            Frame& f = mVideoBuffer.front();
+            mLast = f;
             RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
+            played = true;
+            break;
         }
-
-        if (!played && mVideoBuffer.empty())
-        {
-            Frame& f = mLast;
-            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
-        }
-
-        while (NeedBuffer())
-        {
-            FillBuffers();
-        }
-
-
 
     }
 
-    // Main thread context
-    bool IsEnd()
+    // TODO: If lag then video frames get dropped, fix so that we at least
+    // try to update the video frame at some point!
+    if (!played && !mVideoBuffer.empty())
     {
-        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-        const auto ret = EndOfStream() && mAudioBuffer.empty();
-        if (ret && !mVideoBuffer.empty())
-        {
-            LOG_ERROR("Still " << mVideoBuffer.size() << " frames left after audio finished");
-        }
-        return ret;
+        Frame& f = mVideoBuffer.front();
+        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
+    }
+    else if (!played && mVideoBuffer.empty())
+    {
+        Frame& f = mLast;
+        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
     }
 
-protected:
-    // Audio thread context, from IAudioPlayer
-    virtual void Play(Uint8* stream, Uint32 len) override
+    while (NeedBuffer())
     {
-        std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-
-        // Consume mAudioBuffer and update the amount of consumed bytes
-        size_t have = mAudioBuffer.size()/sizeof(int16_t);
-        size_t take = len/sizeof(float);
-        if (take > have)
-        {
-            // Buffer underflow - we don't have enough data to fill the requested buffer
-            // audio glitches ahoy!
-            LOG_ERROR("Audio buffer underflow want " << take << " samples " << " have " << have << " samples");
-            take = have;
-        }
-
-        float *floatOutStream = reinterpret_cast<float*>(stream);
-        for (auto i = 0u; i < take; i++)
-        {
-            uint8_t low = mAudioBuffer[i*sizeof(int16_t)];
-            uint8_t high = mAudioBuffer[i*sizeof(int16_t) + 1];
-            int16_t fixed = (int16_t)(low | (high << 8));
-            floatOutStream[i] = fixed / 32768.0f;
-        }
-        mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take*sizeof(int16_t));
-        mConsumedAudioBytes += take*sizeof(int16_t);
+        FillBuffers();
     }
 
-    void RenderFrame(Renderer &rend, GuiContext &gui, int width, int height, const GLvoid *pixels, const char *subtitles)
+
+
+}
+
+// Main thread context
+bool IMovie::IsEnd()
+{
+    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+    const auto ret = EndOfStream() && mAudioBuffer.empty();
+    if (ret && !mVideoBuffer.empty())
     {
-        // TODO: Optimize - should update 1 texture rather than creating per frame
-        int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
+        LOG_ERROR("Still " << mVideoBuffer.size() << " frames left after audio finished");
+    }
+    return ret;
+}
 
-        gui_begin_window(&gui, "FMV");
-        int x, y, w, h;
-        gui_turtle_pos(&gui, &x, &y);
-        gui_window_client_size(&gui, &w, &h);
+// Audio thread context, from IAudioPlayer
+void IMovie::Play(u8* stream, u32 len)
+{
+    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
 
-        rend.beginLayer(gui_layer(&gui) + 1);
-        rend.drawQuad(texhandle, static_cast<float>(x), static_cast<float>(y), static_cast<float>(w), static_cast<float>(h));
-
-        if (subtitles)
-            RenderSubtitles(rend, subtitles, x, y, w, h);
-
-        rend.endLayer();
-
-        gui_end_window(&gui);
-
-        rend.destroyTexture(texhandle);
+    // Consume mAudioBuffer and update the amount of consumed bytes
+    size_t have = mAudioBuffer.size()/sizeof(int16_t);
+    size_t take = len/sizeof(f32);
+    if (take > have)
+    {
+        // Buffer underflow - we don't have enough data to fill the requested buffer
+        // audio glitches ahoy!
+        LOG_ERROR("Audio buffer underflow want " << take << " samples " << " have " << have << " samples");
+        take = have;
     }
 
-protected:
-    struct Frame
+    f32 *floatOutStream = reinterpret_cast<f32*>(stream);
+    for (auto i = 0u; i < take; i++)
     {
-        size_t mFrameNum;
-        Uint32 mW;
-        Uint32 mH;
-        std::vector<Uint8> mPixels;
-    };
-    Frame mLast;
-    size_t mFrameCounter = 0;
-    size_t mConsumedAudioBytes = 0;
-    std::mutex mAudioBufferMutex;
-    std::deque<Uint8> mAudioBuffer;
-    std::deque<Frame> mVideoBuffer;
-    IAudioController& mAudioController;
-    int mAudioBytesPerFrame = 1;
-    std::unique_ptr<SubTitleParser> mSubTitles;
-private:
-    //AutoMouseCursorHide mHideMouseCursor;
-};
+        uint8_t low = mAudioBuffer[i*sizeof(int16_t)];
+        uint8_t high = mAudioBuffer[i*sizeof(int16_t) + 1];
+        int16_t fixed = (int16_t)(low | (high << 8));
+
+        // TODO: Add a proper audio mixing alogrithm/API, this will clip/overflow and cause weridnes when
+        // 2 streams of diff sample rates are mixed
+        floatOutStream[i] += fixed / 32768.0f;
+    }
+    mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take*sizeof(int16_t));
+    mConsumedAudioBytes += take*sizeof(int16_t);
+}
+
+void IMovie::RenderFrame(Renderer &rend, GuiContext &gui, int width, int height, const GLvoid *pixels, const char *subtitles)
+{
+    // TODO: Optimize - should update 1 texture rather than creating per frame
+    int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
+
+    gui_begin_window(&gui, mName.c_str());
+    int x, y, w, h;
+    gui_turtle_pos(&gui, &x, &y);
+    gui_window_client_size(&gui, &w, &h);
+
+    rend.beginLayer(gui_layer(&gui) + 1);
+    rend.drawQuad(texhandle, static_cast<f32>(x), static_cast<f32>(y), static_cast<f32>(w), static_cast<f32>(h));
+
+    if (subtitles)
+    {
+        RenderSubtitles(rend, subtitles, x, y, w, h);
+    }
+
+    rend.endLayer();
+
+    gui_end_window(&gui);
+
+    rend.destroyTexture(texhandle);
+}
+
 
 // PSX MOV/STR format, all PSX game versions use this.
 class MovMovie : public IMovie
@@ -269,14 +243,14 @@ class MovMovie : public IMovie
 protected:
     std::unique_ptr<Oddlib::IStream> mFmvStream;
     bool mPsx = false;
-    MovMovie(IAudioController& audioController, std::unique_ptr<SubTitleParser> subtitles)
-        : IMovie(audioController, std::move(subtitles))
+    MovMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<SubTitleParser> subtitles)
+        : IMovie(resourceName, audioController, std::move(subtitles))
     {
 
     }
 public:
-    MovMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles, Uint32 startSector, Uint32 numberOfSectors)
-        : IMovie(audioController, std::move(subtitles))
+    MovMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles, u32 startSector, u32 numberOfSectors)
+        : IMovie(resourceName, audioController, std::move(subtitles))
     {
         if (numberOfSectors == 0)
         {
@@ -357,14 +331,14 @@ public:
         const int kXaFrameDataSize = 2016;
         const int kNumAudioChannels = 2;
         const int kBytesPerSample = 2;
-        std::vector<unsigned char> outPtr(kXaFrameDataSize * kNumAudioChannels * kBytesPerSample);
+        std::vector<s16> outPtr((kXaFrameDataSize * kNumAudioChannels * kBytesPerSample) / 2);
         
         if (mDemuxBuffer.empty())
         {
             mDemuxBuffer.resize(1024 * 1024);
         }
 
-        std::vector<Uint8> pixelBuffer;
+        std::vector<u8> pixelBuffer;
         for (;;)
         {
 
@@ -373,7 +347,7 @@ public:
             {
                 return;
             }
-            mFmvStream->ReadBytes(reinterpret_cast<Uint8*>(&w), sizeof(w));
+            mFmvStream->ReadBytes(reinterpret_cast<u8*>(&w), sizeof(w));
 
             // PC sector must start with "MOIR" if video, else starts with "VALE"
             if (!mPsx && w.mSectorType != 0x52494f4d)
@@ -385,7 +359,6 @@ public:
             const auto kMagic = mPsx ? 0x80010160 : 0x4b494b41;
             if (w.mAkikMagic != kMagic)
             {
-                uint16_t numBytes = 0;
                 if (mPsx)
                 {
                     /*
@@ -398,22 +371,23 @@ public:
                     RawCdImage::CDXASector* rawXa = (RawCdImage::CDXASector*)&w;
                     if (rawXa->subheader.coding_info != 0)
                     {
-                        numBytes = mAdpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), &rawXa->data[0], true);
+                        mAdpcm.DecodeFrameToPCM(outPtr, &rawXa->data[0]);
                     }
                     else
                     {
                         // Blank/empty audio frame, play silence so video stays in sync
-                        numBytes = 2016 * 2 * 2;
+                        //numBytes = 2016 * 2 * 2;
                     }
                 }
                 else
                 {
-                    numBytes = mAdpcm.DecodeFrameToPCM((int8_t *)outPtr.data(), (uint8_t *)&w.mAkikMagic, true);
+                     mAdpcm.DecodeFrameToPCM(outPtr, (uint8_t *)&w.mAkikMagic);
                 }
-
-                for (int i = 0; i < numBytes; i++)
+              
+                for (auto i = 0u; i < outPtr.size(); i++)
                 {
-                    mAudioBuffer.push_back(outPtr[i]);
+                    mAudioBuffer.push_back(outPtr[i] & 0xFF);
+                    mAudioBuffer.push_back(static_cast<unsigned char>(outPtr[i] >> 8));
                 }
 
                 // Must be VALE
@@ -421,8 +395,8 @@ public:
             }
             else
             {
-                const Uint16 frameW = w.mWidth;
-                const Uint16 frameH = w.mHeight;
+                const u16 frameW = w.mWidth;
+                const u16 frameH = w.mHeight;
 
                 uint32_t bytes_to_copy = w.mFrameDataLen - w.mSectorNumberInFrame *kXaFrameDataSize;
                 if (bytes_to_copy > 0)
@@ -463,8 +437,8 @@ private:
 class DDVMovie : public MovMovie
 {
 public:
-    DDVMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles)
-        : MovMovie(audioController, std::move(subtitles))
+    DDVMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles)
+        : MovMovie(resourceName, audioController, std::move(subtitles))
     {
         mPsx = false;
         mAudioBytesPerFrame = 10063; // TODO: Calculate
@@ -478,14 +452,14 @@ public:
 class MasherMovie : public IMovie
 {
 public:
-    MasherMovie(IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles)
-        : IMovie(audioController, std::move(subtitles))
+    MasherMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles)
+        : IMovie(resourceName, audioController, std::move(subtitles))
     {
         mMasher = std::make_unique<Oddlib::Masher>(std::move(stream));
 
         if (mMasher->HasAudio())
         {
-            mAudioController.SetAudioSpec(static_cast<Uint16>(mMasher->SingleAudioFrameSizeSamples()), mMasher->AudioSampleRate());
+            mAudioController.SetAudioSpec(static_cast<u16>(mMasher->SingleAudioFrameSizeSamples()), mMasher->AudioSampleRate());
         }
 
         if (mMasher->HasVideo())
@@ -518,8 +492,8 @@ public:
     {
         while (NeedBuffer())
         {
-            std::vector<Uint8> decodedAudioFrame(mMasher->SingleAudioFrameSizeSamples() * 2 * 2); // *2 if stereo
-            mAtEndOfStream = !mMasher->Update((Uint32*)mFramePixels.data(), decodedAudioFrame.data());
+            std::vector<u8> decodedAudioFrame(mMasher->SingleAudioFrameSizeSamples() * 2 * 2); // *2 if stereo
+            mAtEndOfStream = !mMasher->Update((u32*)mFramePixels.data(), decodedAudioFrame.data());
             if (!mAtEndOfStream)
             {
                 // Copy to audio threads buffer
@@ -540,86 +514,34 @@ public:
 private:
     bool mAtEndOfStream = false;
     std::unique_ptr<Oddlib::Masher> mMasher;
-    std::vector<Uint8> mFramePixels;
+    std::vector<u8> mFramePixels;
 };
 
+
 /*static*/ std::unique_ptr<IMovie> IMovie::Factory(
-    const std::string& fmvName, 
-    IAudioController& audioController, 
-    FileSystem& fs, 
-    const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
+    const std::string& resourceName,
+    IAudioController& audioController,
+    std::unique_ptr<Oddlib::IStream> stream,
+    std::unique_ptr<SubTitleParser> subTitles,
+    u32 startSector, u32 endSector)
 {
-    TRACE_ENTRYEXIT;
-
-    // TODO: UI will pass in PSX name of "BA\\BA.MOV" which is wrong, once json mapping is done
-    // only PC names should be passed in here which might result in BA.MOV being opened instead
-
-    // TODO: PSX fmv seems to have a lot of "black" at the end - probably json data is incorrect or needs tweaking?
-    auto stream = fs.ResourcePaths().OpenFmv(fmvName, true);
-    if (!stream)
-    {
-        throw Oddlib::Exception("FMV not found");
-    }
-
-    // Try to open any corresponding subtitle file
-    const std::string subTitleFileName = "data/subtitles/" + fmvName + ".SRT";
-    std::unique_ptr<SubTitleParser> subTitles;
-
-    // Look in game data so mods can override it first
-    auto subsStream = fs.ResourcePaths().Open(subTitleFileName);
-    if (!subsStream)
-    {
-        // Fall back to the ones shipped with the engine
-        subsStream = fs.GameData().Open(subTitleFileName);
-    }
-
-    if (subsStream)
-    {
-        subTitles = std::make_unique<SubTitleParser>(std::move(subsStream));
-    }
 
     char idBuffer[4] = {};
-    stream->ReadBytes(reinterpret_cast<Sint8*>(idBuffer), sizeof(idBuffer));
+    stream->Read(idBuffer);
     stream->Seek(0);
     std::string idStr(idBuffer, 3);
     if (idStr == "DDV")
     {
-        return std::make_unique<MasherMovie>(audioController, std::move(stream), std::move(subTitles));
+        return std::make_unique<MasherMovie>(resourceName, audioController, std::move(stream), std::move(subTitles));
     }
     else if (idStr == "MOI")
     {
-        return std::make_unique<DDVMovie>(audioController, std::move(stream), std::move(subTitles));
+        return std::make_unique<DDVMovie>(resourceName, audioController, std::move(stream), std::move(subTitles));
     }
     else
     {
-        auto fmvData = allFmvs.find(fmvName);
-        if (fmvData != std::end(allFmvs))
-        {
-            if (!fmvData->second.empty())
-            {
-                if (fmvData->second.size() > 1)
-                {
-                    LOG_ERROR("More than one FMV mapping");
-                    assert(false);
-                }
-                auto section = fmvData->second[0];
-
-                // TODO FIX ME: Should this always be a 1:1 mapping? If yes remove vector
-                // else here we need to know which one to pick.
-
-                // Check if the PSX file containing the FMV exists
-                //const std::vector<GameData::FmvSection>& sections = fmvData->second;
-                //for (const GameData::FmvSection& section : sections)
-                {
-
-                    // Only PSX FMV's have many in a single file
-                    return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), section.mStartSector, section.mNumberOfSectors);
-                }
-            }
-        }
-
-        LOG_ERROR("Failed to find sectors info for PSX FMV in game data - all of it will be played");
-        return std::make_unique<MovMovie>(audioController, std::move(stream), std::move(subTitles), 0, 0);
+        const auto numberofSectors = endSector - startSector;
+        return std::make_unique<MovMovie>(resourceName, audioController, std::move(stream), std::move(subTitles), startSector, numberofSectors);
     }
 }
 
@@ -657,17 +579,17 @@ private:
     char mFilterString[64];
     int mListBoxSelectedItem = -1;
     std::vector<const char*> mListBoxItems;
-    std::unique_ptr<class IMovie>& mFmv;
+    std::vector<std::unique_ptr<class IMovie>>& mFmvs;
 public:
     FmvUi(const FmvUi&) = delete;
     FmvUi& operator = (const FmvUi&) = delete;
-    FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController, FileSystem& fs)
-        : mFmv(fmv), mAudioController(audioController), mFileSystem(fs)
+    FmvUi(std::vector<std::unique_ptr<class IMovie>>& fmv, IAudioController& audioController, ResourceLocator& resourceLocator)
+        : mFmvs(fmv), mAudioController(audioController), mResourceLocator(resourceLocator)
     {
         mFilterString[0] = '\0';
     }
 
-    void DrawVideoSelectionUi(GuiContext& gui, const std::map<std::string, std::vector<GameData::FmvSection>>& allFmvs)
+    void DrawVideoSelectionUi(GuiContext& gui)
     {
         std::string name = "Video player";
         gui_begin_window(&gui, name.c_str());
@@ -675,9 +597,9 @@ public:
         gui_textfield(&gui, "Filter", mFilterString, sizeof(mFilterString));
 
         mListBoxItems.clear();
-        mListBoxItems.reserve(allFmvs.size());
+        mListBoxItems.reserve(mResourceLocator.mResMapper.mFmvMaps.size());
 
-        for (const auto& fmv : allFmvs)
+        for (const auto& fmv : mResourceLocator.mResMapper.mFmvMaps)
         {
             if (guiStringFilter(fmv.first.c_str(), mFilterString))
             {
@@ -685,42 +607,35 @@ public:
             }
         }
 
-        //if (ImGui::ListBoxHeader("##", ImVec2(ImGui::GetWindowWidth() - 15, ImGui::GetWindowSize().y - 95)))
+        for (size_t i = 0; i < mListBoxItems.size(); i++)
         {
-            for (size_t i = 0; i < mListBoxItems.size(); i++)
+            if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
             {
-                if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
-                {
-                    mListBoxSelectedItem = static_cast<int>(i);
-                }
+                mListBoxSelectedItem = static_cast<int>(i);
             }
-            //ImGui::ListBoxFooter();
         }
 
         if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
         {
-            try
+            const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
+            auto fmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
+            if (fmv)
             {
-                const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-                mFmv = IMovie::Factory(fmvName, mAudioController, mFileSystem, allFmvs);
-                mListBoxSelectedItem = -1;
+                mFmvs.emplace_back(std::move(fmv));
             }
-            catch (const Oddlib::Exception& ex)
-            {
-                LOG_ERROR("Exception: " << ex.what());
-            }
+            mListBoxSelectedItem = -1;
         }
 
         gui_end_window(&gui);
     }
 private:
     IAudioController& mAudioController;
-    FileSystem& mFileSystem;
+    ResourceLocator& mResourceLocator;
 };
 
 
-Fmv::Fmv(GameData& gameData, IAudioController& audioController, FileSystem& fs)
-    : mGameData(gameData), mAudioController(audioController), mFileSystem(fs)
+Fmv::Fmv(IAudioController& audioController, ResourceLocator& resourceLocator)
+    : mResourceLocator(resourceLocator), mAudioController(audioController)
 {
 }
 
@@ -731,50 +646,46 @@ Fmv::~Fmv()
 
 void Fmv::Play(const std::string& name)
 {
-    if (!mFmv)
-    {
-        try
-        {
-            mFmv = IMovie::Factory(name, mAudioController, mFileSystem, mGameData.Fmvs());
-        }
-        catch (const Oddlib::Exception& ex)
-        {
-            LOG_ERROR("Exception: " << ex.what());
-        }
-    }
+    auto fmv = mResourceLocator.LocateFmv(mAudioController, name.c_str());
+    mFmvs.emplace_back(std::move(fmv));
 }
 
 bool Fmv::IsPlaying() const
 {
-    return mFmv != nullptr;
+    return mFmvs.empty() == false;
 }
 
 void Fmv::Stop()
 {
-    mFmv = nullptr;
+    mFmvs.clear();
 }
 
 void Fmv::Update()
 {
-    if (mFmv)
+    auto it = mFmvs.begin();
+    while (it != mFmvs.end())
     {
-        if (mFmv->IsEnd())
+        if ((*it)->IsEnd())
         {
-            mFmv = nullptr;
+            it = mFmvs.erase(it);
+        }
+        else
+        {
+            it++;
         }
     }
 }
 
 void Fmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 {
-    if (mFmv)
+    for (auto& fmv : mFmvs)
     {
-        mFmv->OnRenderFrame(rend, gui, screenW, screenH);
+        fmv->OnRenderFrame(rend, gui, screenW, screenH);
     }
 }
 
-DebugFmv::DebugFmv(GameData& gameData, IAudioController& audioController, FileSystem& fs) 
-    : Fmv(gameData, audioController, fs)
+DebugFmv::DebugFmv(IAudioController& audioController, ResourceLocator& resourceLocator)
+    : Fmv(audioController, resourceLocator)
 {
 
 }
@@ -788,20 +699,14 @@ void DebugFmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 {
     Fmv::Render(rend, gui, screenW, screenH);
 
-    if (!mFmv)
-    {
-        RenderVideoUi(gui);
-    }
+    RenderVideoUi(gui);
 }
 
 void DebugFmv::RenderVideoUi(GuiContext& gui)
 {
-    if (!mFmv)
+    if (!mFmvUi)
     {
-        if (!mFmvUi)
-        {
-            mFmvUi = std::make_unique<FmvUi>(mFmv, mAudioController, mFileSystem);
-        }
-        mFmvUi->DrawVideoSelectionUi(gui, mGameData.Fmvs());
+        mFmvUi = std::make_unique<FmvUi>(mFmvs, mAudioController, mResourceLocator);
     }
+    mFmvUi->DrawVideoSelectionUi(gui);
 }

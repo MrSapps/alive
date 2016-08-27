@@ -1,4 +1,5 @@
 #include "oddlib/audio/vab.hpp"
+#include "oddlib/PSXADPCMDecoder.h"
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
@@ -6,88 +7,100 @@
 #include <stdlib.h>
 #include <string.h>
 
-Vab::Vab()
+void Vab::ReadVb(Oddlib::IStream& s, bool isPsx, bool useSoundsDat, Oddlib::IStream* soundsDatStream)
 {
+    mSamples.reserve(mHeader.iNumVags);
 
-}
-
-Vab::Vab(std::string aVhFile, std::string aVbFile)
-{
-    LoadVhFile(aVhFile);
-    LoadVbFile(aVbFile);
-}
-
-void Vab::LoadVbFile(std::string aFileName)
-{
-    // Read the file.
-    std::ifstream file;
-    file.open(aFileName.c_str(), std::ios::binary);
-    if (!file.is_open())
+    if (isPsx)
     {
-        abort();
-    }
-    ReadVb(file);
-}
-
-void Vab::ReadVb(std::istream& aStream)
-{
-    aStream.seekg(0, aStream.end);
-    auto streamSize = aStream.tellg();
-    aStream.seekg(0, aStream.beg);
-
-    if (streamSize > 5120) // HACK: No exoddus vb is greater than 5kb
-    {
-        for (auto i = 0; i < mHeader->iNumVags; ++i)
+        // TODO: Some offsets might be duplicated
+        for (u32& vag : mVagOffsets)
         {
-            auto vag = std::make_unique<AoVag>();
-            aStream.read((char*)&vag->iSize, sizeof(vag->iSize));
-            aStream.read((char*)&vag->iSampleRate, sizeof(vag->iSampleRate));
-            vag->iSampleData.resize(vag->iSize);
-            aStream.read((char*)vag->iSampleData.data(), vag->iSize);
+            s.Seek(vag);
+            PSXADPCMDecoder d;
 
-            iAoVags.emplace_back(std::move(vag));
+            // TODO: Calculate expected size to reduce mem allocs - based on next vag offset/EOF
+            std::vector<u8> data;
+            data.reserve(8000); // Guess to help debug perf
+            d.DecodeVagStream(s, data);
+            mSamples.emplace_back(SampleData{ data });
         }
     }
     else
     {
-        for (unsigned int i = 0; i < mHeader->iNumVags; i++)
+        if (useSoundsDat)
         {
-            iOffs.emplace_back(std::make_unique<AEVh>(aStream));
+            for (auto i = 0; i < mHeader.iNumVags; i++)
+            {
+                iOffs.emplace_back(AEVh(s));
+            }
+
+            // Read sample buffers out of sounds.dat stream
+            for (const AEVh& vhRec : iOffs)
+            {
+                soundsDatStream->Seek(vhRec.iFileOffset);
+                std::vector<u8> data(vhRec.iLengthOrDuration);
+                soundsDatStream->Read(data);
+                mSamples.emplace_back(SampleData{ data });
+            }
+        }
+        else
+        {
+            for (auto i = 0; i < mHeader.iNumVags; ++i)
+            {
+                u32 size = 0;
+                s.Read(size);
+
+                // Not actually used for anything
+                u32 sampleRate = 0;
+                s.Read(sampleRate);
+
+                if (size > 0)
+                {
+                    std::vector<u8> data(size);
+                    s.Read(data);
+                    mSamples.emplace_back(SampleData{ data });
+                }
+                else
+                {
+                    // Keep even though empty so that vag index is still correct
+                    mSamples.emplace_back(SampleData{ std::vector<u8>() });
+                }
+            }
         }
     }
 }
 
-
-void Vab::LoadVhFile(std::string aFileName)
+void Vab::ReadVh(Oddlib::IStream& stream, bool isPsx)
 {
-    // Read the file.
-    std::ifstream file;
-    file.open(aFileName.c_str(), std::ios::binary);
-    if (!file.is_open())
-    {
-        abort();
-    }
-    ReadVh(file);
-}
+    mHeader.Read(stream);
 
-void Vab::ReadVh(std::istream& aStream)
-{
-    mHeader = std::make_unique<VabHeader>(aStream);
-    int tones = 0;
-    for (unsigned int i = 0; i < 128; i++) // 128 = max progs
+    for (ProgAtr& prog : mProgs)
     {
-        auto progAttr = std::make_unique<ProgAtr>(aStream);
-        tones += progAttr->iNumTones;
-        mProgs.emplace_back(std::move(progAttr));
+        prog.Read(stream);
     }
 
-    for (unsigned int i = 0; i < mHeader->iNumProgs; i++)
+    for (auto i = 0; i < mHeader.iNumProgs; i++)
     {
-        for (unsigned int j = 0; j < 16; j++) // 16 = max tones
+        for (auto j = 0; j < 16; j++) // 16 = max tones
         {
-            auto vagAttr = std::make_unique<VagAtr>(aStream);
-            mProgs[vagAttr->iProg]->iTones.push_back(vagAttr.get());
+            auto vagAttr = std::make_unique<VagAtr>(stream);
+            mProgs[vagAttr->iProg].iTones.push_back(vagAttr.get());
             mTones.emplace_back(std::move(vagAttr));
+        }
+    }
+
+    if (isPsx)
+    {
+        // VAG offset table..
+        u32 totalOffset = 0;
+        mVagOffsets.reserve(mHeader.iNumVags);
+        for (int i = 0; i < mHeader.iNumVags; i++)
+        {
+            u16 voff = 0;
+            stream.Read(voff);
+            totalOffset += voff << 3;
+            mVagOffsets.push_back(totalOffset);
         }
     }
 }

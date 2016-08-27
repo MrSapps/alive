@@ -4,9 +4,35 @@
 #include <deque>
 #include <algorithm>
 #include <ctype.h>
+#ifdef _MSC_VER
+// This header only appears with GCC 5.0+, since we only 
+// need utf16->utf8 conv on windows its compiled out on everything
+// but MSVC for now.
+#include <codecvt>
+#endif
 
 namespace string_util
 {
+    inline void replace_all(std::string& input, char find, const char replace)
+    {
+        size_t pos = 0;
+        while ((pos = input.find(find, pos)) != std::string::npos)
+        {
+            input.replace(pos, 1, 1, replace);
+            pos += 1;
+        }
+    }
+
+    inline void replace_all(std::string& input, const std::string& find, const std::string& replace)
+    {
+        size_t pos = 0;
+        while ((pos = input.find(find, pos)) != std::string::npos)
+        {
+            input.replace(pos, find.length(), replace);
+            pos += replace.length();
+        }
+    }
+
     inline std::string trim(const std::string& s)
     {
         auto wsfront = std::find_if_not(s.begin(), s.end(), [](int c){return ::isspace(c) || c == '\n' || c=='\r'; });
@@ -33,6 +59,24 @@ namespace string_util
         return static_cast<char>(::tolower(c));
     }
 
+    inline bool iequals(const std::string& a, const std::string& b)
+    {
+        if (a.size() != b.size())
+        {
+            return false;
+        }
+
+        for (auto i = 0u; i < a.size(); ++i)
+        {
+            if (c_tolower(a[i]) != c_tolower(b[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     inline bool ends_with(std::string const& value, std::string const& ending, bool ignoreCase = false)
     {
 
@@ -57,8 +101,36 @@ namespace string_util
         }
     }
 
+    inline bool starts_with(const std::string& toCheck, const std::string& prefix, bool ignoreCase = false)
+    {
+        if (prefix.size() > toCheck.size())
+        {
+            return false;
+        }
+
+        if (ignoreCase)
+        {
+            std::string ltoCheck = toCheck;
+            std::transform(ltoCheck.begin(), ltoCheck.end(), ltoCheck.begin(), c_tolower);
+
+            std::string lprefix = prefix;
+            std::transform(lprefix.begin(), lprefix.end(), lprefix.begin(), c_tolower);
+
+            return std::equal(lprefix.begin(), lprefix.end(), ltoCheck.begin());
+        }
+        return std::equal(prefix.begin(), prefix.end(), toCheck.begin());
+    }
+
     inline bool contains(const std::string& haystack, const std::string& needle)
     {
         return (haystack.find(needle) != std::string::npos);
     }
+
+#ifdef _MSC_VER
+    inline std::string wstring_to_utf8(const std::wstring& str)
+    {
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+        return conv.to_bytes(str);
+    }
+#endif
 }

@@ -41,7 +41,7 @@ public:
     virtual void InitSubSystems() override
     {
         Engine::InitSubSystems();
-        mFmv = std::make_unique<DebugFmv>(mGameData, mAudioHandler, mFileSystem);
+        mFmv = std::make_unique<DebugFmv>(mAudioHandler, *mResourceLocator);
     }
 
     virtual bool Init() override

@@ -8,26 +8,60 @@
 
 namespace Oddlib
 {
-    Stream::Stream(std::vector<Uint8>&& data)
+    MemoryStream::MemoryStream(std::vector<u8>&& data)
     {
+        TRACE_ENTRYEXIT;
         mSize = data.size();
         auto s = std::make_unique<std::stringstream>();
         std::copy(data.begin(), data.end(), std::ostream_iterator<unsigned char>(*s));
         mStream = std::move(s);
         Seek(0);
         mName = "Memory buffer (" + std::to_string(mSize) + ") bytes";
-        mFromMemoryBuffer = true;
     }
 
-    Stream::Stream(const std::string& fileName)
-        : mName(fileName)
+    IStream* MemoryStream::Clone()
     {
-        auto s = std::make_unique<std::ifstream>();
-        s->open(fileName, std::ios::in | std::ios::binary | std::ios::ate);
+        auto oldPos = Pos();
+
+        Seek(0);
+        std::vector<u8> streamData(Size());
+        Read(streamData);
+        Seek(oldPos);
+
+        return new MemoryStream(std::move(streamData));
+    }
+
+    FileStream::FileStream(const std::string& fileName, ReadMode mode)
+        : mMode(mode)
+    {
+        TRACE_ENTRYEXIT;
+
+        mName = fileName;
+
+        auto s = std::make_unique<std::fstream>();
+
+        std::ios_base::openmode flags = std::ios::binary | std::ios::ate;
+        if (mMode == IStream::ReadMode::ReadOnly)
+        {
+            flags |= std::ios::in;
+        }
+        else if (mMode == IStream::ReadMode::ReadWrite)
+        {
+            flags |= std::ios::in | std::ios::out | std::ios::trunc;
+        }
+
+        s->open(fileName.c_str(), flags);
         if (!*s)
         {
-            LOG_ERROR("File not found " << fileName);
-            throw Exception("File not found");
+            if (mMode == IStream::ReadMode::ReadOnly)
+            {
+                LOG_ERROR("File not found or couldn't be opened for reading " << fileName);
+            }
+            else
+            {
+                LOG_ERROR("File not found or couldn't be created for writing " << fileName);
+            }
+            throw Exception("File I/O error");
         }
 
         mSize = static_cast<size_t>(s->tellg());
@@ -36,29 +70,19 @@ namespace Oddlib
         mStream = std::move(s);
     }
 
-    IStream* Stream::Clone()
+    IStream* FileStream::Clone()
     {
-        if (!mFromMemoryBuffer)
-        {
-            return new Stream(mName);
-        }
-        auto oldPos = Pos();
-
-        Seek(0);
-        std::vector<Uint8> streamData(Size());
-        ReadBytes(streamData.data(), Size());
-        Seek(oldPos);
-
-        return new Stream(std::move(streamData));
+        return new FileStream(mName, mMode);
     }
 
-    IStream* Stream::Clone(Uint32 /*start*/, Uint32 /*size*/)
+    template<class T>
+    IStream* Stream<T>::Clone(u32 /*start*/, u32 /*size*/)
     {
         throw Exception("Sub clone not supported on direct file streams");
     }
 
-    template<typename T>
-    void DoRead(std::unique_ptr<std::istream>& stream, T& output)
+    template<typename U, typename T>
+    void DoRead(std::unique_ptr<U>& stream, T& output)
     {
         if (!stream->read(reinterpret_cast<char*>(&output), sizeof(output)))
         {
@@ -66,27 +90,8 @@ namespace Oddlib
         }
     }
 
-    void Stream::ReadUInt8(Uint8& output)
-    {
-        DoRead<decltype(output)>(mStream, output);
-    }
-
-    void Stream::ReadUInt32(Uint32& output)
-    {
-        DoRead<decltype(output)>(mStream, output);
-    }
-
-    void Stream::ReadUInt16(Uint16& output)
-    {
-        DoRead<decltype(output)>(mStream, output);
-    }
-
-    void Stream::ReadSInt16(Sint16& output)
-    {
-        DoRead<decltype(output)>(mStream, output);
-    }
-
-    void Stream::ReadBytes(Sint8* pDest, size_t destSize)
+    template<class T>
+    void Stream<T>::ReadBytes(u8* pDest, size_t destSize)
     {
         if (!mStream->read(reinterpret_cast<char*>(pDest), destSize))
         {
@@ -94,29 +99,38 @@ namespace Oddlib
         }
     }
 
-    void Stream::ReadBytes(Uint8* pDest, size_t destSize)
+    template<class T>
+    void Stream<T>::WriteBytes(const u8* pSrc, size_t srcSize)
     {
-        if (!mStream->read(reinterpret_cast<char*>(pDest), destSize))
+        if (!mStream->write(reinterpret_cast<const char*>(pSrc), srcSize))
         {
-            throw Exception("ReadBytes failure");
+            throw Exception("WriteBytes failure");
         }
     }
 
-    void Stream::Seek(size_t pos)
+    template<class T>
+    void Stream<T>::Seek(size_t pos)
     {
         if (!mStream->seekg(pos))
         {
-            throw Exception("Seek failure");
+            throw Exception("Seek get failure");
+        }
+
+        if (!mStream->seekp(pos))
+        {
+            throw Exception("Seek put failure");
         }
     }
 
-    bool Stream::AtEnd() const
+    template<class T>
+    bool Stream<T>::AtEnd() const
     {
         const int c = mStream->peek();
         return (c == EOF);
     }
 
-    std::string Stream::LoadAllToString()
+    template<class T>
+    std::string Stream<T>::LoadAllToString()
     {
         Seek(0);
         std::string content
@@ -127,13 +141,15 @@ namespace Oddlib
         return content;
     }
 
-    size_t Stream::Pos() const
+    template<class T>
+    size_t Stream<T>::Pos() const
     {
         const size_t pos = static_cast<size_t>(mStream->tellg());
         return pos;
     }
 
-    size_t Stream::Size() const
+    template<class T>
+    size_t Stream<T>::Size() const
     {
         return mSize;
     }

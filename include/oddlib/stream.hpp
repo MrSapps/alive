@@ -3,23 +3,84 @@
 #include <vector>
 #include <iostream>
 #include <memory>
+#include <array>
 #include <fstream>
+#include <sstream>
 #include "SDL.h"
+#include "types.hpp"
 
 namespace Oddlib
 {
     class IStream
     {
     public:
+        enum class ReadMode
+        {
+            ReadOnly,
+            ReadWrite
+        };
+
+        static std::vector<u8> ReadAll(IStream& stream)
+        {
+            const auto oldPos = stream.Pos();
+            stream.Seek(0);
+            const auto size = stream.Size();
+
+            std::vector<u8> allStreamBytes(size);
+            stream.ReadBytes(allStreamBytes.data(), allStreamBytes.size());
+            stream.Seek(oldPos);
+            return allStreamBytes;
+        }
+
+        // Read any fundamental type
+        template<class T>
+        void Read(T& type)
+        {
+            static_assert(std::is_fundamental<T>::value, "Can only read fundamental types");
+            ReadBytes(reinterpret_cast<u8*>(&type), sizeof(type));
+        }
+
+        // Read a string
+        void Read(std::string& type)
+        {
+            ReadBytes(reinterpret_cast<u8*>(&type[0]), type.size());
+        }
+
+        // Read any vector of fundamental type
+        template<class T>
+        void Read(std::vector<T>& type)
+        {
+            static_assert(std::is_fundamental<T>::value, "Can only read vectors of fundamental types");
+            ReadBytes(reinterpret_cast<u8*>(type.data()), sizeof(T)*type.size());
+        }
+
+        // Read any std::array of fundamental type
+        template<class T, std::size_t count>
+        void Read(std::array<T, count>& type)
+        {
+            static_assert(std::is_fundamental<T>::value, "Can only read vectors of fundamental types");
+            ReadBytes(reinterpret_cast<u8*>(type.data()), sizeof(T)*type.size());
+        }
+
+        // Read any fixed array of fundamental type
+        template<typename T, std::size_t count>
+        void Read(T(&value)[count])
+        {
+            static_assert(std::is_fundamental<T>::value, "Can only read fundamental types");
+            ReadBytes(reinterpret_cast<u8*>(&value[0]), sizeof(T)* count);
+        }
+
+        // Write a string
+        void Write(const std::string& type)
+        {
+            WriteBytes(reinterpret_cast<const u8*>(&type[0]), type.size());
+        }
+
         virtual ~IStream() = default;
         virtual IStream* Clone() = 0;
-        virtual IStream* Clone(Uint32 start, Uint32 size) = 0;
-        virtual void ReadUInt8(Uint8& output) = 0;
-        virtual void ReadUInt32(Uint32& output) = 0;
-        virtual void ReadUInt16(Uint16& output) = 0;
-        virtual void ReadSInt16(Sint16& output) = 0;
-        virtual void ReadBytes(Sint8* pDest, size_t destSize) = 0;
-        virtual void ReadBytes(Uint8* pDest, size_t destSize) = 0;
+        virtual IStream* Clone(u32 start, u32 size) = 0;
+        virtual void ReadBytes(u8* pDest, size_t destSize) = 0;
+        virtual void WriteBytes(const u8* pSrc, size_t srcSize) = 0;
         virtual void Seek(size_t pos) = 0;
         virtual size_t Pos() const = 0;
         virtual size_t Size() const = 0;
@@ -36,63 +97,70 @@ namespace Oddlib
             {
                 return false;
             }
-            const auto pos = Pos();
-            Seek(0);
-            const auto size = Size();
-
-            std::vector<Uint8> allStreamBytes(size);
-            ReadBytes(allStreamBytes.data(), allStreamBytes.size());
-            Seek(pos);
-
+            
+            auto allStreamBytes = ReadAll(*this);
             s.write(reinterpret_cast<const char*>(allStreamBytes.data()), allStreamBytes.size());
             return true;
         }
     };
 
-    inline Uint16 ReadUint16(IStream& stream)
+
+    inline u16 ReadU16(IStream& stream)
     {
-        Uint16 ret = 0;
-        stream.ReadUInt16(ret);
+        u16 ret = 0;
+        stream.Read(ret);
         return ret;
     }
 
-    inline Uint32 ReadUint32(IStream& stream)
+    inline u32 ReadU32(IStream& stream)
     {
-        Uint32 ret = 0;
-        stream.ReadUInt32(ret);
+        u32 ret = 0;
+        stream.Read(ret);
         return ret;
     }
 
-    inline Uint8 ReadUInt8(IStream& stream)
+    inline u8 ReadU8(IStream& stream)
     {
-        Uint8 ret = 0;
-        stream.ReadUInt8(ret);
+        u8 ret = 0;
+        stream.Read(ret);
         return ret;
     }
 
+    template<class T = std::ifstream>
     class Stream : public IStream
     {
     public:
-        explicit Stream(const std::string& fileName);
-        explicit Stream(std::vector<Uint8>&& data);
-        virtual IStream* Clone() override;
-        virtual IStream* Clone(Uint32 start, Uint32 size) override;
-        virtual void ReadUInt8(Uint8& output) override;
-        virtual void ReadUInt32(Uint32& output) override;
-        virtual void ReadUInt16(Uint16& output) override;
-        virtual void ReadSInt16(Sint16& output) override;
-        virtual void ReadBytes(Sint8* pDest, size_t destSize) override;
-        virtual void ReadBytes(Uint8* pDest, size_t destSize) override;
+        virtual IStream* Clone(u32 start, u32 size) override;
+        virtual void ReadBytes(u8* pDest, size_t destSize) override;
+        virtual void WriteBytes(const u8* pDest, size_t destSize) override;
         virtual void Seek(size_t pos) override;
         virtual size_t Pos() const override;
         virtual size_t Size() const override;
         virtual bool AtEnd() const override;
         virtual const std::string& Name() const override { return mName; }
         virtual std::string LoadAllToString() override;
-    private:
-        mutable std::unique_ptr<std::istream> mStream;
+    protected:
+        Stream() = default;
+        mutable std::unique_ptr<T> mStream;
         size_t mSize = 0;
         std::string mName;
-        bool mFromMemoryBuffer = false;
+    };
+
+    class MemoryStream : public Stream<std::stringstream>
+    {
+    public:
+        explicit MemoryStream(std::vector<u8>&& data);
+        virtual IStream* Clone() override;
+        virtual IStream* Clone(u32 start, u32 size) override { return Stream<std::stringstream>::Clone(start, size); }
+    };
+
+    class FileStream :public Stream<std::fstream>
+    {
+    public:
+        explicit FileStream(const std::string& fileName, ReadMode mode);
+        virtual IStream* Clone() override;
+        virtual IStream* Clone(u32 start, u32 size) override { return Stream<std::fstream>::Clone(start, size); }
+    private:
+        ReadMode mMode = IStream::ReadMode::ReadOnly;
     };
 }

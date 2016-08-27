@@ -1,6 +1,5 @@
 #include "engine.hpp"
 #include <iostream>
-#include "oddlib/lvlarchive.hpp"
 #include "oddlib/masher.hpp"
 #include "oddlib/exceptions.hpp"
 #include "logger.hpp"
@@ -14,23 +13,16 @@
 #include "renderer.hpp"
 #include "gui.h"
 #include "guiwidgets.hpp"
-#include "oddlib/anim.hpp"
-
+#include "gameselectionscreen.hpp"
 #include "generated_gui_layout.cpp" // Has function "load_layout" to set gui layout. Only used in single .cpp file.
-
-extern "C"
-{
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-}
-
 
 
 #ifdef _WIN32
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <windows.h>
-#include "../rsc/resource.h"
+#include "rsc\resource.h"
 #include "SDL_syswm.h"
 #include "stdthread.h"
 
@@ -57,12 +49,16 @@ void setWindowsIcon(SDL_Window *sdlWindow)
         if (hKernel32)
         {
             typedef BOOL(WINAPI *pSetConsoleIcon)(HICON icon);
+#ifdef _MSC_VER
 #pragma warning(push)
             // C4191: 'reinterpret_cast' : unsafe conversion from 'FARPROC' to 'pSetConsoleIcon'
             // This is a "feature" of GetProcAddress, so ignore.
 #pragma warning(disable:4191)
+#endif
             pSetConsoleIcon setConsoleIcon = reinterpret_cast<pSetConsoleIcon>(::GetProcAddress(hKernel32, "SetConsoleIcon"));
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
             if (setConsoleIcon)
             {
                 setConsoleIcon(icon);
@@ -95,17 +91,15 @@ bool Engine::Init()
 {
     try
     {
-        if (!mFileSystem.Init())
+        // load the list of data paths (if any) and discover what they are
+        mFileSystem = std::make_unique<GameFileSystem>();
+        if (!mFileSystem->Init())
         {
             LOG_ERROR("File system init failure");
             return false;
         }
 
-        if (!mGameData.Init(mFileSystem))
-        {
-            LOG_ERROR("Game data init failure");
-            return false;
-        }
+        InitResources();
 
         if (!InitSDL())
         {
@@ -115,10 +109,9 @@ bool Engine::Init()
 
         InitGL();
 
-
-        ToState(eRunning);
-
         InitSubSystems();
+
+        ToState(std::make_unique<GameSelectionScreen>(*this, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, *mResourceLocator, *mFileSystem));
 
         return true;
     }
@@ -131,10 +124,10 @@ bool Engine::Init()
 
 void Engine::InitSubSystems()
 {
-    mRenderer = std::make_unique<Renderer>((mFileSystem.GameData().BasePath() + "/data/Roboto-Regular.ttf").c_str());
-    mFmv = std::make_unique<DebugFmv>(mGameData, mAudioHandler, mFileSystem);
-    mSound = std::make_unique<Sound>(mGameData, mAudioHandler, mFileSystem);
-    mLevel = std::make_unique<Level>(mGameData, mAudioHandler, mFileSystem);
+    mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
+    mFmv = std::make_unique<DebugFmv>(mAudioHandler, *mResourceLocator);
+    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator);
+    mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator);
 
     { // Init gui system
         mGui = create_gui(&calcTextSize, mRenderer.get());
@@ -142,24 +135,103 @@ void Engine::InitSubSystems()
     }
 }
 
+// TODO: Using averaging value or anything that is more accurate than this
+typedef std::chrono::high_resolution_clock THighResClock;
+class BasicFramesPerSecondCounter
+{
+public:
+    BasicFramesPerSecondCounter()
+    {
+        mStartedTime = THighResClock::now();
+    }
+
+    template<class T>
+    void Update(T fnUpdate)
+    {
+        mFramesPassed++;
+        const THighResClock::duration totalRunTime = THighResClock::now() - mStartedTime;
+        const Sint64 timeSinceLastFrameInMsecs = std::chrono::duration_cast<std::chrono::milliseconds>(totalRunTime - mFrameStartTime).count();
+        if (timeSinceLastFrameInMsecs > 500 && mFramesPassed > 10)
+        {
+            const f32 fps = static_cast<f32>(static_cast<f32>(mFramesPassed) / (static_cast<f32>(timeSinceLastFrameInMsecs) / 1000.0f));
+            mFrameStartTime = totalRunTime;
+            mFramesPassed = 0;
+            fnUpdate(fps);
+        }
+    }
+
+private:
+    THighResClock::time_point mStartedTime = {};
+    u32 mFramesPassed = 0;
+    THighResClock::duration mFrameStartTime = {};
+};
+
+static char* WindowTitle(f32 fps)
+{
+    static char buffer[128] = {};
+    sprintf(buffer, ALIVE_VERSION_NAME_STR, fps);
+    return buffer;
+}
+
 int Engine::Run()
 {
-    while (mState != eShuttingDown)
+    BasicFramesPerSecondCounter fpsCounter;
+    auto startTime = THighResClock::now();
+
+    while (mCurrentState)
     {
-        Update();
+        // Limit update to 60fps
+        const THighResClock::duration totalRunTime = THighResClock::now() - startTime;
+        const Sint64 timePassed = std::chrono::duration_cast<std::chrono::nanoseconds>(totalRunTime).count();
+        if (timePassed >= 16666666)
+        {
+            Update();
+            startTime = THighResClock::now();
+        }
+
         Render();
+        fpsCounter.Update([&](f32 fps)
+        {
+            SDL_SetWindowTitle(mWindow, WindowTitle(fps));
+        });
     }
     return 0;
 }
 
 void Engine::Update()
 {
+    // 1 frame delay to next state so "delete this" during call to ToState isn't an issue
+    if (mNextState)
+    {
+        mCurrentState = std::move(mNextState);
+    }
+
     { // Reset gui input
         for (int i = 0; i < GUI_KEY_COUNT; ++i)
             mGui->key_state[i] = 0;
         mGui->cursor_pos[0] = -1;
         mGui->cursor_pos[0] = -1;
     }
+
+    // TODO: Map "player" input to "game" buttons
+    if (mInputState.mLeftMouseState & InputState::eDown)
+    {
+        mInputState.mLeftMouseState |= InputState::eHeld;
+    }
+    else if (mInputState.mLeftMouseState & InputState::eUp)
+    {
+        mInputState.mLeftMouseState = 0;
+    }
+
+    if (mInputState.mRightMouseState & InputState::eDown)
+    {
+        mInputState.mRightMouseState |= InputState::eHeld;
+    }
+    else if (mInputState.mRightMouseState & InputState::eUp)
+    {
+        mInputState.mRightMouseState = 0;
+    }
+
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -177,7 +249,7 @@ void Engine::Update()
             break;
 
         case SDL_QUIT:
-            ToState(eShuttingDown);
+            ToState(nullptr);
             break;
 
         case SDL_TEXTINPUT:
@@ -209,12 +281,36 @@ void Engine::Update()
         case SDL_MOUSEBUTTONDOWN:
         {
             int guiKey = -1;
-            if (event.button.button == SDL_BUTTON(SDL_BUTTON_LEFT))
+            if (event.button.button == SDL_BUTTON_LEFT)
+            {
                 guiKey = GUI_KEY_LMB;
-            else if (event.button.button == SDL_BUTTON(SDL_BUTTON_MIDDLE))
-                guiKey = GUI_KEY_MMB; 
-            else if (event.button.button == SDL_BUTTON(SDL_BUTTON_RIGHT))
+
+                if (event.type == SDL_MOUSEBUTTONUP)
+                {
+                    mInputState.mLeftMouseState = InputState::eUp;
+                }
+                else
+                {
+                    mInputState.mLeftMouseState = InputState::eDown;
+                }
+            }
+            else if (event.button.button == SDL_BUTTON_MIDDLE)
+            {
+                guiKey = GUI_KEY_MMB;
+            }
+            else if (event.button.button == SDL_BUTTON_RIGHT)
+            {
                 guiKey = GUI_KEY_RMB;
+
+                if (event.type == SDL_MOUSEBUTTONUP)
+                {
+                    mInputState.mRightMouseState = InputState::eUp;
+                }
+                else
+                {
+                    mInputState.mRightMouseState = InputState::eDown;
+                }
+            }
 
             if (guiKey >= 0)
             {
@@ -246,7 +342,7 @@ void Engine::Update()
         {
             if (event.type == SDL_KEYDOWN && event.key.keysym.sym == 13)
             {
-                const Uint32 windowFlags = SDL_GetWindowFlags(mWindow);
+                const u32 windowFlags = SDL_GetWindowFlags(mWindow);
                 bool isFullScreen = ((windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) || (windowFlags & SDL_WINDOW_FULLSCREEN));
                 SDL_SetWindowFullscreen(mWindow, isFullScreen ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP);
                 //OnWindowResize();
@@ -254,10 +350,13 @@ void Engine::Update()
 
 
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
+            
+            // TODO: Move out of here
             if (key == SDL_SCANCODE_ESCAPE)
             {
                 mFmv->Stop();
             }
+
             if (event.type == SDL_KEYDOWN && key == SDL_SCANCODE_BACKSPACE)
                 gui_write_char(mGui, '\b'); // Note that this is called in case of repeated backspace key also
 
@@ -284,75 +383,32 @@ void Engine::Update()
         mGui->cursor_pos[0] = mouse_x;
         mGui->cursor_pos[1] = mouse_y;
 
+        mInputState.mMouseX = mouse_x;
+        mInputState.mMouseY = mouse_y;
+
         if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT))
-            mGui->key_state[GUI_KEY_LMB] |= GUI_KEYSTATE_DOWN_BIT;
-
-        if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LCTRL])
-            mGui->key_state[GUI_KEY_LCTRL] |= GUI_KEYSTATE_DOWN_BIT;
-    }
-
-    // TODO: Move into state machine
-    //mFmv.Play("INGRDNT.DDV");
-    mFmv->Update();
-    mSound->Update();
-    mLevel->Update();
-}
-
-struct ResInfo
-{
-    ResInfo() = default;
-    ResInfo(const ResInfo&) = delete;
-    ResInfo& operator = (const ResInfo&) = delete;
-
-    bool mDisplay;
-    Oddlib::LvlArchive::FileChunk* mFileChunk;
-    std::unique_ptr<Oddlib::AnimationSet> mAnim;
-
-    Uint32 counter = 0;
-    Uint32 frameNum = 0;
-    Uint32 animNum = 0;
-
-    void Animate(Renderer& rend)
-    {
-
-
-        const Oddlib::Animation* anim = mAnim->AnimationAt(animNum);
-
-
-        const Oddlib::Animation::Frame& frame = anim->GetFrame(frameNum);
-        counter++;
-        if (counter > 25)
         {
-            counter = 0;
-            frameNum++;
-            if (frameNum >= anim->NumFrames())
-            {
-                frameNum = 0;
-                animNum++;
-                if (animNum >= mAnim->NumberOfAnimations())
-                {
-                    animNum = 0;
-                }
-            }
+            mGui->key_state[GUI_KEY_LMB] |= GUI_KEYSTATE_DOWN_BIT;
         }
 
-        const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
 
-        int scale = 3;
-        float xpos = 300.0f + (frame.mOffX*scale);
-        float ypos = 300.0f + (frame.mOffY*scale);
-        // LOG_INFO("Pos " << xpos << "," << ypos);
-        BlendMode blend = BlendMode::B100F100(); // TODO: Detect correct blending
-        Color color = Color::white();
-        rend.drawQuad(textureId, xpos, ypos, static_cast<float>(frame.mFrame->w*scale ), static_cast<float>(frame.mFrame->h*scale), color, blend);
-
-        rend.destroyTexture(textureId);
+        if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LCTRL])
+        {
+            mGui->key_state[GUI_KEY_LCTRL] |= GUI_KEYSTATE_DOWN_BIT;
+        }
     }
-};
+
+    if (mCurrentState)
+    {
+        mCurrentState->Input(mInputState);
+        mCurrentState->Update();
+    }
+}
 
 void Engine::Render()
 {
-    int w, h;
+    int w = 0;
+    int h = 0;
     SDL_GetWindowSize(mWindow, &w, &h);
     mGui->host_win_size[0] = w;
     mGui->host_win_size[1] = h;
@@ -360,107 +416,9 @@ void Engine::Render()
     mRenderer->beginFrame(w, h);
     gui_pre_frame(mGui); 
 
-    DebugRender();
-
-    { // Editor user interface
-        // When this gets bigger it can be moved to a separate class etc.
-        struct EditorUi
-        {
-            bool resPathsOpen;
-            bool fmvBrowserOpen;
-            bool soundBrowserOpen;
-            bool levelBrowserOpen;
-            bool animationBrowserOpen;
-            bool guiLayoutEditorOpen;
-        };
-
-
-        static EditorUi editor;
-
-        gui_begin_window(mGui, "Browsers");
-        gui_checkbox(mGui, "resPathsOpen|Resource paths", &editor.resPathsOpen);
-        gui_checkbox(mGui, "fmvBrowserOpen|FMV browser", &editor.fmvBrowserOpen);
-        gui_checkbox(mGui, "soundBrowserOpen|Sound browser", &editor.soundBrowserOpen);
-        gui_checkbox(mGui, "levelBrowserOpen|Level browser", &editor.levelBrowserOpen);
-        gui_checkbox(mGui, "animationBrowserOpen|Animation browser", &editor.animationBrowserOpen);
-        gui_checkbox(mGui, "guiLayoutEditOpen|GUI layout editor", &editor.guiLayoutEditorOpen);
-
-        gui_end_window(mGui);
-
-        if (editor.resPathsOpen)
-        {
-            mFileSystem.DebugUi(*mGui);
-        }
-
-        if (editor.fmvBrowserOpen)
-        {
-            mFmv->Render(*mRenderer, *mGui, w, h);
-        }
-
-        if (editor.soundBrowserOpen)
-        {
-            mSound->Render(mGui, w, h);
-        }
-
-
-        if (editor.levelBrowserOpen)
-        {
-            mLevel->Render(*mRenderer, *mGui, w, h);
-        }
-
-        if (editor.animationBrowserOpen)
-        {
-
-            static std::vector<std::pair<std::string, std::unique_ptr<ResInfo>>> resources;
-            if (resources.empty())
-            {
-                // Add all "anim" resources to a big list
-                // HACK: all leaked
-                static auto stream = mFileSystem.ResourcePaths().Open("BA.LVL");
-                static Oddlib::LvlArchive lvlArchive(std::move(stream));
-                for (auto i = 0u; i < lvlArchive.FileCount(); i++)
-                {
-                    Oddlib::LvlArchive::File* file = lvlArchive.FileByIndex(i);
-                    for (auto j = 0u; j < file->ChunkCount(); j++)
-                    {
-                        Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
-                        if (chunk->Type() == Oddlib::MakeType('A', 'n', 'i', 'm'))
-                        {
-                            auto info = std::make_unique<ResInfo>();
-                            info->mDisplay = false;
-                            info->mFileChunk = chunk;
-                            resources.emplace_back(std::make_pair(file->FileName() + "_" + std::to_string(chunk->Id()), std::move(info)));
-                        }
-                    }
-                }
-            }
-
-            gui_begin_window(mGui, "Animations");
-            for (auto& res : resources)
-            {
-                gui_checkbox(mGui, res.first.c_str(), &res.second->mDisplay);
-                if (res.second->mDisplay)
-                {
-                    Oddlib::LvlArchive::FileChunk* chunk = res.second->mFileChunk;
-                    if (!res.second->mAnim)
-                    {
-                        res.second->mAnim = Oddlib::LoadAnimations(*chunk->Stream(), false);
-                    }
-
-                    mRenderer->beginLayer(gui_layer(mGui));
-                    res.second->Animate(*mRenderer);
-                    mRenderer->endLayer();
-                }
-            }
-  
-            gui_end_window(mGui);
-
-        }
-
-        if (editor.guiLayoutEditorOpen)
-        {
-            gui_layout_editor(mGui, "../src/generated_gui_layout.cpp");
-        }
+    if (mCurrentState)
+    {
+        mCurrentState->Render(w, h, *mRenderer);
     }
 
     gui_post_frame(mGui);
@@ -484,9 +442,14 @@ bool Engine::InitSDL()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-    mWindow = SDL_CreateWindow(ALIVE_VERSION_NAME_STR,
+    mWindow = SDL_CreateWindow(WindowTitle(0.0f),
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640*2, 480*2,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    if (!mWindow)
+    {
+        LOG_ERROR("Failed to create window: " << SDL_GetError());
+        return false;
+    }
 
     SDL_SetWindowMinimumSize(mWindow, 320, 240);
 
@@ -498,43 +461,121 @@ bool Engine::InitSDL()
     return true;
 }
 
+void Engine::AddGameDefinitionsFrom(const char* path)
+{
+    const auto jsonFiles = mFileSystem->EnumerateFiles(path, "*.json");
+    for (const auto& gameDef : jsonFiles)
+    {
+        mGameDefinitions.emplace_back(*mFileSystem, (std::string(path) + "/" + gameDef).c_str(), false);
+    }
+}
+
+void Engine::AddModDefinitionsFrom(const char* path)
+{
+    std::string strPath(path);
+    AddDirectoryBasedModDefinitionsFrom(strPath);
+    AddZipsedModDefinitionsFrom(strPath);
+}
+
+void Engine::AddDirectoryBasedModDefinitionsFrom(std::string path)
+{
+    const auto possibleModDirs = mFileSystem->EnumerateFolders(path);
+    for (const auto& possibleModDir : possibleModDirs)
+    {
+        auto modDefinitionFiles = mFileSystem->EnumerateFiles(path + "/" + possibleModDir, "game.json");
+        if (!modDefinitionFiles.empty())
+        {
+            auto fs = IFileSystem::Factory(*mFileSystem, path + "/" + possibleModDir + "/");
+            if (fs)
+            {
+                mGameDefinitions.emplace_back(*fs, modDefinitionFiles[0].c_str(), true);
+            }
+        }
+    }
+}
+
+void Engine::AddZipsedModDefinitionsFrom(std::string path)
+{
+    const auto possibleModZips = mFileSystem->EnumerateFiles(path, "*.zip");
+    for (const auto& possibleModZip : possibleModZips)
+    {
+        auto fs = IFileSystem::Factory(*mFileSystem, path + "/" + possibleModZip);
+        if (fs)
+        {
+            auto modDefinitionFiles = fs->EnumerateFiles("", "game.json");
+            if (!modDefinitionFiles.empty())
+            {
+                mGameDefinitions.emplace_back(*fs, modDefinitionFiles[0].c_str(), true);
+            }
+        }
+    }
+}
+
+void Engine::InitResources()
+{
+    TRACE_ENTRYEXIT;
+
+    // load the enumerated "built in" game defs
+    AddGameDefinitionsFrom("{GameDir}/data/GameDefinitions");
+
+    // load the enumerated "mod" game defs
+    AddModDefinitionsFrom("{UserDir}/Mods");
+
+    // The engine probably won't ship with any mods, but while under development look here too
+    AddModDefinitionsFrom("{GameDir}/data/Mods");
+
+    // create the resource mapper loading the resource maps from the json db
+    DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{UserDir}/DataSets.json");
+    ResourceMapper mapper(*mFileSystem, "{GameDir}/data/resources.json");
+    mResourceLocator = std::make_unique<ResourceLocator>(std::move(mapper), std::move(dataPaths));
+
+    // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
+    // also add in any extra maps for resources defined by the mod @ game selection screen
+}
+
 void Engine::InitGL()
 {
-    
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
+    // SDL Defaults
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 3);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 3);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 2);
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
+    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 0);
+
+    // Overrides
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 
-
     mContext = SDL_GL_CreateContext(mWindow);
+    if (!mContext)
+    {
+        throw Oddlib::Exception((std::string("Failed to create GL context: ") + SDL_GetError()).c_str());
+    }
+
+    int r = 0;
+    int g = 0;
+    int b = 0;
+    int a = 0;
+    int bufferSize = 0;
+    int doubleBuffer = 0;
+    SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r);
+    SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &g);
+    SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &b);
+    SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &a);
+    SDL_GL_GetAttribute(SDL_GL_BUFFER_SIZE, &bufferSize);
+    SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &doubleBuffer);
+    LOG_INFO("GL settings r " << r << " g " << g << " b " << b << " bufferSize " << bufferSize << " double buffer " << doubleBuffer);
+
     SDL_GL_SetSwapInterval(0); // No vsync for gui, for responsiveness
 
-    glewExperimental = GL_TRUE;
-    GLenum err = glewInit();
-    if (err == GLEW_OK)
+    if (gl3wInit()) 
     {
-        // GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
-        glGetError();
-
-        glEnable(GL_STENCIL_TEST);
+        throw Oddlib::Exception("failed to initialize OpenGL");
     }
-    else
+
+    if (!gl3wIsSupported(3, 1)) 
     {
-        LOG_INFO("glewInit failure");
-        throw Oddlib::Exception(reinterpret_cast<const char*>(glewGetErrorString(err)));
+        throw Oddlib::Exception("OpenGL 3.1 not supported");
     }
 }
-
-void Engine::ToState(Engine::eStates newState)
-{
-    if (newState != mState)
-    {
-        mPreviousState = mState;
-        mState = newState;
-    }
-}
-

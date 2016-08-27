@@ -3,6 +3,8 @@
 #include "SDL.h"
 #include <memory>
 #include <string>
+#include "oddlib/lvlarchive.hpp"
+#include "sdl_raii.hpp"
 
 namespace Oddlib
 {
@@ -22,5 +24,6 @@ namespace Oddlib
     };
 
     bool IsPsxCamera(IStream& stream);
+    std::unique_ptr<IBits> MakeBits(SDL_SurfacePtr camImage);
     std::unique_ptr<IBits> MakeBits(IStream& stream);
 }

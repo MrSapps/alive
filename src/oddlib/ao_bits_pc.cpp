@@ -20,23 +20,23 @@ namespace Oddlib
 
     void AoBitsPc::GenerateImage(IStream& stream)
     {
-        std::vector<Uint8> buffer;
+        std::vector<u8> buffer;
        
-        const Uint32 kStripSize = 16;
-        const Uint32 kNumStrips = 640 / kStripSize;
+        const u32 kStripSize = 16;
+        const u32 kNumStrips = 640 / kStripSize;
 
-        for (Uint32 i = 0; i < kNumStrips; i++)
+        for (u32 i = 0; i < kNumStrips; i++)
         {
             // Read the size of the image strip
-            Uint16 stripSize = 0;
-            stream.ReadUInt16(stripSize);
+            u16 stripSize = 0;
+            stream.Read(stripSize);
 
             // Read the raw image bytes
             buffer.resize(stripSize);
-            stream.ReadBytes(buffer.data(), buffer.size());
+            stream.Read(buffer);
 
             // Convert to an SDL surface
-            SDL_SurfacePtr strip(SDL_CreateRGBSurfaceFrom(buffer.data(), 16, 240, 16, kStripSize*sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+            SDL_SurfacePtr strip(SDL_CreateRGBSurfaceFrom(buffer.data(), 16, 240, 16, kStripSize*sizeof(u16), red_mask, green_mask, blue_mask, 0));
 
             // Copy paste the strip into the full image
             SDL_Rect dstRect;
@@ -46,6 +46,10 @@ namespace Oddlib
             dstRect.h = 240;
             SDL_BlitSurface(strip.get(), NULL, mSurface.get(), &dstRect);
         } 
+        if (mSurface->format->format != SDL_PIXELFORMAT_RGB24)
+        {
+            mSurface.reset(SDL_ConvertSurfaceFormat(mSurface.get(), SDL_PIXELFORMAT_RGB24, 0));
+        }
     }
 
 }

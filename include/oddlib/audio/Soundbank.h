@@ -1,15 +1,16 @@
 #pragma once
 
+#include "types.hpp"
 #include "Sample.h"
 #include <memory>
 
 // Extended ADSR
 struct VolumeEnvelope
 {
-    double AttackTime;
-    double DecayTime;
-    double SustainLevel;
-    double LinearReleaseTime;
+    f64 AttackTime;
+    f64 DecayTime;
+    f64 SustainLevel;
+    f64 LinearReleaseTime;
     bool ExpRelease;
 };
 
@@ -17,10 +18,10 @@ class AliveAudioTone
 {
 public:
     // volume 0-1
-    float f_Volume;
+    f32 f_Volume;
 
     // panning -1 - 1
-    float f_Pan;
+    f32 f_Pan;
 
     // Root Key
     unsigned char c_Center;
@@ -30,7 +31,7 @@ public:
     unsigned char Min;
     unsigned char Max;
 
-    float Pitch;
+    f32 Pitch;
     bool Reverbate;
 
     VolumeEnvelope Env;
@@ -51,14 +52,12 @@ class AliveAudio;
 class AliveAudioSoundbank
 {
 public:
-    ~AliveAudioSoundbank();
+    ~AliveAudioSoundbank() = default;
     AliveAudioSoundbank(const AliveAudioSoundbank&) = delete;
     AliveAudioSoundbank& operator = (const AliveAudioSoundbank&) = delete;
-    AliveAudioSoundbank(std::string fileName, AliveAudio& aliveAudio);
-    AliveAudioSoundbank(std::string lvlPath, std::string vabName, AliveAudio& aliveAudio);
-    AliveAudioSoundbank(Oddlib::LvlArchive& lvlArchive, std::string vabName, AliveAudio& aliveAudio);
-
+    explicit AliveAudioSoundbank(Vab& vab, AliveAudio& aliveAudio);
     void InitFromVab(Vab& vab, AliveAudio& aliveAudio);
+
     std::vector<std::unique_ptr<AliveAudioSample>> m_Samples;
     std::vector<std::unique_ptr<AliveAudioProgram>> m_Programs;
 };

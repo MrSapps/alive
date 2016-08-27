@@ -1,16 +1,20 @@
+if (APPLE)
+# We need a newer version on apple otherwise compling objective-c files fails when mixed with C/C++ source
+cmake_minimum_required(VERSION 3.1)
+else()
 cmake_minimum_required(VERSION 2.8)
+endif()
 
 project(ALIVE)
 
 option(UseValgrind "UseValgrind" OFF)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}")
-#set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/cotire/CMake")
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/cotire/CMake")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/3rdParty/solar-cmake")
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake")
 
-
-#include(cotire)
+include(cotire)
 include(Solar)
 
 # the RPATH to be used when installing
@@ -24,6 +28,8 @@ if ("${arch}" STREQUAL "i386")
     set (arch "x86")
 elseif("${arch}" STREQUAL "x86_64")
     set (arch "x64")
+    # Used by deflate lib
+    add_definitions(-D_M_X64)
 endif()
 
 find_package(SDL2 REQUIRED)
@@ -41,12 +47,7 @@ set(ALIVE_VERSION_PATCH 0)
 # Enable Visual Studio solution "folders"
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON) 
 
-# On Linux gtest needs pthreads
-if (UNIX)
-    find_package (Threads)
-endif()
-
-if ( APPLE )
+if (APPLE)
 # Required to prevent runtime crash on 64bit OSX - however this breaks 32bit compile
   set ( CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000 -image_base 7fff04c4a000" )
 endif()
@@ -58,32 +59,68 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
   #message("RELEASE set")
 endif ()
 
+if(UNIX AND NOT APPLE)
+   set(LINUX TRUE)
+endif()
+
+# On Linux gtest needs pthreads
+if (LINUX)
+    find_package (Threads)
+endif()
+
+if (LINUX)
+  find_package (PkgConfig REQUIRED)
+  pkg_check_modules (GTK3 REQUIRED gtk+-3.0)
+endif()
+
 include_directories(
     include
     ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers
     ${SDL2_INCLUDE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/packaging
     ${OPENGL_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glew-1.11.0/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock/internal
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock/internal/custom
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/internal
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/internal/custom
     ${CMAKE_BINARY_DIR}/3rdParty/luajit
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/luajit/src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate/common
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/rapidjson/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${GTK3_INCLUDE_DIRS}
 )
 
-add_definitions(-DGLEW_STATIC)
-
-SET(glew_src 
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glew-1.11.0/src/glew.c
+SET(nativefiledialog_src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include/nfd.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/common.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_common.c
 )
 
-add_library(glew STATIC ${glew_src})
-SET_PROPERTY(TARGET glew PROPERTY FOLDER "3rdparty")
+if(LINUX)
+    SET(nativefiledialog_src ${nativefiledialog_src} ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_gtk.c)
+endif()
+
+if(APPLE)
+    SET(nativefiledialog_src ${nativefiledialog_src} ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_cocoa.m)
+endif()
+
+if(WIN32)
+    SET(nativefiledialog_src ${nativefiledialog_src} ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/nfd_win.cpp)
+endif()
+
+add_library(nativefiledialog STATIC ${nativefiledialog_src})
+SET_PROPERTY(TARGET nativefiledialog PROPERTY FOLDER "3rdparty")
 
 SET(lodepng_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/lodepng/lodepng.cpp
@@ -116,12 +153,21 @@ add_library(NanoVg STATIC ${nanovg_src})
 SET_PROPERTY(TARGET NanoVg PROPERTY FOLDER "3rdparty")
 
 SET(gmock_src
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/src/gmock-all.cc
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gmock-1.7.0/gtest/src/gtest-all.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock/src/gmock-all.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/src/gtest-all.cc
 )
 
 add_library(gmock STATIC ${gmock_src})
 SET_PROPERTY(TARGET gmock PROPERTY FOLDER "3rdparty")
+
+SET(libdeflate_src
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate/lib/deflate_decompress.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate/lib/x86_cpu_features.c
+)
+
+add_library(libdeflate STATIC ${libdeflate_src})
+SET_PROPERTY(TARGET libdeflate PROPERTY FOLDER "3rdparty")
+
 
 SET(jsonxx_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/jsonxx/jsonxx.cc
@@ -136,6 +182,8 @@ SET_PROPERTY(TARGET luajit PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET minilua PROPERTY FOLDER "3rdparty")
 
 SET(oddlib_src
+    src/gpuselect.cpp
+    include/types.hpp
     include/proxy_nanovg.h
     include/msvc_sdl_link.hpp
     include/stdthread.h
@@ -193,8 +241,13 @@ SET(oddlib_src
 )
 
 add_library(oddlib STATIC
-    ${oddlib_src}
+    src/oddlib/oddlib_pch.cpp ${oddlib_src}
 )
+
+if (WIN32 AND MSVC)
+    set_target_properties(oddlib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/oddlib/oddlib_pch.h")
+    cotire(oddlib)
+endif()
 
 SET(alivelib_src
     include/core/audiobuffer.hpp
@@ -211,10 +264,11 @@ SET(alivelib_src
     src/guiwidgets.cpp
     include/engine.hpp
     src/engine.cpp
-    include/gamedata.hpp
-    src/gamedata.cpp
-    include/filesystem.hpp
-    src/filesystem.cpp
+    include/engine.hpp
+    src/developerscreen.cpp
+    include/developerscreen.hpp
+    src/gameselectionscreen.cpp
+    include/gameselectionscreen.hpp
     include/gridmap.hpp
     src/gridmap.cpp
     include/gridobject.hpp
@@ -223,11 +277,19 @@ SET(alivelib_src
     include/sdl_raii.hpp
     include/script.hpp
     src/script.cpp
+    include/resourcemapper.hpp
+    src/resourcemapper.cpp
+    include/zipfilesystem.hpp
+    src/zipfilesystem.cpp
 )
 
 add_library(AliveLib STATIC
-    ${alivelib_src}
+    src/alivelib_pch.cpp ${alivelib_src}
 )
+if (WIN32 AND MSVC)
+    set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
+    cotire(AliveLib)
+endif()
 
 if(WIN32)
 SET(WIN32_RESOURCES_SRC
@@ -239,78 +301,102 @@ endif()
 add_executable(Alive MACOSX_BUNDLE
     ${WIN32_RESOURCES_SRC}
     src/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 
-SET(Alive_Libs  AliveLib jsonxx oddlib NanoVg glew stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng)
+if(LINUX)
+    # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES})
+ELSE()
+    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate nativefiledialog)
+ENDIF()
 
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
 
-add_executable(IntegrationTest
+add_executable(Integration
   ${WIN32_RESOURCES_SRC}
   test/integration_main.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
-TARGET_LINK_LIBRARIES(IntegrationTest ${Alive_Libs})
+TARGET_LINK_LIBRARIES(Integration ${Alive_Libs})
 
-add_executable(DataTest
+add_executable(DataTool
   ${WIN32_RESOURCES_SRC}
   test/data_test_main.cpp
+  test/phash.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
-TARGET_LINK_LIBRARIES(DataTest ${Alive_Libs})
+TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
 
 
 
 #cotire(oddlib)
 
+
+add_executable(bin2h tools/bin2h/bin2h.cpp)
+SET_PROPERTY(TARGET bin2h PROPERTY FOLDER "Header generators")
+
+
 # Bake binary test files in C array/header files
-function(make_header src dst varname)
-message(STATUS "Generating header '${dst}' from " '${src}')
-  EXEC_PROGRAM(${CMAKE_COMMAND}
-    ARGS -DBINARYBAKER_INPUT_FILE='${src}' -DBINARYBAKER_OUTPUT_FILE='${dst}' -DBINARYBAKER_VARIABLE_NAME='${varname}' -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/BinaryBaker.cmakescript)
+function(make_header src dst targetname varname)
+    message(STATUS "Generating header '${dst}' from " '${src}')
+    ADD_CUSTOM_COMMAND(OUTPUT "${dst}"
+                   COMMAND bin2h "${src}" "${dst}" ${varname}
+                   DEPENDS "${src}" )
+
+    add_custom_target(
+      Generate_${targetname} ALL
+      DEPENDS "${dst}"
+    )
+
+    SET_PROPERTY(TARGET Generate_${targetname} PROPERTY FOLDER "Header generators")
+
 endfunction()
   
 # Helper to take file foo.dat in any path and place it in generated headers as foo.dat.g.h with
 # var name of foo
-function(to_vec src_file)
+function(to_vec src_file out_file_name)
     SET(generated_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers)
     get_filename_component(NameOnly ${samples_dir}/${src_file} NAME)
     get_filename_component(NameOnlyNoExt ${samples_dir}/${src_file} NAME_WE)
-    #message(STATUS "File name is ${NameOnly} with out ext is ${NameOnlyNoExt}")
+    message(STATUS "File name is ${NameOnly} with out ext is ${NameOnlyNoExt}")
     make_header(${src_file}
-                ${generated_headers_dir}/${NameOnly}.g.h 
+                ${generated_headers_dir}/${out_file_name}.g.h 
+                ${out_file_name}
                 ${NameOnlyNoExt})
 endfunction()
 
 SET(samples_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files)
 
-to_vec(${samples_dir}/test.bin)
-to_vec(${samples_dir}/xa.bin)
-to_vec(${samples_dir}/sample.lvl)
-to_vec(${samples_dir}/ae_ddv/audio_only/mono_8_high_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/mono_8_low_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/mono_16_high_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/mono_16_low_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/stereo_8_high_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/stereo_8_low_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/stereo_16_high_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/audio_only/stereo_16_low_compression_all_samples.ddv)
-to_vec(${samples_dir}/ae_ddv/all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave.ddv)
-to_vec(${samples_dir}/ae_ddv/video_only/all_colours_high_compression_30_fps.ddv)
-to_vec(${samples_dir}/ae_ddv/video_only/all_colours_low_compression_30_fps.ddv)
-to_vec(${samples_dir}/ae_ddv/video_only/all_colours_max_compression_30_fps.ddv)
-to_vec(${samples_dir}/ae_ddv/video_only/all_colours_medium_compression_30_fps.ddv)
-to_vec(${samples_dir}/ae_ddv/video_only/all_colours_min_compression_30_fps.ddv)
-
-
-EXEC_PROGRAM(${CMAKE_COMMAND}
-    ARGS -DBINARYBAKER_INPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/sample.lvl -DBINARYBAKER_OUTPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers/sample.lvl.g.h -DBINARYBAKER_VARIABLE_NAME=sample_lvl -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/BinaryBaker.cmakescript)
+to_vec(${samples_dir}/zips/MaxECDRComment.zip MaxECDRComment.zip)
+to_vec(${samples_dir}/zips/SimpleNoComp.zip SimpleNoComp.zip)
+to_vec(${samples_dir}/test.bin test.bin)
+to_vec(${samples_dir}/xa.bin xa.bin)
+to_vec(${samples_dir}/sample.lvl sample.lvl)
+to_vec(${samples_dir}/ae_ddv/audio_only/mono_8_high_compression_all_samples.ddv mono_8_high_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/mono_8_low_compression_all_samples.ddv mono_8_low_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/mono_16_high_compression_all_samples.ddv mono_16_high_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/mono_16_low_compression_all_samples.ddv mono_16_low_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/stereo_8_high_compression_all_samples.ddv stereo_8_high_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/stereo_8_low_compression_all_samples.ddv stereo_8_low_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/stereo_16_high_compression_all_samples.ddv stereo_16_high_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/audio_only/stereo_16_low_compression_all_samples.ddv stereo_16_low_compression_all_samples.ddv)
+to_vec(${samples_dir}/ae_ddv/all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave.ddv ddv_test1.ddv)
+to_vec(${samples_dir}/ae_ddv/video_only/all_colours_high_compression_30_fps.ddv all_colours_high_compression_30_fps.ddv)
+to_vec(${samples_dir}/ae_ddv/video_only/all_colours_low_compression_30_fps.ddv all_colours_low_compression_30_fps.ddv)
+to_vec(${samples_dir}/ae_ddv/video_only/all_colours_max_compression_30_fps.ddv all_colours_max_compression_30_fps.ddv)
+to_vec(${samples_dir}/ae_ddv/video_only/all_colours_medium_compression_30_fps.ddv all_colours_medium_compression_30_fps.ddv)
+to_vec(${samples_dir}/ae_ddv/video_only/all_colours_min_compression_30_fps.ddv all_colours_min_compression_30_fps.ddv)
 
 add_executable(Tests 
-    test/sample_files/generated_headers/sample.lvl.g.h
     test/main.cpp
+    test/resource_locator_test.cpp
+    test/zip_fs_tests.cpp
+    test/string_util_tests.cpp
     include/subtitles.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
-
 
 #cotire(Tests)
 target_link_libraries(Tests oddlib gmock ${Alive_Libs} ${CMAKE_THREAD_LIBS_INIT})
@@ -362,28 +448,41 @@ ELSE()
     SET(DATA_DIR ./data)
 ENDIF()
 
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/lvldb.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/pathdb.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fmvdb.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/themes.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/sfx_list.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resource_paths.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}/subtitles")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.lua" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/DataSetIds.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/Roboto-Regular.ttf" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resources.json" DESTINATION "${DATA_DIR}")
 
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}/subtitles")
 
- SET(OLD_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.lua" DESTINATION "${DATA_DIR}/scripts")
+
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPc.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPcDemo.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPsx.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPsxCd1.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPsxCd2.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPsxDemo.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesOddyseePc.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesOddyseePcDemo.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesOddyseePsxDemo.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesOddyseePsx.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/Developer mode.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+
+SET(OLD_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+
 if (MSVC)
     # Build cpp files on all cores
   
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826 /wd4127 /wd4711 /wd4738 /WX")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4503 /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826 /wd4127 /wd4711 /wd4738 /wd4255 /WX")
     # Warnings added in VS2013 and later
     if(MSVC_VERSION GREATER 1800)
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027 /wd4868")
     endif()
     
     # Use default flags on 3rd party things that generate warnings on max levels
+    
+    set_source_files_properties(${nativefiledialog_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS /wd4018 /wd4267 /wd4334 /wd4244")
+    set_source_files_properties(${libdeflate_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267 /wd4334 /wd4244")
     set_source_files_properties(${lodepng_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267 /wd4334")
     set_source_files_properties(${stk_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267")
     set_source_files_properties(${jsonxx_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS}")
@@ -428,10 +527,10 @@ if(WIN32)
     #else()
     #    message("DEBUG installer build")
     #endif()
+
 elseif(APPLE)
-    # APPLE is also UNIX, so must check for APPLE before UNIX
     SET(CPACK_GENERATOR "DragNDrop")
-elseif(UNIX)
+elseif(LINUX)
     # On Linux generate TAR.GZ,DEB and RPM packages
     #Find out what architecture are we running on and set the package architecture 
 endif()

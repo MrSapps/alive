@@ -1,8 +1,10 @@
 #pragma once
 
 #include "oddlib/stream.hpp"
+#include "string_util.hpp"
 #include <string>
 #include <vector>
+#include <deque>
 
 // Very basic SRT/subrip parser. Will only handle 1 line per subtitle
 class SubTitle

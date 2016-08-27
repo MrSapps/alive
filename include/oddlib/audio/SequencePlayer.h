@@ -7,22 +7,23 @@
 #include "oddlib/stream.hpp"
 #include "oddlib/audio/AliveAudio.h"
 #include "stdthread.h"
+#include "types.hpp"
 
 struct SeqHeader
 {
-    Uint32 mMagic; // SEQp
-    Uint32 mVersion; // Seems to always be 1
-    Uint16 mResolutionOfQuaterNote;
-    Uint8 mTempo[3];
-    Uint8 mTimeSignatureBars;
-    Uint8 mTimeSignatureBeats;
+    u32 mMagic; // SEQp
+    u32 mVersion; // Seems to always be 1
+    u16 mResolutionOfQuaterNote;
+    u8 mTempo[3];
+    u8 mTimeSignatureBars;
+    u8 mTimeSignatureBeats;
 };
 
 struct SeqInfo
 {
-    Uint32 iLastTime = 0;
-    Sint32 iNumTimesToLoop = 0;
-    Uint8 running_status = 0;
+    u32 iLastTime = 0;
+    s32 iNumTimesToLoop = 0;
+    u8 running_status = 0;
 };
 
 // The types of Midi Messages the sequencer will play.
@@ -55,10 +56,10 @@ struct AliveAudioMidiMessage
         Special = special;
     }
     AliveAudioMidiMessageType Type;
-    int Channel;
-    int Note;
-    char Velocity;
-    int TimeOffset;
+    int Channel = 0;
+    int Note = 0;
+    char Velocity = 0;
+    int TimeOffset = 0;
     int Special = 0;
 };
 
@@ -68,15 +69,14 @@ public:
     SequencePlayer(AliveAudio& aliveAudio);
     ~SequencePlayer();
 
-    int LoadSequenceData(std::vector<Uint8> seqData);
-    int LoadSequenceStream(Oddlib::Stream& stream);
+
+    int LoadSequenceStream(Oddlib::IStream& stream);
     void PlaySequence();
     void StopSequence();
 
-    double MidiTimeToSample(int time);
-    Uint64 GetPlaybackPositionSample();
+    f64 MidiTimeToSample(int time);
+    u64 GetPlaybackPositionSample();
 
-    int m_TrackID = 1; // The track ID. Use this to seperate SoundFX from Music.
     AliveAudioSequencerState m_PlayerState = ALIVE_SEQUENCER_STOPPED;
 
     // Gets called every time the play position is at 1/4 of the song.
@@ -89,8 +89,8 @@ public:
     int m_SongBeginSample = 0;	// Not relative.
     int m_PrevBar = 0;
     int m_TimeSignatureBars = 0;
-    double m_SongTempo = 1.0f;
-    void m_PlayerThreadFunction();
+    f64 m_SongTempo = 1.0f;
+    void PlayerThreadFunction();
 
 private:
     std::vector<AliveAudioMidiMessage> m_MessageList;

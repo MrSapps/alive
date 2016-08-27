@@ -3,12 +3,13 @@
 #include "gui.h"
 #include "core/audiobuffer.hpp"
 #include "logger.hpp"
-#include "filesystem.hpp"
+#include "resourcemapper.hpp"
 
 void Sound::BarLoop()
 {
     printf("Bar Loop!");
 
+    /*
     if (mTargetSong != -1)
     {
         if (mSeqPlayer->LoadSequenceData(mAliveAudio.m_LoadedSeqData[mTargetSong]) == 0)
@@ -16,36 +17,21 @@ void Sound::BarLoop()
             mSeqPlayer->PlaySequence();
         }
         mTargetSong = -1;
-    }
+    }*/
 }
 
-
-void Sound::ChangeTheme(FileSystem& fs, const std::deque<std::string>& parts)
-{
-    try
-    {
-        const std::string lvlFileName = parts[0];
-        auto stream = fs.ResourcePaths().Open(lvlFileName);
-        if (stream)
-        {
-            Oddlib::LvlArchive archive(std::move(stream));
-            mAliveAudio.LoadAllFromLvl(archive, parts[1], parts[2]); // vab, bsq
-        }
-    }
-    catch (const std::exception& ex)
-    {
-        LOG_ERROR("Audio error: " << ex.what());
-    }
-}
-
-Sound::Sound(GameData& gameData, IAudioController& audioController, FileSystem& fs)
-    : mGameData(gameData), mAudioController(audioController), mFs(fs)
+Sound::Sound(IAudioController& audioController, ResourceLocator& locator)
+    : mAudioController(audioController), mLocator(locator)
 {
     mAudioController.AddPlayer(&mAliveAudio);
 }
 
 Sound::~Sound()
 {
+    // Ensure the audio call back stops at this point else will be
+    // calling back into freed objects
+    SDL_AudioQuit();
+
     mAudioController.RemovePlayer(&mAliveAudio);
 }
 
@@ -53,100 +39,133 @@ void Sound::Update()
 {
     if (mSeqPlayer)
     {
-        mSeqPlayer->m_PlayerThreadFunction();
+        mSeqPlayer->PlayerThreadFunction();
     }
 }
 
-void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
+void Sound::AudioSettingsUi(GuiContext* gui)
 {
-    static bool bSet = false;
-    if (!bSet)
+    gui_begin_window(gui, "Audio output settings");
+    gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.mAntiAliasFilteringEnabled);
+
+    if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
     {
-        try
-        {
-            bSet = true;
-
-            // Currently requires sounds.dat to be available from the get-go, so make
-            // this failure non-fatal
-            mAliveAudio.AliveInitAudio(mFs);
-
-            auto themes = mAliveAudio.m_Config.get<jsonxx::Array>("themes");
-            for (auto i = 0u; i < themes.size(); i++)
-            {
-                auto theme = themes.get<jsonxx::Object>(i);
-
-                const std::string lvlFileName = theme.get<jsonxx::String>("lvl", "null") + ".lvl";
-                auto stream = mFs.ResourcePaths().Open(lvlFileName);
-                if (stream)
-                {
-                    Oddlib::LvlArchive archive(std::move(stream));
-                    auto vabName = theme.get<jsonxx::String>("vab", "null");
-                    auto bsqName = theme.get<jsonxx::String>("seq", "null");
-
-                    Oddlib::LvlArchive::File* file = archive.FileByName(bsqName);
-                    for (auto j = 0u; j < file->ChunkCount(); j++)
-                    {
-                        mThemes.push_back(lvlFileName + "!" + vabName + "!" + bsqName + "!" + std::to_string(j));
-                    }
-                }
-            }
-        }
-        catch (const std::exception& ex)
-        {
-            LOG_ERROR("Audio init failure: " << ex.what());
-        }
+        mAliveAudio.Interpolation = AudioInterpolation_none;
     }
 
-    gui_begin_window(gui, "Sound");
-
-    static int selectedIndex = 0; 
-    for (size_t i = 0; i < mThemes.size(); i++)
+    if (gui_radiobutton(gui, "Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
     {
-        if (gui_selectable(gui, mThemes[i].c_str(), static_cast<int>(i) == selectedIndex))
+        mAliveAudio.Interpolation = AudioInterpolation_linear;
+    }
+
+    if (gui_radiobutton(gui, "Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
+    {
+        mAliveAudio.Interpolation = AudioInterpolation_cubic;
+    }
+
+    if (gui_radiobutton(gui, "Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
+    {
+        mAliveAudio.Interpolation = AudioInterpolation_hermite;
+    }
+
+    gui_checkbox(gui, "Music browser", &mMusicBrowser);
+    gui_checkbox(gui, "Sound effect browser", &mSoundEffectBrowser);
+
+    gui_checkbox(gui, "Force reverb", &mAliveAudio.ForceReverb);
+    gui_slider(gui, "Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
+
+    gui_checkbox(gui, "Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
+    gui_end_window(gui);
+}
+
+void Sound::MusicBrowserUi(GuiContext* gui)
+{
+    gui_begin_window(gui, "Music");
+
+    for (const auto& musicInfo : mLocator.mResMapper.mMusicMaps)
+    {
+        if (gui_button(gui, musicInfo.first.c_str()))
         {
-            selectedIndex = static_cast<int>(i);
-            if (selectedIndex >= 0 && selectedIndex < static_cast<int>(mThemes.size()) && !mThemes.empty())
+            std::unique_ptr<IMusic> music = mLocator.LocateMusic(musicInfo.first.c_str());
+            if (music)
             {
                 mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
-                mSeqPlayer = std::make_unique<SequencePlayer>(mAliveAudio);
-                mSeqPlayer->m_QuarterCallback = [&]() { BarLoop(); };
-                const auto parts = string_util::split(mThemes[selectedIndex], '!');
-                int seqId = std::atoi(parts[3].c_str());
-                ChangeTheme(mFs, parts);
-                if (mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_FINISHED || mSeqPlayer->m_PlayerState == ALIVE_SEQUENCER_STOPPED)
+                if (!mSeqPlayer)
                 {
-                    if (seqId < static_cast<int>(mAliveAudio.m_LoadedSeqData.size()) && mSeqPlayer->LoadSequenceData(mAliveAudio.m_LoadedSeqData[seqId]) == 0)
-                    {
-                        mSeqPlayer->PlaySequence();
-                    }
+                    mSeqPlayer = std::make_unique<SequencePlayer>(mAliveAudio);
                 }
-                else
-                {
-                    mTargetSong = seqId;
-                }
+
+                auto soundBank = std::make_unique<AliveAudioSoundbank>(*music->mVab, mAliveAudio);
+                mAliveAudio.SetSoundbank(std::move(soundBank));
+                mSeqPlayer->LoadSequenceStream(*music->mSeqData);
+                mSeqPlayer->PlaySequence();
             }
         }
     }
     gui_end_window(gui);
+}
 
-    { gui_begin_window(gui, "Audio output settings");
-        gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.AntiAliasFilteringEnabled);
+void Sound::SoundEffectBrowserUi(GuiContext* gui)
+{
+    gui_begin_window(gui, "Sound effects");
 
-        if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
-            mAliveAudio.Interpolation = AudioInterpolation_none;
+    // TODO: Add filter by all datasets or something, rendering them all at once destroys performance
+    if (gui_checkbox(gui, "AePc", &mAePc))
+    {
+        mFilteredSoundEffectResources.clear();
+        if (mAePc)
+        {
+            mFilteredSoundEffectResources.reserve(mLocator.mResMapper.mSoundEffectMaps.size());
+            for (const auto& soundEffectInfo : mLocator.mResMapper.mSoundEffectMaps)
+            {
+                if (soundEffectInfo.first.find("AePc") != std::string::npos)
+                {
+                    mFilteredSoundEffectResources.emplace_back(soundEffectInfo.first);
+                }
+            }
+        }
+        else
+        {
+            mFilteredSoundEffectResources.reserve(mLocator.mResMapper.mSoundEffectMaps.size());
+            mFilteredSoundEffectResources.clear();
+            for (const auto& soundEffectInfo : mLocator.mResMapper.mSoundEffectMaps)
+            {
+                mFilteredSoundEffectResources.emplace_back(soundEffectInfo.first);
+            }
+        }
+    }
 
-        if (gui_radiobutton(gui, "Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
-            mAliveAudio.Interpolation = AudioInterpolation_linear;
+    for (const auto& soundEffectResourceName : mFilteredSoundEffectResources)
+    {
+        if (gui_button(gui, soundEffectResourceName.c_str()))
+        {
+            std::unique_ptr<ISoundEffect> soundEffect = mLocator.LocateSoundEffect(soundEffectResourceName.c_str());
+            if (soundEffect)
+            {
+                // TODO: Might want another player instance or a better way of dividing sound fx/vs seq music - also needs higher
+                // abstraction since music/fx could be wave/ogg/mp3 etc
+                mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
 
-        if (gui_radiobutton(gui, "Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
-            mAliveAudio.Interpolation = AudioInterpolation_cubic;
+                auto soundBank = std::make_unique<AliveAudioSoundbank>(*soundEffect->mVab, mAliveAudio);
+                mAliveAudio.SetSoundbank(std::move(soundBank));
 
-        if (gui_radiobutton(gui, "Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
-            mAliveAudio.Interpolation = AudioInterpolation_hermite;
+                // TODO: This seems to be completely wrong and also breaks without a sequence player, it shouldn't require it to work!
+                mAliveAudio.NoteOn(soundEffect->mProgram, soundEffect->mNote, 127);
+            }
+        }
+    }
+    gui_end_window(gui);
+}
 
-        gui_checkbox(gui, "Force reverb", &mAliveAudio.ForceReverb);
-        gui_slider(gui, "Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
-
-        gui_checkbox(gui, "Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
-    gui_end_window(gui);  }
+void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
+{
+    AudioSettingsUi(gui);
+    if (mMusicBrowser)
+    {
+        MusicBrowserUi(gui);
+    }
+    if (mSoundEffectBrowser)
+    {
+        SoundEffectBrowserUi(gui);
+    }
 }

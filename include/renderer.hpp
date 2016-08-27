@@ -1,8 +1,12 @@
-#ifndef ALIVE_RENDERER_HPP
-#define ALIVE_RENDERER_HPP
+#pragma once
 
+#include "types.hpp"
 #include <vector>
-#include <GL/glew.h>
+
+#include <GL/gl3w.h>
+#ifdef WIN32_LEAN_AND_MEAN
+#undef WIN32_LEAN_AND_MEAN
+#endif
 #include "SDL_opengl.h"
 
 // Vertex array object. Contains vertex and index buffers
@@ -43,17 +47,17 @@ enum TextAlign {
 };
 
 struct Color {
-    float r, g, b, a;
+    f32 r, g, b, a;
 
     static Color white();
 };
 
 // For NanoVG wrap
 struct RenderPaint {
-    float xform[6];
-    float extent[2];
-    float radius;
-    float feather;
+    f32 xform[6];
+    f32 extent[2];
+    f32 radius;
+    f32 feather;
     Color innerColor;
     Color outerColor;
     int image;
@@ -63,7 +67,7 @@ struct BlendMode {
     GLenum srcFactor;
     GLenum dstFactor;
     GLenum equation;
-    float colorMul;
+    f32 colorMul;
 
     // Some usual blend modes
     static BlendMode normal();
@@ -104,7 +108,7 @@ struct DrawCmd {
     union { // This union is to make the struct smaller, as RenderPaint is quite large
         struct {
             int integer;
-            float f[5];
+            f32 f[5];
             BlendMode blendMode; // Used only for quads, for now.
             Color color;
             char str[128]; // TODO: Allocate dynamically from cheap frame allocator
@@ -135,40 +139,41 @@ public:
     // All color components are given in 0..1 floating point.
 
     // Use negative w or h to flip uv coordinates
-    void drawQuad(int texHandle, float x, float y, float w, float h, Color color = Color::white(), BlendMode blendMode = BlendMode::normal());
+    void drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, Color color = Color::white(), BlendMode blendMode = BlendMode::normal());
 
     // NanoVG wrap
     void fillColor(Color c);
     void strokeColor(Color c);
-    void strokeWidth(float size);
-    void fontSize(float s);
-    void fontBlur(float s);
+    void strokeWidth(f32 size);
+    void fontSize(f32 s);
+    void fontBlur(f32 s);
     void textAlign(int align); // TextAlign bitfield
-    void text(float x, float y, const char *msg);
+    void text(f32 x, f32 y, const char *msg);
     void resetTransform();
     void beginPath();
-    void moveTo(float x, float y);
-    void lineTo(float x, float y);
+    void moveTo(f32 x, f32 y);
+    void lineTo(f32 x, f32 y);
     void closePath();
     void fill();
     void stroke();
-    void roundedRect(float x, float y, float w, float h, float r);
-    void rect(float x, float y, float w, float h);
-    void circle(float x, float y, float r);
+    void roundedRect(f32 x, f32 y, f32 w, f32 h, f32 r);
+    void rect(f32 x, f32 y, f32 w, f32 h);
+    void circle(f32 x, f32 y, f32 r);
     void solidPathWinding(bool b); // If false, then holes are created
     void fillPaint(RenderPaint p);
-    void scissor(float x, float y, float w, float h);
+    void scissor(f32 x, f32 y, f32 w, f32 h);
     void resetScissor();
 
     // Not drawing commands
-    RenderPaint linearGradient(float sx, float sy, float ex, float ey, Color sc, Color ec);
-    RenderPaint boxGradient(float x, float y, float w, float h,
-                            float r, float f, Color icol, Color ocol);
-    RenderPaint radialGradient(float cx, float cy, float inr, float outr, Color icol, Color ocol);
+    RenderPaint linearGradient(f32 sx, f32 sy, f32 ex, f32 ey, Color sc, Color ec);
+    RenderPaint boxGradient(f32 x, f32 y, f32 w, f32 h,
+                            f32 r, f32 f, Color icol, Color ocol);
+    RenderPaint radialGradient(f32 cx, f32 cy, f32 inr, f32 outr, Color icol, Color ocol);
     // TODO: Add fontsize param to make independent of "current state"
-    void textBounds(int x, int y, const char *msg, float bounds[4]);
+    void textBounds(int x, int y, const char *msg, f32 bounds[4]);
 
 private:
+    void destroyTextures();
     void pushCmd(DrawCmd cmd);
 
     // Vector rendering
@@ -194,5 +199,3 @@ private:
     std::vector<DrawCmd> mDrawCmds;
     std::vector<int> mDestroyTextureList;
 };
-
-#endif

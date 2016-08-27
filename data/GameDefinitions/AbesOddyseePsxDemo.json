@@ -1,0 +1,8 @@
+{
+  "Name" : "Oddworld Abe's Oddysee PSX Demo",
+  "Description" : "The original PSX demo of Oddworld Abe's Oddysee",
+  "Author" : "Oddworld Inhabitants",
+  "InitialLevel" : "r1_path1",
+  "DatasetName": "AoPsxDemo",
+  "RequiredDatasets": [ "AePc" ]
+}

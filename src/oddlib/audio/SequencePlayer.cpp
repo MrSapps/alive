@@ -15,19 +15,19 @@ SequencePlayer::~SequencePlayer()
 }
 
 // Midi stuff
-static void _SndMidiSkipLength(Oddlib::Stream& stream, int skip)
+static void SndMidiSkipLength(Oddlib::IStream& stream, int skip)
 {
     stream.Seek(stream.Pos() + skip);
 }
 
 // Midi stuff
-static Uint32 _MidiReadVarLen(Oddlib::Stream& stream)
+static u32 MidiReadVarLen(Oddlib::IStream& stream)
 {
-    Uint32 ret = 0;
-    Uint8 byte = 0;
+    u32 ret = 0;
+    u8 byte = 0;
     for (int i = 0; i < 4; ++i)
     {
-        stream.ReadUInt8(byte);
+        stream.Read(byte);
         ret = (ret << 7) | (byte & 0x7f);
         if (!(byte & 0x80))
         {
@@ -37,14 +37,14 @@ static Uint32 _MidiReadVarLen(Oddlib::Stream& stream)
     return ret;
 }
 
-double SequencePlayer::MidiTimeToSample(int time)
+f64 SequencePlayer::MidiTimeToSample(int time)
 {
     // This may, or may not be correct. // TODO: Revise
     return ((60 * time) / m_SongTempo) * (AliveAudioSampleRate / 500.0);
 }
 
 // TODO: This thread spin locks
-void SequencePlayer::m_PlayerThreadFunction()
+void SequencePlayer::PlayerThreadFunction()
 {
     int channels[16] = {};
 
@@ -54,7 +54,7 @@ void SequencePlayer::m_PlayerThreadFunction()
         if (m_PlayerState == ALIVE_SEQUENCER_INIT_VOICES)
         {
             bool firstNote = true;
-            std::lock_guard<std::recursive_mutex> notesLock(mAliveAudio.voiceListMutex);
+            std::lock_guard<std::recursive_mutex> notesLock(mAliveAudio.mVoiceListMutex);
 
             for (size_t i = 0; i < m_MessageList.size(); i++)
             {
@@ -62,22 +62,22 @@ void SequencePlayer::m_PlayerThreadFunction()
                 switch (m.Type)
                 {
                 case ALIVE_MIDI_NOTE_ON:
-                    mAliveAudio.NoteOn(channels[m.Channel], m.Note, m.Velocity, m_TrackID, MidiTimeToSample(m.TimeOffset));
+                    mAliveAudio.NoteOn(channels[m.Channel], m.Note, m.Velocity, MidiTimeToSample(m.TimeOffset));
                     if (firstNote)
                     {
-                        m_SongBeginSample = static_cast<int>(mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset));
+                        m_SongBeginSample = static_cast<int>(mAliveAudio.mCurrentSampleIndex + MidiTimeToSample(m.TimeOffset));
                         firstNote = false;
                     }
                     break;
                 case ALIVE_MIDI_NOTE_OFF:
-                    mAliveAudio.NoteOffDelay(channels[m.Channel], m.Note, m_TrackID, static_cast<float>(MidiTimeToSample(m.TimeOffset))); // Fix this. Make note off's have an offset in the voice timeline.
+                    mAliveAudio.NoteOffDelay(channels[m.Channel], m.Note, static_cast<f32>(MidiTimeToSample(m.TimeOffset))); // Fix this. Make note off's have an offset in the voice timeline.
                     break;
                 case ALIVE_MIDI_PROGRAM_CHANGE:
                     channels[m.Channel] = m.Special;
                     break;
                 case ALIVE_MIDI_ENDTRACK:
                     m_PlayerState = ALIVE_SEQUENCER_PLAYING;
-                    m_SongFinishSample = static_cast<Uint64>(mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset));
+                    m_SongFinishSample = static_cast<Uint64>(mAliveAudio.mCurrentSampleIndex + MidiTimeToSample(m.TimeOffset));
                     break;
                 }
 
@@ -85,7 +85,7 @@ void SequencePlayer::m_PlayerThreadFunction()
         }
         m_PlayerStateMutex.unlock();
 
-        if (m_PlayerState == ALIVE_SEQUENCER_PLAYING && mAliveAudio.currentSampleIndex > m_SongFinishSample)
+        if (m_PlayerState == ALIVE_SEQUENCER_PLAYING && mAliveAudio.mCurrentSampleIndex > m_SongFinishSample)
         {
             m_PlayerState = ALIVE_SEQUENCER_FINISHED;
 
@@ -107,14 +107,14 @@ void SequencePlayer::m_PlayerThreadFunction()
     }
 }
 
-Uint64 SequencePlayer::GetPlaybackPositionSample()
+u64 SequencePlayer::GetPlaybackPositionSample()
 {
-    return mAliveAudio.currentSampleIndex - m_SongBeginSample;
+    return mAliveAudio.mCurrentSampleIndex - m_SongBeginSample;
 }
 
 void SequencePlayer::StopSequence()
 {
-    mAliveAudio.ClearAllTrackVoices(m_TrackID);
+    mAliveAudio.ClearAllTrackVoices();
     m_PlayerStateMutex.lock();
     m_PlayerState = ALIVE_SEQUENCER_STOPPED;
     m_PrevBar = 0;
@@ -132,14 +132,7 @@ void SequencePlayer::PlaySequence()
     m_PlayerStateMutex.unlock();
 }
 
-int SequencePlayer::LoadSequenceData(std::vector<Uint8> seqData)
-{
-    Oddlib::Stream stream(std::move(seqData));
-
-    return LoadSequenceStream(stream);
-}
-
-int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
+int SequencePlayer::LoadSequenceStream(Oddlib::IStream& stream)
 {
     StopSequence();
     m_MessageList.clear();
@@ -148,12 +141,12 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
 
     // Read the header
 
-    stream.ReadUInt32(seqHeader.mMagic);
-    stream.ReadUInt32(seqHeader.mVersion);
-    stream.ReadUInt16(seqHeader.mResolutionOfQuaterNote);
-    stream.ReadBytes(seqHeader.mTempo, sizeof(seqHeader.mTempo));
-    stream.ReadUInt8(seqHeader.mTimeSignatureBars);
-    stream.ReadUInt8(seqHeader.mTimeSignatureBeats);
+    stream.Read(seqHeader.mMagic);
+    stream.Read(seqHeader.mVersion);
+    stream.Read(seqHeader.mResolutionOfQuaterNote);
+    stream.Read(seqHeader.mTempo);
+    stream.Read(seqHeader.mTimeSignatureBars);
+    stream.Read(seqHeader.mTimeSignatureBeats);
 
     int tempoValue = 0;
     for (int i = 0; i < 3; i++)
@@ -177,13 +170,13 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
     for (;;)
     {
         // Read event delta time
-        Uint32 delta = _MidiReadVarLen(stream);
+        u32 delta = MidiReadVarLen(stream);
         deltaTime += delta;
         //std::cout << "Delta: " << delta << " over all " << deltaTime << std::endl;
 
         // Obtain the event/status byte
-        Uint8 eventByte = 0;
-        stream.ReadUInt8(eventByte);
+        u8 eventByte = 0;
+        stream.Read(eventByte);
         if (eventByte < 0x80)
         {
             // Use running status
@@ -205,11 +198,11 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
         if (eventByte == 0xff)
         {
             // Meta event
-            Uint8 metaCommand = 0;
-            stream.ReadUInt8(metaCommand);
+            u8 metaCommand = 0;
+            stream.Read(metaCommand);
 
-            Uint8 metaCommandLength = 0;
-            stream.ReadUInt8(metaCommandLength);
+            u8 metaCommandLength = 0;
+            stream.Read(metaCommandLength);
 
             switch (metaCommand)
             {
@@ -246,11 +239,11 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
             {
                 //std::cout << "Temp change" << std::endl;
                 // TODO: Not sure if this is correct
-                Uint8 tempoByte = 0;
+                u8 tempoByte = 0;
                 //int t = 0;
                 for (int i = 0; i < 3; i++)
                 {
-                    stream.ReadUInt8(tempoByte);
+                    stream.Read(tempoByte);
                     //t = tempoByte << 8 * i;
                 }
             }
@@ -258,10 +251,10 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
 
             default:
             {
-                //std::cout << "Unknown meta event " << Uint32(metaCommand) << std::endl;
+                //std::cout << "Unknown meta event " << u32(metaCommand) << std::endl;
                 // Skip unknown events
                 // TODO Might be wrong
-                _SndMidiSkipLength(stream, metaCommandLength);
+                SndMidiSkipLength(stream, metaCommandLength);
             }
             }
         }
@@ -272,16 +265,16 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
         }
         else
         {
-            const Uint8 channel = eventByte & 0xf;
+            const u8 channel = eventByte & 0xf;
             switch (eventByte >> 4)
             {
             case 0x9: // Note On
             {
-                Uint8 note = 0;
-                stream.ReadUInt8(note);
+                u8 note = 0;
+                stream.Read(note);
 
-                Uint8 velocity = 0;
-                stream.ReadUInt8(velocity);
+                u8 velocity = 0;
+                stream.Read(velocity);
                 if (velocity == 0) // If velocity is 0, then the sequence means to do "Note Off"
                 {
                     m_MessageList.push_back(AliveAudioMidiMessage(ALIVE_MIDI_NOTE_OFF, deltaTime, channel, note, velocity));
@@ -294,54 +287,54 @@ int SequencePlayer::LoadSequenceStream(Oddlib::Stream& stream)
             break;
             case 0x8: // Note Off
             {
-                Uint8 note = 0;
-                stream.ReadUInt8(note);
-                Uint8 velocity = 0;
-                stream.ReadUInt8(velocity);
+                u8 note = 0;
+                stream.Read(note);
+                u8 velocity = 0;
+                stream.Read(velocity);
 
                 m_MessageList.push_back(AliveAudioMidiMessage(ALIVE_MIDI_NOTE_OFF, deltaTime, channel, note, velocity));
             }
             break;
             case 0xc: // Program Change
             {
-                Uint8 prog = 0;
-                stream.ReadUInt8(prog);
+                u8 prog = 0;
+                stream.Read(prog);
                 m_MessageList.push_back(AliveAudioMidiMessage(ALIVE_MIDI_PROGRAM_CHANGE, deltaTime, channel, 0, 0, prog));
             }
             break;
             case 0xa: // Polyphonic key pressure (after touch)
             {
-                Uint8 note = 0;
-                Uint8 pressure = 0;
+                u8 note = 0;
+                u8 pressure = 0;
 
-                stream.ReadUInt8(note);
-                stream.ReadUInt8(pressure);
+                stream.Read(note);
+                stream.Read(pressure);
             }
             break;
             case 0xb: // Controller Change
             {
-                Uint8 controller = 0;
-                Uint8 value = 0;
-                stream.ReadUInt8(controller);
-                stream.ReadUInt8(value);
+                u8 controller = 0;
+                u8 value = 0;
+                stream.Read(controller);
+                stream.Read(value);
             }
             break;
             case 0xd: // After touch
             {
-                Uint8 value = 0;
-                stream.ReadUInt8(value);
+                u8 value = 0;
+                stream.Read(value);
             }
             break;
             case 0xe: // Pitch Bend
             {
-                Uint16 bend = 0;
-                stream.ReadUInt16(bend);
+                u16 bend = 0;
+                stream.Read(bend);
             }
             break;
             case 0xf: // Sysex len
             {
-                const Uint32 length = _MidiReadVarLen(stream);
-                _SndMidiSkipLength(stream, length);
+                const u32 length = MidiReadVarLen(stream);
+                SndMidiSkipLength(stream, length);
             }
             break;
             default:

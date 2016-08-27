@@ -1,62 +1,15 @@
 #include "oddlib/audio/AliveAudio.h"
-#include "filesystem.hpp"
 
-static float RandFloat(float a, float b)
+/*
+static f32 RandFloat(f32 a, f32 b)
 {
-    return ((b - a)*((float)rand() / RAND_MAX)) + a;
+    return ((b - a)*((f32)rand() / RAND_MAX)) + a;
 }
-
-void AliveAudio::LoadJsonConfig(std::string filePath, FileSystem& fs)
-{
-    std::string jsonData = fs.GameData().Open(filePath)->LoadAllToString();
-    jsonxx::Object obj;
-    obj.parse(jsonData);
-
-    m_Config.import(obj);
-}
-
-void AliveAudio::AliveInitAudio(FileSystem& fs)
-{
-    /*
-    SDL_Init(SDL_INIT_AUDIO);
-    // UGLY FIX ALL OF THIS
-    // |
-    // V
-    SDL_AudioSpec waveSpec;
-    waveSpec.callback = AliveAudioSDLCallback;
-    waveSpec.userdata = nullptr;
-    waveSpec.channels = 2;
-    waveSpec.freq = AliveAudioSampleRate;
-    waveSpec.samples = 512;
-    waveSpec.format = AUDIO_F32;
-
-    // Open the audio device
-    if (SDL_OpenAudio(&waveSpec, NULL) < 0)
-    {
-        fprintf(stderr, "Failed to initialize audio: %s\n", SDL_GetError());
-        exit(-1);
-    }
-    */
-
-    LoadJsonConfig("data/themes.json", fs);
-    LoadJsonConfig("data/sfx_list.json", fs);
-
-    auto soundsDatSteam = fs.ResourcePaths().Open("sounds.dat");
-    if (!soundsDatSteam)
-    {
-        throw Oddlib::Exception("sounds.dat not found");
-    }
-
-    m_SoundsDat = std::vector<unsigned char>(soundsDatSteam->Size() + 1); // Plus one, just in case interpolating tries to go that one byte further!
-
-    soundsDatSteam->ReadBytes(m_SoundsDat.data(), soundsDatSteam->Size());
-
-    SDL_PauseAudio(0);
-}
+*/
 
 void AliveAudio::CleanVoices()
 {
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
 
     std::vector<AliveAudioVoice *> deadVoices;
 
@@ -77,14 +30,10 @@ void AliveAudio::CleanVoices()
 
 }
 
-void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
+void AliveAudio::AliveRenderAudio(f32 * AudioStream, int StreamLength)
 {
-    //static float tick = 0;
-    //static int note = 0;
 
-    //AliveAudioSoundbank * currentSoundbank = AliveAudio::m_CurrentSoundbank;
-
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
 
     // Reset buffers
     for (int i = 0; i < StreamLength; ++i)
@@ -94,14 +43,6 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
     }
 
     const size_t voiceCount = m_Voices.size();
-    /*
-    if (voiceCount == 0)
-    {
-        // Bail out early if nothing to render
-        currentSampleIndex += StreamLength;
-        return;
-    }
-    */
 
     AliveAudioVoice ** rawPointer = m_Voices.data(); // Real nice speed boost here.
 
@@ -129,24 +70,24 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
                 continue;
             }
 
-            float centerPan = voice->m_Tone->f_Pan;
-            float leftPan = 1.0f;
-            float rightPan = 1.0f;
+            f32 centerPan = voice->m_Tone->f_Pan;
+            f32 leftPan = 1.0f;
+            f32 rightPan = 1.0f;
 
             if (centerPan > 0)
             {
-                leftPan = 1.0f - abs(centerPan);
+                leftPan = 1.0f - std::abs(centerPan);
             }
 
             if (centerPan < 0)
             {
-                rightPan = 1.0f - abs(centerPan);
+                rightPan = 1.0f - std::abs(centerPan);
             }
 
             // TODO FIX ME
-            float  s = voice->GetSample(Interpolation, AntiAliasFilteringEnabled);
-            float leftSample = (s * leftPan);
-            float rightSample = (s * rightPan);
+            f32  s = voice->GetSample(Interpolation, mAntiAliasFilteringEnabled);
+            f32 leftSample = (s * leftPan);
+            f32 rightSample = (s * rightPan);
 
             if (voice->m_Tone->Reverbate || ForceReverb)
             {
@@ -160,7 +101,7 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
             }
         }
 
-        currentSampleIndex++;
+        mCurrentSampleIndex++;
     }
 
     m_Reverb.setEffectMix(ReverbMix);
@@ -168,25 +109,25 @@ void AliveAudio::AliveRenderAudio(float * AudioStream, int StreamLength)
     // TODO: Find a better way of feeding the data in
     for (int i = 0; i < StreamLength; i += 2)
     {
-        const float left = static_cast<float>(m_Reverb.tick(m_ReverbChannelBuffer[i], m_ReverbChannelBuffer[i + 1], 0));
-        const float right = static_cast<float>(m_Reverb.lastOut(1));
+        const f32 left = static_cast<f32>(m_Reverb.tick(m_ReverbChannelBuffer[i], m_ReverbChannelBuffer[i + 1], 0));
+        const f32 right = static_cast<f32>(m_Reverb.lastOut(1));
         m_ReverbChannelBuffer[i] = left;
         m_ReverbChannelBuffer[i + 1] = right;
     }
    
     for (int i = 0; i < StreamLength; i += 2)
     {
-        const float left = m_DryChannelBuffer[i] + m_ReverbChannelBuffer[i];
-        const float right = m_DryChannelBuffer[i + 1] + m_ReverbChannelBuffer[i + 1];
-        SDL_MixAudioFormat((Uint8 *)(AudioStream + i), (const Uint8*)&left, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
-        SDL_MixAudioFormat((Uint8 *)(AudioStream + i + 1), (const Uint8*)&right, AUDIO_F32, sizeof(float), SDL_MIX_MAXVOLUME);
+        const f32 left = m_DryChannelBuffer[i] + m_ReverbChannelBuffer[i];
+        const f32 right = m_DryChannelBuffer[i + 1] + m_ReverbChannelBuffer[i + 1];
+        SDL_MixAudioFormat((u8 *)(AudioStream + i), (const u8*)&left, AUDIO_F32, sizeof(f32), SDL_MIX_MAXVOLUME);
+        SDL_MixAudioFormat((u8 *)(AudioStream + i + 1), (const u8*)&right, AUDIO_F32, sizeof(f32), SDL_MIX_MAXVOLUME);
     }
 
     CleanVoices();
 }
 
 
-void AliveAudio::Play(Uint8* stream, Uint32 len)
+void AliveAudio::Play(u8* stream, u32 len)
 {
     if (m_DryChannelBuffer.size() != len)
     {
@@ -197,10 +138,11 @@ void AliveAudio::Play(Uint8* stream, Uint32 len)
     }
 
 
-    AliveRenderAudio(reinterpret_cast<float*>(stream), len / sizeof(float));
+    AliveRenderAudio(reinterpret_cast<f32*>(stream), len / sizeof(f32));
 }
 
-void AliveAudio::PlayOneShot(int program, int note, float volume, float pitch)
+/*
+void AliveAudio::PlayOneShot(int program, int note, f32 volume, f32 pitch)
 {
     std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
     for (auto& tone : m_CurrentSoundbank->m_Programs[program]->m_Tones)
@@ -217,7 +159,9 @@ void AliveAudio::PlayOneShot(int program, int note, float volume, float pitch)
         }
     }
 }
+*/
 
+/*
 void AliveAudio::PlayOneShot(std::string soundID)
 {
     jsonxx::Array soundList = m_Config.get<jsonxx::Array>("sounds");
@@ -227,24 +171,25 @@ void AliveAudio::PlayOneShot(std::string soundID)
         jsonxx::Object sndObj = soundList.get<jsonxx::Object>(static_cast<unsigned int>(i));
         if (sndObj.get<jsonxx::String>("id") == soundID)
         {
-            float randA = 0;
-            float randB = 0;
+            f32 randA = 0;
+            f32 randB = 0;
 
             if (sndObj.has<jsonxx::Array>("pitchrand"))
             {
-                randA = (float)sndObj.get<jsonxx::Array>("pitchrand").get<jsonxx::Number>(0);
-                randB = (float)sndObj.get<jsonxx::Array>("pitchrand").get<jsonxx::Number>(1);
+                randA = (f32)sndObj.get<jsonxx::Array>("pitchrand").get<jsonxx::Number>(0);
+                randB = (f32)sndObj.get<jsonxx::Array>("pitchrand").get<jsonxx::Number>(1);
             }
 
             PlayOneShot((int)sndObj.get<jsonxx::Number>("prog"), (int)sndObj.get<jsonxx::Number>("note"), 1.0f, RandFloat(randA, randB));
         }
     }
 }
+*/
 
-void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, int trackID, double trackDelay)
+void AliveAudio::NoteOn(int program, int note, char velocity, f64 trackDelay)
 {
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
-    for (auto& tone : m_CurrentSoundbank->m_Programs[program]->m_Tones)
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
+    for (auto& tone : m_Soundbank->m_Programs[program]->m_Tones)
     {
         if (note >= tone->Min && note <= tone->Max)
         {
@@ -253,7 +198,6 @@ void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, i
             voice->m_Tone = tone.get();
             voice->i_Program = program;
             voice->f_Velocity = velocity / 127.0f;
-            voice->i_TrackID = trackID;
             voice->f_TrackDelay = trackDelay;
             voice->m_DebugDisableResampling = DebugDisableVoiceResampling;
             m_Voices.push_back(voice);
@@ -261,29 +205,24 @@ void AliveAudio::NoteOn(int program, int note, char velocity, float /*pitch*/, i
     }
 }
 
-void AliveAudio::NoteOn(int program, int note, char velocity, int trackID, double trackDelay)
+void AliveAudio::NoteOff(int program, int note)
 {
-    NoteOn(program, note, velocity, 0, trackID, trackDelay);
-}
-
-void AliveAudio::NoteOff(int program, int note, int trackID)
-{
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
     for (auto& voice : m_Voices)
     {
-        if (voice->i_Note == note && voice->i_Program == program && voice->i_TrackID == trackID)
+        if (voice->i_Note == note && voice->i_Program == program)
         {
             voice->b_NoteOn = false;
         }
     }
 }
 
-void AliveAudio::NoteOffDelay(int program, int note, int trackID, float trackDelay)
+void AliveAudio::NoteOffDelay(int program, int note, f32 trackDelay)
 {
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
     for (auto& voice : m_Voices)
     {
-        if (voice->i_Note == note && voice->i_Program == program && voice->i_TrackID == trackID && voice->f_TrackDelay < trackDelay && voice->f_NoteOffDelay <= 0)
+        if (voice->i_Note == note && voice->i_Program == program && voice->f_TrackDelay < trackDelay && voice->f_NoteOffDelay <= 0)
         {
             voice->m_UsesNoteOffDelay = true;
             voice->f_NoteOffDelay = trackDelay;
@@ -291,14 +230,10 @@ void AliveAudio::NoteOffDelay(int program, int note, int trackID, float trackDel
     }
 }
 
-void AliveAudio::DebugPlayFirstToneSample(int program, int tone)
-{
-    PlayOneShot(program, (m_CurrentSoundbank->m_Programs[program]->m_Tones[tone]->Min + m_CurrentSoundbank->m_Programs[program]->m_Tones[tone]->Max) / 2, 1);
-}
 
 void AliveAudio::ClearAllVoices(bool forceKill)
 {
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
 
     std::vector<AliveAudioVoice *> deadVoices;
 
@@ -327,25 +262,25 @@ void AliveAudio::ClearAllVoices(bool forceKill)
 
 }
 
-void AliveAudio::ClearAllTrackVoices(int trackID, bool forceKill)
+void AliveAudio::ClearAllTrackVoices(bool forceKill)
 {
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
     std::vector<AliveAudioVoice *> deadVoices;
 
     for (auto& voice : m_Voices)
     {
         if (forceKill)
         {
-            if (voice->i_TrackID == trackID) // Kill the voices no matter what. Cuts of any sounds = Ugly sound
-            {
-                deadVoices.push_back(voice);
-            }
+            // Kill the voices no matter what. Cuts of any sounds = Ugly sound
+            deadVoices.push_back(voice);
         }
         else
         {
             voice->b_NoteOn = false; // Send a note off to all of the notes though.
-            if (voice->i_TrackID == trackID && voice->f_SampleOffset == 0) // Let the voices that are CURRENTLY playing play.
+            if (voice->f_SampleOffset == 0) // Let the voices that are CURRENTLY playing play.
             {
+                // TODO: This will make us delete them all after this loop as with force kill
+                // probably we shouldn't be adding to the "delete" list here?
                 deadVoices.push_back(voice);
             }
         }
@@ -360,35 +295,8 @@ void AliveAudio::ClearAllTrackVoices(int trackID, bool forceKill)
 
 }
 
-void AliveAudio::LoadSoundbank(char * fileName)
-{
-    ClearAllVoices(true);
-    m_CurrentSoundbank = std::make_unique<AliveAudioSoundbank>(fileName, *this);
-}
-
 void AliveAudio::SetSoundbank(std::unique_ptr<AliveAudioSoundbank> soundbank)
 {
     ClearAllVoices(true);
-    m_CurrentSoundbank = std::move(soundbank);
-}
-
-void AliveAudio::LoadAllFromLvl(std::string lvlPath, std::string vabID, std::string seqFile, FileSystem& fs)
-{
-    auto stream = fs.ResourcePaths().Open(lvlPath);
-    if (stream)
-    {
-        Oddlib::LvlArchive archive(std::move(stream));
-        LoadAllFromLvl(archive, vabID, seqFile);
-    }
-}
-
-void AliveAudio::LoadAllFromLvl(Oddlib::LvlArchive& archive, std::string vabID, std::string seqFile)
-{
-    m_LoadedSeqData.clear();
-    SetSoundbank(std::make_unique<AliveAudioSoundbank>(archive, vabID, *this));
-    auto file = archive.FileByName(seqFile);
-    for (size_t i = 0; i < file->ChunkCount(); i++)
-    {
-        m_LoadedSeqData.push_back(file->ChunkByIndex(static_cast<Uint32>(i))->ReadData());
-    }
+    m_Soundbank = std::move(soundbank);
 }

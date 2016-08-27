@@ -17,8 +17,8 @@ namespace Oddlib
         explicit AeBitsPc(IStream& stream);
         virtual SDL_Surface* GetSurface() const override;
     private:
-        void vlc_decode(const std::vector<Uint16>& aCamSeg, std::vector<Uint16>& aDst);
-        void process_segment(Uint16* aVlcBufferPtr, int xPos);
+        void vlc_decode(const std::vector<u16>& aCamSeg, std::vector<u16>& aDst);
+        void process_segment(u16* aVlcBufferPtr, int xPos);
         int next_bits();
         void vlc_decoder(int aR, int aG, int aB, signed int aWidth, int aVramX, int aVramY);
         void write_4_pixel_block(const BitsLogic& aR, const BitsLogic& aG, const BitsLogic& aB, int aVramX, int aVramY);

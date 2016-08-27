@@ -113,27 +113,29 @@ namespace Oddlib
 
     void AeBitsPc::GenerateImage(IStream& stream)
     {
-        const Uint32 kStripSize = 16;
-        const Uint32 kNumStrips = 640 / kStripSize;
+        const u32 kStripSize = 16;
+        const u32 kNumStrips = 640 / kStripSize;
 
         memset(g_vram, 0, sizeof(g_vram));
 
-        for (Uint32 i = 0; i < kNumStrips; i++)
+        for (u32 i = 0; i < kNumStrips; i++)
         {
             // Read the size of the image strip
-            Uint16 stripSize = 0;
-            stream.ReadUInt16(stripSize);
+            u16 stripSize = 0;
+            stream.Read(stripSize);
 
             if (stripSize > 0)
             {
                 // Raw segment from the CAM bits chunk
-                std::vector<Uint16> rawBitsFromFile;
+                std::vector<u16> rawBitsFromFile;
+                rawBitsFromFile.resize(stripSize / sizeof(u16));
+                stream.Read(rawBitsFromFile);
+                
+                // The vlc_decode reads futher that what we read from the file, hence keep double size!
                 rawBitsFromFile.resize(stripSize);
-                stripSize = stripSize / sizeof(Uint16);
-                stream.ReadBytes(reinterpret_cast<Uint8*>(rawBitsFromFile.data()), rawBitsFromFile.size());
 
                 // Create a "VLC" buffer to store the decompressed data in.
-                std::vector<Uint16> vlcBuf;
+                std::vector<u16> vlcBuf;
                 vlcBuf.resize(0x7E00); // 4KB
 
                 // Decompress the segment into the vlc buffer
@@ -144,10 +146,14 @@ namespace Oddlib
             }
         }
 
-        mSurface.reset(SDL_CreateRGBSurfaceFrom(g_vram, 640, 240, 16, 640 * sizeof(Uint16), red_mask, green_mask, blue_mask, 0));
+        mSurface.reset(SDL_CreateRGBSurfaceFrom(g_vram, 640, 240, 16, 640 * sizeof(u16), red_mask, green_mask, blue_mask, 0));
+        if (mSurface->format->format != SDL_PIXELFORMAT_RGB24)
+        {
+            mSurface.reset(SDL_ConvertSurfaceFormat(mSurface.get(), SDL_PIXELFORMAT_RGB24, 0));
+        }
     }
 
-    void AeBitsPc::vlc_decode(const std::vector<Uint16>& aCamSeg, std::vector<Uint16>& aDst)
+    void AeBitsPc::vlc_decode(const std::vector<u16>& aCamSeg, std::vector<u16>& aDst)
     {
         unsigned int vlcPtrIndex = 0;
         unsigned int camSrcPtrIndex = 0;

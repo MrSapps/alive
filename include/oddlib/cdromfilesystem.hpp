@@ -4,6 +4,8 @@
 #include "string_util.hpp"
 #include "oddlib/exceptions.hpp"
 #include "oddlib/exceptions.hpp"
+#include "oddlib/stream.hpp"
+#include "logger.hpp"
 #include <cassert>
 
 class InvalidCdImageException : public Oddlib::Exception
@@ -16,8 +18,8 @@ public:
     }
 };
 
-const Uint32 kRawSectorSize = 2352;
-const Uint32 kFileSystemStartSector = 16;
+const u32 kRawSectorSize = 2352;
+const u32 kFileSystemStartSector = 16;
 
 class RawCdImage
 {
@@ -26,13 +28,13 @@ public:
     RawCdImage& operator = (const RawCdImage&) = delete;
 
     RawCdImage(const std::string& fileName)
-        : mStream(fileName)
+        : mStream(std::make_unique<Oddlib::FileStream>(fileName, Oddlib::IStream::ReadMode::ReadOnly))
     {
         ReadFileSystem();
     }
 
-    RawCdImage(std::vector<Uint8>&& buffer)
-        : mStream(std::move(buffer))
+    RawCdImage(std::vector<u8>&& buffer)
+        : mStream(std::make_unique<Oddlib::MemoryStream>(std::move(buffer)))
     {
         ReadFileSystem();
     }
@@ -44,6 +46,7 @@ public:
 
     Sint64 FileExists(std::string fileName) const
     {
+        CdNormalizePath(fileName);
         auto rec = DoFind(fileName);
         if (!rec)
         {
@@ -54,6 +57,7 @@ public:
 
     std::unique_ptr<Oddlib::IStream> ReadFile(std::string fileName, bool includeSubheaders)
     {
+        CdNormalizePath(fileName);
         const DrWrapper* record = DoFind(fileName);
         if (!record)
         {
@@ -61,7 +65,7 @@ public:
         }
         // The raw cd bin image file stream will be cloned so that 2 open cd
         // files don't stomp on each others seek pos etc.
-        return std::make_unique<Stream>(record->mDr, record->mName, mStream, includeSubheaders);
+        return std::make_unique<CdFileStream>(record->mDr, record->mName, *mStream, includeSubheaders);
     }
 
 public:
@@ -87,103 +91,103 @@ public:
 #pragma pack(1)
     struct RawSectorHeader
     {
-        Uint8 mSync[12]; // Sync bytes of 0xFF
-        Uint8 mMin;
-        Uint8 mSecond;
-        Uint8 mFrame; // aka sector number
-        Uint8 mMode;
-        Uint8 mData[2336];
+        u8 mSync[12]; // Sync bytes of 0xFF
+        u8 mMin;
+        u8 mSecond;
+        u8 mFrame; // aka sector number
+        u8 mMode;
+        u8 mData[2336];
     };
 
     struct both_endian_32
     {
-        Uint32 little;
-        Uint32 big;
+        u32 little;
+        u32 big;
     };
 
     struct both_endian_16
     {
-        Uint16 little;
-        Uint16 big;
+        u16 little;
+        u16 big;
     };
 
     struct date_time
     {
-        Uint8 year[4];
-        Uint8 month[2];
-        Uint8 day[2];
-        Uint8 hour[2];
-        Uint8 minute[2];
-        Uint8 second[2];
-        Uint8 mil[2];
-        Uint8 gmt;
+        u8 year[4];
+        u8 month[2];
+        u8 day[2];
+        u8 hour[2];
+        u8 minute[2];
+        u8 second[2];
+        u8 mil[2];
+        u8 gmt;
     };
 
     struct volume_descriptor
     {
-        Uint8 mType;
-        Uint8 mMagic[5];
-        Uint8 mVersion;
-        Uint8 mUnused;
-        Uint8 mSys_id[32];
-        Uint8 mVol_id[32];
-        Uint8 mUnused2[8];
+        u8 mType;
+        u8 mMagic[5];
+        u8 mVersion;
+        u8 mUnused;
+        u8 mSys_id[32];
+        u8 mVol_id[32];
+        u8 mUnused2[8];
         both_endian_32 vol_size;
-        Uint8 mUnused3[32];
+        u8 mUnused3[32];
 
         both_endian_16 vol_count;
         both_endian_16 vol_index;
         both_endian_16 logical_block_size;
         both_endian_32 path_table_size;
 
-        Uint32 path_table_location_LSB;
-        Uint32 path_table_optional_location_LSB;
-        Uint32 path_table_location_MSB;
-        Uint32 path_table_optional_location_MSB;
+        u32 path_table_location_LSB;
+        u32 path_table_optional_location_LSB;
+        u32 path_table_location_MSB;
+        u32 path_table_optional_location_MSB;
 
-        Uint8 root_entry[34];
+        u8 root_entry[34];
 
-        Uint8 vol_set_id[128];
-        Uint8 publisher_id[128];
-        Uint8 data_preparer_id[128];
-        Uint8 app_id[128];
-        Uint8 copyright_file[38];
-        Uint8 abstract_file[36];
-        Uint8 biblio_file[37];
+        u8 vol_set_id[128];
+        u8 publisher_id[128];
+        u8 data_preparer_id[128];
+        u8 app_id[128];
+        u8 copyright_file[38];
+        u8 abstract_file[36];
+        u8 biblio_file[37];
 
         date_time vol_creation;
         date_time vol_modif;
         date_time vol_expiration;
         date_time vol_effective;
 
-        Uint8 file_structure_version;
-        Uint8 unused4;
+        u8 file_structure_version;
+        u8 unused4;
 
-        Uint8 extra_data[512];
-        Uint8 reserved[653];
+        u8 extra_data[512];
+        u8 reserved[653];
     };
 
 
     struct path_entry
     {
-        Uint8 name_length;
-        Uint8 extended_length;
-        Uint32 location;
-        Uint16 parent;
+        u8 name_length;
+        u8 extended_length;
+        u32 location;
+        u16 parent;
     };
 
     struct directory_record
     {
-        Uint8 length;
-        Uint8 extended_length;
+        u8 length;
+        u8 extended_length;
         both_endian_32 location;
         both_endian_32 data_length;
-        Uint8 date[7]; //irregular
-        Uint8 flags;
-        Uint8 unit_size;
-        Uint8 gap_size;
+        u8 date[7]; //irregular
+        u8 flags;
+        u8 unit_size;
+        u8 gap_size;
         both_endian_16 sequence_number;
-        Uint8 length_file_id; //files end with ;1
+        u8 length_file_id; //files end with ;1
         //file id
         //padding
         //system use
@@ -209,6 +213,12 @@ public:
 #pragma pack(pop)
 
     private:
+
+    void CdNormalizePath(std::string& path) const
+    {
+        string_util::replace_all(path, "/", "\\");
+        string_util::replace_all(path, "\\\\", "\\");
+    }
 
     static bool IsMode2Form2(void* data)
     {
@@ -241,7 +251,7 @@ public:
         {
             const auto pos = kRawSectorSize*sectorNumber;
             stream.Seek(pos);
-            stream.ReadBytes(reinterpret_cast<Uint8*>(&mData), kRawSectorSize);
+            stream.ReadBytes(reinterpret_cast<u8*>(&mData), kRawSectorSize);
 
             RawSectorHeader* rawHeader = reinterpret_cast<RawSectorHeader*>(&mData);
             if (rawHeader->mMode != 2)
@@ -252,7 +262,7 @@ public:
             mMode2Form1 = !IsMode2Form2(&mData.mData);
         }
 
-        Uint8* DataPtr()
+        u8* DataPtr()
         {
             if (mMode2Form1)
             {
@@ -264,12 +274,12 @@ public:
             }
         }
 
-        Uint8* RawPtr()
+        u8* RawPtr()
         {
-            return reinterpret_cast<Uint8*>(&mData);
+            return reinterpret_cast<u8*>(&mData);
         }
 
-        Uint32 DataLength()
+        u32 DataLength()
         {
             return mMode2Form1 ? 2048 : 2336;
         }
@@ -289,25 +299,25 @@ public:
         return (dr->length_file_id == 1 && (NamePointer(dr)[0] == 0x0 || NamePointer(dr)[0] == 0x1));
     }
 
-    std::vector<Uint8> ReadFile(directory_record* dr)
+    std::vector<u8> ReadFile(directory_record* dr)
     {
         int dataSize = dr->data_length.little;
         auto dataSector = dr->location.little;
 
-        std::vector<Uint8> data;
+        std::vector<u8> data;
         data.reserve(dataSize);
 
         do
         {
             //auto sizeToRead = dataSize;
-            Sector sector(dataSector++, mStream);
+            Sector sector(dataSector++, *mStream);
             //if (sizeToRead > sector.DataLength())
             {
                 //sizeToRead = sector.DataLength();
                 dataSize -= sector.DataLength();
             }
 
-            const Uint8* ptr = sector.RawPtr();
+            const u8* ptr = sector.RawPtr();
             for (size_t i = 0; i < kRawSectorSize; i++)
             {
                 data.emplace_back(*ptr);
@@ -318,32 +328,32 @@ public:
         return data;
     }
 
-    class Stream : public Oddlib::IStream
+    class CdFileStream : public Oddlib::IStream
     {
     public:
-        Stream(const Stream&) = delete;
-        Stream& operator = (const Stream&) = delete;
+        CdFileStream(const CdFileStream&) = delete;
+        CdFileStream& operator = (const CdFileStream&) = delete;
 
-        Stream(const directory_record& dr, std::string name, Oddlib::IStream& stream, bool includeSubHeaders)
+        CdFileStream(const directory_record& dr, std::string name, Oddlib::IStream& stream, bool includeSubHeaders)
             : mIncludeSubHeader(includeSubHeaders), mDr(dr), mName(name), mStream(stream.Clone())
         {
             mSector = mDr.location.little;
             mStream->Seek(mSector * kRawSectorSize);
-            mSector = 0;
+            //mSector = 0;
         }
 
         virtual Oddlib::IStream* Clone() override
         {
-            return new Stream(mDr, mName, *mStream, mIncludeSubHeader);
+            return new CdFileStream(mDr, mName, *mStream, mIncludeSubHeader);
         }
 
-        virtual Oddlib::IStream* Clone(Uint32 start, Uint32 size)
+        virtual Oddlib::IStream* Clone(u32 start, u32 size)
         {
             directory_record subDir = mDr;
             subDir.location.little += start;
             subDir.data_length.little = size * 2048;
             return new 
-                Stream(subDir, 
+                CdFileStream(subDir, 
                 mName + "sub(L"
                     + std::to_string(subDir.location.little) + "S" 
                     + std::to_string(subDir.data_length.little) + ")",
@@ -351,32 +361,13 @@ public:
                 mIncludeSubHeader);
         }
 
-        virtual void ReadUInt8(Uint8& output) override
+        virtual void WriteBytes(const u8* /*pSrc*/, size_t /*srcSize*/) override
         {
-            ReadBytes(reinterpret_cast<Uint8*>(&output), sizeof(Uint8));
+            TRACE_ENTRYEXIT;
+            throw Oddlib::Exception("WriteBytes not implemented");
         }
 
-        virtual void ReadUInt32(Uint32& output) override
-        {
-            ReadBytes(reinterpret_cast<Uint8*>(&output), sizeof(Uint32));
-        }
-
-        virtual void ReadUInt16(Uint16& output) override
-        {
-            ReadBytes(reinterpret_cast<Uint8*>(&output), sizeof(Uint16));
-        }
-
-        virtual void ReadSInt16(Sint16& output) override
-        {
-            ReadBytes(reinterpret_cast<Uint8*>(&output), sizeof(Sint16));
-        }
-
-        virtual void ReadBytes(Sint8* pDest, size_t destSize) override
-        {
-            ReadBytes(reinterpret_cast<Uint8*>(pDest), destSize);
-        }
-
-        virtual void ReadBytes(Uint8* pDest, size_t destSize) override
+        virtual void ReadBytes(u8* pDest, size_t destSize) override
         {
             // Raw CD sector reading mode is only used for FMV's we assume that
             // a full sector will be read for each read. This is slightly hacky but it works
@@ -386,7 +377,7 @@ public:
                 mSector++;
 
                 char subHeader[8] = {};
-                mStream->ReadBytes(reinterpret_cast<Sint8*>(subHeader), sizeof(subHeader));
+                mStream->Read(subHeader);
 
                 mPos += 2048;
                 mStream->Seek(mStream->Pos() - sizeof(subHeader));
@@ -403,7 +394,7 @@ public:
                     if (posWithinSector == 0)
                     {
                         char subHeader[24] = {};
-                        mStream->ReadBytes(reinterpret_cast<Sint8*>(subHeader), sizeof(subHeader));
+                        mStream->ReadBytes(reinterpret_cast<u8*>(subHeader), sizeof(subHeader));
                     }
                     else if (posWithinSector >= 24)
                     {
@@ -436,7 +427,7 @@ public:
                     else if (destSize)
                     {
                         mPos += destSize;
-                        mSector = static_cast<Uint32>(mStream->Pos() / kRawSectorSize);
+                        mSector = static_cast<u32>(mStream->Pos() / kRawSectorSize);
                         mSector -= mDr.location.little;
                         mStream->ReadBytes(pDest, destSize);
                     }
@@ -451,7 +442,7 @@ public:
             if (!mIncludeSubHeader)
             {
                 // Figure out what sector we should be on
-                mSector = static_cast<Uint32>(pos / 2048);
+                mSector = static_cast<u32>(pos / 2048);
 
                 // The real file pos must be in raw sector sizes, plus the starting sector
                 mStream->Seek(((mSector + mDr.location.little) * kRawSectorSize)+24);
@@ -475,7 +466,7 @@ public:
             if ((pos % 2048) != 0)
             {
                 mPos = 0;
-                mSector = static_cast<Uint32>(pos / 2048);
+                mSector = static_cast<u32>(pos / 2048);
                 mStream->Seek((mSector * kRawSectorSize) + 16);
                 return;
             }
@@ -536,7 +527,7 @@ private:
 
         while (totalDataRead != dataSize)
         {
-            Sector sector(sectorNum++, mStream);
+            Sector sector(sectorNum++, *mStream);
             totalDataRead += sector.DataLength();
             directory_record* dr = (directory_record*)sector.DataPtr();
             while (dr->length)
@@ -578,7 +569,7 @@ private:
         do
         {
             secNum++;
-            Sector sector(secNum, mStream);
+            Sector sector(secNum, *mStream);
             volDesc = (volume_descriptor*)sector.DataPtr();
             if (volDesc->mType == 1)
             {
@@ -590,7 +581,7 @@ private:
         } while (volDesc->mType != 1);
     }
 
-    Oddlib::Stream mStream;
+    std::unique_ptr<Oddlib::IStream> mStream;
 public:
     struct DrWrapper
     {
@@ -634,7 +625,7 @@ private:
             }
 
             auto find = parts.front();
-            if (mDir.mName == find)
+            if (string_util::iequals(mDir.mName, find))
             {
                 parts.pop_front();
                 if (parts.size() > 1)
@@ -654,7 +645,7 @@ private:
                     find = parts.front();
                     for (const auto& file : mFiles)
                     {
-                        if (file.mName == find)
+                        if (string_util::iequals(file.mName, find))
                         {
                             return &file;
                         }

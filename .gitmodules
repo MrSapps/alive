@@ -1,7 +1,3 @@
-[submodule "3rdParty/gmock-1.7.0"]
-	path = 3rdParty/gmock-1.7.0
-	url = https://github.com/paulsapps/gmock-1.7.0.git
-	
 [submodule "3rdParty/jsonxx"]
 	path = 3rdParty/jsonxx
 	url = https://github.com/hjiang/jsonxx
@@ -23,3 +19,16 @@
 [submodule "3rdParty/lodepng"]
 	path = 3rdParty/lodepng
 	url = https://github.com/lvandeve/lodepng.git
+[submodule "3rdParty/googletest"]
+	path = 3rdParty/googletest
+	url = https://github.com/paulsapps/googletest.git
+[submodule "3rdParty/libdeflate"]
+	path = 3rdParty/libdeflate
+	url = https://github.com/paulsapps/libdeflate.git
+[submodule "3rdParty/rapidjson"]
+	path = 3rdParty/rapidjson
+	url = https://github.com/miloyip/rapidjson.git
+[submodule "3rdParty/nativefiledialog"]
+	path = 3rdParty/nativefiledialog
+	url = https://github.com/paulsapps/nativefiledialog.git
+	branch = NFD_PickFolder

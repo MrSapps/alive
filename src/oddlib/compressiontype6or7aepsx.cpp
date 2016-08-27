@@ -7,28 +7,28 @@
 
 namespace Oddlib
 {
-    template<Uint32 BitsSize>
-    static Uint32 NextBits(IStream& stream, unsigned int& bitCounter, unsigned int& srcWorkBits, const signed int kFixedMask)
+    template<u32 BitsSize>
+    static u32 NextBits(IStream& stream, unsigned int& bitCounter, unsigned int& srcWorkBits, const signed int kFixedMask)
     {
         if (bitCounter < 16)
         {
-            const int srcBits = ReadUint16(stream) << bitCounter;
+            const int srcBits = ReadU16(stream) << bitCounter;
             bitCounter += 16;
             srcWorkBits |= srcBits;
         }
 
         bitCounter -= BitsSize;
-        const Uint32 ret = srcWorkBits & (kFixedMask - 1);
+        const u32 ret = srcWorkBits & (kFixedMask - 1);
         srcWorkBits >>= BitsSize;
         return ret;
     }
 
     // Function 0x004ABB90 in AE, function 0x8005B09C in AE PSX demo
-    template<Uint32 BitsSize>
-    std::vector<Uint8> CompressionType6or7AePsx<BitsSize>::Decompress(IStream& stream, Uint32 finalW, Uint32 /*w*/, Uint32 h, Uint32 dataSize)
+    template<u32 BitsSize>
+    std::vector<u8> CompressionType6or7AePsx<BitsSize>::Decompress(IStream& stream, u32 finalW, u32 /*w*/, u32 h, u32 dataSize)
     {
-        Uint32 outputPos = 0;
-        std::vector<Uint8> out(finalW*h*2);
+        u32 outputPos = 0;
+        std::vector<u8> out(finalW*h*2);
 
         std::array<unsigned char,256> tmp1 = {};
         std::array<unsigned char, 256> tmp2 = {};
@@ -110,7 +110,7 @@ namespace Oddlib
                     tmp1Idx = i;
                 }
 
-                out[outputPos++] = static_cast<Uint8>(tmp1Idx);
+                out[outputPos++] = static_cast<u8>(tmp1Idx);
             }
         }
 

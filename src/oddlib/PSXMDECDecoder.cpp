@@ -28,7 +28,7 @@
 #include <memory.h>
 
 #include "oddlib/PSXMDECDecoder.h"
-
+#include "types.hpp"
 
 // This tables based on MPEG2DEC by MPEG Software Simulation Group
 #define CODE1(a,b,c) (((a)<<10)|((b)&0x3ff)|((c)<<16))
@@ -541,10 +541,10 @@ void PSXMDECDecoder::YUVfunction1(uint8_t arg_image[][4], int index, int r0, int
 void PSXMDECDecoder::YUV2BGRA32(int16_t *arg_blk,
     uint8_t arg_image[][4])
 {
-    double rConstant = 1.402;
-    double gConstant = -0.3437;
-    double g2Constant = -0.7143;
-    double bConstant = 1.772;
+    f64 rConstant = 1.402;
+    f64 gConstant = -0.3437;
+    f64 g2Constant = -0.7143;
+    f64 bConstant = 1.772;
 
     int16_t *yblk = arg_blk + DCT_BLOCK_SIZE * 2;
     for (uint8_t yy = 0; yy < 16; yy += 2, arg_blk += 4, yblk += 8,

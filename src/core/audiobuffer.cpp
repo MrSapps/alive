@@ -34,7 +34,7 @@ SdlAudioWrapper::SdlAudioWrapper()
     }
 }
 
-void SdlAudioWrapper::Open(Uint16 frameSize, int freq)
+void SdlAudioWrapper::Open(u16 frameSize, int freq)
 {
     SDL_AudioSpec audioSpec = {};
     audioSpec.userdata = this;
@@ -94,7 +94,7 @@ void SdlAudioWrapper::RemovePlayer(IAudioPlayer* player)
     mAudioPlayers.erase(player);
 }
 
-void SdlAudioWrapper::SetAudioSpec(Uint16 frameSize, int freq)
+void SdlAudioWrapper::SetAudioSpec(u16 frameSize, int freq)
 {
     LOG_INFO("SetAudioSpec samples: " << frameSize << " freq " << freq);
     SdlAudioLocker audioLocker;
@@ -124,7 +124,7 @@ void SdlAudioWrapper::Close()
 }
 
 // Called in the context of the audio thread
-void SdlAudioWrapper::StaticAudioCallback(void *udata, Uint8 *stream, int len)
+void SdlAudioWrapper::StaticAudioCallback(void *udata, u8 *stream, int len)
 {
     if (udata)
     {
@@ -133,7 +133,7 @@ void SdlAudioWrapper::StaticAudioCallback(void *udata, Uint8 *stream, int len)
 }
 
 // Called in the context of the audio thread
-void SdlAudioWrapper::AudioCallback(Uint8 *stream, int len)
+void SdlAudioWrapper::AudioCallback(u8 *stream, int len)
 {
     memset(stream, 0, len);
     for (auto& player : mAudioPlayers)
