@@ -112,8 +112,6 @@ void AliveAudio::AliveRenderAudio(f32 * AudioStream, int StreamLength)
                 m_DryChannelBuffer[i + 1] += rightSample;
             }
         }
-
-        currentSampleIndex++;
     }
 
     m_Reverb.setEffectMix(ReverbMix);
@@ -297,6 +295,8 @@ void AliveAudio::ClearAllTrackVoices(bool forceKill)
             voice->b_NoteOn = false; // Send a note off to all of the notes though.
             if (voice->f_SampleOffset == 0) // Let the voices that are CURRENTLY playing play.
             {
+                // TODO: This will make us delete them all after this loop as with force kill
+                // probably we shouldn't be adding to the "delete" list here?
                 deadVoices.push_back(voice);
             }
         }

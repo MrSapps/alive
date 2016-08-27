@@ -51,7 +51,6 @@ public:
 
 
     std::recursive_mutex voiceListMutex;
-    u64 currentSampleIndex = 0;
 
     virtual void Play(u8* stream, u32 len) override;
 
