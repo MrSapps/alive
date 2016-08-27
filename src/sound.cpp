@@ -78,17 +78,13 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
             std::unique_ptr<ISoundEffect> soundEffect = mLocator.LocateSoundEffect(soundEffectInfo.first.c_str());
             if (soundEffect)
             {
-                /* TODO
+                // TODO: Might want another player instance or a better way of dividing sound fx/vs seq music - also needs higher
+                // abstraction since music/fx could be wave/ogg/mp3 etc
                 mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
-                if (!mSeqPlayer)
-                {
-                    mSeqPlayer = std::make_unique<SequencePlayer>(mAliveAudio);
-                }
 
                 auto soundBank = std::make_unique<AliveAudioSoundbank>(*soundEffect->mVab, mAliveAudio);
                 mAliveAudio.SetSoundbank(std::move(soundBank));
-                mSeqPlayer->PlaySoundEffect(soundEffect);
-                */
+                mAliveAudio.NoteOn(soundEffect->mProgram, soundEffect->mNote, 127);
             }
         }
     }

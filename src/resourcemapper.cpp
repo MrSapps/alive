@@ -169,9 +169,30 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
 }
 
 
-std::unique_ptr<ISoundEffect> ResourceLocator::LocateSoundEffect(const char* /*resourceName*/)
+std::unique_ptr<ISoundEffect> ResourceLocator::LocateSoundEffect(const char* resourceName)
 {
-    // TODO
+    const ResourceMapper::SoundEffectMapping* mapping = mResMapper.FindSoundEffect(resourceName);
+    if (mapping)
+    {
+        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+        {
+            if (fs.mIsMod)
+            {
+                // TODO: Mod sound effects
+            }
+            else
+            {
+                if (fs.mDataSetName == mapping->mDataSetName)
+                {
+                    std::unique_ptr<Vab> vab = LocateSoundBank(mapping->mSoundBankName.c_str());
+                    if (vab)
+                    {
+                        return std::make_unique<ISoundEffect>(std::move(vab), mapping->mProgram, mapping->mProgram);
+                    }
+                }
+            }
+        }
+    }
     return nullptr;
 }
 

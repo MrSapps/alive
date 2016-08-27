@@ -1905,10 +1905,20 @@ public:
 };
 
 
-// TODO
+// TODO: Provide higher level abstraction
 class ISoundEffect
 {
+public:
+    ISoundEffect(std::unique_ptr<Vab> vab, u32 program, u32 note)
+        : mVab(std::move(vab)), mProgram(program), mNote(note)
+    {
 
+    }
+    virtual ~ISoundEffect() = default;
+
+    std::unique_ptr<Vab> mVab;
+    u32 mProgram = 0;
+    u32 mNote = 0;
 };
 
 class ResourceLocator
