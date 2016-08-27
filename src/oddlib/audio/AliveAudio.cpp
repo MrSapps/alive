@@ -47,14 +47,6 @@ void AliveAudio::AliveRenderAudio(f32 * AudioStream, int StreamLength)
     }
 
     const size_t voiceCount = m_Voices.size();
-    /*
-    if (voiceCount == 0)
-    {
-        // Bail out early if nothing to render
-        currentSampleIndex += StreamLength;
-        return;
-    }
-    */
 
     AliveAudioVoice ** rawPointer = m_Voices.data(); // Real nice speed boost here.
 
