@@ -21,6 +21,7 @@ build_script:
  - cmake --build . --config %configuration% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
  # Gotta use the full path to cpack because chocolatey replaces cpack with itself!
  - call "C:\Program Files (x86)\cmake\bin\cpack" -G WIX -C %configuration%
+ - call "C:\Program Files (x86)\cmake\bin\cpack" -G WIX -C %configuration%
  - ctest -VV -C %configuration%
 
 install:
@@ -31,6 +32,7 @@ install:
 
 artifacts:
  - path: build\*.msi
+ - path: build\*.zip
    name: Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
 
 test: off
