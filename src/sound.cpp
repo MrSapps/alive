@@ -45,7 +45,7 @@ void Sound::Update()
 
 void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
 {
-    gui_begin_window(gui, "Sound");
+    gui_begin_window(gui, "Music");
 
     for (const auto& musicInfo : mLocator.mResMapper.mMusicMaps)
     {
@@ -67,23 +67,55 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
             }
         }
     }
+    gui_end_window(gui);
 
+    gui_begin_window(gui, "Sound effects");
+
+    for (const auto& soundEffectInfo : mLocator.mResMapper.mSoundEffectMaps)
+    {
+        if (gui_button(gui, soundEffectInfo.first.c_str()))
+        {
+            std::unique_ptr<ISoundEffect> soundEffect = mLocator.LocateSoundEffect(soundEffectInfo.first.c_str());
+            if (soundEffect)
+            {
+                /* TODO
+                mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
+                if (!mSeqPlayer)
+                {
+                    mSeqPlayer = std::make_unique<SequencePlayer>(mAliveAudio);
+                }
+
+                auto soundBank = std::make_unique<AliveAudioSoundbank>(*soundEffect->mVab, mAliveAudio);
+                mAliveAudio.SetSoundbank(std::move(soundBank));
+                mSeqPlayer->PlaySoundEffect(soundEffect);
+                */
+            }
+        }
+    }
     gui_end_window(gui);
 
     gui_begin_window(gui, "Audio output settings");
     gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.mAntiAliasFilteringEnabled);
 
     if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
+    {
         mAliveAudio.Interpolation = AudioInterpolation_none;
+    }
 
     if (gui_radiobutton(gui, "Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
+    {
         mAliveAudio.Interpolation = AudioInterpolation_linear;
+    }
 
     if (gui_radiobutton(gui, "Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
+    {
         mAliveAudio.Interpolation = AudioInterpolation_cubic;
+    }
 
     if (gui_radiobutton(gui, "Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
+    {
         mAliveAudio.Interpolation = AudioInterpolation_hermite;
+    }
 
     gui_checkbox(gui, "Force reverb", &mAliveAudio.ForceReverb);
     gui_slider(gui, "Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);

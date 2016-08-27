@@ -921,24 +921,49 @@ int main(int /*argc*/, char** /*argv*/)
                         for (int progIdx = 0; progIdx < vhVb.mVab->mHeader.iNumProgs; progIdx++)
                         {
                             const ProgAtr& prog = vhVb.mVab->mProgs[progIdx];
+                            int min = 0;
+                            int max = 0;
                             for (int toneIdx = 0; toneIdx < prog.iNumTones; toneIdx++)
                             {
                                 const VagAtr& tone = *prog.iTones[toneIdx];
+                                if (toneIdx == 0)
+                                {
+                                    min = tone.iMin;
+                                    max = tone.iMax;
+                                }
+                                else
+                                {
+                                    if (tone.iMin > min)
+                                    {
+                                        min = tone.iMin;
+                                    }
+                                    if (tone.iMax > max)
+                                    {
+                                        max = tone.iMax;
+                                    }
+                                }
+                            }
 
+                            for (int i = min; i < max; i++)
+                            {
                                 jsonxx::Object soundEffect;
                                 soundEffect << "resource_name" << (LvlCode(lvlSounds.second.mLvlName) + "_"
                                     + BsqName(vhVb.mVh->FileName()) + "_"
                                     + "P" + std::to_string(progIdx) + "_"
-                                    + "T" + std::to_string(toneIdx) + "_"
+                                    + "N" + std::to_string(i) + "_"
                                     + ToString(soundMap.first));
 
                                 soundEffect << "program" << progIdx;
-                                soundEffect << "tone" << toneIdx;
-                                soundEffect << "pitch" << tone.iShift;
+                                //soundEffect << "tone" << toneIdx;
+                                soundEffect << "note" << i;
 
                                 soundEffect << "data_set" << std::string(ToString(soundMap.first));
-                                soundEffect << "vab_header" << BsqName(vhVb.mVh->FileName()) + ".VH";
-                                soundEffect << "vab_body" << BsqName(vhVb.mVh->FileName()) + ".VB";
+                                //soundEffect << "vab_header" << BsqName(vhVb.mVh->FileName()) + ".VH";
+                                //soundEffect << "vab_body" << BsqName(vhVb.mVh->FileName()) + ".VB";
+                                soundEffect << "sound_bank" <<
+                                    (LvlCode(lvlSounds.second.mLvlName) + "_"
+                                        + BsqName(vhVb.mVh->FileName()) + "_"
+                                        + ToString(soundMap.first));
 
                                 soundEffects << soundEffect;
                             }

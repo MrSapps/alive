@@ -1146,6 +1146,7 @@ public:
             mPathMaps = std::move(rhs.mPathMaps);
             mMusicMaps = std::move(rhs.mMusicMaps);
             mSoundBankMaps = std::move(rhs.mSoundBankMaps);
+            mSoundEffectMaps = std::move(rhs.mSoundEffectMaps);
         }
         return *this;
     }
@@ -1246,6 +1247,14 @@ public:
         std::string mVabHeader;
     };
 
+    struct SoundEffectMapping
+    {
+        std::string mDataSetName;
+        u32 mNote;
+        u32 mProgram;
+        std::string mSoundBankName;
+    };
+
     const MusicMapping* FindMusic(const char* resourceName)
     {
         const auto it = mMusicMaps.find(resourceName);
@@ -1260,6 +1269,16 @@ public:
     {
         const auto it = mSoundBankMaps.find(resourceName);
         if (it != std::end(mSoundBankMaps))
+        {
+            return &it->second;
+        }
+        return nullptr;
+    }
+
+    const SoundEffectMapping* FindSoundEffect(const char* resourceName)
+    {
+        const auto it = mSoundEffectMaps.find(resourceName);
+        if (it != std::end(mSoundEffectMaps))
         {
             return &it->second;
         }
@@ -1380,6 +1399,7 @@ private:
     std::map<std::string, PathMapping> mPathMaps;
     std::map<std::string, MusicMapping> mMusicMaps;
     std::map<std::string, SoundBankMapping> mSoundBankMaps;
+    std::map<std::string, SoundEffectMapping> mSoundEffectMaps;
 
     friend class Level; // TODO: Temp debug ui
     friend class Sound; // TODO: Temp debug ui
@@ -1436,6 +1456,11 @@ private:
             {
                 ParseSoundBanks(it);
             }
+
+            if (it.HasMember("sound_effects"))
+            {
+                ParseSoundEffects(it);
+            }
         }
     }
 
@@ -1455,6 +1480,22 @@ private:
             mapping.mVabHeader = soundBank["vab_header"].GetString();
 
             mSoundBankMaps[name] = mapping;
+        }
+    }
+
+    template<typename JsonObject>
+    void ParseSoundEffects(const JsonObject& obj)
+    {
+        const auto& soundEffects = obj["sound_effects"].GetArray();
+        for (const auto& soundEffect : soundEffects)
+        {
+            const std::string& name = soundEffect["resource_name"].GetString();
+            SoundEffectMapping mapping;
+            mapping.mDataSetName = soundEffect["data_set"].GetString();
+            mapping.mNote = soundEffect["note"].GetInt();
+            mapping.mProgram = soundEffect["program"].GetInt();
+            mapping.mSoundBankName = soundEffect["sound_bank"].GetString();
+            mSoundEffectMaps[name] = mapping;
         }
     }
 

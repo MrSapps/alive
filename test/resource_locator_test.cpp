@@ -168,6 +168,14 @@ TEST(ResourceLocator, ParseResourceMap)
     const std::string resourceMapsJson = 
         R"(
 [{
+    "sound_effects": [
+     {
+         "data_set": "AoPc",
+         "note": 0,
+         "program": 2,
+         "resource_name": "c1_OPTSNDFX_P2_N0_AoPc",
+         "sound_bank": "c1_OPTSNDFX_AoPc" 
+     }],
     "musics": [{
         "data_set": "AoPc",
         "file_name": "C1SEQ.BSQ",
@@ -351,6 +359,18 @@ TEST(ResourceLocator, ParseResourceMap)
         ASSERT_EQ("c1.lvl", r1->mLvl);
         ASSERT_EQ("OPTSNDFX.VB", r1->mVabBody);
         ASSERT_EQ("OPTSNDFX.VH", r1->mVabHeader);
+    }
+
+    {
+        const ResourceMapper::SoundEffectMapping* r0 = mapper.FindSoundEffect("I don't exist");
+        ASSERT_EQ(nullptr, r0);
+
+        const ResourceMapper::SoundEffectMapping* r1 = mapper.FindSoundEffect("c1_OPTSNDFX_P2_N0_AoPc");
+        ASSERT_NE(nullptr, r1);
+        ASSERT_EQ("AoPc", r1->mDataSetName);
+        ASSERT_EQ(0u, r1->mNote);
+        ASSERT_EQ(2u, r1->mProgram);
+        ASSERT_EQ("c1_OPTSNDFX_AoPc", r1->mSoundBankName);
     }
 }
 
