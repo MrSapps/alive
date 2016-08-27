@@ -1,10 +1,15 @@
 #pragma once
 
 #include <string>
-#include <codecvt>
 #include <deque>
 #include <algorithm>
 #include <ctype.h>
+#ifdef _MSC_VER
+// This header only appears with GCC 5.0+, since we only 
+// need utf16->utf8 conv on windows its compiled out on everything
+// but MSVC for now.
+#include <codecvt>
+#endif
 
 namespace string_util
 {
@@ -121,9 +126,11 @@ namespace string_util
         return (haystack.find(needle) != std::string::npos);
     }
 
+#ifdef _MSC_VER
     inline std::string wstring_to_utf8(const std::wstring& str)
     {
         std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
         return conv.to_bytes(str);
     }
+#endif
 }
