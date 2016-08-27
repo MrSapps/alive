@@ -449,10 +449,24 @@ ELSE()
 ENDIF()
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/DataSetIds.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resources.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}/subtitles")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.lua" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/Roboto-Regular.ttf" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resources.json" DESTINATION "${DATA_DIR}")
+
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}/subtitles")
+
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.lua" DESTINATION "${DATA_DIR}/scripts")
+
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPc.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPcDemo.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPsx.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPsxCd1.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPsxCd2.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPsxDemo.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesOddyseePc.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesOddyseePcDemo.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesOddyseePsxDemo.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesOddyseePsx.json" DESTINATION "${DATA_DIR}/GameDefinitions")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/Developer mode.json" DESTINATION "${DATA_DIR}/GameDefinitions")
 
 SET(OLD_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
@@ -513,6 +527,7 @@ if(WIN32)
     #else()
     #    message("DEBUG installer build")
     #endif()
+
 elseif(APPLE)
     SET(CPACK_GENERATOR "DragNDrop")
 elseif(LINUX)
