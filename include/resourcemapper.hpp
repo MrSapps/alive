@@ -8,6 +8,10 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#pragma warning(push)
+#pragma warning(disable:4917)
+#include <shlobj.h>
+#pragma warning(pop)
 #else
 #include <dirent.h>
 #include <unistd.h>
@@ -425,19 +429,61 @@ public:
         auto basePath = InitBasePath();
         if (basePath.empty())
         {
+            LOG_ERROR("Failed to resolve ${GameDir}");
             return false;
         }
         mNamedPaths["{GameDir}"] = basePath;
 
-        // TODO: Resolve {UserDir}
-        mNamedPaths["{UserDir}"] = ".";
-
+        auto userPath = InitUserPath();
+        if (userPath.empty())
+        {
+            LOG_ERROR("Failed to resolve ${UserDir}");
+            return false;
+        }
+        mNamedPaths["{UserDir}"] = userPath;
         return true;
     }
 
     virtual std::string FsPath() const override
     {
         return mNamedPaths.find("{GameDir}")->second;
+    }
+
+    std::string InitUserPath()
+    {
+        std::string userPath;
+#ifdef _WIN32
+        wchar_t myDocsPath[MAX_PATH] = {};
+        const HRESULT hr = ::SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, myDocsPath);
+        if (SUCCEEDED(hr))
+        {
+            std::wstring userPathW = myDocsPath;
+            userPathW += L"\\ALIVE User files";
+            if (!::CreateDirectoryW(userPathW.c_str(), NULL))
+            {
+                const DWORD error = ::GetLastError();
+                if (error != ERROR_ALREADY_EXISTS)
+                {
+                    LOG_ERROR("Create CreateDirectoryA failed with Win32 error: " << error);
+                }
+            }
+            userPath = string_util::wstring_to_utf8(userPathW);
+        }
+        else
+        {
+            LOG_ERROR("SHGetFolderPathA failed with HRESULT: " << hr);
+        }
+#else
+        char* pUserPath = SDL_GetPrefPath("PaulsApps", "ALIVE");
+
+        if (pUserPath)
+        {
+            userPath = pUserPath;
+            SDL_free(pUserPath);
+        }
+#endif
+        NormalizePath(userPath);
+        return userPath;
     }
 
     std::string InitBasePath()

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <codecvt>
 #include <deque>
 #include <algorithm>
 #include <ctype.h>
@@ -118,5 +119,11 @@ namespace string_util
     inline bool contains(const std::string& haystack, const std::string& needle)
     {
         return (haystack.find(needle) != std::string::npos);
+    }
+
+    inline std::string wstring_to_utf8(const std::wstring& str)
+    {
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+        return conv.to_bytes(str);
     }
 }

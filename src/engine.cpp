@@ -525,7 +525,7 @@ void Engine::InitResources()
     AddModDefinitionsFrom("{GameDir}/data/Mods");
 
     // create the resource mapper loading the resource maps from the json db
-    DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{GameDir}/data/DataSets.json");
+    DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{UserDir}/DataSets.json");
     ResourceMapper mapper(*mFileSystem, "{GameDir}/data/resources.json");
     mResourceLocator = std::make_unique<ResourceLocator>(std::move(mapper), std::move(dataPaths));
 
