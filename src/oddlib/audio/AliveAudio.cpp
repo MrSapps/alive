@@ -9,7 +9,7 @@ static f32 RandFloat(f32 a, f32 b)
 
 void AliveAudio::CleanVoices()
 {
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
 
     std::vector<AliveAudioVoice *> deadVoices;
 
@@ -33,7 +33,7 @@ void AliveAudio::CleanVoices()
 void AliveAudio::AliveRenderAudio(f32 * AudioStream, int StreamLength)
 {
 
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
 
     // Reset buffers
     for (int i = 0; i < StreamLength; ++i)
@@ -100,6 +100,8 @@ void AliveAudio::AliveRenderAudio(f32 * AudioStream, int StreamLength)
                 m_DryChannelBuffer[i + 1] += rightSample;
             }
         }
+
+        mCurrentSampleIndex++;
     }
 
     m_Reverb.setEffectMix(ReverbMix);
@@ -186,7 +188,7 @@ void AliveAudio::PlayOneShot(std::string soundID)
 
 void AliveAudio::NoteOn(int program, int note, char velocity, f64 trackDelay)
 {
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
     for (auto& tone : m_Soundbank->m_Programs[program]->m_Tones)
     {
         if (note >= tone->Min && note <= tone->Max)
@@ -205,7 +207,7 @@ void AliveAudio::NoteOn(int program, int note, char velocity, f64 trackDelay)
 
 void AliveAudio::NoteOff(int program, int note)
 {
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
     for (auto& voice : m_Voices)
     {
         if (voice->i_Note == note && voice->i_Program == program)
@@ -217,7 +219,7 @@ void AliveAudio::NoteOff(int program, int note)
 
 void AliveAudio::NoteOffDelay(int program, int note, f32 trackDelay)
 {
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
     for (auto& voice : m_Voices)
     {
         if (voice->i_Note == note && voice->i_Program == program && voice->f_TrackDelay < trackDelay && voice->f_NoteOffDelay <= 0)
@@ -231,7 +233,7 @@ void AliveAudio::NoteOffDelay(int program, int note, f32 trackDelay)
 
 void AliveAudio::ClearAllVoices(bool forceKill)
 {
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
 
     std::vector<AliveAudioVoice *> deadVoices;
 
@@ -262,7 +264,7 @@ void AliveAudio::ClearAllVoices(bool forceKill)
 
 void AliveAudio::ClearAllTrackVoices(bool forceKill)
 {
-    std::lock_guard<std::recursive_mutex> lock(voiceListMutex);
+    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
     std::vector<AliveAudioVoice *> deadVoices;
 
     for (auto& voice : m_Voices)

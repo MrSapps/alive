@@ -50,7 +50,8 @@ public:
     void SetSoundbank(std::unique_ptr<AliveAudioSoundbank> soundbank);
 
 
-    std::recursive_mutex voiceListMutex;
+    std::recursive_mutex mVoiceListMutex;
+    u64 mCurrentSampleIndex = 0;
 
     virtual void Play(u8* stream, u32 len) override;
 

@@ -54,7 +54,7 @@ void SequencePlayer::PlayerThreadFunction()
         if (m_PlayerState == ALIVE_SEQUENCER_INIT_VOICES)
         {
             bool firstNote = true;
-            std::lock_guard<std::recursive_mutex> notesLock(mAliveAudio.voiceListMutex);
+            std::lock_guard<std::recursive_mutex> notesLock(mAliveAudio.mVoiceListMutex);
 
             for (size_t i = 0; i < m_MessageList.size(); i++)
             {
@@ -65,7 +65,7 @@ void SequencePlayer::PlayerThreadFunction()
                     mAliveAudio.NoteOn(channels[m.Channel], m.Note, m.Velocity, MidiTimeToSample(m.TimeOffset));
                     if (firstNote)
                     {
-                        m_SongBeginSample = static_cast<int>(mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset));
+                        m_SongBeginSample = static_cast<int>(mAliveAudio.mCurrentSampleIndex + MidiTimeToSample(m.TimeOffset));
                         firstNote = false;
                     }
                     break;
@@ -77,7 +77,7 @@ void SequencePlayer::PlayerThreadFunction()
                     break;
                 case ALIVE_MIDI_ENDTRACK:
                     m_PlayerState = ALIVE_SEQUENCER_PLAYING;
-                    m_SongFinishSample = static_cast<Uint64>(mAliveAudio.currentSampleIndex + MidiTimeToSample(m.TimeOffset));
+                    m_SongFinishSample = static_cast<Uint64>(mAliveAudio.mCurrentSampleIndex + MidiTimeToSample(m.TimeOffset));
                     break;
                 }
 
@@ -85,7 +85,7 @@ void SequencePlayer::PlayerThreadFunction()
         }
         m_PlayerStateMutex.unlock();
 
-        if (m_PlayerState == ALIVE_SEQUENCER_PLAYING && mAliveAudio.currentSampleIndex > m_SongFinishSample)
+        if (m_PlayerState == ALIVE_SEQUENCER_PLAYING && mAliveAudio.mCurrentSampleIndex > m_SongFinishSample)
         {
             m_PlayerState = ALIVE_SEQUENCER_FINISHED;
 
@@ -109,7 +109,7 @@ void SequencePlayer::PlayerThreadFunction()
 
 u64 SequencePlayer::GetPlaybackPositionSample()
 {
-    return mAliveAudio.currentSampleIndex - m_SongBeginSample;
+    return mAliveAudio.mCurrentSampleIndex - m_SongBeginSample;
 }
 
 void SequencePlayer::StopSequence()
