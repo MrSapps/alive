@@ -43,7 +43,42 @@ void Sound::Update()
     }
 }
 
-void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
+void Sound::AudioSettingsUi(GuiContext* gui)
+{
+    gui_begin_window(gui, "Audio output settings");
+    gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.mAntiAliasFilteringEnabled);
+
+    if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
+    {
+        mAliveAudio.Interpolation = AudioInterpolation_none;
+    }
+
+    if (gui_radiobutton(gui, "Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
+    {
+        mAliveAudio.Interpolation = AudioInterpolation_linear;
+    }
+
+    if (gui_radiobutton(gui, "Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
+    {
+        mAliveAudio.Interpolation = AudioInterpolation_cubic;
+    }
+
+    if (gui_radiobutton(gui, "Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
+    {
+        mAliveAudio.Interpolation = AudioInterpolation_hermite;
+    }
+
+    gui_checkbox(gui, "Music browser", &mMusicBrowser);
+    gui_checkbox(gui, "Sound effect browser", &mSoundEffectBrowser);
+
+    gui_checkbox(gui, "Force reverb", &mAliveAudio.ForceReverb);
+    gui_slider(gui, "Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
+
+    gui_checkbox(gui, "Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
+    gui_end_window(gui);
+}
+
+void Sound::MusicBrowserUi(GuiContext* gui)
 {
     gui_begin_window(gui, "Music");
 
@@ -68,14 +103,43 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
         }
     }
     gui_end_window(gui);
+}
 
+void Sound::SoundEffectBrowserUi(GuiContext* gui)
+{
     gui_begin_window(gui, "Sound effects");
 
-    for (const auto& soundEffectInfo : mLocator.mResMapper.mSoundEffectMaps)
+    // TODO: Add filter by all datasets or something, rendering them all at once destroys performance
+    if (gui_checkbox(gui, "AePc", &mAePc))
     {
-        if (gui_button(gui, soundEffectInfo.first.c_str()))
+        mFilteredSoundEffectResources.clear();
+        if (mAePc)
         {
-            std::unique_ptr<ISoundEffect> soundEffect = mLocator.LocateSoundEffect(soundEffectInfo.first.c_str());
+            mFilteredSoundEffectResources.reserve(mLocator.mResMapper.mSoundEffectMaps.size());
+            for (const auto& soundEffectInfo : mLocator.mResMapper.mSoundEffectMaps)
+            {
+                if (soundEffectInfo.first.find("AePc") != std::string::npos)
+                {
+                    mFilteredSoundEffectResources.emplace_back(soundEffectInfo.first);
+                }
+            }
+        }
+        else
+        {
+            mFilteredSoundEffectResources.reserve(mLocator.mResMapper.mSoundEffectMaps.size());
+            mFilteredSoundEffectResources.clear();
+            for (const auto& soundEffectInfo : mLocator.mResMapper.mSoundEffectMaps)
+            {
+                mFilteredSoundEffectResources.emplace_back(soundEffectInfo.first);
+            }
+        }
+    }
+
+    for (const auto& soundEffectResourceName : mFilteredSoundEffectResources)
+    {
+        if (gui_button(gui, soundEffectResourceName.c_str()))
+        {
+            std::unique_ptr<ISoundEffect> soundEffect = mLocator.LocateSoundEffect(soundEffectResourceName.c_str());
             if (soundEffect)
             {
                 // TODO: Might want another player instance or a better way of dividing sound fx/vs seq music - also needs higher
@@ -84,38 +148,24 @@ void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
 
                 auto soundBank = std::make_unique<AliveAudioSoundbank>(*soundEffect->mVab, mAliveAudio);
                 mAliveAudio.SetSoundbank(std::move(soundBank));
+
+                // TODO: This seems to be completely wrong and also breaks without a sequence player, it shouldn't require it to work!
                 mAliveAudio.NoteOn(soundEffect->mProgram, soundEffect->mNote, 127);
             }
         }
     }
     gui_end_window(gui);
+}
 
-    gui_begin_window(gui, "Audio output settings");
-    gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.mAntiAliasFilteringEnabled);
-
-    if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
+void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
+{
+    AudioSettingsUi(gui);
+    if (mMusicBrowser)
     {
-        mAliveAudio.Interpolation = AudioInterpolation_none;
+        MusicBrowserUi(gui);
     }
-
-    if (gui_radiobutton(gui, "Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
+    if (mSoundEffectBrowser)
     {
-        mAliveAudio.Interpolation = AudioInterpolation_linear;
+        SoundEffectBrowserUi(gui);
     }
-
-    if (gui_radiobutton(gui, "Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
-    {
-        mAliveAudio.Interpolation = AudioInterpolation_cubic;
-    }
-
-    if (gui_radiobutton(gui, "Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
-    {
-        mAliveAudio.Interpolation = AudioInterpolation_hermite;
-    }
-
-    gui_checkbox(gui, "Force reverb", &mAliveAudio.ForceReverb);
-    gui_slider(gui, "Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
-
-    gui_checkbox(gui, "Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
-    gui_end_window(gui);
 }

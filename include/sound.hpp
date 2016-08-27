@@ -24,11 +24,18 @@ public:
 private:
     void BarLoop();
 private:
+    void AudioSettingsUi(GuiContext* gui);
+    void MusicBrowserUi(GuiContext* gui);
+    void SoundEffectBrowserUi(GuiContext* gui);
+    bool mMusicBrowser = false;
+    bool mSoundEffectBrowser = false;
+
+    bool mAePc = false;
+    std::vector<std::string> mFilteredSoundEffectResources;
+private:
     IAudioController& mAudioController;
     ResourceLocator& mLocator;
+
     std::unique_ptr<class SequencePlayer> mSeqPlayer;
-    int mTargetSong = -1;
-    bool mLoopSong = false;
-    std::vector<std::string> mThemes;
     AliveAudio mAliveAudio;
 };
