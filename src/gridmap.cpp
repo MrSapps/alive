@@ -13,17 +13,17 @@
 
 void Player::Init(ResourceLocator& locator)
 {
-    mAnims.push_back(locator.LocateAnimation("ABEBSIC.BAN_10_AePc_30"));
+    mAnims.push_back(locator.LocateAnimation("ABEBSIC.BAN_10_AePc_34"));
 }
 
 void Player::Update()
 {
-    //mAnims[0]->Update();
+    mAnims[0]->Update();
 }
 
-void Player::Render(Renderer& /*rend*/, GuiContext& /*gui*/, int /*screenW*/, int /*screenH*/)
+void Player::Render(Renderer& rend, GuiContext& /*gui*/, int /*screenW*/, int /*screenH*/)
 {
-    //mAnims[0]->Render(rend);
+    mAnims[0]->Render(rend);
 }
 
 Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator)
@@ -36,9 +36,10 @@ Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator)
         LOG_ERROR("Script init failed");
     }
     */
+}
 
-    // FIX ME: Need a real state machine, here we construct level before
-    // a game is even selected, so we can't load any resources
+void Level::EnterState()
+{
     mPlayer.Init(mLocator);
 }
 

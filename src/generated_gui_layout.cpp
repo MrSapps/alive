@@ -357,8 +357,8 @@ void load_layout(GuiContext *ctx)
 		GUI_FMT_STR(l.str, sizeof(l.str), "%s", "Paths");
 		l.on_same_row = 0;
 		l.has_offset = 1;
-		l.offset[0] = 373;
-		l.offset[1] = 212;
+		l.offset[0] = 963;
+		l.offset[1] = 110;
 		l.has_size = 1;
 		l.size[0] = 205;
 		l.size[1] = 710;

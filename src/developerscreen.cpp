@@ -79,7 +79,7 @@ void DeveloperScreen::Update()
 
 void DeveloperScreen::EnterState()
 {
-
+    mLevel.EnterState();
 }
 
 void DeveloperScreen::ExitState()
@@ -95,7 +95,7 @@ void DeveloperScreen::Render(int w, int h, Renderer& renderer)
     struct EditorUi
     {
         EditorUi()
-            : soundBrowserOpen(true)
+            : levelBrowserOpen(true)
         {
 
         }

@@ -314,13 +314,6 @@ ENDIF()
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
 
-add_executable(Integration
-  ${WIN32_RESOURCES_SRC}
-  test/integration_main.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
-)
-TARGET_LINK_LIBRARIES(Integration ${Alive_Libs})
-
 add_executable(DataTool
   ${WIN32_RESOURCES_SRC}
   test/data_test_main.cpp

@@ -31,6 +31,7 @@ public:
     Level(IAudioController& audioController, ResourceLocator& locator);
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+    void EnterState();
 private:
     void RenderDebugPathSelection(Renderer& rend, GuiContext& gui);
     std::unique_ptr<class GridMap> mMap;
