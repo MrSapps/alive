@@ -2,11 +2,10 @@
 
 #include "engine.hpp"
 
-class GameSelectionScreen : public EngineState
+class GameSelectionScreen : public IState
 {
 public:
-    GameSelectionScreen(
-            IEngineStateChanger& stateChanger,
+    GameSelectionScreen(StateMachine& stateMachine,
             const std::vector<GameDefinition>& gameDefinitions,
             GuiContext* gui,
             class Fmv& fmv,
@@ -14,7 +13,7 @@ public:
             class Level& level,
             ResourceLocator& resLocator,
             IFileSystem& newFs)
-      : EngineState(stateChanger), 
+      : IState(stateMachine),
         mGameDefinitions(gameDefinitions),
         mGui(gui),
         mFmv(fmv),
@@ -26,8 +25,10 @@ public:
         mVisibleGameDefinitions = GameDefinition::GetVisibleGameDefinitions(mGameDefinitions);
     }
     virtual void Input(InputState& input) override;
-    virtual void Update() override;
     virtual void Render(int w, int h, Renderer& renderer) override;
+    virtual void Update() override;
+    virtual void EnterState() override;
+    virtual void ExitState() override;
 private:
     void FilterGameDefinitions();
 

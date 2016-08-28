@@ -30,6 +30,16 @@ void GameSelectionScreen::Update()
 
 }
 
+void GameSelectionScreen::EnterState()
+{
+
+}
+
+void GameSelectionScreen::ExitState()
+{
+
+}
+
 void GameSelectionScreen::Input(InputState& /*input*/)
 {
 
@@ -57,7 +67,7 @@ void GameSelectionScreen::LoadGameDefinition()
     // Set active data sets for the resource loader to use
     mResLocator.GetDataPaths().SetActiveDataPaths(mFs, mRequiredDataSets);
 
-    mStateChanger.ToState(std::make_unique<DeveloperScreen>(mGui, mStateChanger, mFmv, mSound, mLevel, mResLocator));
+    mStateMachine.ToState(std::make_unique<DeveloperScreen>(mStateMachine, mGui, mFmv, mSound, mLevel, mResLocator));
 }
 
 void GameSelectionScreen::RenderFindDataSets()

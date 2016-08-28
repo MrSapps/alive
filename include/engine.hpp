@@ -7,11 +7,83 @@
 #include "core/audiobuffer.hpp"
 #include "resourcemapper.hpp"
 
-class IEngineStateChanger
+class StateMachine;
+class InputState;
+
+class IState
 {
 public:
-    virtual ~IEngineStateChanger() = default;
-    virtual void ToState(std::unique_ptr<class EngineState> state) = 0;
+    IState(StateMachine& stateMachine) : mStateMachine(stateMachine) {}
+    IState(const IState&) = delete;
+    IState& operator = (const IState&) = delete;
+    virtual ~IState() = default;
+
+    virtual void Input(InputState& input) = 0;
+    virtual void Update() = 0;
+    virtual void Render(int w, int h, class Renderer& renderer) = 0;
+    virtual void ExitState() = 0;
+    virtual void EnterState() = 0;
+protected:
+    StateMachine& mStateMachine;
+};
+
+class StateMachine
+{
+public:
+    virtual ~StateMachine() = default;
+
+    void ToState(std::unique_ptr<IState> state)
+    {
+        if (mState)
+        {
+            mState->ExitState();
+        }
+
+        // Delay delete of mState until the next Update() to prevent
+        // a "delete this" happening during a call to ToState().
+        mPreviousState = std::move(mState);
+        mState = std::move(state);
+
+        if (mState)
+        {
+            mState->EnterState();
+        }
+    }
+
+    void Input(class InputState& input)
+    {
+        if (mState)
+        {
+            mState->Input(input);
+        }
+    }
+
+    void Update()
+    {
+        if (mState)
+        {
+            mState->Update();
+        }
+
+        // Destroy previous state one update later
+        if (mPreviousState)
+        {
+            mPreviousState = nullptr;
+        }
+    }
+
+    void Render(int w, int h, class Renderer& renderer)
+    {
+        if (mState)
+        {
+            mState->Render(w, h, renderer);
+        }
+    }
+
+    bool HasState() const { return mState != nullptr; }
+private:
+    std::unique_ptr<class IState> mState = nullptr;
+    std::unique_ptr<class IState> mPreviousState = nullptr;
 };
 
 class InputState
@@ -30,47 +102,13 @@ public:
     s32 mMouseY = 0;
 };
 
-class EngineState
-{
-public:
-    EngineState(const EngineState&) = delete;
-    EngineState& operator = (const EngineState&) = delete;
-    EngineState(IEngineStateChanger& stateChanger) : mStateChanger(stateChanger)  { }
-    virtual ~EngineState() = default;
-    virtual void Input(InputState& input) = 0;
-    virtual void Update() = 0;
-    virtual void Render(int w, int h, class Renderer& renderer) = 0;
-protected:
-    IEngineStateChanger& mStateChanger;
-};
-
-class Engine : public IEngineStateChanger
+class Engine final
 {
 public:
     Engine();
-    virtual ~Engine();
-    virtual bool Init();
-    virtual int Run();
-
-    virtual void ToState(std::unique_ptr<EngineState> state) override
-    {
-        if (!state)
-        {
-            mCurrentState = nullptr;
-            mNextState = nullptr;
-        }
-        else
-        {
-            if (!mCurrentState)
-            {
-                mCurrentState = std::move(state);
-            }
-            else
-            {
-                mNextState = std::move(state);
-            }
-        }
-    }
+    ~Engine();
+    bool Init();
+    int Run();
 private:
     void Update();
     void Render();
@@ -84,8 +122,7 @@ private:
     void InitGL();
     void RenderVideoUi();
 protected:
-    virtual void InitSubSystems();
-    virtual void DebugRender() { };
+    void InitSubSystems();
 
     // Audio must init early
     SdlAudioWrapper mAudioHandler;
@@ -102,9 +139,9 @@ protected:
     std::unique_ptr<class Level> mLevel;
     struct GuiContext *mGui = nullptr;
 
-    std::unique_ptr<EngineState> mCurrentState;
-    std::unique_ptr<EngineState> mNextState;
     std::vector<GameDefinition> mGameDefinitions;
 
     InputState mInputState;
+
+    StateMachine mStateMachine;
 };

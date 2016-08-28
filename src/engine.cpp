@@ -111,7 +111,8 @@ bool Engine::Init()
 
         InitSubSystems();
 
-        ToState(std::make_unique<GameSelectionScreen>(*this, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, *mResourceLocator, *mFileSystem));
+        
+        mStateMachine.ToState(std::make_unique<GameSelectionScreen>(mStateMachine, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, *mResourceLocator, *mFileSystem));
 
         return true;
     }
@@ -178,7 +179,7 @@ int Engine::Run()
     BasicFramesPerSecondCounter fpsCounter;
     auto startTime = THighResClock::now();
 
-    while (mCurrentState)
+    while (mStateMachine.HasState())
     {
         // Limit update to 60fps
         const THighResClock::duration totalRunTime = THighResClock::now() - startTime;
@@ -200,12 +201,6 @@ int Engine::Run()
 
 void Engine::Update()
 {
-    // 1 frame delay to next state so "delete this" during call to ToState isn't an issue
-    if (mNextState)
-    {
-        mCurrentState = std::move(mNextState);
-    }
-
     { // Reset gui input
         for (int i = 0; i < GUI_KEY_COUNT; ++i)
             mGui->key_state[i] = 0;
@@ -249,7 +244,7 @@ void Engine::Update()
             break;
 
         case SDL_QUIT:
-            ToState(nullptr);
+            mStateMachine.ToState(nullptr);
             break;
 
         case SDL_TEXTINPUT:
@@ -314,16 +309,16 @@ void Engine::Update()
 
             if (guiKey >= 0)
             {
-                  uint8_t state = mGui->key_state[guiKey];
-                  if (event.type == SDL_MOUSEBUTTONUP)
-                  {
-                      state = GUI_KEYSTATE_RELEASED_BIT;
-                  }
-                  else
-                  {
-                      state = GUI_KEYSTATE_DOWN_BIT | GUI_KEYSTATE_PRESSED_BIT;
-                  }
-                  mGui->key_state[guiKey] = state;
+                uint8_t state = mGui->key_state[guiKey];
+                if (event.type == SDL_MOUSEBUTTONUP)
+                {
+                    state = GUI_KEYSTATE_RELEASED_BIT;
+                }
+                else
+                {
+                    state = GUI_KEYSTATE_DOWN_BIT | GUI_KEYSTATE_PRESSED_BIT;
+                }
+                mGui->key_state[guiKey] = state;
             }
 
             // TODO: Enable SDL_CaptureMouse when sdl supports it.
@@ -350,7 +345,7 @@ void Engine::Update()
 
 
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
-            
+
             // TODO: Move out of here
             if (key == SDL_SCANCODE_ESCAPE)
             {
@@ -398,11 +393,8 @@ void Engine::Update()
         }
     }
 
-    if (mCurrentState)
-    {
-        mCurrentState->Input(mInputState);
-        mCurrentState->Update();
-    }
+    mStateMachine.Input(mInputState);
+    mStateMachine.Update();
 }
 
 void Engine::Render()
@@ -416,10 +408,7 @@ void Engine::Render()
     mRenderer->beginFrame(w, h);
     gui_pre_frame(mGui); 
 
-    if (mCurrentState)
-    {
-        mCurrentState->Render(w, h, *mRenderer);
-    }
+    mStateMachine.Render(w, h, *mRenderer);
 
     gui_post_frame(mGui);
 

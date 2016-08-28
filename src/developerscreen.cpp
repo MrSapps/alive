@@ -77,6 +77,16 @@ void DeveloperScreen::Update()
     }
 }
 
+void DeveloperScreen::EnterState()
+{
+
+}
+
+void DeveloperScreen::ExitState()
+{
+
+}
+
 void DeveloperScreen::Render(int w, int h, Renderer& renderer)
 {
     //DebugRender();

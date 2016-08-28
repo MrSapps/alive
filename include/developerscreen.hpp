@@ -3,11 +3,11 @@
 #include "engine.hpp"
 #include "resourcemapper.hpp"
 
-class DeveloperScreen : public EngineState
+class DeveloperScreen : public IState
 {
 public:
-    DeveloperScreen(GuiContext* gui, IEngineStateChanger& stateChanger, class Fmv& fmv, class Sound& sound, class Level& level, ResourceLocator& resMapper)
-        : EngineState(stateChanger), 
+    DeveloperScreen(StateMachine& stateMachine, GuiContext* gui, class Fmv& fmv, class Sound& sound, class Level& level, ResourceLocator& resMapper)
+        : IState(stateMachine),
           mGui(gui),
           mFmv(fmv),
           mSound(sound),
@@ -18,8 +18,10 @@ public:
     }
 
     virtual void Input(InputState& input) override;
-    virtual void Update() override;
     virtual void Render(int w, int h, Renderer& renderer) override;
+    virtual void Update() override;
+    virtual void EnterState() override;
+    virtual void ExitState() override;
 private:
     void Init();
     void RenderAnimationSelector(Renderer& renderer);
