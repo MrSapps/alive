@@ -11,6 +11,7 @@
 struct GuiContext;
 class Renderer;
 class ResourceLocator;
+class InputState;
 
 namespace Oddlib { class LvlArchive; class IBits; }
 
@@ -21,6 +22,7 @@ public:
     void Init(ResourceLocator& locator);
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+    void Input(InputState& input);
 private:
     std::vector<std::unique_ptr<Animation>> mAnims;
 };
@@ -32,6 +34,7 @@ public:
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
     void EnterState();
+    void Input(InputState& input);
 private:
     void RenderDebugPathSelection(Renderer& rend, GuiContext& gui);
     std::unique_ptr<class GridMap> mMap;

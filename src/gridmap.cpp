@@ -10,6 +10,7 @@
 #include <algorithm> // min/max
 #include <cmath>
 #include "resourcemapper.hpp"
+#include "engine.hpp"
 
 void Player::Init(ResourceLocator& locator)
 {
@@ -19,6 +20,14 @@ void Player::Init(ResourceLocator& locator)
 void Player::Update()
 {
     mAnims[0]->Update();
+}
+
+void Player::Input(InputState& input)
+{
+    if (input.mLeftMouseState == 0)
+    {
+        mAnims[0]->SetXPos(mAnims[0]->XPos() + 1);
+    }
 }
 
 void Player::Render(Renderer& rend, GuiContext& /*gui*/, int /*screenW*/, int /*screenH*/)
@@ -41,6 +50,11 @@ Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator)
 void Level::EnterState()
 {
     mPlayer.Init(mLocator);
+}
+
+void Level::Input(InputState& input)
+{
+    mPlayer.Input(input);
 }
 
 void Level::Update()

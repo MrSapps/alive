@@ -62,6 +62,8 @@ void DeveloperScreen::Input(InputState& input)
         }
         mSelected = nullptr;
     }
+
+    mLevel.Input(input);
 }
 
 void DeveloperScreen::Update()
