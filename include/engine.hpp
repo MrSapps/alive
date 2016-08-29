@@ -164,8 +164,8 @@ public:
     void OnKeyEvent(const SDL_KeyboardEvent& event)
     {
         // Update state from polling loop
-        const auto keyCode = event.keysym.scancode;
-        mKeys->mRawDownState = (event.type == SDL_KEYDOWN);
+        const u32 keyCode = event.keysym.scancode;
+        mKeys[keyCode].mRawDownState = (event.type == SDL_KEYDOWN);
     }
 
     void OnMouseButtonEvent(const SDL_MouseButtonEvent& event)
@@ -276,6 +276,11 @@ public:
         void OnControllerButton(const SDL_ControllerButtonEvent& event)
         {
             mGamePadButtons[event.button].mRawDownState = (event.type == SDL_CONTROLLERBUTTONDOWN);
+
+            if (mHaptic && event.type == SDL_CONTROLLERBUTTONDOWN)
+            {
+                SDL_HapticRumblePlay(mHaptic, 0.5, 2000);
+            }
         }
 
         void OnControllerAxis(const SDL_ControllerAxisEvent&)
