@@ -242,8 +242,8 @@ public:
         Controller(const Controller&) = delete;
         Controller& operator = (const Controller&) = delete;
 
-        Controller(SDL_GameController* controller, SDL_Joystick* joyStick, SDL_JoystickID id)
-            : mController(controller), mId(id)
+        Controller(SDL_GameController* controller, SDL_Joystick* joyStick)
+            : mController(controller)
         {
             TRACE_ENTRYEXIT;
             if (SDL_JoystickIsHaptic(joyStick))
@@ -309,7 +309,6 @@ public:
         }
 
         SDL_GameController* mController = nullptr;
-        SDL_JoystickID mId = 0;
         SDL_Haptic* mHaptic = nullptr;
 
         // Index into using SDL_CONTROLLER_*
@@ -328,7 +327,7 @@ private:
             {
                 SDL_Joystick* joyStick = SDL_GameControllerGetJoystick(controller);
                 const SDL_JoystickID id = SDL_JoystickInstanceID(joyStick);
-                mControllers[id] = std::make_unique<Controller>(controller, joyStick, id);
+                mControllers[id] = std::make_unique<Controller>(controller, joyStick);
             }
             else
             {
