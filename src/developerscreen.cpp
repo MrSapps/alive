@@ -12,20 +12,20 @@ void DeveloperScreen::Init()
     
 }
 
-void DeveloperScreen::Input(InputState& input)
+void DeveloperScreen::Input(const InputState& input)
 {
     // Set the "selected" animation
-    if (!mSelected && input.mLeftMouseState & InputState::eDown)
+    if (!mSelected && input.mMouseButtons[0].mIsPressed)
     {
         LOG_INFO("Get selected");
         for (auto& anim : mLoadedAnims)
         {
-            if (anim->Collision(input.mMouseX, input.mMouseY))
+            if (anim->Collision(input.mMousePosition.mX, input.mMousePosition.mY))
             {
                 mSelected = anim.get();
 
-                mXDelta = std::abs(mSelected->XPos() - input.mMouseX);
-                mYDelta = std::abs(mSelected->YPos() - input.mMouseY);
+                mXDelta = std::abs(mSelected->XPos() - input.mMousePosition.mX);
+                mYDelta = std::abs(mSelected->YPos() - input.mMousePosition.mY);
 
                 LOG_INFO("Got selected");
                 return;
@@ -34,27 +34,27 @@ void DeveloperScreen::Input(InputState& input)
     }
     
     // Move the "selected" animation
-    if (mSelected && input.mLeftMouseState & InputState::eHeld)
+    if (mSelected && input.mMouseButtons[0].mIsDown)
     {
-        LOG_INFO("Move selected to " << input.mMouseX << "," << input.mMouseY);
-        mSelected->SetXPos(mXDelta + input.mMouseX);
-        mSelected->SetYPos(mYDelta + input.mMouseY);
+        LOG_INFO("Move selected to " << input.mMousePosition.mX << "," << input.mMousePosition.mY);
+        mSelected->SetXPos(mXDelta + input.mMousePosition.mX);
+        mSelected->SetYPos(mYDelta + input.mMousePosition.mY);
     }
 
-    if (input.mLeftMouseState & InputState::eUp)
+    if (input.mMouseButtons[0].mIsReleased)
     {
         LOG_INFO("Release");
         mSelected = nullptr;
     }
 
     // When the right button is released delete the "selected" animation
-    if (input.mRightMouseState & InputState::eUp)
+    if (input.mMouseButtons[1].mIsPressed)
     {
         LOG_INFO("Delete selected");
 
         for (auto it = mLoadedAnims.begin(); it != mLoadedAnims.end(); it++)
         {
-            if ((*it)->Collision(input.mMouseX, input.mMouseY))
+            if ((*it)->Collision(input.mMousePosition.mX, input.mMousePosition.mY))
             {
                 mLoadedAnims.erase(it);
                 break;

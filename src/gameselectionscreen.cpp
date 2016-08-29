@@ -40,7 +40,7 @@ void GameSelectionScreen::ExitState()
 
 }
 
-void GameSelectionScreen::Input(InputState& /*input*/)
+void GameSelectionScreen::Input(const InputState& /*input*/)
 {
 
 }

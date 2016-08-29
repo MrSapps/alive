@@ -134,6 +134,8 @@ void Engine::InitSubSystems()
         mGui = create_gui(&calcTextSize, mRenderer.get());
         load_layout(mGui);
     }
+
+    mInputState.AddControllers();
 }
 
 // TODO: Using averaging value or anything that is more accurate than this
@@ -208,25 +210,6 @@ void Engine::Update()
         mGui->cursor_pos[0] = -1;
     }
 
-    // TODO: Map "player" input to "game" buttons
-    if (mInputState.mLeftMouseState & InputState::eDown)
-    {
-        mInputState.mLeftMouseState |= InputState::eHeld;
-    }
-    else if (mInputState.mLeftMouseState & InputState::eUp)
-    {
-        mInputState.mLeftMouseState = 0;
-    }
-
-    if (mInputState.mRightMouseState & InputState::eDown)
-    {
-        mInputState.mRightMouseState |= InputState::eHeld;
-    }
-    else if (mInputState.mRightMouseState & InputState::eUp)
-    {
-        mInputState.mRightMouseState = 0;
-    }
-
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -275,19 +258,13 @@ void Engine::Update()
         case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEBUTTONDOWN:
         {
+            mInputState.OnMouseButtonEvent(event.button);
+
             int guiKey = -1;
+
             if (event.button.button == SDL_BUTTON_LEFT)
             {
                 guiKey = GUI_KEY_LMB;
-
-                if (event.type == SDL_MOUSEBUTTONUP)
-                {
-                    mInputState.mLeftMouseState = InputState::eUp;
-                }
-                else
-                {
-                    mInputState.mLeftMouseState = InputState::eDown;
-                }
             }
             else if (event.button.button == SDL_BUTTON_MIDDLE)
             {
@@ -296,15 +273,6 @@ void Engine::Update()
             else if (event.button.button == SDL_BUTTON_RIGHT)
             {
                 guiKey = GUI_KEY_RMB;
-
-                if (event.type == SDL_MOUSEBUTTONUP)
-                {
-                    mInputState.mRightMouseState = InputState::eUp;
-                }
-                else
-                {
-                    mInputState.mRightMouseState = InputState::eDown;
-                }
             }
 
             if (guiKey >= 0)
@@ -332,9 +300,29 @@ void Engine::Update()
             }
 
         } break;
+
+        case SDL_CONTROLLERDEVICEADDED:
+            mInputState.AddController(event.cdevice);
+            break;
+
+        case SDL_CONTROLLERDEVICEREMOVED:
+            mInputState.RemoveController(event.cdevice);
+            break;
+
+        case SDL_CONTROLLERBUTTONDOWN:
+        case SDL_CONTROLLERBUTTONUP:
+            mInputState.OnControllerButton(event.cbutton);
+            break;
+
+        case SDL_CONTROLLERAXISMOTION:
+            mInputState.OnControllerAxis(event.caxis);
+            break;
+
         case SDL_KEYDOWN:
         case SDL_KEYUP:
         {
+            mInputState.OnKeyEvent(event.key);
+
             if (event.type == SDL_KEYDOWN && event.key.keysym.sym == 13)
             {
                 const u32 windowFlags = SDL_GetWindowFlags(mWindow);
@@ -370,28 +358,28 @@ void Engine::Update()
         }
     }
 
-    { // Set rest of gui input state which wasn't set in event polling loop
-        SDL_PumpEvents();
+    // Set rest of gui input state which wasn't set in event polling loop
+    SDL_PumpEvents();
 
-        int mouse_x, mouse_y;
-        SDL_GetMouseState(&mouse_x, &mouse_y);
-        mGui->cursor_pos[0] = mouse_x;
-        mGui->cursor_pos[1] = mouse_y;
+    int mouse_x, mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+    mGui->cursor_pos[0] = mouse_x;
+    mGui->cursor_pos[1] = mouse_y;
 
-        mInputState.mMouseX = mouse_x;
-        mInputState.mMouseY = mouse_y;
+    mInputState.mMousePosition.mX = mouse_x;
+    mInputState.mMousePosition.mY = mouse_y;
 
-        if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT))
-        {
-            mGui->key_state[GUI_KEY_LMB] |= GUI_KEYSTATE_DOWN_BIT;
-        }
-
-
-        if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LCTRL])
-        {
-            mGui->key_state[GUI_KEY_LCTRL] |= GUI_KEYSTATE_DOWN_BIT;
-        }
+    if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT))
+    {
+        mGui->key_state[GUI_KEY_LMB] |= GUI_KEYSTATE_DOWN_BIT;
     }
+
+    if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LCTRL])
+    {
+        mGui->key_state[GUI_KEY_LCTRL] |= GUI_KEYSTATE_DOWN_BIT;
+    }
+
+    mInputState.Update();
 
     mStateMachine.Input(mInputState);
     mStateMachine.Update();
@@ -420,7 +408,7 @@ void Engine::Render()
 
 bool Engine::InitSDL()
 {
-    if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS) != 0)
+    if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS | SDL_INIT_HAPTIC) != 0)
     {
         LOG_ERROR("SDL_Init failed " << SDL_GetError());
         return false;
@@ -556,7 +544,8 @@ void Engine::InitGL()
     SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &doubleBuffer);
     LOG_INFO("GL settings r " << r << " g " << g << " b " << b << " bufferSize " << bufferSize << " double buffer " << doubleBuffer);
 
-    SDL_GL_SetSwapInterval(0); // No vsync for gui, for responsiveness
+    SDL_GL_SetSwapInterval(1);
+    //SDL_GL_SetSwapInterval(0); // No vsync for gui, for responsiveness
 
     if (gl3wInit()) 
     {

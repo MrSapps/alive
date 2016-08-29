@@ -22,9 +22,9 @@ void Player::Update()
     mAnims[0]->Update();
 }
 
-void Player::Input(InputState& input)
+void Player::Input(const InputState& input)
 {
-    if (input.mLeftMouseState == 0)
+    if (input.mMouseButtons[0].mIsDown)
     {
         mAnims[0]->SetXPos(mAnims[0]->XPos() + 1);
     }
@@ -52,7 +52,7 @@ void Level::EnterState()
     mPlayer.Init(mLocator);
 }
 
-void Level::Input(InputState& input)
+void Level::Input(const InputState& input)
 {
     mPlayer.Input(input);
 }

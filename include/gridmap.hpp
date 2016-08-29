@@ -22,7 +22,7 @@ public:
     void Init(ResourceLocator& locator);
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
-    void Input(InputState& input);
+    void Input(const InputState& input);
 private:
     std::vector<std::unique_ptr<Animation>> mAnims;
 };
@@ -34,7 +34,7 @@ public:
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
     void EnterState();
-    void Input(InputState& input);
+    void Input(const InputState& input);
 private:
     void RenderDebugPathSelection(Renderer& rend, GuiContext& gui);
     std::unique_ptr<class GridMap> mMap;
