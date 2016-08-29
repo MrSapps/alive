@@ -336,7 +336,7 @@ public:
     {
         if (mControllers.empty())
         {
-            return false;
+            return nullptr;
         }
         return mControllers.begin()->second.get();
     }
