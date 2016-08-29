@@ -24,27 +24,14 @@ void Player::Update()
 
 void Player::Input(const InputState& input)
 {
-    if (input.mKeys[SDL_SCANCODE_LEFT].mIsDown)
+    if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
     {
-        mAnims[0]->SetXPos(mAnims[0]->XPos() - 1);
+        mAnims[0]->SetXPos(mAnims[0]->XPos() - 3);
     }
-    else if(input.mKeys[SDL_SCANCODE_RIGHT].mIsDown)
+    else if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
     {
-        mAnims[0]->SetXPos(mAnims[0]->XPos() + 1);
+        mAnims[0]->SetXPos(mAnims[0]->XPos() + 3);
     }
-
-    if (input.ActiveController())
-    {
-        if (input.ActiveController()->mGamePadButtons[SDL_CONTROLLER_BUTTON_DPAD_LEFT].mIsDown)
-        {
-            mAnims[0]->SetXPos(mAnims[0]->XPos() - 1);
-        }
-        else if (input.ActiveController()->mGamePadButtons[SDL_CONTROLLER_BUTTON_DPAD_RIGHT].mIsDown)
-        {
-            mAnims[0]->SetXPos(mAnims[0]->XPos() + 1);
-        }
-    }
-
 }
 
 void Player::Render(Renderer& rend, GuiContext& /*gui*/, int /*screenW*/, int /*screenH*/)

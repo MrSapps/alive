@@ -68,6 +68,31 @@ void setWindowsIcon(SDL_Window *sdlWindow)
 }
 #endif
 
+void InputMapping::Update(const InputState& input)
+{
+    for (const auto& cfg : mKeyBoardConfig)
+    {
+        mButtons[cfg.second].mRawDownState = input.mKeys[cfg.first].mRawDownState;
+    }
+
+    if (input.ActiveController())
+    {
+        for (const auto& cfg : mGamePadConfig)
+        {
+            // The keyboard key isn't pressed so take the controller key state
+            if (mButtons[cfg.second].mRawDownState == false)
+            {
+                mButtons[cfg.second].mRawDownState = input.ActiveController()->mGamePadButtons[cfg.first].mRawDownState;
+            }
+        }
+    }
+
+    for (InputItemState& inputItem : mButtons)
+    {
+        inputItem.UpdateState();
+    }
+}
+
 Engine::Engine()
 {
 

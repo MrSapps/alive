@@ -86,71 +86,110 @@ private:
     std::unique_ptr<class IState> mPreviousState = nullptr;
 };
 
+struct InputItemState final
+{
+public:
+    // True for the frame that the key was first pressed down
+    // false after that.
+    bool mIsPressed = false;
+
+    // True for the frame that key went from mIsDown == true to mIsDown == false
+    bool mIsReleased = false;
+
+    // True the whole the they key is held down, false the reset of the time
+    bool mIsDown = false;
+
+    void UpdateState()
+    {
+        if (mRawDownState)
+        {
+            if (!mIsPressed && !mIsDown)
+            {
+                mIsReleased = false;
+                mIsPressed = true;
+                mIsDown = true;
+            }
+            else if (mIsDown)
+            {
+                mIsPressed = false;
+                mIsReleased = false;
+            }
+        }
+        else
+        {
+            // First time the button has gone up after it was down
+            if (mIsPressed || mIsDown)
+            {
+                mIsReleased = true;
+            }
+            // Second time or later we've seen the button is up after it was down
+            else
+            {
+                mIsReleased = false;
+            }
+            mIsPressed = false;
+            mIsDown = false;
+        }
+    }
+
+    // Private raw input state used to calculate mIsPressed and mIsDown, set 
+    // on response to key input events
+    bool mRawDownState = false;
+};
+
+class InputMapping
+{
+public:
+    enum EPsxButtons
+    {
+        Cross,
+        Triangle,
+        Circle,
+        Square,
+        Left,
+        Right,
+        Up,
+        Down,
+        L1,
+        L2,
+        R1,
+        R2,
+        Start,
+        Select,
+        Max
+    };
+
+    void Update(const InputState& input);
+
+    InputMapping()
+    {
+        // TODO: Set up default key mappings
+        mKeyBoardConfig[SDL_SCANCODE_LEFT] = Left;
+        mKeyBoardConfig[SDL_SCANCODE_RIGHT] = Right;
+
+        mGamePadConfig[SDL_CONTROLLER_BUTTON_DPAD_LEFT] = Left;
+        mGamePadConfig[SDL_CONTROLLER_BUTTON_DPAD_RIGHT] = Right;
+    }
+
+    InputItemState mButtons[Max];
+
+    // TODO: Allow remapping/read from config file
+    std::map<SDL_Scancode, EPsxButtons> mKeyBoardConfig;
+    std::map<SDL_GameControllerButton, EPsxButtons> mGamePadConfig;
+};
+
 class InputState final
 {
 public:
-    struct InputItemState final
-    {
-    public:
-        // True for the frame that the key was first pressed down
-        // false after that.
-        bool mIsPressed = false;
-
-        // True for the frame that key went from mIsDown == true to mIsDown == false
-        bool mIsReleased = false;
-
-        // True the whole the they key is held down, false the reset of the time
-        bool mIsDown = false;
-
-        void UpdateState()
-        {
-            if (mRawDownState)
-            {
-                if (!mIsPressed && !mIsDown)
-                {
-                    mIsReleased = false;
-                    mIsPressed = true;
-                    mIsDown = true;
-                }
-                else if (mIsDown)
-                {
-                    mIsPressed = false;
-                }
-            }
-            else
-            {
-                // First time the button has gone up after it was down
-                if (mIsPressed || mIsDown)
-                {
-                    mIsReleased = true;
-                }
-                // Second time or later we've seen the button is up after it was down
-                else
-                {
-                    mIsReleased = false;
-                }
-                mIsPressed = false;
-                mIsDown = false;
-            }
-        }
-    private:
-        // Private raw input state used to calculate mIsPressed and mIsDown, set 
-        // on response to key input events
-        bool mRawDownState = false;
-
-        // So InputState can set mRawDownState
-        friend class InputState;
-    };
-
     void Update()
     {
         // Update set set outside of polling loop
-        for (InputState::InputItemState& inputItem : mKeys)
+        for (InputItemState& inputItem : mKeys)
         {
             inputItem.UpdateState();
         }
 
-        for (InputState::InputItemState& inputItem : mMouseButtons)
+        for (InputItemState& inputItem : mMouseButtons)
         {
             inputItem.UpdateState();
         }
@@ -159,6 +198,7 @@ public:
         {
             controller.second->Update();
         }
+        mInputMapping.Update(*this);
     }
 
     void OnKeyEvent(const SDL_KeyboardEvent& event)
@@ -298,7 +338,7 @@ public:
 
         void Update()
         {
-            for (InputState::InputItemState& inputItem : mGamePadButtons)
+            for (InputItemState& inputItem : mGamePadButtons)
             {
                 inputItem.UpdateState();
             }
@@ -341,6 +381,7 @@ public:
         return mControllers.begin()->second.get();
     }
 
+    const InputMapping& Mapping() const { return mInputMapping; }
 private:
     void AddController(s32 i)
     {
@@ -361,6 +402,7 @@ private:
     }
 
     std::map<u32, std::unique_ptr<Controller>> mControllers;
+    InputMapping mInputMapping;
 };
 
 class Engine final
