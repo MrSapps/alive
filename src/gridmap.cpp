@@ -79,12 +79,15 @@ void Level::Update()
 void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 {
     RenderDebugPathSelection(rend, gui);
+
+    rend.beginLayer(9000);
+    mPlayer.Render(rend, gui, screenW, screenH);
+    rend.endLayer();
+
     if (mMap)
     {
         mMap->Render(rend, gui, screenW, screenH);
     }
-
-    mPlayer.Render(rend, gui, screenW, screenH);
 }
 
 void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
