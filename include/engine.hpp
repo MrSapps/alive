@@ -145,14 +145,14 @@ public:
     void Update()
     {
         // Update set set outside of polling loop
-        for (InputState::InputItemState& k : mKeys)
+        for (InputState::InputItemState& inputItem : mKeys)
         {
-            k.UpdateState();
+            inputItem.UpdateState();
         }
 
-        for (InputState::InputItemState& k : mMouseButtons)
+        for (InputState::InputItemState& inputItem : mMouseButtons)
         {
-            k.UpdateState();
+            inputItem.UpdateState();
         }
 
         for (auto& controller : mControllers)
@@ -194,7 +194,15 @@ public:
     void AddController(const SDL_ControllerDeviceEvent& event)
     {
         LOG_INFO("Adding controller (dynamic)");
-        AddController(event.which);
+        auto it = mControllers.find(event.which);
+        if (it == std::end(mControllers))
+        {
+            AddController(event.which);
+        }
+        else
+        {
+            LOG_WARNING("Controlled already added (statically?)");
+        }
     }
 
     void RemoveController(const SDL_ControllerDeviceEvent& event)
@@ -269,35 +277,47 @@ public:
         ~Controller()
         {
             TRACE_ENTRYEXIT;
-            SDL_GameControllerClose(mController);
             HapticClose();
+            SDL_GameControllerClose(mController);
         }
 
         void OnControllerButton(const SDL_ControllerButtonEvent& event)
         {
             mGamePadButtons[event.button].mRawDownState = (event.type == SDL_CONTROLLERBUTTONDOWN);
-
-            if (mHaptic && event.type == SDL_CONTROLLERBUTTONDOWN)
+            if (mGamePadButtons[event.button].mRawDownState)
             {
-                SDL_HapticRumblePlay(mHaptic, 0.5, 2000);
+                Rumble(1.0f);
             }
         }
 
-        void OnControllerAxis(const SDL_ControllerAxisEvent&)
+        void OnControllerAxis(const SDL_ControllerAxisEvent& event)
         {
-            LOG_INFO("TODO: OnControllerAxis");
-
-            // TODO: Update mGamePadAxes
+            mGamePadAxes[event.axis] = event.value;
+            Rumble(1.0f);
         }
 
         void Update()
         {
-            for (InputState::InputItemState& k : mGamePadButtons)
+            for (InputState::InputItemState& inputItem : mGamePadButtons)
             {
-                k.UpdateState();
+                inputItem.UpdateState();
             }
         }
 
+        void Rumble(f32 strength)
+        {
+            if (mHaptic)
+            {
+                if (SDL_HapticRumblePlay(mHaptic, strength, 300) != 0)
+                {
+                    LOG_ERROR("SDL_HapticRumblePlay: " << SDL_GetError());
+                }
+            }
+        }
+
+        // Index into using SDL_CONTROLLER_*
+        InputItemState mGamePadButtons[SDL_CONTROLLER_BUTTON_MAX];
+        f32 mGamePadAxes[SDL_CONTROLLER_AXIS_MAX] = {};
     private:
         void HapticClose()
         {
@@ -310,12 +330,16 @@ public:
 
         SDL_GameController* mController = nullptr;
         SDL_Haptic* mHaptic = nullptr;
-
-        // Index into using SDL_CONTROLLER_*
-        InputItemState mGamePadButtons[SDL_CONTROLLER_BUTTON_MAX];
-
-        InputPosition mGamePadAxes[SDL_CONTROLLER_AXIS_MAX];
     };
+
+    const Controller* ActiveController() const
+    {
+        if (mControllers.empty())
+        {
+            return false;
+        }
+        return mControllers.begin()->second.get();
+    }
 
 private:
     void AddController(s32 i)
