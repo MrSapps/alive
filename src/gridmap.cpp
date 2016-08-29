@@ -26,11 +26,11 @@ void Player::Input(const InputState& input)
 {
     if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
     {
-        mAnims[0]->SetXPos(mAnims[0]->XPos() - 3);
+        mAnims[0]->SetXPos(mAnims[0]->XPos() - 8);
     }
     else if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
     {
-        mAnims[0]->SetXPos(mAnims[0]->XPos() + 3);
+        mAnims[0]->SetXPos(mAnims[0]->XPos() + 8);
     }
 }
 

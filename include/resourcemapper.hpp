@@ -1734,8 +1734,7 @@ public:
     void Update()
     {
         mCounter++;
-        // We double the update rate because we run logic at 60fps where as the original game runs it at 30
-        if (mCounter > mAnim.Animation().Fps() * 2)
+        if (mCounter > mAnim.Animation().Fps())
         {
             mCounter = 0;
             mFrameNum++;

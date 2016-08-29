@@ -333,7 +333,7 @@ public:
         void OnControllerAxis(const SDL_ControllerAxisEvent& event)
         {
             mGamePadAxes[event.axis] = event.value;
-            Rumble(1.0f);
+            //Rumble(1.0f);
         }
 
         void Update()
