@@ -14,29 +14,50 @@
 
 void Player::Init(ResourceLocator& locator)
 {
-    mAnims.push_back(locator.LocateAnimation("ABEBSIC.BAN_10_AePc_34"));
+    // BAN_10_AePc_1 crouch to roll forward
+    // BAN_10_AePc_1 rolling
+    // BAN_10_AePc_11 stand to crouch
+    // BAN_10_AePc_11 crouch idle
+    // BAN_10_AePc_24 crouch turn
+    // BAN_10_AePc_27 sneak
+    // BAN_55_AePc_2 stand to walk?
+    // BAN_55_AePc_4 walk
+    // BAN_55_AePc_5 stand
+    // BAN_55_AePc_7 speak
+
+
+    mAnims.push_back(locator.LocateAnimation("ABEBSIC1.BAN_55_AePc_5"));
+    mAnims.push_back(locator.LocateAnimation("ABEBSIC1.BAN_55_AePc_4"));
 }
 
 void Player::Update()
 {
-    mAnims[0]->Update();
+    mAnims[mAnim]->Update();
 }
 
 void Player::Input(const InputState& input)
 {
     if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
     {
-        mAnims[0]->SetXPos(mAnims[0]->XPos() - 8);
+        mXPos -= 4.0f;
+        mAnim = 1;
     }
     else if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
     {
-        mAnims[0]->SetXPos(mAnims[0]->XPos() + 8);
+        mXPos += 4.0f;
+        mAnim = 1;
+    }
+    else
+    {
+        mAnim = 0;
     }
 }
 
 void Player::Render(Renderer& rend, GuiContext& /*gui*/, int /*screenW*/, int /*screenH*/)
 {
-    mAnims[0]->Render(rend);
+    mAnims[mAnim]->SetXPos(static_cast<s32>(mXPos));
+    mAnims[mAnim]->SetYPos(static_cast<s32>(mYPos));
+    mAnims[mAnim]->Render(rend);
 }
 
 Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator)
