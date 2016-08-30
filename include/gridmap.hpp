@@ -25,6 +25,9 @@ public:
     void Input(const InputState& input);
 private:
     std::vector<std::unique_ptr<Animation>> mAnims;
+    float mXPos = 200.0f;
+    float mYPos = 500.0f;
+    u32 mAnim = 0;
 };
 
 class Level
