@@ -125,7 +125,7 @@ static void CenterWnd(HWND wnd)
 static void SubClassWindow()
 {
     HWND wnd = FindWindow("ABE_WINCLASS", NULL);
-    g_pOldProc = (WNDPROC)SetWindowLong(wnd, GWLP_WNDPROC, (LONG)NewWindowProc);
+    g_pOldProc = (WNDPROC)SetWindowLong(wnd, GWL_WNDPROC, (LONG)NewWindowProc);
 
     for (int i = 0; i < 70; ++i)
     {

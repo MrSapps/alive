@@ -332,7 +332,9 @@ SET_PROPERTY(TARGET bin2h PROPERTY FOLDER "Header generators")
 
 # Hook dll used for hacking/reversing hard coded game logic
 # to reimplement in ALIVE
-if (MSVC)
+
+
+if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
     add_library(ddraw SHARED
         tools/engine_hook/exports.def
         tools/engine_hook/dllmain.cpp
