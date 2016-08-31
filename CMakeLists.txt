@@ -330,6 +330,17 @@ TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
 add_executable(bin2h tools/bin2h/bin2h.cpp)
 SET_PROPERTY(TARGET bin2h PROPERTY FOLDER "Header generators")
 
+# Hook dll used for hacking/reversing hard coded game logic
+# to reimplement in ALIVE
+if (MSVC)
+    add_library(ddraw SHARED
+        tools/engine_hook/exports.def
+        tools/engine_hook/dllmain.cpp
+        tools/engine_hook/ddraw7proxy.hpp
+        tools/engine_hook/dsurface7proxy.hpp
+        )
+endif()
+
 
 # Bake binary test files in C array/header files
 function(make_header src dst targetname varname)
