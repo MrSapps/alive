@@ -2,6 +2,8 @@
 #include <vector>
 #include "ddraw7proxy.hpp"
 
+#include "detours.h"
+
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_Primary;
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_BackBuffer;
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_FakePrimary;
@@ -13,6 +15,7 @@ using TDirectDrawCreate = decltype(&NewDirectDrawCreate);
 inline void FatalExit(const char* msg)
 {
     ::MessageBox(NULL, msg, "Error", MB_OK | MB_ICONEXCLAMATION);
+    exit(-1);
 }
 
 static HMODULE LoadRealDDrawDll()
@@ -146,9 +149,6 @@ static void SubClassWindow()
     ShowWindow(wnd, SW_SHOW);
 
     InvalidateRect(GetDesktopWindow(), NULL, TRUE);
-
-    // TODO: Hook this function, setting the style here fails
-    SetWindowLong(wnd, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 }
 
 static void PatchWindowTitle()
@@ -167,8 +167,28 @@ static void PatchWindowTitle()
     }
 }
 
+using TSetWindowLongA = decltype(&SetWindowLongA);
+TSetWindowLongA pRealSetWindowLongA = &SetWindowLongA;
+
+LONG WINAPI Hook_SetWindowLongA(HWND hWnd, int nIndex, LONG dwNewLong)
+{
+    if (nIndex == GWL_STYLE)
+    {
+        dwNewLong = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+    }
+    return pRealSetWindowLongA(hWnd, nIndex, dwNewLong);
+}
+
 void HookMain()
 {
+    DetourTransactionBegin();
+    DetourUpdateThread(GetCurrentThread());
+    DetourAttach(&(PVOID&)pRealSetWindowLongA, Hook_SetWindowLongA);
+    if (DetourTransactionCommit() != NO_ERROR)
+    {
+        FatalExit("detouring SetWindowLongA failed");
+    }
+
     SubClassWindow();
     PatchWindowTitle();
 }

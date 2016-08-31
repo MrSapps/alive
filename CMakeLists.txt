@@ -97,6 +97,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate/common
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/rapidjson/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/Detours/src
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${GTK3_INCLUDE_DIRS}
 )
@@ -330,17 +331,28 @@ TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
 add_executable(bin2h tools/bin2h/bin2h.cpp)
 SET_PROPERTY(TARGET bin2h PROPERTY FOLDER "Header generators")
 
+SET(OLD_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+
 # Hook dll used for hacking/reversing hard coded game logic
 # to reimplement in ALIVE
-
-
 if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
+  
+    SET(detours_src 
+        3rdParty/Detours/src/detours.cpp
+        3rdParty/Detours/src/disasm.cpp)
+
+    set_source_files_properties(${detours_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4091 /DDETOURS_X86 /DDETOURS_32BIT")
+
+    add_library(detours STATIC ${detours_src})
+    SET_PROPERTY(TARGET detours PROPERTY FOLDER "3rdparty")
+
     add_library(ddraw SHARED
         tools/engine_hook/exports.def
         tools/engine_hook/dllmain.cpp
         tools/engine_hook/ddraw7proxy.hpp
         tools/engine_hook/dsurface7proxy.hpp
         )
+    TARGET_LINK_LIBRARIES(ddraw detours)
 endif()
 
 
@@ -473,8 +485,6 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesOddyseePcDem
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesOddyseePsxDemo.json" DESTINATION "${DATA_DIR}/GameDefinitions")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesOddyseePsx.json" DESTINATION "${DATA_DIR}/GameDefinitions")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/Developer mode.json" DESTINATION "${DATA_DIR}/GameDefinitions")
-
-SET(OLD_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 
 if (MSVC)
     # Build cpp files on all cores

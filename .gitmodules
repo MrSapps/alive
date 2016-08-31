@@ -32,3 +32,6 @@
 	path = 3rdParty/nativefiledialog
 	url = https://github.com/paulsapps/nativefiledialog.git
 	branch = NFD_PickFolder
+[submodule "3rdParty/Detours"]
+	path = 3rdParty/Detours
+	url = https://github.com/paulsapps/Detours.git
