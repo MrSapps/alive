@@ -167,8 +167,42 @@ static void PatchWindowTitle()
     }
 }
 
-using TSetWindowLongA = decltype(&SetWindowLongA);
-TSetWindowLongA pRealSetWindowLongA = &SetWindowLongA;
+template<class FunctionType>
+class Hook
+{
+public:
+    Hook(const Hook&) = delete;
+    Hook& operator = (const Hook&) = delete;
+    explicit Hook(FunctionType oldFunc)
+        : mOldPtr(oldFunc)
+    {
+
+    }
+
+    void Install(FunctionType newFunc)
+    {
+        DetourTransactionBegin();
+        DetourUpdateThread(GetCurrentThread());
+        DetourAttach(&(PVOID&)mOldPtr, newFunc);
+        if (DetourTransactionCommit() != NO_ERROR)
+        {
+            FatalExit("detouring failed");
+        }
+    }
+
+    FunctionType Real() const
+    {
+        return mOldPtr;
+    }
+
+private:
+    FunctionType mOldPtr;
+};
+
+namespace Hooks
+{
+    Hook<decltype(&::SetWindowLongA)> SetWindowLong(::SetWindowLongA);
+}
 
 LONG WINAPI Hook_SetWindowLongA(HWND hWnd, int nIndex, LONG dwNewLong)
 {
@@ -176,18 +210,12 @@ LONG WINAPI Hook_SetWindowLongA(HWND hWnd, int nIndex, LONG dwNewLong)
     {
         dwNewLong = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
     }
-    return pRealSetWindowLongA(hWnd, nIndex, dwNewLong);
+    return Hooks::SetWindowLong.Real()(hWnd, nIndex, dwNewLong);
 }
 
 void HookMain()
 {
-    DetourTransactionBegin();
-    DetourUpdateThread(GetCurrentThread());
-    DetourAttach(&(PVOID&)pRealSetWindowLongA, Hook_SetWindowLongA);
-    if (DetourTransactionCommit() != NO_ERROR)
-    {
-        FatalExit("detouring SetWindowLongA failed");
-    }
+    Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
 
     SubClassWindow();
     PatchWindowTitle();
