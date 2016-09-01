@@ -51,6 +51,15 @@ void Player::Input(const InputState& input)
     {
         mAnim = 0;
     }
+
+    if (input.Mapping().mButtons[InputMapping::Up].mIsDown)
+    {
+        mYPos -= 4.0f;
+    }
+    else if (input.Mapping().mButtons[InputMapping::Down].mIsDown)
+    {
+        mYPos += 4.0f;
+    }
 }
 
 void Player::Render(Renderer& rend, GuiContext& /*gui*/, int /*screenW*/, int /*screenH*/)

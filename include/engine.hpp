@@ -166,9 +166,14 @@ public:
         // TODO: Set up default key mappings
         mKeyBoardConfig[SDL_SCANCODE_LEFT] = Left;
         mKeyBoardConfig[SDL_SCANCODE_RIGHT] = Right;
+        mKeyBoardConfig[SDL_SCANCODE_UP] = Up;
+        mKeyBoardConfig[SDL_SCANCODE_DOWN] = Down;
 
         mGamePadConfig[SDL_CONTROLLER_BUTTON_DPAD_LEFT] = Left;
         mGamePadConfig[SDL_CONTROLLER_BUTTON_DPAD_RIGHT] = Right;
+        mGamePadConfig[SDL_CONTROLLER_BUTTON_DPAD_UP] = Up;
+        mGamePadConfig[SDL_CONTROLLER_BUTTON_DPAD_DOWN] = Down;
+
     }
 
     InputItemState mButtons[Max];

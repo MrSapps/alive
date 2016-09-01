@@ -167,7 +167,7 @@ static void PatchWindowTitle()
     }
 }
 
-template<class FunctionType>
+template<class FunctionType, class RealFunctionType = FunctionType>
 class Hook
 {
 public:
@@ -175,6 +175,12 @@ public:
     Hook& operator = (const Hook&) = delete;
     explicit Hook(FunctionType oldFunc)
         : mOldPtr(oldFunc)
+    {
+
+    }
+
+    explicit Hook(DWORD oldFunc)
+        : mOldPtr(reinterpret_cast<FunctionType>(oldFunc))
     {
 
     }
@@ -190,18 +196,23 @@ public:
         }
     }
 
-    FunctionType Real() const
+    RealFunctionType Real() const
     {
-        return mOldPtr;
+        #pragma warning(suppress: 4191)
+        return reinterpret_cast<RealFunctionType>(mOldPtr);
     }
 
 private:
     FunctionType mOldPtr;
 };
 
+static int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
+typedef int(__thiscall* set_first_camera_thiscall)(void *thisPtr, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
+
 namespace Hooks
 {
     Hook<decltype(&::SetWindowLongA)> SetWindowLong(::SetWindowLongA);
+    Hook<decltype(&::set_first_camera_hook), set_first_camera_thiscall> set_first_camera(0x00401415);
 }
 
 LONG WINAPI Hook_SetWindowLongA(HWND hWnd, int nIndex, LONG dwNewLong)
@@ -213,9 +224,32 @@ LONG WINAPI Hook_SetWindowLongA(HWND hWnd, int nIndex, LONG dwNewLong)
     return Hooks::SetWindowLong.Real()(hWnd, nIndex, dwNewLong);
 }
 
+static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
+{
+    // AE Cheat screen, I think we have to fake cheat input or set a bool for this to work :(
+    // cameraNumber = 31;
+
+    // Setting to Feco lets us go directly in game, with the side effect that pausing will crash
+    // and some other nasties, still its good enough for debugging animations
+    levelNumber = 5;
+
+    // Abe "hello" screen when levelNumber is left as the intro level
+    cameraNumber = 1;
+
+    // pathNumber = 4;
+
+    // 5 = "flash" on
+    // 4 = top to bottom
+    // 8 = door effect/sound
+    screenChangeEffect = 5;
+
+    return Hooks::set_first_camera.Real()(thisPtr, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
+}
+
 void HookMain()
 {
     Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
+    Hooks::set_first_camera.Install(set_first_camera_hook);
 
     SubClassWindow();
     PatchWindowTitle();
