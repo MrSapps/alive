@@ -1,8 +1,8 @@
 #include <windows.h>
 #include <vector>
 #include "ddraw7proxy.hpp"
-
 #include "detours.h"
+#include "logger.hpp"
 
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_Primary;
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_BackBuffer;
@@ -209,10 +209,61 @@ private:
 static int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
 typedef int(__thiscall* set_first_camera_thiscall)(void *thisPtr, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
 
+struct anim_struct
+{
+    void* mVtbl;
+    BYTE field_4; // max w?
+    BYTE field_5; // max h?
+    WORD flags;
+    DWORD field_8;
+    WORD field_C;
+    WORD field_E;
+    DWORD field_10;
+    DWORD field_14;
+    DWORD mFrameTableOffset; // offset to frame table from anim data header
+    DWORD field_1C;
+    void** field_20; // pointer to a pointer which points to anim data?
+    DWORD iDbufPtr;
+    DWORD iAnimSize;
+    DWORD field_2C;
+    DWORD field_30;
+    DWORD field_34;
+    DWORD field_38;
+    DWORD field_3C;
+    DWORD field_40;
+    DWORD field_44;
+    DWORD field_48;
+    DWORD field_4C;
+    DWORD field_50;
+    DWORD field_54;
+    DWORD field_58;
+    DWORD field_5C;
+    DWORD field_60;
+    DWORD field_64;
+    DWORD field_68;
+    DWORD field_6C;
+    DWORD field_70;
+    DWORD field_74;
+    DWORD field_78;
+    DWORD field_7C;
+    DWORD field_80;
+    WORD iRect;
+    WORD field_86;
+    WORD field_88;
+    WORD field_8A;
+    DWORD field_8C;
+    WORD field_90;
+    WORD field_92;
+};
+
+void __fastcall anim_decode_hook(anim_struct* thisPtr, void*);
+typedef void (__thiscall* anim_decode_thiscall)(anim_struct* thisPtr);
+
 namespace Hooks
 {
     Hook<decltype(&::SetWindowLongA)> SetWindowLong(::SetWindowLongA);
     Hook<decltype(&::set_first_camera_hook), set_first_camera_thiscall> set_first_camera(0x00401415);
+    Hook<decltype(&::anim_decode_hook), anim_decode_thiscall> anim_decode(0x0040AC90);
 }
 
 LONG WINAPI Hook_SetWindowLongA(HWND hWnd, int nIndex, LONG dwNewLong)
@@ -246,10 +297,20 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
     return Hooks::set_first_camera.Real()(thisPtr, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
 }
 
+void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
+{
+    // TODO Hook int __fastcall get_anim_frame_q(int a1, int a2, __int16 a3)  @ 0x004042CD
+    // seems its return value can be used to get the anim data frame pointer
+
+    OutputDebugString("anim_decode\n");
+    Hooks::anim_decode.Real()(thisPtr);
+}
+
 void HookMain()
 {
     Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
     Hooks::set_first_camera.Install(set_first_camera_hook);
+    Hooks::anim_decode.Install(anim_decode_hook);
 
     SubClassWindow();
     PatchWindowTitle();
