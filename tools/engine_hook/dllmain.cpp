@@ -3,6 +3,7 @@
 #include "ddraw7proxy.hpp"
 #include "detours.h"
 #include "logger.hpp"
+#include "types.hpp"
 
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_Primary;
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_BackBuffer;
@@ -209,20 +210,22 @@ private:
 static int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
 typedef int(__thiscall* set_first_camera_thiscall)(void *thisPtr, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
 
+#pragma pack(push)
+#pragma pack(1)
 struct anim_struct
 {
     void* mVtbl;
-    BYTE field_4; // max w?
-    BYTE field_5; // max h?
-    WORD flags;
-    DWORD field_8;
+    WORD field_4; // max w?
+    WORD field_6; // max h?
+    DWORD mFlags;
     WORD field_C;
     WORD field_E;
-    DWORD field_10;
+    WORD field_10;
+    WORD field_12;
     DWORD field_14;
     DWORD mFrameTableOffset; // offset to frame table from anim data header
     DWORD field_1C;
-    void** field_20; // pointer to a pointer which points to anim data?
+    BYTE** mAnimChunkPtrs; // pointer to a pointer which points to anim data?
     DWORD iDbufPtr;
     DWORD iAnimSize;
     DWORD field_2C;
@@ -253,17 +256,22 @@ struct anim_struct
     WORD field_8A;
     DWORD field_8C;
     WORD field_90;
-    WORD field_92;
+    WORD mFrameNum;
 };
+#pragma pack(pop)
+static_assert(sizeof(anim_struct) == 0x94, "Wrong size");
 
 void __fastcall anim_decode_hook(anim_struct* thisPtr, void*);
 typedef void (__thiscall* anim_decode_thiscall)(anim_struct* thisPtr);
+
+int __fastcall get_anim_frame_hook(anim_struct* thisPtr, int a2, __int16 a3);
 
 namespace Hooks
 {
     Hook<decltype(&::SetWindowLongA)> SetWindowLong(::SetWindowLongA);
     Hook<decltype(&::set_first_camera_hook), set_first_camera_thiscall> set_first_camera(0x00401415);
     Hook<decltype(&::anim_decode_hook), anim_decode_thiscall> anim_decode(0x0040AC90);
+    Hook<decltype(&::get_anim_frame_hook)> get_anim_frame(0x0040B730);
 }
 
 LONG WINAPI Hook_SetWindowLongA(HWND hWnd, int nIndex, LONG dwNewLong)
@@ -297,13 +305,83 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
     return Hooks::set_first_camera.Real()(thisPtr, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
 }
 
+struct AnimationHeader2
+{
+    u16 mFps = 0;            // Seems to be 0x1 or 0x2
+    u16 mNumFrames = 0;      // Number of frames in the set
+
+                             // If loop flag set then this is the frame to loop back to
+    u16 mLoopStartFrame = 0;
+
+    enum eFlags
+    {
+        eFlipXFlag = 0x4,
+        eFlipYFlag = 0x8,
+        eNeverUnload = 0x1,
+        eLoopFlag = 0x2
+    };
+    u16 mFlags = 0;
+};
+
+struct Point2
+{
+    s16 x = 0;
+    s16 y = 0;
+};
+
+struct FrameInfoHeader2
+{
+    u32 mFrameHeaderOffset = 0;
+    u32 mMagic = 0;
+
+    // Collision bounding rectangle
+    Point2 mTopLeft;
+    Point2 mBottomRight;
+
+    s16 mOffx = 0;
+    s16 mOffy = 0;
+};
+
 void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
 {
-    // TODO Hook int __fastcall get_anim_frame_q(int a1, int a2, __int16 a3)  @ 0x004042CD
-    // seems its return value can be used to get the anim data frame pointer
+    //OutputDebugString("anim_decode\n");
 
-    OutputDebugString("anim_decode\n");
+    /*
+    if (thisPtr->mFlags & 0x20)
+    {
+        Hooks::anim_decode.Real()(thisPtr);
+        return;
+    }
+    */
+
+    if (thisPtr->mAnimChunkPtrs)
+    {
+        const BYTE* animChunkPtr = *thisPtr->mAnimChunkPtrs + thisPtr->mFrameTableOffset;
+        const AnimationHeader2* hdr = (AnimationHeader2*)animChunkPtr;
+
+        DWORD* ptr = (DWORD*)*thisPtr->mAnimChunkPtrs;
+        DWORD* id = ptr - 1;
+
+        std::string s = 
+            "anim id " + 
+            std::to_string(*id) + 
+            " frame(" + std::to_string(thisPtr->mFrameNum) + "/" + std::to_string(hdr->mNumFrames) + ")\n";
+
+        FrameInfoHeader2* p = (FrameInfoHeader2*)Hooks::get_anim_frame.Real()(thisPtr, thisPtr->mFrameNum, 0xFFFFu);
+        p = p;
+
+        OutputDebugString(s.c_str());
+    }
+  
     Hooks::anim_decode.Real()(thisPtr);
+}
+
+int __fastcall get_anim_frame_hook(anim_struct* thisPtr, int a2, __int16 a3)
+{
+    // loop flag?
+    // a3 = 0;
+    int ret = Hooks::get_anim_frame.Real()(thisPtr, a2, a3);
+    return ret;
 }
 
 void HookMain()
@@ -311,6 +389,7 @@ void HookMain()
     Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
     Hooks::set_first_camera.Install(set_first_camera_hook);
     Hooks::anim_decode.Install(anim_decode_hook);
+    Hooks::get_anim_frame.Install(get_anim_frame_hook);
 
     SubClassWindow();
     PatchWindowTitle();
