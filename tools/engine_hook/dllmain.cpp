@@ -7,6 +7,13 @@
 #include "oddlib/anim.hpp"
 #include "oddlib/stream.hpp"
 
+// Hack to access private parts of ResourceMapper
+#define private public
+
+#include "resourcemapper.hpp"
+
+#undef private
+
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_Primary;
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_BackBuffer;
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_FakePrimary;
@@ -309,6 +316,9 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
 
 struct AnimLogger
 {
+    std::unique_ptr<IFileSystem> mFileSystem;
+    std::unique_ptr<ResourceMapper> mResources;
+
     std::map<u32, std::unique_ptr<Oddlib::AnimSerializer>> mAnimCache;
     std::map<std::pair<u32, u32>, Oddlib::AnimSerializer*> mAnims;
 
@@ -342,9 +352,40 @@ struct AnimLogger
         }
     }
 
+    std::string Find(u32 id, u32 idx)
+    {
+        for (const auto& mapping : mResources->mAnimMaps)
+        {
+            for (const auto& location : mapping.second.mLocations)
+            {
+                if (location.mDataSetName == "AePc")
+                {
+                    for (const auto& file : location.mFiles)
+                    {
+                        if (file.mAnimationIndex == idx && file.mId == id)
+                        {
+                            return mapping.first;
+                        }
+                    }
+                }
+            }
+        }
+        return "";
+    }
+
     void LogAnim(u32 id, u32 idx)
     {
-        std::string s = "id: " + std::to_string(id) + " idx: " + std::to_string(idx) + "\n";
+        if (!mFileSystem)
+        {
+            mFileSystem = std::make_unique<GameFileSystem>();
+            if (!mFileSystem->Init())
+            {
+                LOG_ERROR("File system init failure");
+            }
+            mResources = std::make_unique<ResourceMapper>(*mFileSystem, "../../data/resources.json");
+        }
+
+        std::string s = "id: " + std::to_string(id) + " idx: " + std::to_string(idx) + " resource name: " + Find(id, idx) + "\n";
         OutputDebugString(s.c_str());
     }
 };
@@ -378,7 +419,7 @@ void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
         }
 
         // 55 index 5 = idle stand or walk
-        if (pTarget && thisPtr == pTarget)
+       // if (pTarget && thisPtr == pTarget)
         {
             // Force anim index 0
             // thisPtr->mFrameTableOffset = *(ptr + 1);
