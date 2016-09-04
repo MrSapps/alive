@@ -77,6 +77,9 @@ namespace Oddlib
         struct FrameInfoHeader;
         struct AnimationHeader
         {
+            // Meta data - the offset where this record was read from
+            u32 mOffset = 0;
+
             u16 mFps = 0;            // Seems to be 0x1 or 0x2
             u16 mNumFrames = 0;      // Number of frames in the set
 

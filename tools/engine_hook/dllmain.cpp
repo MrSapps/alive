@@ -4,6 +4,8 @@
 #include "detours.h"
 #include "logger.hpp"
 #include "types.hpp"
+#include "oddlib/anim.hpp"
+#include "oddlib/stream.hpp"
 
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_Primary;
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_BackBuffer;
@@ -223,7 +225,7 @@ struct anim_struct
     WORD field_10;
     WORD field_12;
     DWORD field_14;
-    DWORD mFrameTableOffset; // offset to frame table from anim data header
+    DWORD mAnimationHeaderOffset; // offset to frame table from anim data header
     DWORD field_1C;
     BYTE** mAnimChunkPtrs; // pointer to a pointer which points to anim data?
     DWORD iDbufPtr;
@@ -354,23 +356,57 @@ void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
     }
     */
 
+    static anim_struct* pTarget = nullptr;
+
     if (thisPtr->mAnimChunkPtrs)
     {
-        const BYTE* animChunkPtr = *thisPtr->mAnimChunkPtrs + thisPtr->mFrameTableOffset;
+        const BYTE* animChunkPtr = *thisPtr->mAnimChunkPtrs + thisPtr->mAnimationHeaderOffset;
         const AnimationHeader2* hdr = (AnimationHeader2*)animChunkPtr;
 
         DWORD* ptr = (DWORD*)*thisPtr->mAnimChunkPtrs;
         DWORD* id = ptr - 1;
 
-        std::string s = 
-            "anim id " + 
-            std::to_string(*id) + 
-            " frame(" + std::to_string(thisPtr->mFrameNum) + "/" + std::to_string(hdr->mNumFrames) + ")\n";
+        // 303 = dust
+        if (*id == 55 && pTarget == nullptr)
+        {
+            pTarget = thisPtr;
+        }
 
-        FrameInfoHeader2* p = (FrameInfoHeader2*)Hooks::get_anim_frame.Real()(thisPtr, thisPtr->mFrameNum, 0xFFFFu);
-        p = p;
+        // 55 index 5 = idle stand or walk
+        if (pTarget && thisPtr == pTarget)
+        {
+            // Force anim index 0
+            // thisPtr->mFrameTableOffset = *(ptr + 1);
 
-        OutputDebugString(s.c_str());
+            std::vector<u8> data(
+                reinterpret_cast<u8*>(ptr), 
+                reinterpret_cast<u8*>(ptr) + (*(ptr-4) - sizeof(DWORD)*4));
+
+            Oddlib::MemoryStream ms(std::move(data));
+            Oddlib::AnimSerializer as(ms, false);
+
+            u32 idx = 0;
+            for (const auto& anim : as.Animations())
+            {
+                if (anim->mOffset == thisPtr->mAnimationHeaderOffset)
+                {
+                    break;
+                }
+                idx++;
+            }
+
+            std::string s =
+                "thisptr " + std::to_string(reinterpret_cast<DWORD>(thisPtr)) +
+                " anim id " + std::to_string(*id) +
+                " anim index " + std::to_string(idx) + 
+                " frame(" + std::to_string(thisPtr->mFrameNum) + "/" + std::to_string(hdr->mNumFrames) + ")\n";
+
+            FrameInfoHeader2* p = (FrameInfoHeader2*)Hooks::get_anim_frame.Real()(thisPtr, thisPtr->mFrameNum, 0xFFFFu);
+            p = p;
+
+            OutputDebugString(s.c_str());
+        }
+
     }
   
     Hooks::anim_decode.Real()(thisPtr);

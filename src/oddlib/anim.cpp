@@ -414,6 +414,7 @@ namespace Oddlib
     {
         // Collect all animation sets
         auto hdr = std::make_unique<AnimationHeader>();
+        hdr->mOffset = mStream.Pos();
         mStream.Read(hdr->mFps);
         mStream.Read(hdr->mNumFrames);
         mStream.Read(hdr->mLoopStartFrame);
