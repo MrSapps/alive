@@ -34,8 +34,6 @@ namespace Oddlib
     FileStream::FileStream(const std::string& fileName, ReadMode mode)
         : mMode(mode)
     {
-        TRACE_ENTRYEXIT;
-
         mName = fileName;
 
         auto s = std::make_unique<std::fstream>();
@@ -68,6 +66,8 @@ namespace Oddlib
         s->seekg(std::ios::beg);
 
         mStream = std::move(s);
+
+        LOG_INFO("Opened " << fileName << " in mode " << static_cast<u32>(mode));
     }
 
     IStream* FileStream::Clone()
