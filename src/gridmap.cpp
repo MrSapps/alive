@@ -12,51 +12,242 @@
 #include "resourcemapper.hpp"
 #include "engine.hpp"
 
+const char* kAbeAnims[] =
+{
+    "AbeCrouchToRoll",
+    "AbeRolling",
+    "AbeRunningJumpInAir",
+    "AbeStandToCrouch",
+    "AbeHitGroundToStand",
+    "AbeStandToJump",
+    "AbeJumpUpFalling",
+    "AbeCrouchToStand",
+    "AbeCrouchIdle",
+    "AbeRunningTurnAroundToWalk",
+    "AbeStandToIDunno",
+    "AbeStandToRun",
+    "AbeRunningToSkidTurn",
+    "AbeRunningTurnAround",
+    "AbeCrouchTurnAround",
+    "AbeRuningToJump",
+    "AbeIDunno",
+    "AbeRunning",
+    "AbeRunningSkidStop",
+    "AbeStandTurnAroundToRunning",
+    "AbeHoppingToStand",
+    "AbeStandToHop",
+    "AbeHopping",
+    "AbeCrouchSpeak1",
+    "AbeCrouchSpeak2",
+    "AbeStandSlap",
+    "AbeStandSpeak1",
+    "AbeWalkToStand",
+    "AbeStandToWalk",
+    "AbeWalkToStandMidGrid",
+    "AbeWalking",
+    "AbeStandIdle",
+    "AbeStandSpeak5",
+    "AbeStandSpeak2",
+    "AbeStandingSpeak4",
+    "AbeStandSpeak3",
+    "AbeStandTurnAround",
+    "AbeStandEnterDoor",
+    "AbeStandExitDoor",
+    "AbeFreeFall",
+    "AbeHoistDropDown",
+    "AbeStandToFallingFromTrapDoor",
+    "AbeRunningOffEdge",
+    "AbeStandingSkidOffEdge",
+    "AbeRollingToFalling",
+    "AbeJumpInAirStartToFall",
+    "AbeHoistSwinging",
+    "AbeHoistPullSelfUp",
+    "AbeHoistDangling",
+    "AbeStandToHoistDown",
+    "AbeStandPushWall",
+    "AbeFallBackStanding",
+    "AbeCrouchFallBack",
+    "AbeRollingToHitWall",
+    "AbeStandToFallOverFromHit",
+    "AbeStandingShotFromBackground",
+    "AbeCrouchingShotFromBackground",
+    "AbePullLiftRopeUp",
+    "AbeHoldingLiftRopeIdle",
+    "AbePullLiftRopeDown",
+    "AbeStandToGrabLiftRope",
+    "AbeGrabLiftRopeToStanding",
+    "AbeChantToStand",
+    "AbeStandToChant",
+    "AbeStandPullLever",
+    "AbeUsingStoneToStand",
+    "AbeStandToUseStone",
+    "AbeStandingThrow",
+    "AbeCrouchThrowing",
+    "AbeStandToThrow",
+    "AbeCrouchToThrow",
+    "AbeThrowToStand",
+    "AbeFallBackwardsIntoWell",
+    "AbeStandToEnterWell",
+    "AbeExitWellToStand",
+    "AbeExitMineCarToStand",
+    "AbeStandToEnterMineCar",
+    "AbeFreeFallToLand",
+    "AbeFallToSplatOnGround"
+};
+
+// AbeStandIdle -> AbeStandToWalk -> AbeWalking -> AbeWalkToStand
+//              -> AbeStandToCrouch
+//              -> AbeStandToJump
+//              -> AbeStandToIDunno
+//              -> AbeStandToRun
+
+struct WalkingState : public State
+{
+    WalkingState(Player& player) : State(player) { }
+
+    virtual void Enter() override
+    {
+        mPlayer.SetAnimation("AbeWalking");
+    }
+
+    virtual void Input(const InputState& input) override;
+};
+
+struct ToWalkState : public State
+{
+    ToWalkState(Player& player) : State(player) { }
+
+    virtual void Enter() override
+    {
+        mPlayer.SetAnimation("AbeStandToWalk");
+    }
+
+    virtual void Update() override
+    {
+        if (mPlayer.GetAnimation().IsDone())
+        {
+            mPlayer.ToState(std::make_unique<WalkingState>(mPlayer));
+        }
+    }
+
+    void Input(const InputState& input)
+    {
+        if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
+        {
+            mPlayer.mXPos -= 4.0f;
+        }
+        else if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
+        {
+            mPlayer.mXPos += 4.0f;
+        }
+    }
+};
+
+struct StandState : public State
+{
+    StandState(Player& player) : State(player) { }
+
+    virtual void Enter() override
+    {
+        mPlayer.SetAnimation("AbeStandIdle");
+    }
+
+    virtual void Input(const InputState& input) override
+    {
+        if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
+        {
+            mPlayer.ToState(std::make_unique<ToWalkState>(mPlayer));
+        }
+        else if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
+        {
+            mPlayer.ToState(std::make_unique<ToWalkState>(mPlayer));
+        }
+    }
+};
+
+struct WalkToIdleState : public State
+{
+    WalkToIdleState(Player& player) : State(player) { }
+
+    virtual void Enter() override
+    {
+        mPlayer.SetAnimation("AbeWalkToStand");
+    }
+
+    virtual void Update()
+    {
+        if (mPlayer.GetAnimation().IsDone())
+        {
+            mPlayer.ToState(std::make_unique<StandState>(mPlayer));
+        }
+    }
+};
+
+void WalkingState::Input(const InputState& input)
+{
+    if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
+    {
+        mPlayer.mXPos -= 4.0f;
+    }
+    else if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
+    {
+        mPlayer.mXPos += 4.0f;
+    }
+    else
+    {
+        mPlayer.ToState(std::make_unique<WalkToIdleState>(mPlayer));
+    }
+}
+
 void Player::Init(ResourceLocator& locator)
 {
+    for (const auto& anim : kAbeAnims)
+    {
+        mAnims.insert(std::make_pair(anim, locator.LocateAnimation(anim)));
+    }
 
-    mAnims.push_back(locator.LocateAnimation("AbeStandIdle"));
-    mAnims.push_back(locator.LocateAnimation("AbeWalking"));
+    ToState(std::make_unique<StandState>(*this));
 }
 
 void Player::Update()
 {
-    mAnims[mAnim]->Update();
+    mState->Update();
+    mAnim->Update();
 }
 
 void Player::Input(const InputState& input)
 {
-    if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
-    {
-        mXPos -= 4.0f;
-        mAnim = 1;
-    }
-    else if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
-    {
-        mXPos += 4.0f;
-        mAnim = 1;
-    }
-    else
-    {
-        mAnim = 0;
-    }
+    mState->Input(input);
+}
 
-    if (input.Mapping().mButtons[InputMapping::Up].mIsDown)
+void Player::SetAnimation(const char* animation)
+{
+    mAnim = mAnims[animation].get();
+    mAnim->Restart();
+}
+
+void Player::ToState(std::unique_ptr<State> state)
+{
+    if (mState)
     {
-        mYPos -= 4.0f;
+        mState->Exit();
     }
-    else if (input.Mapping().mButtons[InputMapping::Down].mIsDown)
+    mState = std::move(state);
+    if (mState)
     {
-        mYPos += 4.0f;
+        mState->Enter();
     }
 }
 
 void Player::Render(Renderer& rend, GuiContext& /*gui*/, int /*screenW*/, int /*screenH*/)
 {
-    mAnims[mAnim]->SetXPos(static_cast<s32>(mXPos));
-    mAnims[mAnim]->SetYPos(static_cast<s32>(mYPos));
-    mAnims[mAnim]->Render(rend);
+    mAnim->SetXPos(static_cast<s32>(mXPos));
+    mAnim->SetYPos(static_cast<s32>(mYPos));
+    mAnim->Render(rend);
 }
+
+// ============================================
+
 
 Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator)
     : mLocator(locator)

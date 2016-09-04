@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <map>
 #include <deque>
 #include "core/audiobuffer.hpp"
 #include "proxy_nanovg.h"
@@ -15,6 +16,27 @@ class InputState;
 
 namespace Oddlib { class LvlArchive; class IBits; }
 
+class Player;
+
+struct State
+{
+    std::string mName;
+
+    State(Player& player)
+        : mPlayer(player)
+    {
+
+    }
+
+    virtual ~State() = default;
+    virtual void Enter() {}
+    virtual void Exit() {}
+    virtual void Input(const InputState&) {}
+    virtual void Update() { }
+protected:
+    Player& mPlayer;
+};
+
 class Animation;
 class Player
 {
@@ -23,11 +45,15 @@ public:
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
     void Input(const InputState& input);
-private:
-    std::vector<std::unique_ptr<Animation>> mAnims;
+    void SetAnimation(const char* animation);
+    void ToState(std::unique_ptr<State> state);
+    Animation& GetAnimation() { return *mAnim; }
+public:
+    std::map<std::string, std::unique_ptr<Animation>> mAnims;
     float mXPos = 200.0f;
     float mYPos = 500.0f;
-    u32 mAnim = 0;
+    Animation* mAnim = nullptr;
+    std::unique_ptr<State> mState;
 };
 
 class Level

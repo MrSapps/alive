@@ -1750,10 +1750,13 @@ public:
                 else
                 {
                     mFrameNum = mAnim.Animation().NumFrames() - 1;
+                    mDone = true;
                 }
             }
         }
     }
+
+    bool IsDone() const { return mDone; }
 
     void Render(Renderer& rend) const
     {
@@ -1800,6 +1803,7 @@ public:
     void Restart()
     {
         mFrameNum = 0;
+        mDone = false;
     }
 
     bool Collision(s32 x, s32 y) const
@@ -1858,6 +1862,8 @@ private:
     s32 mXPos = 500;
     s32 mYPos = 800;
     f32 mScale = 3;
+
+    bool mDone = false;
 };
 
 template<typename KeyType, typename ValueType>
