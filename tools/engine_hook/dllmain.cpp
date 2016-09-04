@@ -307,42 +307,49 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
     return Hooks::set_first_camera.Real()(thisPtr, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
 }
 
-struct AnimationHeader2
+struct AnimLogger
 {
-    u16 mFps = 0;            // Seems to be 0x1 or 0x2
-    u16 mNumFrames = 0;      // Number of frames in the set
+    std::map<u32, std::unique_ptr<Oddlib::AnimSerializer>> mAnimCache;
+    std::map<std::pair<u32, u32>, Oddlib::AnimSerializer*> mAnims;
 
-                             // If loop flag set then this is the frame to loop back to
-    u16 mLoopStartFrame = 0;
-
-    enum eFlags
+    Oddlib::AnimSerializer* AddAnim(u32 id, u8* ptr, u32 size)
     {
-        eFlipXFlag = 0x4,
-        eFlipYFlag = 0x8,
-        eNeverUnload = 0x1,
-        eLoopFlag = 0x2
-    };
-    u16 mFlags = 0;
+        auto it = mAnimCache.find(id);
+        if (it == std::end(mAnimCache))
+        {
+            std::vector<u8> data(
+                reinterpret_cast<u8*>(ptr),
+                reinterpret_cast<u8*>(ptr) + size);
+
+            Oddlib::MemoryStream ms(std::move(data));
+            mAnimCache[id] = std::make_unique<Oddlib::AnimSerializer>(ms, false);
+            return AddAnim(id, ptr, size);
+        }
+        else
+        {
+            return it->second.get();
+        }
+    }
+
+    void Add(u32 id, u32 idx, Oddlib::AnimSerializer* anim)
+    {
+        auto key = std::make_pair(id, idx);
+        auto it = mAnims.find(key);
+        if (it == std::end(mAnims))
+        {
+            mAnims[key] = anim;
+            LogAnim(id, idx);
+        }
+    }
+
+    void LogAnim(u32 id, u32 idx)
+    {
+        std::string s = "id: " + std::to_string(id) + " idx: " + std::to_string(idx) + "\n";
+        OutputDebugString(s.c_str());
+    }
 };
 
-struct Point2
-{
-    s16 x = 0;
-    s16 y = 0;
-};
-
-struct FrameInfoHeader2
-{
-    u32 mFrameHeaderOffset = 0;
-    u32 mMagic = 0;
-
-    // Collision bounding rectangle
-    Point2 mTopLeft;
-    Point2 mBottomRight;
-
-    s16 mOffx = 0;
-    s16 mOffy = 0;
-};
+AnimLogger gAnimLogger;
 
 void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
 {
@@ -360,8 +367,6 @@ void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
 
     if (thisPtr->mAnimChunkPtrs)
     {
-        const BYTE* animChunkPtr = *thisPtr->mAnimChunkPtrs + thisPtr->mAnimationHeaderOffset;
-        const AnimationHeader2* hdr = (AnimationHeader2*)animChunkPtr;
 
         DWORD* ptr = (DWORD*)*thisPtr->mAnimChunkPtrs;
         DWORD* id = ptr - 1;
@@ -378,33 +383,33 @@ void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
             // Force anim index 0
             // thisPtr->mFrameTableOffset = *(ptr + 1);
 
-            std::vector<u8> data(
-                reinterpret_cast<u8*>(ptr), 
-                reinterpret_cast<u8*>(ptr) + (*(ptr-4) - sizeof(DWORD)*4));
-
-            Oddlib::MemoryStream ms(std::move(data));
-            Oddlib::AnimSerializer as(ms, false);
-
+            // Get anim from cache or add to cache
+            Oddlib::AnimSerializer* as = gAnimLogger.AddAnim(
+                *id, 
+                reinterpret_cast<u8*>(ptr),
+                *(ptr - 4) - (sizeof(DWORD) * 4));
+           
+            // Find out which index this anim is
+            bool found = false;
             u32 idx = 0;
-            for (const auto& anim : as.Animations())
+            for (const auto& anim : as->Animations())
             {
                 if (anim->mOffset == thisPtr->mAnimationHeaderOffset)
                 {
+                    found = true;
                     break;
                 }
                 idx++;
             }
 
-            std::string s =
-                "thisptr " + std::to_string(reinterpret_cast<DWORD>(thisPtr)) +
-                " anim id " + std::to_string(*id) +
-                " anim index " + std::to_string(idx) + 
-                " frame(" + std::to_string(thisPtr->mFrameNum) + "/" + std::to_string(hdr->mNumFrames) + ")\n";
-
-            FrameInfoHeader2* p = (FrameInfoHeader2*)Hooks::get_anim_frame.Real()(thisPtr, thisPtr->mFrameNum, 0xFFFFu);
-            p = p;
-
-            OutputDebugString(s.c_str());
+            if (found)
+            {
+                // Log the animation id/index against the parsed/cache animation
+                gAnimLogger.Add(
+                    *id,
+                    idx,
+                    as);
+            }
         }
 
     }
