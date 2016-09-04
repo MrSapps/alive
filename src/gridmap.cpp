@@ -14,17 +14,6 @@
 
 void Player::Init(ResourceLocator& locator)
 {
-    // BAN_10_AePc_1 crouch to roll forward
-    // BAN_10_AePc_1 rolling
-    // BAN_10_AePc_11 stand to crouch
-    // BAN_10_AePc_11 crouch idle
-    // BAN_10_AePc_24 crouch turn
-    // BAN_10_AePc_27 sneak
-    // BAN_55_AePc_2 stand to walk?
-    // BAN_55_AePc_4 walk
-    // BAN_55_AePc_5 stand
-    // BAN_55_AePc_7 speak
-
 
     mAnims.push_back(locator.LocateAnimation("ABEBSIC1.BAN_55_AePc_5"));
     mAnims.push_back(locator.LocateAnimation("ABEBSIC1.BAN_55_AePc_4"));

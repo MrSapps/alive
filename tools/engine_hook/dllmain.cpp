@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <windows.h>
 #include <vector>
 #include "ddraw7proxy.hpp"
@@ -294,6 +296,8 @@ LONG WINAPI Hook_SetWindowLongA(HWND hWnd, int nIndex, LONG dwNewLong)
 
 static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
 {
+    TRACE_ENTRYEXIT;
+
     // AE Cheat screen, I think we have to fake cheat input or set a bool for this to work :(
     // cameraNumber = 31;
 
@@ -373,20 +377,26 @@ struct AnimLogger
         return "";
     }
 
+    void ResourcesInit()
+    {
+        TRACE_ENTRYEXIT;
+        mFileSystem = std::make_unique<GameFileSystem>();
+        if (!mFileSystem->Init())
+        {
+            LOG_ERROR("File system init failure");
+        }
+        mResources = std::make_unique<ResourceMapper>(*mFileSystem, "../../data/resources.json");
+    }
+
     void LogAnim(u32 id, u32 idx)
     {
         if (!mFileSystem)
         {
-            mFileSystem = std::make_unique<GameFileSystem>();
-            if (!mFileSystem->Init())
-            {
-                LOG_ERROR("File system init failure");
-            }
-            mResources = std::make_unique<ResourceMapper>(*mFileSystem, "../../data/resources.json");
+            ResourcesInit();
         }
 
-        std::string s = "id: " + std::to_string(id) + " idx: " + std::to_string(idx) + " resource name: " + Find(id, idx) + "\n";
-        OutputDebugString(s.c_str());
+        std::string s = "id: " + std::to_string(id) + " idx: " + std::to_string(idx) + " resource name: " + Find(id, idx);
+        std::cout << "ANIM: " << s << std::endl; // use cout directly, don't want the function name etc here
     }
 };
 
@@ -394,16 +404,6 @@ AnimLogger gAnimLogger;
 
 void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
 {
-    //OutputDebugString("anim_decode\n");
-
-    /*
-    if (thisPtr->mFlags & 0x20)
-    {
-        Hooks::anim_decode.Real()(thisPtr);
-        return;
-    }
-    */
-
     static anim_struct* pTarget = nullptr;
 
     if (thisPtr->mAnimChunkPtrs)
@@ -412,6 +412,9 @@ void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
         DWORD* ptr = (DWORD*)*thisPtr->mAnimChunkPtrs;
         DWORD* id = ptr - 1;
 
+        // Comment out pTarget checks to log anims for everything that comes in here
+        // with pTarget its limited to abe anims only
+
         // 303 = dust
         if (*id == 55 && pTarget == nullptr)
         {
@@ -419,7 +422,7 @@ void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
         }
 
         // 55 index 5 = idle stand or walk
-       // if (pTarget && thisPtr == pTarget)
+        if (pTarget && thisPtr == pTarget)
         {
             // Force anim index 0
             // thisPtr->mFrameTableOffset = *(ptr + 1);
@@ -468,6 +471,8 @@ int __fastcall get_anim_frame_hook(anim_struct* thisPtr, int a2, __int16 a3)
 
 void HookMain()
 {
+    TRACE_ENTRYEXIT;
+
     Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
     Hooks::set_first_camera.Install(set_first_camera_hook);
     Hooks::anim_decode.Install(anim_decode_hook);
@@ -491,8 +496,19 @@ HRESULT WINAPI NewDirectDrawCreate(GUID* lpGUID, IDirectDraw** lplpDD, IUnknown*
     return ret;
 }
 
+static bool gConsoleDone = false;
+
 extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID /*lpReserved*/)
 {
+    if (!gConsoleDone)
+    {
+        gConsoleDone = true;
+        AllocConsole();
+        freopen("CONOUT$", "w", stdout);
+        SetConsoleTitle("ALIVE hook debug console");
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED);
+    }
+
     if (ul_reason_for_call == DLL_PROCESS_ATTACH)
     {
         gDllInstance = hModule;

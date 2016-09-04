@@ -10,13 +10,13 @@ namespace Oddlib
 {
     MemoryStream::MemoryStream(std::vector<u8>&& data)
     {
-        TRACE_ENTRYEXIT;
         mSize = data.size();
         auto s = std::make_unique<std::stringstream>();
         std::copy(data.begin(), data.end(), std::ostream_iterator<unsigned char>(*s));
         mStream = std::move(s);
         Seek(0);
         mName = "Memory buffer (" + std::to_string(mSize) + ") bytes";
+        LOG_INFO(mName);
     }
 
     IStream* MemoryStream::Clone()
