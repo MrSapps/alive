@@ -1601,7 +1601,10 @@ private:
         ParseAnimResourceLocations(obj, mapping);
 
         const auto& name = obj["name"].GetString();
-        mAnimMaps[name] = mapping;
+        if (!mAnimMaps.insert(std::make_pair(name, mapping)).second)
+        {
+            throw std::runtime_error(std::string(name) + " animation resource was already added! Remove the duplicate from the json.");
+        }
     }
 
     template<typename JsonObject>

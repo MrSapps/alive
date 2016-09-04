@@ -352,8 +352,9 @@ struct AnimLogger
         if (it == std::end(mAnims))
         {
             mAnims[key] = anim;
-            LogAnim(id, idx);
         }
+
+        LogAnim(id, idx);
     }
 
     std::string Find(u32 id, u32 idx)
@@ -388,15 +389,31 @@ struct AnimLogger
         mResources = std::make_unique<ResourceMapper>(*mFileSystem, "../../data/resources.json");
     }
 
+    std::string mLastResName;
+
     void LogAnim(u32 id, u32 idx)
     {
+        if (GetAsyncKeyState(VK_F2))
+        {
+            std::cout << "RELOAD RESOURCES" << std::endl;
+            mFileSystem = nullptr;
+            mResources = nullptr;
+        }
+
         if (!mFileSystem)
         {
             ResourcesInit();
         }
 
-        std::string s = "id: " + std::to_string(id) + " idx: " + std::to_string(idx) + " resource name: " + Find(id, idx);
-        std::cout << "ANIM: " << s << std::endl; // use cout directly, don't want the function name etc here
+        std::string resName = Find(id, idx);
+        if (resName != mLastResName)
+        {
+            std::string s = "id: " + std::to_string(id) + " idx: " + std::to_string(idx) + " resource name: " + resName;
+            std::cout << "ANIM: " << s << std::endl; // use cout directly, don't want the function name etc here
+            mLastResName = resName;
+        }
+
+        //::Sleep(128);
     }
 };
 

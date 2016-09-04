@@ -15,8 +15,8 @@
 void Player::Init(ResourceLocator& locator)
 {
 
-    mAnims.push_back(locator.LocateAnimation("ABEBSIC1.BAN_55_AePc_5"));
-    mAnims.push_back(locator.LocateAnimation("ABEBSIC1.BAN_55_AePc_4"));
+    mAnims.push_back(locator.LocateAnimation("AbeStandIdle"));
+    mAnims.push_back(locator.LocateAnimation("AbeWalking"));
 }
 
 void Player::Update()
