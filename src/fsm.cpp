@@ -127,8 +127,8 @@ void FiniteStateMachine::Construct()
        
         FsmStateTransition trans("ToWalk");
        
-        StateCondition pressLeft = "InputRight";
-        trans.AddCondition(pressLeft);
+        StateCondition pressRight("InputRight");
+        trans.AddCondition(pressRight);
 
         state.AddTransition(trans);
 
@@ -166,8 +166,8 @@ void FiniteStateMachine::Construct()
         state.AddEnterAction(sound);
 
         FsmStateTransition trans("ToIdle");
-        StateCondition pressLeft = "!InputRight";
-        trans.AddCondition(pressLeft);
+        StateCondition pressRight("!InputRight");
+        trans.AddCondition(pressRight);
 
 
         state.AddTransition(trans);
