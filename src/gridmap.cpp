@@ -102,6 +102,16 @@ const char* kAbeAnims[] =
 //              -> AbeStandToRun
 
 
+Player::Player(sol::state& luaState)
+    : mLuaState(luaState), mStateMachine(luaState)
+{
+
+}
+
+void LuaLog(const char* msg)
+{
+    LOG_INFO(msg);
+}
 
 void Player::Init(ResourceLocator& locator)
 {
@@ -109,6 +119,26 @@ void Player::Init(ResourceLocator& locator)
     {
         mAnims.insert(std::make_pair(anim, locator.LocateAnimation(anim)));
     }
+
+    mLuaState.set_function("print", [](const char* msg)
+    {
+        LuaLog(msg);
+    });
+
+    // Actions
+    mLuaState.set_function("SetAnimation", &Player::SetAnimation, this);
+    mLuaState.set_function("PlaySoundEffect", &Player::PlaySoundEffect, this);
+
+    // Conditions
+    mLuaState.set_function("IsAnimationFrameGreaterThan", &Player::IsAnimationFrameGreaterThan, this);
+
+
+    mLuaState.script("print(\"Hello\")\n");
+    mLuaState.script("SetAnimation(\"AbeExitMineCarToStand\")\n");
+    mLuaState.script("PlaySoundEffect(\"AbeExitMineCarToStand\")\n");
+    mLuaState.script("if IsAnimationFrameGreaterThan(5) then print(\"true branch\") else print(\"false branch\") end\n");
+
+
     mStateMachine.Conditions().Add("InputLeft",
         [&](FsmArgumentStack&) { return mLeft; });
 
@@ -171,7 +201,7 @@ bool Player::IsAnimationComplete() const
 
 bool Player::IsAnimationFrameGreaterThan(s32 frameNo) const
 {
-    return frameNo > mAnim->FrameNumber();
+    return mAnim->FrameNumber() > frameNo;
 }
 
 void Player::Render(Renderer& rend, GuiContext& /*gui*/, int /*screenW*/, int /*screenH*/)
@@ -183,17 +213,10 @@ void Player::Render(Renderer& rend, GuiContext& /*gui*/, int /*screenW*/, int /*
 
 // ============================================
 
-
-Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator)
-    : mLocator(locator)
+Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator, sol::state& luaState)
+    : mLocator(locator), mPlayer(luaState), mLuaState(luaState)
 {
-    mScript = std::make_unique<Script>();
-    /*
-    if (!mScript->Init(fs))
-    {
-        LOG_ERROR("Script init failed");
-    }
-    */
+
 }
 
 void Level::EnterState()
@@ -214,11 +237,6 @@ void Level::Update()
     }
 
     mPlayer.Update();
-
-    if (mScript)
-    {
-        //mScript->Update();
-    }
 }
 
 void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)

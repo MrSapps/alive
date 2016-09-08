@@ -98,6 +98,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/rapidjson/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/Detours/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/sol2/single
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${GTK3_INCLUDE_DIRS}
 )
@@ -278,8 +279,7 @@ SET(alivelib_src
     src/gridobject.cpp
     include/subtitles.hpp
     include/sdl_raii.hpp
-    include/script.hpp
-    src/script.cpp
+    include/proxy_sol.hpp
     include/resourcemapper.hpp
     src/resourcemapper.cpp
     include/zipfilesystem.hpp

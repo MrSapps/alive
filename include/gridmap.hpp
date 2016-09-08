@@ -6,9 +6,9 @@
 #include <deque>
 #include "core/audiobuffer.hpp"
 #include "proxy_nanovg.h"
-#include "script.hpp"
 #include "oddlib/path.hpp"
 #include "fsm.hpp"
+#include "proxy_sol.hpp"
 
 struct GuiContext;
 class Renderer;
@@ -21,6 +21,7 @@ class Animation;
 class Player
 {
 public:
+    Player(sol::state& luaState);
     void Init(ResourceLocator& locator);
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
@@ -30,6 +31,7 @@ public:
     float mXPos = 200.0f;
     float mYPos = 500.0f;
     Animation* mAnim = nullptr;
+    sol::state& mLuaState;
 
 private: // Actions
     void SetAnimation(const std::string& animation);
@@ -52,7 +54,7 @@ private: // Conditions
 class Level
 {
 public:
-    Level(IAudioController& audioController, ResourceLocator& locator);
+    Level(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState);
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
     void EnterState();
@@ -60,9 +62,9 @@ public:
 private:
     void RenderDebugPathSelection(Renderer& rend, GuiContext& gui);
     std::unique_ptr<class GridMap> mMap;
-    std::unique_ptr<Script> mScript;
     ResourceLocator& mLocator;
     Player mPlayer;
+    sol::state& mLuaState;
 };
 
 class GridScreen

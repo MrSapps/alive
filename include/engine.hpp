@@ -6,6 +6,7 @@
 #include <GL/gl3w.h>
 #include "core/audiobuffer.hpp"
 #include "resourcemapper.hpp"
+#include "proxy_sol.hpp"
 
 class StateMachine;
 class InputState;
@@ -452,4 +453,6 @@ protected:
     InputState mInputState;
 
     StateMachine mStateMachine;
+
+    sol::state mLuaState;
 };

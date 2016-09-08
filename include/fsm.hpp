@@ -2,6 +2,7 @@
 
 #include "logger.hpp"
 #include "types.hpp"
+#include "proxy_sol.hpp"
 #include <functional>
 #include <memory>
 #include <vector>
@@ -117,7 +118,7 @@ private:
 class FiniteStateMachine final
 {
 public:
-    FiniteStateMachine() = default;
+    FiniteStateMachine(sol::state& luaState);
     void Construct();
     void Update();
     bool ToState(const char* stateName);
@@ -128,4 +129,5 @@ private:
     TConditions mConditions;
     TActions mActions;
     FsmState* mActiveState = nullptr;
+    sol::state& mLuaState;
 };
