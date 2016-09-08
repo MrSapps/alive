@@ -43,6 +43,9 @@ private: // Conditions
     bool IsAnimationComplete() const;
     bool IsAnimationFrameGreaterThan(s32 frameNo) const;
 
+    bool mLeft = false;
+    bool mRight = false;
+
     FiniteStateMachine mStateMachine;
 };
 

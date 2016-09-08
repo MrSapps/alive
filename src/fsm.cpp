@@ -124,10 +124,11 @@ void FiniteStateMachine::Construct()
 
         state.AddEnterAction(action);
 
-        StateCondition animComplete = "IsAnimationComplete";
-
+       
         FsmStateTransition trans("ToWalk");
-        trans.AddCondition(animComplete);
+       
+        StateCondition pressLeft = "InputRight";
+        trans.AddCondition(pressLeft);
 
         state.AddTransition(trans);
 
@@ -164,10 +165,10 @@ void FiniteStateMachine::Construct()
         state.AddEnterAction(action);
         state.AddEnterAction(sound);
 
-        StateCondition animComplete("IsAnimationComplete");
-
         FsmStateTransition trans("ToIdle");
-        trans.AddCondition(animComplete);
+        StateCondition pressLeft = "!InputRight";
+        trans.AddCondition(pressLeft);
+
 
         state.AddTransition(trans);
 

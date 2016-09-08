@@ -109,18 +109,29 @@ void Player::Init(ResourceLocator& locator)
     {
         mAnims.insert(std::make_pair(anim, locator.LocateAnimation(anim)));
     }
+    mStateMachine.Conditions().Add("InputLeft",
+        [&](FsmArgumentStack&) { return mLeft; });
+
+    mStateMachine.Conditions().Add("!InputLeft",
+        [&](FsmArgumentStack&) { return !mLeft; });
+
+    mStateMachine.Conditions().Add("InputRight",
+        [&](FsmArgumentStack&) { return mRight; });
+
+    mStateMachine.Conditions().Add("!InputRight",
+        [&](FsmArgumentStack&) { return !mRight; });
 
     mStateMachine.Conditions().Add("IsAnimationComplete",
-        [this](FsmArgumentStack&) { return IsAnimationComplete(); });
+        [&](FsmArgumentStack&) { return IsAnimationComplete(); });
 
     mStateMachine.Conditions().Add("IsAnimationFrameGreaterThan",
-        [this](FsmArgumentStack& stack) { return IsAnimationFrameGreaterThan(stack.PopInt()); });
+        [&](FsmArgumentStack& stack) { return IsAnimationFrameGreaterThan(stack.PopInt()); });
 
     mStateMachine.Actions().Add("SetAnimation",
-        [this](FsmArgumentStack& stack) { SetAnimation(stack.PopString()); });
+        [&](FsmArgumentStack& stack) { SetAnimation(stack.PopString()); });
 
     mStateMachine.Actions().Add("PlaySoundEffect",
-        [this](FsmArgumentStack& stack) { PlaySoundEffect(stack.PopString()); });
+        [&](FsmArgumentStack& stack) { PlaySoundEffect(stack.PopString()); });
 
     mStateMachine.Construct();
 }
@@ -131,9 +142,20 @@ void Player::Update()
     mStateMachine.Update();
 }
 
-void Player::Input(const InputState& /*input*/)
+void Player::Input(const InputState& input)
 {
-    // TODO: Map to player FSM conditions
+    mLeft = false;
+    mRight = false;
+
+    if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
+    {
+        mLeft = true;
+    }
+    
+    if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
+    {
+        mRight = true;
+    }
 }
 
 void Player::SetAnimation(const std::string& animation)
