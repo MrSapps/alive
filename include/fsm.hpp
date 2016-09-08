@@ -17,10 +17,10 @@ public:
 
     void Add(const char* functionName, TEventFuncPtr function)
     {
-        const auto it = mFunctions.find(method);
+        const auto it = mFunctions.find(functionName);
         if (it != std::end(mFunctions))
         {
-            LOG_ERROR("Function: " << method.c_str() << " already added");
+            LOG_ERROR("Function: " << functionName << " already added");
         }
         else
         {

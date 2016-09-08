@@ -17,30 +17,6 @@ class InputState;
 
 namespace Oddlib { class LvlArchive; class IBits; }
 
-class Player;
-
-struct State
-{
-    std::string mName;
-
-    State(const State&) = delete;
-    State& operator = (const State&) = delete;
-
-    State(Player& player)
-        : mPlayer(player)
-    {
-
-    }
-
-    virtual ~State() = default;
-    virtual void Enter() {}
-    virtual void Exit() {}
-    virtual void Input(const InputState&) {}
-    virtual void Update() { }
-protected:
-    Player& mPlayer;
-};
-
 class Animation;
 class Player
 {
@@ -49,15 +25,25 @@ public:
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
     void Input(const InputState& input);
-    void SetAnimation(const char* animation);
-    void ToState(std::unique_ptr<State> state);
-    Animation& GetAnimation() { return *mAnim; }
 public:
     std::map<std::string, std::unique_ptr<Animation>> mAnims;
     float mXPos = 200.0f;
     float mYPos = 500.0f;
     Animation* mAnim = nullptr;
-    std::unique_ptr<State> mState;
+
+private: // Actions
+    void SetAnimation(const std::string& animation);
+
+    void PlaySoundEffect(const std::string& str)
+    {
+        LOG_WARNING("TODO: Play: " << str.c_str());
+    }
+
+private: // Conditions
+    bool IsAnimationComplete() const;
+    bool IsAnimationFrameGreaterThan(s32 frameNo) const;
+
+    FiniteStateMachine mStateMachine;
 };
 
 class Level

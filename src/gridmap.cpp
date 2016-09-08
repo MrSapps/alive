@@ -101,103 +101,7 @@ const char* kAbeAnims[] =
 //              -> AbeStandToIDunno
 //              -> AbeStandToRun
 
-struct WalkingState : public State
-{
-    WalkingState(Player& player) : State(player) { }
 
-    virtual void Enter() override
-    {
-        mPlayer.SetAnimation("AbeWalking");
-    }
-
-    virtual void Input(const InputState& input) override;
-};
-
-struct ToWalkState : public State
-{
-    ToWalkState(Player& player) : State(player) { }
-
-    virtual void Enter() override
-    {
-        mPlayer.SetAnimation("AbeStandToWalk");
-    }
-
-    virtual void Update() override
-    {
-        if (mPlayer.GetAnimation().IsDone())
-        {
-            mPlayer.ToState(std::make_unique<WalkingState>(mPlayer));
-        }
-    }
-
-    void Input(const InputState& input)
-    {
-        if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
-        {
-            mPlayer.mXPos -= 4.0f;
-        }
-        else if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
-        {
-            mPlayer.mXPos += 4.0f;
-        }
-    }
-};
-
-struct StandState : public State
-{
-    StandState(Player& player) : State(player) { }
-
-    virtual void Enter() override
-    {
-        mPlayer.SetAnimation("AbeStandIdle");
-    }
-
-    virtual void Input(const InputState& input) override
-    {
-        if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
-        {
-            mPlayer.ToState(std::make_unique<ToWalkState>(mPlayer));
-        }
-        else if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
-        {
-            mPlayer.ToState(std::make_unique<ToWalkState>(mPlayer));
-        }
-    }
-};
-
-struct WalkToIdleState : public State
-{
-    WalkToIdleState(Player& player) : State(player) { }
-
-    virtual void Enter() override
-    {
-        mPlayer.SetAnimation("AbeWalkToStand");
-    }
-
-    virtual void Update()
-    {
-        if (mPlayer.GetAnimation().IsDone())
-        {
-            mPlayer.ToState(std::make_unique<StandState>(mPlayer));
-        }
-    }
-};
-
-void WalkingState::Input(const InputState& input)
-{
-    if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
-    {
-        mPlayer.mXPos -= 4.0f;
-    }
-    else if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
-    {
-        mPlayer.mXPos += 4.0f;
-    }
-    else
-    {
-        mPlayer.ToState(std::make_unique<WalkToIdleState>(mPlayer));
-    }
-}
 
 void Player::Init(ResourceLocator& locator)
 {
@@ -206,37 +110,46 @@ void Player::Init(ResourceLocator& locator)
         mAnims.insert(std::make_pair(anim, locator.LocateAnimation(anim)));
     }
 
-    ToState(std::make_unique<StandState>(*this));
+    mStateMachine.Conditions().Add("IsAnimationComplete",
+        [this](FsmArgumentStack&) { return IsAnimationComplete(); });
+
+    mStateMachine.Conditions().Add("IsAnimationFrameGreaterThan",
+        [this](FsmArgumentStack& stack) { return IsAnimationFrameGreaterThan(stack.PopInt()); });
+
+    mStateMachine.Actions().Add("SetAnimation",
+        [this](FsmArgumentStack& stack) { SetAnimation(stack.PopString()); });
+
+    mStateMachine.Actions().Add("PlaySoundEffect",
+        [this](FsmArgumentStack& stack) { PlaySoundEffect(stack.PopString()); });
+
+    mStateMachine.Construct();
 }
 
 void Player::Update()
 {
-    mState->Update();
     mAnim->Update();
+    mStateMachine.Update();
 }
 
-void Player::Input(const InputState& input)
+void Player::Input(const InputState& /*input*/)
 {
-    mState->Input(input);
+    // TODO: Map to player FSM conditions
 }
 
-void Player::SetAnimation(const char* animation)
+void Player::SetAnimation(const std::string& animation)
 {
     mAnim = mAnims[animation].get();
     mAnim->Restart();
 }
 
-void Player::ToState(std::unique_ptr<State> state)
+bool Player::IsAnimationComplete() const
 {
-    if (mState)
-    {
-        mState->Exit();
-    }
-    mState = std::move(state);
-    if (mState)
-    {
-        mState->Enter();
-    }
+    return mAnim->IsDone();
+}
+
+bool Player::IsAnimationFrameGreaterThan(s32 frameNo) const
+{
+    return frameNo > mAnim->FrameNumber();
 }
 
 void Player::Render(Renderer& rend, GuiContext& /*gui*/, int /*screenW*/, int /*screenH*/)

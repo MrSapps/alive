@@ -60,7 +60,7 @@ bool FsmStateTransition::Evaulate(TConditions& events)
 
 void FsmState::Enter(TActions& actions)
 {
-    LOG_INFO("Enter state:" << mStateName.c_str());
+    LOG_INFO(mStateName.c_str());
     for (StateAction& action : mEnterActions)
     {
         action.Execute(actions);
@@ -120,7 +120,7 @@ void FiniteStateMachine::Construct()
         FsmState state("Idle");
 
         StateAction action("SetAnimation");
-        action.Arguments().Push("TheIdleAnim");
+        action.Arguments().Push("AbeStandIdle");
 
         state.AddEnterAction(action);
 
@@ -138,7 +138,7 @@ void FiniteStateMachine::Construct()
         FsmState state("ToWalk");
 
         StateAction action("SetAnimation");
-        action.Arguments().Push("TheToWalkAnim");
+        action.Arguments().Push("AbeStandToWalk");
 
         state.AddEnterAction(action);
 
@@ -156,7 +156,7 @@ void FiniteStateMachine::Construct()
         FsmState state("Walking");
 
         StateAction action("SetAnimation");
-        action.Arguments().Push("TheWalkingAnm");
+        action.Arguments().Push("AbeWalking");
 
         StateAction sound("PlaySoundEffect");
         sound.Arguments().Push("Walk effect");
@@ -178,7 +178,7 @@ void FiniteStateMachine::Construct()
         FsmState state("ToIdle");
 
         StateAction action("SetAnimation");
-        action.Arguments().Push("TheToIdleAnim");
+        action.Arguments().Push("AbeWalkToStand");
 
         state.AddEnterAction(action);
 
