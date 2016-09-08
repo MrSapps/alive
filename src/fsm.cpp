@@ -143,7 +143,7 @@ void FiniteStateMachine::Construct()
 
         state.AddEnterAction(action);
 
-        StateCondition animComplete = "IsAnimationComplete";
+        StateCondition animComplete("IsAnimationComplete");
 
         FsmStateTransition trans("Walking");
         trans.AddCondition(animComplete);
