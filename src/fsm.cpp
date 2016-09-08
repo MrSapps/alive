@@ -30,12 +30,12 @@ s32 FsmArgumentStack::PopInt()
 
 // =========================================================================
 
-void StateTransition::AddCondition(StateCondition condition)
+void FsmStateTransition::AddCondition(StateCondition condition)
 {
     mConditions.push_back(condition);
 }
 
-bool StateTransition::Evaulate(TConditions& events)
+bool FsmStateTransition::Evaulate(TConditions& events)
 {
     // Nothing to check, just move to next state
     if (mConditions.empty())
@@ -58,7 +58,7 @@ bool StateTransition::Evaulate(TConditions& events)
 
 // =========================================================================
 
-void State::Enter(TActions& actions)
+void FsmState::Enter(TActions& actions)
 {
     LOG_INFO("Enter state:" << mStateName.c_str());
     for (StateAction& action : mEnterActions)
@@ -67,12 +67,12 @@ void State::Enter(TActions& actions)
     }
 }
 
-const std::string* State::Update(TConditions& states)
+const std::string* FsmState::Update(TConditions& states)
 {
     // TODO: Need "Running" actions - for playing sound effects
     // per anim frame?
 
-    for (StateTransition& trans : mTransistions)
+    for (FsmStateTransition& trans : mTransistions)
     {
         if (trans.Evaulate(states))
         {
@@ -84,7 +84,7 @@ const std::string* State::Update(TConditions& states)
 
 // =========================================================================
 
-void StateMachine::Update()
+void FiniteStateMachine::Update()
 {
     if (mActiveState)
     {
@@ -96,9 +96,9 @@ void StateMachine::Update()
     }
 }
 
-bool StateMachine::ToState(const char* stateName)
+bool FiniteStateMachine::ToState(const char* stateName)
 {
-    for (State& state : mStates)
+    for (FsmState& state : mStates)
     {
         if (state.Name() == stateName)
         {
@@ -112,12 +112,12 @@ bool StateMachine::ToState(const char* stateName)
     return false;
 }
 
-void StateMachine::Construct()
+void FiniteStateMachine::Construct()
 {
     // All of this will come from a config file
 
     {
-        State state("Idle");
+        FsmState state("Idle");
 
         StateAction action("SetAnimation");
         action.Arguments().Push("TheIdleAnim");
@@ -126,7 +126,7 @@ void StateMachine::Construct()
 
         StateCondition animComplete = "IsAnimationComplete";
 
-        StateTransition trans("ToWalk");
+        FsmStateTransition trans("ToWalk");
         trans.AddCondition(animComplete);
 
         state.AddTransition(trans);
@@ -135,7 +135,7 @@ void StateMachine::Construct()
     }
 
     {
-        State state("ToWalk");
+        FsmState state("ToWalk");
 
         StateAction action("SetAnimation");
         action.Arguments().Push("TheToWalkAnim");
@@ -144,7 +144,7 @@ void StateMachine::Construct()
 
         StateCondition animComplete = "IsAnimationComplete";
 
-        StateTransition trans("Walking");
+        FsmStateTransition trans("Walking");
         trans.AddCondition(animComplete);
 
         state.AddTransition(trans);
@@ -153,7 +153,7 @@ void StateMachine::Construct()
     }
 
     {
-        State state("Walking");
+        FsmState state("Walking");
 
         StateAction action("SetAnimation");
         action.Arguments().Push("TheWalkingAnm");
@@ -166,7 +166,7 @@ void StateMachine::Construct()
 
         StateCondition animComplete("IsAnimationComplete");
 
-        StateTransition trans("ToIdle");
+        FsmStateTransition trans("ToIdle");
         trans.AddCondition(animComplete);
 
         state.AddTransition(trans);
@@ -175,7 +175,7 @@ void StateMachine::Construct()
     }
 
     {
-        State state("ToIdle");
+        FsmState state("ToIdle");
 
         StateAction action("SetAnimation");
         action.Arguments().Push("TheToIdleAnim");
@@ -184,7 +184,7 @@ void StateMachine::Construct()
 
         StateCondition animComplete("IsAnimationComplete");
 
-        StateTransition trans("Idle");
+        FsmStateTransition trans("Idle");
         trans.AddCondition(animComplete);
 
         state.AddTransition(trans);

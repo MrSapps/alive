@@ -8,6 +8,7 @@
 #include "proxy_nanovg.h"
 #include "script.hpp"
 #include "oddlib/path.hpp"
+#include "fsm.hpp"
 
 struct GuiContext;
 class Renderer;

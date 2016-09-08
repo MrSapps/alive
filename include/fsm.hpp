@@ -87,10 +87,10 @@ using TConditions = FunctionMap < bool, FsmArgumentStack& >;
 using StateCondition = FsmExecutor < TConditions, bool >;
 using StateAction = FsmExecutor < TActions, void >;
 
-class StateTransition final
+class FsmStateTransition final
 {
 public:
-    StateTransition(const std::string& name) : mTargetStateName(name) { }
+    FsmStateTransition(const std::string& name) : mTargetStateName(name) { }
     void AddCondition(StateCondition condition);
     bool Evaulate(TConditions& events);
     const std::string& Name() const { return mTargetStateName; }
@@ -99,33 +99,33 @@ private:
     std::vector<StateCondition> mConditions;
 };
 
-class State final
+class FsmState final
 {
 public:
-    State(const std::string& name) : mStateName(name) { }
+    FsmState(const std::string& name) : mStateName(name) { }
     void Enter(TActions& actions);
     const std::string* Update(TConditions& states);
     const std::string& Name() const { return mStateName; }
     void AddEnterAction(StateAction action) { mEnterActions.push_back(action); }
-    void AddTransition(StateTransition transition) { mTransistions.push_back(transition); }
+    void AddTransition(FsmStateTransition transition) { mTransistions.push_back(transition); }
 private:
     std::string mStateName;
     std::vector<StateAction> mEnterActions;
-    std::vector<StateTransition> mTransistions;
+    std::vector<FsmStateTransition> mTransistions;
 };
 
-class StateMachine final
+class FiniteStateMachine final
 {
 public:
-    StateMachine() = default;
+    FiniteStateMachine() = default;
     void Construct();
     void Update();
     bool ToState(const char* stateName);
     TConditions& Conditions() { return mConditions; }
     TActions& Actions() { return mActions; }
 private:
-    std::vector<State> mStates;
+    std::vector<FsmState> mStates;
     TConditions mConditions;
     TActions mActions;
-    State* mActiveState = nullptr;
+    FsmState* mActiveState = nullptr;
 };
