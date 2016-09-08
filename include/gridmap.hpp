@@ -22,6 +22,9 @@ struct State
 {
     std::string mName;
 
+    State(const State&) = delete;
+    State& operator = (const State&) = delete;
+
     State(Player& player)
         : mPlayer(player)
     {
