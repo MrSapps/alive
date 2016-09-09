@@ -110,7 +110,14 @@ Player::Player(sol::state& luaState)
 
 void LuaLog(const char* msg)
 {
-    LOG_INFO(msg);
+    if (msg)
+    {
+        LOG_INFO(msg);
+    }
+    else
+    {
+        LOG_INFO("nil");
+    }
 }
 
 void Player::Init(ResourceLocator& locator)
@@ -120,10 +127,7 @@ void Player::Init(ResourceLocator& locator)
         mAnims.insert(std::make_pair(anim, locator.LocateAnimation(anim)));
     }
 
-    mLuaState.set_function("print", [](const char* msg)
-    {
-        LuaLog(msg);
-    });
+    mLuaState.set_function("print", LuaLog);
 
     // Actions
     mLuaState.set_function("SetAnimation", &Player::SetAnimation, this);
@@ -132,6 +136,9 @@ void Player::Init(ResourceLocator& locator)
     // Conditions
     mLuaState.set_function("IsAnimationFrameGreaterThan", &Player::IsAnimationFrameGreaterThan, this);
 
+    // Load FSM script
+    const std::string script = locator.LocateScript("abe.lua");
+    mLuaState.script(script);
 
     mLuaState.script("print(\"Hello\")\n");
     mLuaState.script("SetAnimation(\"AbeExitMineCarToStand\")\n");

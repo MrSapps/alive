@@ -1989,6 +1989,8 @@ public:
         return mDataPaths;
     }
 
+    std::string LocateScript(const char* scriptName);
+
     std::unique_ptr<ISoundEffect> LocateSoundEffect(const char* resourceName);
     std::unique_ptr<IMusic> LocateMusic(const char* resourceName);
 
@@ -1997,6 +1999,7 @@ public:
     std::unique_ptr<Oddlib::IBits> LocateCamera(const char* resourceName);
     std::unique_ptr<class IMovie> LocateFmv(class IAudioController& audioController, const char* resourceName);
     std::unique_ptr<Animation> LocateAnimation(const char* resourceName);
+
 
     // This method should be used for debugging only - i.e so we can compare what resource X looks like
     // in dataset A and B.

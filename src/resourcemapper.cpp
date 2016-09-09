@@ -168,6 +168,20 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
     return mResMapper.DebugUi(renderer, gui, filter);
 }
 
+std::string ResourceLocator::LocateScript(const char* scriptName)
+{
+    // Look for the engine built-in script first
+    const std::string fileName = std::string("{GameDir}\\data\\scripts\\") + scriptName;
+    if (mDataPaths.GameFs().FileExists(fileName))
+    {
+        return mDataPaths.GameFs().Open(fileName)->LoadAllToString();
+    }
+
+    // TODO: Look in the mods for script overrides or new scripts
+    LOG_ERROR("Script not found: " << scriptName);
+
+    return "";
+}
 
 std::unique_ptr<ISoundEffect> ResourceLocator::LocateSoundEffect(const char* resourceName)
 {
