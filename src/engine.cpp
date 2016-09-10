@@ -148,6 +148,18 @@ bool Engine::Init()
     }
 }
 
+void LuaLog(const char* msg)
+{
+    if (msg)
+    {
+        LOG_INFO(msg);
+    }
+    else
+    {
+        LOG_INFO("nil");
+    }
+}
+
 void Engine::InitSubSystems()
 {
     mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
@@ -161,6 +173,11 @@ void Engine::InitSubSystems()
     }
 
     mInputState.AddControllers();
+
+    mLuaState.open_libraries(sol::lib::base);
+    
+    // Redirect lua print()
+    mLuaState.set_function("print", LuaLog);
 }
 
 // TODO: Using averaging value or anything that is more accurate than this

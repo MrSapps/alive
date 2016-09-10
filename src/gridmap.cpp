@@ -108,17 +108,6 @@ Player::Player(sol::state& luaState)
 
 }
 
-void LuaLog(const char* msg)
-{
-    if (msg)
-    {
-        LOG_INFO(msg);
-    }
-    else
-    {
-        LOG_INFO("nil");
-    }
-}
 
 void Player::Init(ResourceLocator& locator)
 {
@@ -127,14 +116,12 @@ void Player::Init(ResourceLocator& locator)
         mAnims.insert(std::make_pair(anim, locator.LocateAnimation(anim)));
     }
 
-    // TODO: Move to engine
-    mLuaState.set_function("print", LuaLog);
-
     mLuaState.new_usertype<Player>("player",
         "SetAnimation", &Player::SetAnimation,
         "PlaySoundEffect", &Player::PlaySoundEffect,
         "FrameNumber", &Player::FrameNumber,
-        "IsLastFrame", &Player::IsLastFrame);
+        "IsLastFrame", &Player::IsLastFrame,
+        "states", &Player::mStates);
 
     LoadScript(locator);
 }
@@ -146,14 +133,19 @@ void Player::LoadScript(ResourceLocator& locator)
     mLuaState.script(script);
 
     // Set initial state
-    mLuaState["init"](this);
+    sol::protected_function f = mLuaState["init"];
+    f(this);
 }
 
 void Player::Update()
 {
-    mAnim->Update();
+    if (mAnim)
+    {
+        mAnim->Update();
+    }
 
-    mLuaState["update"](this);
+    sol::protected_function f = mLuaState["update"];
+    f(this);
 }
 
 void Player::Input(const InputState& input)
@@ -195,9 +187,12 @@ void Player::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scre
     }
     gui_end_window(&gui);
 
-    mAnim->SetXPos(static_cast<s32>(mXPos));
-    mAnim->SetYPos(static_cast<s32>(mYPos));
-    mAnim->Render(rend);
+    if (mAnim)
+    {
+        mAnim->SetXPos(static_cast<s32>(mXPos));
+        mAnim->SetYPos(static_cast<s32>(mYPos));
+        mAnim->Render(rend);
+    }
 }
 
 // ============================================

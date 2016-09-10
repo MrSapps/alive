@@ -26,14 +26,13 @@ public:
     void Update();
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH, ResourceLocator& locator);
     void Input(const InputState& input);
-public:
+private:
     std::map<std::string, std::unique_ptr<Animation>> mAnims;
     float mXPos = 200.0f;
     float mYPos = 500.0f;
     Animation* mAnim = nullptr;
     sol::state& mLuaState;
-
-private:
+    sol::table mStates;
 
     void LoadScript(ResourceLocator& locator);
 
