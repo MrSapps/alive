@@ -112,12 +112,6 @@ bool FiniteStateMachine::ToState(const char* stateName)
     return false;
 }
 
-FiniteStateMachine::FiniteStateMachine(sol::state& luaState)
-    : mLuaState(luaState)
-{
-
-}
-
 void FiniteStateMachine::Construct()
 {
 

@@ -103,7 +103,7 @@ const char* kAbeAnims[] =
 
 
 Player::Player(sol::state& luaState)
-    : mLuaState(luaState), mStateMachine(luaState)
+    : mLuaState(luaState)
 {
 
 }
@@ -127,71 +127,59 @@ void Player::Init(ResourceLocator& locator)
         mAnims.insert(std::make_pair(anim, locator.LocateAnimation(anim)));
     }
 
+    // TODO: Move to engine
     mLuaState.set_function("print", LuaLog);
 
-    // Actions
-    mLuaState.set_function("SetAnimation", &Player::SetAnimation, this);
-    mLuaState.set_function("PlaySoundEffect", &Player::PlaySoundEffect, this);
+    mLuaState.new_usertype<Player>("player",
+        "SetAnimation", &Player::SetAnimation,
+        "PlaySoundEffect", &Player::PlaySoundEffect,
+        "FrameNumber", &Player::FrameNumber,
+        "IsLastFrame", &Player::IsLastFrame);
 
-    // Conditions
-    mLuaState.set_function("IsAnimationFrameGreaterThan", &Player::IsAnimationFrameGreaterThan, this);
+    LoadScript(locator);
+}
 
+void Player::LoadScript(ResourceLocator& locator)
+{
     // Load FSM script
     const std::string script = locator.LocateScript("abe.lua");
     mLuaState.script(script);
 
-    mLuaState.script("print(\"Hello\")\n");
-    mLuaState.script("SetAnimation(\"AbeExitMineCarToStand\")\n");
-    mLuaState.script("PlaySoundEffect(\"AbeExitMineCarToStand\")\n");
-    mLuaState.script("if IsAnimationFrameGreaterThan(5) then print(\"true branch\") else print(\"false branch\") end\n");
-
-
-    mStateMachine.Conditions().Add("InputLeft",
-        [&](FsmArgumentStack&) { return mLeft; });
-
-    mStateMachine.Conditions().Add("!InputLeft",
-        [&](FsmArgumentStack&) { return !mLeft; });
-
-    mStateMachine.Conditions().Add("InputRight",
-        [&](FsmArgumentStack&) { return mRight; });
-
-    mStateMachine.Conditions().Add("!InputRight",
-        [&](FsmArgumentStack&) { return !mRight; });
-
-    mStateMachine.Conditions().Add("IsAnimationComplete",
-        [&](FsmArgumentStack&) { return IsAnimationComplete(); });
-
-    mStateMachine.Conditions().Add("IsAnimationFrameGreaterThan",
-        [&](FsmArgumentStack& stack) { return IsAnimationFrameGreaterThan(stack.PopInt()); });
-
-    mStateMachine.Actions().Add("SetAnimation",
-        [&](FsmArgumentStack& stack) { SetAnimation(stack.PopString()); });
-
-    mStateMachine.Actions().Add("PlaySoundEffect",
-        [&](FsmArgumentStack& stack) { PlaySoundEffect(stack.PopString()); });
-
-    mStateMachine.Construct();
+    // Set initial state
+    try
+    {
+        mLuaState["init"](this);
+    }
+    catch (const sol::error& ex)
+    {
+        LOG_ERROR(ex.what());
+    }
 }
 
 void Player::Update()
 {
     mAnim->Update();
-    mStateMachine.Update();
+
+    try
+    {
+        mLuaState["update"](this);
+    }
+    catch (const sol::error& ex)
+    {
+        LOG_ERROR(ex.what());
+    }
 }
 
 void Player::Input(const InputState& input)
 {
-    mLeft = false;
-    mRight = false;
-
     if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
     {
-        mLeft = true;
+
     }
     
     if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
     {
-        mRight = true;
+
     }
 }
 
@@ -201,18 +189,26 @@ void Player::SetAnimation(const std::string& animation)
     mAnim->Restart();
 }
 
-bool Player::IsAnimationComplete() const
+bool Player::IsLastFrame() const
 {
     return mAnim->IsDone();
 }
 
-bool Player::IsAnimationFrameGreaterThan(s32 frameNo) const
+s32 Player::FrameNumber() const
 {
-    return mAnim->FrameNumber() > frameNo;
+    return mAnim->FrameNumber();
 }
 
-void Player::Render(Renderer& rend, GuiContext& /*gui*/, int /*screenW*/, int /*screenH*/)
+void Player::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*screenH*/, ResourceLocator& locator)
 {
+    // Debug ui
+    gui_begin_window(&gui, "Script debug");
+    if (gui_button(&gui, "Reload script"))
+    {
+        LoadScript(locator);
+    }
+    gui_end_window(&gui);
+
     mAnim->SetXPos(static_cast<s32>(mXPos));
     mAnim->SetYPos(static_cast<s32>(mYPos));
     mAnim->Render(rend);
@@ -251,7 +247,7 @@ void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     RenderDebugPathSelection(rend, gui);
 
     rend.beginLayer(9000);
-    mPlayer.Render(rend, gui, screenW, screenH);
+    mPlayer.Render(rend, gui, screenW, screenH, mLocator);
     rend.endLayer();
 
     if (mMap)

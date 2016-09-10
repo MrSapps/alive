@@ -17,7 +17,6 @@ void DeveloperScreen::Input(const InputState& input)
     // Set the "selected" animation
     if (!mSelected && input.mMouseButtons[0].mIsPressed)
     {
-        LOG_INFO("Get selected");
         for (auto& anim : mLoadedAnims)
         {
             if (anim->Collision(input.mMousePosition.mX, input.mMousePosition.mY))
@@ -26,8 +25,6 @@ void DeveloperScreen::Input(const InputState& input)
 
                 mXDelta = std::abs(mSelected->XPos() - input.mMousePosition.mX);
                 mYDelta = std::abs(mSelected->YPos() - input.mMousePosition.mY);
-
-                LOG_INFO("Got selected");
                 return;
             }
         }
@@ -43,15 +40,12 @@ void DeveloperScreen::Input(const InputState& input)
 
     if (input.mMouseButtons[0].mIsReleased)
     {
-        LOG_INFO("Release");
         mSelected = nullptr;
     }
 
     // When the right button is released delete the "selected" animation
     if (input.mMouseButtons[1].mIsPressed)
     {
-        LOG_INFO("Delete selected");
-
         for (auto it = mLoadedAnims.begin(); it != mLoadedAnims.end(); it++)
         {
             if ((*it)->Collision(input.mMousePosition.mX, input.mMousePosition.mY))

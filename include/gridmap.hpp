@@ -24,7 +24,7 @@ public:
     Player(sol::state& luaState);
     void Init(ResourceLocator& locator);
     void Update();
-    void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+    void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH, ResourceLocator& locator);
     void Input(const InputState& input);
 public:
     std::map<std::string, std::unique_ptr<Animation>> mAnims;
@@ -32,6 +32,10 @@ public:
     float mYPos = 500.0f;
     Animation* mAnim = nullptr;
     sol::state& mLuaState;
+
+private:
+
+    void LoadScript(ResourceLocator& locator);
 
 private: // Actions
     void SetAnimation(const std::string& animation);
@@ -41,14 +45,9 @@ private: // Actions
         LOG_WARNING("TODO: Play: " << str.c_str());
     }
 
-private: // Conditions
-    bool IsAnimationComplete() const;
-    bool IsAnimationFrameGreaterThan(s32 frameNo) const;
-
-    bool mLeft = false;
-    bool mRight = false;
-
-    FiniteStateMachine mStateMachine;
+private: 
+    bool IsLastFrame() const;
+    s32 FrameNumber() const;
 };
 
 class Level
