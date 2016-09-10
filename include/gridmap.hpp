@@ -63,7 +63,6 @@ private:
     std::unique_ptr<class GridMap> mMap;
     ResourceLocator& mLocator;
     Player mPlayer;
-    sol::state& mLuaState;
 };
 
 class GridScreen

@@ -217,7 +217,7 @@ void Player::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scre
 // ============================================
 
 Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator, sol::state& luaState)
-    : mLocator(locator), mPlayer(luaState), mLuaState(luaState)
+    : mLocator(locator), mPlayer(luaState)
 {
 
 }
