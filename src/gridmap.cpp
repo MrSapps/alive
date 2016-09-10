@@ -146,28 +146,14 @@ void Player::LoadScript(ResourceLocator& locator)
     mLuaState.script(script);
 
     // Set initial state
-    try
-    {
-        mLuaState["init"](this);
-    }
-    catch (const sol::error& ex)
-    {
-        LOG_ERROR(ex.what());
-    }
+    mLuaState["init"](this);
 }
 
 void Player::Update()
 {
     mAnim->Update();
 
-    try
-    {
-        mLuaState["update"](this);
-    }
-    catch (const sol::error& ex)
-    {
-        LOG_ERROR(ex.what());
-    }
+    mLuaState["update"](this);
 }
 
 void Player::Input(const InputState& input)

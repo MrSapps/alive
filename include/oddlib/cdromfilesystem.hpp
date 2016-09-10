@@ -347,7 +347,7 @@ public:
             return new CdFileStream(mDr, mName, *mStream, mIncludeSubHeader);
         }
 
-        virtual Oddlib::IStream* Clone(u32 start, u32 size)
+        virtual Oddlib::IStream* Clone(u32 start, u32 size) override
         {
             directory_record subDir = mDr;
             subDir.location.little += start;
