@@ -476,7 +476,7 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resources.json" DESTINATION "${D
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}/subtitles")
 
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.lua" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/abe.lua" DESTINATION "${DATA_DIR}/scripts")
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPc.json" DESTINATION "${DATA_DIR}/GameDefinitions")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPcDemo.json" DESTINATION "${DATA_DIR}/GameDefinitions")
