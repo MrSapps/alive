@@ -69,15 +69,14 @@ function init(self)
     
     self.states.ToRolling =
     {
-        animation = 'AbeCrouchTurnAround',
-        -- TODO: This changes instantly IsLastFrame bug?
-        condition = function(s) if s:IsLastFrame() then return 'Crouch' end end
+        animation = 'AbeCrouchToRoll',
+        condition = function(s) if s:IsLastFrame() then return 'Rolling' end end
     }
 
     self.states.CrouchingTurn =
     {
-        animation = 'AbeCrouchToRoll',
-        condition = function(s) if s:IsLastFrame() then return 'Rolling' end end
+        animation = 'AbeCrouchTurnAround',
+        condition = function(s) if s:IsLastFrame() then return 'Crouch' end end
     }
     
     self.states.Rolling =
