@@ -1743,6 +1743,7 @@ public:
             mFrameNum++;
             if (mFrameNum >= mAnim.Animation().NumFrames())
             {
+                mIsLastFrame = true;
                 if (mAnim.Animation().Loop())
                 {
                     mFrameNum = mAnim.Animation().LoopStartFrame();
@@ -1750,13 +1751,16 @@ public:
                 else
                 {
                     mFrameNum = mAnim.Animation().NumFrames() - 1;
-                    mDone = true;
                 }
+            }
+            else
+            {
+                mIsLastFrame = false;
             }
         }
     }
 
-    bool IsDone() const { return mDone; }
+    bool IsLastFrame() const { return mIsLastFrame; }
 
     void Render(Renderer& rend) const
     {
@@ -1803,7 +1807,7 @@ public:
     void Restart()
     {
         mFrameNum = 0;
-        mDone = false;
+        mIsLastFrame = false;
     }
 
     bool Collision(s32 x, s32 y) const
@@ -1863,7 +1867,7 @@ private:
     s32 mYPos = 800;
     f32 mScale = 3;
 
-    bool mDone = false;
+    bool mIsLastFrame = false;
 };
 
 template<typename KeyType, typename ValueType>

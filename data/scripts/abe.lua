@@ -55,6 +55,18 @@ function init(self)
          end
     }
     
+    self.states.Crouch = 
+    {
+        animation = 'AbeCrouchIdle',
+        condition = function(s) if s:InputUp() then return 'CrouchToStand' end end
+    }
+    
+    self.states.Walking = 
+    {
+        animation = 'AbeWalking',
+        condition = function(s) if (InputSameAsDirection(s) == false) then return 'ToStand' end end
+    }
+
     self.states.StandingTurn = 
     {
         animation = 'AbeStandTurnAround',
@@ -65,16 +77,6 @@ function init(self)
     {
         animation = 'AbeStandToWalk',
         condition = function(s) if s:IsLastFrame() then return 'Walking' end end
-    }
-
-    self.states.Walking = 
-    {
-        animation = 'AbeWalking',
-        condition = function(s) 
-            if (InputSameAsDirection(s) == false) then
-                return 'ToStand' 
-            end 
-        end
     }
 
     self.states.ToStand = 
@@ -89,18 +91,13 @@ function init(self)
         condition = function(s) if s:IsLastFrame() then return 'Crouch' end end
     }
 
-    self.states.Crouch = 
-    {
-        animation = 'AbeCrouchIdle',
-        condition = function(s) if s:InputUp() then return 'CrouchToStand' end end
-    }
-
     self.states.CrouchToStand = 
     {
         animation = 'AbeCrouchToStand',
         condition = function(s) if s:IsLastFrame() then return 'Stand' end end
     }
     
+    print("Stand")
     self.states.Active = self.states.Stand
     self:SetAnimation(self.states.Active.animation)
 end
@@ -108,11 +105,13 @@ end
 function update(self)
     local nextState = self.states.Active.condition(self)
     if nextState ~= nil then
-       print(nextState)
-       self.states.Active = self.states[nextState]
-       if self.states.Active == nil then
+       local state = self.states[nextState]
+       if state == nil then
           print("ERROR: State " .. nextState .. " not found!")
+       else
+            print(nextState)
+            self.states.Active = state
+            self:SetAnimation(self.states.Active.animation)
        end
-       self:SetAnimation(self.states.Active.animation) 
     end
 end

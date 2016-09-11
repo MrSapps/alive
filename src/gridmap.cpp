@@ -196,7 +196,7 @@ void Player::SetAnimation(const std::string& animation)
 
 bool Player::IsLastFrame() const
 {
-    return mAnim->IsDone();
+    return mAnim->IsLastFrame();
 }
 
 s32 Player::FrameNumber() const
