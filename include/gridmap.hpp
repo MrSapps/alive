@@ -44,13 +44,14 @@ private: // Actions
         LOG_WARNING("TODO: Play: " << str.c_str());
     }
 
-    bool Direction() const { return mDirection; }
-    void FlipDirection() { mDirection = !mDirection; }
+    bool FacingLeft() const { return mFlipX; }
+    bool FacingRight() const { return !FacingLeft(); }
+    void FlipXDirection() { mFlipX = !mFlipX; }
 private: 
     bool IsLastFrame() const;
     s32 FrameNumber() const;
     bool mInputs[4] = {};
-    bool mDirection = true;
+    bool mFlipX = false;
 };
 
 class Level

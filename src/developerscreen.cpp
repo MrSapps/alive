@@ -167,7 +167,7 @@ void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)
             anim->Restart();
         }
         //anim->SetXPos(70 + spacer);
-        anim->Render(renderer);
+        anim->Render(renderer, false);
         spacer += (anim->MaxW() + (anim->MaxW()/3));
     }
     renderer.endLayer();

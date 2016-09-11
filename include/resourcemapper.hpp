@@ -1762,8 +1762,14 @@ public:
 
     bool IsLastFrame() const { return mIsLastFrame; }
 
-    void Render(Renderer& rend) const
+    void Render(Renderer& rend, bool flipX) const
     {
+        // TODO: use flipX to render the animation facing the correct direction
+        if (flipX)
+        {
+            //LOG_WARNING("flipX not implemented");
+        }
+
         const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
 
         f32 xpos = mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX);

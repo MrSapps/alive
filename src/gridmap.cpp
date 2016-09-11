@@ -121,8 +121,9 @@ void Player::Init(ResourceLocator& locator)
         "PlaySoundEffect", &Player::PlaySoundEffect,
         "FrameNumber", &Player::FrameNumber,
         "IsLastFrame", &Player::IsLastFrame,
-        "Direction", &Player::Direction,
-        "FlipDirection", &Player::FlipDirection,
+        "FacingLeft", &Player::FacingLeft,
+        "FacingRight", &Player::FacingRight,
+        "FlipXDirection", &Player::FlipXDirection,
         "InputLeft", [&]() 
     {
         return mInputs[0];
@@ -218,7 +219,7 @@ void Player::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scre
     {
         mAnim->SetXPos(static_cast<s32>(mXPos));
         mAnim->SetYPos(static_cast<s32>(mYPos));
-        mAnim->Render(rend);
+        mAnim->Render(rend, mFlipX);
     }
 }
 
