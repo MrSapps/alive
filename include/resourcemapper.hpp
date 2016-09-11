@@ -1762,18 +1762,16 @@ public:
 
     bool IsLastFrame() const { return mIsLastFrame; }
 
+    // TODO: Position calculation should be refactored
     void Render(Renderer& rend, bool flipX) const
     {
         const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
 
         f32 xFrameOffset = (mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX)) * mScale;
-        f32 yFrameOffset = static_cast<f32>(frame.mOffY) * mScale;
+        const f32 yFrameOffset = static_cast<f32>(frame.mOffY) * mScale;
 
-        f32 xpos = static_cast<f32>(mXPos);
-        f32 ypos = static_cast<f32>(mYPos);
-
-        f32 oldY = ypos;
-        f32 oldX = xpos;
+        const f32 xpos = static_cast<f32>(mXPos);
+        const f32 ypos = static_cast<f32>(mYPos);
 
         if (flipX)
         {
@@ -1784,18 +1782,26 @@ public:
         BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
         Color color = Color::white();
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
-        rend.drawQuad(textureId, xpos + xFrameOffset, ypos + yFrameOffset, static_cast<f32>(frame.mFrame->w) * (flipX ? -ScaleX() : ScaleX()), static_cast<f32>(frame.mFrame->h)*mScale, color, blend);
+        rend.drawQuad(
+            textureId, 
+            xpos + xFrameOffset, 
+            ypos + yFrameOffset, 
+            static_cast<f32>(frame.mFrame->w) * (flipX ? -ScaleX() : ScaleX()), 
+            static_cast<f32>(frame.mFrame->h) * mScale, 
+            color, 
+            blend);
         rend.destroyTexture(textureId);
 
         // Render bounding box
         rend.beginPath();
-        ::Color c{ 1.0f, 0.0f, 1.0f, 1.0f };
+        ::Color c { 1.0f, 0.0f, 1.0f, 1.0f };
         rend.strokeColor(c);
         rend.resetTransform();
+        const f32 width = static_cast<f32>(std::abs(frame.mTopLeft.x - frame.mBottomRight.x)) * mScale;
         rend.rect(
-            mXPos + (static_cast<f32>(frame.mTopLeft.x) * mScale),
-            mYPos + (static_cast<f32>(frame.mTopLeft.y) * mScale),
-            static_cast<f32>(std::abs(frame.mTopLeft.x - frame.mBottomRight.x)) * mScale,
+            xpos + (static_cast<f32>(flipX ? -frame.mTopLeft.x : frame.mTopLeft.x) * mScale),
+            ypos + (static_cast<f32>(frame.mTopLeft.y) * mScale),
+           flipX ? -width : width,
             static_cast<f32>(std::abs(frame.mTopLeft.y - frame.mBottomRight.y)) * mScale);
         rend.stroke();
         rend.closePath();
@@ -1803,8 +1809,8 @@ public:
         // Render frame pos and frame number
         rend.text(xpos, ypos,
             (mSourceDataSet
-                + " x: " + std::to_string(oldX)
-                + " y: " + std::to_string(oldY)
+                + " x: " + std::to_string(xpos)
+                + " y: " + std::to_string(ypos)
                 + " f: " + std::to_string(mFrameNum)
                 ).c_str());
     }
