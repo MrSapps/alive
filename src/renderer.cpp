@@ -647,12 +647,14 @@ void Renderer::destroyTexture(int handle)
 void Renderer::drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, Color color, BlendMode blendMode)
 {
     // Keep quad in the same position when flipping uv coords
-    if (w < 0) {
+	// This gets in the way of offsets for animations, so lets not use this - mlg
+	// If rectangles need to be fixed in the future for some reason, we can do it manually out of this scope
+    /*if (w < 0) {
         x += -w;
     }
     if (h < 0) {
         y += -h;
-    }
+    }*/
 
     DrawCmd cmd;
     cmd.type = DrawCmdType_quad;
