@@ -121,6 +121,20 @@ void Player::Init(ResourceLocator& locator)
         "PlaySoundEffect", &Player::PlaySoundEffect,
         "FrameNumber", &Player::FrameNumber,
         "IsLastFrame", &Player::IsLastFrame,
+        "Direction", &Player::Direction,
+        "FlipDirection", &Player::FlipDirection,
+        "InputLeft", [&]() 
+    {
+        return mInputs[0];
+    },
+        "InputRight", [&]() { return mInputs[1]; },
+        "InputUp", [&]() { return mInputs[2]; },
+        "InputDown", [&]() { return mInputs[3]; },
+        "InputAction", [&]() { return false; },
+        "InputSneak", [&]() { return false; },
+        "InputHop", [&]() { return false; },
+        "InputChant", [&]() { return false; },
+        "InputRun", [&]() { return false; },
         "states", &Player::mStates);
 
     LoadScript(locator);
@@ -150,14 +164,27 @@ void Player::Update()
 
 void Player::Input(const InputState& input)
 {
+    // TODO: Refactor to something more sane
+    memset(mInputs, false, sizeof(mInputs));
+
     if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
     {
-
+        mInputs[0] = true;
     }
     
     if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
     {
+        mInputs[1] = true;
+    }
 
+    if (input.Mapping().mButtons[InputMapping::Up].mIsDown)
+    {
+        mInputs[2] = true;
+    }
+
+    if (input.Mapping().mButtons[InputMapping::Down].mIsDown)
+    {
+        mInputs[3] = true;
     }
 }
 
