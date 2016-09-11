@@ -39,7 +39,6 @@ function init(self)
             end
 
             if (InputNotSameAsDirection(s)) then
-                s:FlipXDirection()
                 return 'StandingTurn'
             end
 
@@ -61,7 +60,6 @@ function init(self)
             if (InputSameAsDirection(s)) then return 'ToRolling' end
 
             if (InputNotSameAsDirection(s)) then
-                s:FlipXDirection()
                 return 'CrouchingTurn'
             end
         end
@@ -76,13 +74,18 @@ function init(self)
     self.states.CrouchingTurn =
     {
         animation = 'AbeCrouchTurnAround',
-        condition = function(s) if s:IsLastFrame() then return 'Crouch' end end
+        condition = function(s) 
+            if s:IsLastFrame() then 
+                s:FlipXDirection()
+                return 'Crouch'
+            end 
+        end
     }
     
     self.states.Rolling =
     {
         animation = 'AbeRolling',
-        condition = function(s) if(InputSameAsDirection(s) == false)  then return 'Crouch' end end
+        condition = function(s) if(InputSameAsDirection(s) == false) then return 'Crouch' end end
     }
 
     self.states.Walking =
@@ -112,7 +115,12 @@ function init(self)
     self.states.StandingTurn = 
     {
         animation = 'AbeStandTurnAround',
-        condition = function(s) if s:IsLastFrame() then return 'Stand' end end
+        condition = function(s) 
+            if s:IsLastFrame() then
+                s:FlipXDirection()
+                return 'Stand'
+            end
+        end
     }
 
     self.states.ToWalk = 
@@ -138,7 +146,7 @@ function init(self)
         animation = 'AbeCrouchToStand',
         condition = function(s) if s:IsLastFrame() then return 'Stand' end end
     }
-    
+
     print("Stand")
     self.states.Active = self.states.Stand
     self:SetAnimation(self.states.Active.animation)

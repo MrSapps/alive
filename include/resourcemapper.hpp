@@ -1766,17 +1766,19 @@ public:
     {
         const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
 
-		f32 xFrameOffset = (mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX)) * mScale;
-		f32 yFrameOffset = static_cast<f32>(frame.mOffY) * mScale;
+        f32 xFrameOffset = (mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX)) * mScale;
+        f32 yFrameOffset = static_cast<f32>(frame.mOffY) * mScale;
 
-		f32 xpos = static_cast<f32>(mXPos);
-		f32 ypos = static_cast<f32>(mYPos);
+        f32 xpos = static_cast<f32>(mXPos);
+        f32 ypos = static_cast<f32>(mYPos);
 
-		f32 oldY = ypos;
-		f32 oldX = xpos;
+        f32 oldY = ypos;
+        f32 oldX = xpos;
 
-		if (flipX)
-			xFrameOffset = -xFrameOffset;
+        if (flipX)
+        {
+            xFrameOffset = -xFrameOffset;
+        }
 
         // Render sprite as textured quad
         BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
@@ -1801,10 +1803,10 @@ public:
         // Render frame pos and frame number
         rend.text(xpos, ypos,
             (mSourceDataSet
-            +" x: " + std::to_string(oldX)
-            + " y: " + std::to_string(oldY)
-            + " f: " + std::to_string(mFrameNum)
-            ).c_str());
+                + " x: " + std::to_string(oldX)
+                + " y: " + std::to_string(oldY)
+                + " f: " + std::to_string(mFrameNum)
+                ).c_str());
     }
 
     void Restart()
