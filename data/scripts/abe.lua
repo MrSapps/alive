@@ -343,7 +343,8 @@ function init(self)
         condition = function(s, i) if s:IsLastFrame() then return 'Stand' end end
     }
 
-    print("Stand")
+    self:ScriptLoadAnimations()
+
     self.states.Active = self.states.Stand
     self:SetAnimation(self.states.Active.animation)
 end

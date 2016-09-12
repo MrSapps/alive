@@ -12,104 +12,8 @@
 #include "resourcemapper.hpp"
 #include "engine.hpp"
 
-const char* kAbeAnims[] =
-{
-    "AbeCrouchToRoll",
-    "AbeRolling",
-    "AbeRunningJumpInAir",
-    "AbeStandToCrouch",
-    "AbeHitGroundToStand",
-    "AbeStandToJump",
-    "AbeJumpUpFalling",
-    "AbeCrouchToStand",
-    "AbeCrouchIdle",
-    "AbeRunningTurnAroundToWalk",
-    "AbeStandToIDunno",
-    "AbeStandToRun",
-    "AbeRunningToSkidTurn",
-    "AbeRunningTurnAround",
-    "AbeCrouchTurnAround",
-    "AbeRuningToJump",
-    "AbeIDunno",
-    "AbeRunning",
-    "AbeRunningSkidStop",
-    "AbeStandTurnAroundToRunning",
-    "AbeHoppingToStand",
-    "AbeStandToHop",
-    "AbeHopping",
-    "AbeCrouchSpeak1",
-    "AbeCrouchSpeak2",
-    "AbeStandSlap",
-    "AbeStandSpeak1",
-    "AbeWalkToStand",
-    "AbeStandToWalk",
-    "AbeWalkToStandMidGrid",
-    "AbeWalking",
-    "AbeStandIdle",
-    "AbeStandSpeak5",
-    "AbeStandSpeak2",
-    "AbeStandingSpeak4",
-    "AbeStandSpeak3",
-    "AbeStandTurnAround",
-    "AbeStandEnterDoor",
-    "AbeStandExitDoor",
-    "AbeFreeFall",
-    "AbeHoistDropDown",
-    "AbeStandToFallingFromTrapDoor",
-    "AbeRunningOffEdge",
-    "AbeStandingSkidOffEdge",
-    "AbeRollingToFalling",
-    "AbeJumpInAirStartToFall",
-    "AbeHoistSwinging",
-    "AbeHoistPullSelfUp",
-    "AbeHoistDangling",
-    "AbeStandToHoistDown",
-    "AbeStandPushWall",
-    "AbeFallBackStanding",
-    "AbeCrouchFallBack",
-    "AbeRollingToHitWall",
-    "AbeStandToFallOverFromHit",
-    "AbeStandingShotFromBackground",
-    "AbeCrouchingShotFromBackground",
-    "AbePullLiftRopeUp",
-    "AbeHoldingLiftRopeIdle",
-    "AbePullLiftRopeDown",
-    "AbeStandToGrabLiftRope",
-    "AbeGrabLiftRopeToStanding",
-    "AbeChantToStand",
-    "AbeStandToChant",
-    "AbeStandPullLever",
-    "AbeUsingStoneToStand",
-    "AbeStandToUseStone",
-    "AbeStandingThrow",
-    "AbeCrouchThrowing",
-    "AbeStandToThrow",
-    "AbeCrouchToThrow",
-    "AbeThrowToStand",
-    "AbeFallBackwardsIntoWell",
-    "AbeStandToEnterWell",
-    "AbeExitWellToStand",
-    "AbeExitMineCarToStand",
-    "AbeStandToEnterMineCar",
-    "AbeFreeFallToLand",
-    "AbeFallToSplatOnGround",
-    "AbeStandToSneak",
-    "AbeSneaking",
-    "AbeSneakToStand",
-    "AbeWalkingToSneaking",
-    "AbeSneakingToWalking",
-    "AbeRunningToWalkingMidGrid",
-    "AbeWalkingToRunning",
-    "AbeSneakingToWalkingMidGrid",
-    "AbeStandToHop",
-    "AbeHopping",
-    "AbeHoppingToStand",
-    "AbeFallingToLand",
-    "AbeLandToRunning"
-};
-
-Player::Player(sol::state& luaState)
-    : mLuaState(luaState)
+Player::Player(sol::state& luaState, ResourceLocator& locator)
+    : mLuaState(luaState), mLocator(locator)
 {
 
 }
@@ -124,29 +28,51 @@ Player::Player(sol::state& luaState)
         "FacingLeft", &Player::FacingLeft,
         "FacingRight", &Player::FacingRight,
         "FlipXDirection", &Player::FlipXDirection,
+        "ScriptLoadAnimations", &Player::ScriptLoadAnimations,
         "states", &Player::mStates);
 }
 
-void Player::Init(ResourceLocator& locator)
+void Player::Init()
 {
-    for (const auto& anim : kAbeAnims)
-    {
-        auto pAnim = locator.LocateAnimation(anim);
-        if (!pAnim)
-        {
-            LOG_ERROR("Animation: " << anim << " not found");
-            abort();
-        }
-        mAnims.insert(std::make_pair(anim, std::move(pAnim)));
-    }
-
-    LoadScript(locator);
+    LoadScript();
 }
 
-void Player::LoadScript(ResourceLocator& locator)
+void Player::ScriptLoadAnimations()
+{
+    mAnim = nullptr;
+    mAnims.clear();
+    mStates.for_each([&](const sol::object& key, const sol::object& value)
+    {
+        std::string stateName = key.as<std::string>();
+        if (value.is<sol::table>())
+        {
+            const sol::table& state = value.as<sol::table>();
+            state.for_each([&](const sol::object& key, const sol::object& value)
+            {
+                if (key.is<std::string>())
+                {
+                    std::string name = key.as<std::string>();
+                    if (name == "animation")
+                    {
+                        std::string strAnim = value.as<std::string>();
+                        auto pAnim = mLocator.LocateAnimation(strAnim.c_str());
+                        if (!pAnim)
+                        {
+                            LOG_ERROR("Animation: " << strAnim << " not found");
+                            abort();
+                        }
+                        mAnims.insert(std::make_pair(strAnim, std::move(pAnim)));
+                    }
+                }
+            });
+        }
+    });
+}
+
+void Player::LoadScript()
 {
     // Load FSM script
-    const std::string script = locator.LocateScript("abe.lua");
+    const std::string script = mLocator.LocateScript("abe.lua");
     try
     {
         mLuaState.script(script);
@@ -189,7 +115,7 @@ void Player::SetAnimation(const std::string& animation)
 {
     if (mAnims.find(animation) == std::end(mAnims))
     {
-        LOG_ERROR("Animation " << animation << " is not preloaded - attempting to load");
+        LOG_ERROR("Animation " << animation << " is not loaded");
         abort();
     }
     mAnim = mAnims[animation].get();
@@ -206,13 +132,13 @@ s32 Player::FrameNumber() const
     return mAnim->FrameNumber();
 }
 
-void Player::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*screenH*/, ResourceLocator& locator)
+void Player::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*screenH*/)
 {
     // Debug ui
     gui_begin_window(&gui, "Script debug");
     if (gui_button(&gui, "Reload script"))
     {
-        LoadScript(locator);
+        LoadScript();
     }
     gui_end_window(&gui);
 
@@ -227,14 +153,14 @@ void Player::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scre
 // ============================================
 
 Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator, sol::state& luaState)
-    : mLocator(locator), mPlayer(luaState)
+    : mLocator(locator), mPlayer(luaState, mLocator)
 {
 
 }
 
 void Level::EnterState()
 {
-    mPlayer.Init(mLocator);
+    mPlayer.Init();
 }
 
 void Level::Update(const InputState& input)
@@ -252,7 +178,7 @@ void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
     RenderDebugPathSelection(rend, gui);
 
     rend.beginLayer(9000);
-    mPlayer.Render(rend, gui, screenW, screenH, mLocator);
+    mPlayer.Render(rend, gui, screenW, screenH);
     rend.endLayer();
 
     if (mMap)
