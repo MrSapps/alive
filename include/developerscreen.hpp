@@ -17,9 +17,8 @@ public:
         Init();
     }
 
-    virtual void Input(const InputState& input) override;
     virtual void Render(int w, int h, Renderer& renderer) override;
-    virtual void Update() override;
+    virtual void Update(const InputState& input) override;
     virtual void EnterState() override;
     virtual void ExitState() override;
 private:

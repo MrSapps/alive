@@ -12,7 +12,7 @@ void DeveloperScreen::Init()
     
 }
 
-void DeveloperScreen::Input(const InputState& input)
+void DeveloperScreen::Update(const InputState& input)
 {
     // Set the "selected" animation
     if (!mSelected && input.mMouseButtons[0].mIsPressed)
@@ -29,7 +29,7 @@ void DeveloperScreen::Input(const InputState& input)
             }
         }
     }
-    
+
     // Move the "selected" animation
     if (mSelected && input.mMouseButtons[0].mIsDown)
     {
@@ -57,15 +57,10 @@ void DeveloperScreen::Input(const InputState& input)
         mSelected = nullptr;
     }
 
-    mLevel.Input(input);
-}
-
-void DeveloperScreen::Update()
-{
     //mFmv.Play("INGRDNT.DDV");
     mFmv.Update();
     mSound.Update();
-    mLevel.Update();
+    mLevel.Update(input);
 
     for (auto& anim : mLoadedAnims)
     {

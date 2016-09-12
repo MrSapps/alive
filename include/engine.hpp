@@ -19,8 +19,7 @@ public:
     IState& operator = (const IState&) = delete;
     virtual ~IState() = default;
 
-    virtual void Input(const InputState& input) = 0;
-    virtual void Update() = 0;
+    virtual void Update(const InputState& input) = 0;
     virtual void Render(int w, int h, class Renderer& renderer) = 0;
     virtual void ExitState() = 0;
     virtual void EnterState() = 0;
@@ -51,19 +50,11 @@ public:
         }
     }
 
-    void Input(class InputState& input)
+    void Update(const InputState& input)
     {
         if (mState)
         {
-            mState->Input(input);
-        }
-    }
-
-    void Update()
-    {
-        if (mState)
-        {
-            mState->Update();
+            mState->Update(input);
         }
 
         // Destroy previous state one update later
@@ -138,50 +129,87 @@ public:
     bool mRawDownState = false;
 };
 
+class Actions
+{
+public:
+    Actions() = default;
+    bool InputLeft() const { return mActions[Left].mIsDown; }
+    bool InputRight() const { return mActions[Right].mIsDown; }
+    bool InputUp() const { return mActions[Up].mIsDown; }
+    bool InputDown() const { return mActions[Down].mIsDown; }
+    bool InputChant() const { return mActions[Chant].mIsDown; }
+    bool InputRun() const { return mActions[Run].mIsDown; }
+    bool InputSneak() const { return mActions[Sneak].mIsDown; }
+    bool InputJump() const { return mActions[Jump].mIsDown; }
+    bool InputThrow() const { return mActions[Throw].mIsDown; }
+    bool InputAction() const { return mActions[Action].mIsDown; }
+    bool InputRollOrFart() const { return mActions[RollOrFart].mIsDown; }
+    bool InputGameSpeak1() const { return mActions[GameSpeak1].mIsDown; }
+    bool InputGameSpeak2() const { return mActions[GameSpeak2].mIsDown; }
+    bool InputGameSpeak3() const { return mActions[GameSpeak3].mIsDown; }
+    bool InputGameSpeak4() const { return mActions[GameSpeak4].mIsDown; }
+    bool InputGameSpeak5() const { return mActions[GameSpeak5].mIsDown; }
+    bool InputGameSpeak6() const { return mActions[GameSpeak6].mIsDown; }
+    bool InputGameSpeak7() const { return mActions[GameSpeak7].mIsDown; }
+    bool InputGameSpeak8() const { return mActions[GameSpeak8].mIsDown; }
+    bool InputBack() const { return mActions[Back].mIsDown; }
+
+    static void RegisterLuaBindings(sol::state& state);
+
+    enum EInputActions
+    {
+        Left,       // Arrow left
+        Right,      // Arrow right
+        Up,         // Arrow up
+        Down,       // Arrow down
+        Chant,      // 0
+        Run,        // Shift
+        Sneak,      // Alt
+        Jump,       // Space
+        Throw,      // Z
+        Action,     // Control
+        RollOrFart, // X (Only roll)
+        GameSpeak1, // 1 (Hello)
+        GameSpeak2, // 2 (Follow Me)
+        GameSpeak3, // 3 (Wait)
+        GameSpeak4, // 4 (Work) (Whistle 1)
+        GameSpeak5, // 5 (Anger)
+        GameSpeak6, // 6 (All ya) (Fart)
+        GameSpeak7, // 7 (Sympathy) (Whistle 2)
+        GameSpeak8, // 8 (Stop it) (Laugh)
+        Back,       // Esc
+        Max
+    };
+    InputItemState mActions[Max];
+};
+
 class InputMapping
 {
 public:
-    enum EPsxButtons
-    {
-        Cross,
-        Triangle,
-        Circle,
-        Square,
-        Left,
-        Right,
-        Up,
-        Down,
-        L1,
-        L2,
-        R1,
-        R2,
-        Start,
-        Select,
-        Max
-    };
-
     void Update(const InputState& input);
 
-    InputMapping()
-    {
-        // TODO: Set up default key mappings
-        mKeyBoardConfig[SDL_SCANCODE_LEFT] = Left;
-        mKeyBoardConfig[SDL_SCANCODE_RIGHT] = Right;
-        mKeyBoardConfig[SDL_SCANCODE_UP] = Up;
-        mKeyBoardConfig[SDL_SCANCODE_DOWN] = Down;
-
-        mGamePadConfig[SDL_CONTROLLER_BUTTON_DPAD_LEFT] = Left;
-        mGamePadConfig[SDL_CONTROLLER_BUTTON_DPAD_RIGHT] = Right;
-        mGamePadConfig[SDL_CONTROLLER_BUTTON_DPAD_UP] = Up;
-        mGamePadConfig[SDL_CONTROLLER_BUTTON_DPAD_DOWN] = Down;
-
-    }
-
-    InputItemState mButtons[Max];
+    InputMapping();
 
     // TODO: Allow remapping/read from config file
-    std::map<SDL_Scancode, EPsxButtons> mKeyBoardConfig;
-    std::map<SDL_GameControllerButton, EPsxButtons> mGamePadConfig;
+    struct KeyBoardInputConfig
+    {
+        u32 mNumberOfKeysRequired;
+        std::vector<SDL_Scancode> mKeys;
+    };
+
+    struct GamePadInputConfig
+    {
+        u32 mNumberOfKeysRequired;
+        std::vector<SDL_GameControllerButton> mButtons;
+    };
+
+    std::map<Actions::EInputActions, KeyBoardInputConfig> mKeyBoardConfig;
+    std::map<Actions::EInputActions, GamePadInputConfig> mGamePadConfig;
+
+    const Actions& GetActions() const { return mActions; }
+
+private:
+    Actions mActions;
 };
 
 class InputState final

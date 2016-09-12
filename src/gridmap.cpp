@@ -95,28 +95,15 @@ const char* kAbeAnims[] =
     "AbeFallToSplatOnGround"
 };
 
-// AbeStandIdle -> AbeStandToWalk -> AbeWalking -> AbeWalkToStand
-//              -> AbeStandToCrouch
-//              -> AbeStandToJump
-//              -> AbeStandToIDunno
-//              -> AbeStandToRun
-
-
 Player::Player(sol::state& luaState)
     : mLuaState(luaState)
 {
 
 }
 
-
-void Player::Init(ResourceLocator& locator)
+/*static*/ void Player::RegisterLuaBindings(sol::state& state)
 {
-    for (const auto& anim : kAbeAnims)
-    {
-        mAnims.insert(std::make_pair(anim, locator.LocateAnimation(anim)));
-    }
-
-    mLuaState.new_usertype<Player>("player",
+    state.new_usertype<Player>("Player",
         "SetAnimation", &Player::SetAnimation,
         "PlaySoundEffect", &Player::PlaySoundEffect,
         "FrameNumber", &Player::FrameNumber,
@@ -124,19 +111,15 @@ void Player::Init(ResourceLocator& locator)
         "FacingLeft", &Player::FacingLeft,
         "FacingRight", &Player::FacingRight,
         "FlipXDirection", &Player::FlipXDirection,
-        "InputLeft", [&]() 
-    {
-        return mInputs[0];
-    },
-        "InputRight", [&]() { return mInputs[1]; },
-        "InputUp", [&]() { return mInputs[2]; },
-        "InputDown", [&]() { return mInputs[3]; },
-        "InputAction", [&]() { return false; },
-        "InputSneak", [&]() { return false; },
-        "InputHop", [&]() { return false; },
-        "InputChant", [&]() { return false; },
-        "InputRun", [&]() { return false; },
         "states", &Player::mStates);
+}
+
+void Player::Init(ResourceLocator& locator)
+{
+    for (const auto& anim : kAbeAnims)
+    {
+        mAnims.insert(std::make_pair(anim, locator.LocateAnimation(anim)));
+    }
 
     LoadScript(locator);
 }
@@ -152,7 +135,7 @@ void Player::LoadScript(ResourceLocator& locator)
     f(this);
 }
 
-void Player::Update()
+void Player::Update(const InputState& input)
 {
     if (mAnim)
     {
@@ -160,33 +143,7 @@ void Player::Update()
     }
 
     sol::protected_function f = mLuaState["update"];
-    f(this);
-}
-
-void Player::Input(const InputState& input)
-{
-    // TODO: Refactor to something more sane
-    memset(mInputs, false, sizeof(mInputs));
-
-    if (input.Mapping().mButtons[InputMapping::Left].mIsDown)
-    {
-        mInputs[0] = true;
-    }
-    
-    if (input.Mapping().mButtons[InputMapping::Right].mIsDown)
-    {
-        mInputs[1] = true;
-    }
-
-    if (input.Mapping().mButtons[InputMapping::Up].mIsDown)
-    {
-        mInputs[2] = true;
-    }
-
-    if (input.Mapping().mButtons[InputMapping::Down].mIsDown)
-    {
-        mInputs[3] = true;
-    }
+    f(this, input.Mapping().GetActions());
 }
 
 void Player::SetAnimation(const std::string& animation)
@@ -236,19 +193,14 @@ void Level::EnterState()
     mPlayer.Init(mLocator);
 }
 
-void Level::Input(const InputState& input)
-{
-    mPlayer.Input(input);
-}
-
-void Level::Update()
+void Level::Update(const InputState& input)
 {
     if (mMap)
     {
         mMap->Update();
     }
 
-    mPlayer.Update();
+    mPlayer.Update(input);
 }
 
 void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)

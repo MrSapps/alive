@@ -25,7 +25,7 @@ namespace
     }
 }
 
-void GameSelectionScreen::Update()
+void GameSelectionScreen::Update(const InputState& /*input*/)
 {
 
 }
@@ -36,11 +36,6 @@ void GameSelectionScreen::EnterState()
 }
 
 void GameSelectionScreen::ExitState()
-{
-
-}
-
-void GameSelectionScreen::Input(const InputState& /*input*/)
 {
 
 }

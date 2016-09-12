@@ -21,15 +21,16 @@ class Animation;
 class Player
 {
 public:
-    Player(sol::state& luaState);
+    explicit Player(sol::state& luaState);
     void Init(ResourceLocator& locator);
-    void Update();
+    void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH, ResourceLocator& locator);
     void Input(const InputState& input);
+    static void RegisterLuaBindings(sol::state& state);
 private:
     std::map<std::string, std::unique_ptr<Animation>> mAnims;
     float mXPos = 200.0f;
-    float mYPos = 500.0f;
+    float mYPos = 600.0f;
     Animation* mAnim = nullptr;
     sol::state& mLuaState;
     sol::table mStates;
@@ -50,7 +51,6 @@ private: // Actions
 private: 
     bool IsLastFrame() const;
     s32 FrameNumber() const;
-    bool mInputs[4] = {};
     bool mFlipX = false;
 };
 
@@ -58,7 +58,7 @@ class Level
 {
 public:
     Level(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState);
-    void Update();
+    void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
     void EnterState();
     void Input(const InputState& input);
