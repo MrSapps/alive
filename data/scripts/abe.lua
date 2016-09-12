@@ -42,13 +42,67 @@ function init(self)
                 return 'StandingTurn'
             end
 
-            if (i:InputChant()) then return 'ToChant' end
+            if (i:InputChant()) then return 'Chanting' end
             if (i:InputJump()) then return 'ToHop' end
 
             --  StandSpeakXYZ
             -- ToKnockBackStanding
             -- ToFallingNoGround 
          end
+    }
+    
+    self.states.WalkingToSneaking =
+    {
+        animation = 'AbeWalkingToSneaking',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Sneaking'end end
+    }
+
+    self.states.SneakingToWalking =
+    {
+        animation = 'AbeSneakingToWalking',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Walking'end end
+    }
+
+    self.states.ToSneak =
+    {
+        animation = 'AbeStandToSneak',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Sneaking'end end
+    }
+
+    self.states.Sneaking =
+    {
+        animation = 'AbeSneaking',
+        condition = function(s, i) 
+            if (InputNotSameAsDirection(s, i)) then
+                return 'StandingTurn'
+            end
+
+             if (InputSameAsDirection(s, i)) then
+                if (i:InputSneak() == false) then
+                    return 'SneakingToWalking'
+                end
+             else
+                return 'ToStand'
+             end
+        end
+    }
+
+    self.states.SneakToStand =
+    {
+        animation = 'AbeSneakToStand',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+    }
+
+    self.states.Chanting =
+    {
+        animation = 'AbeStandToChant',
+        condition = function(s, i) if (i:InputChant() == false) then return 'AbeChantToStand' end end
+    }
+
+    self.states.AbeChantToStand =
+    {
+        animation = 'AbeChantToStand',
+        condition = function(s, i)  if (s:IsLastFrame()) then return 'Stand' end end
     }
     
     self.states.Crouch = 
@@ -91,7 +145,14 @@ function init(self)
     self.states.Walking =
     {
         animation = 'AbeWalking',
-        condition = function(s, i) if (InputSameAsDirection(s, i) == false) then return 'ToStand' end end
+        condition = function(s, i) 
+            if (InputSameAsDirection(s, i) == false) then 
+                return 'ToStand' 
+            end
+            if (i:InputSneak()) then
+                return 'WalkingToSneaking'
+            end
+        end
     }
     
     self.states.ToJump =

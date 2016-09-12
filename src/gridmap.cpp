@@ -92,7 +92,12 @@ const char* kAbeAnims[] =
     "AbeExitMineCarToStand",
     "AbeStandToEnterMineCar",
     "AbeFreeFallToLand",
-    "AbeFallToSplatOnGround"
+    "AbeFallToSplatOnGround",
+    "AbeStandToSneak",
+    "AbeSneaking",
+    "AbeSneakToStand",
+    "AbeWalkingToSneaking",
+    "AbeSneakingToWalking"
 };
 
 Player::Player(sol::state& luaState)
@@ -132,9 +137,9 @@ void Player::LoadScript(ResourceLocator& locator)
     {
         mLuaState.script(script);
     }
-    catch (const sol::error& ex)
+    catch (const sol::error& /*ex*/)
     {
-        LOG_ERROR(ex.what());
+        //LOG_ERROR(ex.what());
         return;
     }
 
@@ -168,6 +173,11 @@ void Player::Update(const InputState& input)
 
 void Player::SetAnimation(const std::string& animation)
 {
+    if (mAnims.find(animation) == std::end(mAnims))
+    {
+        LOG_ERROR("Animation " << animation << " is not preloaded");
+        return;
+    }
     mAnim = mAnims[animation].get();
     mAnim->Restart();
 }
