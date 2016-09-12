@@ -1737,7 +1737,7 @@ public:
     void Update()
     {
         mCounter++;
-        if (mCounter > mAnim.Animation().Fps())
+        if (mCounter >= mAnim.Animation().Fps())
         {
             mCounter = 0;
             mFrameNum++;
