@@ -7,6 +7,25 @@ local function InputNotSameAsDirection(s, i)
     return (i:InputLeft() and s:FacingRight()) or (i:InputRight() and s:FacingLeft())
 end
 
+local kWalkSpeed = 6
+
+local function Walk(s)
+    if s:FacingRight() then
+        s.mXPos = s.mXPos + kWalkSpeed
+    else
+        s.mXPos = s.mXPos - kWalkSpeed
+    end
+end
+local kRunSpeed = 12
+
+local function Run(s)
+    if s:FacingRight() then
+        s.mXPos = s.mXPos + kRunSpeed
+    else
+        s.mXPos = s.mXPos - kRunSpeed
+    end
+end
+
 function init(self)
     self.states = {}
     self.states.Stand =
@@ -99,7 +118,10 @@ function init(self)
     self.states.ToRunning =
     {
         animation = 'AbeStandToRun',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Running'end end
+        condition = function(s, i) 
+            if (s:IsLastFrame()) then return 'Running'end 
+            Run(s)
+        end
     }
    
     self.states.Running =
@@ -110,16 +132,17 @@ function init(self)
                 return 'RuningToSkidTurn'
             end
 
-             if (InputSameAsDirection(s, i)) then
-                if (i:InputRun() == false) then
-                    return 'RunningToWalking'
-                end
-                if (i:InputJump()) then
-                    return 'RunningToJump'
-                end
-             else
-                return 'ToSkidStop'
-             end
+            if (InputSameAsDirection(s, i)) then
+               if (i:InputRun() == false) then
+                   return 'RunningToWalking'
+               end
+               if (i:InputJump()) then
+                   return 'RunningToJump'
+               end
+            else
+               return 'ToSkidStop'
+            end
+            Run(s)
         end
     }
     
@@ -157,7 +180,10 @@ function init(self)
     self.states.RunningToWalking =
     {
         animation = 'AbeRunningToWalkingMidGrid',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Walking'end end
+        condition = function(s, i) 
+            if (s:IsLastFrame()) then return 'Walking'end
+            Run(s)
+        end
     }
 
     self.states.Sneaking =
@@ -182,7 +208,10 @@ function init(self)
     self.states.WalkingToRunning =
     {
         animation = 'AbeWalkingToRunning',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Running'end end
+        condition = function(s, i) 
+            if (s:IsLastFrame()) then return 'Running'end 
+            Run(s)
+        end
     }
 
     self.states.WalkingToSneaking =
@@ -270,6 +299,7 @@ function init(self)
             elseif (i:InputSneak()) then
                 return 'WalkingToSneaking'
             end
+            Walk(s)
         end
     }
     
@@ -322,13 +352,19 @@ function init(self)
     self.states.ToWalk = 
     {
         animation = 'AbeStandToWalk',
-        condition = function(s, i) if s:IsLastFrame() then return 'Walking' end end
+        condition = function(s, i)
+            Walk(s)
+            if s:IsLastFrame() then return 'Walking' end 
+        end
     }
 
     self.states.ToStand = 
     {
         animation = 'AbeWalkToStand',
-        condition = function(s, i) if s:IsLastFrame() then return 'Stand' end end
+        condition = function(s, i) 
+            if s:IsLastFrame() then return 'Stand' end 
+            Walk(s)
+        end
     }
 
     self.states.ToCrouch = 

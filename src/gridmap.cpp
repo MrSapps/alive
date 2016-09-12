@@ -29,7 +29,9 @@ Player::Player(sol::state& luaState, ResourceLocator& locator)
         "FacingRight", &Player::FacingRight,
         "FlipXDirection", &Player::FlipXDirection,
         "ScriptLoadAnimations", &Player::ScriptLoadAnimations,
-        "states", &Player::mStates);
+        "states", &Player::mStates,
+        "mXPos", &Player::mXPos,
+        "mYPos", &Player::mYPos);
 }
 
 void Player::Init()
