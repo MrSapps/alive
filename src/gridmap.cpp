@@ -128,11 +128,25 @@ void Player::LoadScript(ResourceLocator& locator)
 {
     // Load FSM script
     const std::string script = locator.LocateScript("abe.lua");
-    mLuaState.script(script);
+    try
+    {
+        mLuaState.script(script);
+    }
+    catch (const sol::error& ex)
+    {
+        LOG_ERROR(ex.what());
+        return;
+    }
 
     // Set initial state
     sol::protected_function f = mLuaState["init"];
-    f(this);
+    auto ret = f(this);
+    if (!ret.valid())
+    {
+        sol::error err = ret;
+        std::string what = err.what();
+        LOG_ERROR(what);
+    }
 }
 
 void Player::Update(const InputState& input)
@@ -143,7 +157,13 @@ void Player::Update(const InputState& input)
     }
 
     sol::protected_function f = mLuaState["update"];
-    f(this, input.Mapping().GetActions());
+    auto ret = f(this, input.Mapping().GetActions());
+    if (!ret.valid())
+    {
+        sol::error err = ret;
+        std::string what = err.what();
+        LOG_ERROR(what);
+    }
 }
 
 void Player::SetAnimation(const std::string& animation)
