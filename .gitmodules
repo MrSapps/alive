@@ -38,3 +38,6 @@
 [submodule "3rdParty/sol2"]
 	path = 3rdParty/sol2
 	url = https://github.com/ThePhD/sol2.git
+[submodule "3rdParty/glm"]
+	path = 3rdParty/glm
+	url = https://github.com/g-truc/glm.git
