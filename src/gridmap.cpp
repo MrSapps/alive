@@ -97,7 +97,15 @@ const char* kAbeAnims[] =
     "AbeSneaking",
     "AbeSneakToStand",
     "AbeWalkingToSneaking",
-    "AbeSneakingToWalking"
+    "AbeSneakingToWalking",
+    "AbeRunningToWalkingMidGrid",
+    "AbeWalkingToRunning",
+    "AbeSneakingToWalkingMidGrid",
+    "AbeStandToHop",
+    "AbeHopping",
+    "AbeHoppingToStand",
+    "AbeFallingToLand",
+    "AbeLandToRunning"
 };
 
 Player::Player(sol::state& luaState)

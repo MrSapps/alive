@@ -18,14 +18,23 @@ function init(self)
                 return 'ToCrouch'
             end
 
+            if (i:InputJump()) then
+                return 'ToHop'
+            end
+
             if (i:InputUp()) then
-                -- ToHoistUp
+                -- ToHoistUp, AbeStandToUseStone
                 return 'ToJump'
+            end
+            
+            -- TODO: Holding the input down makes IDunno repeat, this isn't what happens in the real game
+            if (i:InputThrow()) then
+                -- TODO: Check if we have anything to throw
+                return 'ToIDunno'
             end
 
             if (i:InputAction()) then
-                -- PullLever
-                return 'ToThrow'
+                return 'PullLever'
             end
 
             if (InputSameAsDirection(s, i)) then
@@ -51,6 +60,131 @@ function init(self)
          end
     }
     
+    self.states.ToHop =
+    {
+        animation = 'AbeStandToHop',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Hopping'end end
+    }
+
+    self.states.Hopping =
+    {
+        animation = 'AbeHopping',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'HopToStand'end end
+    }
+
+    self.states.HopToStand =
+    {
+        animation = 'AbeHoppingToStand',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand'end end
+    }
+
+    self.states.PullLever =
+    {
+        animation = 'AbeStandPullLever',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand'end end
+    }
+
+    self.states.ToIDunno =
+    {
+        animation = 'AbeStandToIDunno',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'IDunno'end end
+    }
+
+    self.states.IDunno =
+    {
+        animation = 'AbeIDunno',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand'end end
+    }
+
+    self.states.ToRunning =
+    {
+        animation = 'AbeStandToRun',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Running'end end
+    }
+   
+    self.states.Running =
+    {
+        animation = 'AbeRunning',
+        condition = function(s, i) 
+            if (InputNotSameAsDirection(s, i)) then
+                return 'RuningToSkidTurn'
+            end
+
+             if (InputSameAsDirection(s, i)) then
+                if (i:InputRun() == false) then
+                    return 'RunningToWalking'
+                end
+                if (i:InputJump()) then
+                    return 'RunningToJump'
+                end
+             else
+                return 'ToSkidStop'
+             end
+        end
+    }
+    
+    self.states.ToSkidStop =
+    {
+        animation = 'AbeRunningSkidStop',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand'end end
+    }
+    self.states.RunningToJump =
+    {
+        animation = 'AbeRuningToJump',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'RunningJump'end end
+    }
+
+    self.states.RunningJump =
+    {
+        animation = 'AbeRunningJumpInAir',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'RunningJumpFalling'end end
+    }
+
+    self.states.RunningJumpFalling =
+    {
+        animation = 'AbeFallingToLand',
+        -- TODO: Skid stop/knock back etc
+        condition = function(s, i) if (s:IsLastFrame()) then return 'RunningJumpLandToRunning'end end
+    }
+
+    self.states.RunningJumpLandToRunning =
+    {
+        animation = 'AbeLandToRunning',
+        -- TODO: Land to walk etc
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Running'end end
+    }
+
+    self.states.RunningToWalking =
+    {
+        animation = 'AbeRunningToWalkingMidGrid',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Walking'end end
+    }
+
+    self.states.Sneaking =
+    {
+        animation = 'AbeSneaking',
+        condition = function(s, i) 
+            if (InputNotSameAsDirection(s, i)) then
+                return 'StandingTurn'
+            end
+
+             if (InputSameAsDirection(s, i)) then
+                if (i:InputSneak() == false) then
+                    -- TODO: Can also be AbeSneakingToWalkingMidGrid
+                    return 'SneakingToWalking'
+                end
+             else
+                return 'ToStand'
+             end
+        end
+    }
+
+    self.states.WalkingToRunning =
+    {
+        animation = 'AbeWalkingToRunning',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Running'end end
+    }
+
     self.states.WalkingToSneaking =
     {
         animation = 'AbeWalkingToSneaking',
@@ -67,24 +201,6 @@ function init(self)
     {
         animation = 'AbeStandToSneak',
         condition = function(s, i) if (s:IsLastFrame()) then return 'Sneaking'end end
-    }
-
-    self.states.Sneaking =
-    {
-        animation = 'AbeSneaking',
-        condition = function(s, i) 
-            if (InputNotSameAsDirection(s, i)) then
-                return 'StandingTurn'
-            end
-
-             if (InputSameAsDirection(s, i)) then
-                if (i:InputSneak() == false) then
-                    return 'SneakingToWalking'
-                end
-             else
-                return 'ToStand'
-             end
-        end
     }
 
     self.states.SneakToStand =
@@ -149,7 +265,9 @@ function init(self)
             if (InputSameAsDirection(s, i) == false) then 
                 return 'ToStand' 
             end
-            if (i:InputSneak()) then
+            if (i:InputRun()) then
+                return 'WalkingToRunning'
+            elseif (i:InputSneak()) then
                 return 'WalkingToSneaking'
             end
         end
@@ -173,12 +291,29 @@ function init(self)
         condition = function(s, i) if s:IsLastFrame() then return 'Stand' end end
     }
 
+    self.states.RuningToSkidTurn = 
+    {
+        animation = 'AbeRunningToSkidTurn',
+        condition = function(s, i) if s:IsLastFrame() then return 'RuningTurn' end end
+    }
+    
+    self.states.RuningTurn = 
+    {
+        animation = 'AbeRunningTurnAround',
+        condition = function(s, i) 
+            if s:IsLastFrame() then
+                s:FlipXDirection()
+                return 'Running'
+            end
+        end
+    }
     self.states.StandingTurn = 
     {
         animation = 'AbeStandTurnAround',
         condition = function(s, i) 
             if s:IsLastFrame() then
                 s:FlipXDirection()
+                -- TODO: AbeRunningTurnAround if running in turning direction
                 return 'Stand'
             end
         end
