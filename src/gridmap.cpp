@@ -131,7 +131,13 @@ void Player::Init(ResourceLocator& locator)
 {
     for (const auto& anim : kAbeAnims)
     {
-        mAnims.insert(std::make_pair(anim, locator.LocateAnimation(anim)));
+        auto pAnim = locator.LocateAnimation(anim);
+        if (!pAnim)
+        {
+            LOG_ERROR("Animation: " << anim << " not found");
+            abort();
+        }
+        mAnims.insert(std::make_pair(anim, std::move(pAnim)));
     }
 
     LoadScript(locator);
@@ -183,8 +189,8 @@ void Player::SetAnimation(const std::string& animation)
 {
     if (mAnims.find(animation) == std::end(mAnims))
     {
-        LOG_ERROR("Animation " << animation << " is not preloaded");
-        return;
+        LOG_ERROR("Animation " << animation << " is not preloaded - attempting to load");
+        abort();
     }
     mAnim = mAnims[animation].get();
     mAnim->Restart();

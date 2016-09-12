@@ -360,7 +360,7 @@ public:
             mGamePadButtons[event.button].mRawDownState = (event.type == SDL_CONTROLLERBUTTONDOWN);
             if (mGamePadButtons[event.button].mRawDownState)
             {
-                Rumble(1.0f);
+                //Rumble(1.0f);
             }
         }
 
