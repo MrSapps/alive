@@ -1763,7 +1763,8 @@ public:
     bool IsLastFrame() const { return mIsLastFrame; }
 
     // TODO: Position calculation should be refactored
-    void Render(Renderer& rend, bool flipX) const
+    template<class T>
+    void Render(T& rend, bool flipX) const
     {
         const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
 

@@ -7,7 +7,17 @@ local function InputNotSameAsDirection(s, i)
     return (i:InputLeft() and s:FacingRight()) or (i:InputRight() and s:FacingLeft())
 end
 
-local kWalkSpeed = 6
+local kSneakSpeed = 2
+
+local function Sneak(s)
+    if s:FacingRight() then
+        s.mXPos = s.mXPos + kSneakSpeed
+    else
+        s.mXPos = s.mXPos - kSneakSpeed
+    end
+end
+
+local kWalkSpeed = 4
 
 local function Walk(s)
     if s:FacingRight() then
@@ -16,7 +26,8 @@ local function Walk(s)
         s.mXPos = s.mXPos - kWalkSpeed
     end
 end
-local kRunSpeed = 12
+
+local kRunSpeed = 6
 
 local function Run(s)
     if s:FacingRight() then
@@ -202,6 +213,8 @@ function init(self)
              else
                 return 'ToStand'
              end
+
+             Sneak(s)
         end
     }
 
@@ -229,13 +242,19 @@ function init(self)
     self.states.ToSneak =
     {
         animation = 'AbeStandToSneak',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Sneaking'end end
+        condition = function(s, i) 
+            if (s:IsLastFrame()) then return 'Sneaking'end 
+            Sneak(s)
+        end
     }
 
     self.states.SneakToStand =
     {
         animation = 'AbeSneakToStand',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+        condition = function(s, i) 
+            if (s:IsLastFrame()) then return 'Stand' end
+            Sneak(s)
+        end
     }
 
     self.states.Chanting =

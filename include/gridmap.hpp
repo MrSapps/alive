@@ -9,6 +9,7 @@
 #include "oddlib/path.hpp"
 #include "fsm.hpp"
 #include "proxy_sol.hpp"
+#include "renderer.hpp"
 
 struct GuiContext;
 class Renderer;
@@ -17,6 +18,91 @@ class InputState;
 
 namespace Oddlib { class LvlArchive; class IBits; }
 
+
+// Same API as Renderer but renders in "virtual" screen coordinates
+// and auto scales them to the "real" screen coordinates
+class RendererProxy final
+{
+public:
+    RendererProxy(Renderer& rend, s32 virtualW, s32 virtualH, s32 realW, s32 realH)
+        : mRend(rend),
+        mVirtualScreenW(virtualW),
+        mVirtualScreenH(virtualH),
+        mRealScreenW(realW),
+        mRealScreenH(realH)
+    {
+
+    }
+
+    void drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, Color color = Color::white(), BlendMode blendMode = BlendMode::normal())
+    {
+        mRend.drawQuad(texHandle, X(x), Y(y), X(w), Y(h), color, blendMode);
+    }
+
+    void rect(f32 x, f32 y, f32 w, f32 h)
+    {
+        mRend.rect(X(x), Y(y), X(w), Y(h));
+    }
+
+    void text(f32 x, f32 y, const char *msg)
+    {
+        mRend.text(X(x), Y(y), msg);
+    }
+
+    int createTexture(GLenum internalFormat, int width, int height, GLenum inputFormat, GLenum colorDataType, const void *pixels, bool interpolation)
+    {
+        return mRend.createTexture(internalFormat, width, height, inputFormat, colorDataType, pixels, interpolation);
+    }
+
+    void destroyTexture(int handle)
+    {
+        mRend.destroyTexture(handle);
+    }
+
+    void beginPath()
+    {
+        mRend.beginPath();
+    }
+
+    void closePath()
+    {
+        mRend.closePath();
+    }
+
+    void resetTransform()
+    {
+        mRend.resetTransform();
+    }
+
+    void stroke()
+    {
+        mRend.stroke();
+    }
+
+    void strokeColor(Color c)
+    {
+        mRend.strokeColor(c);
+    }
+
+private:
+    f32 X(f32 x) const
+    {
+        return (x / mVirtualScreenW) * mRealScreenW;
+    }
+
+    f32 Y(f32 y) const
+    {
+        return (y / mVirtualScreenH) * mRealScreenH;
+    }
+
+    Renderer& mRend;
+
+    s32 mVirtualScreenW = 0;
+    s32 mVirtualScreenH = 0;
+    s32 mRealScreenW = 0;
+    s32 mRealScreenH = 0;
+};
+
 class Animation;
 class Player
 {
@@ -24,15 +110,15 @@ public:
     Player(sol::state& luaState, ResourceLocator& locator);
     void Init();
     void Update(const InputState& input);
-    void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale);
+    void Render(RendererProxy& rend, GuiContext& gui, int x, int y, float scale);
     void Input(const InputState& input);
     static void RegisterLuaBindings(sol::state& state);
 private:
     void ScriptLoadAnimations();
 
     std::map<std::string, std::unique_ptr<Animation>> mAnims;
-    float mXPos = 200.0f;
-    float mYPos = 600.0f;
+    float mXPos = 50.0f;
+    float mYPos = 100.0f;
     Animation* mAnim = nullptr;
     sol::state& mLuaState;
     sol::table mStates;
@@ -108,6 +194,9 @@ public:
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
 private:
+    void RenderEditor(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+    void RenderGame(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
 
     std::string mLvlName;
@@ -120,4 +209,11 @@ private:
     bool mIsAo;
 
     Player mPlayer;
+
+    enum class eStates
+    {
+        eInGame,
+        eEditor
+    };
+    eStates mState = eStates::eInGame;
 };
