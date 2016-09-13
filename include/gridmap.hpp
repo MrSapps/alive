@@ -24,7 +24,7 @@ public:
     Player(sol::state& luaState, ResourceLocator& locator);
     void Init();
     void Update(const InputState& input);
-    void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+    void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale);
     void Input(const InputState& input);
     static void RegisterLuaBindings(sol::state& state);
 private:
@@ -70,7 +70,7 @@ private:
     void RenderDebugPathSelection(Renderer& rend, GuiContext& gui);
     std::unique_ptr<class GridMap> mMap;
     ResourceLocator& mLocator;
-    Player mPlayer;
+    sol::state& mLuaState;
 };
 
 class GridScreen
@@ -104,8 +104,8 @@ class GridMap
 public:
     GridMap(const GridMap&) = delete;
     GridMap& operator = (const GridMap&) = delete;
-    GridMap(Oddlib::Path& path, ResourceLocator& locator, Renderer& rend);
-    void Update();
+    GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend);
+    void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
 private:
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
@@ -118,4 +118,6 @@ private:
     // TODO: This is not the in-game format
     std::vector<Oddlib::Path::CollisionItem> mCollisionItems;
     bool mIsAo;
+
+    Player mPlayer;
 };

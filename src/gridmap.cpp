@@ -134,7 +134,7 @@ s32 Player::FrameNumber() const
     return mAnim->FrameNumber();
 }
 
-void Player::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*screenH*/)
+void Player::Render(Renderer& rend, GuiContext& gui, int x, int y, float scale)
 {
     // Debug ui
     gui_begin_window(&gui, "Script debug");
@@ -146,8 +146,9 @@ void Player::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scre
 
     if (mAnim)
     {
-        mAnim->SetXPos(static_cast<s32>(mXPos));
-        mAnim->SetYPos(static_cast<s32>(mYPos));
+        mAnim->SetXPos(static_cast<s32>(mXPos)+x);
+        mAnim->SetYPos(static_cast<s32>(mYPos)+y);
+        mAnim->SetScale(scale);
         mAnim->Render(rend, mFlipX);
     }
 }
@@ -155,33 +156,27 @@ void Player::Render(Renderer& rend, GuiContext& gui, int /*screenW*/, int /*scre
 // ============================================
 
 Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator, sol::state& luaState)
-    : mLocator(locator), mPlayer(luaState, mLocator)
+    : mLocator(locator), mLuaState(luaState)
 {
 
 }
 
 void Level::EnterState()
 {
-    mPlayer.Init();
+
 }
 
 void Level::Update(const InputState& input)
 {
     if (mMap)
     {
-        mMap->Update();
+        mMap->Update(input);
     }
-
-    mPlayer.Update(input);
 }
 
 void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 {
     RenderDebugPathSelection(rend, gui);
-
-    rend.beginLayer(9000);
-    mPlayer.Render(rend, gui, screenW, screenH);
-    rend.endLayer();
 
     if (mMap)
     {
@@ -201,7 +196,7 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
             if (path)
             {
 
-                mMap = std::make_unique<GridMap>(*path, mLocator, rend);
+                mMap = std::make_unique<GridMap>(*path, mLocator, mLuaState, rend);
             }
             else
             {
@@ -254,8 +249,8 @@ bool GridScreen::hasTexture() const
     return !onlySpaces;
 }
 
-GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, Renderer& rend)
-    : mCollisionItems(path.CollisionItems())
+GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
+    : mCollisionItems(path.CollisionItems()), mPlayer(luaState, locator)
 {
     mIsAo = path.IsAo();
 
@@ -272,56 +267,17 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, Renderer& rend)
             mScreens[x][y] = std::make_unique<GridScreen>(mLvlName, path.CameraByPosition(x, y), rend, locator);
         }
     }
+
+    mPlayer.Init();
 }
 
-void GridMap::Update()
+void GridMap::Update(const InputState& input)
 {
-
+    mPlayer.Update(input);
 }
 
-void GridMap::Render(Renderer& rend, GuiContext& gui, int, int)
+void GridMap::Render(Renderer& rend, GuiContext& gui, int , int )
 {
-#if 0 // List of cams
-    gui.next_window_pos = v2i(950, 50);
-    gui_begin_window(&gui, "GridMap", v2i(200, 500));
-    for (auto x = 0u; x < mScreens.size(); x++)
-    {
-        for (auto y = 0u; y < mScreens[0].size(); y++)
-        {
-            if (gui_button(&gui, gui_str(&gui, "cam_%i_%i|%s", (int)x, (int)y, mScreens[x][y]->FileName().c_str())))
-            {
-                mEditorScreenX = (int)x;
-                mEditorScreenY = (int)y;
-            }
-        }
-    }
-    gui_end_window(&gui);
-
-    if (mEditorScreenX >= static_cast<int>(mScreens.size()) || // Invalid x check
-        (mEditorScreenX >= 0 && mEditorScreenY >= static_cast<int>(mScreens[mEditorScreenX].size()))) // Invalid y check
-    {
-        mEditorScreenX = mEditorScreenY = -1;
-    }
-
-    if (mEditorScreenX >= 0 && mEditorScreenY >= 0)
-    {
-        GridScreen *screen = mScreens[mEditorScreenX][mEditorScreenY].get();
-
-        gui.next_window_pos = v2i(100, 100);
-
-        V2i size = v2i(640, 480);
-        gui_begin_window(&gui, "CAM", size);
-        size = gui_window_client_size(&gui);
-
-        rend.beginLayer(gui_layer(&gui));
-        V2i pos = gui_turtle_pos(&gui);
-        rend.drawQuad(screen->getTexHandle(mFs), 1.0f*pos.x, 1.0f*pos.y, 1.0f*size.x, 1.0f*size.y);
-        rend.endLayer();
-
-        gui_end_window(&gui);
-    }
-#else // Proper editor gui
-
     gui_begin_panel(&gui, "camArea");
     rend.beginLayer(gui_layer(&gui) + 1);
 
@@ -443,9 +399,16 @@ void GridMap::Render(Renderer& rend, GuiContext& gui, int, int)
             }
         }
     }
+    
+    {
+        int pos[2];
+        gui_turtle_pos(&gui, &pos[0], &pos[1]);
 
+        mPlayer.Render(rend, gui, 
+            pos[0],
+            pos[1],
+            3.0f);
+    }
     rend.endLayer();
     gui_end_panel(&gui);
-#endif
 }
-

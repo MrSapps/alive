@@ -1846,6 +1846,7 @@ public:
     u32 MaxW() const { return static_cast<u32>(mAnim.MaxW()*ScaleX()); }
     u32 MaxH() const { return static_cast<u32>(mAnim.MaxH()*mScale); }
     s32 FrameNumber() const { return static_cast<s32>(mFrameNum); }
+    void SetScale(f32 scale) { mScale = scale; }
 private:
     bool PointInRect(f32 px, f32 py, f32 x, f32 y, f32 w, f32 h) const
     {
