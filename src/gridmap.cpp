@@ -291,6 +291,7 @@ void GridMap::Update(const InputState& input)
 void GridMap::RenderEditor(Renderer& rend, GuiContext& gui, int, int)
 {
     //gui_begin_panel(&gui, "camArea");
+
     rend.beginLayer(gui_layer(&gui) + 1);
 
     glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
@@ -311,6 +312,22 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui, int, int)
 
             rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
         }
+    }
+
+    rend.stroke();
+
+    rend.strokeColor(Color{ 1, 0, 1, 1 });
+    rend.strokeWidth(2.f);
+    for (size_t i = 0; i < mCollisionItems.size(); ++i)
+    {
+        const Oddlib::Path::CollisionItem& item = mCollisionItems[i];
+        glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item.mP1.mX, item.mP1.mY));
+        glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item.mP2.mX, item.mP2.mY));
+
+        rend.beginPath();
+        rend.moveTo(p1.x, p1.y);
+        rend.moveTo(p2.x, p2.y);
+        rend.stroke();
     }
 
     //const f32 zoomBase = 1.2f;
@@ -340,7 +357,7 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui, int, int)
     //    1.f * worldFrameSize[1] / worldCamSize[1] * camSize[1] };
 
     //// Zoom around cursor
-    ///*if (zoomChanged)
+    //*if (zoomChanged)
     //{
     //    int scroll[2];
     //    gui_scroll(&gui, &scroll[0], &scroll[1]);
@@ -438,23 +455,26 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui, int, int)
 
 void GridMap::RenderGame(Renderer& rend, GuiContext& gui, int w, int h)
 {
-    glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024,480) : glm::vec2(375, 260); 
-    
-    rend.mScreenSize = glm::vec2(368, 240);
-    int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x) * camGapSize.x;
-    int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y) * camGapSize.y;
+    glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 
-    rend.mCameraPosition = glm::vec2(camX,camY) + glm::vec2(368 / 2, 240 / 2);
+    rend.mScreenSize = glm::vec2(368, 240);
+    int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x);
+    int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y);
+
+    rend.mCameraPosition = glm::vec2(camX * camGapSize.x, camY * camGapSize.y) + glm::vec2(368 / 2, 240 / 2);
+
+    if (camX >= 0 && camY >= 0 && camX < mScreens.size() && camY < mScreens[camX].size())
+    {
+        GridScreen *screen = mScreens[camX][camY].get();
+        if (screen->hasTexture())
+            rend.drawQuad(screen->getTexHandle(), camX * camGapSize.x, camY * camGapSize.y, 368.0f, 240.0f);
+    }
 
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
         {
-            GridScreen *screen = mScreens[x][y].get();
-            if (!screen->hasTexture())
-                continue;
             
-            rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
         }
     }
 
