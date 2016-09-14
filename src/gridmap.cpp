@@ -427,13 +427,12 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui, int w, int h)
     }
 exit:
 
-    // from x*368 to x*368+368 etc?
-    RendererProxy r(rend, 368, 240, w, h);
+    RendererProxy r(rend, 368, 240, w, h, xp* 375, yp* 260);
 
     // Draw camera
     if (screen)
     {
-        r.drawQuad(screen->getTexHandle(), 0.0f, 0.0f, 368.0f, 240.0f);
+        r.drawQuad(screen->getTexHandle(), 375.0f *xp, 260.0f*yp, 368.0f, 240.0f);
     }
 
     // Draw collision lines

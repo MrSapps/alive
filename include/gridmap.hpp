@@ -24,24 +24,26 @@ namespace Oddlib { class LvlArchive; class IBits; }
 class RendererProxy final
 {
 public:
-    RendererProxy(Renderer& rend, s32 virtualW, s32 virtualH, s32 realW, s32 realH)
+    RendererProxy(Renderer& rend, s32 virtualW, s32 virtualH, s32 realW, s32 realH, s32 xpos, s32 ypos)
         : mRend(rend),
         mVirtualScreenW(virtualW),
         mVirtualScreenH(virtualH),
         mRealScreenW(realW),
-        mRealScreenH(realH)
+        mRealScreenH(realH),
+        mXPos(xpos),
+        mYPos(ypos)
     {
 
     }
 
     void drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, Color color = Color::white(), BlendMode blendMode = BlendMode::normal())
     {
-        mRend.drawQuad(texHandle, X(x), Y(y), X(w), Y(h), color, blendMode);
+        mRend.drawQuad(texHandle, X(x), Y(y), XNoMove(w), YNoMove(h), color, blendMode);
     }
 
     void rect(f32 x, f32 y, f32 w, f32 h)
     {
-        mRend.rect(X(x), Y(y), X(w), Y(h));
+        mRend.rect(X(x), Y(y), XNoMove(w), YNoMove(h));
     }
 
     void text(f32 x, f32 y, const char *msg)
@@ -102,10 +104,20 @@ public:
 private:
     f32 X(f32 x) const
     {
-        return (x / mVirtualScreenW) * mRealScreenW;
+        return ((x- mXPos) / mVirtualScreenW) * mRealScreenW;
     }
 
     f32 Y(f32 y) const
+    {
+        return ((y- mYPos) / mVirtualScreenH) * mRealScreenH;
+    }
+
+    f32 XNoMove(f32 x) const
+    {
+        return (x / mVirtualScreenW) * mRealScreenW;
+    }
+
+    f32 YNoMove(f32 y) const
     {
         return (y / mVirtualScreenH) * mRealScreenH;
     }
@@ -116,6 +128,8 @@ private:
     s32 mVirtualScreenH = 0;
     s32 mRealScreenW = 0;
     s32 mRealScreenH = 0;
+    s32 mXPos = 0;
+    s32 mYPos = 0;
 };
 
 class Animation;
