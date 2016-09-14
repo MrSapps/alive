@@ -406,20 +406,47 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui, int, int)
 
 void GridMap::RenderGame(Renderer& rend, GuiContext& gui, int w, int h)
 {
-    RendererProxy r(rend, 368, 240, w, h);
+    s32 xp = 0;
+    s32 yp = 0;
+    GridScreen *screen = nullptr;
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
         {
-            GridScreen *screen = mScreens[x][y].get();
+            screen = mScreens[x][y].get();
             if (!screen->hasTexture())
+            {
+                screen = nullptr;
                 continue;
+            }
 
-            r.drawQuad(screen->getTexHandle(), 0.0f, 0.0f, 368.0f, 240.0f);
+            xp = x;
+            yp = y;
             goto exit;
         }
     }
 exit:
+
+    // from x*368 to x*368+368 etc?
+    RendererProxy r(rend, 368, 240, w, h);
+
+    // Draw camera
+    if (screen)
+    {
+        r.drawQuad(screen->getTexHandle(), 0.0f, 0.0f, 368.0f, 240.0f);
+    }
+
+    // Draw collision lines
+    r.strokeColor(Color{ 0, 0, 1, 1 });
+    r.strokeWidth(2.f);
+    for (size_t i = 0; i < mCollisionItems.size(); ++i)
+    {
+        const Oddlib::Path::CollisionItem& item = mCollisionItems[i];
+        r.beginPath();
+        r.moveTo(item.mP1.mX, item.mP1.mY);
+        r.lineTo(item.mP2.mX, item.mP2.mY);
+        r.stroke();
+    }
 
     mPlayer.Render(r, gui,
         0,

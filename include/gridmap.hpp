@@ -49,6 +49,16 @@ public:
         mRend.text(X(x), Y(y), msg);
     }
 
+    void moveTo(f32 x, f32 y)
+    {
+        mRend.moveTo(X(x), Y(y));
+    }
+
+    void lineTo(f32 x, f32 y)
+    {
+        mRend.lineTo(X(x), Y(y));
+    }
+
     int createTexture(GLenum internalFormat, int width, int height, GLenum inputFormat, GLenum colorDataType, const void *pixels, bool interpolation)
     {
         return mRend.createTexture(internalFormat, width, height, inputFormat, colorDataType, pixels, interpolation);
@@ -82,6 +92,11 @@ public:
     void strokeColor(Color c)
     {
         mRend.strokeColor(c);
+    }
+
+    void strokeWidth(f32 size)
+    {
+        mRend.strokeWidth(size);
     }
 
 private:
