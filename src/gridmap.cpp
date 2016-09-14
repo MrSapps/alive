@@ -134,7 +134,7 @@ s32 Player::FrameNumber() const
     return mAnim->FrameNumber();
 }
 
-void Player::Render(RendererProxy& rend, GuiContext& gui, int x, int y, float scale)
+void Player::Render(Renderer& rend, GuiContext& gui, int x, int y, float scale)
 {
     // Debug ui
     gui_begin_window(&gui, "Script debug");
@@ -406,7 +406,8 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui, int, int)
 
 void GridMap::RenderGame(Renderer& rend, GuiContext& gui, int w, int h)
 {
-    RendererProxy r(rend, 368, 240, w, h);
+	glm::vec2 camGapSize = glm::vec2(380, 248); // NOT CORRECT! Just used as an example at the moment.
+
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
@@ -415,13 +416,13 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui, int w, int h)
             if (!screen->hasTexture())
                 continue;
 
-            r.drawQuad(screen->getTexHandle(), 0.0f, 0.0f, 368.0f, 240.0f);
-            goto exit;
+			//rend.drawQuad(screen->getTexHandle(), x * 368.0f, y * 240.0f, 368.0f, 240.0f);
+			rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
         }
     }
 exit:
 
-    mPlayer.Render(r, gui,
+    mPlayer.Render(rend, gui,
         0,
         0,
         1.0f);

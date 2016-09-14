@@ -52,8 +52,8 @@ static void assertOnGlError(const char *msg)
 
 struct TriMeshVertex
 {
-    f32 pos[2];
-    f32 uv[2];
+	glm::vec2 pos;
+	glm::vec2 uv;
     Color color;
 };
 
@@ -336,12 +336,15 @@ Renderer::Renderer(const char *fontPath)
             "attribute vec2 a_uv;         \n"
             "attribute vec4 a_color;      \n"
             "varying vec2 v_uv;               \n"
-            "varying vec4 v_color;            \n"
+			"varying vec4 v_color;            \n"
+			"uniform mat4 m_projection;            \n"
+			"uniform mat4 m_view;            \n"
+			"uniform mat4 m_transform;            \n"
             "void main()                  \n"
             "{                            \n"
             "    v_uv = a_uv;             \n"
             "    v_color = a_color;       \n"
-            "    gl_Position = vec4(a_pos, 0, 1); \n"
+            "    gl_Position = m_projection * m_view * m_transform * vec4(a_pos, 0, 1); \n"
             "}                            \n";
         const char fsString[] =
             "#version 120\n"
@@ -502,31 +505,12 @@ void Renderer::endFrame()
             color.a *= blend.colorMul;
 
             TriMeshVertex vert[4] = {};
-            vert[0].pos[0] = 2 * x / mW - 1;
-            vert[0].pos[1] = -2 * y / mH + 1;
-            vert[0].uv[0] = 0;
-            vert[0].uv[1] = 0;
-            memcpy(&vert[0].color, &color, sizeof(vert[0].color));
-
-            vert[1].pos[0] = 2 * (x + w) / mW - 1;
-            vert[1].pos[1] = -2 * y / mH + 1;
-            vert[1].uv[0] = 1;
-            vert[1].uv[1] = 0;
-            memcpy(&vert[1].color, &color, sizeof(vert[1].color));
-
-            vert[2].pos[0] = 2 * (x + w) / mW - 1;
-            vert[2].pos[1] = -2 * (y + h) / mH + 1;
-            vert[2].uv[0] = 1;
-            vert[2].uv[1] = 1;
-            memcpy(&vert[2].color, &color, sizeof(vert[2].color));
-
-            vert[3].pos[0] = 2 * x / mW - 1;
-            vert[3].pos[1] = -2 * (y + h) / mH + 1;
-            vert[3].uv[0] = 0;
-            vert[3].uv[1] = 1;
-            memcpy(&vert[3].color, &color, sizeof(vert[3].color));
-
             static MeshIndexType ind[6] = { 0, 1, 2, 0, 2, 3 };
+
+			vert[0] = { glm::vec2(0, 0),glm::vec2(0, 0),color };
+			vert[1] = { glm::vec2(1, 0),glm::vec2(1, 0),color };
+			vert[2] = { glm::vec2(1, 1),glm::vec2(1, 1),color };
+			vert[3] = { glm::vec2(0, 1),glm::vec2(0, 1),color };
 
             // TODO: Batch rendering if becomes bottleneck
             bind_vao(&mQuadVao);
@@ -534,9 +518,16 @@ void Renderer::endFrame()
             add_vertices_to_vao(&mQuadVao, vert, 4);
             add_indices_to_vao(&mQuadVao, ind, 6);
 
+			glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(mW), static_cast<float>(mH), 0.0f, -1.0f, 1.0f);
+			glm::mat4 view = glm::mat4(1.0f);
+			glm::mat4 transform = glm::scale(glm::translate(glm::mat4(1), glm::vec3(x, y, 0)), glm::vec3(w, h, 1));
+
             GL(glActiveTexture(GL_TEXTURE0));
             GL(glBindTexture(GL_TEXTURE_2D, texHandle));
             GL(glUseProgram(mProgram));
+			GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_projection"), 1, false, glm::value_ptr(projection)));
+			GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_view"), 1, false, glm::value_ptr(view)));
+			GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_transform"), 1, false, glm::value_ptr(transform)));
             GL(glBlendFunc(blend.srcFactor, blend.dstFactor));
             GL(glBlendEquation(blend.equation));
             draw_vao(&mQuadVao);
