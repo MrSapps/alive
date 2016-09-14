@@ -45,13 +45,13 @@ void draw_vao(const Vao *vao);
 
 // These values should match nanovg
 enum TextAlign {
-	TEXT_ALIGN_LEFT 	= 1<<0,	// Default, align text horizontally to left.
-	TEXT_ALIGN_CENTER 	= 1<<1,	// Align text horizontally to center.
-	TEXT_ALIGN_RIGHT 	= 1<<2,	// Align text horizontally to right.
-	TEXT_ALIGN_TOP 		= 1<<3,	// Align text vertically to top.
-	TEXT_ALIGN_MIDDLE	= 1<<4,	// Align text vertically to middle.
-	TEXT_ALIGN_BOTTOM	= 1<<5,	// Align text vertically to bottom. 
-	TEXT_ALIGN_BASELINE	= 1<<6, // Default, align text vertically to baseline. 
+    TEXT_ALIGN_LEFT 	= 1<<0,	// Default, align text horizontally to left.
+    TEXT_ALIGN_CENTER 	= 1<<1,	// Align text horizontally to center.
+    TEXT_ALIGN_RIGHT 	= 1<<2,	// Align text horizontally to right.
+    TEXT_ALIGN_TOP 		= 1<<3,	// Align text vertically to top.
+    TEXT_ALIGN_MIDDLE	= 1<<4,	// Align text vertically to middle.
+    TEXT_ALIGN_BOTTOM	= 1<<5,	// Align text vertically to bottom. 
+    TEXT_ALIGN_BASELINE	= 1<<6, // Default, align text vertically to baseline. 
 };
 
 struct Color {
@@ -132,8 +132,8 @@ public:
     Renderer(const char *fontPath);
     ~Renderer();
 
-	glm::vec2 mScreenSize = glm::vec2(368, 240);
-	glm::vec2 mCameraPosition = glm::vec2(0, 0);
+    glm::vec2 mScreenSize = glm::vec2(368, 240);
+    glm::vec2 mCameraPosition = glm::vec2(0, 0);
 
     void beginFrame(int w, int h);
     void endFrame();
@@ -152,20 +152,20 @@ public:
     // Use negative w or h to flip uv coordinates
     void drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, Color color = Color::white(), BlendMode blendMode = BlendMode::normal());
 
-	glm::vec2 WorldToScreen(glm::vec2 worldPos)
-	{
-		return ((mCameraProjection * mCameraView) * glm::vec4(worldPos, 1, 1)) * glm::vec4(mW / 2, -mH / 2, 1, 1) + glm::vec4(mW / 2, mH / 2, 0, 0);
-	}
+    glm::vec2 WorldToScreen(glm::vec2 worldPos)
+    {
+        return ((mCameraProjection * mCameraView) * glm::vec4(worldPos, 1, 1)) * glm::vec4(mW / 2, -mH / 2, 1, 1) + glm::vec4(mW / 2, mH / 2, 0, 0);
+    }
 
-	glm::vec4 WorldToScreenRect(f32 x, f32 y, f32 width, f32 height)
-	{
-		glm::vec2 rectPos = glm::vec2(x, y);
-		glm::vec2 rectSize = glm::vec2(width, height);
-		glm::vec2 screenRectPos = WorldToScreen(rectPos);
-		glm::vec2 screenRectSize = WorldToScreen(rectPos + rectSize) - screenRectPos;
+    glm::vec4 WorldToScreenRect(f32 x, f32 y, f32 width, f32 height)
+    {
+        glm::vec2 rectPos = glm::vec2(x, y);
+        glm::vec2 rectSize = glm::vec2(width, height);
+        glm::vec2 screenRectPos = WorldToScreen(rectPos);
+        glm::vec2 screenRectSize = WorldToScreen(rectPos + rectSize) - screenRectPos;
 
-		return glm::vec4(screenRectPos, screenRectSize);
-	}
+        return glm::vec4(screenRectPos, screenRectSize);
+    }
 
     // NanoVG wrap
     void fillColor(Color c);
@@ -204,7 +204,7 @@ public:
 private:
     void destroyTextures();
     void pushCmd(DrawCmd cmd);
-	void updateCamera();
+    void updateCamera();
 
     // Vector rendering
     struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;
@@ -216,9 +216,9 @@ private:
     GLuint mProgram;
     Vao mQuadVao;
 
-	glm::mat4 mView;
-	glm::mat4 mCameraProjection;
-	glm::mat4 mCameraView;
+    glm::mat4 mView;
+    glm::mat4 mCameraProjection;
+    glm::mat4 mCameraView;
 
     enum Mode
     {

@@ -438,13 +438,13 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui, int, int)
 
 void GridMap::RenderGame(Renderer& rend, GuiContext& gui, int w, int h)
 {
-	glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024,480) : glm::vec2(375, 260); 
+    glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024,480) : glm::vec2(375, 260); 
     
-	rend.mScreenSize = glm::vec2(368, 240);
-	int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x) * camGapSize.x;
-	int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y) * camGapSize.y;
+    rend.mScreenSize = glm::vec2(368, 240);
+    int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x) * camGapSize.x;
+    int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y) * camGapSize.y;
 
-	rend.mCameraPosition = glm::vec2(camX,camY) + glm::vec2(368 / 2, 240 / 2);
+    rend.mCameraPosition = glm::vec2(camX,camY) + glm::vec2(368 / 2, 240 / 2);
 
     for (auto x = 0u; x < mScreens.size(); x++)
     {
@@ -453,8 +453,8 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui, int w, int h)
             GridScreen *screen = mScreens[x][y].get();
             if (!screen->hasTexture())
                 continue;
-			
-			rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
+            
+            rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
         }
     }
 

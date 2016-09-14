@@ -1805,7 +1805,7 @@ public:
             flipX ? -width : width,
             static_cast<f32>(std::abs(frame.mTopLeft.y - frame.mBottomRight.y)) * mScale);
 
-		rend.rect(
+        rend.rect(
             rectScreen.x,
             rectScreen.y,
             rectScreen.z,

@@ -29,8 +29,8 @@ public:
     void Input(const InputState& input);
     static void RegisterLuaBindings(sol::state& state);
 
-	float mXPos = 50.0f;
-	float mYPos = 100.0f;
+    float mXPos = 50.0f;
+    float mYPos = 100.0f;
 private:
     void ScriptLoadAnimations();
 
