@@ -28,12 +28,13 @@ public:
     void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale);
     void Input(const InputState& input);
     static void RegisterLuaBindings(sol::state& state);
+
+	float mXPos = 50.0f;
+	float mYPos = 100.0f;
 private:
     void ScriptLoadAnimations();
 
     std::map<std::string, std::unique_ptr<Animation>> mAnims;
-    float mXPos = 50.0f;
-    float mYPos = 100.0f;
     Animation* mAnim = nullptr;
     sol::state& mLuaState;
     sol::table mStates;

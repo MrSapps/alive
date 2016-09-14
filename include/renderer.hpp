@@ -9,12 +9,13 @@
 #endif
 #include "SDL_opengl.h"
 
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
 #include <glm/vec3.hpp> // glm::vec3
 #include <glm/vec4.hpp> // glm::vec4
 #include <glm/mat4x4.hpp> // glm::mat4
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/compatibility.hpp>
 
 // Vertex array object. Contains vertex and index buffers
 // Copy-pasted from revolc engine
@@ -131,6 +132,9 @@ public:
     Renderer(const char *fontPath);
     ~Renderer();
 
+	glm::vec2 mScreenSize = glm::vec2(368, 240);
+	glm::vec2 mCameraPosition = glm::vec2(0, 0);
+
     void beginFrame(int w, int h);
     void endFrame();
 
@@ -147,6 +151,21 @@ public:
 
     // Use negative w or h to flip uv coordinates
     void drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, Color color = Color::white(), BlendMode blendMode = BlendMode::normal());
+
+	glm::vec2 WorldToScreen(glm::vec2 worldPos)
+	{
+		return ((mCameraProjection * mCameraView) * glm::vec4(worldPos, 1, 1)) * glm::vec4(mW / 2, -mH / 2, 1, 1) + glm::vec4(mW / 2, mH / 2, 0, 0);
+	}
+
+	glm::vec4 WorldToScreenRect(f32 x, f32 y, f32 width, f32 height)
+	{
+		glm::vec2 rectPos = glm::vec2(x, y);
+		glm::vec2 rectSize = glm::vec2(width, height);
+		glm::vec2 screenRectPos = WorldToScreen(rectPos);
+		glm::vec2 screenRectSize = WorldToScreen(rectPos + rectSize) - screenRectPos;
+
+		return glm::vec4(screenRectPos, screenRectSize);
+	}
 
     // NanoVG wrap
     void fillColor(Color c);
@@ -179,21 +198,27 @@ public:
     // TODO: Add fontsize param to make independent of "current state"
     void textBounds(int x, int y, const char *msg, f32 bounds[4]);
 
+    int mW = 0;
+    int mH = 0;
+
 private:
     void destroyTextures();
     void pushCmd(DrawCmd cmd);
+	void updateCamera();
 
     // Vector rendering
     struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;
     struct NVGcontext* mNanoVg = nullptr;
-    int mW = 0;
-    int mH = 0;
 
     // Textured quad rendering
     GLuint mVs;
     GLuint mFs;
     GLuint mProgram;
     Vao mQuadVao;
+
+	glm::mat4 mView;
+	glm::mat4 mCameraProjection;
+	glm::mat4 mCameraView;
 
     enum Mode
     {

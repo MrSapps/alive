@@ -289,6 +289,20 @@ GLuint createShader(GLenum type, const char *shaderSrc)
     return shader;
 }
 
+void Renderer::updateCamera()
+{
+	glm::mat4 target_projection = glm::ortho(-mScreenSize.x / 2.0f, mScreenSize.x / 2.0f, mScreenSize.y / 2.0f, -mScreenSize.y / 2.0f, -1.0f, 1.0f);
+	mCameraView = glm::translate(glm::mat4(1.0f), glm::vec3(-mCameraPosition, 0));
+
+	// Lerp camera matrix
+	float * projPtr = glm::value_ptr(mCameraProjection);
+	float * projPtrTarget = glm::value_ptr(target_projection);
+	for (int m = 0; m < 16; m++)
+	{
+		projPtr[m] = glm::lerp(projPtr[m], projPtrTarget[m], 0.1f);
+	}
+}
+
 Renderer::Renderer(const char *fontPath)
 {
     { // Vector rendering init
@@ -336,24 +350,22 @@ Renderer::Renderer(const char *fontPath)
             "attribute vec2 a_uv;         \n"
             "attribute vec4 a_color;      \n"
             "varying vec2 v_uv;               \n"
-			"varying vec4 v_color;            \n"
 			"uniform mat4 m_projection;            \n"
 			"uniform mat4 m_view;            \n"
 			"uniform mat4 m_transform;            \n"
             "void main()                  \n"
             "{                            \n"
             "    v_uv = a_uv;             \n"
-            "    v_color = a_color;       \n"
             "    gl_Position = m_projection * m_view * m_transform * vec4(a_pos, 0, 1); \n"
             "}                            \n";
         const char fsString[] =
             "#version 120\n"
             "uniform sampler2D u_tex;\n"
             "varying vec2 v_uv; \n"
-            "varying vec4 v_color; \n"
+            "uniform vec4 m_color; \n"
             "void main()                                  \n"
             "{                                            \n"
-            "  gl_FragColor = v_color*texture2D(u_tex, v_uv);\n"
+            "  gl_FragColor = m_color*texture2D(u_tex, v_uv);\n"
             "}                                            \n";
 
         mVs = createShader(GL_VERTEX_SHADER, vsString);
@@ -455,6 +467,8 @@ void Renderer::beginFrame(int w, int h)
 
 void Renderer::endFrame()
 {
+	updateCamera();
+
     assert(mLayerStack.empty());
 
     // This is the primary reason for buffering drawing command. Call order doesn't determine draw order, but layers do.
@@ -507,10 +521,10 @@ void Renderer::endFrame()
             TriMeshVertex vert[4] = {};
             static MeshIndexType ind[6] = { 0, 1, 2, 0, 2, 3 };
 
-			vert[0] = { glm::vec2(0, 0),glm::vec2(0, 0),color };
-			vert[1] = { glm::vec2(1, 0),glm::vec2(1, 0),color };
-			vert[2] = { glm::vec2(1, 1),glm::vec2(1, 1),color };
-			vert[3] = { glm::vec2(0, 1),glm::vec2(0, 1),color };
+			vert[0] = { glm::vec2(0, 0),glm::vec2(0, 0) };
+			vert[1] = { glm::vec2(1, 0),glm::vec2(1, 0) };
+			vert[2] = { glm::vec2(1, 1),glm::vec2(1, 1) };
+			vert[3] = { glm::vec2(0, 1),glm::vec2(0, 1) };
 
             // TODO: Batch rendering if becomes bottleneck
             bind_vao(&mQuadVao);
@@ -518,15 +532,15 @@ void Renderer::endFrame()
             add_vertices_to_vao(&mQuadVao, vert, 4);
             add_indices_to_vao(&mQuadVao, ind, 6);
 
-			glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(mW), static_cast<float>(mH), 0.0f, -1.0f, 1.0f);
-			glm::mat4 view = glm::mat4(1.0f);
+			
 			glm::mat4 transform = glm::scale(glm::translate(glm::mat4(1), glm::vec3(x, y, 0)), glm::vec3(w, h, 1));
 
             GL(glActiveTexture(GL_TEXTURE0));
             GL(glBindTexture(GL_TEXTURE_2D, texHandle));
             GL(glUseProgram(mProgram));
-			GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_projection"), 1, false, glm::value_ptr(projection)));
-			GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_view"), 1, false, glm::value_ptr(view)));
+			GL(glUniform4fv(glGetUniformLocation(mProgram, "m_color"), 1, reinterpret_cast<float*>(&color)));
+			GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_projection"), 1, false, glm::value_ptr(mCameraProjection)));
+			GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_view"), 1, false, glm::value_ptr(mCameraView)));
 			GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_transform"), 1, false, glm::value_ptr(transform)));
             GL(glBlendFunc(blend.srcFactor, blend.dstFactor));
             GL(glBlendEquation(blend.equation));
