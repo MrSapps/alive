@@ -293,7 +293,7 @@ void MatrixLerp(float * from, float * to, float speed)
 {
     for (int m = 0; m < 16; m++)
     {
-        from[m] = glm::lerp(from[m], to[m], 0.1f);
+        from[m] = glm::lerp(from[m], to[m], speed);
     }
 }
 

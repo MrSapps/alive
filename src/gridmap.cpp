@@ -536,7 +536,7 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
         {
-            screen = mScreens[x][y].get();
+            GridScreen *screen = mScreens[x][y].get();
             if (!screen->hasTexture())
             {
                 screen = nullptr;
