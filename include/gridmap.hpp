@@ -17,19 +17,16 @@ class ResourceLocator;
 class InputState;
 
 namespace Oddlib { class LvlArchive; class IBits; }
-//
-//namespace Physics
-//{
-//    typedef struct raycast_collision
-//    {
-//        glm::vec2 collision;
-//    };
-//
-//    bool raycast_lines(glm::vec2 line1p1, glm::vec2 line1p2, glm::vec2 line2p1, glm::vec2 line2p2, raycast_collision * collision)
-//    {
-//
-//    }
-//}
+
+namespace Physics
+{
+    struct raycast_collision
+    {
+        glm::vec2 intersection;
+    };
+
+    bool raycast_lines(glm::vec2 line1p1, glm::vec2 line1p2, glm::vec2 line2p1, glm::vec2 line2p2, raycast_collision * collision);
+}
 
 class Animation;
 class Player
@@ -125,6 +122,8 @@ public:
 private:
     void RenderEditor(Renderer& rend, GuiContext& gui);
     void RenderGame(Renderer& rend, GuiContext& gui);
+
+    bool raycast_map(glm::vec2 line1p1, glm::vec2 line1p2, int collisionType, Physics::raycast_collision * collision);
 
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
 
