@@ -289,18 +289,32 @@ GLuint createShader(GLenum type, const char *shaderSrc)
     return shader;
 }
 
+void MatrixLerp(float * from, float * to, float speed)
+{
+    for (int m = 0; m < 16; m++)
+    {
+        from[m] = glm::lerp(from[m], to[m], 0.1f);
+    }
+}
+
 void Renderer::updateCamera()
 {
     glm::mat4 target_projection = glm::ortho(-mScreenSize.x / 2.0f, mScreenSize.x / 2.0f, mScreenSize.y / 2.0f, -mScreenSize.y / 2.0f, -1.0f, 1.0f);
-    mCameraView = glm::translate(glm::mat4(1.0f), glm::vec3(-mCameraPosition, 0));
+    glm::mat4 camMat = glm::translate(glm::mat4(1.0f), glm::vec3(-mCameraPosition, 0));
+
+    //target_projection = glm::perspective(80.0f, static_cast<f32>(mW / mH), 0.01f, 2000.0f);
+    //camMat = glm::lookAt(glm::vec3(mCameraPosition.x, mCameraPosition.y, -800), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+    if (mSmoothCameraPosition)
+    {
+        glm::mat4 targetCameraPos = camMat;
+        MatrixLerp(glm::value_ptr(mCameraView), glm::value_ptr(targetCameraPos), 0.1f);
+    }
+    else
+        mCameraView = camMat;
 
     // Lerp camera matrix
-    float * projPtr = glm::value_ptr(mCameraProjection);
-    float * projPtrTarget = glm::value_ptr(target_projection);
-    for (int m = 0; m < 16; m++)
-    {
-        projPtr[m] = glm::lerp(projPtr[m], projPtrTarget[m], 0.1f);
-    }
+    MatrixLerp(glm::value_ptr(mCameraProjection), glm::value_ptr(target_projection), 0.1f);
 }
 
 Renderer::Renderer(const char *fontPath)
@@ -467,8 +481,6 @@ void Renderer::beginFrame(int w, int h)
 
 void Renderer::endFrame()
 {
-    updateCamera();
-
     assert(mLayerStack.empty());
 
     // This is the primary reason for buffering drawing command. Call order doesn't determine draw order, but layers do.
@@ -608,6 +620,8 @@ void Renderer::endFrame()
        // LOG_ERROR(gluErrorString(error));
         LOG_ERROR("glGetError:" << error);
     }
+
+    updateCamera();
 }
 
 void Renderer::beginLayer(int depth)

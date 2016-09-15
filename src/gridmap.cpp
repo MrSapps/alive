@@ -174,13 +174,13 @@ void Level::Update(const InputState& input)
     }
 }
 
-void Level::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
+void Level::Render(Renderer& rend, GuiContext& gui, int , int )
 {
     RenderDebugPathSelection(rend, gui);
 
     if (mMap)
     {
-        mMap->Render(rend, gui, screenW, screenH);
+        mMap->Render(rend, gui);
     }
 }
 
@@ -278,30 +278,62 @@ void GridMap::Update(const InputState& input)
         if (mState == eStates::eEditor)
         {
             mState = eStates::eInGame;
+            mPlayer.mXPos = mEditorCamOffset.x;
+            mPlayer.mYPos = mEditorCamOffset.y;
         }
         else if (mState == eStates::eInGame)
         {
             mState = eStates::eEditor;
+            mEditorCamOffset.x = mPlayer.mXPos;
+            mEditorCamOffset.y = mPlayer.mYPos;
         }
+    }
+
+    f32 editorCamSpeed = 10.0f;
+
+    if (input.mKeys[SDL_SCANCODE_LCTRL].mIsDown)
+    {
+        if (input.mKeys[SDL_SCANCODE_W].mIsPressed)
+            mEditorCamZoom--;
+        else if (input.mKeys[SDL_SCANCODE_S].mIsPressed)
+            mEditorCamZoom++;
+
+        mEditorCamZoom = glm::clamp(mEditorCamZoom, 1, 15);
+    }
+    else
+    {
+        if (input.mKeys[SDL_SCANCODE_LSHIFT].mIsDown)
+            editorCamSpeed *= 4;
+
+        if (input.mKeys[SDL_SCANCODE_W].mIsDown)
+            mEditorCamOffset.y -= editorCamSpeed;
+        else if (input.mKeys[SDL_SCANCODE_S].mIsDown)
+            mEditorCamOffset.y += editorCamSpeed;
+
+        if (input.mKeys[SDL_SCANCODE_A].mIsDown)
+            mEditorCamOffset.x -= editorCamSpeed;
+        else if (input.mKeys[SDL_SCANCODE_D].mIsDown)
+            mEditorCamOffset.x += editorCamSpeed;
     }
 
     mPlayer.Update(input);
 }
 
-void GridMap::RenderEditor(Renderer& rend, GuiContext& gui, int, int)
+void GridMap::RenderEditor(Renderer& rend, GuiContext& gui)
 {
     //gui_begin_panel(&gui, "camArea");
+
+    rend.mSmoothCameraPosition = true;
 
     rend.beginLayer(gui_layer(&gui) + 1);
 
     glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 
-    rend.mScreenSize = glm::vec2(rend.mW, rend.mH);
-    int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x) * camGapSize.x;
-    int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y) * camGapSize.y;
+    rend.mScreenSize = glm::vec2(rend.mW / 8, rend.mH / 8) * static_cast<f32>(mEditorCamZoom);
 
-    rend.mCameraPosition = glm::vec2(camX, camY) + glm::vec2(368 / 2, 240 / 2);
+    rend.mCameraPosition = mEditorCamOffset;
 
+    // Draw every cam
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
@@ -314,9 +346,8 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui, int, int)
         }
     }
 
-    rend.stroke();
-
-    rend.strokeColor(Color{ 1, 0, 1, 1 });
+    // Draw collisions
+    rend.strokeColor(Color{ 0, 0, 1, 1 });
     rend.strokeWidth(2.f);
     for (size_t i = 0; i < mCollisionItems.size(); ++i)
     {
@@ -326,8 +357,35 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui, int, int)
 
         rend.beginPath();
         rend.moveTo(p1.x, p1.y);
-        rend.moveTo(p2.x, p2.y);
+        rend.lineTo(p2.x, p2.y);
         rend.stroke();
+    }
+
+    // Draw objects
+    rend.strokeColor(Color{ 1, 1, 1, 1 });
+    rend.strokeWidth(1.f);
+    for (auto x = 0u; x < mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mScreens[x].size(); y++)
+        {
+            GridScreen *screen = mScreens[x][y].get();
+            if (!screen->hasTexture())
+                continue;
+            const Oddlib::Path::Camera& cam = screen->getCamera();
+            for (size_t i = 0; i < cam.mObjects.size(); ++i)
+            {
+                const Oddlib::Path::MapObject& obj = cam.mObjects[i];
+
+                glm::vec2 topLeft = glm::vec2(obj.mRectTopLeft.mX, obj.mRectTopLeft.mY);
+                glm::vec2 bottomRight = glm::vec2(obj.mRectBottomRight.mX, obj.mRectBottomRight.mY);
+
+                glm::vec2 objPos = rend.WorldToScreen(glm::vec2(topLeft.x, topLeft.y));
+                glm::vec2 objSize = rend.WorldToScreen(glm::vec2(bottomRight.x, bottomRight.y)) - objPos;
+                rend.beginPath();
+                rend.rect(objPos.x, objPos.y, objSize.x, objSize.y);
+                rend.stroke();
+            }
+        }
     }
 
     //const f32 zoomBase = 1.2f;
@@ -453,8 +511,10 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui, int, int)
     //gui_end_panel(&gui);
 }
 
-void GridMap::RenderGame(Renderer& rend, GuiContext& gui, int w, int h)
+void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
 {
+    rend.mSmoothCameraPosition = false;
+
     glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 
     rend.mScreenSize = glm::vec2(368, 240);
@@ -463,18 +523,24 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui, int w, int h)
 
     rend.mCameraPosition = glm::vec2(camX * camGapSize.x, camY * camGapSize.y) + glm::vec2(368 / 2, 240 / 2);
 
-    if (camX >= 0 && camY >= 0 && camX < mScreens.size() && camY < mScreens[camX].size())
+    // Culling is disabled until proper camera position updating order is fixed
+    /*if (camX >= 0 && camY >= 0 && camX < static_cast<int>(mScreens.size()) && camY < static_cast<int>(mScreens[camX].size()))
     {
         GridScreen *screen = mScreens[camX][camY].get();
         if (screen->hasTexture())
             rend.drawQuad(screen->getTexHandle(), camX * camGapSize.x, camY * camGapSize.y, 368.0f, 240.0f);
-    }
+    }*/
 
+    // For now draw every cam
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
         {
-            
+            GridScreen *screen = mScreens[x][y].get();
+            if (!screen->hasTexture())
+                continue;
+
+            rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
         }
     }
 
@@ -484,14 +550,14 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui, int w, int h)
         1.0f);
 }
 
-void GridMap::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
+void GridMap::Render(Renderer& rend, GuiContext& gui)
 {
     if (mState == eStates::eEditor)
     {
-        RenderEditor(rend, gui, screenW, screenH);
+        RenderEditor(rend, gui);
     }
     else if (mState == eStates::eInGame)
     {
-        RenderGame(rend, gui, screenW, screenH);
+        RenderGame(rend, gui);
     }
 }

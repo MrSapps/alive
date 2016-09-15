@@ -17,6 +17,19 @@ class ResourceLocator;
 class InputState;
 
 namespace Oddlib { class LvlArchive; class IBits; }
+//
+//namespace Physics
+//{
+//    typedef struct raycast_collision
+//    {
+//        glm::vec2 collision;
+//    };
+//
+//    bool raycast_lines(glm::vec2 line1p1, glm::vec2 line1p2, glm::vec2 line2p1, glm::vec2 line2p2, raycast_collision * collision)
+//    {
+//
+//    }
+//}
 
 class Animation;
 class Player
@@ -108,17 +121,18 @@ public:
     GridMap& operator = (const GridMap&) = delete;
     GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend);
     void Update(const InputState& input);
-    void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+    void Render(Renderer& rend, GuiContext& gui);
 private:
-    void RenderEditor(Renderer& rend, GuiContext& gui, int screenW, int screenH);
-    void RenderGame(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+    void RenderEditor(Renderer& rend, GuiContext& gui);
+    void RenderGame(Renderer& rend, GuiContext& gui);
 
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
 
     std::string mLvlName;
 
     // Editor stuff
-    int mZoomLevel = -10; // 0 is native reso
+    glm::vec2 mEditorCamOffset;
+    int mEditorCamZoom = 5;
 
     // TODO: This is not the in-game format
     std::vector<Oddlib::Path::CollisionItem> mCollisionItems;

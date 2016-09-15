@@ -134,6 +134,7 @@ public:
 
     glm::vec2 mScreenSize = glm::vec2(368, 240);
     glm::vec2 mCameraPosition = glm::vec2(0, 0);
+    bool mSmoothCameraPosition = false;
 
     void beginFrame(int w, int h);
     void endFrame();
