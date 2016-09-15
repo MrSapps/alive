@@ -536,9 +536,12 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
         {
-            GridScreen *screen = mScreens[x][y].get();
+            screen = mScreens[x][y].get();
             if (!screen->hasTexture())
+            {
+                screen = nullptr;
                 continue;
+            }
 
             rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
         }

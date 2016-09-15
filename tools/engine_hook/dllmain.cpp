@@ -419,9 +419,39 @@ struct AnimLogger
 
 AnimLogger gAnimLogger;
 
+
+#pragma pack(push)
+#pragma pack(1)
+struct abe
+{
+    BYTE gap0[184];
+    int xpos;
+    int ypos;
+    WORD wordC0;
+    WORD wordC2;
+    BYTE gapC4[66];
+    WORD word106;
+    BYTE gap108[164];
+    BYTE byte1AC;
+};
+#pragma pack(1)
+
+abe ** hero = reinterpret_cast<abe**>(0x005C1B68);
+
+void Loop()
+{
+    static int prevX = 0;
+    if (prevX != (*hero)->xpos)
+        printf("Player X Delta %f\n", static_cast<float>(((int)(*hero)->xpos - (int)prevX) / static_cast<float>(0x10000)));
+
+    prevX = (*hero)->xpos;
+}
+
 void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
 {
     static anim_struct* pTarget = nullptr;
+
+    Loop();
 
     if (thisPtr->mAnimChunkPtrs)
     {
