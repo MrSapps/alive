@@ -1296,9 +1296,11 @@ public:
     struct SoundEffectMapping
     {
         std::string mDataSetName;
-        u32 mNote;
-        u32 mProgram;
+        u32 mNote = 0;
+        u32 mProgram = 0;
         std::string mSoundBankName;
+        f32 mMinPitch = 1.0f;
+        f32 mMaxPitch = 1.0f;
     };
 
     const MusicMapping* FindMusic(const char* resourceName)
@@ -1541,6 +1543,20 @@ private:
             mapping.mNote = soundEffect["note"].GetInt();
             mapping.mProgram = soundEffect["program"].GetInt();
             mapping.mSoundBankName = soundEffect["sound_bank"].GetString();
+            if (soundEffect.HasMember("pitch_range"))
+            {
+                const auto& pitchRange = soundEffect["pitch_range"].GetArray();
+                if (pitchRange.Size() != 2)
+                {
+                    LOG_ERROR("pitch_range must contain 2 entries min and max, but contains " << pitchRange.Size() << " entries");
+                }
+                else
+                {
+                    mapping.mMinPitch = pitchRange[0].GetFloat();
+                    mapping.mMaxPitch = pitchRange[1].GetFloat();
+                }
+            }
+
             mSoundEffectMaps[name] = mapping;
         }
     }
@@ -2003,8 +2019,8 @@ public:
 class ISoundEffect
 {
 public:
-    ISoundEffect(std::unique_ptr<Vab> vab, u32 program, u32 note)
-        : mVab(std::move(vab)), mProgram(program), mNote(note)
+    ISoundEffect(std::unique_ptr<Vab> vab, u32 program, u32 note, f32 minPitch, f32 maxPitch)
+        : mVab(std::move(vab)), mProgram(program), mNote(note), mMinPitch(minPitch), mMaxPitch(maxPitch)
     {
 
     }
@@ -2013,6 +2029,8 @@ public:
     std::unique_ptr<Vab> mVab;
     u32 mProgram = 0;
     u32 mNote = 0;
+    f32 mMinPitch = 0.0f;
+    f32 mMaxPitch = 0.0f;
 };
 
 class ResourceLocator

@@ -263,7 +263,7 @@ void Engine::InitSubSystems()
 {
     mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
     mFmv = std::make_unique<DebugFmv>(mAudioHandler, *mResourceLocator);
-    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator);
+    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, mLuaState);
     mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator, mLuaState);
 
     { // Init gui system
@@ -652,6 +652,7 @@ void Engine::InitResources()
     // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
     // also add in any extra maps for resources defined by the mod @ game selection screen
 }
+
 
 void Engine::InitGL()
 {

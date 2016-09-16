@@ -457,7 +457,6 @@ private:
     void AddZipsedModDefinitionsFrom(std::string path);
     void InitResources();
     void InitGL();
-    void RenderVideoUi();
 protected:
     void InitSubSystems();
 
