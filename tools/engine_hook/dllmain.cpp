@@ -218,6 +218,9 @@ private:
     FunctionType mOldPtr;
 };
 
+typedef int(__cdecl* gdi_draw_hook_type)(DWORD * hdc);
+static int __cdecl gdi_draw_hook(DWORD * hdc);
+
 static int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
 typedef int(__thiscall* set_first_camera_thiscall)(void *thisPtr, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
 
@@ -281,6 +284,7 @@ namespace Hooks
 {
     Hook<decltype(&::SetWindowLongA)> SetWindowLong(::SetWindowLongA);
     Hook<decltype(&::set_first_camera_hook), set_first_camera_thiscall> set_first_camera(0x00401415);
+    Hook<decltype(&::gdi_draw_hook), gdi_draw_hook_type> gdi_draw(0x004F21F0);
     Hook<decltype(&::anim_decode_hook), anim_decode_thiscall> anim_decode(0x0040AC90);
     Hook<decltype(&::get_anim_frame_hook)> get_anim_frame(0x0040B730);
 }
@@ -516,12 +520,71 @@ int __fastcall get_anim_frame_hook(anim_struct* thisPtr, int a2, __int16 a3)
     return ret;
 }
 
+typedef HDC(__cdecl * ConvertAbeHdcHandle)(DWORD * hdc);
+ConvertAbeHdcHandle ddHdcToGdi = reinterpret_cast<ConvertAbeHdcHandle>(0x4F2150);
+typedef DWORD(__cdecl * ConvertAbeHdcHandle2)(DWORD * hdc, int hdc2);
+ConvertAbeHdcHandle2 gdiHdcToDd = reinterpret_cast<ConvertAbeHdcHandle2>(0x4F21A0);
+
+void GdiLoop(HDC hdc)
+{
+    std::string text("Real Pos: X: " + std::to_string(static_cast<float>((*hero)->xpos / (float)0x10000)) + " Y: " + std::to_string(static_cast<float>((*hero)->ypos / (float)0x10000)));
+
+    SetBkMode(hdc, OPAQUE);
+    SetBkColor(hdc, 0);
+    SetTextColor(hdc, RGB(255, 0, 0));
+    TextOut(hdc, 0, 0, text.c_str(), text.length());
+
+    XFORM xForm;
+    xForm.eM11 = (FLOAT) 1.73913;
+    xForm.eM12 = (FLOAT) 0.0;
+    xForm.eM21 = (FLOAT) 0.0;
+    xForm.eM22 = (FLOAT) 1.0;
+    xForm.eDx = (FLOAT) 0.0;
+    xForm.eDy = (FLOAT) (240.0 + 32.0); // Moves to background buffer
+
+    SetGraphicsMode(hdc, GM_ADVANCED);
+    //SetMapMode(hdc, MM_LOENGLISH);
+    SetWorldTransform(hdc, &xForm);
+    // Draw a red line
+    HPEN hPenOld;
+    HPEN hLinePen;
+    COLORREF qLineColor;
+    qLineColor = RGB(255, 255, 255);
+    hLinePen = CreatePen(PS_SOLID, 1, qLineColor);
+    hPenOld = (HPEN)SelectObject(hdc, hLinePen);
+
+    for (int i = 0; i < (368 / 25) + 1; i++)
+    {
+        MoveToEx(hdc, i * 25, 0, NULL);
+        LineTo(hdc, i * 25, 240);
+    }
+
+    for (int i = 0; i < (240 / 20) + 1; i++)
+    {
+        MoveToEx(hdc, 0, i * 20, NULL);
+        LineTo(hdc, 368, i * 20);
+    }
+
+    SelectObject(hdc, hPenOld);
+    DeleteObject(hLinePen);
+}
+
+static int __cdecl gdi_draw_hook(DWORD * hdcPtr)
+{
+    HDC hdc = ddHdcToGdi(hdcPtr);
+    GdiLoop(hdc);
+    gdiHdcToDd(hdcPtr, (int)hdc);
+    
+    return Hooks::gdi_draw.Real()(hdcPtr);
+}
+
 void HookMain()
 {
     TRACE_ENTRYEXIT;
 
     Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
     Hooks::set_first_camera.Install(set_first_camera_hook);
+    Hooks::gdi_draw.Install(gdi_draw_hook);
     Hooks::anim_decode.Install(anim_decode_hook);
     Hooks::get_anim_frame.Install(get_anim_frame_hook);
 
