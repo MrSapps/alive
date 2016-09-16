@@ -52,8 +52,8 @@ static void assertOnGlError(const char *msg)
 
 struct TriMeshVertex
 {
-    f32 pos[2];
-    f32 uv[2];
+    glm::vec2 pos;
+    glm::vec2 uv;
     Color color;
 };
 
@@ -289,6 +289,34 @@ GLuint createShader(GLenum type, const char *shaderSrc)
     return shader;
 }
 
+void MatrixLerp(float * from, float * to, float speed)
+{
+    for (int m = 0; m < 16; m++)
+    {
+        from[m] = glm::lerp(from[m], to[m], speed);
+    }
+}
+
+void Renderer::updateCamera()
+{
+    glm::mat4 target_projection = glm::ortho(-mScreenSize.x / 2.0f, mScreenSize.x / 2.0f, mScreenSize.y / 2.0f, -mScreenSize.y / 2.0f, -1.0f, 1.0f);
+    glm::mat4 camMat = glm::translate(glm::mat4(1.0f), glm::vec3(-mCameraPosition, 0));
+
+    //target_projection = glm::perspective(80.0f, static_cast<f32>(mW / mH), 0.01f, 2000.0f);
+    //camMat = glm::lookAt(glm::vec3(mCameraPosition.x, mCameraPosition.y, -800), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+    if (mSmoothCameraPosition)
+    {
+        glm::mat4 targetCameraPos = camMat;
+        MatrixLerp(glm::value_ptr(mCameraView), glm::value_ptr(targetCameraPos), 0.1f);
+    }
+    else
+        mCameraView = camMat;
+
+    // Lerp camera matrix
+    MatrixLerp(glm::value_ptr(mCameraProjection), glm::value_ptr(target_projection), 0.1f);
+}
+
 Renderer::Renderer(const char *fontPath)
 {
     { // Vector rendering init
@@ -336,21 +364,22 @@ Renderer::Renderer(const char *fontPath)
             "attribute vec2 a_uv;         \n"
             "attribute vec4 a_color;      \n"
             "varying vec2 v_uv;               \n"
-            "varying vec4 v_color;            \n"
+            "uniform mat4 m_projection;            \n"
+            "uniform mat4 m_view;            \n"
+            "uniform mat4 m_transform;            \n"
             "void main()                  \n"
             "{                            \n"
             "    v_uv = a_uv;             \n"
-            "    v_color = a_color;       \n"
-            "    gl_Position = vec4(a_pos, 0, 1); \n"
+            "    gl_Position = m_projection * m_view * m_transform * vec4(a_pos, 0, 1); \n"
             "}                            \n";
         const char fsString[] =
             "#version 120\n"
             "uniform sampler2D u_tex;\n"
             "varying vec2 v_uv; \n"
-            "varying vec4 v_color; \n"
+            "uniform vec4 m_color; \n"
             "void main()                                  \n"
             "{                                            \n"
-            "  gl_FragColor = v_color*texture2D(u_tex, v_uv);\n"
+            "  gl_FragColor = m_color*texture2D(u_tex, v_uv);\n"
             "}                                            \n";
 
         mVs = createShader(GL_VERTEX_SHADER, vsString);
@@ -502,31 +531,12 @@ void Renderer::endFrame()
             color.a *= blend.colorMul;
 
             TriMeshVertex vert[4] = {};
-            vert[0].pos[0] = 2 * x / mW - 1;
-            vert[0].pos[1] = -2 * y / mH + 1;
-            vert[0].uv[0] = 0;
-            vert[0].uv[1] = 0;
-            memcpy(&vert[0].color, &color, sizeof(vert[0].color));
-
-            vert[1].pos[0] = 2 * (x + w) / mW - 1;
-            vert[1].pos[1] = -2 * y / mH + 1;
-            vert[1].uv[0] = 1;
-            vert[1].uv[1] = 0;
-            memcpy(&vert[1].color, &color, sizeof(vert[1].color));
-
-            vert[2].pos[0] = 2 * (x + w) / mW - 1;
-            vert[2].pos[1] = -2 * (y + h) / mH + 1;
-            vert[2].uv[0] = 1;
-            vert[2].uv[1] = 1;
-            memcpy(&vert[2].color, &color, sizeof(vert[2].color));
-
-            vert[3].pos[0] = 2 * x / mW - 1;
-            vert[3].pos[1] = -2 * (y + h) / mH + 1;
-            vert[3].uv[0] = 0;
-            vert[3].uv[1] = 1;
-            memcpy(&vert[3].color, &color, sizeof(vert[3].color));
-
             static MeshIndexType ind[6] = { 0, 1, 2, 0, 2, 3 };
+
+            vert[0] = { glm::vec2(0, 0),glm::vec2(0, 0) };
+            vert[1] = { glm::vec2(1, 0),glm::vec2(1, 0) };
+            vert[2] = { glm::vec2(1, 1),glm::vec2(1, 1) };
+            vert[3] = { glm::vec2(0, 1),glm::vec2(0, 1) };
 
             // TODO: Batch rendering if becomes bottleneck
             bind_vao(&mQuadVao);
@@ -534,9 +544,16 @@ void Renderer::endFrame()
             add_vertices_to_vao(&mQuadVao, vert, 4);
             add_indices_to_vao(&mQuadVao, ind, 6);
 
+            
+            glm::mat4 transform = glm::scale(glm::translate(glm::mat4(1), glm::vec3(x, y, 0)), glm::vec3(w, h, 1));
+
             GL(glActiveTexture(GL_TEXTURE0));
             GL(glBindTexture(GL_TEXTURE_2D, texHandle));
             GL(glUseProgram(mProgram));
+            GL(glUniform4fv(glGetUniformLocation(mProgram, "m_color"), 1, reinterpret_cast<float*>(&color)));
+            GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_projection"), 1, false, glm::value_ptr(mCameraProjection)));
+            GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_view"), 1, false, glm::value_ptr(mCameraView)));
+            GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_transform"), 1, false, glm::value_ptr(transform)));
             GL(glBlendFunc(blend.srcFactor, blend.dstFactor));
             GL(glBlendEquation(blend.equation));
             draw_vao(&mQuadVao);
@@ -603,6 +620,8 @@ void Renderer::endFrame()
        // LOG_ERROR(gluErrorString(error));
         LOG_ERROR("glGetError:" << error);
     }
+
+    updateCamera();
 }
 
 void Renderer::beginLayer(int depth)
@@ -647,8 +666,8 @@ void Renderer::destroyTexture(int handle)
 void Renderer::drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, Color color, BlendMode blendMode)
 {
     // Keep quad in the same position when flipping uv coords
-	// This gets in the way of offsets for animations, so lets not use this - mlg
-	// If rectangles need to be fixed in the future for some reason, we can do it manually out of this scope
+    // This gets in the way of offsets for animations, so lets not use this - mlg
+    // If rectangles need to be fixed in the future for some reason, we can do it manually out of this scope
     /*if (w < 0) {
         x += -w;
     }
@@ -862,8 +881,8 @@ static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
     static_assert(sizeof(p.xform) == sizeof(nvp.xform), "wrong size");
     static_assert(sizeof(p.extent) == sizeof(nvp.extent), "wrong size");
 
-	memcpy(p.xform, nvp.xform, sizeof(p.xform));
-	memcpy(p.extent, nvp.extent, sizeof(p.extent));
+    memcpy(p.xform, nvp.xform, sizeof(p.xform));
+    memcpy(p.extent, nvp.extent, sizeof(p.extent));
     p.radius = nvp.radius;
     p.feather = nvp.feather;
     p.innerColor.r = nvp.innerColor.r;

@@ -1799,16 +1799,23 @@ public:
         rend.strokeColor(c);
         rend.resetTransform();
         const f32 width = static_cast<f32>(std::abs(frame.mTopLeft.x - frame.mBottomRight.x)) * mScale;
-        rend.rect(
-            xpos + (static_cast<f32>(flipX ? -frame.mTopLeft.x : frame.mTopLeft.x) * mScale),
+
+        glm::vec4 rectScreen = rend.WorldToScreenRect(xpos + (static_cast<f32>(flipX ? -frame.mTopLeft.x : frame.mTopLeft.x) * mScale),
             ypos + (static_cast<f32>(frame.mTopLeft.y) * mScale),
-           flipX ? -width : width,
+            flipX ? -width : width,
             static_cast<f32>(std::abs(frame.mTopLeft.y - frame.mBottomRight.y)) * mScale);
+
+        rend.rect(
+            rectScreen.x,
+            rectScreen.y,
+            rectScreen.z,
+            rectScreen.w);
         rend.stroke();
         rend.closePath();
 
         // Render frame pos and frame number
-        rend.text(xpos, ypos,
+        glm::vec2 xyposScreen = rend.WorldToScreen(glm::vec2(xpos, ypos));
+        rend.text(xyposScreen.x, xyposScreen.y,
             (mSourceDataSet
                 + " x: " + std::to_string(xpos)
                 + " y: " + std::to_string(ypos)
