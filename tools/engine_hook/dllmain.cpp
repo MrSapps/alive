@@ -224,6 +224,7 @@ static int __cdecl gdi_draw_hook(DWORD * hdc);
 static int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
 typedef int(__thiscall* set_first_camera_thiscall)(void *thisPtr, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
 
+
 #pragma pack(push)
 #pragma pack(1)
 struct anim_struct
@@ -280,9 +281,14 @@ typedef void (__thiscall* anim_decode_thiscall)(anim_struct* thisPtr);
 
 int __fastcall get_anim_frame_hook(anim_struct* thisPtr, int a2, __int16 a3);
 
+struct CollisionInfo;
+typedef int(__thiscall* sub_418930_thiscall)(int thisPtr, const CollisionInfo* pCollisionInfo, u8* pPathBlock);
+static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* pCollisionInfo, u8* pPathBlock);
+
 namespace Hooks
 {
     Hook<decltype(&::SetWindowLongA)> SetWindowLong(::SetWindowLongA);
+    Hook<decltype(&::sub_418930_hook), sub_418930_thiscall> sub_418930(0x00418930);
     Hook<decltype(&::set_first_camera_hook), set_first_camera_thiscall> set_first_camera(0x00401415);
     Hook<decltype(&::gdi_draw_hook), gdi_draw_hook_type> gdi_draw(0x004F21F0);
     Hook<decltype(&::anim_decode_hook), anim_decode_thiscall> anim_decode(0x0040AC90);
@@ -520,6 +526,155 @@ int __fastcall get_anim_frame_hook(anim_struct* thisPtr, int a2, __int16 a3)
     return ret;
 }
 
+struct SoundBlockInfo
+{
+    char* mVabHeaderName;
+    char* mVabBodyName;
+    unsigned int mVabID;
+    void* mVabHead;
+};
+
+struct PathRoot
+{
+    struct PathBlyRecHeader* mBlyArrayPtr;
+    void* mFmvArrayPtr;
+    SoundBlockInfo* mMusicPtr;
+    char* mBsqFileNamePtr; // E.g "FESEQ.BSQ"
+
+    unsigned short int mReverb;
+    unsigned short int mBgMusicId; // BG Music seq?
+    char* mName; // E.g "FD"
+
+    unsigned short int mNumPaths;
+    unsigned short int mUnused;
+
+    unsigned int mUnknown3;
+    char* mLvlName; // E.g "\\FD.LVL;1" 
+    unsigned int mUnknown4;
+    char* mOvlName; // E.g "\\FD.OVL;1" 
+    unsigned int mUnknown5;
+    char* mMovName; // E.g "\\FD.MOV;1"
+    char* mIdxName; // E.g "FD.IDX"
+    char* mBndName; // E.g "FDPATH.BND"
+};
+
+struct PathData
+{
+    unsigned short int mBLeft;	// for ao ??
+    unsigned short int mBRight; // for ao ??
+    unsigned short int mBTop;
+    unsigned short int mBBottom;
+
+    unsigned short int mGridWidth;
+    unsigned short int mGridHeight;
+
+    unsigned short int mWidth;
+    unsigned short int mHeight;
+
+    unsigned int object_offset;
+    unsigned int object_indextable_offset;
+
+    unsigned short int mUnknown3; // values offset for ao?
+    unsigned short int mUnknown4; // part of the above for ao??
+
+    void* (*mObjectFuncs[256])(void);
+};
+
+struct CollisionInfo;
+CollisionInfo* CollisionInitFunc(const CollisionInfo *, u8 *);
+using TCollisionFunc = decltype(&CollisionInitFunc);
+
+struct CollisionInfo
+{
+    TCollisionFunc iFuncPtr;
+
+    unsigned short int mBLeft;
+    unsigned short int mBRight;
+    unsigned short int mBTop;
+    unsigned short int mBBottom;
+
+    unsigned int mCollisionOffset;
+    unsigned int mNumCollisionItems;
+    unsigned int mGridWidth;
+    unsigned int mGridHeight;
+};
+
+struct PathBlyRec
+{
+    char* mBlyName;
+    PathData* mPathData;
+    CollisionInfo* mCollisionData;
+    unsigned int mUnused;
+};
+
+struct PathBlyRecHeader
+{
+    // Max number of paths is 99 due to the format string used in the cam loading
+    struct PathBlyRec iBlyRecs[99];
+};
+
+const int kNumLvls = 17;
+struct PathRootData
+{
+    PathRoot iLvls[17];
+};
+PathRootData* gPathData = nullptr;
+std::unique_ptr<Oddlib::Path> gPath;
+
+static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* pCollisionInfo, u8* pPathBlock)
+{
+    LOG_INFO("Load collision data");
+
+    for (s32 i = 0; i < kNumLvls; i++)
+    {
+        PathRoot& data = gPathData->iLvls[i];
+        for (s32 j = 1; j < data.mNumPaths + 1; j++)
+        {
+            if (data.mBlyArrayPtr->iBlyRecs[j].mBlyName && data.mBlyArrayPtr->iBlyRecs[j].mCollisionData == pCollisionInfo)
+            {
+                std::cout << data.mBlyArrayPtr->iBlyRecs[j].mBlyName << std::endl;
+
+                DWORD size = *reinterpret_cast<DWORD*>(pPathBlock - 16); // Back by the size of res header which contains the chunk size
+                Oddlib::MemoryStream pathDataStream(std::vector<u8>(pPathBlock, pPathBlock + size));
+
+
+                PathData& pathData = *data.mBlyArrayPtr->iBlyRecs[j].mPathData;
+
+                gPath = std::make_unique<Oddlib::Path>(
+                    pathDataStream, 
+                    pCollisionInfo->mCollisionOffset + 16, 
+                    pathData.object_indextable_offset + 16,
+                    pathData.object_offset + 16,
+                    pathData.mBTop / pathData.mWidth,
+                    pathData.mBBottom / pathData.mHeight,
+                    false);
+
+                return Hooks::sub_418930.Real()(thisPtr, pCollisionInfo, pPathBlock);
+            }
+        }
+    }
+
+    LOG_ERROR("Couldn't load path");
+    return Hooks::sub_418930.Real()(thisPtr, pCollisionInfo, pPathBlock);
+}
+
+void GetPathArray()
+{
+    gPathData = reinterpret_cast<PathRootData*>(0x00559660);
+
+    for (s32 i = 0; i < kNumLvls; i++)
+    {
+        PathRoot& data = gPathData->iLvls[i];
+        for (s32 j = 1; j < data.mNumPaths+1; j++)
+        {
+            if (data.mBlyArrayPtr->iBlyRecs[j].mBlyName && data.mBlyArrayPtr->iBlyRecs[j].mCollisionData->iFuncPtr)
+            {
+                std::cout << data.mBlyArrayPtr->iBlyRecs[j].mBlyName << std::endl;
+            }
+        }
+    }
+}
+
 typedef HDC(__cdecl * ConvertAbeHdcHandle)(DWORD * hdc);
 ConvertAbeHdcHandle ddHdcToGdi = reinterpret_cast<ConvertAbeHdcHandle>(0x4F2150);
 typedef DWORD(__cdecl * ConvertAbeHdcHandle2)(DWORD * hdc, int hdc2);
@@ -587,9 +742,12 @@ void HookMain()
     Hooks::gdi_draw.Install(gdi_draw_hook);
     Hooks::anim_decode.Install(anim_decode_hook);
     Hooks::get_anim_frame.Install(get_anim_frame_hook);
+    Hooks::sub_418930.Install(sub_418930_hook);
 
     SubClassWindow();
     PatchWindowTitle();
+
+    GetPathArray();
 
     //Enable DDCHEAT
     *reinterpret_cast<bool*>(0x005CA4B5) = true; // DDCheat Enabled
