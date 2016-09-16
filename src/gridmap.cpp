@@ -238,16 +238,20 @@ void MapObject::SnapToGrid()
 
     const float offX = mAnim->FramePosition(mFlipX).x;
     const float nearestGridX =  (mXPos+offX) / 25.0f;
-    const float newX = 25.0f * (static_cast<s32>(nearestGridX));
+    float newX = 25.0f * (static_cast<s32>(nearestGridX));
 
-    /* TODO: Snap to nearest grid cell depending on mFlipX
     float remainder = std::fmod(nearestGridX, 25.0f);
     LOG_INFO("R is " << remainder);
-    if (remainder > 12.5f)
+    if (!mFlipX && remainder < 13.0f)
     {
         newX += 25.0f;
     }
-    */
+
+    if (mFlipX && remainder > 13.0f)
+    {
+        newX += 25.0f;
+    }
+
 
     LOG_INFO("Snap oldx: " << mXPos << " offx:" << offX << " newX:" << newX << " final X " << mXPos - offX);
 
@@ -372,6 +376,23 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
     }
 
     mPlayer.Init();
+
+    // TODO: Need to figure out what the right way to figure out where abe goes is
+    // HACK: Place the player in the first screen that isn't blank
+    for (auto x = 0u; x < mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mScreens[x].size(); y++)
+        {
+            GridScreen *screen = mScreens[x][y].get();
+            if (screen->hasTexture())
+            {
+                const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+
+                mPlayer.mXPos = (x * camGapSize.x) + 100.0f;
+                mPlayer.mYPos = (y * camGapSize.y) + 100.0f;
+            }
+        }
+    }
 }
 
 void GridMap::Update(const InputState& input)
