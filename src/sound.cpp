@@ -20,10 +20,41 @@ void Sound::BarLoop()
     }*/
 }
 
-Sound::Sound(IAudioController& audioController, ResourceLocator& locator)
+static float RandFloat(float a, float b)
+{
+    return ((b - a)*((float)rand() / RAND_MAX)) + a;
+}
+
+void Sound::PlaySoundEffect(const char* effectName)
+{
+    auto soundEffect = mLocator.LocateSoundEffect(effectName);
+    if (soundEffect)
+    {
+        LOG_INFO("Play sound effect: " << effectName);
+
+        // TODO: Might want another player instance or a better way of dividing sound fx/vs seq music - also needs higher
+        // abstraction since music/fx could be wave/ogg/mp3 etc
+
+        mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
+
+        auto soundBank = std::make_unique<AliveAudioSoundbank>(*soundEffect->mVab, mAliveAudio);
+        mAliveAudio.SetSoundbank(std::move(soundBank));
+
+        // TODO: Set pitch
+        mAliveAudio.NoteOn(soundEffect->mProgram, soundEffect->mNote, 127, 0.0f, RandFloat(soundEffect->mMinPitch, soundEffect->mMaxPitch));
+    }
+    else
+    {
+        LOG_ERROR("Sound effect:" << effectName << " not found");
+    }
+}
+
+Sound::Sound(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState)
     : mAudioController(audioController), mLocator(locator)
 {
     mAudioController.AddPlayer(&mAliveAudio);
+
+    luaState.set_function("PlaySoundEffect", &Sound::PlaySoundEffect, this);
 }
 
 Sound::~Sound()
@@ -104,10 +135,6 @@ void Sound::MusicBrowserUi(GuiContext* gui)
     }
     gui_end_window(gui);
 }
-static float RandFloat(float a, float b)
-{
-    return ((b - a)*((float)rand() / RAND_MAX)) + a;
-}
 
 void Sound::SoundEffectBrowserUi(GuiContext* gui)
 {
@@ -117,20 +144,7 @@ void Sound::SoundEffectBrowserUi(GuiContext* gui)
     {
         if (gui_button(gui, soundEffectResourceName.first.c_str()))
         {
-            std::unique_ptr<ISoundEffect> soundEffect = mLocator.LocateSoundEffect(soundEffectResourceName.first.c_str());
-            if (soundEffect)
-            {
-                // TODO: Might want another player instance or a better way of dividing sound fx/vs seq music - also needs higher
-                // abstraction since music/fx could be wave/ogg/mp3 etc
-                
-                mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
-
-                auto soundBank = std::make_unique<AliveAudioSoundbank>(*soundEffect->mVab, mAliveAudio);
-                mAliveAudio.SetSoundbank(std::move(soundBank));
-
-                // TODO: Set pitch
-                mAliveAudio.NoteOn(soundEffect->mProgram, soundEffect->mNote, 127, 0.0f, RandFloat(soundEffect->mMinPitch, soundEffect->mMaxPitch));
-            }
+            PlaySoundEffect(soundEffectResourceName.first.c_str());
         }
     }
     gui_end_window(gui);

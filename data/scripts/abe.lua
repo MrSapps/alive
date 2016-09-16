@@ -32,14 +32,35 @@ local function Sneak(s) MoveX(s, kSneakSpeed) end
 local function Walk(s) MoveX(s, kWalkSpeed) end
 local function Run(s) MoveX(s, kRunSpeed) end
 
+--AbeStandSpeak1
+--AbeStandSpeak2
+
 function init(self)
     self.states = {}
+    
+    self.states.SayHelloPart1 =
+    {
+        animation = 'AbeStandSpeak1',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'SayHelloPart2' end end
+    }
+
+    self.states.SayHelloPart2 =
+    {
+        animation = 'AbeStandSpeak2',
+        enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_HELLO") end,
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+    }
+
     self.states.Stand =
     {
         animation = 'AbeStandIdle',
-        enter = function(s, i) s:SnapToGrid() end,
+        --enter = function(s, i) s:SnapToGrid() end,
 
         condition = function(s, i)
+            if (i:InputGameSpeak1()) then
+                return 'SayHelloPart1'
+            end
+
             if (i:InputDown()) then
                 -- ToHoistDown
                 return 'ToCrouch'
@@ -326,15 +347,18 @@ function init(self)
     self.states.Walking =
     {
         animation = 'AbeWalking',
-        condition = function(s, i) 
-            if (InputSameAsDirection(s, i) == false) then 
-                return 'ToStand' 
-            end
-            if (i:InputRun()) then
-                return 'WalkingToRunning'
-            elseif (i:InputSneak()) then
-                return 'WalkingToSneaking'
-            end
+        condition = function(s, i)
+            --local frame = s:FrameNumber() 
+            --if (frame == 2 or frame == 5 or frame == 11 or frame == 14) then
+                if (InputSameAsDirection(s, i) == false) then
+                    return 'ToStand'
+                end
+                if (i:InputRun()) then
+                    return 'WalkingToRunning'
+                elseif (i:InputSneak()) then
+                    return 'WalkingToSneaking'
+                end
+            --end
             Walk(s)
         end
     }
@@ -419,7 +443,6 @@ function init(self)
 
     self.states.Active = self.states.Stand
     self:SetAnimation(self.states.Active.animation)
-    self:SnapToGrid()
 end
 
 function update(self, input)
