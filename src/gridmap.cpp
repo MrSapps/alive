@@ -17,7 +17,7 @@ namespace Physics
     bool raycast_lines(glm::vec2 line1p1, glm::vec2 line1p2, glm::vec2 line2p1, glm::vec2 line2p2, raycast_collision * collision)
     {
         float fnan = nanf("");
-        bool lines_intersect = false;
+        //bool lines_intersect = false;
         bool segments_intersect = false;
         glm::vec2 intersection;
         glm::vec2 close_p1;
@@ -38,7 +38,7 @@ namespace Physics
         if (glm::isinf(t1))
         {
             // The lines are parallel (or close enough to it).
-            lines_intersect = false;
+            //lines_intersect = false;
             segments_intersect = false;
             intersection = glm::vec2(fnan, fnan);
             close_p1 = glm::vec2(fnan, fnan);
@@ -48,7 +48,7 @@ namespace Physics
 
             return segments_intersect;
         }
-        lines_intersect = true;
+        //lines_intersect = true;
 
         float t2 =
             ((line2p1.x - line1p1.x) * dy12 + (line1p1.y - line2p1.y) * dx12)
