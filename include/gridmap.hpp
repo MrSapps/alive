@@ -120,6 +120,7 @@ public:
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui);
 private:
+    void RenderDebug(Renderer& rend);
     void RenderEditor(Renderer& rend, GuiContext& gui);
     void RenderGame(Renderer& rend, GuiContext& gui);
 
@@ -132,6 +133,8 @@ private:
     // Editor stuff
     glm::vec2 mEditorCamOffset;
     int mEditorCamZoom = 5;
+    const int mEditorGridSizeX = 25;
+    const int mEditorGridSizeY = 20;
 
     // TODO: This is not the in-game format
     std::vector<Oddlib::Path::CollisionItem> mCollisionItems;
