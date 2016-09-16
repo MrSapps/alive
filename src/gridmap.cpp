@@ -417,39 +417,13 @@ bool GridMap::raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, in
     return false;
 }
 
-void GridMap::RenderEditor(Renderer& rend, GuiContext& gui)
+void GridMap::RenderDebug(Renderer& rend)
 {
-    //gui_begin_panel(&gui, "camArea");
-
-    rend.mSmoothCameraPosition = true;
-
-    rend.beginLayer(gui_layer(&gui) + 1);
-
-    glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
-
-    rend.mScreenSize = glm::vec2(rend.mW / 8, rend.mH / 8) * static_cast<f32>(mEditorCamZoom);
-
-    rend.mCameraPosition = mEditorCamOffset;
-
-    // Draw every cam
-    for (auto x = 0u; x < mScreens.size(); x++)
-    {
-        for (auto y = 0u; y < mScreens[x].size(); y++)
-        {
-            GridScreen *screen = mScreens[x][y].get();
-            if (!screen->hasTexture())
-                continue;
-
-            rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
-        }
-    }
-
     // Draw collisions
     rend.strokeColor(Color{ 0, 0, 1, 1 });
     rend.strokeWidth(2.f);
-    for (size_t i = 0; i < mCollisionItems.size(); ++i)
+    for (const Oddlib::Path::CollisionItem& item : mCollisionItemsSorted)
     {
-        const Oddlib::Path::CollisionItem& item = mCollisionItems[i];
         glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item.mP1.mX, item.mP1.mY));
         glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item.mP2.mX, item.mP2.mY));
 
@@ -459,6 +433,27 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui)
         rend.stroke();
 
         rend.text(p1.x, p1.y, std::string("L: " + std::to_string(item.mType)).c_str());
+    }
+
+    rend.strokeColor(Color{ 1, 1, 1, 0.1f });
+    rend.strokeWidth(2.f);
+    int gridLineCountX = static_cast<int>((rend.mScreenSize.x / mEditorGridSizeX) / 2) + 2;
+    for (int x = -gridLineCountX; x < gridLineCountX; x++)
+    {
+        rend.beginPath();
+        glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(rend.mCameraPosition.x + (x * mEditorGridSizeX) - (static_cast<int>(rend.mCameraPosition.x) % mEditorGridSizeX), 0));
+        rend.moveTo(screenPos.x, 0);
+        rend.lineTo(screenPos.x, static_cast<f32>(rend.mH));
+        rend.stroke();
+    }
+    int gridLineCountY = static_cast<int>((rend.mScreenSize.y / mEditorGridSizeY) / 2) + 2;
+    for (int y = -gridLineCountY; y < gridLineCountY; y++)
+    {
+        rend.beginPath();
+        glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(0, rend.mCameraPosition.y + (y * mEditorGridSizeY) - (static_cast<int>(rend.mCameraPosition.y) % mEditorGridSizeY)));
+        rend.moveTo(0, screenPos.y);
+        rend.lineTo(static_cast<f32>(rend.mW), screenPos.y);
+        rend.stroke();
     }
 
     // Draw objects
@@ -487,6 +482,36 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui)
             }
         }
     }
+}
+
+void GridMap::RenderEditor(Renderer& rend, GuiContext& gui)
+{
+    //gui_begin_panel(&gui, "camArea");
+
+    rend.mSmoothCameraPosition = true;
+
+    rend.beginLayer(gui_layer(&gui) + 1);
+
+    glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+
+    rend.mScreenSize = glm::vec2(rend.mW / 8, rend.mH / 8) * static_cast<f32>(mEditorCamZoom);
+
+    rend.mCameraPosition = mEditorCamOffset;
+
+    // Draw every cam
+    for (auto x = 0u; x < mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mScreens[x].size(); y++)
+        {
+            GridScreen *screen = mScreens[x][y].get();
+            if (!screen->hasTexture())
+                continue;
+
+            rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
+        }
+    }
+
+    RenderDebug(rend);
 
     //const f32 zoomBase = 1.2f;
     //const f32 oldZoomMul = std::pow(zoomBase, 1.f*mZoomLevel);
@@ -646,6 +671,8 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
             rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
         }
     }
+
+    RenderDebug(rend);
 
     mPlayer.Render(rend, gui,
         0,

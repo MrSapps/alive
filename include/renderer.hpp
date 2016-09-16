@@ -153,7 +153,7 @@ public:
     // Use negative w or h to flip uv coordinates
     void drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, Color color = Color::white(), BlendMode blendMode = BlendMode::normal());
 
-    glm::vec2 WorldToScreen(glm::vec2 worldPos)
+    glm::vec2 WorldToScreen(const glm::vec2& worldPos)
     {
         return ((mCameraProjection * mCameraView) * glm::vec4(worldPos, 1, 1)) * glm::vec4(mW / 2, -mH / 2, 1, 1) + glm::vec4(mW / 2, mH / 2, 0, 0);
     }
