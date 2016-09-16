@@ -90,34 +90,35 @@ namespace Physics
     }
 }
 
-Player::Player(sol::state& luaState, ResourceLocator& locator)
+MapObject::MapObject(sol::state& luaState, ResourceLocator& locator)
     : mLuaState(luaState), mLocator(locator)
 {
 
 }
 
-/*static*/ void Player::RegisterLuaBindings(sol::state& state)
+/*static*/ void MapObject::RegisterLuaBindings(sol::state& state)
 {
-    state.new_usertype<Player>("Player",
-        "SetAnimation", &Player::SetAnimation,
-        "PlaySoundEffect", &Player::PlaySoundEffect,
-        "FrameNumber", &Player::FrameNumber,
-        "IsLastFrame", &Player::IsLastFrame,
-        "FacingLeft", &Player::FacingLeft,
-        "FacingRight", &Player::FacingRight,
-        "FlipXDirection", &Player::FlipXDirection,
-        "ScriptLoadAnimations", &Player::ScriptLoadAnimations,
-        "states", &Player::mStates,
-        "mXPos", &Player::mXPos,
-        "mYPos", &Player::mYPos);
+    state.new_usertype<MapObject>("MapObject",
+        "SetAnimation", &MapObject::SetAnimation,
+        "PlaySoundEffect", &MapObject::PlaySoundEffect,
+        "SnapToGrid", &MapObject::SnapToGrid,
+        "FrameNumber", &MapObject::FrameNumber,
+        "IsLastFrame", &MapObject::IsLastFrame,
+        "FacingLeft", &MapObject::FacingLeft,
+        "FacingRight", &MapObject::FacingRight,
+        "FlipXDirection", &MapObject::FlipXDirection,
+        "ScriptLoadAnimations", &MapObject::ScriptLoadAnimations,
+        "states", &MapObject::mStates,
+        "mXPos", &MapObject::mXPos,
+        "mYPos", &MapObject::mYPos);
 }
 
-void Player::Init()
+void MapObject::Init()
 {
     LoadScript();
 }
 
-void Player::ScriptLoadAnimations()
+void MapObject::ScriptLoadAnimations()
 {
     mAnim = nullptr;
     mAnims.clear();
@@ -149,7 +150,7 @@ void Player::ScriptLoadAnimations()
     });
 }
 
-void Player::LoadScript()
+void MapObject::LoadScript()
 {
     // Load FSM script
     const std::string script = mLocator.LocateScript("abe.lua");
@@ -174,7 +175,7 @@ void Player::LoadScript()
     }
 }
 
-void Player::Update(const InputState& input)
+void MapObject::Update(const InputState& input)
 {
     if (mAnim)
     {
@@ -191,7 +192,7 @@ void Player::Update(const InputState& input)
     }
 }
 
-void Player::SetAnimation(const std::string& animation)
+void MapObject::SetAnimation(const std::string& animation)
 {
     if (mAnims.find(animation) == std::end(mAnims))
     {
@@ -202,17 +203,17 @@ void Player::SetAnimation(const std::string& animation)
     mAnim->Restart();
 }
 
-bool Player::IsLastFrame() const
+bool MapObject::IsLastFrame() const
 {
     return mAnim->IsLastFrame();
 }
 
-s32 Player::FrameNumber() const
+s32 MapObject::FrameNumber() const
 {
     return mAnim->FrameNumber();
 }
 
-void Player::Render(Renderer& rend, GuiContext& gui, int x, int y, float scale)
+void MapObject::Render(Renderer& rend, GuiContext& gui, int x, int y, float scale)
 {
     // Debug ui
     gui_begin_window(&gui, "Script debug");
@@ -229,6 +230,29 @@ void Player::Render(Renderer& rend, GuiContext& gui, int x, int y, float scale)
         mAnim->SetScale(scale);
         mAnim->Render(rend, mFlipX);
     }
+}
+
+void MapObject::SnapToGrid()
+{
+    //25x20 grid hack
+
+    const float offX = mAnim->FramePosition(mFlipX).x;
+    const float nearestGridX =  (mXPos+offX) / 25.0f;
+    const float newX = 25.0f * (static_cast<s32>(nearestGridX));
+
+    /* TODO: Snap to nearest grid cell depending on mFlipX
+    float remainder = std::fmod(nearestGridX, 25.0f);
+    LOG_INFO("R is " << remainder);
+    if (remainder > 12.5f)
+    {
+        newX += 25.0f;
+    }
+    */
+
+    LOG_INFO("Snap oldx: " << mXPos << " offx:" << offX << " newX:" << newX << " final X " << mXPos - offX);
+
+    mXPos = newX - offX;
+
 }
 
 // ============================================

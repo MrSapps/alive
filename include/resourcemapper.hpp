@@ -1761,7 +1761,24 @@ public:
     }
 
     bool IsLastFrame() const { return mIsLastFrame; }
+    
+    
+    // TODO: Don't duplicate in Render
+    glm::vec2 FramePosition(bool flipX) const
+    {
+        const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
 
+        f32 xFrameOffset = (mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX));
+        const f32 yFrameOffset = static_cast<f32>(frame.mOffY);
+
+        if (flipX)
+        {
+            xFrameOffset = -xFrameOffset;
+        }
+
+        return { xFrameOffset, yFrameOffset };
+    }
+    
     // TODO: Position calculation should be refactored
     template<class T>
     void Render(T& rend, bool flipX) const
@@ -1778,10 +1795,9 @@ public:
         {
             xFrameOffset = -xFrameOffset;
         }
-
         // Render sprite as textured quad
-        BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
-        Color color = Color::white();
+        const BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
+        const Color color = Color::white();
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
         rend.drawQuad(
             textureId, 
@@ -1795,15 +1811,15 @@ public:
 
         // Render bounding box
         rend.beginPath();
-        ::Color c { 1.0f, 0.0f, 1.0f, 1.0f };
+        const ::Color c { 1.0f, 0.0f, 1.0f, 1.0f };
         rend.strokeColor(c);
         rend.resetTransform();
         const f32 width = static_cast<f32>(std::abs(frame.mTopLeft.x - frame.mBottomRight.x)) * mScale;
 
-        glm::vec4 rectScreen = rend.WorldToScreenRect(xpos + (static_cast<f32>(flipX ? -frame.mTopLeft.x : frame.mTopLeft.x) * mScale),
+        const glm::vec4 rectScreen(rend.WorldToScreenRect(xpos + (static_cast<f32>(flipX ? -frame.mTopLeft.x : frame.mTopLeft.x) * mScale),
             ypos + (static_cast<f32>(frame.mTopLeft.y) * mScale),
             flipX ? -width : width,
-            static_cast<f32>(std::abs(frame.mTopLeft.y - frame.mBottomRight.y)) * mScale);
+            static_cast<f32>(std::abs(frame.mTopLeft.y - frame.mBottomRight.y)) * mScale));
 
         rend.rect(
             rectScreen.x,
@@ -1814,7 +1830,7 @@ public:
         rend.closePath();
 
         // Render frame pos and frame number
-        glm::vec2 xyposScreen = rend.WorldToScreen(glm::vec2(xpos, ypos));
+        const glm::vec2 xyposScreen(rend.WorldToScreen(glm::vec2(xpos, ypos)));
         rend.text(xyposScreen.x, xyposScreen.y,
             (mSourceDataSet
                 + " x: " + std::to_string(xpos)

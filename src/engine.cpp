@@ -279,7 +279,7 @@ void Engine::InitSubSystems()
     mLuaState.set_function("print", LuaLog);
 
     Actions::RegisterLuaBindings(mLuaState);
-    Player::RegisterLuaBindings(mLuaState);
+    MapObject::RegisterLuaBindings(mLuaState);
 }
 
 // TODO: Using averaging value or anything that is more accurate than this

@@ -7,41 +7,38 @@ local function InputNotSameAsDirection(s, i)
     return (i:InputLeft() and s:FacingRight()) or (i:InputRight() and s:FacingLeft())
 end
 
-local kSneakSpeed = 2
+-- TODO: Grid size isn't constant!
+local kGridWidth = 25
+local kSneakSpeed = kGridWidth / 10
+local kWalkSpeed = kGridWidth / 9
+local kRunSpeed = kGridWidth / 4
+local kToHopXSpeed = 17
+local kHopXSpeed = 13.57
+local kHopYSpeed = -2.7
 
-local function Sneak(s)
+local function MoveX(s, speed)
     if s:FacingRight() then
-        s.mXPos = s.mXPos + kSneakSpeed
+        s.mXPos = s.mXPos + speed
     else
-        s.mXPos = s.mXPos - kSneakSpeed
+        s.mXPos = s.mXPos - speed
     end
 end
 
-local kWalkSpeed = 4
-
-local function Walk(s)
-    if s:FacingRight() then
-        s.mXPos = s.mXPos + kWalkSpeed
-    else
-        s.mXPos = s.mXPos - kWalkSpeed
-    end
+local function MoveY(s, speed)
+    s.mYPos = s.mYPos + speed
 end
 
-local kRunSpeed = 6
-
-local function Run(s)
-    if s:FacingRight() then
-        s.mXPos = s.mXPos + kRunSpeed
-    else
-        s.mXPos = s.mXPos - kRunSpeed
-    end
-end
+local function Sneak(s) MoveX(s, kSneakSpeed) end
+local function Walk(s) MoveX(s, kWalkSpeed) end
+local function Run(s) MoveX(s, kRunSpeed) end
 
 function init(self)
     self.states = {}
     self.states.Stand =
     {
         animation = 'AbeStandIdle',
+        enter = function(s, i) s:SnapToGrid() end,
+
         condition = function(s, i)
             if (i:InputDown()) then
                 -- ToHoistDown
@@ -93,19 +90,30 @@ function init(self)
     self.states.ToHop =
     {
         animation = 'AbeStandToHop',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Hopping'end end
+        condition = function(s, i) 
+            if (s:FrameNumber() == 9) then MoveX(s, kToHopXSpeed) end
+            if (s:IsLastFrame()) then return 'Hopping' end 
+        end
     }
 
     self.states.Hopping =
     {
         animation = 'AbeHopping',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'HopToStand'end end
+        condition = function(s, i)
+            MoveX(s, kHopXSpeed)
+            if (s:IsLastFrame()) then return 'HopToStand' end 
+        end
     }
 
     self.states.HopToStand =
     {
         animation = 'AbeHoppingToStand',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand'end end
+        condition = function(s, i) 
+            if (s:IsLastFrame()) then
+                s:SnapToGrid()
+                return 'Stand'
+            end 
+        end
     }
 
     self.states.PullLever =
@@ -414,6 +422,9 @@ function update(self, input)
             print(nextState)
             self.states.Active = state
             self:SetAnimation(self.states.Active.animation)
+            if (self.states.Active.enter ~= nil) then
+                self.states.Active.enter(self, input)
+            end
        end
     end
 end

@@ -29,15 +29,18 @@ namespace Physics
 }
 
 class Animation;
-class Player
+class MapObject
 {
 public:
-    Player(sol::state& luaState, ResourceLocator& locator);
+    MapObject(sol::state& luaState, ResourceLocator& locator);
     void Init();
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale);
     void Input(const InputState& input);
     static void RegisterLuaBindings(sol::state& state);
+
+    // TODO: Shouldn't be part of this object
+    void SnapToGrid();
 
     float mXPos = 50.0f;
     float mYPos = 100.0f;
@@ -141,7 +144,7 @@ private:
     std::vector<Oddlib::Path::CollisionItem> mCollisionItemsSorted;
     bool mIsAo;
 
-    Player mPlayer;
+    MapObject mPlayer;
 
     enum class eStates
     {
