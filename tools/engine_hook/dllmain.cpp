@@ -527,6 +527,10 @@ void HookMain()
 
     SubClassWindow();
     PatchWindowTitle();
+
+    //Enable DDCHEAT
+    *reinterpret_cast<bool*>(0x005CA4B5) = true; // DDCheat Enabled
+    *reinterpret_cast<bool*>(0x005BC000) = true; // Always Render
 }
 
 // Proxy DLL entry point
