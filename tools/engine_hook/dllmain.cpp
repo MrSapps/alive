@@ -700,7 +700,6 @@ void GdiLoop(HDC hdc)
     SetGraphicsMode(hdc, GM_ADVANCED);
     //SetMapMode(hdc, MM_LOENGLISH);
     SetWorldTransform(hdc, &xForm);
-    // Draw a red line
     HPEN hPenOld;
     HPEN hLinePen;
     COLORREF qLineColor;
@@ -731,9 +730,9 @@ void GdiLoop(HDC hdc)
         int camX = 0;
         int camY = 0;
 
-        for (auto x = 0; x < gPath->XSize(); x++)
+        for (auto x = 0u; x < gPath->XSize(); x++)
         {
-            for (auto y = 0; y < gPath->YSize(); y++)
+            for (auto y = 0u; y < gPath->YSize(); y++)
             {
                 const Oddlib::Path::Camera screen = gPath->CameraByPosition(x, y);
 
@@ -754,6 +753,38 @@ void GdiLoop(HDC hdc)
         int renderOffsetX = camRoomSizeX * camX;
         int renderOffsetY = camRoomSizeY * camY;
 
+        // 0 - Foreground Floor
+        // 1 - Foreground Left Wall
+        // 2 - Foreground Right Wall
+        // 3 - Foreground Ceiling
+        // 4 - Background Floor
+        // 5 - Background Left Wall
+        // 6 - Background Right Wall
+        
+        // 8 Follow Path
+        // 10 - Slig Shoot Safety
+        // 11 - Minecar Floor
+        // 12 - Minecar Vertical
+        // 13 - Minecar Ceiling
+        COLORREF lineColors[32];
+        for (int i = 0; i < 32; i++)
+        {
+            lineColors[i] = RGB(255, 255, 255);
+        }
+        lineColors[0] = RGB(255, 0, 0);
+        lineColors[1] = RGB(0, 0, 255);
+        lineColors[2] = RGB(0, 100, 255);
+        lineColors[3] = RGB(255, 100, 0);
+
+        lineColors[4] = RGB(255, 100, 0);
+        lineColors[5] = RGB(100, 100, 255);
+        lineColors[6] = RGB(0, 255, 255);
+        lineColors[7] = RGB(255, 100, 100);
+
+        lineColors[8] = RGB(255, 255, 0);
+
+        lineColors[10] = RGB(255, 0, 255);
+
         for (auto collision : gPath->mCollisionItems)
         {
             int p1x = collision.mP1.mX - renderOffsetX;
@@ -769,6 +800,11 @@ void GdiLoop(HDC hdc)
 
             p1y = glm::clamp(p1y, 0, 240);
             p2y = glm::clamp(p2y, 0, 240);
+
+            DeleteObject(hLinePen);
+            qLineColor = lineColors[collision.mType];
+            hLinePen = CreatePen(PS_SOLID, 1, qLineColor);
+            hPenOld = (HPEN)SelectObject(hdc, hLinePen);
 
             MoveToEx(hdc, p1x, p1y, NULL);
             LineTo(hdc, p2x, p2y);
@@ -793,7 +829,7 @@ void HookMain()
     TRACE_ENTRYEXIT;
 
     Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
-    //Hooks::set_first_camera.Install(set_first_camera_hook);
+    Hooks::set_first_camera.Install(set_first_camera_hook);
     Hooks::gdi_draw.Install(gdi_draw_hook);
     Hooks::anim_decode.Install(anim_decode_hook);
     Hooks::get_anim_frame.Install(get_anim_frame_hook);
