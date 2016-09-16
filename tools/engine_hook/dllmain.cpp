@@ -700,7 +700,6 @@ void GdiLoop(HDC hdc)
     SetGraphicsMode(hdc, GM_ADVANCED);
     //SetMapMode(hdc, MM_LOENGLISH);
     SetWorldTransform(hdc, &xForm);
-    // Draw a red line
     HPEN hPenOld;
     HPEN hLinePen;
     COLORREF qLineColor;
@@ -708,7 +707,7 @@ void GdiLoop(HDC hdc)
     hLinePen = CreatePen(PS_SOLID, 1, qLineColor);
     hPenOld = (HPEN)SelectObject(hdc, hLinePen);
 
-    for (int i = 0; i < (368 / 25) + 1; i++)
+    /*for (int i = 0; i < (368 / 25) + 1; i++)
     {
         MoveToEx(hdc, i * 25, 0, NULL);
         LineTo(hdc, i * 25, 240);
@@ -718,6 +717,98 @@ void GdiLoop(HDC hdc)
     {
         MoveToEx(hdc, 0, i * 20, NULL);
         LineTo(hdc, 368, i * 20);
+    }*/
+
+    char currentLevelId = *reinterpret_cast<char*>(0x5C3030);
+    char * currentLevelName = gPathData->iLvls[currentLevelId].mName;
+    char currentPath = *reinterpret_cast<char*>(0x5C3032);
+    char currentCam = *reinterpret_cast<char*>(0x5C3034);
+    char currentCamBuffer[24];
+    sprintf(currentCamBuffer, "%sP%02dC%02d.CAM", currentLevelName, currentPath, currentCam);
+    if (gPathData)
+    {
+        int camX = 0;
+        int camY = 0;
+
+        for (auto x = 0u; x < gPath->XSize(); x++)
+        {
+            for (auto y = 0u; y < gPath->YSize(); y++)
+            {
+                const Oddlib::Path::Camera screen = gPath->CameraByPosition(x, y);
+
+                
+                if (screen.mName == std::string(currentCamBuffer))
+                {
+                    camX = x;
+                    camY = y;
+                    goto camPosFound;
+                }
+            }
+        }
+        camPosFound:
+
+        int camRoomSizeX = 375;
+        int camRoomSizeY = 260;
+
+        int renderOffsetX = camRoomSizeX * camX;
+        int renderOffsetY = camRoomSizeY * camY;
+
+        // 0 - Foreground Floor
+        // 1 - Foreground Left Wall
+        // 2 - Foreground Right Wall
+        // 3 - Foreground Ceiling
+        // 4 - Background Floor
+        // 5 - Background Left Wall
+        // 6 - Background Right Wall
+        
+        // 8 Follow Path
+        // 10 - Slig Shoot Safety
+        // 11 - Minecar Floor
+        // 12 - Minecar Vertical
+        // 13 - Minecar Ceiling
+        COLORREF lineColors[32];
+        for (int i = 0; i < 32; i++)
+        {
+            lineColors[i] = RGB(255, 255, 255);
+        }
+        lineColors[0] = RGB(255, 0, 0);
+        lineColors[1] = RGB(0, 0, 255);
+        lineColors[2] = RGB(0, 100, 255);
+        lineColors[3] = RGB(255, 100, 0);
+
+        lineColors[4] = RGB(255, 100, 0);
+        lineColors[5] = RGB(100, 100, 255);
+        lineColors[6] = RGB(0, 255, 255);
+        lineColors[7] = RGB(255, 100, 100);
+
+        lineColors[8] = RGB(255, 255, 0);
+
+        lineColors[10] = RGB(255, 0, 255);
+
+        for (auto collision : gPath->mCollisionItems)
+        {
+            int p1x = collision.mP1.mX - renderOffsetX;
+            int p1y = collision.mP1.mY - renderOffsetY;
+            int p2x = collision.mP2.mX - renderOffsetX;
+            int p2y = collision.mP2.mY - renderOffsetY;
+
+            if (p1x < 0 && p1y < 0 && p2x < 0 && p2y < 0 && p1x > 368 && p1y > 240 && p2x > 368 && p2y > 240)
+                continue;
+
+            p1x = glm::clamp(p1x, 0, 368);
+            p2x = glm::clamp(p2x, 0, 368);
+
+            p1y = glm::clamp(p1y, 0, 240);
+            p2y = glm::clamp(p2y, 0, 240);
+
+            DeleteObject(hLinePen);
+            qLineColor = lineColors[collision.mType];
+            hLinePen = CreatePen(PS_SOLID, 1, qLineColor);
+            hPenOld = (HPEN)SelectObject(hdc, hLinePen);
+
+            MoveToEx(hdc, p1x, p1y, NULL);
+            LineTo(hdc, p2x, p2y);
+        }
     }
 
     SelectObject(hdc, hPenOld);
