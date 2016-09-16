@@ -294,7 +294,10 @@ function init(self)
     self.states.ToRolling =
     {
         animation = 'AbeCrouchToRoll',
-        condition = function(s, i) if s:IsLastFrame() then return 'Rolling' end end
+        condition = function(s, i)
+            MoveX(s, kRunSpeed)
+            if s:IsLastFrame() then return 'Rolling' end 
+        end
     }
 
     self.states.CrouchingTurn =
@@ -311,7 +314,13 @@ function init(self)
     self.states.Rolling =
     {
         animation = 'AbeRolling',
-        condition = function(s, i) if(InputSameAsDirection(s, i) == false) then return 'Crouch' end end
+        condition = function(s, i) 
+            if(InputSameAsDirection(s, i) == false) then
+                return 'Crouch'
+            else
+                MoveX(s, kRunSpeed)
+            end 
+        end
     }
 
     self.states.Walking =
@@ -410,6 +419,7 @@ function init(self)
 
     self.states.Active = self.states.Stand
     self:SetAnimation(self.states.Active.animation)
+    self:SnapToGrid()
 end
 
 function update(self, input)

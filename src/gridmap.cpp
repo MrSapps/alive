@@ -236,27 +236,7 @@ void MapObject::SnapToGrid()
 {
     //25x20 grid hack
 
-    const float offX = mAnim->FramePosition(mFlipX).x;
-    const float nearestGridX =  (mXPos+offX) / 25.0f;
-    float newX = 25.0f * (static_cast<s32>(nearestGridX));
-
-    float remainder = std::fmod(nearestGridX, 25.0f);
-    LOG_INFO("R is " << remainder);
-    if (!mFlipX && remainder < 13.0f)
-    {
-        newX += 25.0f;
-    }
-
-    if (mFlipX && remainder > 13.0f)
-    {
-        newX += 25.0f;
-    }
-
-
-    LOG_INFO("Snap oldx: " << mXPos << " offx:" << offX << " newX:" << newX << " final X " << mXPos - offX);
-
-    mXPos = newX - offX;
-
+    mXPos = (glm::round((mXPos + 12.5f) / 25) * 25) - 12.5f;
 }
 
 // ============================================
@@ -393,6 +373,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
             }
         }
     }
+    mPlayer.SnapToGrid();
 }
 
 void GridMap::Update(const InputState& input)
