@@ -174,7 +174,8 @@ TEST(ResourceLocator, ParseResourceMap)
          "note": 0,
          "program": 2,
          "resource_name": "c1_OPTSNDFX_P2_N0_AoPc",
-         "sound_bank": "c1_OPTSNDFX_AoPc" 
+         "sound_bank": "c1_OPTSNDFX_AoPc",
+         "pitch_range" : [ -5, 5 ]
      }],
     "musics": [{
         "data_set": "AoPc",
@@ -371,6 +372,8 @@ TEST(ResourceLocator, ParseResourceMap)
         ASSERT_EQ(0u, r1->mNote);
         ASSERT_EQ(2u, r1->mProgram);
         ASSERT_EQ("c1_OPTSNDFX_AoPc", r1->mSoundBankName);
+        ASSERT_EQ(-5.0f, r1->mMinPitch);
+        ASSERT_EQ(5.0f, r1->mMaxPitch);
     }
 }
 

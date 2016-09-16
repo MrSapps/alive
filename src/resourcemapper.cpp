@@ -201,7 +201,7 @@ std::unique_ptr<ISoundEffect> ResourceLocator::LocateSoundEffect(const char* res
                     std::unique_ptr<Vab> vab = LocateSoundBank(mapping->mSoundBankName.c_str());
                     if (vab)
                     {
-                        return std::make_unique<ISoundEffect>(std::move(vab), mapping->mProgram, mapping->mProgram);
+                        return std::make_unique<ISoundEffect>(std::move(vab), mapping->mProgram, mapping->mNote, mapping->mMinPitch, mapping->mMaxPitch);
                     }
                 }
             }

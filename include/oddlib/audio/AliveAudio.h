@@ -35,15 +35,9 @@ class FileSystem;
 class AliveAudio : public IAudioPlayer
 {
 public:
-    //void PlayOneShot(int program, int note, f32 volume, f32 pitch = 0);
-    //void PlayOneShot(std::string soundID);
-
-    void NoteOn(int program, int note, char velocity, f64 trackDelay = 0);
+    void NoteOn(int program, int note, char velocity, f64 trackDelay = 0, f64 pitch = 0.0f);
     void NoteOff(int program, int note);
     void NoteOffDelay(int program, int note, f32 trackDelay = 0);
-
-    //void DebugPlayFirstToneSample(int program, int tone);
-
     void ClearAllVoices(bool forceKill = true);
     void ClearAllTrackVoices(bool forceKill = false);
 

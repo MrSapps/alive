@@ -29,9 +29,6 @@ private:
     void SoundEffectBrowserUi(GuiContext* gui);
     bool mMusicBrowser = false;
     bool mSoundEffectBrowser = false;
-
-    bool mAePc = false;
-    std::vector<std::string> mFilteredSoundEffectResources;
 private:
     IAudioController& mAudioController;
     ResourceLocator& mLocator;

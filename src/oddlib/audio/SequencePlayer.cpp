@@ -3,15 +3,11 @@
 SequencePlayer::SequencePlayer(AliveAudio& aliveAudio)
     : mAliveAudio(aliveAudio)
 {
-    // Start the Sequencer thread.
-    //m_SequenceThread = new std::thread(&SequencePlayer::m_PlayerThreadFunction, this);
+
 }
 
 SequencePlayer::~SequencePlayer()
 {
-    m_KillThread = true;
-    //m_SequenceThread->join();
-    //delete m_SequenceThread;
 }
 
 // Midi stuff
@@ -48,61 +44,58 @@ void SequencePlayer::PlayerThreadFunction()
 {
     int channels[16] = {};
 
-    //while (!m_KillThread)
+    m_PlayerStateMutex.lock();
+    if (m_PlayerState == ALIVE_SEQUENCER_INIT_VOICES)
     {
-        m_PlayerStateMutex.lock();
-        if (m_PlayerState == ALIVE_SEQUENCER_INIT_VOICES)
-        {
-            bool firstNote = true;
-            std::lock_guard<std::recursive_mutex> notesLock(mAliveAudio.mVoiceListMutex);
+        bool firstNote = true;
+        std::lock_guard<std::recursive_mutex> notesLock(mAliveAudio.mVoiceListMutex);
 
-            for (size_t i = 0; i < m_MessageList.size(); i++)
+        for (size_t i = 0; i < m_MessageList.size(); i++)
+        {
+            AliveAudioMidiMessage m = m_MessageList[i];
+            switch (m.Type)
             {
-                AliveAudioMidiMessage m = m_MessageList[i];
-                switch (m.Type)
+            case ALIVE_MIDI_NOTE_ON:
+                mAliveAudio.NoteOn(channels[m.Channel], m.Note, m.Velocity, MidiTimeToSample(m.TimeOffset));
+                if (firstNote)
                 {
-                case ALIVE_MIDI_NOTE_ON:
-                    mAliveAudio.NoteOn(channels[m.Channel], m.Note, m.Velocity, MidiTimeToSample(m.TimeOffset));
-                    if (firstNote)
-                    {
-                        m_SongBeginSample = static_cast<int>(mAliveAudio.mCurrentSampleIndex + MidiTimeToSample(m.TimeOffset));
-                        firstNote = false;
-                    }
-                    break;
-                case ALIVE_MIDI_NOTE_OFF:
-                    mAliveAudio.NoteOffDelay(channels[m.Channel], m.Note, static_cast<f32>(MidiTimeToSample(m.TimeOffset))); // Fix this. Make note off's have an offset in the voice timeline.
-                    break;
-                case ALIVE_MIDI_PROGRAM_CHANGE:
-                    channels[m.Channel] = m.Special;
-                    break;
-                case ALIVE_MIDI_ENDTRACK:
-                    m_PlayerState = ALIVE_SEQUENCER_PLAYING;
-                    m_SongFinishSample = static_cast<Uint64>(mAliveAudio.mCurrentSampleIndex + MidiTimeToSample(m.TimeOffset));
-                    break;
+                    m_SongBeginSample = static_cast<int>(mAliveAudio.mCurrentSampleIndex + MidiTimeToSample(m.TimeOffset));
+                    firstNote = false;
                 }
-
+                break;
+            case ALIVE_MIDI_NOTE_OFF:
+                mAliveAudio.NoteOffDelay(channels[m.Channel], m.Note, static_cast<f32>(MidiTimeToSample(m.TimeOffset))); // Fix this. Make note off's have an offset in the voice timeline.
+                break;
+            case ALIVE_MIDI_PROGRAM_CHANGE:
+                channels[m.Channel] = m.Special;
+                break;
+            case ALIVE_MIDI_ENDTRACK:
+                m_PlayerState = ALIVE_SEQUENCER_PLAYING;
+                m_SongFinishSample = static_cast<Uint64>(mAliveAudio.mCurrentSampleIndex + MidiTimeToSample(m.TimeOffset));
+                break;
             }
+
         }
-        m_PlayerStateMutex.unlock();
+    }
+    m_PlayerStateMutex.unlock();
 
-        if (m_PlayerState == ALIVE_SEQUENCER_PLAYING && mAliveAudio.mCurrentSampleIndex > m_SongFinishSample)
+    if (m_PlayerState == ALIVE_SEQUENCER_PLAYING && mAliveAudio.mCurrentSampleIndex > m_SongFinishSample)
+    {
+        m_PlayerState = ALIVE_SEQUENCER_FINISHED;
+
+        // Give a quarter beat anyway
+        DoQuaterCallback();
+    }
+
+    if (m_PlayerState == ALIVE_SEQUENCER_PLAYING)
+    {
+        const Uint64  quarterBeat = (m_SongFinishSample - m_SongBeginSample) / m_TimeSignatureBars;
+        const int currentQuarterBeat = (int)(floor(GetPlaybackPositionSample() / quarterBeat));
+
+        if (m_PrevBar != currentQuarterBeat)
         {
-            m_PlayerState = ALIVE_SEQUENCER_FINISHED;
-
-            // Give a quarter beat anyway
+            m_PrevBar = currentQuarterBeat;
             DoQuaterCallback();
-        }
-
-        if (m_PlayerState == ALIVE_SEQUENCER_PLAYING)
-        {
-            const Uint64  quarterBeat = (m_SongFinishSample - m_SongBeginSample) / m_TimeSignatureBars;
-            const int currentQuarterBeat = (int)(floor(GetPlaybackPositionSample() / quarterBeat));
-
-            if (m_PrevBar != currentQuarterBeat)
-            {
-                m_PrevBar = currentQuarterBeat;
-                DoQuaterCallback();
-            }
         }
     }
 }

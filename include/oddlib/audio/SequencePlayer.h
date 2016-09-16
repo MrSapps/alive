@@ -84,7 +84,6 @@ public:
     std::function<void()> m_QuarterCallback;
 
     //private:
-    int m_KillThread = false; // If true, loop thread will exit.
     Uint64 m_SongFinishSample = 0; // Not relative.
     int m_SongBeginSample = 0;	// Not relative.
     int m_PrevBar = 0;
