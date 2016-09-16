@@ -43,11 +43,95 @@ function init(self)
         animation = 'AbeStandSpeak1',
         condition = function(s, i) if (s:IsLastFrame()) then return 'SayHelloPart2' end end
     }
-
     self.states.SayHelloPart2 =
     {
         animation = 'AbeStandSpeak2',
         enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_HELLO") end,
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+    }
+    
+    self.states.SayFollowMePart1 =
+    {
+        animation = 'AbeStandSpeak1',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'SayFollowMePart2' end end
+    }
+    self.states.SayFollowMePart2 =
+    {
+        animation = 'AbeStandSpeak3',
+        enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_FOLLOWME") end,
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+    }
+    
+    self.states.SayWaitPart1 =
+    {
+        animation = 'AbeStandSpeak1',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'SayWaitPart2' end end
+    }
+    self.states.SayWaitPart2 =
+    {
+        animation = 'AbeStandingSpeak4',
+        enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_WAIT") end,
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+    }
+
+    self.states.SayAngerPart1 =
+    {
+        animation = 'AbeStandSpeak1',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'SayAngerPart2' end end
+    }
+    self.states.SayAngerPart2 =
+    {
+        animation = 'AbeStandingSpeak4',
+        enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_ANGRY") end,
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+    }
+    
+    self.states.SayWorkPart1 =
+    {
+        animation = 'AbeStandSpeak1',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'SayWorkPart2' end end
+    }
+    self.states.SayWorkPart2 =
+    {
+        animation = 'AbeStandingSpeak4',
+        enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_WORK") end,
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+    }
+
+    self.states.SayAllYaPart1 =
+    {
+        animation = 'AbeStandSpeak1',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'SayAllYaPart2' end end
+    }
+    self.states.SayAllYaPart2 =
+    {
+        animation = 'AbeStandSpeak2',
+        enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_ALLYA") end,
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+    }
+
+    self.states.SaySorryPart1 =
+    {
+        animation = 'AbeStandSpeak1',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'SaySorryPart2' end end
+    }
+    self.states.SaySorryPart2 =
+    {
+        animation = 'AbeStandSpeak5',
+        enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_SORRY") end,
+        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+    }
+
+    self.states.SayStopItPart1 =
+    {
+        animation = 'AbeStandSpeak1',
+        condition = function(s, i) if (s:IsLastFrame()) then return 'SayStopItPart2' end end
+    }
+    self.states.SayStopItPart2 =
+    {
+        animation = 'AbeStandSpeak3',
+        -- TODO: StopIt is actually a SEQ
+        enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_NO_SAD") end,
         condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
     }
 
@@ -59,6 +143,27 @@ function init(self)
         condition = function(s, i)
             if (i:InputGameSpeak1()) then
                 return 'SayHelloPart1'
+            end
+            if (i:InputGameSpeak2()) then
+                return 'SayFollowMePart1'
+            end
+            if (i:InputGameSpeak3()) then
+                return 'SayWaitPart1'
+            end
+            if (i:InputGameSpeak4()) then
+                return 'SayWorkPart1'
+            end
+            if (i:InputGameSpeak5()) then
+                return 'SayAngerPart1'
+            end
+            if (i:InputGameSpeak6()) then
+                return 'SayAllYaPart1'
+            end
+            if (i:InputGameSpeak7()) then
+                return 'SaySorryPart1'
+            end
+            if (i:InputGameSpeak8()) then
+                return 'SayStopItPart1'
             end
 
             if (i:InputDown()) then
