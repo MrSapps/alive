@@ -25,7 +25,7 @@ namespace Physics
         glm::vec2 intersection;
     };
 
-    bool raycast_lines(glm::vec2 line1p1, glm::vec2 line1p2, glm::vec2 line2p1, glm::vec2 line2p2, raycast_collision * collision);
+    bool raycast_lines(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision * collision);
 }
 
 class Animation;
@@ -123,10 +123,10 @@ private:
     void RenderEditor(Renderer& rend, GuiContext& gui);
     void RenderGame(Renderer& rend, GuiContext& gui);
 
-    bool raycast_map(glm::vec2 line1p1, glm::vec2 line1p2, int collisionType, Physics::raycast_collision * collision);
+    bool raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision * collision);
 
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
-
+    
     std::string mLvlName;
 
     // Editor stuff
@@ -135,6 +135,7 @@ private:
 
     // TODO: This is not the in-game format
     std::vector<Oddlib::Path::CollisionItem> mCollisionItems;
+    std::vector<Oddlib::Path::CollisionItem> mCollisionItemsSorted;
     bool mIsAo;
 
     Player mPlayer;

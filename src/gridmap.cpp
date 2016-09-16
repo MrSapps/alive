@@ -14,9 +14,8 @@
 
 namespace Physics
 {
-    bool raycast_lines(glm::vec2 line1p1, glm::vec2 line1p2, glm::vec2 line2p1, glm::vec2 line2p2, raycast_collision * collision)
+    bool raycast_lines(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision * collision)
     {
-        float fnan = nanf("");
         //bool lines_intersect = false;
         bool segments_intersect = false;
         glm::vec2 intersection;
@@ -40,6 +39,7 @@ namespace Physics
             // The lines are parallel (or close enough to it).
             //lines_intersect = false;
             segments_intersect = false;
+            const float fnan = nanf("");
             intersection = glm::vec2(fnan, fnan);
             close_p1 = glm::vec2(fnan, fnan);
             close_p2 = glm::vec2(fnan, fnan);
@@ -330,6 +330,7 @@ bool GridScreen::hasTexture() const
 GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
     : mCollisionItems(path.CollisionItems()), mPlayer(luaState, locator)
 {
+    mCollisionItemsSorted = mCollisionItems;
     mIsAo = path.IsAo();
 
     mScreens.resize(path.XSize());
@@ -397,25 +398,19 @@ void GridMap::Update(const InputState& input)
     mPlayer.Update(input);
 }
 
-bool GridMap::raycast_map(glm::vec2 line1p1, glm::vec2 line1p2, int collisionType, Physics::raycast_collision * collision)
+bool GridMap::raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision * collision)
 {
-    std::vector<Oddlib::Path::CollisionItem> pathCollisionsSorted = mCollisionItems;
-
-    std::sort(std::begin(pathCollisionsSorted), std::end(pathCollisionsSorted), [line1p1](const Oddlib::Path::CollisionItem& lhs, const Oddlib::Path::CollisionItem& rhs)
+    std::sort(std::begin(mCollisionItemsSorted), std::end(mCollisionItemsSorted), [line1p1](const Oddlib::Path::CollisionItem& lhs, const Oddlib::Path::CollisionItem& rhs)
     {
         return glm::distance((glm::vec2(lhs.mP1.mX, lhs.mP1.mY) + glm::vec2(lhs.mP2.mX, lhs.mP2.mY)) / 2.0f, line1p1) < glm::distance((glm::vec2(rhs.mP1.mX, rhs.mP1.mY) + glm::vec2(rhs.mP2.mX, rhs.mP2.mY)) / 2.0f, line1p1);
     });
 
-    for (size_t i = 0; i < pathCollisionsSorted.size(); ++i)
+    for (const Oddlib::Path::CollisionItem& item : mCollisionItemsSorted)
     {
-        const Oddlib::Path::CollisionItem& item = pathCollisionsSorted[i];
         if (item.mType != collisionType)
             continue;
 
-        glm::vec2 p1 = glm::vec2(item.mP1.mX, item.mP1.mY);
-        glm::vec2 p2 = glm::vec2(item.mP2.mX, item.mP2.mY);
-
-        if (Physics::raycast_lines(p1, p2, line1p1, line1p2, collision))
+        if (Physics::raycast_lines(glm::vec2(item.mP1.mX, item.mP1.mY), glm::vec2(item.mP2.mX, item.mP2.mY), line1p1, line1p2, collision))
             return true;
     }
 
