@@ -708,7 +708,7 @@ void GdiLoop(HDC hdc)
     hLinePen = CreatePen(PS_SOLID, 1, qLineColor);
     hPenOld = (HPEN)SelectObject(hdc, hLinePen);
 
-    for (int i = 0; i < (368 / 25) + 1; i++)
+    /*for (int i = 0; i < (368 / 25) + 1; i++)
     {
         MoveToEx(hdc, i * 25, 0, NULL);
         LineTo(hdc, i * 25, 240);
@@ -718,6 +718,61 @@ void GdiLoop(HDC hdc)
     {
         MoveToEx(hdc, 0, i * 20, NULL);
         LineTo(hdc, 368, i * 20);
+    }*/
+
+    char currentLevelId = *reinterpret_cast<char*>(0x5C3030);
+    char * currentLevelName = gPathData->iLvls[currentLevelId].mName;
+    char currentPath = *reinterpret_cast<char*>(0x5C3032);
+    char currentCam = *reinterpret_cast<char*>(0x5C3034);
+    char currentCamBuffer[24];
+    sprintf(currentCamBuffer, "%sP%02dC%02d.CAM", currentLevelName, currentPath, currentCam);
+    if (gPathData)
+    {
+        int camX = 0;
+        int camY = 0;
+
+        for (auto x = 0; x < gPath->XSize(); x++)
+        {
+            for (auto y = 0; y < gPath->YSize(); y++)
+            {
+                const Oddlib::Path::Camera screen = gPath->CameraByPosition(x, y);
+
+                
+                if (screen.mName == std::string(currentCamBuffer))
+                {
+                    camX = x;
+                    camY = y;
+                    goto camPosFound;
+                }
+            }
+        }
+        camPosFound:
+
+        int camRoomSizeX = 375;
+        int camRoomSizeY = 260;
+
+        int renderOffsetX = camRoomSizeX * camX;
+        int renderOffsetY = camRoomSizeY * camY;
+
+        for (auto collision : gPath->mCollisionItems)
+        {
+            int p1x = collision.mP1.mX - renderOffsetX;
+            int p1y = collision.mP1.mY - renderOffsetY;
+            int p2x = collision.mP2.mX - renderOffsetX;
+            int p2y = collision.mP2.mY - renderOffsetY;
+
+            if (p1x < 0 && p1y < 0 && p2x < 0 && p2y < 0 && p1x > 368 && p1y > 240 && p2x > 368 && p2y > 240)
+                continue;
+
+            p1x = glm::clamp(p1x, 0, 368);
+            p2x = glm::clamp(p2x, 0, 368);
+
+            p1y = glm::clamp(p1y, 0, 240);
+            p2y = glm::clamp(p2y, 0, 240);
+
+            MoveToEx(hdc, p1x, p1y, NULL);
+            LineTo(hdc, p2x, p2y);
+        }
     }
 
     SelectObject(hdc, hPenOld);
@@ -738,7 +793,7 @@ void HookMain()
     TRACE_ENTRYEXIT;
 
     Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
-    Hooks::set_first_camera.Install(set_first_camera_hook);
+    //Hooks::set_first_camera.Install(set_first_camera_hook);
     Hooks::gdi_draw.Install(gdi_draw_hook);
     Hooks::anim_decode.Install(anim_decode_hook);
     Hooks::get_anim_frame.Install(get_anim_frame_hook);
