@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include "SDL.h"
+#include "proxy_sol.hpp"
 #include "types.hpp"
 
 namespace Oddlib
@@ -14,6 +15,13 @@ namespace Oddlib
     class IStream
     {
     public:
+        static void RegisterLuaBindings(sol::state& state)
+        {
+            state.new_usertype<IStream>("IStream",
+                "ReadU32", &IStream::ReadU32);
+        }
+
+
         enum class ReadMode
         {
             ReadOnly,
@@ -102,6 +110,8 @@ namespace Oddlib
             s.write(reinterpret_cast<const char*>(allStreamBytes.data()), allStreamBytes.size());
             return true;
         }
+    private:
+        u32 ReadU32(u32 v) { Read(v); return v; }
     };
 
 

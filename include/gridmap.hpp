@@ -32,8 +32,9 @@ class Animation;
 class MapObject
 {
 public:
-    MapObject(sol::state& luaState, ResourceLocator& locator);
+    MapObject(sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
     void Init();
+    void Init(Oddlib::IStream& objData);
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale);
     void Input(const InputState& input);
@@ -52,7 +53,7 @@ private:
     sol::state& mLuaState;
     sol::table mStates;
 
-    void LoadScript();
+    void LoadScript(Oddlib::IStream* objData);
 
 private: // Actions
     void SetAnimation(const std::string& animation);
@@ -71,6 +72,7 @@ private:
     bool mFlipX = false;
 
     ResourceLocator& mLocator;
+    std::string mScriptName;
 };
 
 class Level
@@ -145,6 +147,7 @@ private:
     bool mIsAo;
 
     MapObject mPlayer;
+    std::vector<std::unique_ptr<MapObject>> mObjs;
 
     enum class eStates
     {

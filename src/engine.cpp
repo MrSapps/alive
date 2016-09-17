@@ -278,6 +278,7 @@ void Engine::InitSubSystems()
     // Redirect lua print()
     mLuaState.set_function("print", LuaLog);
 
+    Oddlib::IStream::RegisterLuaBindings(mLuaState);
     Actions::RegisterLuaBindings(mLuaState);
     MapObject::RegisterLuaBindings(mLuaState);
 }

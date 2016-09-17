@@ -90,8 +90,8 @@ namespace Physics
     }
 }
 
-MapObject::MapObject(sol::state& luaState, ResourceLocator& locator)
-    : mLuaState(luaState), mLocator(locator)
+MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::string& scriptName)
+    : mLuaState(luaState), mLocator(locator), mScriptName(scriptName)
 {
 
 }
@@ -115,7 +115,12 @@ MapObject::MapObject(sol::state& luaState, ResourceLocator& locator)
 
 void MapObject::Init()
 {
-    LoadScript();
+    LoadScript(nullptr);
+}
+
+void MapObject::Init(Oddlib::IStream& objData)
+{
+    LoadScript(&objData);
 }
 
 void MapObject::ScriptLoadAnimations()
@@ -150,10 +155,10 @@ void MapObject::ScriptLoadAnimations()
     });
 }
 
-void MapObject::LoadScript()
+void MapObject::LoadScript(Oddlib::IStream* objData)
 {
     // Load FSM script
-    const std::string script = mLocator.LocateScript("abe.lua");
+    const std::string script = mLocator.LocateScript(mScriptName.c_str());
     try
     {
         mLuaState.script(script);
@@ -165,13 +170,27 @@ void MapObject::LoadScript()
     }
 
     // Set initial state
-    sol::protected_function f = mLuaState["init"];
-    auto ret = f(this);
-    if (!ret.valid())
+    if (objData)
     {
-        sol::error err = ret;
-        std::string what = err.what();
-        LOG_ERROR(what);
+        sol::protected_function f = mLuaState["init_with_data"];
+        auto ret = f(this, *objData);
+        if (!ret.valid())
+        {
+            sol::error err = ret;
+            std::string what = err.what();
+            LOG_ERROR(what);
+        }
+    }
+    else
+    {
+        sol::protected_function f = mLuaState["init"];
+        auto ret = f(this);
+        if (!ret.valid())
+        {
+            sol::error err = ret;
+            std::string what = err.what();
+            LOG_ERROR(what);
+        }
     }
 }
 
@@ -224,15 +243,17 @@ s32 MapObject::FrameNumber() const
     return mAnim->FrameNumber();
 }
 
-void MapObject::Render(Renderer& rend, GuiContext& gui, int x, int y, float scale)
+void MapObject::Render(Renderer& rend, GuiContext& /*gui*/, int x, int y, float scale)
 {
     // Debug ui
+    /*
     gui_begin_window(&gui, "Script debug");
     if (gui_button(&gui, "Reload script"))
     {
         LoadScript();
     }
     gui_end_window(&gui);
+    */
 
     if (mAnim)
     {
@@ -347,7 +368,7 @@ bool GridScreen::hasTexture() const
 }
 
 GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
-    : mCollisionItems(path.CollisionItems()), mPlayer(luaState, locator)
+    : mCollisionItems(path.CollisionItems()), mPlayer(luaState, locator, "abe.lua")
 {
     mCollisionItemsSorted = mCollisionItems;
     mIsAo = path.IsAo();
@@ -385,6 +406,31 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
         }
     }
     mPlayer.SnapToGrid();
+
+    // Load objects
+    for (auto x = 0u; x < mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mScreens[x].size(); y++)
+        {
+            GridScreen* screen = mScreens[x][y].get();
+            const Oddlib::Path::Camera& cam = screen->getCamera();
+            for (size_t i = 0; i < cam.mObjects.size(); ++i)
+            {
+                const Oddlib::Path::MapObject& obj = cam.mObjects[i];
+                if (obj.mType == 13 && path.IsAo() == false)
+                {
+                    auto tmp = std::make_unique<MapObject>(luaState, locator, "background_animation.lua");
+                    tmp->mXPos = obj.mRectTopLeft.mX;
+                    tmp->mYPos = obj.mRectTopLeft.mY;
+
+                    Oddlib::MemoryStream ms(std::vector<u8>(obj.mData.data(), obj.mData.data() + obj.mData.size()));
+                    tmp->Init(ms);
+
+                    mObjs.push_back(std::move(tmp));
+                }
+            }
+        }
+    }
 }
 
 void GridMap::Update(const InputState& input)
@@ -433,6 +479,11 @@ void GridMap::Update(const InputState& input)
     }
 
     mPlayer.Update(input);
+
+    for (std::unique_ptr<MapObject>& obj : mObjs)
+    {
+        obj->Update(input);
+    }
 }
 
 bool GridMap::raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision * collision)
@@ -715,6 +766,11 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
         0,
         0,
         1.0f);
+
+    for (std::unique_ptr<MapObject>& obj : mObjs)
+    {
+        obj->Render(rend, gui, 0, 0, 1.0f);
+    }
 
     Physics::raycast_collision collision;
 

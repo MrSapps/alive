@@ -456,8 +456,7 @@ function init(self)
                 PlaySoundEffect("MOVEMENT_MUD_STEP")
                 if (InputSameAsDirection(s, i) == false) then
                     return 'ToStand'
-                end
-                if (i:InputRun()) then
+                elseif (i:InputRun()) then
                     return 'WalkingToRunning'
                 elseif (i:InputSneak()) then
                     return 'WalkingToSneaking'
