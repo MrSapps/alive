@@ -1753,13 +1753,12 @@ public:
     void Update()
     {
         mCounter++;
-        if (mCounter >= mAnim.Animation().Fps())
+        if (mCounter >= mAnim.Animation().Fps()*2) // if Fps() == 1 then update -> render results in frame 0 being skipped
         {
             mCounter = 0;
             mFrameNum++;
             if (mFrameNum >= mAnim.Animation().NumFrames())
             {
-                mIsLastFrame = true;
                 if (mAnim.Animation().Loop())
                 {
                     mFrameNum = mAnim.Animation().LoopStartFrame();
@@ -1768,32 +1767,18 @@ public:
                 {
                     mFrameNum = mAnim.Animation().NumFrames() - 1;
                 }
+
+                // Reached the final frame, animation has completed 1 cycle
+                mCompleted = true;
             }
-            else
-            {
-                mIsLastFrame = false;
-            }
+
+            // Are we *on* the last frame?
+            mIsLastFrame = (mFrameNum == mAnim.Animation().NumFrames() - 1);
         }
     }
 
     bool IsLastFrame() const { return mIsLastFrame; }
-    
-    
-    // TODO: Don't duplicate in Render
-    glm::vec2 FramePosition(bool flipX) const
-    {
-        const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
-
-        f32 xFrameOffset = (mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX));
-        const f32 yFrameOffset = static_cast<f32>(frame.mOffY);
-
-        if (flipX)
-        {
-            xFrameOffset = -xFrameOffset;
-        }
-
-        return { xFrameOffset, yFrameOffset };
-    }
+    bool IsComplete() const { return mCompleted; }
     
     // TODO: Position calculation should be refactored
     template<class T>
@@ -1857,8 +1842,10 @@ public:
 
     void Restart()
     {
+        mCounter = 0;
         mFrameNum = 0;
         mIsLastFrame = false;
+        mCompleted = false;
     }
 
     bool Collision(s32 x, s32 y) const
@@ -1920,6 +1907,7 @@ private:
     f32 mScale = 3;
 
     bool mIsLastFrame = false;
+    bool mCompleted = false;
 };
 
 template<typename KeyType, typename ValueType>

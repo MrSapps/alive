@@ -32,9 +32,6 @@ local function Sneak(s) MoveX(s, kSneakSpeed) end
 local function Walk(s) MoveX(s, kWalkSpeed) end
 local function Run(s) MoveX(s, kRunSpeed) end
 
---AbeStandSpeak1
---AbeStandSpeak2
-
 function init(self)
     self.states = {}
     
@@ -453,8 +450,8 @@ function init(self)
     {
         animation = 'AbeWalking',
         condition = function(s, i)
-            --local frame = s:FrameNumber() 
-            --if (frame == 2 or frame == 5 or frame == 11 or frame == 14) then
+            local frame = s:FrameNumber() 
+            if (frame == 1 or frame == 4 or frame == 10 or frame == 13) then
                 if (InputSameAsDirection(s, i) == false) then
                     return 'ToStand'
                 end
@@ -463,7 +460,7 @@ function init(self)
                 elseif (i:InputSneak()) then
                     return 'WalkingToSneaking'
                 end
-            --end
+            end
             Walk(s)
         end
     }
@@ -527,8 +524,8 @@ function init(self)
     {
         animation = 'AbeWalkToStand',
         condition = function(s, i) 
-            if s:IsLastFrame() then return 'Stand' end 
             Walk(s)
+            if s:IsLastFrame() then return 'Stand' end 
         end
     }
 
@@ -557,8 +554,8 @@ function update(self, input)
        if state == nil then
           print("ERROR: State " .. nextState .. " not found!")
        else
-            print(nextState)
             self.states.Active = state
+            print("State: " .. nextState .. " animation: " .. self.states.Active.animation)
             self:SetAnimation(self.states.Active.animation)
             if (self.states.Active.enter ~= nil) then
                 self.states.Active.enter(self, input)

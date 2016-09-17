@@ -473,14 +473,14 @@ struct abe
 
 abe ** hero = reinterpret_cast<abe**>(0x005C1B68);
 
-void DumpDeltas()
+void DumpDeltas(anim_struct* thisPtr)
 {
     static HalfFloat prevX = 0;
     static HalfFloat prevY = 0;
 
     if (prevX != (*hero)->xpos || prevY != (*hero)->ypos)
     {
-        printf("Player X Delta %f Y Delta %f\n", ((*hero)->xpos - prevX).AsDouble(), ((*hero)->ypos - prevY).AsDouble());
+        printf("Player X Delta %f Y Delta %f frame %d\n", ((*hero)->xpos - prevX).AsDouble(), ((*hero)->ypos - prevY).AsDouble(), thisPtr->mFrameNum);
     }
 
     prevX = (*hero)->xpos;
@@ -491,7 +491,7 @@ void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
 {
     static anim_struct* pTarget = nullptr;
 
-    DumpDeltas();
+    DumpDeltas(thisPtr);
 
     if (thisPtr->mAnimChunkPtrs)
     {
