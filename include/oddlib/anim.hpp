@@ -204,7 +204,7 @@ namespace Oddlib
             SDL_Surface* mFrame;
         };
 
-        u32 NumFrames() const { return static_cast<u32>(mFrames.size()); }
+        s32 NumFrames() const { return static_cast<s32>(mFrames.size()); }
         u32 Fps() const { return mFps; }
         u32 LoopStartFrame() const { return mLoopStartFrame; }
         bool Loop() const { return mbLoop; }

@@ -38,98 +38,98 @@ function init(self)
     self.states.SayHelloPart1 =
     {
         animation = 'AbeStandSpeak1',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'SayHelloPart2' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'SayHelloPart2' end end
     }
     self.states.SayHelloPart2 =
     {
         animation = 'AbeStandSpeak2',
         enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_HELLO") end,
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
     }
     
     self.states.SayFollowMePart1 =
     {
         animation = 'AbeStandSpeak1',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'SayFollowMePart2' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'SayFollowMePart2' end end
     }
     self.states.SayFollowMePart2 =
     {
         animation = 'AbeStandSpeak3',
         enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_FOLLOWME") end,
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
     }
     
     self.states.SayWaitPart1 =
     {
         animation = 'AbeStandSpeak1',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'SayWaitPart2' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'SayWaitPart2' end end
     }
     self.states.SayWaitPart2 =
     {
         animation = 'AbeStandingSpeak4',
         enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_WAIT") end,
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
     }
 
     self.states.SayAngerPart1 =
     {
         animation = 'AbeStandSpeak1',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'SayAngerPart2' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'SayAngerPart2' end end
     }
     self.states.SayAngerPart2 =
     {
         animation = 'AbeStandingSpeak4',
         enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_ANGRY") end,
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
     }
     
     self.states.SayWorkPart1 =
     {
         animation = 'AbeStandSpeak1',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'SayWorkPart2' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'SayWorkPart2' end end
     }
     self.states.SayWorkPart2 =
     {
         animation = 'AbeStandingSpeak4',
         enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_WORK") end,
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
     }
 
     self.states.SayAllYaPart1 =
     {
         animation = 'AbeStandSpeak1',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'SayAllYaPart2' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'SayAllYaPart2' end end
     }
     self.states.SayAllYaPart2 =
     {
         animation = 'AbeStandSpeak2',
         enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_ALLYA") end,
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
     }
 
     self.states.SaySorryPart1 =
     {
         animation = 'AbeStandSpeak1',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'SaySorryPart2' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'SaySorryPart2' end end
     }
     self.states.SaySorryPart2 =
     {
         animation = 'AbeStandSpeak5',
         enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_SORRY") end,
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
     }
 
     self.states.SayStopItPart1 =
     {
         animation = 'AbeStandSpeak1',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'SayStopItPart2' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'SayStopItPart2' end end
     }
     self.states.SayStopItPart2 =
     {
         animation = 'AbeStandSpeak3',
         -- TODO: StopIt is actually a SEQ
         enter = function(s, i) PlaySoundEffect("GAMESPEAK_MUD_NO_SAD") end,
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Stand' end end
     }
 
     self.states.Stand =
@@ -137,7 +137,7 @@ function init(self)
         animation = 'AbeStandIdle',
         --enter = function(s, i) s:SnapToGrid() end,
 
-        condition = function(s, i)
+        tick = function(s, i)
             if (i:InputGameSpeak1()) then
                 return 'SayHelloPart1'
             end
@@ -193,6 +193,7 @@ function init(self)
                 elseif (i:InputSneak()) then
                     return 'ToSneak'
                 else
+                    Walk(s)
                     return 'ToWalk'
                 end
             end
@@ -213,7 +214,7 @@ function init(self)
     self.states.ToHop =
     {
         animation = 'AbeStandToHop',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if (s:FrameNumber() == 9) then MoveX(s, kToHopXSpeed) end
             if (s:IsLastFrame()) then return 'Hopping' end 
         end
@@ -222,7 +223,7 @@ function init(self)
     self.states.Hopping =
     {
         animation = 'AbeHopping',
-        condition = function(s, i)
+        tick = function(s, i)
             MoveX(s, kHopXSpeed)
             if (s:IsLastFrame()) then return 'HopToStand' end 
         end
@@ -231,7 +232,7 @@ function init(self)
     self.states.HopToStand =
     {
         animation = 'AbeHoppingToStand',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if (s:IsLastFrame()) then
                 s:SnapToGrid()
                 return 'Stand'
@@ -242,25 +243,25 @@ function init(self)
     self.states.PullLever =
     {
         animation = 'AbeStandPullLever',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand'end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Stand'end end
     }
 
     self.states.ToIDunno =
     {
         animation = 'AbeStandToIDunno',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'IDunno'end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'IDunno'end end
     }
 
     self.states.IDunno =
     {
         animation = 'AbeIDunno',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand'end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Stand'end end
     }
 
     self.states.ToRunning =
     {
         animation = 'AbeStandToRun',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if (s:IsLastFrame()) then return 'Running'end 
             Run(s)
         end
@@ -269,7 +270,7 @@ function init(self)
     self.states.Running =
     {
         animation = 'AbeRunning',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if (InputNotSameAsDirection(s, i)) then
                 return 'RuningToSkidTurn'
             end
@@ -291,38 +292,38 @@ function init(self)
     self.states.ToSkidStop =
     {
         animation = 'AbeRunningSkidStop',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Stand'end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Stand'end end
     }
     self.states.RunningToJump =
     {
         animation = 'AbeRuningToJump',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'RunningJump'end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'RunningJump'end end
     }
 
     self.states.RunningJump =
     {
         animation = 'AbeRunningJumpInAir',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'RunningJumpFalling'end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'RunningJumpFalling'end end
     }
 
     self.states.RunningJumpFalling =
     {
         animation = 'AbeFallingToLand',
         -- TODO: Skid stop/knock back etc
-        condition = function(s, i) if (s:IsLastFrame()) then return 'RunningJumpLandToRunning'end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'RunningJumpLandToRunning'end end
     }
 
     self.states.RunningJumpLandToRunning =
     {
         animation = 'AbeLandToRunning',
         -- TODO: Land to walk etc
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Running'end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Running'end end
     }
 
     self.states.RunningToWalking =
     {
         animation = 'AbeRunningToWalkingMidGrid',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if (s:IsLastFrame()) then return 'Walking'end
             Run(s)
         end
@@ -331,7 +332,7 @@ function init(self)
     self.states.Sneaking =
     {
         animation = 'AbeSneaking',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if (InputNotSameAsDirection(s, i)) then
                 return 'StandingTurn'
             end
@@ -352,7 +353,7 @@ function init(self)
     self.states.WalkingToRunning =
     {
         animation = 'AbeWalkingToRunning',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if (s:IsLastFrame()) then return 'Running'end 
             Run(s)
         end
@@ -361,19 +362,19 @@ function init(self)
     self.states.WalkingToSneaking =
     {
         animation = 'AbeWalkingToSneaking',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Sneaking'end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Sneaking'end end
     }
 
     self.states.SneakingToWalking =
     {
         animation = 'AbeSneakingToWalking',
-        condition = function(s, i) if (s:IsLastFrame()) then return 'Walking'end end
+        tick = function(s, i) if (s:IsLastFrame()) then return 'Walking'end end
     }
 
     self.states.ToSneak =
     {
         animation = 'AbeStandToSneak',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if (s:IsLastFrame()) then return 'Sneaking'end 
             Sneak(s)
         end
@@ -382,7 +383,7 @@ function init(self)
     self.states.SneakToStand =
     {
         animation = 'AbeSneakToStand',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if (s:IsLastFrame()) then return 'Stand' end
             Sneak(s)
         end
@@ -391,19 +392,19 @@ function init(self)
     self.states.Chanting =
     {
         animation = 'AbeStandToChant',
-        condition = function(s, i) if (i:InputChant() == false) then return 'AbeChantToStand' end end
+        tick = function(s, i) if (i:InputChant() == false) then return 'AbeChantToStand' end end
     }
 
     self.states.AbeChantToStand =
     {
         animation = 'AbeChantToStand',
-        condition = function(s, i)  if (s:IsLastFrame()) then return 'Stand' end end
+        tick = function(s, i)  if (s:IsLastFrame()) then return 'Stand' end end
     }
     
     self.states.Crouch = 
     {
         animation = 'AbeCrouchIdle',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if i:InputUp() then return 'CrouchToStand' end
 
             if (InputSameAsDirection(s, i)) then return 'ToRolling' end
@@ -417,7 +418,7 @@ function init(self)
     self.states.ToRolling =
     {
         animation = 'AbeCrouchToRoll',
-        condition = function(s, i)
+        tick = function(s, i)
             MoveX(s, kRunSpeed)
             if s:IsLastFrame() then return 'Rolling' end 
         end
@@ -426,7 +427,7 @@ function init(self)
     self.states.CrouchingTurn =
     {
         animation = 'AbeCrouchTurnAround',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if s:IsLastFrame() then 
                 s:FlipXDirection()
                 return 'Crouch'
@@ -437,7 +438,7 @@ function init(self)
     self.states.Rolling =
     {
         animation = 'AbeRolling',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if(InputSameAsDirection(s, i) == false) then
                 return 'Crouch'
             else
@@ -449,11 +450,13 @@ function init(self)
     self.states.Walking =
     {
         animation = 'AbeWalking',
-        condition = function(s, i)
-            local frame = s:FrameNumber() 
-            if (frame == 1 or frame == 4 or frame == 10 or frame == 13) then
+        tick = function(s, i)
+            Walk(s)
+            local frame = s:FrameNumber()
+            if (frame == 2) then
+                PlaySoundEffect("MOVEMENT_MUD_STEP")
                 if (InputSameAsDirection(s, i) == false) then
-                    return 'ToStand'
+                    return 'WalkToStand'
                 end
                 if (i:InputRun()) then
                     return 'WalkingToRunning'
@@ -461,38 +464,37 @@ function init(self)
                     return 'WalkingToSneaking'
                 end
             end
-            Walk(s)
         end
     }
     
     self.states.ToJump =
     {
         animation = 'AbeStandToJump',
-        condition = function(s, i) if s:IsLastFrame() then return 'Jumping' end end
+        tick = function(s, i) if s:IsLastFrame() then return 'Jumping' end end
     }
     
     self.states.Jumping =
     {
         animation = 'AbeJumpUpFalling',
-        condition = function(s, i) if s:IsLastFrame() then return 'ToHitGround' end end
+        tick = function(s, i) if s:IsLastFrame() then return 'ToHitGround' end end
     }
     
     self.states.ToHitGround =
     {
         animation = 'AbeHitGroundToStand',
-        condition = function(s, i) if s:IsLastFrame() then return 'Stand' end end
+        tick = function(s, i) if s:IsLastFrame() then return 'Stand' end end
     }
 
     self.states.RuningToSkidTurn = 
     {
         animation = 'AbeRunningToSkidTurn',
-        condition = function(s, i) if s:IsLastFrame() then return 'RuningTurn' end end
+        tick = function(s, i) if s:IsLastFrame() then return 'RuningTurn' end end
     }
     
     self.states.RuningTurn = 
     {
         animation = 'AbeRunningTurnAround',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if s:IsLastFrame() then
                 s:FlipXDirection()
                 return 'Running'
@@ -502,7 +504,7 @@ function init(self)
     self.states.StandingTurn = 
     {
         animation = 'AbeStandTurnAround',
-        condition = function(s, i) 
+        tick = function(s, i) 
             if s:IsLastFrame() then
                 s:FlipXDirection()
                 -- TODO: AbeRunningTurnAround if running in turning direction
@@ -514,17 +516,25 @@ function init(self)
     self.states.ToWalk = 
     {
         animation = 'AbeStandToWalk',
-        condition = function(s, i)
+        tick = function(s, i)
             Walk(s)
-            if s:IsLastFrame() then return 'Walking' end 
+            if s:IsLastFrame() then return 'Walking' end
+        end
+    }
+    
+    self.states.WalkToStand =
+    {
+        animation = 'AbeWalkToStand',
+        tick = function(s, i)
+            if s:IsLastFrame() then return 'Stand' end
+            Walk(s)
         end
     }
 
     self.states.ToStand = 
     {
         animation = 'AbeWalkToStand',
-        condition = function(s, i) 
-            Walk(s)
+        tick = function(s, i)
             if s:IsLastFrame() then return 'Stand' end 
         end
     }
@@ -532,13 +542,13 @@ function init(self)
     self.states.ToCrouch = 
     {
         animation = 'AbeStandToCrouch',
-        condition = function(s, i) if s:IsLastFrame() then return 'Crouch' end end
+        tick = function(s, i) if s:IsLastFrame() then return 'Crouch' end end
     }
 
     self.states.CrouchToStand = 
     {
         animation = 'AbeCrouchToStand',
-        condition = function(s, i) if s:IsLastFrame() then return 'Stand' end end
+        tick = function(s, i) if s:IsLastFrame() then return 'Stand' end end
     }
 
     self:ScriptLoadAnimations()
@@ -548,7 +558,7 @@ function init(self)
 end
 
 function update(self, input)
-    local nextState = self.states.Active.condition(self, input)
+    local nextState = self.states.Active.tick(self, input)
     if nextState ~= nil then
        local state = self.states[nextState]
        if state == nil then

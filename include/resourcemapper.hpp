@@ -1753,7 +1753,7 @@ public:
     void Update()
     {
         mCounter++;
-        if (mCounter >= mAnim.Animation().Fps()*2) // if Fps() == 1 then update -> render results in frame 0 being skipped
+        if (mCounter >= mAnim.Animation().Fps())
         {
             mCounter = 0;
             mFrameNum++;
@@ -1784,7 +1784,7 @@ public:
     template<class T>
     void Render(T& rend, bool flipX) const
     {
-        const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
+        const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(FrameNumber());
 
         f32 xFrameOffset = (mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX)) * mScale;
         const f32 yFrameOffset = static_cast<f32>(frame.mOffY) * mScale;
@@ -1836,21 +1836,21 @@ public:
             (mSourceDataSet
                 + " x: " + std::to_string(xpos)
                 + " y: " + std::to_string(ypos)
-                + " f: " + std::to_string(mFrameNum)
+                + " f: " + std::to_string(FrameNumber())
                 ).c_str());
     }
 
     void Restart()
     {
         mCounter = 0;
-        mFrameNum = 0;
+        mFrameNum = -1;
         mIsLastFrame = false;
         mCompleted = false;
     }
 
     bool Collision(s32 x, s32 y) const
     {
-        const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum);
+        const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(FrameNumber());
 
         // TODO: Refactor rect calcs
         f32 xpos = mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX);
@@ -1872,7 +1872,7 @@ public:
     s32 YPos() const { return mYPos; }
     u32 MaxW() const { return static_cast<u32>(mAnim.MaxW()*ScaleX()); }
     u32 MaxH() const { return static_cast<u32>(mAnim.MaxH()*mScale); }
-    s32 FrameNumber() const { return static_cast<s32>(mFrameNum); }
+    s32 FrameNumber() const { if (mFrameNum == -1) { return 0; } return mFrameNum; }
     void SetScale(f32 scale) { mScale = scale; }
 private:
     bool PointInRect(f32 px, f32 py, f32 x, f32 y, f32 w, f32 h) const
@@ -1900,7 +1900,7 @@ private:
     std::string mSourceDataSet;
 
     u32 mCounter = 0;
-    u32 mFrameNum = 0;
+    s32 mFrameNum = -1;
 
     s32 mXPos = 500;
     s32 mYPos = 800;

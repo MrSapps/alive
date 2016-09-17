@@ -190,7 +190,7 @@ public:
         if (mAnimation->NumFrames() == other.mAnimation->NumFrames() &&
             mAnimation->Fps() == other.mAnimation->Fps())
         {
-            for (u32 i = 0; i < mAnimation->NumFrames(); i++)
+            for (s32 i = 0; i < mAnimation->NumFrames(); i++)
             {
                 const Oddlib::Animation::Frame& frame1 = mAnimation->GetFrame(i);
                 const Oddlib::Animation::Frame& frame2 = other.mAnimation->GetFrame(i);
@@ -484,7 +484,7 @@ private:
 static int MaxW(const Oddlib::Animation& anim)
 {
     int ret = 0;
-    for (u32 i = 0; i < anim.NumFrames(); i++)
+    for (s32 i = 0; i < anim.NumFrames(); i++)
     {
         if (anim.GetFrame(i).mFrame->w > ret)
         {
@@ -497,7 +497,7 @@ static int MaxW(const Oddlib::Animation& anim)
 static int MaxH(const Oddlib::Animation& anim)
 {
     int ret = 0;
-    for (u32 i = 0; i < anim.NumFrames(); i++)
+    for (s32 i = 0; i < anim.NumFrames(); i++)
     {
         if (anim.GetFrame(i).mFrame->h > ret)
         {
@@ -1085,7 +1085,7 @@ int main(int /*argc*/, char** /*argv*/)
                 SDL_SetSurfaceBlendMode(sprites.get(), SDL_BLENDMODE_NONE);
 
                 int xpos = 0;
-                for (u32 i = 0; i < deDupedAnim->mAnimation->NumFrames(); i++)
+                for (s32 i = 0; i < deDupedAnim->mAnimation->NumFrames(); i++)
                 {
                     const Oddlib::Animation::Frame& frame = deDupedAnim->mAnimation->GetFrame(i);
 
@@ -1223,7 +1223,7 @@ int main(int /*argc*/, char** /*argv*/)
                 // but if the anim duplicate finder is working correctly it should never happen in theory
                 if (animPtr)
                 {
-                    for (u32 j = 0; j < animPtr->NumFrames(); j++)
+                    for (s32 j = 0; j < animPtr->NumFrames(); j++)
                     {
                         const Oddlib::Animation::Frame& frame = animPtr->GetFrame(j);
                         jsonxx::Object frameOffsetObj;

@@ -37,4 +37,7 @@ private:
 
     std::unique_ptr<class SequencePlayer> mSeqPlayer;
     AliveAudio mAliveAudio;
+
+    // TODO: Should be removed and pre-load all sfx instead, also this pays no attention to the required sound bank
+    std::map<std::string, std::unique_ptr<class ISoundEffect>> mSfxCache;
 };

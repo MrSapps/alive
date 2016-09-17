@@ -27,6 +27,14 @@ static float RandFloat(float a, float b)
 
 void Sound::PlaySoundEffect(const char* effectName)
 {
+    auto it = mSfxCache.find(effectName);
+    if (it != std::end(mSfxCache))
+    {
+        auto& fx = it->second;
+        mAliveAudio.NoteOn(fx->mProgram, fx->mNote, 127, 0.0f, RandFloat(fx->mMinPitch, fx->mMaxPitch));
+        return;
+    }
+
     auto soundEffect = mLocator.LocateSoundEffect(effectName);
     if (soundEffect)
     {
@@ -42,6 +50,8 @@ void Sound::PlaySoundEffect(const char* effectName)
 
         // TODO: Set pitch
         mAliveAudio.NoteOn(soundEffect->mProgram, soundEffect->mNote, 127, 0.0f, RandFloat(soundEffect->mMinPitch, soundEffect->mMaxPitch));
+
+        mSfxCache[effectName] = std::move(soundEffect);
     }
     else
     {
