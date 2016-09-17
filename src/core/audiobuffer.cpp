@@ -94,12 +94,18 @@ void SdlAudioWrapper::RemovePlayer(IAudioPlayer* player)
     mAudioPlayers.erase(player);
 }
 
-void SdlAudioWrapper::SetAudioSpec(u16 frameSize, int freq)
+void SdlAudioWrapper::SetAudioSpec(u16 frameSize, s32 freq)
 {
-    LOG_INFO("SetAudioSpec samples: " << frameSize << " freq " << freq);
-    SdlAudioLocker audioLocker;
-    Close();
-    Open(frameSize, freq);
+    if (mFrameSize != frameSize || mFreq != freq)
+    {
+        mFrameSize = frameSize;
+        mFreq = freq;
+
+        LOG_INFO("SetAudioSpec samples: " << mFrameSize << " freq " << mFreq);
+        SdlAudioLocker audioLocker;
+        Close();
+        Open(mFrameSize, mFreq);
+    }
 }
 
 SdlAudioWrapper::~SdlAudioWrapper()

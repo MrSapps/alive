@@ -29,7 +29,7 @@ public:
     SdlAudioWrapper();
     virtual void AddPlayer(IAudioPlayer* player) override;
     virtual void RemovePlayer(IAudioPlayer* player) override;
-    virtual void SetAudioSpec(u16 frameSize, int freq) override;
+    virtual void SetAudioSpec(u16 frameSize, s32 freq) override;
     ~SdlAudioWrapper();
 private:
     void Open(u16 frameSize, int freq);
@@ -39,4 +39,6 @@ private:
 private:
     std::set<IAudioPlayer*> mAudioPlayers;
     int mDevice = 0;
+    u16 mFrameSize = 0;
+    s32 mFreq = 0;
 };
