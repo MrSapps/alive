@@ -439,14 +439,29 @@ struct AnimLogger
 
 AnimLogger gAnimLogger;
 
+// First 16bits is the whole number, last 16bits is the remainder (??)
+class HalfFloat
+{
+public:
+    HalfFloat() = default;
+    HalfFloat(s32 value) : mValue(value) { }
+    f64 AsDouble() const { return static_cast<double>(mValue) / 65536.0; }
+    HalfFloat& operator = (int value) { mValue = value; }
+    bool operator != (const HalfFloat& r) const { return mValue != r.mValue; }
+private:
+    friend HalfFloat operator -(const HalfFloat& l, const HalfFloat& r);
+    s32 mValue;
+};
+
+inline HalfFloat operator - (const HalfFloat& l, const HalfFloat& r) { return HalfFloat(l.mValue - r.mValue); }
 
 #pragma pack(push)
 #pragma pack(1)
 struct abe
 {
     BYTE gap0[184];
-    int xpos;
-    int ypos;
+    HalfFloat xpos;
+    HalfFloat ypos;
     WORD wordC0;
     WORD wordC2;
     BYTE gapC4[66];
@@ -458,20 +473,25 @@ struct abe
 
 abe ** hero = reinterpret_cast<abe**>(0x005C1B68);
 
-void Loop()
+void DumpDeltas()
 {
-    static int prevX = 0;
-    if (prevX != (*hero)->xpos)
-        printf("Player X Delta %f\n", static_cast<float>(((int)(*hero)->xpos - (int)prevX) / static_cast<float>(0x10000)));
+    static HalfFloat prevX = 0;
+    static HalfFloat prevY = 0;
+
+    if (prevX != (*hero)->xpos || prevY != (*hero)->ypos)
+    {
+        printf("Player X Delta %f Y Delta %f\n", ((*hero)->xpos - prevX).AsDouble(), ((*hero)->ypos - prevY).AsDouble());
+    }
 
     prevX = (*hero)->xpos;
+    prevY = (*hero)->ypos;
 }
 
 void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
 {
     static anim_struct* pTarget = nullptr;
 
-    Loop();
+    DumpDeltas();
 
     if (thisPtr->mAnimChunkPtrs)
     {
@@ -693,8 +713,8 @@ ConvertAbeHdcHandle2 gdiHdcToDd = reinterpret_cast<ConvertAbeHdcHandle2>(0x4F21A
 void GdiLoop(HDC hdc)
 {
     std::string text("Abe: X: " + 
-        std::to_string(static_cast<float>((*hero)->xpos / (float)0x10000)) + 
-        " Y: " + std::to_string(static_cast<float>((*hero)->ypos / (float)0x10000)) + 
+        std::to_string((*hero)->xpos.AsDouble()) + 
+        " Y: " + std::to_string((*hero)->ypos.AsDouble()) + 
         " Grid: " + std::to_string(gGridEnabled) + 
         " Collisions: " + std::to_string(gCollisionsEnabled) + "(G/H)");
 
