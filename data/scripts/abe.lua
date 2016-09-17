@@ -193,7 +193,6 @@ function init(self)
                 elseif (i:InputSneak()) then
                     return 'ToSneak'
                 else
-                    Walk(s)
                     return 'ToWalk'
                 end
             end
@@ -456,7 +455,7 @@ function init(self)
             if (frame == 2) then
                 PlaySoundEffect("MOVEMENT_MUD_STEP")
                 if (InputSameAsDirection(s, i) == false) then
-                    return 'WalkToStand'
+                    return 'ToStand'
                 end
                 if (i:InputRun()) then
                     return 'WalkingToRunning'
@@ -516,26 +515,19 @@ function init(self)
     self.states.ToWalk = 
     {
         animation = 'AbeStandToWalk',
+        enter = function(s,i) Walk(s) end,
         tick = function(s, i)
             Walk(s)
             if s:IsLastFrame() then return 'Walking' end
         end
     }
     
-    self.states.WalkToStand =
+    self.states.ToStand = 
     {
         animation = 'AbeWalkToStand',
         tick = function(s, i)
             if s:IsLastFrame() then return 'Stand' end
             Walk(s)
-        end
-    }
-
-    self.states.ToStand = 
-    {
-        animation = 'AbeWalkToStand',
-        tick = function(s, i)
-            if s:IsLastFrame() then return 'Stand' end 
         end
     }
 

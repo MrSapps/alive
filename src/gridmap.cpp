@@ -177,10 +177,21 @@ void MapObject::LoadScript()
 
 void MapObject::Update(const InputState& input)
 {
+    sol::protected_function f = mLuaState["update"];
+    auto ret = f(this, input.Mapping().GetActions());
+    if (!ret.valid())
+    {
+        sol::error err = ret;
+        std::string what = err.what();
+        LOG_ERROR(what);
+    }
+
     if (mAnim)
     {
         mAnim->Update();
     }
+
+    //::Sleep(300);
 
     static float prevX = 0.0f;
     static float prevY = 0.0f;
@@ -190,15 +201,6 @@ void MapObject::Update(const InputState& input)
     }
     prevX = mXPos;
     prevY = mYPos;
-
-    sol::protected_function f = mLuaState["update"];
-    auto ret = f(this, input.Mapping().GetActions());
-    if (!ret.valid())
-    {
-        sol::error err = ret;
-        std::string what = err.what();
-        LOG_ERROR(what);
-    }
 }
 
 void MapObject::SetAnimation(const std::string& animation)
