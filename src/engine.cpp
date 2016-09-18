@@ -26,6 +26,49 @@
 #include "SDL_syswm.h"
 #include "stdthread.h"
 
+Debug& Debugging()
+{
+    static Debug d;
+    return d;
+}
+
+void Debug::Update(class InputState& input)
+{
+    if (input.mKeys[SDL_SCANCODE_F1].mIsPressed)
+    {
+        mShowDebugUi = !mShowDebugUi;
+    }
+}
+
+void Debug::Render(Renderer& /*renderer*/, GuiContext& gui)
+{
+    if (!mShowDebugUi)
+    {
+        return;
+    }
+
+    gui_begin_window(&gui, "Debugging");
+
+    gui_checkbox(&gui, "Anim bounding boxes", &mAnimBoundingBoxes);
+    gui_checkbox(&gui, "Anim debug strings", &mAnimDebugStrings);
+    gui_checkbox(&gui, "Collision lines", &mCollisionLines);
+    gui_checkbox(&gui, "Grid", &mGrid);
+    gui_checkbox(&gui, "Object bounding boxes", &mObjectBoundingBoxes);
+    gui_checkbox(&gui, "Ray casts", &mRayCasts);
+    gui_checkbox(&gui, "Browser UI", &mShowBrowserUi);
+    
+    if (gui_button(&gui, "Load next path"))
+    {
+        mFnNextPath();
+    }
+
+    if (gui_button(&gui, "Reload path"))
+    {
+        mFnReloadPath();
+    }
+
+    gui_end_window(&gui);
+}
 
 void setWindowsIcon(SDL_Window *sdlWindow)
 {
@@ -264,7 +307,7 @@ void Engine::InitSubSystems()
     mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
     mFmv = std::make_unique<DebugFmv>(mAudioHandler, *mResourceLocator);
     mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, mLuaState);
-    mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator, mLuaState);
+    mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator, mLuaState, *mRenderer);
 
     { // Init gui system
         mGui = create_gui(&calcTextSize, mRenderer.get());
@@ -526,6 +569,7 @@ void Engine::Update()
     }
 
     mInputState.Update();
+    Debugging().Update(mInputState);
 
     mStateMachine.Update(mInputState);
 }
@@ -542,6 +586,8 @@ void Engine::Render()
     gui_pre_frame(mGui); 
 
     mStateMachine.Render(w, h, *mRenderer);
+
+    Debugging().Render(*mRenderer, *mGui);
 
     gui_post_frame(mGui);
 

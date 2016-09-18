@@ -287,10 +287,56 @@ void MapObject::SnapToGrid()
 
 // ============================================
 
-Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator, sol::state& luaState)
+Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
     : mLocator(locator), mLuaState(luaState)
 {
 
+    // Debugging - reload path and load next path
+    static std::string currentPathName;
+    static s32 nextPathIndex;
+    Debugging().mFnNextPath = [&]() 
+    {
+        s32 idx = 0;
+        for (const auto& pathMap : mLocator.mResMapper.mPathMaps)
+        {
+            if (idx == nextPathIndex)
+            {
+                std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(pathMap.first.c_str());
+                if (path)
+                {
+                    mMap = std::make_unique<GridMap>(*path, mLocator, mLuaState, rend);
+                    currentPathName = pathMap.first;
+                    nextPathIndex = idx +1;
+                    if (nextPathIndex > static_cast<s32>(mLocator.mResMapper.mPathMaps.size()))
+                    {
+                        nextPathIndex = 0;
+                    }
+                }
+                else
+                {
+                    LOG_ERROR("LVL or file in LVL not found");
+                }
+                return;
+            }
+            idx++;
+        }
+    };
+
+    Debugging().mFnReloadPath = [&]()
+    {
+        if (!currentPathName.empty())
+        {
+            std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(currentPathName.c_str());
+            if (path)
+            {
+                mMap = std::make_unique<GridMap>(*path, mLocator, mLuaState, rend);
+            }
+            else
+            {
+                LOG_ERROR("LVL or file in LVL not found");
+            }
+        }
+    };
 }
 
 void Level::EnterState()
@@ -308,7 +354,10 @@ void Level::Update(const InputState& input)
 
 void Level::Render(Renderer& rend, GuiContext& gui, int , int )
 {
-    RenderDebugPathSelection(rend, gui);
+    if (Debugging().mShowBrowserUi)
+    {
+        RenderDebugPathSelection(rend, gui);
+    }
 
     if (mMap)
     {
@@ -327,7 +376,6 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
             std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(pathMap.first.c_str());
             if (path)
             {
-
                 mMap = std::make_unique<GridMap>(*path, mLocator, mLuaState, rend);
             }
             else
@@ -576,65 +624,75 @@ MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
 void GridMap::RenderDebug(Renderer& rend)
 {
     // Draw collisions
-    rend.strokeColor(Color{ 0, 0, 1, 1 });
-    rend.strokeWidth(2.f);
-    for (const Oddlib::Path::CollisionItem& item : mCollisionItemsSorted)
+    if (Debugging().mCollisionLines)
     {
-        glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item.mP1.mX, item.mP1.mY));
-        glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item.mP2.mX, item.mP2.mY));
+        rend.strokeColor(Color{ 0, 0, 1, 1 });
+        rend.strokeWidth(2.f);
+        for (const Oddlib::Path::CollisionItem& item : mCollisionItemsSorted)
+        {
+            glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item.mP1.mX, item.mP1.mY));
+            glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item.mP2.mX, item.mP2.mY));
 
-        rend.beginPath();
-        rend.moveTo(p1.x, p1.y);
-        rend.lineTo(p2.x, p2.y);
-        rend.stroke();
+            rend.beginPath();
+            rend.moveTo(p1.x, p1.y);
+            rend.lineTo(p2.x, p2.y);
+            rend.stroke();
 
-        rend.text(p1.x, p1.y, std::string("L: " + std::to_string(item.mType)).c_str());
+            rend.text(p1.x, p1.y, std::string("L: " + std::to_string(item.mType)).c_str());
+        }
     }
 
-    rend.strokeColor(Color{ 1, 1, 1, 0.1f });
-    rend.strokeWidth(2.f);
-    int gridLineCountX = static_cast<int>((rend.mScreenSize.x / mEditorGridSizeX) / 2) + 2;
-    for (int x = -gridLineCountX; x < gridLineCountX; x++)
+    // Draw grid
+    if (Debugging().mGrid)
     {
-        rend.beginPath();
-        glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(rend.mCameraPosition.x + (x * mEditorGridSizeX) - (static_cast<int>(rend.mCameraPosition.x) % mEditorGridSizeX), 0));
-        rend.moveTo(screenPos.x, 0);
-        rend.lineTo(screenPos.x, static_cast<f32>(rend.mH));
-        rend.stroke();
-    }
-    int gridLineCountY = static_cast<int>((rend.mScreenSize.y / mEditorGridSizeY) / 2) + 2;
-    for (int y = -gridLineCountY; y < gridLineCountY; y++)
-    {
-        rend.beginPath();
-        glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(0, rend.mCameraPosition.y + (y * mEditorGridSizeY) - (static_cast<int>(rend.mCameraPosition.y) % mEditorGridSizeY)));
-        rend.moveTo(0, screenPos.y);
-        rend.lineTo(static_cast<f32>(rend.mW), screenPos.y);
-        rend.stroke();
+        rend.strokeColor(Color{ 1, 1, 1, 0.1f });
+        rend.strokeWidth(2.f);
+        int gridLineCountX = static_cast<int>((rend.mScreenSize.x / mEditorGridSizeX) / 2) + 2;
+        for (int x = -gridLineCountX; x < gridLineCountX; x++)
+        {
+            rend.beginPath();
+            glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(rend.mCameraPosition.x + (x * mEditorGridSizeX) - (static_cast<int>(rend.mCameraPosition.x) % mEditorGridSizeX), 0));
+            rend.moveTo(screenPos.x, 0);
+            rend.lineTo(screenPos.x, static_cast<f32>(rend.mH));
+            rend.stroke();
+        }
+        int gridLineCountY = static_cast<int>((rend.mScreenSize.y / mEditorGridSizeY) / 2) + 2;
+        for (int y = -gridLineCountY; y < gridLineCountY; y++)
+        {
+            rend.beginPath();
+            glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(0, rend.mCameraPosition.y + (y * mEditorGridSizeY) - (static_cast<int>(rend.mCameraPosition.y) % mEditorGridSizeY)));
+            rend.moveTo(0, screenPos.y);
+            rend.lineTo(static_cast<f32>(rend.mW), screenPos.y);
+            rend.stroke();
+        }
     }
 
     // Draw objects
-    rend.strokeColor(Color{ 1, 1, 1, 1 });
-    rend.strokeWidth(1.f);
-    for (auto x = 0u; x < mScreens.size(); x++)
+    if (Debugging().mObjectBoundingBoxes)
     {
-        for (auto y = 0u; y < mScreens[x].size(); y++)
+        rend.strokeColor(Color{ 1, 1, 1, 1 });
+        rend.strokeWidth(1.f);
+        for (auto x = 0u; x < mScreens.size(); x++)
         {
-            GridScreen *screen = mScreens[x][y].get();
-            if (!screen->hasTexture())
-                continue;
-            const Oddlib::Path::Camera& cam = screen->getCamera();
-            for (size_t i = 0; i < cam.mObjects.size(); ++i)
+            for (auto y = 0u; y < mScreens[x].size(); y++)
             {
-                const Oddlib::Path::MapObject& obj = cam.mObjects[i];
+                GridScreen *screen = mScreens[x][y].get();
+                if (!screen->hasTexture())
+                    continue;
+                const Oddlib::Path::Camera& cam = screen->getCamera();
+                for (size_t i = 0; i < cam.mObjects.size(); ++i)
+                {
+                    const Oddlib::Path::MapObject& obj = cam.mObjects[i];
 
-                glm::vec2 topLeft = glm::vec2(obj.mRectTopLeft.mX, obj.mRectTopLeft.mY);
-                glm::vec2 bottomRight = glm::vec2(obj.mRectBottomRight.mX, obj.mRectBottomRight.mY);
+                    glm::vec2 topLeft = glm::vec2(obj.mRectTopLeft.mX, obj.mRectTopLeft.mY);
+                    glm::vec2 bottomRight = glm::vec2(obj.mRectBottomRight.mX, obj.mRectBottomRight.mY);
 
-                glm::vec2 objPos = rend.WorldToScreen(glm::vec2(topLeft.x, topLeft.y));
-                glm::vec2 objSize = rend.WorldToScreen(glm::vec2(bottomRight.x, bottomRight.y)) - objPos;
-                rend.beginPath();
-                rend.rect(objPos.x, objPos.y, objSize.x, objSize.y);
-                rend.stroke();
+                    glm::vec2 objPos = rend.WorldToScreen(glm::vec2(topLeft.x, topLeft.y));
+                    glm::vec2 objSize = rend.WorldToScreen(glm::vec2(bottomRight.x, bottomRight.y)) - objPos;
+                    rend.beginPath();
+                    rend.rect(objPos.x, objPos.y, objSize.x, objSize.y);
+                    rend.stroke();
+                }
             }
         }
     }
@@ -830,29 +888,32 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
 
     RenderDebug(rend);
 
-    mPlayer.Render(rend, gui,
-        0,
-        0,
-        1.0f);
-
     for (std::unique_ptr<MapObject>& obj : mObjs)
     {
         obj->Render(rend, gui, 0, 0, 1.0f);
     }
+
+    mPlayer.Render(rend, gui,
+        0,
+        0,
+        1.0f);
 
     Physics::raycast_collision collision;
 
     // Test raycasting for shadows
     if (raycast_map(glm::vec2(mPlayer.mXPos, mPlayer.mYPos), glm::vec2(mPlayer.mXPos, mPlayer.mYPos + 500), 0, &collision))
     {
-        glm::vec2 screenSpaceHit = rend.WorldToScreen(collision.intersection);
+        if (Debugging().mRayCasts)
+        {
+            glm::vec2 screenSpaceHit = rend.WorldToScreen(collision.intersection);
 
-        rend.strokeColor(Color{ 1, 0, 0, 1 });
-        rend.strokeWidth(2.f);
-        rend.beginPath();
-        rend.moveTo(screenSpaceHit.x, screenSpaceHit.y);
-        rend.lineTo(screenSpaceHit.x, screenSpaceHit.y - 20);
-        rend.stroke();
+            rend.strokeColor(Color{ 1, 0, 0, 1 });
+            rend.strokeWidth(2.f);
+            rend.beginPath();
+            rend.moveTo(screenSpaceHit.x, screenSpaceHit.y);
+            rend.lineTo(screenSpaceHit.x, screenSpaceHit.y - 20);
+            rend.stroke();
+        }
     }
 }
 

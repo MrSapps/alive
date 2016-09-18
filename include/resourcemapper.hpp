@@ -1607,12 +1607,28 @@ private:
         }
     }
 
+    static u32 ToBlendMode(const std::string& str)
+    {
+        if (str == "normal")
+        {
+            return 0;
+        }
+        else if (str == "B100F100")
+        {
+            return 1;
+        }
+        // TODO: Other required modes
+
+        LOG_WARNING("Unknown blending mode: " << str);
+        return 0;
+    }
+
     template<typename JsonObject>
     void ParseAnimResourceJson(const JsonObject& obj)
     {
         AnimMapping mapping;
 
-        mapping.mBlendingMode = obj["blend_mode"].GetInt();
+        mapping.mBlendingMode = ToBlendMode(obj["blend_mode"].GetString());
 
         ParseAnimResourceLocations(obj, mapping);
 
@@ -1746,8 +1762,19 @@ public:
     Animation(AnimationSetHolder anim, bool isPsx, bool scaleFrameOffsets, u32 defaultBlendingMode, const std::string& sourceDataSet)
         : mAnim(anim), mIsPsx(isPsx), mScaleFrameOffsets(scaleFrameOffsets), mSourceDataSet(sourceDataSet)
     {
-        // TODO
-        std::ignore = defaultBlendingMode;
+        switch (defaultBlendingMode)
+        {
+        case 0:
+            mBlendingMode = BlendMode::normal();
+            break;
+        case 1:
+            mBlendingMode = BlendMode::B100F100();
+            break;
+        default:
+            // TODO: Other required blending modes
+            mBlendingMode = BlendMode::normal();
+            LOG_WARNING("Unknown blending mode: " << defaultBlendingMode);
+        }
     }
     
     void Update()
@@ -1797,7 +1824,6 @@ public:
             xFrameOffset = -xFrameOffset;
         }
         // Render sprite as textured quad
-        const BlendMode blend = BlendMode::normal();// B100F100(); // TODO: Detect correct blending
         const Color color = Color::white();
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
         rend.drawQuad(
@@ -1807,37 +1833,43 @@ public:
             static_cast<f32>(frame.mFrame->w) * (flipX ? -ScaleX() : ScaleX()), 
             static_cast<f32>(frame.mFrame->h) * mScale, 
             color, 
-            blend);
+            mBlendingMode);
         rend.destroyTexture(textureId);
 
-        // Render bounding box
-        rend.beginPath();
-        const ::Color c { 1.0f, 0.0f, 1.0f, 1.0f };
-        rend.strokeColor(c);
-        rend.resetTransform();
-        const f32 width = static_cast<f32>(std::abs(frame.mTopLeft.x - frame.mBottomRight.x)) * mScale;
+        if (Debugging().mAnimBoundingBoxes)
+        {
+            // Render bounding box
+            rend.beginPath();
+            const ::Color c{ 1.0f, 0.0f, 1.0f, 1.0f };
+            rend.strokeColor(c);
+            rend.resetTransform();
+            const f32 width = static_cast<f32>(std::abs(frame.mTopLeft.x - frame.mBottomRight.x)) * mScale;
 
-        const glm::vec4 rectScreen(rend.WorldToScreenRect(xpos + (static_cast<f32>(flipX ? -frame.mTopLeft.x : frame.mTopLeft.x) * mScale),
-            ypos + (static_cast<f32>(frame.mTopLeft.y) * mScale),
-            flipX ? -width : width,
-            static_cast<f32>(std::abs(frame.mTopLeft.y - frame.mBottomRight.y)) * mScale));
+            const glm::vec4 rectScreen(rend.WorldToScreenRect(xpos + (static_cast<f32>(flipX ? -frame.mTopLeft.x : frame.mTopLeft.x) * mScale),
+                ypos + (static_cast<f32>(frame.mTopLeft.y) * mScale),
+                flipX ? -width : width,
+                static_cast<f32>(std::abs(frame.mTopLeft.y - frame.mBottomRight.y)) * mScale));
 
-        rend.rect(
-            rectScreen.x,
-            rectScreen.y,
-            rectScreen.z,
-            rectScreen.w);
-        rend.stroke();
-        rend.closePath();
+            rend.rect(
+                rectScreen.x,
+                rectScreen.y,
+                rectScreen.z,
+                rectScreen.w);
+            rend.stroke();
+            rend.closePath();
+        }
 
-        // Render frame pos and frame number
-        const glm::vec2 xyposScreen(rend.WorldToScreen(glm::vec2(xpos, ypos)));
-        rend.text(xyposScreen.x, xyposScreen.y,
-            (mSourceDataSet
-                + " x: " + std::to_string(xpos)
-                + " y: " + std::to_string(ypos)
-                + " f: " + std::to_string(FrameNumber())
-                ).c_str());
+        if (Debugging().mAnimDebugStrings)
+        {
+            // Render frame pos and frame number
+            const glm::vec2 xyposScreen(rend.WorldToScreen(glm::vec2(xpos, ypos)));
+            rend.text(xyposScreen.x, xyposScreen.y,
+                (mSourceDataSet
+                    + " x: " + std::to_string(xpos)
+                    + " y: " + std::to_string(ypos)
+                    + " f: " + std::to_string(FrameNumber())
+                    ).c_str());
+        }
     }
 
     void Restart()
@@ -1898,6 +1930,7 @@ private:
     bool mIsPsx = false;
     bool mScaleFrameOffsets = false;
     std::string mSourceDataSet;
+    BlendMode mBlendingMode = BlendMode::normal();
 
     u32 mCounter = 0;
     s32 mFrameNum = -1;

@@ -123,6 +123,25 @@ void GameSelectionScreen::RenderSelectGame()
         }
     }
 
+    // Select developer mode by default
+    static bool setFirstIndex = false;
+    if (!setFirstIndex)
+    {
+        if (!mVisibleGameDefinitions.empty())
+        {
+            for (size_t idx = 0; idx < mVisibleGameDefinitions.size(); idx++)
+            {
+                const GameDefinition& gd = *mVisibleGameDefinitions[idx];
+                if (gd.Name() == "Developer mode")
+                {
+                    mSelectedGameDefintionIndex = idx;
+                    break;
+                }
+            }
+        }
+        setFirstIndex = true;
+    }
+
     if (gui_button(mGui, "Start game"))
     {
         const GameDefinition& userSelectedGameDef = *mVisibleGameDefinitions[mSelectedGameDefintionIndex];

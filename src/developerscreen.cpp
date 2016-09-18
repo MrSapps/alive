@@ -81,57 +81,55 @@ void DeveloperScreen::ExitState()
 void DeveloperScreen::Render(int w, int h, Renderer& renderer)
 {
     //DebugRender();
-
-    // When this gets bigger it can be moved to a separate class etc.
-    struct EditorUi
+    if (Debugging().mShowBrowserUi)
     {
-        EditorUi()
-            : levelBrowserOpen(true)
+        // When this gets bigger it can be moved to a separate class etc.
+        struct EditorUi
         {
+            EditorUi()
+                : levelBrowserOpen(true)
+            {
 
+            }
+            bool fmvBrowserOpen;
+            bool soundBrowserOpen;
+            bool levelBrowserOpen;
+            bool animationBrowserOpen;
+            bool guiLayoutEditorOpen;
+        };
+
+        static EditorUi editor;
+
+        gui_begin_window(mGui, "Browsers");
+        gui_checkbox(mGui, "fmvBrowserOpen|FMV browser", &editor.fmvBrowserOpen);
+        gui_checkbox(mGui, "soundBrowserOpen|Sound browser", &editor.soundBrowserOpen);
+        gui_checkbox(mGui, "levelBrowserOpen|Level browser", &editor.levelBrowserOpen);
+        gui_checkbox(mGui, "animationBrowserOpen|Animation browser", &editor.animationBrowserOpen);
+        gui_checkbox(mGui, "guiLayoutEditOpen|GUI layout editor", &editor.guiLayoutEditorOpen);
+
+        gui_end_window(mGui);
+
+        if (editor.fmvBrowserOpen)
+        {
+            mFmv.Render(renderer, *mGui, w, h);
         }
-        bool fmvBrowserOpen;
-        bool soundBrowserOpen;
-        bool levelBrowserOpen;
-        bool animationBrowserOpen;
-        bool guiLayoutEditorOpen;
-    };
 
-    static EditorUi editor;
+        if (editor.soundBrowserOpen)
+        {
+            mSound.Render(mGui, w, h);
+        }
 
-    gui_begin_window(mGui, "Browsers");
-    gui_checkbox(mGui, "fmvBrowserOpen|FMV browser", &editor.fmvBrowserOpen);
-    gui_checkbox(mGui, "soundBrowserOpen|Sound browser", &editor.soundBrowserOpen);
-    gui_checkbox(mGui, "levelBrowserOpen|Level browser", &editor.levelBrowserOpen);
-    gui_checkbox(mGui, "animationBrowserOpen|Animation browser", &editor.animationBrowserOpen);
-    gui_checkbox(mGui, "guiLayoutEditOpen|GUI layout editor", &editor.guiLayoutEditorOpen);
+        if (editor.animationBrowserOpen)
+        {
+            RenderAnimationSelector(renderer);
+        }
 
-    gui_end_window(mGui);
-
-    if (editor.fmvBrowserOpen)
-    {
-        mFmv.Render(renderer, *mGui, w, h);
+        if (editor.guiLayoutEditorOpen)
+        {
+            gui_layout_editor(mGui, "../src/generated_gui_layout.cpp");
+        }
     }
-
-    if (editor.soundBrowserOpen)
-    {
-        mSound.Render(mGui, w, h);
-    }
-
-    if (editor.levelBrowserOpen)
-    {
-        mLevel.Render(renderer, *mGui, w, h);
-    }
-
-    if (editor.animationBrowserOpen)
-    {
-        RenderAnimationSelector(renderer);
-    }
-
-    if (editor.guiLayoutEditorOpen)
-    {
-        gui_layout_editor(mGui, "../src/generated_gui_layout.cpp");
-    }
+    mLevel.Render(renderer, *mGui, w, h);
 }
 
 void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)

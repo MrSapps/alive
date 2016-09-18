@@ -100,7 +100,7 @@ private:
 class Level
 {
 public:
-    Level(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState);
+    Level(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState, Renderer& render);
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
     void EnterState();
