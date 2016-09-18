@@ -1,7 +1,7 @@
-function init_with_data(self, stream)
+function init_with_data(self, rect, stream)
 
     self.states = {}
-    
+    self.states.name = "background_animation"
 
     local animId = stream:ReadU32()
 

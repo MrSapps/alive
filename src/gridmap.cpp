@@ -115,12 +115,12 @@ MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::
 
 void MapObject::Init()
 {
-    LoadScript(nullptr);
+    LoadScript(nullptr, nullptr);
 }
 
-void MapObject::Init(Oddlib::IStream& objData)
+void MapObject::Init(const ObjRect& rect, Oddlib::IStream& objData)
 {
-    LoadScript(&objData);
+    LoadScript(&rect, &objData);
 }
 
 void MapObject::ScriptLoadAnimations()
@@ -130,7 +130,11 @@ void MapObject::ScriptLoadAnimations()
     mStates.for_each([&](const sol::object& key, const sol::object& value)
     {
         std::string stateName = key.as<std::string>();
-        if (value.is<sol::table>())
+        if (stateName == "name")
+        {
+            mName = value.as<std::string>();
+        }
+        else if (value.is<sol::table>())
         {
             const sol::table& state = value.as<sol::table>();
             state.for_each([&](const sol::object& key, const sol::object& value)
@@ -155,7 +159,7 @@ void MapObject::ScriptLoadAnimations()
     });
 }
 
-void MapObject::LoadScript(Oddlib::IStream* objData)
+void MapObject::LoadScript(const ObjRect* rect, Oddlib::IStream* objData)
 {
     // Load FSM script
     const std::string script = mLocator.LocateScript(mScriptName.c_str());
@@ -173,7 +177,7 @@ void MapObject::LoadScript(Oddlib::IStream* objData)
     if (objData)
     {
         sol::protected_function f = mLuaState["init_with_data"];
-        auto ret = f(this, *objData);
+        auto ret = f(this, *rect, *objData);
         if (!ret.valid())
         {
             sol::error err = ret;
@@ -216,7 +220,7 @@ void MapObject::Update(const InputState& input)
     static float prevY = 0.0f;
     if (prevX != mXPos || prevY != mYPos)
     {
-        LOG_INFO("Player X Delta " << mXPos - prevX << " Y Delta " << mYPos - prevY << " frame " << mAnim->FrameNumber());
+        //LOG_INFO("Player X Delta " << mXPos - prevX << " Y Delta " << mYPos - prevY << " frame " << mAnim->FrameNumber());
     }
     prevX = mXPos;
     prevY = mYPos;
@@ -262,6 +266,16 @@ void MapObject::Render(Renderer& rend, GuiContext& /*gui*/, int x, int y, float 
         mAnim->SetScale(scale);
         mAnim->Render(rend, mFlipX);
     }
+}
+
+bool MapObject::ContainsPoint(s32 x, s32 y) const
+{
+    if (!mAnim)
+    {
+        return false;
+    }
+
+    return mAnim->Collision(x, y);
 }
 
 void MapObject::SnapToGrid()
@@ -373,6 +387,9 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
     mCollisionItemsSorted = mCollisionItems;
     mIsAo = path.IsAo();
 
+
+    luaState.set_function("GetMapObject", &GridMap::GetMapObject, this);
+
     mScreens.resize(path.XSize());
     for (auto& col : mScreens)
     {
@@ -447,14 +464,20 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                     }
 
                     auto tmp = std::make_unique<MapObject>(luaState, locator, scriptName.c_str());
+
+                    // Default "best guess" positioning
                     tmp->mXPos = obj.mRectTopLeft.mX;
                     tmp->mYPos = obj.mRectTopLeft.mY;
 
-                    //tmp->mXPos = obj.mRectBottomRight.mX;
-                    //tmp->mYPos = obj.mRectBottomRight.mY;
+                    const ObjRect rect =  {
+                            obj.mRectTopLeft.mX,
+                            obj.mRectTopLeft.mY,
+                            obj.mRectBottomRight.mX - obj.mRectTopLeft.mX,
+                            obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
+                    };
 
                     Oddlib::MemoryStream ms(std::vector<u8>(obj.mData.data(), obj.mData.data() + obj.mData.size()));
-                    tmp->Init(ms);
+                    tmp->Init(rect, ms);
 
                     mObjs.push_back(std::move(tmp));
                 }
@@ -533,6 +556,21 @@ bool GridMap::raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, in
     }
 
     return false;
+}
+
+MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
+{
+    for (std::unique_ptr<MapObject>& obj : mObjs)
+    {
+        if (obj->Name() == type)
+        {
+            if (obj->ContainsPoint(x, y))
+            {
+                return obj.get();
+            }
+        }
+    }
+    return nullptr;
 }
 
 void GridMap::RenderDebug(Renderer& rend)

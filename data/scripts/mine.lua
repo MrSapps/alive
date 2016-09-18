@@ -1,7 +1,8 @@
-function init_with_data(self, stream)
+function init_with_data(self, rect, stream)
 
     self.states = {}
-    
+    self.states.name = "mine"
+
     stream:ReadU32() -- Skip unused "num patterns"
     stream:ReadU32() -- Skip unused "patterns"
     local scale = stream:ReadU32()

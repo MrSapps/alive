@@ -29,16 +29,38 @@ namespace Physics
 }
 
 class Animation;
+
+
+struct ObjRect
+{
+    s32 x;
+    s32 y;
+    s32 w;
+    s32 h;
+
+    static void RegisterLuaBindings(sol::state& state)
+    {
+        state.new_usertype<ObjRect>("ObjRect",
+            "x", &ObjRect::x,
+            "y", &ObjRect::y,
+            "w", &ObjRect::h,
+            "h", &ObjRect::h);
+    }
+};
+
 class MapObject
 {
 public:
     MapObject(sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
     void Init();
-    void Init(Oddlib::IStream& objData);
+    void Init(const ObjRect& rect, Oddlib::IStream& objData);
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale);
     void Input(const InputState& input);
     static void RegisterLuaBindings(sol::state& state);
+
+    bool ContainsPoint(s32 x, s32 y) const;
+    const std::string& Name() const { return mName; }
 
     // TODO: Shouldn't be part of this object
     void SnapToGrid();
@@ -53,8 +75,7 @@ private:
     sol::state& mLuaState;
     sol::table mStates;
 
-    void LoadScript(Oddlib::IStream* objData);
-
+    void LoadScript(const ObjRect* rect, Oddlib::IStream* objData);
 private: // Actions
     void SetAnimation(const std::string& animation);
 
@@ -73,6 +94,7 @@ private:
 
     ResourceLocator& mLocator;
     std::string mScriptName;
+    std::string mName;
 };
 
 class Level
@@ -125,6 +147,7 @@ public:
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui);
 private:
+    MapObject* GetMapObject(s32 x, s32 y, const char* type);
     void RenderDebug(Renderer& rend);
     void RenderEditor(Renderer& rend, GuiContext& gui);
     void RenderGame(Renderer& rend, GuiContext& gui);

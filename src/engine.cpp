@@ -273,7 +273,7 @@ void Engine::InitSubSystems()
 
     mInputState.AddControllers();
 
-    mLuaState.open_libraries(sol::lib::base, sol::lib::string, sol::lib::jit, sol::lib::table, sol::lib::debug);
+    mLuaState.open_libraries(sol::lib::base, sol::lib::string, sol::lib::jit, sol::lib::table, sol::lib::debug, sol::lib::math);
     
     // Redirect lua print()
     mLuaState.set_function("print", LuaLog);
@@ -281,6 +281,7 @@ void Engine::InitSubSystems()
     Oddlib::IStream::RegisterLuaBindings(mLuaState);
     Actions::RegisterLuaBindings(mLuaState);
     MapObject::RegisterLuaBindings(mLuaState);
+    ObjRect::RegisterLuaBindings(mLuaState);
 }
 
 // TODO: Using averaging value or anything that is more accurate than this

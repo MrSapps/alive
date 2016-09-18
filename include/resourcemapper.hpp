@@ -1902,8 +1902,8 @@ private:
     u32 mCounter = 0;
     s32 mFrameNum = -1;
 
-    s32 mXPos = 500;
-    s32 mYPos = 800;
+    s32 mXPos = 100;
+    s32 mYPos = 100;
     f32 mScale = 3;
 
     bool mIsLastFrame = false;

@@ -34,7 +34,8 @@ local function Run(s) MoveX(s, kRunSpeed) end
 
 function init(self)
     self.states = {}
-    
+    self.states.name = "abe"
+
     self.states.SayHelloPart1 =
     {
         animation = 'AbeStandSpeak1',
@@ -184,7 +185,24 @@ function init(self)
             end
 
             if (i:InputAction()) then
-                return 'PullLever'
+                local xpos = self.mXPos
+                if self:FacingLeft() then
+                    xpos = xpos - (kGridWidth + 5)
+                else
+                    xpos = xpos + (kGridWidth + 5)
+                end
+
+                local lever = GetMapObject(xpos, self.mYPos, "lever")
+                if (lever == nil) then
+                    print("No lever at " .. xpos .. "," .. self.mYPos)
+                else
+                    if (lever.states.CanBeActivated()) then
+                        lever.states.Activate(self:FacingLeft())
+                        return 'PullLever'
+                    else
+                        print("Lever is not in right state")
+                    end
+                end
             end
 
             if (InputSameAsDirection(s, i)) then
