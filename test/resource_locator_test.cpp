@@ -209,7 +209,7 @@ TEST(ResourceLocator, ParseResourceMap)
         "resource_name": "BAPATH_1"
     }],
     "animations": [{
-        "blend_mode": "normal",
+        "blend_mode": "B100F100",
         "locations": [{
             "dataset": "AoPc",
             "files": [{
