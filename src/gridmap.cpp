@@ -417,11 +417,41 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
             for (size_t i = 0; i < cam.mObjects.size(); ++i)
             {
                 const Oddlib::Path::MapObject& obj = cam.mObjects[i];
-                if (obj.mType == 13 && path.IsAo() == false)
+                if (path.IsAo() == false)
                 {
-                    auto tmp = std::make_unique<MapObject>(luaState, locator, "background_animation.lua");
+                    // TODO: Delegate to lua object factory
+                    std::string scriptName;
+                    if (obj.mType == 24)
+                    {
+                        scriptName = "mine.lua";
+                    }
+                    else if (obj.mType == 13)
+                    {
+                        scriptName = "background_animation.lua";
+                    }
+                    else if (obj.mType == 17)
+                    {
+                        scriptName = "switch.lua";
+                    }
+                    else if (obj.mType == 85)
+                    {
+                        scriptName = "slam_door.lua";
+                    }
+                    else if (obj.mType == 5)
+                    {
+                        scriptName = "door.lua";
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    auto tmp = std::make_unique<MapObject>(luaState, locator, scriptName.c_str());
                     tmp->mXPos = obj.mRectTopLeft.mX;
                     tmp->mYPos = obj.mRectTopLeft.mY;
+
+                    //tmp->mXPos = obj.mRectBottomRight.mX;
+                    //tmp->mYPos = obj.mRectBottomRight.mY;
 
                     Oddlib::MemoryStream ms(std::vector<u8>(obj.mData.data(), obj.mData.data() + obj.mData.size()));
                     tmp->Init(ms);
