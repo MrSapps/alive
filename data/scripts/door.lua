@@ -1,4 +1,6 @@
 function init_with_data(self, rect, stream)
+    self.mXPos = rect.x + 14
+    self.mYPos = rect.y + 22
 
     self.states = {}
     self.states.name = "door"

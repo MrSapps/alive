@@ -43,6 +43,9 @@ function init_with_data(self, rect, stream)
         else
             self.states.Active = self.states.DoActivateLeft
         end
+
+        PlaySoundEffect("FX_LEVER")
+
         self:SetAnimation(self.states.Active.animation)
     end
 
