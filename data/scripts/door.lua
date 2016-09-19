@@ -13,7 +13,7 @@ function init_with_data(self, rect, stream)
     self.states.Closed =
     {
         -- AE door types
-        animation = "BADOOR.BAN_2012_AePc_0", -- OpenToClose slig huts
+        animation = "DoorClosed_Barracks", -- DoorToClose_Barracks have to play this in reverse to get DoorToOpen_Barracks
         --animation = "DOOR.BAN_2012_AePc_0", -- mines
         --animation = "SHDOOR.BAN_2012_AePc_0", -- wooden mesh door
         --animation = "TRAINDOR.BAN_2013_AePc_0", -- feeco train door - not aligned!
@@ -24,12 +24,28 @@ function init_with_data(self, rect, stream)
         --animation = "SVZDOOR.BAN_2012_AePc_0", -- scrab vault door
 
         tick = function(s, i)
-            -- TODO: Detect if activated switch to opening
+            -- TODO: Detect if activated and switch to opening
+        end
+    }
+
+    self.states.Closing =
+    {
+        animation = "DoorToClose_Barracks",
+        tick = function(s, i) 
+            if (s:IsLastFrame()) then return 'Opening' end
+        end
+    }
+    
+    self.states.Opening =
+    {
+        animation = "DoorToClose_Barracks",
+        tick = function(s, i) 
+            if (s:IsLastFrame()) then return 'Closing' end
         end
     }
 
     self:ScriptLoadAnimations()
 
-    self.states.Active = self.states.Closed
+    self.states.Active = self.states.Closing
     self:SetAnimation(self.states.Active.animation)
 end

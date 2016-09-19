@@ -26,6 +26,8 @@ void Debug::Render(Renderer& /*renderer*/, GuiContext& gui)
 
     gui_begin_window(&gui, "Debugging");
 
+    gui_label(&gui, "Press F1 to toggle debugging window");
+
     gui_checkbox(&gui, "Anim bounding boxes", &mAnimBoundingBoxes);
     gui_checkbox(&gui, "Anim debug strings", &mAnimDebugStrings);
     gui_checkbox(&gui, "Collision lines", &mCollisionLines);
