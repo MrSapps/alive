@@ -436,8 +436,11 @@ int GridScreen::getTexHandle()
     if (!mTexHandle)
     {
         mCam = mLocator.LocateCamera(mFileName.c_str());
-        SDL_Surface* surf = mCam->GetSurface();
-        mTexHandle = mRend.createTexture(GL_RGB, surf->w, surf->h, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels, true);
+        if (mCam) // One path trys to load BRP08C10.CAM which exists in no data sets anywhere!
+        {
+            SDL_Surface* surf = mCam->GetSurface();
+            mTexHandle = mRend.createTexture(GL_RGB, surf->w, surf->h, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels, true);
+        }
     }
     return mTexHandle;
 }
