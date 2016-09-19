@@ -2,6 +2,20 @@ function init_with_data(self, rect, stream)
     self.mXPos = rect.x + 37
     self.mYPos = rect.y + rect.h - 5
     self.states = {}
+
+    local targetAction = stream:ReadU16()
+    local scale = stream:ReadU16()
+    if (scale == 1) then
+        print("WARNING: Half scale not supported")
+    end
+    local onSound = stream:ReadU16()
+    local offSound = stream:ReadU16()
+    local soundDirection = stream:ReadU16()
+
+    -- The ID of the object that this switch will apply "targetAction" to
+    self.states.id = stream:ReadU16()
+
+
     self.states.WaitForActivate =
     {
         animation = "SwitchIdle",
@@ -28,12 +42,14 @@ function init_with_data(self, rect, stream)
         animation = "SwitchDeactivateRight",
         tick = function(s, i) if (s:IsLastFrame()) then return 'WaitForActivate' end end
     }
+
     self.states.CanBeActivated = function()
         print("CanBeActivated")
         -- TODO: Only allow activate in certain states
         --return self.states.Activate == self.states.WaitForActivate
         return true
     end
+
     self.states.Activate = function(facingLeft)
         print("Activate")
         -- TODO: Activate whatever we are linked to
@@ -45,7 +61,7 @@ function init_with_data(self, rect, stream)
         end
 
         PlaySoundEffect("FX_LEVER")
-
+        ActivateObjectsWithId(self, self.states.id)
         self:SetAnimation(self.states.Active.animation)
     end
 

@@ -67,6 +67,8 @@ public:
 
     float mXPos = 50.0f;
     float mYPos = 100.0f;
+    s32 Id() const { return mId; }
+    void Activate(bool direction);
 private:
     void ScriptLoadAnimations();
 
@@ -95,6 +97,7 @@ private:
     ResourceLocator& mLocator;
     std::string mScriptName;
     std::string mName;
+    s32 mId = 0;
 };
 
 class Level
@@ -148,6 +151,7 @@ public:
     void Render(Renderer& rend, GuiContext& gui);
 private:
     MapObject* GetMapObject(s32 x, s32 y, const char* type);
+    void ActivateObjectsWithId(MapObject* from, s32 id, bool direction);
     void RenderDebug(Renderer& rend);
     void RenderEditor(Renderer& rend, GuiContext& gui);
     void RenderGame(Renderer& rend, GuiContext& gui);

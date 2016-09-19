@@ -123,6 +123,18 @@ void MapObject::Init(const ObjRect& rect, Oddlib::IStream& objData)
     LoadScript(&rect, &objData);
 }
 
+void MapObject::Activate(bool direction)
+{
+    sol::protected_function f = mStates["Activate"];
+    auto ret = f(direction);
+    if (!ret.valid())
+    {
+        sol::error err = ret;
+        std::string what = err.what();
+        LOG_ERROR(what);
+    }
+}
+
 void MapObject::ScriptLoadAnimations()
 {
     mAnim = nullptr;
@@ -133,6 +145,10 @@ void MapObject::ScriptLoadAnimations()
         if (stateName == "name")
         {
             mName = value.as<std::string>();
+        }
+        else if (stateName == "id")
+        {
+            mId = value.as<s32>();
         }
         else if (value.is<sol::table>())
         {
@@ -145,13 +161,16 @@ void MapObject::ScriptLoadAnimations()
                     if (name == "animation")
                     {
                         std::string strAnim = value.as<std::string>();
-                        auto pAnim = mLocator.LocateAnimation(strAnim.c_str());
-                        if (!pAnim)
+                        if (!strAnim.empty())
                         {
-                            LOG_ERROR("Animation: " << strAnim << " not found");
-                            abort();
+                            auto pAnim = mLocator.LocateAnimation(strAnim.c_str());
+                            if (!pAnim)
+                            {
+                                LOG_ERROR("Animation: " << strAnim << " not found");
+                                abort();
+                            }
+                            mAnims.insert(std::make_pair(strAnim, std::move(pAnim)));
                         }
-                        mAnims.insert(std::make_pair(strAnim, std::move(pAnim)));
                     }
                 }
             });
@@ -228,13 +247,20 @@ void MapObject::Update(const InputState& input)
 
 void MapObject::SetAnimation(const std::string& animation)
 {
-    if (mAnims.find(animation) == std::end(mAnims))
+    if (animation.empty())
     {
-        LOG_ERROR("Animation " << animation << " is not loaded");
-        abort();
+        mAnim = nullptr;
     }
-    mAnim = mAnims[animation].get();
-    mAnim->Restart();
+    else
+    {
+        if (mAnims.find(animation) == std::end(mAnims))
+        {
+            LOG_ERROR("Animation " << animation << " is not loaded");
+            abort();
+        }
+        mAnim = mAnims[animation].get();
+        mAnim->Restart();
+    }
 }
 
 bool MapObject::IsLastFrame() const
@@ -437,6 +463,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
 
 
     luaState.set_function("GetMapObject", &GridMap::GetMapObject, this);
+    luaState.set_function("ActivateObjectsWithId", &GridMap::ActivateObjectsWithId, this);
 
     mScreens.resize(path.XSize());
     for (auto& col : mScreens)
@@ -505,6 +532,10 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                     else if (obj.mType == 5)
                     {
                         scriptName = "door.lua";
+                    }
+                    else if (obj.mType == 38)
+                    {
+                        scriptName = "electric_wall.lua";
                     }
                     else
                     {
@@ -619,6 +650,17 @@ MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
         }
     }
     return nullptr;
+}
+
+void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
+{
+    for (std::unique_ptr<MapObject>& obj : mObjs)
+    {
+        if (obj.get() != from && obj->Id() == id)
+        {
+            obj->Activate(direction);
+        }
+    }
 }
 
 void GridMap::RenderDebug(Renderer& rend)

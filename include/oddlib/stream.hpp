@@ -18,7 +18,9 @@ namespace Oddlib
         static void RegisterLuaBindings(sol::state& state)
         {
             state.new_usertype<IStream>("IStream",
-                "ReadU32", &IStream::ReadU32);
+                "ReadU32", &IStream::ReadU32,
+                "ReadU16", &IStream::ReadU16
+                );
         }
 
 
@@ -112,6 +114,7 @@ namespace Oddlib
         }
     private:
         u32 ReadU32(u32 v) { Read(v); return v; }
+        u16 ReadU16(u16 v) { Read(v); return v; }
     };
 
 

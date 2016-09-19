@@ -10,6 +10,44 @@ function init_with_data(self, rect, stream)
     self.states = {}
     self.states.name = "door"
 
+    local level = stream:ReadU16()
+    local path = stream:ReadU16()
+    local camera = stream:ReadU16()
+    local scale = stream:ReadU16()
+    if (scale == 1) then
+        print("WARNING: Half scale not supported")
+    end
+    local doorNumber = stream:ReadU16()
+    self.states.id = stream:ReadU16()
+    local targetDoorNumber = stream:ReadU16()
+    local skin = stream:ReadU16()
+    local startOpen = stream:ReadU16()
+
+    local hubId1 = stream:ReadU16()
+    local hubId2 = stream:ReadU16()
+    local hubId3 = stream:ReadU16()
+    local hubId4 = stream:ReadU16()
+    local hubId5 = stream:ReadU16()
+    local hubId6 = stream:ReadU16()
+    local hubId7 = stream:ReadU16()
+    local hubId8 = stream:ReadU16()
+
+    local wipeEffect = stream:ReadU16()
+    local xoffset = stream:ReadU16()
+    local yoffset = stream:ReadU16()
+
+    local wipeXStart = stream:ReadU16()
+    local wipeYStart = stream:ReadU16()
+
+    local abeFaceLeft = stream:ReadU16()
+    local closeAfterUse = stream:ReadU16()
+
+    local removeThrowables = stream:ReadU16()
+    
+    self.mXPos = rect.x + xoffset
+    self.mYPos = rect.y + rect.h + yoffset
+
+
     self.states.Closed =
     {
         -- AE door types
@@ -32,7 +70,9 @@ function init_with_data(self, rect, stream)
     {
         animation = "DoorToClose_Barracks",
         tick = function(s, i) 
-            if (s:IsLastFrame()) then return 'Opening' end
+            if (s:IsLastFrame()) then 
+                --return 'Opening' 
+            end
         end
     }
     
@@ -40,12 +80,20 @@ function init_with_data(self, rect, stream)
     {
         animation = "DoorToClose_Barracks",
         tick = function(s, i) 
-            if (s:IsLastFrame()) then return 'Closing' end
+            if (s:IsLastFrame()) then
+                --PlaySoundEffect("FX_DOOR")
+                --return 'Closing'
+            end
         end
     }
+    
+    if startOpen == 0 then
+        self.states.Active = self.states.Closed
+    else
+        self.states.Active = self.states.Opening
+    end
 
     self:ScriptLoadAnimations()
 
-    self.states.Active = self.states.Closing
     self:SetAnimation(self.states.Active.animation)
 end
