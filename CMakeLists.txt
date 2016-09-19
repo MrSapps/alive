@@ -285,6 +285,8 @@ SET(alivelib_src
     src/resourcemapper.cpp
     include/zipfilesystem.hpp
     src/zipfilesystem.cpp
+    include/debug.hpp
+    src/debug.cpp
 )
 
 add_library(AliveLib STATIC
