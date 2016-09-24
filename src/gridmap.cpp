@@ -100,7 +100,6 @@ MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::
 {
     state.new_usertype<MapObject>("MapObject",
         "SetAnimation", &MapObject::SetAnimation,
-        "PlaySoundEffect", &MapObject::PlaySoundEffect,
         "SnapToGrid", &MapObject::SnapToGrid,
         "FrameNumber", &MapObject::FrameNumber,
         "IsLastFrame", &MapObject::IsLastFrame,
@@ -255,8 +254,13 @@ void MapObject::SetAnimation(const std::string& animation)
     {
         if (mAnims.find(animation) == std::end(mAnims))
         {
-            LOG_ERROR("Animation " << animation << " is not loaded");
-            abort();
+            auto anim = mLocator.LocateAnimation(animation.c_str());
+            if (!anim)
+            {
+                LOG_ERROR("Animation " << animation << " not found");
+                abort();
+            }
+            mAnims[animation] = std::move(anim);
         }
         mAnim = mAnims[animation].get();
         mAnim->Restart();
@@ -503,6 +507,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
     mPlayer.SnapToGrid();
 
     // Load objects
+    /*
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
@@ -565,7 +570,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                 }
             }
         }
-    }
+    }*/
 }
 
 void GridMap::Update(const InputState& input)

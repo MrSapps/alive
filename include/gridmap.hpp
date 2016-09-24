@@ -80,12 +80,6 @@ private:
     void LoadScript(const ObjRect* rect, Oddlib::IStream* objData);
 private: // Actions
     void SetAnimation(const std::string& animation);
-
-    void PlaySoundEffect(const std::string& str)
-    {
-        LOG_WARNING("TODO: Play: " << str.c_str());
-    }
-
     bool FacingLeft() const { return mFlipX; }
     bool FacingRight() const { return !FacingLeft(); }
     void FlipXDirection() { mFlipX = !mFlipX; }
