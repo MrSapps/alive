@@ -19,8 +19,17 @@ end
 
 function Abe:FlipXDirection() self.mApi:FlipXDirection() end
 function Abe:FrameIs(frame) return self.mApi:FrameNumber() == frame end
-function Abe:SetXSpeed(speed) end
-function Abe:WaitForAnimationComplete() while self.mApi:IsLastFrame() == false do coroutine.yield() end end
+function Abe:SetXSpeed(speed) self.mXSpeed = speed end
+function Abe:WaitForAnimationComplete() 
+  while self.mApi:IsLastFrame() == false do 
+    coroutine.yield()
+    -- Apply movement after the yield (anim update) and only if this isn't
+    -- the last frame, otherwise we'll ApplyMovement() twice in the last frame
+    if self.mApi:IsLastFrame() == false then 
+      self:ApplyMovement() 
+    end
+  end 
+end
 
 function Abe:SetAndWaitForAnimationComplete(anim)
   self:SetAnimation(anim)
@@ -36,6 +45,7 @@ end
 
 function Abe:Stand()
   self:SetAnimation('AbeStandIdle')
+  self:SetXSpeed(0)
   if (self:InputSameAsDirection()) then self:StandToWalk()
   elseif (self:InputNotSameAsDirection()) then self:TurnAround()
   elseif (self.mInput:InputGameSpeak1()) then self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_HELLO")
@@ -49,7 +59,7 @@ function Abe:Stand()
 end
 
 function Abe:StandToWalk()
-  self:SetXSpeed(2.7)
+  self:SetXSpeed(2.777771)
   self:SetAndWaitForAnimationComplete('AbeStandToWalk')
   self:Next(self.Walk)
 end
@@ -61,8 +71,9 @@ end
 
 function Abe:Walk()
   self:SetAnimation('AbeWalking')
-  if self:FrameIs(2) then
-    PlaySoundEffect("MOVEMENT_MUD_STEP")
+  if self:FrameIs(4) or self:FrameIs(14) then PlaySoundEffect("MOVEMENT_MUD_STEP") end
+  if self:FrameIs(2) or self:FrameIs(11) then
+    --if (OnGround() == false) then ToFalling()
     if (self:InputSameAsDirection() == false) then self:ToStand()
     elseif (self.mInput:InputRun()) then self:WalkToRun()
     elseif (self.mInput:InputSneak()) then self:WalkToSneak()
@@ -108,10 +119,22 @@ function Abe:TurnAround()
   self:Stand() 
 end
 
+function Abe:ApplyMovement()
+  if self.mXSpeed > 0 then
+    if self.mApi:FacingLeft() then
+      self.mApi.mXPos = self.mApi.mXPos - self.mXSpeed
+    else
+      self.mApi.mXPos = self.mApi.mXPos + self.mXSpeed
+    end
+    print("XPOS: " .. self.mApi.mXPos)
+  end
+end
+
 function Abe:Next(func) self.mNextFunction = func end
 function Abe:CoRoutineProc()
   while true do
       self:mNextFunction()
+      self:ApplyMovement()
       -- TODO: If next changed then run it before yielding?
       --print("Yeild")
       coroutine.yield()
@@ -125,6 +148,7 @@ function Abe.create()
    setmetatable(ret, Abe)
    ret.mNextFunction = ret.Stand
    ret.mLastAnimationName = ""
+   ret.mXSpeed = 0
    ret.mThread = coroutine.create(ret.CoRoutineProc)
    return ret
 end
