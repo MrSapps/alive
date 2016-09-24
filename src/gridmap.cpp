@@ -277,17 +277,16 @@ s32 MapObject::FrameNumber() const
     return mAnim->FrameNumber();
 }
 
-void MapObject::Render(Renderer& rend, GuiContext& /*gui*/, int x, int y, float scale)
+void MapObject::Render(Renderer& rend, GuiContext& gui, int x, int y, float scale)
 {
     // Debug ui
-    /*
     gui_begin_window(&gui, "Script debug");
     if (gui_button(&gui, "Reload script"))
     {
-        LoadScript();
+        LoadScript(nullptr, nullptr);
+        SnapToGrid();
     }
     gui_end_window(&gui);
-    */
 
     if (mAnim)
     {

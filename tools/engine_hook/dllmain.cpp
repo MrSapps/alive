@@ -74,6 +74,7 @@ static LRESULT CALLBACK NewWindowProc(HWND hwnd, UINT message, WPARAM wParam, LP
     switch (message)
     {
     case WM_CREATE:
+        abort();
         break;
 
     case WM_ERASEBKGND:
@@ -137,6 +138,7 @@ static LRESULT CALLBACK NewWindowProc(HWND hwnd, UINT message, WPARAM wParam, LP
     return g_pOldProc(hwnd, message, wParam, lParam);
 }
 
+
 static void CenterWnd(HWND wnd)
 {
     RECT r, r1;
@@ -146,6 +148,7 @@ static void CenterWnd(HWND wnd)
         ((r1.bottom - r1.top) - (r.bottom - r.top)) / 2,
         (r.right - r.left), (r.bottom - r.top), 0);
 }
+
 
 static void SubClassWindow()
 {
@@ -157,12 +160,14 @@ static void SubClassWindow()
         ShowCursor(TRUE);
     }
 
+    SetWindowLongA(wnd, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+
     RECT rc;
-    SetRect(&rc, 0, 0, 640, 480);
+    SetRect(&rc, 0, 0, 640, 460);
     AdjustWindowRectEx(&rc, WS_OVERLAPPEDWINDOW | WS_VISIBLE, TRUE, 0);
     SetWindowPos(wnd, NULL, 0, 0, rc.right - rc.left, rc.bottom - rc.top,
         SWP_SHOWWINDOW);
-
+        
 
     ShowWindow(wnd, SW_HIDE);
 
@@ -323,12 +328,12 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
 
     // Setting to Feco lets us go directly in game, with the side effect that pausing will crash
     // and some other nasties, still its good enough for debugging animations
-    levelNumber = 5;
+    levelNumber = 1;
 
     // Abe "hello" screen when levelNumber is left as the intro level
-    cameraNumber = 1;
+    cameraNumber = 4;
 
-    // pathNumber = 4;
+    //pathNumber = 1;
 
     // 5 = "flash" on
     // 4 = top to bottom

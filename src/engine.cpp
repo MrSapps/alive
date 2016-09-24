@@ -567,7 +567,7 @@ bool Engine::InitSDL()
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
     mWindow = SDL_CreateWindow(WindowTitle(0.0f),
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640*2, 480*2,
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (!mWindow)
     {
