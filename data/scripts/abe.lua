@@ -9,11 +9,22 @@ function Abe:InputSameAsDirection()
     return (self.mInput:InputLeft() and self.mApi:FacingLeft()) or (self.mInput:InputRight() and self.mApi:FacingRight())
 end
 
+function Abe:SetAnimationAtFrame(anim, frame)
+  if anim ~= self.mLastAnimationName then
+    print("SetAnimationAtFrame: " .. anim)
+    self.mApi:SetAnimationAtFrame(anim, frame)
+    self.mAnimChanged = true
+    self.mWaited = false
+  end
+  self.mLastAnimationName = anim
+end
+
 function Abe:SetAnimation(anim)
   if anim ~= self.mLastAnimationName then
     print("SetAnimation: " .. anim)
     self.mApi:SetAnimation(anim)
     self.mAnimChanged = true
+    self.mWaited = false
   end
   self.mLastAnimationName = anim
 end
@@ -30,37 +41,35 @@ function Abe:SnapToGrid()
   --self.mApi:SnapToGrid() 
 end
 
-function Abe:WaitForAnimationCompleteCb(frameCallBackFunc)
-  print("Start wait for complete")
-  
-  -- Call back, move and let the engine render frame 0
-  if frameCallBackFunc ~= nil then frameCallBackFunc() end
-  self:ApplyMovement()
-  coroutine.yield()
-
-  while true do 
-    local frameChanged = self.mApi:AnimUpdate()
+function Abe:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
+  print("Start wait for complete at frame " .. frame)
+  local frameChanged = false
+  while true do
+    frameChanged = self.mApi:AnimUpdate()
     if frameChanged then
       if frameCallBackFunc ~= nil then frameCallBackFunc() end
-      if self.mApi:IsLastFrame() then
-        print("Wait for complete done")
+      if ((frame == -1 and self.mApi:FrameNumber() == self.mApi:NumberOfFrames()-1) or (frame ~= -1 and self.mApi:FrameNumber()==frame-1)) then
+        print("Wait for complete done at frame " .. frame)
         return
       else
         self:ApplyMovement()
       end
     end
-    coroutine.yield() -- return for rendering/input update
+    coroutine.yield()
   end
+  self.mWaited = true
 end
 
 function Abe:WaitForAnimationComplete() self:WaitForAnimationCompleteCb(nil) end
 
-function Abe:SetAndWaitForAnimationCompleteCb(anim, frameCallBackFunc)
-  self:SetAnimation(anim)
-  self:WaitForAnimationCompleteCb(frameCallBackFunc)
+function Abe:SetAndWaitForAnimationCompleteCb(anim, frameCallBackFunc, frame)
+  self:SetAnimationAtFrame(anim, -1)
+  self.mAnimChanged = false
+  self:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
 end
 
-function Abe:SetAndWaitForAnimationComplete(anim) self:SetAndWaitForAnimationCompleteCb(anim, nil) end
+function Abe:SetAndWaitForAnimationFrame(anim, frame) self:SetAndWaitForAnimationCompleteCb(anim, nil, frame) end
+function Abe:SetAndWaitForAnimationComplete(anim) self:SetAndWaitForAnimationCompleteCb(anim, nil, -1) end
 
 function Abe:GameSpeak(anim, soundEffect)
   self:SetAndWaitForAnimationComplete("AbeStandSpeak1")
@@ -99,7 +108,7 @@ end
 function Abe:ToStandCommon(anim) 
   self:SetAndWaitForAnimationCompleteCb(anim, function() 
     if self:FrameIs(2) then PlaySoundEffect("MOVEMENT_MUD_STEP") end
-  end) 
+  end, -1) 
   self:SnapToGrid()
   self:Next(self.Stand)
 end
@@ -150,12 +159,13 @@ function Abe:StandToRun()
 end
 
 function Abe:Run()
-  self:SetAnimation("AbeRunning")
+  self:SetAnimationAtFrame("AbeRunning", 0)
   if self:FrameIs(0) then
-    print("Use 12") -- TODO: Is also applied to frame 1
     self:SetXSpeed(12)
+    print("Set 12 on " .. self.mApi:FrameNumber())
   else
     self:SetXSpeed(6.25)
+    print("Set 6 on " .. self.mApi:FrameNumber())
   end
   
   if self:FrameIs(4) or self:FrameIs(12) then
@@ -169,7 +179,7 @@ end
 
 function Abe:RunSkidStop()
   self:SetXVelocity(0.375)
-  self:SetAndWaitForAnimationComplete('AbeRunningSkidStop') -- TODO: Wait for frame 14
+  self:SetAndWaitForAnimationFrame('AbeRunningSkidStop', 14)
   self:SnapToGrid()
   self:Next(self.Stand)
 end
@@ -179,7 +189,7 @@ function Abe:RunToWalk()
   -- TODO: On frame 9!
   self:SetAndWaitForAnimationComplete("AbeRunningToWalkingMidGrid")
   self:SetXVelocity(0)
-  self.Walk()
+  self:Next(self.Walk)
 end
 
 function Abe:StandToSneak()
@@ -228,15 +238,23 @@ function Abe:Next(func) self.mNextFunction = func end
 function Abe:CoRoutineProc()
   local frameChanged = false
   while true do
-    if frameChanged or self.mAnimChanged then
-      self.mAnimChanged = false
+    if frameChanged then
       self:mNextFunction()
       self:ApplyMovement()
+      --if self.mAnimChanged then
+      --  self.mAnimChanged = false
+       -- print("Extra update")
+       -- frameChanged = self.mApi:AnimUpdate()
+      --  self:mNextFunction()
+      --end
     end
-    if self.mAnimChanged == false then
+    
+    if self.mWaited then
+      self.mWaited = false
+    else
       frameChanged = self.mApi:AnimUpdate()
+      coroutine.yield()
     end
-    coroutine.yield()
   end
 end
 
@@ -262,6 +280,7 @@ function Abe.create()
    ret.mXSpeed = 0
    ret.mXVelocity = 0
    ret.mAnimChanged = false
+   ret.mWaited = false
    ret.mThread = coroutine.create(ret.CoRoutineProc)
    return ret
 end

@@ -104,6 +104,7 @@ MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::
         "FrameNumber", &MapObject::FrameNumber,
         "IsLastFrame", &MapObject::IsLastFrame,
         "AnimUpdate", &MapObject::AnimUpdate,
+        "SetAnimationAtFrame", &MapObject::SetAnimationAtFrame,
         "NumberOfFrames", &MapObject::NumberOfFrames,
         "FacingLeft", &MapObject::FacingLeft,
         "FacingRight", &MapObject::FacingRight,
@@ -265,6 +266,12 @@ void MapObject::SetAnimation(const std::string& animation)
         mAnim = mAnims[animation].get();
         mAnim->Restart();
     }
+}
+
+void MapObject::SetAnimationAtFrame(const std::string& animation, u32 frame)
+{
+    SetAnimation(animation);
+    mAnim->SetFrame(frame);
 }
 
 bool MapObject::AnimUpdate()

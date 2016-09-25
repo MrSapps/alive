@@ -1875,10 +1875,18 @@ public:
         }
     }
 
+    void SetFrame(u32 frame)
+    {
+        mCounter = 0;
+        mFrameNum = frame;
+        mIsLastFrame = false;
+        mCompleted = false;
+    }
+
     void Restart()
     {
         mCounter = 0;
-        mFrameNum = 0;
+        mFrameNum = -1;
         mIsLastFrame = false;
         mCompleted = false;
     }
@@ -1907,7 +1915,7 @@ public:
     s32 YPos() const { return mYPos; }
     u32 MaxW() const { return static_cast<u32>(mAnim.MaxW()*ScaleX()); }
     u32 MaxH() const { return static_cast<u32>(mAnim.MaxH()*mScale); }
-    s32 FrameNumber() const { return mFrameNum; }
+    s32 FrameNumber() const { if (mFrameNum == -1) { return 0; } return mFrameNum; }
     u32 NumberOfFrames() const { return mAnim.Animation().NumFrames(); }
     void SetScale(f32 scale) { mScale = scale; }
 private:
@@ -1937,7 +1945,7 @@ private:
     BlendMode mBlendingMode = BlendMode::normal();
 
     u32 mCounter = 0;
-    s32 mFrameNum = 0;
+    s32 mFrameNum = -1;
 
     s32 mXPos = 100;
     s32 mYPos = 100;
