@@ -1782,9 +1782,10 @@ public:
     {
         bool ret = false;
         mCounter++;
-        if (mCounter >= mAnim.Animation().Fps())
+        if (mCounter >= mFrameDelay)
         {
             ret = true;
+            mFrameDelay = mAnim.Animation().Fps(); // Because mFrameDelay is 1 initially and Fps() can be > 1
             mCounter = 0;
             mFrameNum++;
             if (mFrameNum >= mAnim.Animation().NumFrames())
@@ -1878,6 +1879,7 @@ public:
     void SetFrame(u32 frame)
     {
         mCounter = 0;
+        mFrameDelay = mAnim.Animation().Fps();
         mFrameNum = frame;
         mIsLastFrame = false;
         mCompleted = false;
@@ -1886,6 +1888,7 @@ public:
     void Restart()
     {
         mCounter = 0;
+        mFrameDelay = 1;
         mFrameNum = -1;
         mIsLastFrame = false;
         mCompleted = false;
@@ -1944,9 +1947,13 @@ private:
     std::string mSourceDataSet;
     BlendMode mBlendingMode = BlendMode::normal();
 
+    // The "FPS" of the animation, set to 1 first so that the first Update() brings us from frame -1 to 0
+    u32 mFrameDelay = 1;
+
+    // When >= mFrameDelay, mFrameNum is incremented
     u32 mCounter = 0;
     s32 mFrameNum = -1;
-
+    
     s32 mXPos = 100;
     s32 mYPos = 100;
     f32 mScale = 3;
