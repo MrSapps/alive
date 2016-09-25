@@ -84,6 +84,8 @@ private: // Actions
     bool FacingRight() const { return !FacingLeft(); }
     void FlipXDirection() { mFlipX = !mFlipX; }
 private: 
+    bool AnimUpdate();
+    s32 NumberOfFrames() const;
     bool IsLastFrame() const;
     s32 FrameNumber() const;
     bool mFlipX = false;

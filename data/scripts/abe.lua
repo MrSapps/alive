@@ -13,26 +13,44 @@ function Abe:SetAnimation(anim)
   if anim ~= self.mLastAnimationName then
     print("SetAnimation: " .. anim)
     self.mApi:SetAnimation(anim)
+    self.mAnimChanged = true
   end
   self.mLastAnimationName = anim
 end
 
 function Abe:FlipXDirection() self.mApi:FlipXDirection() end
-function Abe:FrameIs(frame) return self.mApi:FrameNumber() == frame end
+
+function Abe:FrameIs(frame) 
+  return self.mApi:FrameNumber() == frame
+end
+
 function Abe:SetXSpeed(speed) self.mXSpeed = speed end
 function Abe:SetXVelocity(velocity) self.mXVelocity = velocity end
-function Abe:SnapToGrid() self.mApi:SnapToGrid() end
+function Abe:SnapToGrid() 
+  --self.mApi:SnapToGrid() 
+end
 
 function Abe:WaitForAnimationCompleteCb(frameCallBackFunc)
-    while self.mApi:IsLastFrame() == false do 
-    coroutine.yield()
-    if frameCallBackFunc ~= nil then frameCallBackFunc() end
-    -- Apply movement after the yield (anim update) and only if this isn't
-    -- the last frame, otherwise we'll ApplyMovement() twice in the last frame
-    if self.mApi:IsLastFrame() == false then 
-      self:ApplyMovement() 
+  print("Start wait for complete")
+  
+  -- Call back, move and let the engine render frame 0
+  if frameCallBackFunc ~= nil then frameCallBackFunc() end
+  self:ApplyMovement()
+  coroutine.yield()
+
+  while true do 
+    local frameChanged = self.mApi:AnimUpdate()
+    if frameChanged then
+      if frameCallBackFunc ~= nil then frameCallBackFunc() end
+      if self.mApi:IsLastFrame() then
+        print("Wait for complete done")
+        return
+      else
+        self:ApplyMovement()
+      end
     end
-  end 
+    coroutine.yield() -- return for rendering/input update
+  end
 end
 
 function Abe:WaitForAnimationComplete() self:WaitForAnimationCompleteCb(nil) end
@@ -76,7 +94,6 @@ function Abe:StandToWalk()
   self:SetXVelocity(0)
   self:SetAndWaitForAnimationComplete('AbeStandToWalk')
   self:Next(self.Walk)
-  self.mSkipMovement = true
 end
 
 function Abe:ToStandCommon(anim) 
@@ -97,16 +114,16 @@ end
 
 function Abe:Walk()
   self:SetAnimation('AbeWalking')
-  if self:FrameIs(5+1) or self:FrameIs(14+1) then 
+  if self:FrameIs(5) or self:FrameIs(14) then 
     PlaySoundEffect("MOVEMENT_MUD_STEP") 
     self:SnapToGrid()
     if (self:InputSameAsDirection() == true) then
       if (self.mInput:InputRun()) then self:WalkToRun()
       elseif (self.mInput:InputSneak()) then self:WalkToSneak() end
     end
-  elseif self:FrameIs(2+1) or self:FrameIs(11+1) then
+  elseif self:FrameIs(2) or self:FrameIs(11) then
     --if (OnGround() == false) then ToFalling()
-    if (self:InputSameAsDirection() == false) then if self:FrameIs(2+1) then self:ToStand() else self:ToStand2() end
+    if (self:InputSameAsDirection() == false) then if self:FrameIs(2) then self:ToStand() else self:ToStand2() end
     end
   end
 end
@@ -116,7 +133,6 @@ function Abe:WalkToRun()
   self:SetXVelocity(0)
   self:SetXSpeed(6.25)
   self:Next(self.Run)
-  self.mSkipMovement = true
 end
 
 function Abe:WalkToSneak()
@@ -129,28 +145,31 @@ end
 function Abe:StandToRun()
   self:SetXSpeed(6.25)
   self:SetXVelocity(0)
-  print("StandToRun -> Do AbeStandToRun")
   self:SetAndWaitForAnimationComplete('AbeStandToRun')
-  print("StandToRun -> Run")
   self:Next(self.Run)
-  self.mSkipMovement = true
 end
 
 function Abe:Run()
   self:SetAnimation("AbeRunning")
-  if self:FrameIs(0) then self:SetXSpeed(12) else self:SetXSpeed(6.25) end
+  if self:FrameIs(0) then
+    print("Use 12") -- TODO: Is also applied to frame 1
+    self:SetXSpeed(12)
+  else
+    self:SetXSpeed(6.25)
+  end
+  
   if self:FrameIs(4) or self:FrameIs(12) then
     if (self:InputSameAsDirection()) then 
       if self.mInput:InputRun() == false then self:RunToWalk() end
     else
-      self:Next(self.RunSkidStop)
+      self:RunSkidStop()
     end
   end
 end
 
 function Abe:RunSkidStop()
   self:SetXVelocity(0.375)
-  self:SetAndWaitForAnimationComplete('AbeRunningSkidStop')
+  self:SetAndWaitForAnimationComplete('AbeRunningSkidStop') -- TODO: Wait for frame 14
   self:SnapToGrid()
   self:Next(self.Stand)
 end
@@ -160,7 +179,7 @@ function Abe:RunToWalk()
   -- TODO: On frame 9!
   self:SetAndWaitForAnimationComplete("AbeRunningToWalkingMidGrid")
   self:SetXVelocity(0)
-  self:Next(self.Walk)
+  self.Walk()
 end
 
 function Abe:StandToSneak()
@@ -205,20 +224,19 @@ function Abe:ApplyMovement()
 end
 
 function Abe:Next(func) self.mNextFunction = func end
+
 function Abe:CoRoutineProc()
+  local frameChanged = false
   while true do
+    if frameChanged or self.mAnimChanged then
+      self.mAnimChanged = false
       self:mNextFunction()
-      
-      if self.mSkipNext == true then
-        self.mSkipNext = false
-      elseif self.mSkipMovement == true then
-        self.mSkipNext = true
-        self.mSkipMovement = false
-        self:ApplyMovement()
-      else
-        self:ApplyMovement()
-      end
-      coroutine.yield()
+      self:ApplyMovement()
+    end
+    if self.mAnimChanged == false then
+      frameChanged = self.mApi:AnimUpdate()
+    end
+    coroutine.yield()
   end
 end
 
@@ -239,11 +257,11 @@ end
 function Abe.create()
    local ret = {}
    setmetatable(ret, Abe)
-   ret.mNextFunction = ret.Walk -- ret.Stand
+   ret.mNextFunction = ret.Stand
    ret.mLastAnimationName = ""
-   ret.mXSpeed = 2.777771 --0
+   ret.mXSpeed = 0
    ret.mXVelocity = 0
-   ret.mSkipMovement = false
+   ret.mAnimChanged = false
    ret.mThread = coroutine.create(ret.CoRoutineProc)
    return ret
 end
@@ -252,6 +270,7 @@ end
 function init(cppObj)
     cppObj.states = Abe.create()
     cppObj.states.mApi = cppObj
+    cppObj.states:SetAnimation('AbeStandIdle')
 end
 
 function update(cppObj, input)

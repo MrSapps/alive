@@ -1777,12 +1777,14 @@ public:
             LOG_WARNING("Unknown blending mode: " << defaultBlendingMode);
         }
     }
-    
-    void Update()
+
+    bool Update()
     {
+        bool ret = false;
         mCounter++;
         if (mCounter >= mAnim.Animation().Fps())
         {
+            ret = true;
             mCounter = 0;
             mFrameNum++;
             if (mFrameNum >= mAnim.Animation().NumFrames())
@@ -1803,11 +1805,12 @@ public:
             // Are we *on* the last frame?
             mIsLastFrame = (mFrameNum == mAnim.Animation().NumFrames() - 1);
         }
+        return ret;
     }
 
     bool IsLastFrame() const { return mIsLastFrame; }
     bool IsComplete() const { return mCompleted; }
-    
+
     // TODO: Position calculation should be refactored
     void Render(Renderer& rend, bool flipX) const
     {
@@ -1875,7 +1878,7 @@ public:
     void Restart()
     {
         mCounter = 0;
-        mFrameNum = -1;
+        mFrameNum = 0;
         mIsLastFrame = false;
         mCompleted = false;
     }
@@ -1904,7 +1907,8 @@ public:
     s32 YPos() const { return mYPos; }
     u32 MaxW() const { return static_cast<u32>(mAnim.MaxW()*ScaleX()); }
     u32 MaxH() const { return static_cast<u32>(mAnim.MaxH()*mScale); }
-    s32 FrameNumber() const { if (mFrameNum == -1) { return 0; } return mFrameNum; }
+    s32 FrameNumber() const { return mFrameNum; }
+    u32 NumberOfFrames() const { return mAnim.Animation().NumFrames(); }
     void SetScale(f32 scale) { mScale = scale; }
 private:
     bool PointInRect(f32 px, f32 py, f32 x, f32 y, f32 w, f32 h) const
@@ -1933,7 +1937,7 @@ private:
     BlendMode mBlendingMode = BlendMode::normal();
 
     u32 mCounter = 0;
-    s32 mFrameNum = -1;
+    s32 mFrameNum = 0;
 
     s32 mXPos = 100;
     s32 mYPos = 100;

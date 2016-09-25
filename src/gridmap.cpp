@@ -103,6 +103,8 @@ MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::
         "SnapToGrid", &MapObject::SnapToGrid,
         "FrameNumber", &MapObject::FrameNumber,
         "IsLastFrame", &MapObject::IsLastFrame,
+        "AnimUpdate", &MapObject::AnimUpdate,
+        "NumberOfFrames", &MapObject::NumberOfFrames,
         "FacingLeft", &MapObject::FacingLeft,
         "FacingRight", &MapObject::FacingRight,
         "FlipXDirection", &MapObject::FlipXDirection,
@@ -218,18 +220,16 @@ void MapObject::LoadScript(const ObjRect* rect, Oddlib::IStream* objData)
 
 void MapObject::Update(const InputState& input)
 {
-    sol::protected_function f = mLuaState["update"];
-    auto ret = f(this, input.Mapping().GetActions());
-    if (!ret.valid())
-    {
-        sol::error err = ret;
-        std::string what = err.what();
-        LOG_ERROR(what);
-    }
-
     if (mAnim)
     {
-        mAnim->Update();
+        sol::protected_function f = mLuaState["update"];
+        auto ret = f(this, input.Mapping().GetActions());
+        if (!ret.valid())
+        {
+            sol::error err = ret;
+            std::string what = err.what();
+            LOG_ERROR(what);
+        }
     }
 
     //::Sleep(300);
@@ -265,6 +265,16 @@ void MapObject::SetAnimation(const std::string& animation)
         mAnim = mAnims[animation].get();
         mAnim->Restart();
     }
+}
+
+bool MapObject::AnimUpdate()
+{
+    return mAnim->Update();
+}
+
+s32 MapObject::NumberOfFrames() const
+{
+    return mAnim->NumberOfFrames();
 }
 
 bool MapObject::IsLastFrame() const
