@@ -9,16 +9,6 @@ function Abe:InputSameAsDirection()
     return (self.mInput:InputLeft() and self.mApi:FacingLeft()) or (self.mInput:InputRight() and self.mApi:FacingRight())
 end
 
-function Abe:SetAnimationAtFrame(anim, frame)
-  if anim ~= self.mLastAnimationName then
-    print("SetAnimationAtFrame: " .. anim)
-    self.mApi:SetAnimationAtFrame(anim, frame)
-    self.mLastAnimationName = anim
-    self.mYieldForAnimChange = true
-    coroutine.yield()
-  end
-end
-
 function Abe:SetAnimation(anim)
   if anim ~= self.mLastAnimationName then
     print("SetAnimation: " .. anim)
@@ -28,14 +18,11 @@ function Abe:SetAnimation(anim)
 end
 
 function Abe:FlipXDirection() self.mApi:FlipXDirection() end
-
-function Abe:FrameIs(frame) 
-  return self.mApi:FrameNumber() == frame and self.mApi:FrameCounter() == 0
-end
-
+function Abe:FrameIs(frame) return self.mApi:FrameNumber() == frame and self.mApi:FrameCounter() == 0 end
 function Abe:SetXSpeed(speed) self.mXSpeed = speed end
 function Abe:SetXVelocity(velocity) self.mXVelocity = velocity end
 function Abe:SnapToGrid() 
+  -- TODO: This breaks sometimes, stand idle, press inverse direction and take 1 step to repro issue
   --self.mApi:SnapToGrid() 
 end
 
@@ -56,52 +43,38 @@ function Abe:GameSpeak(anim, soundEffect)
   self:SetAnimation('AbeStandIdle')
 end
 
-
-
-function Abe:ToStand() 
-  self:ToStandCommon("AbeWalkToStand")
-end
-
-function Abe:ToStand2()
-  self:ToStandCommon("AbeWalkToStandMidGrid")
-end
+function Abe:ToStand() return self:ToStandCommon("AbeWalkToStand") end
+function Abe:ToStand2() return self:ToStandCommon("AbeWalkToStandMidGrid") end
 
 function Abe:WalkToRun()
   self:SetAndWaitForAnimationComplete('AbeWalkingToRunning')
   self:SetXVelocity(0)
   self:SetXSpeed(6.25)
-  self:Next(self.Run)
+  return self:GoTo(self.Run)
 end
 
 function Abe:WalkToSneak()
   self:SetXSpeed(2.777771)
   self:SetXVelocity(0)
   self:SetAndWaitForAnimationComplete('AbeWalkingToSneaking') 
-  self:Next(self.Sneak)
+  return self:GoTo(self.Sneak)
 end
 
 function Abe:StandToRun()
   self:SetXSpeed(6.25)
   self:SetXVelocity(0)
   self:SetAndWaitForAnimationComplete('AbeStandToRun')
-  self:Next(self.Run)
+  return self:GoTo(self.Run)
 end
 
 function Abe:Run()
-  --self:SetAnimation("AbeRunning")
-  --if self.mAnimChanged then -- HACK: Move to SetAnimation
-  --  self.mApi:AnimUpdate()
-  --end
-  
   if self:FrameIs(0) then
     self:SetXSpeed(12)
-    print("Set 12 on " .. self.mApi:FrameNumber())
   else
     self:SetXSpeed(6.25)
-    print("Set 6 on " .. self.mApi:FrameNumber())
   end
   
-  if self:FrameIs(4) or self:FrameIs(12) then
+  if self:FrameIs(4+1) or self:FrameIs(12+1) then
     if (self:InputSameAsDirection()) then 
       if self.mInput:InputRun() == false then self:RunToWalk() end
     else
@@ -114,7 +87,7 @@ function Abe:RunSkidStop()
   self:SetXVelocity(0.375)
   self:SetAndWaitForAnimationFrame('AbeRunningSkidStop', 14)
   self:SnapToGrid()
-  self:Next(self.Stand)
+  return self:GoTo(self.Stand)
 end
 
 function Abe:RunToWalk()
@@ -122,12 +95,12 @@ function Abe:RunToWalk()
   -- TODO: On frame 9!
   self:SetAndWaitForAnimationComplete("AbeRunningToWalkingMidGrid")
   self:SetXVelocity(0)
-  self:Next(self.Walk)
+  return self:GoTo(self.Walk)
 end
 
 function Abe:StandToSneak()
   print("TODO: StandToSneak")
-  self:Next(self.Sneak)
+  return self:GoTo(self.Sneak)
 end
 
 function Abe:Sneak()
@@ -145,7 +118,7 @@ function Abe:SneakToWalk()
   self:SetXVelocity(0)
   -- TODO: Can also be AbeSneakingToWalkingMidGrid
   self:SetAndWaitForAnimationComplete("AbeSneakingToWalking")
-  self:Next(self.Walk)
+  return self:GoTo(self.Walk)
 end
 
 function Abe:TurnAround() 
@@ -166,32 +139,20 @@ function Abe:ApplyMovement()
   end
 end
 
-function Abe:Next(func) self.mNextFunction = func end
-
-
-
 function Abe:Walk()
-  --self:SetAnimation('AbeWalking')
-  print("So the frame is " .. self.mApi:FrameNumber())
-
-  --if self.mAnimChanged then 
-  --  print("To frame 0")
-  --  self.mApi:AnimUpdate()
-  --end
-  print("Frame is " .. self.mApi:FrameNumber())
   if self:FrameIs(5) or self:FrameIs(14) then 
     PlaySoundEffect("MOVEMENT_MUD_STEP") 
     self:SnapToGrid()
     if (self:InputSameAsDirection() == true) then
-      if (self.mInput:InputRun()) then self:WalkToRun()
-      elseif (self.mInput:InputSneak()) then self:WalkToSneak() end
+      if (self.mInput:InputRun()) then return self:WalkToRun()
+      elseif (self.mInput:InputSneak()) then return self:WalkToSneak() end
     end
   elseif self:FrameIs(2+1) or self:FrameIs(11+1) then
     --if (OnGround() == false) then ToFalling()
-    if (self:InputSameAsDirection() == false) then if self:FrameIs(2) then self:ToStand() return true else self:ToStand2() return true end
+    if (self:InputSameAsDirection() == false) then 
+      if self:FrameIs(2+1) then return self:ToStand() else return self:ToStand2() end
     end
   end
-  return false
 end
 
 function Abe:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
@@ -217,48 +178,41 @@ function Abe:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
   end
 end
 
---ret.mThread2 = coroutine.create(ret.CoRoutineProc2)
-function Abe:CoRoutineProc2()
-  while true do
-    print("Next call")
-    self:mNextFunction()
-    self.mApi:AnimUpdate()
-    coroutine.yield()
-  end
-end
-
 function Abe:ToStandCommon(anim) 
   self:SetAndWaitForAnimationCompleteCb(anim, function() 
     if self:FrameIs(2) then PlaySoundEffect("MOVEMENT_MUD_STEP") end
   end, -1) 
   self:SnapToGrid()
-  self:GoTo(self.Stand)
+  return self:GoTo(self.Stand)
 end
 
 function Abe:GoTo(func)
   self.mData = { mFunc = func, Animation = self.mAnims[func] }
   print(self.mData.Animation)
   print(self.mData.mFunc)
+  if self.mData.Animation == nil then
+    print("ERROR: An animation mapping is missing!")
+  end
+  return true
 end
 
 function Abe:StandToWalk()
   self:SetXSpeed(2.777771)
   self:SetXVelocity(0)
-  self:SetAndWaitForAnimationComplete('AbeStandToWalk')
-  self:GoTo(self.Walk)
-  return true
+  self:SetAndWaitForAnimationComplete("AbeStandToWalk")
+  return self:GoTo(self.Walk)
 end
 
 function Abe:Stand()
-
   self:SetXSpeed(0)
   self:SetXVelocity(0)
-  if (self:InputSameAsDirection()) then return self:StandToWalk()
-  
-  --if (self:InputSameAsDirection()) then 
-  --  if self.mInput:InputRun() then self:StandToRun()
-  --  elseif self.mInput:InputSneak() then self:StandToSneak()
-  --  else self:StandToWalk() end
+  if (self:InputSameAsDirection()) then 
+    if self.mInput:InputRun() then 
+      return self:StandToRun()
+    elseif self.mInput:InputSneak() then 
+      return self:StandToSneak()
+    else 
+      return self:StandToWalk() end
   elseif (self:InputNotSameAsDirection()) then self:TurnAround()
   elseif (self.mInput:InputGameSpeak1()) then self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_HELLO")
   elseif (self.mInput:InputGameSpeak2()) then self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_FOLLOWME")
@@ -267,8 +221,7 @@ function Abe:Stand()
   elseif (self.mInput:InputGameSpeak5()) then self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_WORK")
   elseif (self.mInput:InputGameSpeak6()) then self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_ALLYA")
   elseif (self.mInput:InputGameSpeak7()) then self:GameSpeak("AbeStandSpeak5",     "GAMESPEAK_MUD_SORRY")
-elseif (self.mInput:InputGameSpeak8()) then self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_NO_SAD") end -- Actually "Stop it"
-  return false
+  elseif (self.mInput:InputGameSpeak8()) then self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_NO_SAD") end -- Actually "Stop it"
 end
 
 function Abe:Exec()
@@ -287,59 +240,12 @@ function Abe:Exec()
 end
 
 function Abe:CoRoutineProc()
-  print("Do goto")
   self:GoTo(self.Stand)
-  print("Pre exec")
   self:Exec()
-  print("Post exec")
-  
-  while true do
-    coroutine.yield()
-  end
-    
-  self:SetXSpeed(0)
-  while true do
-    print("Setting animation")
-    --coroutine.resume(self.mThread2, self)  -- mNextFunction
-    
-    while true do
-      self:SetAnimation('AbeStandIdle')
-      if self.mApi:AnimUpdate() then
-        if self:InputSameAsDirection()  then break end
-        self:ApplyMovement()
-      end
-      coroutine.yield()
-    end
-  
-    print("Next stage")
-  
-    self:SetXSpeed(2.777771)
-    self:SetXVelocity(0)
-    self:SetAndWaitForAnimationComplete("AbeStandToWalk")
-     
-    while true do
-      self:SetAnimation("AbeWalking")
-      if self.mApi:AnimUpdate() then
-        if self.mApi:FrameNumber() == 3 then break end
-        self:ApplyMovement()
-      end
-      coroutine.yield()
-    end
-    
-    -- AbeWalkToStandMidGrid
-    
-    
-    self:SetAndWaitForAnimationComplete("AbeWalkToStand")
-    self:SetXSpeed(0)
-    
-  end
 end
 
 local oldX = 0
-function Abe:Update() 
-  --print("+Update") 
-  coroutine.resume(self.mThread, self) 
-  --print("-Update")
+function Abe:DebugPrintPosDeltas()
   if oldX ~= self.mApi.mXPos then
     local delta = self.mApi.mXPos - oldX
     if delta ~= self.mApi.mXPos then
@@ -347,6 +253,13 @@ function Abe:Update()
     end
   end
   oldX = self.mApi.mXPos
+end
+
+function Abe:Update() 
+  --print("+Update") 
+  coroutine.resume(self.mThread, self) 
+  --print("-Update")
+  self:DebugPrintPosDeltas()
 end
 
 function Abe.create()
@@ -365,7 +278,7 @@ function Abe.create()
    return ret
 end
 
-local function Testing()
+local function Abe_Debug()
   local a = Abe.create()
   a.mApi = {}
   a.mApi.mXPos = 0
@@ -380,13 +293,13 @@ local function Testing()
   end
 end
 
---Testing()
+-- Use when testing logic outside of the engine
+--Abe_Debug()
 
 -- C++ call points
 function init(cppObj)
     cppObj.states = Abe.create()
     cppObj.states.mApi = cppObj
-    --cppObj.states:SetAnimation('AbeStandIdle')
 end
 
 function update(cppObj, input)
