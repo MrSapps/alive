@@ -232,31 +232,28 @@ function Abe:ToStandCommon(anim)
     if self:FrameIs(2) then PlaySoundEffect("MOVEMENT_MUD_STEP") end
   end, -1) 
   self:SnapToGrid()
-  
-  self.mData = 
-  {
-    mFunc = self.Stand,
-    Animation = "AbeStandIdle"
-  }
+  self:GoTo(self.Stand)
 end
 
+function Abe:GoTo(func)
+  self.mData = { mFunc = func, Animation = self.mAnims[func] }
+  print(self.mData.Animation)
+  print(self.mData.mFunc)
+end
 
 function Abe:StandToWalk()
   self:SetXSpeed(2.777771)
   self:SetXVelocity(0)
   self:SetAndWaitForAnimationComplete('AbeStandToWalk')
-  self.mData = 
-  {
-    mFunc = self.Walk,
-    Animation = "AbeWalking"
-  }
+  self:GoTo(self.Walk)
+  return true
 end
 
 function Abe:Stand()
 
   self:SetXSpeed(0)
   self:SetXVelocity(0)
-  if (self:InputSameAsDirection()) then self:StandToWalk() return true
+  if (self:InputSameAsDirection()) then return self:StandToWalk()
   
   --if (self:InputSameAsDirection()) then 
   --  if self.mInput:InputRun() then self:StandToRun()
@@ -290,13 +287,9 @@ function Abe:Exec()
 end
 
 function Abe:CoRoutineProc()
+  print("Do goto")
+  self:GoTo(self.Stand)
   print("Pre exec")
-  self.mData = 
-  {
-    mFunc = self.Stand,
-    Animation = "AbeStandIdle"
-  }
-
   self:Exec()
   print("Post exec")
   
@@ -365,6 +358,7 @@ function Abe.create()
    ret.mXVelocity = 0
    ret.mAnimChanged = false
    ret.mAnims = {}
+   ret.mAnims[Abe.Stand] = "AbeStandIdle"
    ret.mAnims[Abe.Walk] = "AbeWalking"
    ret.mAnims[Abe.Run] = "AbeRunning"
    ret.mThread = coroutine.create(ret.CoRoutineProc)
@@ -377,6 +371,10 @@ local function Testing()
   a.mApi.mXPos = 0
   a.mApi.mYPos = 0
   a.mApi.SetAnimation = function(anim) print("Fake set animation: " .. anim) end
+   
+  a:GoTo(a.Stand)
+  a:GoTo(a.Walk)
+    
   while true do
     a:Update()
   end
