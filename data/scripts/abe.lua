@@ -1,4 +1,4 @@
-Abe = {}
+local Abe = {}
 Abe.__index = Abe
 
 function Abe:InputNotSameAsDirection()
@@ -13,18 +13,18 @@ function Abe:SetAnimationAtFrame(anim, frame)
   if anim ~= self.mLastAnimationName then
     print("SetAnimationAtFrame: " .. anim)
     self.mApi:SetAnimationAtFrame(anim, frame)
-    self.mAnimChanged = true
+    self.mLastAnimationName = anim
+    self.mYieldForAnimChange = true
+    coroutine.yield()
   end
-  self.mLastAnimationName = anim
 end
 
 function Abe:SetAnimation(anim)
   if anim ~= self.mLastAnimationName then
     print("SetAnimation: " .. anim)
     self.mApi:SetAnimation(anim)
-    self.mAnimChanged = true
-  end
-  self.mLastAnimationName = anim
+    self.mLastAnimationName = anim
+  end  
 end
 
 function Abe:FlipXDirection() self.mApi:FlipXDirection() end
@@ -39,34 +39,10 @@ function Abe:SnapToGrid()
   --self.mApi:SnapToGrid() 
 end
 
-function Abe:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
-  print("Start wait for complete at frame " .. frame)
-  local frameChanged = true
-  while true do
-    if frameChanged then
-      if ((frame == -1 and self.mApi:FrameNumber() == self.mApi:NumberOfFrames()-1) or (frame ~= -1 and self.mApi:FrameNumber()+1==frame)) then
-        print("Wait for complete done at frame " .. frame)
-        return
-      else
-        self:ApplyMovement()
-      end
-    end
-    frameChanged = self.mApi:AnimUpdate()
-    
-    if frameChanged then
-      if frameCallBackFunc ~= nil then 
-        frameCallBackFunc() 
-      end
-    end
-    coroutine.yield()
-  end
-end
-
 function Abe:WaitForAnimationComplete() self:WaitForAnimationCompleteCb(nil) end
 
 function Abe:SetAndWaitForAnimationCompleteCb(anim, frameCallBackFunc, frame)
   self:SetAnimation(anim)
-  self.mAnimChanged = false
   self:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
 end
 
@@ -80,39 +56,7 @@ function Abe:GameSpeak(anim, soundEffect)
   self:SetAnimation('AbeStandIdle')
 end
 
-function Abe:Stand()
-  self:SetAnimation('AbeStandIdle')
-  self:SetXSpeed(0)
-  self:SetXVelocity(0)
-  if (self:InputSameAsDirection()) then 
-    if self.mInput:InputRun() then self:StandToRun()
-    elseif self.mInput:InputSneak() then self:StandToSneak()
-    else self:StandToWalk() end
-  elseif (self:InputNotSameAsDirection()) then self:TurnAround()
-  elseif (self.mInput:InputGameSpeak1()) then self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_HELLO")
-  elseif (self.mInput:InputGameSpeak2()) then self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_FOLLOWME")
-  elseif (self.mInput:InputGameSpeak3()) then self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_WAIT")
-  elseif (self.mInput:InputGameSpeak4()) then self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_ANGRY")
-  elseif (self.mInput:InputGameSpeak5()) then self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_WORK")
-  elseif (self.mInput:InputGameSpeak6()) then self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_ALLYA")
-  elseif (self.mInput:InputGameSpeak7()) then self:GameSpeak("AbeStandSpeak5",     "GAMESPEAK_MUD_SORRY")
-  elseif (self.mInput:InputGameSpeak8()) then self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_NO_SAD") end -- Actually "Stop it"
-end
 
-function Abe:StandToWalk()
-  self:SetXSpeed(2.777771)
-  self:SetXVelocity(0)
-  self:SetAndWaitForAnimationComplete('AbeStandToWalk')
-  self:Next(self.Walk)
-end
-
-function Abe:ToStandCommon(anim) 
-  self:SetAndWaitForAnimationCompleteCb(anim, function() 
-    if self:FrameIs(2) then PlaySoundEffect("MOVEMENT_MUD_STEP") end
-  end, -1) 
-  self:SnapToGrid()
-  self:Next(self.Stand)
-end
 
 function Abe:ToStand() 
   self:ToStandCommon("AbeWalkToStand")
@@ -120,28 +64,6 @@ end
 
 function Abe:ToStand2()
   self:ToStandCommon("AbeWalkToStandMidGrid")
-end
-
-function Abe:Walk()
-  --self:SetAnimation('AbeWalking')
-
-  --if self.mAnimChanged then 
-  --  print("To frame 0")
-  --  self.mApi:AnimUpdate()
-  --end
-  print("Frame is " .. self.mApi:FrameNumber())
-  if self:FrameIs(5) or self:FrameIs(14) then 
-    PlaySoundEffect("MOVEMENT_MUD_STEP") 
-    self:SnapToGrid()
-    if (self:InputSameAsDirection() == true) then
-      if (self.mInput:InputRun()) then self:WalkToRun()
-      elseif (self.mInput:InputSneak()) then self:WalkToSneak() end
-    end
-  elseif self:FrameIs(2) or self:FrameIs(11) then
-    --if (OnGround() == false) then ToFalling()
-    if (self:InputSameAsDirection() == false) then if self:FrameIs(2) then self:ToStand() else self:ToStand2() end
-    end
-  end
 end
 
 function Abe:WalkToRun()
@@ -246,37 +168,181 @@ end
 
 function Abe:Next(func) self.mNextFunction = func end
 
-function Abe:CoRoutineProc()
-  local oldNext = self.mNextFunction
-  local frameChanged = false
+
+
+function Abe:Walk()
+  --self:SetAnimation('AbeWalking')
+  print("So the frame is " .. self.mApi:FrameNumber())
+
+  --if self.mAnimChanged then 
+  --  print("To frame 0")
+  --  self.mApi:AnimUpdate()
+  --end
+  print("Frame is " .. self.mApi:FrameNumber())
+  if self:FrameIs(5) or self:FrameIs(14) then 
+    PlaySoundEffect("MOVEMENT_MUD_STEP") 
+    self:SnapToGrid()
+    if (self:InputSameAsDirection() == true) then
+      if (self.mInput:InputRun()) then self:WalkToRun()
+      elseif (self.mInput:InputSneak()) then self:WalkToSneak() end
+    end
+  elseif self:FrameIs(2+1) or self:FrameIs(11+1) then
+    --if (OnGround() == false) then ToFalling()
+    if (self:InputSameAsDirection() == false) then if self:FrameIs(2) then self:ToStand() return true else self:ToStand2() return true end
+    end
+  end
+  return false
+end
+
+function Abe:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
+  print("Start wait for complete at frame " .. frame)
+  local frameChanged = true
   while true do
-    --self.mAnimChanged = false
     if frameChanged then
-      self:mNextFunction()
-      if oldNext ~= self.mNextFunction then
-        print("Next changed")
-        -- TODO: Need to set mNextFunction.Animation at this point!
-        if self.mAnims[self.mNextFunction] ~= nil then         
-          self:SetAnimation(self.mAnims[self.mNextFunction])
-          frameChanged = self.mApi:AnimUpdate()
-          self:mNextFunction()
-          self:ApplyMovement()
-          --frameChanged = true
-        end
+      if ((frame == -1 and self.mApi:FrameNumber() == self.mApi:NumberOfFrames()-1) or (frame ~= -1 and self.mApi:FrameNumber()+1==frame)) then
+        print("Wait for complete done at frame " .. frame)
+        return
       else
         self:ApplyMovement()
       end
     end
+    frameChanged = self.mApi:AnimUpdate()
     
-    if oldNext == self.mNextFunction then
-      frameChanged = self.mApi:AnimUpdate()
+    if frameChanged then
+      if frameCallBackFunc ~= nil then 
+        frameCallBackFunc() 
+      end
     end
-    oldNext = self.mNextFunction
     coroutine.yield()
   end
 end
 
-oldX = 0
+--ret.mThread2 = coroutine.create(ret.CoRoutineProc2)
+function Abe:CoRoutineProc2()
+  while true do
+    print("Next call")
+    self:mNextFunction()
+    self.mApi:AnimUpdate()
+    coroutine.yield()
+  end
+end
+
+function Abe:ToStandCommon(anim) 
+  self:SetAndWaitForAnimationCompleteCb(anim, function() 
+    if self:FrameIs(2) then PlaySoundEffect("MOVEMENT_MUD_STEP") end
+  end, -1) 
+  self:SnapToGrid()
+  
+  self.mData = 
+  {
+    mFunc = self.Stand,
+    Animation = "AbeStandIdle"
+  }
+end
+
+
+function Abe:StandToWalk()
+  self:SetXSpeed(2.777771)
+  self:SetXVelocity(0)
+  self:SetAndWaitForAnimationComplete('AbeStandToWalk')
+  self.mData = 
+  {
+    mFunc = self.Walk,
+    Animation = "AbeWalking"
+  }
+end
+
+function Abe:Stand()
+
+  self:SetXSpeed(0)
+  self:SetXVelocity(0)
+  if (self:InputSameAsDirection()) then self:StandToWalk() return true
+  
+  --if (self:InputSameAsDirection()) then 
+  --  if self.mInput:InputRun() then self:StandToRun()
+  --  elseif self.mInput:InputSneak() then self:StandToSneak()
+  --  else self:StandToWalk() end
+  elseif (self:InputNotSameAsDirection()) then self:TurnAround()
+  elseif (self.mInput:InputGameSpeak1()) then self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_HELLO")
+  elseif (self.mInput:InputGameSpeak2()) then self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_FOLLOWME")
+  elseif (self.mInput:InputGameSpeak3()) then self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_WAIT")
+  elseif (self.mInput:InputGameSpeak4()) then self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_ANGRY")
+  elseif (self.mInput:InputGameSpeak5()) then self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_WORK")
+  elseif (self.mInput:InputGameSpeak6()) then self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_ALLYA")
+  elseif (self.mInput:InputGameSpeak7()) then self:GameSpeak("AbeStandSpeak5",     "GAMESPEAK_MUD_SORRY")
+elseif (self.mInput:InputGameSpeak8()) then self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_NO_SAD") end -- Actually "Stop it"
+  return false
+end
+
+function Abe:Exec()
+  while true do
+    while true do
+      self:SetAnimation(self.mData.Animation)
+      if self.mApi:AnimUpdate() then
+        if self.mData.mFunc(self) then 
+          break 
+        end
+        self:ApplyMovement()
+      end
+      coroutine.yield()
+    end
+  end
+end
+
+function Abe:CoRoutineProc()
+  print("Pre exec")
+  self.mData = 
+  {
+    mFunc = self.Stand,
+    Animation = "AbeStandIdle"
+  }
+
+  self:Exec()
+  print("Post exec")
+  
+  while true do
+    coroutine.yield()
+  end
+    
+  self:SetXSpeed(0)
+  while true do
+    print("Setting animation")
+    --coroutine.resume(self.mThread2, self)  -- mNextFunction
+    
+    while true do
+      self:SetAnimation('AbeStandIdle')
+      if self.mApi:AnimUpdate() then
+        if self:InputSameAsDirection()  then break end
+        self:ApplyMovement()
+      end
+      coroutine.yield()
+    end
+  
+    print("Next stage")
+  
+    self:SetXSpeed(2.777771)
+    self:SetXVelocity(0)
+    self:SetAndWaitForAnimationComplete("AbeStandToWalk")
+     
+    while true do
+      self:SetAnimation("AbeWalking")
+      if self.mApi:AnimUpdate() then
+        if self.mApi:FrameNumber() == 3 then break end
+        self:ApplyMovement()
+      end
+      coroutine.yield()
+    end
+    
+    -- AbeWalkToStandMidGrid
+    
+    
+    self:SetAndWaitForAnimationComplete("AbeWalkToStand")
+    self:SetXSpeed(0)
+    
+  end
+end
+
+local oldX = 0
 function Abe:Update() 
   --print("+Update") 
   coroutine.resume(self.mThread, self) 
@@ -305,11 +371,24 @@ function Abe.create()
    return ret
 end
 
+local function Testing()
+  local a = Abe.create()
+  a.mApi = {}
+  a.mApi.mXPos = 0
+  a.mApi.mYPos = 0
+  a.mApi.SetAnimation = function(anim) print("Fake set animation: " .. anim) end
+  while true do
+    a:Update()
+  end
+end
+
+--Testing()
+
 -- C++ call points
 function init(cppObj)
     cppObj.states = Abe.create()
     cppObj.states.mApi = cppObj
-    cppObj.states:SetAnimation('AbeStandIdle')
+    --cppObj.states:SetAnimation('AbeStandIdle')
 end
 
 function update(cppObj, input)

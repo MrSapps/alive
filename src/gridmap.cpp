@@ -230,7 +230,7 @@ void MapObject::Update(const InputState& input)
         return;
     }
 
-    if (mAnim)
+    //if (mAnim)
     {
         sol::protected_function f = mLuaState["update"];
         auto ret = f(this, input.Mapping().GetActions());
@@ -254,7 +254,7 @@ void MapObject::Update(const InputState& input)
     prevY = mYPos;
 
     Debugging().mInfo.mXPos = mXPos;
-    Debugging().mInfo.mXPos = mYPos;
+    Debugging().mInfo.mYPos = mYPos;
     Debugging().mInfo.mFrameToRender = FrameNumber();
 
     if (Debugging().mSingleStepObject && Debugging().mDoSingleStepObject)
@@ -315,6 +315,7 @@ bool MapObject::IsLastFrame() const
 
 s32 MapObject::FrameNumber() const
 {
+    if (!mAnim) { return 0; }
     return mAnim->FrameNumber();
 }
 
