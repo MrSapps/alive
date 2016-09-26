@@ -48,21 +48,21 @@ function Abe:ToStand2() return self:ToStandCommon("AbeWalkToStandMidGrid") end
 
 function Abe:WalkToRun()
   self:SetAndWaitForAnimationComplete('AbeWalkingToRunning')
-  self:SetXVelocity(0)
-  self:SetXSpeed(6.25)
+  --self:SetXVelocity(0)
+  --self:SetXSpeed(6.25)
   return self:GoTo(self.Run)
 end
 
 function Abe:WalkToSneak()
-  self:SetXSpeed(2.777771)
-  self:SetXVelocity(0)
+  --self:SetXSpeed(2.777771)
+  --self:SetXVelocity(0)
   self:SetAndWaitForAnimationComplete('AbeWalkingToSneaking') 
   return self:GoTo(self.Sneak)
 end
 
 function Abe:StandToRun()
-  self:SetXSpeed(6.25)
-  self:SetXVelocity(0)
+  --self:SetXSpeed(6.25)
+  --self:SetXVelocity(0)
   self:SetAndWaitForAnimationComplete('AbeStandToRun')
   return self:GoTo(self.Run)
 end
@@ -78,23 +78,23 @@ function Abe:Run()
     if (self:InputSameAsDirection()) then 
       if self.mInput:InputRun() == false then self:RunToWalk() end
     else
-      self:RunSkidStop()
+      return self:RunToSkidStop()
     end
   end
 end
 
-function Abe:RunSkidStop()
+function Abe:RunToSkidStop()
   self:SetXVelocity(0.375)
-  self:SetAndWaitForAnimationFrame('AbeRunningSkidStop', 14)
+  self:SetAndWaitForAnimationFrame('AbeRunningSkidStop', 15)
   self:SnapToGrid()
   return self:GoTo(self.Stand)
 end
 
 function Abe:RunToWalk()
-  self:SetXSpeed(2.777771)
+  --self:SetXSpeed(2.777771)
   -- TODO: On frame 9!
   self:SetAndWaitForAnimationComplete("AbeRunningToWalkingMidGrid")
-  self:SetXVelocity(0)
+  --self:SetXVelocity(0)
   return self:GoTo(self.Walk)
 end
 
@@ -114,8 +114,8 @@ function Abe:Sneak()
 end
 
 function Abe:SneakToWalk()
-  self:SetXSpeed(2.7)
-  self:SetXVelocity(0)
+  --self:SetXSpeed(2.7)
+  --self:SetXVelocity(0)
   -- TODO: Can also be AbeSneakingToWalkingMidGrid
   self:SetAndWaitForAnimationComplete("AbeSneakingToWalking")
   return self:GoTo(self.Walk)
@@ -125,7 +125,7 @@ function Abe:TurnAround()
   PlaySoundEffect("GRAVEL_SMALL") -- TODO: Add to json
   self:SetAndWaitForAnimationComplete('AbeStandTurnAround') 
   self:FlipXDirection()
-  self:Stand() 
+  return self:GoTo(self.Stand) 
 end
 
 function Abe:ApplyMovement()
@@ -187,9 +187,12 @@ function Abe:ToStandCommon(anim)
 end
 
 function Abe:GoTo(func)
-  self.mData = { mFunc = func, Animation = self.mAnims[func] }
+  local data = self.mAnims[func]
+  self.mData = { mFunc = func, Animation = data.name }
   print(self.mData.Animation)
   print(self.mData.mFunc)
+  self:SetXSpeed(data.xspeed)
+  self:SetXVelocity(data.xvel)
   if self.mData.Animation == nil then
     print("ERROR: An animation mapping is missing!")
   end
@@ -197,15 +200,30 @@ function Abe:GoTo(func)
 end
 
 function Abe:StandToWalk()
-  self:SetXSpeed(2.777771)
-  self:SetXVelocity(0)
+  --self:SetXSpeed(2.777771)
+  --self:SetXVelocity(0)
+  print("Set AbeStandToWalk")
+  -- TODO: Need to set XSpeed here, not after this!
   self:SetAndWaitForAnimationComplete("AbeStandToWalk")
+  print("AbeStandToWalk done")
   return self:GoTo(self.Walk)
 end
 
+-- TODO: Change to using this table
+local game_speak = {
+  {"AbeStandSpeak2",     "GAMESPEAK_MUD_HELLO"},
+  {"AbeStandSpeak3",     "GAMESPEAK_MUD_FOLLOWME"},
+  {"AbeStandingSpeak4",  "GAMESPEAK_MUD_WAIT"},
+  {"AbeStandingSpeak4",  "GAMESPEAK_MUD_ANGRY"},
+  {"AbeStandingSpeak4",  "GAMESPEAK_MUD_WORK"},
+  {"AbeStandSpeak2",     "GAMESPEAK_MUD_ALLYA"},
+  {"AbeStandSpeak5",     "GAMESPEAK_MUD_SORRY"},
+  {"AbeStandSpeak3",     "GAMESPEAK_MUD_NO_SAD"},
+}
+
 function Abe:Stand()
-  self:SetXSpeed(0)
-  self:SetXVelocity(0)
+  --self:SetXSpeed(0)
+  --self:SetXVelocity(0)
   if (self:InputSameAsDirection()) then 
     if self.mInput:InputRun() then 
       return self:StandToRun()
@@ -213,15 +231,25 @@ function Abe:Stand()
       return self:StandToSneak()
     else 
       return self:StandToWalk() end
-  elseif (self:InputNotSameAsDirection()) then self:TurnAround()
-  elseif (self.mInput:InputGameSpeak1()) then self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_HELLO")
-  elseif (self.mInput:InputGameSpeak2()) then self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_FOLLOWME")
-  elseif (self.mInput:InputGameSpeak3()) then self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_WAIT")
-  elseif (self.mInput:InputGameSpeak4()) then self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_ANGRY")
-  elseif (self.mInput:InputGameSpeak5()) then self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_WORK")
-  elseif (self.mInput:InputGameSpeak6()) then self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_ALLYA")
-  elseif (self.mInput:InputGameSpeak7()) then self:GameSpeak("AbeStandSpeak5",     "GAMESPEAK_MUD_SORRY")
-  elseif (self.mInput:InputGameSpeak8()) then self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_NO_SAD") end -- Actually "Stop it"
+  elseif (self:InputNotSameAsDirection()) then 
+    return self:TurnAround()
+  elseif (self.mInput:InputGameSpeak1()) then 
+    self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_HELLO")
+  elseif (self.mInput:InputGameSpeak2()) then 
+    self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_FOLLOWME")
+  elseif (self.mInput:InputGameSpeak3()) then 
+    self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_WAIT")
+  elseif (self.mInput:InputGameSpeak4()) then 
+    self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_ANGRY")
+  elseif (self.mInput:InputGameSpeak5()) then 
+    self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_WORK")
+  elseif (self.mInput:InputGameSpeak6()) then 
+    self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_ALLYA")
+  elseif (self.mInput:InputGameSpeak7()) then 
+    self:GameSpeak("AbeStandSpeak5",     "GAMESPEAK_MUD_SORRY")
+  elseif (self.mInput:InputGameSpeak8()) then 
+    self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_NO_SAD")   -- Actually "Stop it"
+  end
 end
 
 function Abe:Exec()
@@ -229,7 +257,8 @@ function Abe:Exec()
     while true do
       self:SetAnimation(self.mData.Animation)
       if self.mApi:AnimUpdate() then
-        if self.mData.mFunc(self) then 
+        if self.mData.mFunc(self) then
+          self:ApplyMovement()
           break 
         end
         self:ApplyMovement()
@@ -249,7 +278,7 @@ function Abe:DebugPrintPosDeltas()
   if oldX ~= self.mApi.mXPos then
     local delta = self.mApi.mXPos - oldX
     if delta ~= self.mApi.mXPos then
-      print("DELTA: " .. delta .. " on frame: " .. self.mApi:FrameNumber() .. " XPOS: " .. self.mApi.mXPos)
+      print("DELTA: " .. delta .. " on frame: " .. self.mApi:FrameNumber() .. " XPOS: " .. self.mApi.mXPos .. " speed " .. self.mXSpeed .. " vel " .. self.mXVelocity)
     end
   end
   oldX = self.mApi.mXPos
@@ -271,9 +300,9 @@ function Abe.create()
    ret.mXVelocity = 0
    ret.mAnimChanged = false
    ret.mAnims = {}
-   ret.mAnims[Abe.Stand] = "AbeStandIdle"
-   ret.mAnims[Abe.Walk] = "AbeWalking"
-   ret.mAnims[Abe.Run] = "AbeRunning"
+   ret.mAnims[Abe.Stand] = { name = "AbeStandIdle", xspeed = 0, xvel = 0}
+   ret.mAnims[Abe.Walk] = { name = "AbeWalking", xspeed = 2.777771, xvel = 0}
+   ret.mAnims[Abe.Run] = { name = "AbeRunning", xspeed = 6.25, xvel = 0}
    ret.mThread = coroutine.create(ret.CoRoutineProc)
    return ret
 end
