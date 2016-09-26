@@ -79,6 +79,7 @@ private:
 
     void LoadScript(const ObjRect* rect, Oddlib::IStream* objData);
 private: // Actions
+    bool AnimationComplete() const;
     void SetAnimation(const std::string& animation);
     void SetAnimationAtFrame(const std::string& animation, u32 frame);
     bool FacingLeft() const { return mFlipX; }

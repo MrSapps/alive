@@ -105,6 +105,7 @@ MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::
         "IsLastFrame", &MapObject::IsLastFrame,
         "AnimUpdate", &MapObject::AnimUpdate,
         "SetAnimationAtFrame", &MapObject::SetAnimationAtFrame,
+        "AnimationComplete", &MapObject::AnimationComplete,
         "NumberOfFrames", &MapObject::NumberOfFrames,
         "FrameCounter", &MapObject::FrameCounter,
         "FacingLeft", &MapObject::FacingLeft,
@@ -262,6 +263,12 @@ void MapObject::Update(const InputState& input)
         // Step is done - no more updates till the user requests it
         Debugging().mDoSingleStepObject = false;
     }
+}
+
+bool MapObject::AnimationComplete() const
+{
+    if (!mAnim) { return false; }
+    return mAnim->IsComplete();
 }
 
 void MapObject::SetAnimation(const std::string& animation)

@@ -486,6 +486,7 @@ void DumpDeltas(anim_struct* thisPtr)
     if (prevX != (*hero)->xpos || prevY != (*hero)->ypos)
     {
         printf("Player X Delta %f Y Delta %f frame %d\n", ((*hero)->xpos - prevX).AsDouble(), ((*hero)->ypos - prevY).AsDouble(), thisPtr->mFrameNum);
+        //system("PAUSE");
     }
 
     prevX = (*hero)->xpos;

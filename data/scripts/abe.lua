@@ -23,7 +23,7 @@ function Abe:SetXSpeed(speed) self.mXSpeed = speed end
 function Abe:SetXVelocity(velocity) self.mXVelocity = velocity end
 function Abe:SnapToGrid() 
   -- TODO: This breaks sometimes, stand idle, press inverse direction and take 1 step to repro issue
-  --self.mApi:SnapToGrid() 
+  self.mApi:SnapToGrid() 
 end
 
 function Abe:WaitForAnimationComplete() self:WaitForAnimationCompleteCb(nil) end
@@ -61,20 +61,30 @@ function Abe:WalkToSneak()
 end
 
 function Abe:StandToRun()
-  --self:SetXSpeed(6.25)
-  --self:SetXVelocity(0)
+  self:SetXSpeed(6.25)
+  self:SetXVelocity(0)
   self:SetAndWaitForAnimationComplete('AbeStandToRun')
   return self:GoTo(self.Run)
 end
 
 function Abe:Run()
-  if self:FrameIs(0) then
+  if self:FrameIs(0) and self.mApi:AnimationComplete() == false then
     self:SetXSpeed(12)
   else
     self:SetXSpeed(6.25)
   end
   
-  if self:FrameIs(4+1) or self:FrameIs(12+1) then
+  if self:FrameIs(0+1) or self:FrameIs(8+1) then
+    -- TODO: Allow jump
+  end
+
+  if self:FrameIs(4+1)  or self:FrameIs(12+1) then
+    -- TODO: Run sound effect
+    -- TODO: Allow running jump
+    -- TODO: Allow roll
+    -- TODO: Skid turn
+    self:SnapToGrid()
+    
     if (self:InputSameAsDirection()) then 
       if self.mInput:InputRun() == false then self:RunToWalk() end
     else
@@ -86,12 +96,14 @@ end
 function Abe:RunToSkidStop()
   self:SetXVelocity(0.375)
   self:SetAndWaitForAnimationFrame('AbeRunningSkidStop', 15)
+  --self:SetAndWaitForAnimationComplete("AbeRunningSkidStop")
   self:SnapToGrid()
   return self:GoTo(self.Stand)
 end
 
 function Abe:RunToWalk()
-  --self:SetXSpeed(2.777771)
+  self:SetXSpeed(2.777771)
+  self:SetXVelocity(0)
   -- TODO: On frame 9!
   self:SetAndWaitForAnimationComplete("AbeRunningToWalkingMidGrid")
   --self:SetXVelocity(0)
@@ -140,7 +152,7 @@ function Abe:ApplyMovement()
 end
 
 function Abe:Walk()
-  if self:FrameIs(5) or self:FrameIs(14) then 
+  if self:FrameIs(5+1) or self:FrameIs(14+1) then 
     PlaySoundEffect("MOVEMENT_MUD_STEP") 
     self:SnapToGrid()
     if (self:InputSameAsDirection() == true) then
@@ -148,7 +160,6 @@ function Abe:Walk()
       elseif (self.mInput:InputSneak()) then return self:WalkToSneak() end
     end
   elseif self:FrameIs(2+1) or self:FrameIs(11+1) then
-    --if (OnGround() == false) then ToFalling()
     if (self:InputSameAsDirection() == false) then 
       if self:FrameIs(2+1) then return self:ToStand() else return self:ToStand2() end
     end
@@ -179,10 +190,12 @@ function Abe:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
 end
 
 function Abe:ToStandCommon(anim) 
+  self:SetXSpeed(2.777771)
+  self:SetXVelocity(0)
   self:SetAndWaitForAnimationCompleteCb(anim, function() 
     if self:FrameIs(2) then PlaySoundEffect("MOVEMENT_MUD_STEP") end
   end, -1) 
-  self:SnapToGrid()
+  --self:SnapToGrid()
   return self:GoTo(self.Stand)
 end
 
@@ -200,8 +213,8 @@ function Abe:GoTo(func)
 end
 
 function Abe:StandToWalk()
-  --self:SetXSpeed(2.777771)
-  --self:SetXVelocity(0)
+  self:SetXSpeed(2.777771)
+  self:SetXVelocity(0)
   print("Set AbeStandToWalk")
   -- TODO: Need to set XSpeed here, not after this!
   self:SetAndWaitForAnimationComplete("AbeStandToWalk")
@@ -258,7 +271,7 @@ function Abe:Exec()
       self:SetAnimation(self.mData.Animation)
       if self.mApi:AnimUpdate() then
         if self.mData.mFunc(self) then
-          self:ApplyMovement()
+          --self:ApplyMovement()
           break 
         end
         self:ApplyMovement()
