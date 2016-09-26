@@ -182,11 +182,11 @@ void load_layout(GuiContext *ctx)
 		GUI_FMT_STR(l.str, sizeof(l.str), "%s", "gui_layoutwin");
 		l.on_same_row = 0;
 		l.has_offset = 1;
-		l.offset[0] = 843;
-		l.offset[1] = 45;
+		l.offset[0] = 463;
+		l.offset[1] = 15;
 		l.has_size = 1;
-		l.size[0] = 400;
-		l.size[1] = 700;
+		l.size[0] = 177;
+		l.size[1] = 464;
 		l.prevent_resizing = 0;
 		l.align_left = 0;
 		l.align_right = 0;
@@ -228,12 +228,37 @@ void load_layout(GuiContext *ctx)
 
 	{
 		GuiElementLayout l = {0};
+		l.id = 1895346295;
+		GUI_FMT_STR(l.str, sizeof(l.str), "%s", "Script debug");
+		l.on_same_row = 0;
+		l.has_offset = 1;
+		l.offset[0] = 10;
+		l.offset[1] = 394;
+		l.has_size = 1;
+		l.size[0] = 100;
+		l.size[1] = 80;
+		l.prevent_resizing = 0;
+		l.align_left = 0;
+		l.align_right = 0;
+		l.align_top = 0;
+		l.align_bottom = 0;
+		l.padding[0] = 0;
+		l.padding[1] = 0;
+		l.padding[2] = 0;
+		l.padding[3] = 0;
+		l.gap[0] = 0;
+		l.gap[1] = 0;
+		append_element_layout(ctx, l);
+	}
+
+	{
+		GuiElementLayout l = {0};
 		l.id = 2140526214;
 		GUI_FMT_STR(l.str, sizeof(l.str), "%s", "Browsers");
 		l.on_same_row = 0;
 		l.has_offset = 1;
-		l.offset[0] = 311;
-		l.offset[1] = 21;
+		l.offset[0] = 286;
+		l.offset[1] = 13;
 		l.has_size = 1;
 		l.size[0] = 206;
 		l.size[1] = 250;
@@ -285,8 +310,8 @@ void load_layout(GuiContext *ctx)
 		l.offset[0] = 313;
 		l.offset[1] = 16;
 		l.has_size = 1;
-		l.size[0] = 351;
-		l.size[1] = 523;
+		l.size[0] = 327;
+		l.size[1] = 464;
 		l.prevent_resizing = 0;
 		l.align_left = 0;
 		l.align_right = 0;
@@ -357,11 +382,11 @@ void load_layout(GuiContext *ctx)
 		GUI_FMT_STR(l.str, sizeof(l.str), "%s", "Paths");
 		l.on_same_row = 0;
 		l.has_offset = 1;
-		l.offset[0] = 885;
-		l.offset[1] = 47;
+		l.offset[0] = 536;
+		l.offset[1] = 13;
 		l.has_size = 1;
-		l.size[0] = 205;
-		l.size[1] = 710;
+		l.size[0] = 80;
+		l.size[1] = 433;
 		l.prevent_resizing = 0;
 		l.align_left = 0;
 		l.align_right = 0;
@@ -432,11 +457,11 @@ void load_layout(GuiContext *ctx)
 		GUI_FMT_STR(l.str, sizeof(l.str), "%s", "Debugging");
 		l.on_same_row = 0;
 		l.has_offset = 1;
-		l.offset[0] = 0;
-		l.offset[1] = 0;
+		l.offset[0] = 17;
+		l.offset[1] = 19;
 		l.has_size = 1;
-		l.size[0] = 245;
-		l.size[1] = 263;
+		l.size[0] = 262;
+		l.size[1] = 413;
 		l.prevent_resizing = 0;
 		l.align_left = 0;
 		l.align_right = 0;

@@ -86,6 +86,7 @@ private: // Actions
     void FlipXDirection() { mFlipX = !mFlipX; }
 private: 
     bool AnimUpdate();
+    s32 FrameCounter() const;
     s32 NumberOfFrames() const;
     bool IsLastFrame() const;
     s32 FrameNumber() const;

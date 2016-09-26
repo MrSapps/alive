@@ -1778,6 +1778,11 @@ public:
         }
     }
 
+    s32 FrameCounter() const
+    {
+        return mCounter;
+    }
+
     bool Update()
     {
         bool ret = false;
@@ -1815,7 +1820,18 @@ public:
     // TODO: Position calculation should be refactored
     void Render(Renderer& rend, bool flipX) const
     {
-        const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(FrameNumber());
+        /*
+        static std::string msg;
+        std::stringstream s;
+        s << "Render frame number: " << mFrameNum;
+        if (s.str() != msg)
+        {
+            LOG_INFO(s.str());
+        }
+        msg = s.str();
+        */
+
+        const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum == -1 ? 0 : mFrameNum);
 
         f32 xFrameOffset = (mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX)) * mScale;
         const f32 yFrameOffset = static_cast<f32>(frame.mOffY) * mScale;
@@ -1918,7 +1934,7 @@ public:
     s32 YPos() const { return mYPos; }
     u32 MaxW() const { return static_cast<u32>(mAnim.MaxW()*ScaleX()); }
     u32 MaxH() const { return static_cast<u32>(mAnim.MaxH()*mScale); }
-    s32 FrameNumber() const { if (mFrameNum == -1) { return 0; } return mFrameNum; }
+    s32 FrameNumber() const { return mFrameNum; }
     u32 NumberOfFrames() const { return mAnim.Animation().NumFrames(); }
     void SetScale(f32 scale) { mScale = scale; }
 private:

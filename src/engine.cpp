@@ -234,6 +234,8 @@ bool Engine::Init()
 
         InitSubSystems();
 
+
+        Debugging().mInput = &mInputState;
         
         mStateMachine.ToState(std::make_unique<GameSelectionScreen>(mStateMachine, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, *mResourceLocator, *mFileSystem));
 

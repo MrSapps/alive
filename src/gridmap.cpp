@@ -106,6 +106,7 @@ MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::
         "AnimUpdate", &MapObject::AnimUpdate,
         "SetAnimationAtFrame", &MapObject::SetAnimationAtFrame,
         "NumberOfFrames", &MapObject::NumberOfFrames,
+        "FrameCounter", &MapObject::FrameCounter,
         "FacingLeft", &MapObject::FacingLeft,
         "FacingRight", &MapObject::FacingRight,
         "FlipXDirection", &MapObject::FlipXDirection,
@@ -221,6 +222,14 @@ void MapObject::LoadScript(const ObjRect* rect, Oddlib::IStream* objData)
 
 void MapObject::Update(const InputState& input)
 {
+    //TRACE_ENTRYEXIT;
+
+    Debugging().mDebugObj = this;
+    if (Debugging().mSingleStepObject && !Debugging().mDoSingleStepObject)
+    {
+        return;
+    }
+
     if (mAnim)
     {
         sol::protected_function f = mLuaState["update"];
@@ -243,6 +252,16 @@ void MapObject::Update(const InputState& input)
     }
     prevX = mXPos;
     prevY = mYPos;
+
+    Debugging().mInfo.mXPos = mXPos;
+    Debugging().mInfo.mXPos = mYPos;
+    Debugging().mInfo.mFrameToRender = FrameNumber();
+
+    if (Debugging().mSingleStepObject && Debugging().mDoSingleStepObject)
+    {
+        // Step is done - no more updates till the user requests it
+        Debugging().mDoSingleStepObject = false;
+    }
 }
 
 void MapObject::SetAnimation(const std::string& animation)
@@ -279,6 +298,11 @@ bool MapObject::AnimUpdate()
     return mAnim->Update();
 }
 
+s32 MapObject::FrameCounter() const
+{
+    return mAnim->FrameCounter();
+}
+
 s32 MapObject::NumberOfFrames() const
 {
     return mAnim->NumberOfFrames();
@@ -302,6 +326,8 @@ void MapObject::Render(Renderer& rend, GuiContext& gui, int x, int y, float scal
     {
         LoadScript(nullptr, nullptr);
         SnapToGrid();
+
+        
     }
     gui_end_window(&gui);
 
