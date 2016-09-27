@@ -293,13 +293,34 @@ function Abe:CrouchStand()
   return self:GoTo(self.Crouch) 
 end
 
---AbeCrouchStand
+function Abe:CrouchToRoll()
+  self:SetXSpeed(6.25)
+  self:SetXVelocity(0)
+  self:SetAndWaitForAnimationComplete('AbeCrouchToRoll') 
+  return self:GoTo(self.Roll) 
+end
+
+function Abe:Roll()
+  if self:FrameIs(0+1) or self:FrameIs(6+1) then
+    PlaySoundEffect("MOVEMENT_MUD_STEP")
+  end
+  
+  -- TODO: Handle RollToRun when run pressed
+  -- TODO: Handle RollToWalk when roll pressed (or skip because I've never used it and it seems buggy?)
+  
+  if self:FrameIs(0+1) or self:FrameIs(4+1) or self:FrameIs(8+1) then
+    self:SnapToGrid()
+    if self:InputSameAsDirection() == false then 
+      return self:GoTo(self.Crouch)
+    end
+  end
+end
 
 function Abe:Crouch()
   if self.mInput:InputUp() then
     return self:CrouchToStand()
   elseif self:InputSameAsDirection() then 
-    -- roll
+    return self:CrouchToRoll()
   elseif self:InputNotSameAsDirection() then
     return self:CrouchStand()
   end
@@ -393,6 +414,7 @@ function Abe.create()
   ret.mAnims[Abe.Run] = { name = "AbeRunning", xspeed = 6.25, xvel = 0}
   ret.mAnims[Abe.Crouch] = { name = "AbeCrouchIdle", xspeed = 0, xvel = 0}
   ret.mAnims[Abe.Sneak] = { name = "AbeSneaking", xspeed = 2.5, xvel = 0}
+  ret.mAnims[Abe.Roll] = { name = "AbeRolling", xspeed = 6.25, xvel = 0}
 
    
    
