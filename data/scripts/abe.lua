@@ -67,6 +67,18 @@ function Abe:StandToRun()
   return self:GoTo(self.Run)
 end
 
+function Abe:RunToSkidTurn()
+  print("TODO: RunToSkidTurn")
+end
+
+function Abe:RunToRoll()
+  print("TODO: RunToRoll")
+end
+
+function Abe:RunToJump()
+  print("TODO: RunToJump")
+end
+
 function Abe:Run()
   if self:FrameIs(0) and self.mApi:AnimationComplete() == false then
     self:SetXSpeed(12)
@@ -75,18 +87,24 @@ function Abe:Run()
   end
   
   if self:FrameIs(0+1) or self:FrameIs(8+1) then
-    -- TODO: Allow jump
+    if self:InputSameAsDirection() and self.mInput:InputRun() and self.mInput:InputJump() then
+      return self:RunToJump()
+    end
   end
 
   if self:FrameIs(4+1)  or self:FrameIs(12+1) then
-    -- TODO: Run sound effect
-    -- TODO: Allow running jump
-    -- TODO: Allow roll
-    -- TODO: Skid turn
     self:SnapToGrid()
-    
-    if (self:InputSameAsDirection()) then 
-      if self.mInput:InputRun() == false then self:RunToWalk() end
+    if self:InputNotSameAsDirection() then 
+      return self:RunToSkidTurn()
+    elseif self:InputSameAsDirection() then
+      PlaySoundEffect("MOVEMENT_MUD_STEP") -- TODO: Always play fx?
+      if self.mInput:InputRun() == false then 
+        return self:RunToWalk() -- TODO: Wasn't returning previously
+      elseif self.mInput:InputJump() then
+        return self:RunToJump()
+      elseif self.mInput:InputRollOrFart() then
+        return self:RunToRoll()
+      end
     else
       return self:RunToSkidStop()
     end
