@@ -5,8 +5,8 @@
 
 struct Debug
 {
-    bool mAnimBoundingBoxes = true;
-    bool mAnimDebugStrings = true;
+    bool mAnimBoundingBoxes = false;
+    bool mAnimDebugStrings = false;
     bool mCollisionLines = true;
     bool mGrid = true;
     bool mObjectBoundingBoxes = true;

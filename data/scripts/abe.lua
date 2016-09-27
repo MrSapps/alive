@@ -36,34 +36,31 @@ end
 function Abe:SetAndWaitForAnimationFrame(anim, frame) self:SetAndWaitForAnimationCompleteCb(anim, nil, frame) end
 function Abe:SetAndWaitForAnimationComplete(anim) self:SetAndWaitForAnimationCompleteCb(anim, nil, -1) end
 
-function Abe:GameSpeak(anim, soundEffect)
-  self:SetAndWaitForAnimationComplete("AbeStandSpeak1")
-  PlaySoundEffect(soundEffect)
-  self:SetAndWaitForAnimationComplete(anim)
-  self:SetAnimation('AbeStandIdle')
-end
-
 function Abe:ToStand() return self:ToStandCommon("AbeWalkToStand") end
 function Abe:ToStand2() return self:ToStandCommon("AbeWalkToStandMidGrid") end
 
-function Abe:WalkToRun()
-  self:SetAndWaitForAnimationComplete('AbeWalkingToRunning')
-  --self:SetXVelocity(0)
-  --self:SetXSpeed(6.25)
+function Abe:WalkToRunCommon(anim)
+  self:SetAndWaitForAnimationComplete(anim)
   return self:GoTo(self.Run)
 end
 
-function Abe:WalkToSneak()
-  --self:SetXSpeed(2.777771)
-  --self:SetXVelocity(0)
-  self:SetAndWaitForAnimationComplete('AbeWalkingToSneaking') 
+function Abe:WalkToRun() return self:WalkToRunCommon("AbeWalkingToRunning") end
+function Abe:WalkToRun2() return self:WalkToRunCommon("AbeWalkingToRunningMidGrid") end
+
+function Abe:WalkToSneakCommon(anim)
+  self:SetXSpeed(2.777771)
+  self:SetXVelocity(0)
+  self:SetAndWaitForAnimationComplete(anim) 
   return self:GoTo(self.Sneak)
 end
+
+function Abe:WalkToSneak() return self:WalkToSneakCommon("AbeWalkingToSneaking") end
+function Abe:WalkToSneak2() return self:WalkToSneakCommon("AbeWalkingToSneakingMidGrid") end
 
 function Abe:StandToRun()
   self:SetXSpeed(6.25)
   self:SetXVelocity(0)
-  self:SetAndWaitForAnimationComplete('AbeStandToRun')
+  self:SetAndWaitForAnimationComplete("AbeStandToRun")
   return self:GoTo(self.Run)
 end
 
@@ -92,14 +89,14 @@ function Abe:Run()
     end
   end
 
-  if self:FrameIs(4+1)  or self:FrameIs(12+1) then
+  if self:FrameIs(4+1) or self:FrameIs(12+1) then
     self:SnapToGrid()
     if self:InputNotSameAsDirection() then 
       return self:RunToSkidTurn()
     elseif self:InputSameAsDirection() then
       PlaySoundEffect("MOVEMENT_MUD_STEP") -- TODO: Always play fx?
       if self.mInput:InputRun() == false then 
-        return self:RunToWalk() -- TODO: Wasn't returning previously
+        if self:FrameIs(4+1) then return self:RunToWalk() else return self:RunToWalk2() end
       elseif self.mInput:InputJump() then
         return self:RunToJump()
       elseif self.mInput:InputRollOrFart() then
@@ -119,14 +116,15 @@ function Abe:RunToSkidStop()
   return self:GoTo(self.Stand)
 end
 
-function Abe:RunToWalk()
+function Abe:RunToWalkCommon(anim)
   self:SetXSpeed(2.777771)
   self:SetXVelocity(0)
-  -- TODO: On frame 9!
-  self:SetAndWaitForAnimationComplete("AbeRunningToWalkingMidGrid")
-  --self:SetXVelocity(0)
+  self:SetAndWaitForAnimationComplete(anim)
   return self:GoTo(self.Walk)
 end
+
+function Abe:RunToWalk() return self:RunToWalkCommon("AbeRunningToWalk") end
+function Abe:RunToWalk2() return self:RunToWalkCommon("AbeRunningToWalkingMidGrid") end
 
 function Abe:StandToSneak()
   print("TODO: StandToSneak")
@@ -134,16 +132,18 @@ function Abe:StandToSneak()
 end
 
 function Abe:Sneak()
-  self:SetAnimation("AbeSneaking")
-  if (self:InputNotSameAsDirection()) then self:TurnAround() end
-  if (self.mInput:InputSameAsDirection()) then
-    if (self.mInput:InputSneak() == false) then self:SneakToWalk() end
-  else
-    self:ToStand()
-  end
+  print("TODO Sneak")
+  --self:SetAnimation("AbeSneaking")
+  --if (self:InputNotSameAsDirection()) then self:TurnAround() end
+  --if (self.mInput:InputSameAsDirection()) then
+  --  if (self.mInput:InputSneak() == false) then self:SneakToWalk() end
+  --else
+  --  self:ToStand()
+  --end
 end
 
 function Abe:SneakToWalk()
+  print("TODO: SneakToWalk")
   --self:SetXSpeed(2.7)
   --self:SetXVelocity(0)
   -- TODO: Can also be AbeSneakingToWalkingMidGrid
@@ -174,8 +174,11 @@ function Abe:Walk()
     PlaySoundEffect("MOVEMENT_MUD_STEP") 
     self:SnapToGrid()
     if (self:InputSameAsDirection() == true) then
-      if (self.mInput:InputRun()) then return self:WalkToRun()
-      elseif (self.mInput:InputSneak()) then return self:WalkToSneak() end
+      if (self.mInput:InputRun()) then
+        if self:FrameIs(5+1) then return self:WalkToRun() else return self:WalkToRun2() end
+      elseif (self.mInput:InputSneak()) then 
+        if self:FrameIs(5+1) then return self:WalkToSneak() else return self:WalkToSneak2() end
+      end
     end
   elseif self:FrameIs(2+1) or self:FrameIs(11+1) then
     if (self:InputSameAsDirection() == false) then 
@@ -233,10 +236,7 @@ end
 function Abe:StandToWalk()
   self:SetXSpeed(2.777771)
   self:SetXVelocity(0)
-  print("Set AbeStandToWalk")
-  -- TODO: Need to set XSpeed here, not after this!
   self:SetAndWaitForAnimationComplete("AbeStandToWalk")
-  print("AbeStandToWalk done")
   return self:GoTo(self.Walk)
 end
 
@@ -251,10 +251,20 @@ local game_speak = {
   {"AbeStandSpeak5",     "GAMESPEAK_MUD_SORRY"},
   {"AbeStandSpeak3",     "GAMESPEAK_MUD_NO_SAD"},
 }
+function Abe:GameSpeak(anim, soundEffect)
+  self:SetAndWaitForAnimationComplete("AbeStandSpeak1")
+  PlaySoundEffect(soundEffect)
+  self:SetAndWaitForAnimationComplete(anim)
+  self:SetAnimation("AbeStandIdle")
+end
+
+function Abe:GameSpeakFartStanding()
+  PlaySoundEffect("GAMESPEAK_MUD_FART")
+  self:SetAndWaitForAnimationComplete("AbeStandSpeak5")
+  self:SetAnimation("AbeStandIdle")
+end
 
 function Abe:Stand()
-  --self:SetXSpeed(0)
-  --self:SetXVelocity(0)
   if (self:InputSameAsDirection()) then 
     if self.mInput:InputRun() then 
       return self:StandToRun()
@@ -280,6 +290,8 @@ function Abe:Stand()
     self:GameSpeak("AbeStandSpeak5",     "GAMESPEAK_MUD_SORRY")
   elseif (self.mInput:InputGameSpeak8()) then 
     self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_NO_SAD")   -- Actually "Stop it"
+  elseif (self.mInput:InputRollOrFart()) then
+    self:GameSpeakFartStanding()
   end
 end
 
