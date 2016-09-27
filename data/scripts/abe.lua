@@ -36,6 +36,16 @@ end
 function Abe:SetAndWaitForAnimationFrame(anim, frame) self:SetAndWaitForAnimationCompleteCb(anim, nil, frame) end
 function Abe:SetAndWaitForAnimationComplete(anim) self:SetAndWaitForAnimationCompleteCb(anim, nil, -1) end
 
+function Abe:ToStandCommon(anim) 
+  self:SetXSpeed(2.777771)
+  self:SetXVelocity(0)
+  self:SetAndWaitForAnimationCompleteCb(anim, function() 
+    if self:FrameIs(2) then PlaySoundEffect("MOVEMENT_MUD_STEP") end
+  end, -1) 
+  --self:SnapToGrid()
+  return self:GoTo(self.Stand)
+end
+
 function Abe:ToStand() return self:ToStandCommon("AbeWalkToStand") end
 function Abe:ToStand2() return self:ToStandCommon("AbeWalkToStandMidGrid") end
 
@@ -126,20 +136,11 @@ end
 function Abe:RunToWalk() return self:RunToWalkCommon("AbeRunningToWalk") end
 function Abe:RunToWalk2() return self:RunToWalkCommon("AbeRunningToWalkingMidGrid") end
 
-function Abe:StandToSneakCommon(anim)
+function Abe:StandToSneak() 
   self:SetXSpeed(2.5)
-  self:SetAndWaitForAnimationComplete(anim)
+  self:SetAndWaitForAnimationComplete("AbeStandToSneak")
   return self:GoTo(self.Sneak)
 end
-
-function Abe:StandToSneak() return self:GoTo(self.Sneak) end
-function Abe:StandToSneak2() return self:StandToSneakCommon("AbeStandToSneakMidGrid") end
-
-function Abe:AbeSneakToStand()
-  self:SetAndWaitForAnimationComplete("AbeSneakToStand")
-  return self:GoTo(self.Stand)
-end
-
 
 function Abe:Sneak()
   if (self:InputSameAsDirection()) then
@@ -152,27 +153,26 @@ function Abe:Sneak()
     end
   else
     if self:FrameIs(3+1) or self:FrameIs(13+1) then
-      -- TODO: Alt anim?
-      if self:FrameIs(3+1) then return self:AbeSneakToStand() else return self:StandToSneak2() end
+      if self:FrameIs(3+1) then return self:AbeSneakToStand() else return self:AbeSneakToStand2() end
     end
   end
 end
 
+function Abe:AbeSneakToStandCommon(anim)
+    self:SetAndWaitForAnimationComplete(anim)
+    return self:GoTo(self.Stand)
+end
+
+function Abe:AbeSneakToStand() return self:AbeSneakToStandCommon("AbeSneakToStand") end
+function Abe:AbeSneakToStand2() return self:AbeSneakToStandCommon("AbeSneakToStandMidGrid") end
 
 function Abe:SneakToWalkCommon(anim)
-  self:SetAndWaitForAnimationComplete("AbeSneakingToWalking")
+  self:SetAndWaitForAnimationComplete(anim)
   return self:GoTo(self.Walk)
 end
 
 function Abe:SneakToWalk() return self:SneakToWalkCommon("AbeSneakingToWalking") end
 function Abe:SneakToWalk2() return self:SneakToWalkCommon("AbeSneakingToWalkingMidGrid") end
-
-function Abe:TurnAround() 
-  PlaySoundEffect("GRAVEL_SMALL") -- TODO: Add to json
-  self:SetAndWaitForAnimationComplete('AbeStandTurnAround') 
-  self:FlipXDirection()
-  return self:GoTo(self.Stand) 
-end
 
 function Abe:ApplyMovement()
   if self.mXSpeed > 0 then
@@ -224,16 +224,6 @@ function Abe:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
     end
     coroutine.yield()
   end
-end
-
-function Abe:ToStandCommon(anim) 
-  self:SetXSpeed(2.777771)
-  self:SetXVelocity(0)
-  self:SetAndWaitForAnimationCompleteCb(anim, function() 
-    if self:FrameIs(2) then PlaySoundEffect("MOVEMENT_MUD_STEP") end
-  end, -1) 
-  --self:SnapToGrid()
-  return self:GoTo(self.Stand)
 end
 
 function Abe:GoTo(func)
@@ -290,23 +280,43 @@ function Abe:CrouchToStand()
   return self:GoTo(self.Stand)
 end
 
+function Abe:StandTurnAround() 
+  PlaySoundEffect("GRAVEL_SMALL") -- TODO: Add to json
+  self:SetAndWaitForAnimationComplete('AbeStandTurnAround') 
+  self:FlipXDirection()
+  return self:GoTo(self.Stand) 
+end
+
+function Abe:CrouchStand() 
+  self:SetAndWaitForAnimationComplete('AbeCrouchTurnAround') 
+  self:FlipXDirection()
+  return self:GoTo(self.Crouch) 
+end
+
+--AbeCrouchStand
+
 function Abe:Crouch()
-  print("TODO: Crouch")
-  if (self.mInput:InputUp()) then
+  if self.mInput:InputUp() then
     return self:CrouchToStand()
+  elseif self:InputSameAsDirection() then 
+    -- roll
+  elseif self:InputNotSameAsDirection() then
+    return self:CrouchStand()
   end
+  -- TODO: Crouching game speak
+  -- TODO: Crouching object pick up
 end
 
 function Abe:Stand()
   if (self:InputSameAsDirection()) then 
     if self.mInput:InputRun() then 
       return self:StandToRun()
-    elseif self.mInput:InputSneak() then 
+    elseif self.mInput:InputSneak() then
       return self:StandToSneak()
     else 
       return self:StandToWalk() end
   elseif (self:InputNotSameAsDirection()) then 
-    return self:TurnAround()
+    return self:StandTurnAround()
   elseif (self.mInput:InputDown()) then
       return self:StandToCrouch()
   elseif (self.mInput:InputGameSpeak1()) then 
