@@ -126,30 +126,46 @@ end
 function Abe:RunToWalk() return self:RunToWalkCommon("AbeRunningToWalk") end
 function Abe:RunToWalk2() return self:RunToWalkCommon("AbeRunningToWalkingMidGrid") end
 
-function Abe:StandToSneak()
-  print("TODO: StandToSneak")
+function Abe:StandToSneakCommon(anim)
+  self:SetXSpeed(2.5)
+  self:SetAndWaitForAnimationComplete(anim)
   return self:GoTo(self.Sneak)
 end
 
-function Abe:Sneak()
-  print("TODO Sneak")
-  --self:SetAnimation("AbeSneaking")
-  --if (self:InputNotSameAsDirection()) then self:TurnAround() end
-  --if (self.mInput:InputSameAsDirection()) then
-  --  if (self.mInput:InputSneak() == false) then self:SneakToWalk() end
-  --else
-  --  self:ToStand()
-  --end
+function Abe:StandToSneak() return self:GoTo(self.Sneak) end
+function Abe:StandToSneak2() return self:StandToSneakCommon("AbeStandToSneakMidGrid") end
+
+function Abe:AbeSneakToStand()
+  self:SetAndWaitForAnimationComplete("AbeSneakToStand")
+  return self:GoTo(self.Stand)
 end
 
-function Abe:SneakToWalk()
-  print("TODO: SneakToWalk")
-  --self:SetXSpeed(2.7)
-  --self:SetXVelocity(0)
-  -- TODO: Can also be AbeSneakingToWalkingMidGrid
+
+function Abe:Sneak()
+  if (self:InputSameAsDirection()) then
+    if self:FrameIs(6+1) or self:FrameIs(16+1) then
+      self:SnapToGrid()
+      PlaySoundEffect("MOVEMENT_MUD_STEP") 
+      if self.mInput:InputSneak() == false then
+        if self:FrameIs(6+1) then return self:SneakToWalk() else return self:SneakToWalk2() end
+      end
+    end
+  else
+    if self:FrameIs(3+1) or self:FrameIs(13+1) then
+      -- TODO: Alt anim?
+      if self:FrameIs(3+1) then return self:AbeSneakToStand() else return self:StandToSneak2() end
+    end
+  end
+end
+
+
+function Abe:SneakToWalkCommon(anim)
   self:SetAndWaitForAnimationComplete("AbeSneakingToWalking")
   return self:GoTo(self.Walk)
 end
+
+function Abe:SneakToWalk() return self:SneakToWalkCommon("AbeSneakingToWalking") end
+function Abe:SneakToWalk2() return self:SneakToWalkCommon("AbeSneakingToWalkingMidGrid") end
 
 function Abe:TurnAround() 
   PlaySoundEffect("GRAVEL_SMALL") -- TODO: Add to json
@@ -264,6 +280,23 @@ function Abe:GameSpeakFartStanding()
   self:SetAnimation("AbeStandIdle")
 end
 
+function Abe:StandToCrouch()
+  self:SetAndWaitForAnimationComplete("AbeStandToCrouch")
+  return self:GoTo(self.Crouch)
+end
+
+function Abe:CrouchToStand()
+  self:SetAndWaitForAnimationComplete("AbeCrouchToStand")
+  return self:GoTo(self.Stand)
+end
+
+function Abe:Crouch()
+  print("TODO: Crouch")
+  if (self.mInput:InputUp()) then
+    return self:CrouchToStand()
+  end
+end
+
 function Abe:Stand()
   if (self:InputSameAsDirection()) then 
     if self.mInput:InputRun() then 
@@ -274,6 +307,8 @@ function Abe:Stand()
       return self:StandToWalk() end
   elseif (self:InputNotSameAsDirection()) then 
     return self:TurnAround()
+  elseif (self.mInput:InputDown()) then
+      return self:StandToCrouch()
   elseif (self.mInput:InputGameSpeak1()) then 
     self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_HELLO")
   elseif (self.mInput:InputGameSpeak2()) then 
@@ -335,19 +370,24 @@ function Abe:Update()
 end
 
 function Abe.create()
-   local ret = {}
-   setmetatable(ret, Abe)
-   ret.mNextFunction = ret.Stand
-   ret.mLastAnimationName = ""
-   ret.mXSpeed = 0
-   ret.mXVelocity = 0
-   ret.mAnimChanged = false
-   ret.mAnims = {}
-   ret.mAnims[Abe.Stand] = { name = "AbeStandIdle", xspeed = 0, xvel = 0}
-   ret.mAnims[Abe.Walk] = { name = "AbeWalking", xspeed = 2.777771, xvel = 0}
-   ret.mAnims[Abe.Run] = { name = "AbeRunning", xspeed = 6.25, xvel = 0}
-   ret.mThread = coroutine.create(ret.CoRoutineProc)
-   return ret
+  local ret = {}
+  setmetatable(ret, Abe)
+  ret.mNextFunction = ret.Stand
+  ret.mLastAnimationName = ""
+  ret.mXSpeed = 0
+  ret.mXVelocity = 0
+  ret.mAnimChanged = false
+  ret.mAnims = {}
+  ret.mAnims[Abe.Stand] = { name = "AbeStandIdle", xspeed = 0, xvel = 0}
+  ret.mAnims[Abe.Walk] = { name = "AbeWalking", xspeed = 2.777771, xvel = 0}
+  ret.mAnims[Abe.Run] = { name = "AbeRunning", xspeed = 6.25, xvel = 0}
+  ret.mAnims[Abe.Crouch] = { name = "AbeCrouchIdle", xspeed = 0, xvel = 0}
+  ret.mAnims[Abe.Sneak] = { name = "AbeSneaking", xspeed = 2.5, xvel = 0}
+
+   
+   
+  ret.mThread = coroutine.create(ret.CoRoutineProc)
+  return ret
 end
 
 local function Abe_Debug()
