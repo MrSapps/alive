@@ -246,30 +246,6 @@ function Abe:StandToWalk()
   return self:GoTo(self.Walk)
 end
 
--- TODO: Change to using this table
-local game_speak = {
-  {"AbeStandSpeak2",     "GAMESPEAK_MUD_HELLO"},
-  {"AbeStandSpeak3",     "GAMESPEAK_MUD_FOLLOWME"},
-  {"AbeStandingSpeak4",  "GAMESPEAK_MUD_WAIT"},
-  {"AbeStandingSpeak4",  "GAMESPEAK_MUD_ANGRY"},
-  {"AbeStandingSpeak4",  "GAMESPEAK_MUD_WORK"},
-  {"AbeStandSpeak2",     "GAMESPEAK_MUD_ALLYA"},
-  {"AbeStandSpeak5",     "GAMESPEAK_MUD_SORRY"},
-  {"AbeStandSpeak3",     "GAMESPEAK_MUD_NO_SAD"},
-}
-function Abe:GameSpeak(anim, soundEffect)
-  self:SetAndWaitForAnimationComplete("AbeStandSpeak1")
-  PlaySoundEffect(soundEffect)
-  self:SetAndWaitForAnimationComplete(anim)
-  self:SetAnimation("AbeStandIdle")
-end
-
-function Abe:GameSpeakFartStanding()
-  PlaySoundEffect("GAMESPEAK_MUD_FART")
-  self:SetAndWaitForAnimationComplete("AbeStandSpeak5")
-  self:SetAnimation("AbeStandIdle")
-end
-
 function Abe:StandToCrouch()
   self:SetAndWaitForAnimationComplete("AbeStandToCrouch")
   return self:GoTo(self.Crouch)
@@ -316,6 +292,57 @@ function Abe:Roll()
   end
 end
 
+local game_speak = 
+{
+  { Actions.InputGameSpeak1, { "AbeStandSpeak2",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_HELLO"},
+  { Actions.InputGameSpeak2, { "AbeStandSpeak3",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_FOLLOWME"},
+  { Actions.InputGameSpeak3, { "AbeStandingSpeak4", "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_WAIT"},
+  { Actions.InputGameSpeak4, { "AbeStandingSpeak4", "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_ANGRY"},
+  { Actions.InputGameSpeak5, { "AbeStandingSpeak4", "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_WORK"},
+  { Actions.InputGameSpeak6, { "AbeStandSpeak2",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_ALLYA"},
+  { Actions.InputGameSpeak7, { "AbeStandSpeak5",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_SORRY"},
+  { Actions.InputGameSpeak8, { "AbeStandSpeak3",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_NO_SAD"},  -- TODO: actually "Stop it"
+}
+
+function Abe:HandleGameSpeak(standing)
+  local numGameSpeaks = #game_speak
+  for i = 1, numGameSpeaks do
+    local item = game_speak[i]
+      if item[1](self.mInput) then
+        if standing == 1 then
+          self:GameSpeakStanding(item[2][standing], item[3])
+        else
+          self:GameSpeakCrouching(item[2][standing], item[3])
+        end
+        return
+      end
+  end
+end
+
+function Abe:GameSpeakStanding(anim, soundEffect)
+  self:SetAndWaitForAnimationComplete("AbeStandSpeak1")
+  PlaySoundEffect(soundEffect)
+  self:SetAndWaitForAnimationComplete(anim)
+  self:SetAnimation("AbeStandIdle")
+end
+
+function Abe:GameSpeakFartStanding()
+  PlaySoundEffect("GAMESPEAK_MUD_FART")
+  self:SetAndWaitForAnimationComplete("AbeStandSpeak5")
+  self:SetAnimation("AbeStandIdle")
+end
+
+function Abe:GameSpeakCrouching(anim, soundEffect)
+  PlaySoundEffect(soundEffect)
+  self:SetAndWaitForAnimationComplete(anim)
+  self:SetAnimation("AbeCrouchIdle")
+end
+
+function Abe:GameSpeakFartCrouching(anim, soundEffect)
+  self:GameSpeakCrouching("AbeCrouchSpeak1", "GAMESPEAK_MUD_FART")
+  self:SetAnimation("AbeCrouchIdle")
+end
+
 function Abe:Crouch()
   if self.mInput:InputUp() then
     return self:CrouchToStand()
@@ -323,8 +350,11 @@ function Abe:Crouch()
     return self:CrouchToRoll()
   elseif self:InputNotSameAsDirection() then
     return self:CrouchStand()
+  elseif (self.mInput:InputRollOrFart()) then
+    self:GameSpeakFartCrouching()
+  else
+    self:HandleGameSpeak(2)
   end
-  -- TODO: Crouching game speak
   -- TODO: Crouching object pick up
 end
 
@@ -340,24 +370,10 @@ function Abe:Stand()
     return self:StandTurnAround()
   elseif (self.mInput:InputDown()) then
       return self:StandToCrouch()
-  elseif (self.mInput:InputGameSpeak1()) then 
-    self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_HELLO")
-  elseif (self.mInput:InputGameSpeak2()) then 
-    self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_FOLLOWME")
-  elseif (self.mInput:InputGameSpeak3()) then 
-    self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_WAIT")
-  elseif (self.mInput:InputGameSpeak4()) then 
-    self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_ANGRY")
-  elseif (self.mInput:InputGameSpeak5()) then 
-    self:GameSpeak("AbeStandingSpeak4",  "GAMESPEAK_MUD_WORK")
-  elseif (self.mInput:InputGameSpeak6()) then 
-    self:GameSpeak("AbeStandSpeak2",     "GAMESPEAK_MUD_ALLYA")
-  elseif (self.mInput:InputGameSpeak7()) then 
-    self:GameSpeak("AbeStandSpeak5",     "GAMESPEAK_MUD_SORRY")
-  elseif (self.mInput:InputGameSpeak8()) then 
-    self:GameSpeak("AbeStandSpeak3",     "GAMESPEAK_MUD_NO_SAD")   -- Actually "Stop it"
   elseif (self.mInput:InputRollOrFart()) then
     self:GameSpeakFartStanding()
+  else
+    self:HandleGameSpeak(1)
   end
 end
 
@@ -407,17 +423,14 @@ function Abe.create()
   ret.mLastAnimationName = ""
   ret.mXSpeed = 0
   ret.mXVelocity = 0
-  ret.mAnimChanged = false
   ret.mAnims = {}
-  ret.mAnims[Abe.Stand] = { name = "AbeStandIdle", xspeed = 0, xvel = 0}
-  ret.mAnims[Abe.Walk] = { name = "AbeWalking", xspeed = 2.777771, xvel = 0}
-  ret.mAnims[Abe.Run] = { name = "AbeRunning", xspeed = 6.25, xvel = 0}
-  ret.mAnims[Abe.Crouch] = { name = "AbeCrouchIdle", xspeed = 0, xvel = 0}
-  ret.mAnims[Abe.Sneak] = { name = "AbeSneaking", xspeed = 2.5, xvel = 0}
-  ret.mAnims[Abe.Roll] = { name = "AbeRolling", xspeed = 6.25, xvel = 0}
+  ret.mAnims[Abe.Stand] =   { name = "AbeStandIdle",    xspeed = 0,           xvel = 0 }
+  ret.mAnims[Abe.Walk] =    { name = "AbeWalking",      xspeed = 2.777771,    xvel = 0 }
+  ret.mAnims[Abe.Run] =     { name = "AbeRunning",      xspeed = 6.25,        xvel = 0 }
+  ret.mAnims[Abe.Crouch] =  { name = "AbeCrouchIdle",   xspeed = 0,           xvel = 0 }
+  ret.mAnims[Abe.Sneak] =   { name = "AbeSneaking",     xspeed = 2.5,         xvel = 0 }
+  ret.mAnims[Abe.Roll] =    { name = "AbeRolling",      xspeed = 6.25,        xvel = 0 }
 
-   
-   
   ret.mThread = coroutine.create(ret.CoRoutineProc)
   return ret
 end
@@ -429,12 +442,7 @@ local function Abe_Debug()
   a.mApi.mYPos = 0
   a.mApi.SetAnimation = function(anim) print("Fake set animation: " .. anim) end
    
-  a:GoTo(a.Stand)
-  a:GoTo(a.Walk)
-    
-  while true do
-    a:Update()
-  end
+  a:Test()
 end
 
 -- Use when testing logic outside of the engine
