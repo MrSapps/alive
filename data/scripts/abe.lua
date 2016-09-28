@@ -33,6 +33,7 @@ function Abe:SetAndWaitForAnimationCompleteCb(anim, frameCallBackFunc, frame)
   self:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
 end
 
+function Abe:SetAndWaitForAnimationFrameCb(anim, frame, cb) self:SetAndWaitForAnimationCompleteCb(anim, cb, frame) end
 function Abe:SetAndWaitForAnimationFrame(anim, frame) self:SetAndWaitForAnimationCompleteCb(anim, nil, frame) end
 function Abe:SetAndWaitForAnimationComplete(anim) self:SetAndWaitForAnimationCompleteCb(anim, nil, -1) end
 
@@ -74,8 +75,30 @@ function Abe:StandToRun()
   return self:GoTo(self.Run)
 end
 
-function Abe:RunToSkidTurn()
-  print("TODO: RunToSkidTurn")
+-- TODO: Fix issue with skid turn/stop grid snapping jumping
+-- to wrong grid block
+function Abe:RunToSkidTurnAround()
+  self:SetXSpeed(6.25)
+  self:SetXVelocity(0.375)
+  self:SetAndWaitForAnimationFrameCb('AbeRunningToSkidTurn', 15, 
+    function()
+      if self:FrameIs(14) then
+        print("Handle last frame of AbeRunningToSkidTurn")
+        self:SetXVelocity(0)
+        self:SnapToGrid()
+      end
+    end) 
+  
+
+  -- TODO: Also have AbeRunningTurnAroundToWalk if run no longer held
+  -- TODO: Handle AbeStandTurnAroundToRunning
+  
+  self:SetXSpeed(6.25)
+  self:SetXVelocity(0)
+  self:SetAndWaitForAnimationComplete("AbeRunningTurnAround")
+  self:FlipXDirection()
+  
+  return self:GoTo(self.Run)
 end
 
 function Abe:RunToRoll()
@@ -102,7 +125,7 @@ function Abe:Run()
   if self:FrameIs(4+1) or self:FrameIs(12+1) then
     self:SnapToGrid()
     if self:InputNotSameAsDirection() then 
-      return self:RunToSkidTurn()
+      return self:RunToSkidTurnAround()
     elseif self:InputSameAsDirection() then
       PlaySoundEffect("MOVEMENT_MUD_STEP") -- TODO: Always play fx?
       if self.mInput:InputRun() == false then 
@@ -120,9 +143,14 @@ end
 
 function Abe:RunToSkidStop()
   self:SetXVelocity(0.375)
-  self:SetAndWaitForAnimationFrame('AbeRunningSkidStop', 15)
-  --self:SetAndWaitForAnimationComplete("AbeRunningSkidStop")
-  self:SnapToGrid()
+  self:SetAndWaitForAnimationFrameCb('AbeRunningSkidStop', 15, 
+    function()
+      if self:FrameIs(14) then
+        print("Handle last frame of AbeRunningSkidStop")
+        self:SetXVelocity(0)
+        self:SnapToGrid()
+      end
+  end) 
   return self:GoTo(self.Stand)
 end
 

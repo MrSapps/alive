@@ -362,7 +362,9 @@ void MapObject::SnapToGrid()
 {
     //25x20 grid hack
 
-    mXPos = (glm::round((mXPos + 12.5f) / 25) * 25) - 12.5f;
+    const float newX = (glm::round((mXPos + 12.5f) / 25) * 25) - 12.5f;
+    LOG_INFO("SnapX: " << mXPos << " to " << newX);
+    mXPos = newX;
 }
 
 // ============================================
