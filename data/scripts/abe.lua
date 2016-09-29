@@ -75,8 +75,6 @@ function Abe:StandToRun()
   return self:GoTo(self.Run)
 end
 
--- TODO: Fix issue with skid turn/stop grid snapping jumping
--- to wrong grid block
 function Abe:RunToSkidTurnAround()
   self:SetXSpeed(6.25)
   self:SetXVelocity(0.375)
@@ -89,7 +87,6 @@ function Abe:RunToSkidTurnAround()
       end
     end) 
   
-
   -- TODO: Also have AbeRunningTurnAroundToWalk if run no longer held
   -- TODO: Handle AbeStandTurnAroundToRunning
   
@@ -107,7 +104,10 @@ function Abe:RunToSkidTurnAround()
 end
 
 function Abe:RunToRoll()
-  print("TODO: RunToRoll")
+  self:SetXVelocity(0)
+  self:SetXSpeed(6.25)
+  self:SetAndWaitForAnimationComplete("AbeRunningToRoll")
+  return self:GoTo(self.Roll)
 end
 
 function Abe:RunToJump()
@@ -126,7 +126,7 @@ function Abe:Run()
   
   if self:FrameIs(0+1) or self:FrameIs(8+1) then
     self:SnapToGrid()
-    if self:InputSameAsDirection() and self.mInput:InputRun() and self.mInput:InputJump() then
+    if self:InputSameAsDirection() and self.mInput:InputRun() and self.mInput:InputJumpPressed() then
       return self:RunToJump()
     end
   end
@@ -139,9 +139,9 @@ function Abe:Run()
       PlaySoundEffect("MOVEMENT_MUD_STEP") -- TODO: Always play fx?
       if self.mInput:InputRun() == false then 
         if self:FrameIs(4+1) then return self:RunToWalk() else return self:RunToWalk2() end
-      elseif self.mInput:InputJump() then
+      elseif self.mInput:InputJumpPressed() then
         return self:RunToJump()
-      elseif self.mInput:InputRollOrFart() then
+      elseif self.mInput:InputRollOrFartPressed() then
         return self:RunToRoll()
       end
     else
@@ -326,12 +326,19 @@ function Abe:Roll()
     PlaySoundEffect("MOVEMENT_MUD_STEP")
   end
   
-  -- TODO: Handle RollToRun when run pressed
-  -- TODO: Handle RollToWalk when roll pressed (or skip because I've never used it and it seems buggy?)
-  
   if self:FrameIs(0+1) or self:FrameIs(4+1) or self:FrameIs(8+1) then
+    if self:InputSameAsDirection() then
+      if self.mInput:InputRunPressed() then
+        -- TODO: Fix InputRunPressed and the likes, will be missed if pressed between frames
+        -- TODO: Or AbeStandToRun if roll button is pressed
+        return self:StandToRun()
+      end
+    else
+      return self:GoTo(self.Crouch)
+    end
+  elseif self:FrameIs(1+1) or self:FrameIs(5+1) or self:FrameIs(9+1) then
     self:SnapToGrid()
-    if self:InputSameAsDirection() == false then 
+    if self:InputSameAsDirection() == false then
       return self:GoTo(self.Crouch)
     end
   end
@@ -339,14 +346,14 @@ end
 
 local game_speak = 
 {
-  { Actions.InputGameSpeak1, { "AbeStandSpeak2",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_HELLO"},
-  { Actions.InputGameSpeak2, { "AbeStandSpeak3",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_FOLLOWME"},
-  { Actions.InputGameSpeak3, { "AbeStandingSpeak4", "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_WAIT"},
-  { Actions.InputGameSpeak4, { "AbeStandingSpeak4", "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_ANGRY"},
-  { Actions.InputGameSpeak5, { "AbeStandingSpeak4", "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_WORK"},
-  { Actions.InputGameSpeak6, { "AbeStandSpeak2",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_ALLYA"},
-  { Actions.InputGameSpeak7, { "AbeStandSpeak5",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_SORRY"},
-  { Actions.InputGameSpeak8, { "AbeStandSpeak3",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_NO_SAD"},  -- TODO: actually "Stop it"
+  { Actions.InputGameSpeak1Pressed, { "AbeStandSpeak2",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_HELLO"},
+  { Actions.InputGameSpeak2Pressed, { "AbeStandSpeak3",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_FOLLOWME"},
+  { Actions.InputGameSpeak3Pressed, { "AbeStandingSpeak4", "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_WAIT"},
+  { Actions.InputGameSpeak4Pressed, { "AbeStandingSpeak4", "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_ANGRY"},
+  { Actions.InputGameSpeak5Pressed, { "AbeStandingSpeak4", "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_WORK"},
+  { Actions.InputGameSpeak6Pressed, { "AbeStandSpeak2",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_ALLYA"},
+  { Actions.InputGameSpeak7Pressed, { "AbeStandSpeak5",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_SORRY"},
+  { Actions.InputGameSpeak8Pressed, { "AbeStandSpeak3",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_NO_SAD"},  -- TODO: actually "Stop it"
 }
 
 function Abe:HandleGameSpeak(standing)
@@ -384,7 +391,7 @@ function Abe:GameSpeakCrouching(anim, soundEffect)
   self:SetAnimation("AbeCrouchIdle")
 end
 
-function Abe:GameSpeakFartCrouching(anim, soundEffect)
+function Abe:GameSpeakFartCrouching()
   self:GameSpeakCrouching("AbeCrouchSpeak1", "GAMESPEAK_MUD_FART")
   self:SetAnimation("AbeCrouchIdle")
 end
@@ -398,7 +405,7 @@ function Abe:Crouch()
     return self:CrouchStand()
   elseif self:HandleGameSpeak(2) then
     -- stay in this state
-  elseif self.mInput:InputRollOrFart() then
+  elseif self.mInput:InputRollOrFartPressed() then
     self:GameSpeakFartCrouching()
   end
   -- TODO: Crouching object pick up
@@ -418,7 +425,7 @@ function Abe:Stand()
     return self:StandToCrouch()
   elseif self:HandleGameSpeak(1) then
     -- stay in this state
-  elseif self.mInput:InputRollOrFart() then
+  elseif self.mInput:InputRollOrFartPressed() then
     self:GameSpeakFartStanding()
   end
 end
@@ -427,11 +434,12 @@ function Abe:Exec()
   while true do
     while true do
       self:SetAnimation(self.mData.Animation)
-      if self.mApi:AnimUpdate() then
-        if self.mData.mFunc(self) then
-          --self:ApplyMovement()
-          break 
-        end
+      local frameChanged = self.mApi:AnimUpdate()
+      if self.mData.mFunc(self) then
+        --self:ApplyMovement()
+        break 
+      end
+      if frameChanged then
         self:ApplyMovement()
       end
       coroutine.yield()

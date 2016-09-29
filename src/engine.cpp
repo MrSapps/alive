@@ -188,7 +188,28 @@ void InputMapping::Update(const InputState& input)
         "InputGameSpeak6", &Actions::InputGameSpeak6,
         "InputGameSpeak7", &Actions::InputGameSpeak7,
         "InputGameSpeak8", &Actions::InputGameSpeak8,
-        "InputBack", &Actions::InputBack);
+        "InputBack", &Actions::InputBack,
+        "InputLeftPressed", &Actions::InputLeftPressed,
+        "InputRightPressed", &Actions::InputRightPressed,
+        "InputUpPressed", &Actions::InputUpPressed,
+        "InputDownPressed", &Actions::InputDownPressed,
+        "InputChantPressed", &Actions::InputChantPressed,
+        "InputRunPressed", &Actions::InputRunPressed,
+        "InputSneakPressed", &Actions::InputSneakPressed,
+        "InputJumpPressed", &Actions::InputJumpPressed,
+        "InputThrowPressed", &Actions::InputThrowPressed,
+        "InputActionPressed", &Actions::InputActionPressed,
+        "InputRollOrFartPressed", &Actions::InputRollOrFartPressed,
+        "InputGameSpeak1Pressed", &Actions::InputGameSpeak1Pressed,
+        "InputGameSpeak2Pressed", &Actions::InputGameSpeak2Pressed,
+        "InputGameSpeak3Pressed", &Actions::InputGameSpeak3Pressed,
+        "InputGameSpeak4Pressed", &Actions::InputGameSpeak4Pressed,
+        "InputGameSpeak5Pressed", &Actions::InputGameSpeak5Pressed,
+        "InputGameSpeak6Pressed", &Actions::InputGameSpeak6Pressed,
+        "InputGameSpeak7Pressed", &Actions::InputGameSpeak7Pressed,
+        "InputGameSpeak8Pressed", &Actions::InputGameSpeak8Pressed,
+        "InputBackPressed", &Actions::InputBackPressed
+        );
 }
 
 Engine::Engine()

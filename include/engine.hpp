@@ -133,6 +133,27 @@ class Actions
 {
 public:
     Actions() = default;
+    bool InputLeftPressed() const { return mActions[Left].mIsPressed; }
+    bool InputRightPressed() const { return mActions[Right].mIsPressed; }
+    bool InputUpPressed() const { return mActions[Up].mIsPressed; }
+    bool InputDownPressed() const { return mActions[Down].mIsPressed; }
+    bool InputChantPressed() const { return mActions[Chant].mIsPressed; }
+    bool InputRunPressed() const { return mActions[Run].mIsPressed; }
+    bool InputSneakPressed() const { return mActions[Sneak].mIsPressed; }
+    bool InputJumpPressed() const { return mActions[Jump].mIsPressed; }
+    bool InputThrowPressed() const { return mActions[Throw].mIsPressed; }
+    bool InputActionPressed() const { return mActions[Action].mIsPressed; }
+    bool InputRollOrFartPressed() const { return mActions[RollOrFart].mIsPressed; }
+    bool InputGameSpeak1Pressed() const { return mActions[GameSpeak1].mIsPressed; }
+    bool InputGameSpeak2Pressed() const { return mActions[GameSpeak2].mIsPressed; }
+    bool InputGameSpeak3Pressed() const { return mActions[GameSpeak3].mIsPressed; }
+    bool InputGameSpeak4Pressed() const { return mActions[GameSpeak4].mIsPressed; }
+    bool InputGameSpeak5Pressed() const { return mActions[GameSpeak5].mIsPressed; }
+    bool InputGameSpeak6Pressed() const { return mActions[GameSpeak6].mIsPressed; }
+    bool InputGameSpeak7Pressed() const { return mActions[GameSpeak7].mIsPressed; }
+    bool InputGameSpeak8Pressed() const { return mActions[GameSpeak8].mIsPressed; }
+    bool InputBackPressed() const { return mActions[Back].mIsPressed; }
+
     bool InputLeft() const { return mActions[Left].mIsDown; }
     bool InputRight() const { return mActions[Right].mIsDown; }
     bool InputUp() const { return mActions[Up].mIsDown; }

@@ -231,6 +231,11 @@ void MapObject::Update(const InputState& input)
         return;
     }
 
+    if (input.Mapping().GetActions().InputRollOrFartPressed())
+    {
+        LOG_ERROR("FART NOW!!");
+    }
+
     //if (mAnim)
     {
         sol::protected_function f = mLuaState["update"];
