@@ -361,10 +361,19 @@ bool MapObject::ContainsPoint(s32 x, s32 y) const
 void MapObject::SnapToGrid()
 {
     //25x20 grid hack
+    const float oldX = mXPos;
+    const s32 xpos = static_cast<s32>(mXPos);
+    const s32 gridPos = (xpos - 12) % 25;
+    if (gridPos >= 13)
+    {
+        mXPos = static_cast<float>(xpos - gridPos + 25);
+    }
+    else
+    {
+        mXPos = static_cast<float>(xpos - gridPos);
+    }
 
-    const float newX = (glm::round((mXPos + 12.5f) / 25) * 25) - 12.5f;
-    LOG_INFO("SnapX: " << mXPos << " to " << newX);
-    mXPos = newX;
+    LOG_INFO("SnapX: " << oldX << " to " << mXPos);
 }
 
 // ============================================

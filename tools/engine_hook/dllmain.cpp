@@ -870,6 +870,45 @@ static int __cdecl gdi_draw_hook(DWORD * hdcPtr)
     return Hooks::gdi_draw.Real()(hdcPtr);
 }
 
+int __cdecl AbeSnap_sub_449930_hook(int scale, const signed int xpos)
+{
+    int result = 0;
+    int v3 = 0;
+    int v4 = 0;
+
+    if (scale == 32768)
+    {
+        v4 = (xpos % 375 - 6) % 13;
+        if (v4 >= 7)
+            result = xpos - v4 + 13;
+        else
+            result = xpos - v4;
+    }
+    else
+    {
+        if (scale == 65536)
+        {
+            v3 = (xpos - 12) % 25;
+            if (v3 >= 13)
+                result = xpos - v3 + 25;
+            else
+                result = xpos - v3;
+
+            LOG_INFO("SNAP: " << xpos << " to " << result);
+        }
+        else
+        {
+            result = xpos;
+        }
+    }
+    return result;
+}
+
+namespace Hooks
+{
+    Hook<decltype(&::AbeSnap_sub_449930_hook)> AbeSnap_sub_449930(0x00449930);
+}
+
 void HookMain()
 {
     TRACE_ENTRYEXIT;
@@ -880,6 +919,8 @@ void HookMain()
     Hooks::anim_decode.Install(anim_decode_hook);
     Hooks::get_anim_frame.Install(get_anim_frame_hook);
     Hooks::sub_418930.Install(sub_418930_hook);
+    Hooks::sub_418930.Install(sub_418930_hook);
+    Hooks::AbeSnap_sub_449930.Install(AbeSnap_sub_449930_hook);
 
     SubClassWindow();
     PatchWindowTitle();

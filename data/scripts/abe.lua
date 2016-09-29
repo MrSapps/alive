@@ -95,9 +95,14 @@ function Abe:RunToSkidTurnAround()
   
   self:SetXSpeed(6.25)
   self:SetXVelocity(0)
+
+  -- TODO: Probably better to have a FlipSpriteX and FlipDirectionX instead?
+  self.mInvertX = true
   self:SetAndWaitForAnimationComplete("AbeRunningTurnAround")
+  self.mInvertX = false
   self:FlipXDirection()
-  
+  --self:SnapToGrid()
+ 
   return self:GoTo(self.Run)
 end
 
@@ -111,12 +116,16 @@ end
 
 function Abe:Run()
   if self:FrameIs(0) and self.mApi:AnimationComplete() == false then
-    self:SetXSpeed(12)
+    --self:SetXSpeed(12.5)
+    -- the real game uses 12.5 sometimes depending on the previous state, but 6.25
+    -- seems to always look correct..
+    self:SetXSpeed(6.25)
   else
     self:SetXSpeed(6.25)
   end
   
   if self:FrameIs(0+1) or self:FrameIs(8+1) then
+    self:SnapToGrid()
     if self:InputSameAsDirection() and self.mInput:InputRun() and self.mInput:InputJump() then
       return self:RunToJump()
     end
@@ -206,9 +215,17 @@ function Abe:ApplyMovement()
   if self.mXSpeed > 0 then
     self.mXSpeed = self.mXSpeed - self.mXVelocity
     if self.mApi:FacingLeft() then
-      self.mApi.mXPos = self.mApi.mXPos - self.mXSpeed
+      if self.mInvertX then
+        self.mApi.mXPos = self.mApi.mXPos + self.mXSpeed
+      else
+        self.mApi.mXPos = self.mApi.mXPos - self.mXSpeed
+      end
     else
-      self.mApi.mXPos = self.mApi.mXPos + self.mXSpeed
+      if self.mInvertX then
+        self.mApi.mXPos = self.mApi.mXPos - self.mXSpeed
+      else
+        self.mApi.mXPos = self.mApi.mXPos + self.mXSpeed
+      end
     end
   end
 end
@@ -342,9 +359,10 @@ function Abe:HandleGameSpeak(standing)
         else
           self:GameSpeakCrouching(item[2][standing], item[3])
         end
-        return
+        return true
       end
   end
+  return false
 end
 
 function Abe:GameSpeakStanding(anim, soundEffect)
@@ -378,30 +396,30 @@ function Abe:Crouch()
     return self:CrouchToRoll()
   elseif self:InputNotSameAsDirection() then
     return self:CrouchStand()
-  elseif (self.mInput:InputRollOrFart()) then
+  elseif self:HandleGameSpeak(2) then
+    -- stay in this state
+  elseif self.mInput:InputRollOrFart() then
     self:GameSpeakFartCrouching()
-  else
-    self:HandleGameSpeak(2)
   end
   -- TODO: Crouching object pick up
 end
 
 function Abe:Stand()
-  if (self:InputSameAsDirection()) then 
+  if self:InputSameAsDirection() then 
     if self.mInput:InputRun() then 
       return self:StandToRun()
     elseif self.mInput:InputSneak() then
       return self:StandToSneak()
     else 
       return self:StandToWalk() end
-  elseif (self:InputNotSameAsDirection()) then 
+  elseif self:InputNotSameAsDirection() then 
     return self:StandTurnAround()
-  elseif (self.mInput:InputDown()) then
-      return self:StandToCrouch()
-  elseif (self.mInput:InputRollOrFart()) then
+  elseif self.mInput:InputDown() then
+    return self:StandToCrouch()
+  elseif self:HandleGameSpeak(1) then
+    -- stay in this state
+  elseif self.mInput:InputRollOrFart() then
     self:GameSpeakFartStanding()
-  else
-    self:HandleGameSpeak(1)
   end
 end
 
@@ -449,6 +467,7 @@ function Abe.create()
   setmetatable(ret, Abe)
   ret.mNextFunction = ret.Stand
   ret.mLastAnimationName = ""
+  ret.mInvertX = false
   ret.mXSpeed = 0
   ret.mXVelocity = 0
   ret.mAnims = {}
