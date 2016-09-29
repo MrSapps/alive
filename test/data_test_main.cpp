@@ -656,6 +656,8 @@ int main(int /*argc*/, char** /*argv*/)
         std::vector<std::unique_ptr<DeDuplicatedAnimation>> mDeDuplicatedAnimations;
     public:
         Db() = default;
+        Db(Db&&) = delete;
+        Db& operator = (Db&&) = delete;
 
         void MergeDuplicatedLvlChunks(IFileSystem& fs, eDataSetType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         {

@@ -35,6 +35,12 @@ class FileSystem;
 class AliveAudio : public IAudioPlayer
 {
 public:
+    AliveAudio() = default;
+    AliveAudio(AliveAudio&&) = delete;
+    AliveAudio(const AliveAudio&) = delete;
+    AliveAudio& operator = (const AliveAudio&) = delete;
+    AliveAudio& operator = (AliveAudio&&) = delete;
+
     void NoteOn(int program, int note, char velocity, f64 trackDelay = 0, f64 pitch = 0.0f);
     void NoteOff(int program, int note);
     void NoteOffDelay(int program, int note, f32 trackDelay = 0);

@@ -10,6 +10,7 @@
 #include <windows.h>
 #pragma warning(push)
 #pragma warning(disable:4917)
+#pragma warning(disable:4091) //  'typedef ': ignored on left of 'tagGPFIDL_FLAGS' when no variable is declared 
 #include <shlobj.h>
 #pragma warning(pop)
 #else
@@ -159,8 +160,10 @@ class IFileSystem
 {
 public:
     IFileSystem() = default;
+    IFileSystem(IFileSystem&&) = delete;
     IFileSystem(const IFileSystem&) = delete;
     IFileSystem& operator = (const IFileSystem&) = delete;
+    IFileSystem& operator = (IFileSystem&&) = delete;
 
     virtual ~IFileSystem() = default;
     
@@ -256,6 +259,9 @@ private:
         return name == "." || name == "..";
     }
 public:
+    OSBaseFileSystem() = default;
+    OSBaseFileSystem(OSBaseFileSystem&&) = delete;
+    OSBaseFileSystem& operator = (OSBaseFileSystem&&) = delete;
 
     virtual bool Init() override
     {
@@ -425,6 +431,10 @@ public:
 class GameFileSystem : public OSBaseFileSystem
 {
 public:
+    GameFileSystem() = default;
+    GameFileSystem(GameFileSystem&&) = delete;
+    GameFileSystem& operator = (GameFileSystem&&) = delete;
+
     virtual bool Init() override final
     {
         auto basePath = InitBasePath();
@@ -541,6 +551,9 @@ private:
 class DirectoryLimitedFileSystem : public IFileSystem
 {
 public:
+    DirectoryLimitedFileSystem(DirectoryLimitedFileSystem&&) = delete;
+    DirectoryLimitedFileSystem& operator = (DirectoryLimitedFileSystem&&) = delete;
+
     DirectoryLimitedFileSystem(IFileSystem& fs, const std::string& directory)
         : mFs(fs)
     {

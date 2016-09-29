@@ -249,6 +249,9 @@ protected:
 
     }
 public:
+    MovMovie(MovMovie&&) = delete;
+    MovMovie& operator = (MovMovie&&) = delete;
+
     MovMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles, u32 startSector, u32 numberOfSectors)
         : IMovie(resourceName, audioController, std::move(subtitles))
     {
@@ -437,6 +440,8 @@ private:
 class DDVMovie : public MovMovie
 {
 public:
+    DDVMovie(DDVMovie&&) = delete;
+    DDVMovie& operator = (DDVMovie&&) = delete;
     DDVMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles)
         : MovMovie(resourceName, audioController, std::move(subtitles))
     {

@@ -5,6 +5,8 @@
 class GameSelectionScreen : public IState
 {
 public:
+    GameSelectionScreen(GameSelectionScreen&&) = delete;
+    GameSelectionScreen& operator = (GameSelectionScreen&&) = delete;
     GameSelectionScreen(StateMachine& stateMachine,
             const std::vector<GameDefinition>& gameDefinitions,
             GuiContext* gui,
@@ -29,7 +31,6 @@ public:
     virtual void EnterState() override;
     virtual void ExitState() override;
 private:
-    void FilterGameDefinitions();
 
     void RenderSelectGame();
     void RenderFindDataSets();

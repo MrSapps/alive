@@ -414,12 +414,15 @@ to_vec(${samples_dir}/ae_ddv/video_only/all_colours_max_compression_30_fps.ddv a
 to_vec(${samples_dir}/ae_ddv/video_only/all_colours_medium_compression_30_fps.ddv all_colours_medium_compression_30_fps.ddv)
 to_vec(${samples_dir}/ae_ddv/video_only/all_colours_min_compression_30_fps.ddv all_colours_min_compression_30_fps.ddv)
 
-add_executable(Tests 
+SET(test_src
     test/main.cpp
     test/resource_locator_test.cpp
     test/zip_fs_tests.cpp
     test/string_util_tests.cpp
-    include/subtitles.hpp
+    include/subtitles.hpp)
+
+add_executable(Tests 
+    ${test_src}
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 
@@ -496,12 +499,14 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/Developer mode.j
 if (MSVC)
     # Build cpp files on all cores
   
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4201 /wd4324 /wd4464 /wd4371 /wd4503 /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826 /wd4127 /wd4711 /wd4738 /wd4255 /WX")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /Wall /wd4201 /wd4324 /wd4464 /wd4371 /wd4503 /wd4351 /wd4514 /wd4350 /wd4710 /wd4571 /wd4820 /wd4668 /wd4626 /wd4625 /wd4365 /wd4640 /wd4628 /wd4061 /wd4826 /wd4127 /wd4711 /wd4738 /wd4255 /wd4868 /WX")
     # Warnings added in VS2013 and later
     if(MSVC_VERSION GREATER 1800)
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027 /wd4868")
     endif()
     
+    set_source_files_properties(${test_src} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027")
+
     # Use default flags on 3rd party things that generate warnings on max levels
     
     set_source_files_properties(${nativefiledialog_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS /wd4018 /wd4267 /wd4334 /wd4244")
@@ -509,6 +514,7 @@ if (MSVC)
     set_source_files_properties(${lodepng_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267 /wd4334")
     set_source_files_properties(${stk_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} /wd4018 /wd4267")
     set_source_files_properties(${jsonxx_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS}")
+    set_source_files_properties(${gmock_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS}")
     set_source_files_properties(${oddlib_src} PROPERTIES COMPILE_FLAGSS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
     set_source_files_properties(${alivelib_src} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
     set_source_files_properties(${nanovg_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4456 /wd4457 /wd4459")
