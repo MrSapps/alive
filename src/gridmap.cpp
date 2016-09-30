@@ -100,7 +100,7 @@ MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::
 {
     state.new_usertype<MapObject>("MapObject",
         "SetAnimation", &MapObject::SetAnimation,
-        "SnapToGrid", &MapObject::SnapToGrid,
+        "SnapXToGrid", &MapObject::SnapXToGrid,
         "FrameNumber", &MapObject::FrameNumber,
         "IsLastFrame", &MapObject::IsLastFrame,
         "AnimUpdate", &MapObject::AnimUpdate,
@@ -333,7 +333,7 @@ void MapObject::Render(Renderer& rend, GuiContext& gui, int x, int y, float scal
     if (gui_button(&gui, "Reload script"))
     {
         LoadScript(nullptr, nullptr);
-        SnapToGrid();
+        SnapXToGrid();
 
         
     }
@@ -358,7 +358,7 @@ bool MapObject::ContainsPoint(s32 x, s32 y) const
     return mAnim->Collision(x, y);
 }
 
-void MapObject::SnapToGrid()
+void MapObject::SnapXToGrid()
 {
     //25x20 grid hack
     const float oldX = mXPos;
@@ -565,7 +565,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
             }
         }
     }
-    mPlayer.SnapToGrid();
+    mPlayer.SnapXToGrid();
 
     // Load objects
     /*

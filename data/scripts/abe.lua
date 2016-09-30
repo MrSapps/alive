@@ -22,10 +22,13 @@ end
 function Abe:FlipXDirection() self.mApi:FlipXDirection() end
 function Abe:FrameIs(frame) return self.mApi:FrameNumber() == frame and self.mApi:FrameCounter() == 0 end
 function Abe:SetXSpeed(speed) self.mXSpeed = speed end
+function Abe:SetYSpeed(speed) self.mYSpeed = speed end
 function Abe:SetXVelocity(velocity) self.mXVelocity = velocity end
-function Abe:SnapToGrid() 
+function Abe:SetYVelocity(velocity) self.mYVelocity = velocity end
+
+function Abe:SnapXToGrid() 
   -- TODO: This breaks sometimes, stand idle, press inverse direction and take 1 step to repro issue
-  self.mApi:SnapToGrid() 
+  self.mApi:SnapXToGrid() 
 end
 
 function Abe:WaitForAnimationComplete() self:WaitForAnimationCompleteCb(nil) end
@@ -35,6 +38,7 @@ function Abe:SetAndWaitForAnimationCompleteCb(anim, frameCallBackFunc, frame)
   self:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
 end
 
+--function Abe:SetAndWaitForAnimationFrameCbAtFrame(firstFrame, anim, frame, cb) self:WaitForAnimationCompleteCb(firstFrame, anim, cb, frame) end
 function Abe:SetAndWaitForAnimationFrameCb(anim, frame, cb) self:SetAndWaitForAnimationCompleteCb(anim, cb, frame) end
 function Abe:SetAndWaitForAnimationFrame(anim, frame) self:SetAndWaitForAnimationCompleteCb(anim, nil, frame) end
 function Abe:SetAndWaitForAnimationComplete(anim) self:SetAndWaitForAnimationCompleteCb(anim, nil, -1) end
@@ -45,7 +49,7 @@ function Abe:ToStandCommon(anim)
   self:SetAndWaitForAnimationCompleteCb(anim, function() 
     if self:FrameIs(2) then PlaySoundEffect("MOVEMENT_MUD_STEP") end
   end, -1) 
-  --self:SnapToGrid()
+  --self:SnapXToGrid()
   return self:GoTo(self.Stand)
 end
 
@@ -85,7 +89,7 @@ function Abe:RunToSkidTurnAround()
       if self:FrameIs(14) then
         print("Handle last frame of AbeRunningToSkidTurn")
         self:SetXVelocity(0)
-        self:SnapToGrid()
+        self:SnapXToGrid()
       end
     end) 
   
@@ -97,7 +101,7 @@ function Abe:RunToSkidTurnAround()
     self:SetAndWaitForAnimationComplete("AbeRunningTurnAround")
     self.mInvertX = false
     self:FlipXDirection()
-    --self:SnapToGrid()
+    --self:SnapXToGrid()
    
     return self:GoTo(self.Run)
   else
@@ -134,14 +138,14 @@ function Abe:Run()
   end
   
   if self:FrameIs(0+1) or self:FrameIs(8+1) then
-    self:SnapToGrid()
+    self:SnapXToGrid()
     if self:InputSameAsDirection() and Actions.Run(self.mInput.IsHeld) and Actions.Jump(self.mInput.IsHeld) then
       return self:RunToJump()
     end
   end
 
   if self:FrameIs(4+1) or self:FrameIs(12+1) then
-    self:SnapToGrid()
+    self:SnapXToGrid()
     if self:InputNotSameAsDirection() then 
       return self:RunToSkidTurnAround()
     elseif self:InputSameAsDirection() then
@@ -166,7 +170,7 @@ function Abe:RunToSkidStop()
       if self:FrameIs(14) then
         print("Handle last frame of AbeRunningSkidStop")
         self:SetXVelocity(0)
-        self:SnapToGrid()
+        self:SnapXToGrid()
       end
   end) 
   return self:GoTo(self.Stand)
@@ -191,7 +195,7 @@ end
 function Abe:Sneak()
   if (self:InputSameAsDirection()) then
     if self:FrameIs(6+1) or self:FrameIs(16+1) then
-      self:SnapToGrid()
+      self:SnapXToGrid()
       PlaySoundEffect("MOVEMENT_MUD_STEP") 
       if Actions.Sneak(self.mInput.IsHeld) == false then
         if self:FrameIs(6+1) then return self:SneakToWalk() else return self:SneakToWalk2() end
@@ -237,12 +241,18 @@ function Abe:ApplyMovement()
       end
     end
   end
+  
+  --if self.mYSpeed < 0 then
+    self.mYSpeed = self.mYSpeed - self.mYVelocity
+    self.mApi.mYPos = self.mApi.mYPos + self.mYSpeed
+  --end
+  
 end
 
 function Abe:Walk()
   if self:FrameIs(5+1) or self:FrameIs(14+1) then 
     PlaySoundEffect("MOVEMENT_MUD_STEP") 
-    self:SnapToGrid()
+    self:SnapXToGrid()
     if (self:InputSameAsDirection() == true) then
       if (Actions.Run(self.mInput.IsHeld)) then
         if self:FrameIs(5+1) then return self:WalkToRun() else return self:WalkToRun2() end
@@ -368,7 +378,7 @@ function Abe:Roll()
       return self:GoTo(self.Crouch)
     end
   elseif self:FrameIs(1+1) or self:FrameIs(5+1) or self:FrameIs(9+1) then
-    self:SnapToGrid()
+    self:SnapXToGrid()
     if self:InputSameAsDirection() == false then
       return self:GoTo(self.Crouch)
     end
@@ -442,6 +452,35 @@ function Abe:Crouch()
   -- TODO: Crouching object pick up
 end
 
+function Abe:StandToHop()
+  -- TODO: Must start at frame 9!
+  self:SetAndWaitForAnimationCompleteCb('AbeStandToHop', function()
+      if self.mApi:FrameNumber() == 0 then
+        print("First")
+        self:SetXSpeed(17)
+      else
+        print("Others")
+        self:SetXSpeed(13.569992)
+        self:SetYSpeed(-2.7)
+      end
+  end, 3) 
+
+  self:SetYVelocity(-1.8)
+  self:SetAndWaitForAnimationCompleteCb('AbeHopping', function()
+      if self:FrameIs(3) then
+        self:SnapXToGrid()
+      elseif self:FrameIs(2) then
+        self:SetYSpeed(0)
+        self:SetYVelocity(0)
+      end
+  end, -1) 
+
+  self:SetXSpeed(0)
+  self:SetAndWaitForAnimationComplete("AbeHoppingToStand")
+
+  return self:GoTo(self.Stand)
+end
+
 function Abe:Stand()
   if self:InputNotSameAsDirection() then 
     return self:StandTurnAround()
@@ -458,6 +497,8 @@ function Abe:Stand()
     -- stay in this state
   elseif Actions.RollOrFart(self.mInput.IsHeld) then
     self:GameSpeakFartStanding()
+  elseif Actions.Jump(self.mInput.IsHeld) then
+    return self:StandToHop()
   end
 end
 
@@ -487,14 +528,23 @@ function Abe:CoRoutineProc()
 end
 
 local oldX = 0
+local oldY = 0
 function Abe:DebugPrintPosDeltas()
   if oldX ~= self.mApi.mXPos then
     local delta = self.mApi.mXPos - oldX
     if delta ~= self.mApi.mXPos then
-      print("DELTA: " .. delta .. " on frame: " .. self.mApi:FrameNumber() .. " XPOS: " .. self.mApi.mXPos .. " speed " .. self.mXSpeed .. " vel " .. self.mXVelocity)
+      print("DELTA: " .. delta .. " on frame: " .. self.mApi:FrameNumber() .. " XPOS: " .. self.mApi.mXPos .. " speed " .. self.mXSpeed .. " xvel " .. self.mXVelocity)
     end
   end
   oldX = self.mApi.mXPos
+  
+  if oldY ~= self.mApi.mYPos then
+    local delta = self.mApi.mYPos - oldY
+    if delta ~= self.mApi.mYPos then
+      print("DELTA: " .. delta .. " on frame: " .. self.mApi:FrameNumber() .. " YPOS: " .. self.mApi.mYPos .. " speed " .. self.mYSpeed .. " yvel " .. self.mYVelocity)
+    end
+  end
+  oldY = self.mApi.mYPos
 end
 
 function Abe:Update() 
@@ -512,6 +562,8 @@ function Abe.create()
   ret.mInvertX = false
   ret.mXSpeed = 0
   ret.mXVelocity = 0
+  ret.mYSpeed = 0
+  ret.mYVelocity = 0
   ret.mAnims = {}
   ret.mAnims[Abe.Stand] =   { name = "AbeStandIdle",    xspeed = 0,           xvel = 0 }
   ret.mAnims[Abe.Walk] =    { name = "AbeWalking",      xspeed = 2.777771,    xvel = 0 }

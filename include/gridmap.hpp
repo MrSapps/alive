@@ -63,7 +63,7 @@ public:
     const std::string& Name() const { return mName; }
 
     // TODO: Shouldn't be part of this object
-    void SnapToGrid();
+    void SnapXToGrid();
 
     float mXPos = 50.0f;
     float mYPos = 100.0f;
