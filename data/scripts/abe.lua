@@ -89,20 +89,27 @@ function Abe:RunToSkidTurnAround()
       end
     end) 
   
-  -- TODO: Also have AbeRunningTurnAroundToWalk if run no longer held
-  -- TODO: Handle AbeStandTurnAroundToRunning
-  
-  self:SetXSpeed(6.25)
-  self:SetXVelocity(0)
+  if Actions.Run(self.mInput.IsHeld) then
+    self:SetXSpeed(6.25)
+    self:SetXVelocity(0)
+    -- TODO: Probably better to have a FlipSpriteX and FlipDirectionX instead?
+    self.mInvertX = true
+    self:SetAndWaitForAnimationComplete("AbeRunningTurnAround")
+    self.mInvertX = false
+    self:FlipXDirection()
+    --self:SnapToGrid()
+   
+    return self:GoTo(self.Run)
+  else
+    self:SetXSpeed(2.777771)
+    self:SetXVelocity(0)
+    self.mInvertX = true
+    self:SetAndWaitForAnimationComplete("AbeRunningTurnAroundToWalk")
+    self.mInvertX = false
+    self:FlipXDirection()
+   return self:GoTo(self.Walk)
+  end
 
-  -- TODO: Probably better to have a FlipSpriteX and FlipDirectionX instead?
-  self.mInvertX = true
-  self:SetAndWaitForAnimationComplete("AbeRunningTurnAround")
-  self.mInvertX = false
-  self:FlipXDirection()
-  --self:SnapToGrid()
- 
-  return self:GoTo(self.Run)
 end
 
 function Abe:RunToRoll()
@@ -252,6 +259,7 @@ end
 
 function Abe:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
   print("Start wait for complete at frame " .. frame)
+  local stop = false
   local frameChanged = true
   while true do
     if frameChanged then
@@ -266,10 +274,14 @@ function Abe:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
     
     if frameChanged then
       if frameCallBackFunc ~= nil then 
-        frameCallBackFunc() 
+        if (frameCallBackFunc()) then
+          print("Request to stop at frame " .. self.mApi:FrameNumber())
+          stop = true
+        end
       end
     end
     coroutine.yield()
+    if stop then return end
   end
 end
 
@@ -305,8 +317,23 @@ end
 
 function Abe:StandTurnAround() 
   PlaySoundEffect("GRAVEL_SMALL") -- TODO: Add to json
-  self:SetAndWaitForAnimationComplete('AbeStandTurnAround') 
+  local toRun = false
+  
+  -- stop at frame 3 if we want to go to running
+  self:SetAndWaitForAnimationCompleteCb('AbeStandTurnAround', function()
+      if self:FrameIs(3) and Actions.Run(self.mInput.IsHeld) then
+        toRun = true
+        return true
+      end
+  end, -1) 
+
   self:FlipXDirection()
+  if toRun then
+    self:SetXSpeed(6.25)
+    self:SetXVelocity(0)
+    self:SetAndWaitForAnimationComplete('AbeStandTurnAroundToRunning')
+    return self:GoTo(self.Run)
+  end
   return self:GoTo(self.Stand) 
 end
 
@@ -329,6 +356,7 @@ function Abe:Roll()
   end
   
   -- TODO: Check these frame numbers are correct, with +1 the StandToRun seems to jump a little
+  -- TODO: This is certainly wrong as partial rolling can get you off the grid
   if self:FrameIs(0) or self:FrameIs(4) or self:FrameIs(8) then
     if self:InputSameAsDirection() then
       if Actions.Run(self.mInput.IsHeld) then
@@ -415,15 +443,15 @@ function Abe:Crouch()
 end
 
 function Abe:Stand()
-  if self:InputSameAsDirection() then 
+  if self:InputNotSameAsDirection() then 
+    return self:StandTurnAround()
+  elseif self:InputSameAsDirection() then 
     if Actions.Run(self.mInput.IsHeld) then 
       return self:StandToRun()
     elseif Actions.Sneak(self.mInput.IsHeld) then
       return self:StandToSneak()
     else 
       return self:StandToWalk() end
-  elseif self:InputNotSameAsDirection() then 
-    return self:StandTurnAround()
   elseif Actions.Down(self.mInput.IsHeld) then
     return self:StandToCrouch()
   elseif self:HandleGameSpeak(1) then

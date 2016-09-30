@@ -275,7 +275,7 @@ void Engine::InitSubSystems()
 
     mInputState.AddControllers();
 
-    mLuaState.open_libraries(sol::lib::base, sol::lib::string, sol::lib::jit, sol::lib::table, sol::lib::debug, sol::lib::math);
+    mLuaState.open_libraries(sol::lib::base, sol::lib::string, sol::lib::jit, sol::lib::table, sol::lib::debug, sol::lib::math, sol::lib::bit32);
     
     // Redirect lua print()
     mLuaState.set_function("print", LuaLog);
