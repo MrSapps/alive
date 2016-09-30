@@ -239,8 +239,8 @@ public:
     // InputStateAdaptor::SetIsPressed(state) which calls the outter SetIsPressed(action,state)
     struct InputStateAdaptor
     {
-        EInputActions mAction;
         Actions& mParent;
+        EInputActions mAction;
 
         InputStateAdaptor(Actions& parent, EInputActions action) : mParent(parent), mAction(action) { }
         void SetIsPressed(bool val) { mParent.SetIsPressed(mAction, val); }
