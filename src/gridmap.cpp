@@ -231,11 +231,6 @@ void MapObject::Update(const InputState& input)
         return;
     }
 
-    if (input.Mapping().GetActions().InputRollOrFartPressed())
-    {
-        LOG_ERROR("FART NOW!!");
-    }
-
     //if (mAnim)
     {
         sol::protected_function f = mLuaState["update"];
@@ -641,7 +636,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
 
 void GridMap::Update(const InputState& input)
 {
-    if (input.mKeys[SDL_SCANCODE_E].mIsPressed)
+    if (input.mKeys[SDL_SCANCODE_E].IsPressed())
     {
         if (mState == eStates::eEditor)
         {
@@ -659,28 +654,28 @@ void GridMap::Update(const InputState& input)
 
     f32 editorCamSpeed = 10.0f;
 
-    if (input.mKeys[SDL_SCANCODE_LCTRL].mIsDown)
+    if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
     {
-        if (input.mKeys[SDL_SCANCODE_W].mIsPressed)
+        if (input.mKeys[SDL_SCANCODE_W].IsPressed())
             mEditorCamZoom--;
-        else if (input.mKeys[SDL_SCANCODE_S].mIsPressed)
+        else if (input.mKeys[SDL_SCANCODE_S].IsPressed())
             mEditorCamZoom++;
 
         mEditorCamZoom = glm::clamp(mEditorCamZoom, 1, 15);
     }
     else
     {
-        if (input.mKeys[SDL_SCANCODE_LSHIFT].mIsDown)
+        if (input.mKeys[SDL_SCANCODE_LSHIFT].IsDown())
             editorCamSpeed *= 4;
 
-        if (input.mKeys[SDL_SCANCODE_W].mIsDown)
+        if (input.mKeys[SDL_SCANCODE_W].IsDown())
             mEditorCamOffset.y -= editorCamSpeed;
-        else if (input.mKeys[SDL_SCANCODE_S].mIsDown)
+        else if (input.mKeys[SDL_SCANCODE_S].IsDown())
             mEditorCamOffset.y += editorCamSpeed;
 
-        if (input.mKeys[SDL_SCANCODE_A].mIsDown)
+        if (input.mKeys[SDL_SCANCODE_A].IsDown())
             mEditorCamOffset.x -= editorCamSpeed;
-        else if (input.mKeys[SDL_SCANCODE_D].mIsDown)
+        else if (input.mKeys[SDL_SCANCODE_D].IsDown())
             mEditorCamOffset.x += editorCamSpeed;
     }
 

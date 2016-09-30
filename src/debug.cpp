@@ -24,7 +24,7 @@ Debug& Debugging()
 
 void Debug::Update(class InputState& input)
 {
-    if (input.mKeys[SDL_SCANCODE_F1].mIsPressed)
+    if (input.mKeys[SDL_SCANCODE_F1].IsPressed())
     {
         mShowDebugUi = !mShowDebugUi;
     }

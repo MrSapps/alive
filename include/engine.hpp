@@ -78,9 +78,44 @@ private:
     std::unique_ptr<class IState> mPreviousState = nullptr;
 };
 
+
+template<class T>
+void UpdateStateInputItemGeneric(T& state)
+{
+    if (state.RawDownState())
+    {
+        if (!state.IsPressed() && !state.IsDown())
+        {
+            state.SetIsReleased(false);
+            state.SetIsPressed(true);
+            state.SetIsDown(true);
+        }
+        else if (state.IsDown())
+        {
+            state.SetIsPressed(false);
+            state.SetIsReleased(false);
+        }
+    }
+    else
+    {
+        // First time the button has gone up after it was down
+        if (state.IsPressed() || state.IsDown())
+        {
+            state.SetIsReleased(true);
+        }
+        // Second time or later we've seen the button is up after it was down
+        else
+        {
+            state.SetIsReleased(false);
+        }
+        state.SetIsPressed(false);
+        state.SetIsDown(false);
+    }
+}
+
 struct InputItemState final
 {
-public:
+private:
     // True for the frame that the key was first pressed down
     // false after that.
     bool mIsPressed = false;
@@ -91,117 +126,157 @@ public:
     // True the whole the they key is held down, false the reset of the time
     bool mIsDown = false;
 
-    void UpdateState()
-    {
-        if (mRawDownState)
-        {
-            if (!mIsPressed && !mIsDown)
-            {
-                mIsReleased = false;
-                mIsPressed = true;
-                mIsDown = true;
-            }
-            else if (mIsDown)
-            {
-                mIsPressed = false;
-                mIsReleased = false;
-            }
-        }
-        else
-        {
-            // First time the button has gone up after it was down
-            if (mIsPressed || mIsDown)
-            {
-                mIsReleased = true;
-            }
-            // Second time or later we've seen the button is up after it was down
-            else
-            {
-                mIsReleased = false;
-            }
-            mIsPressed = false;
-            mIsDown = false;
-        }
-    }
-
-    // Private raw input state used to calculate mIsPressed and mIsDown, set 
+    // Raw input state used to calculate mIsPressed and mIsDown, set 
     // on response to key input events
     bool mRawDownState = false;
+public:
+    void SetIsPressed(bool val) { mIsPressed = val; }
+    void SetIsReleased(bool val) { mIsReleased = val; }
+    void SetIsDown(bool val) { mIsDown = val; }
+    void SetRawDownState(bool val) { mRawDownState = val; }
+
+    bool IsPressed() const { return mIsPressed; }
+    bool IsReleased() const { return mIsReleased; }
+    bool IsDown() const { return mIsDown; }
+    bool RawDownState() const { return mRawDownState; }
+
+    void UpdateState()
+    {
+        ::UpdateStateInputItemGeneric(*this);
+    }
 };
+
+template<class U, class T>
+inline bool IsBitOn(U& data, T bitNumber)
+{
+    return (data & (1 << bitNumber)) > 0;
+}
+
+template<class U, class T>
+inline void BitOn(U& data, T bitNumber)
+{
+    data |= (1 << bitNumber);
+}
+
+template<class U, class T>
+inline void BitOff(U& data, T bitNumber)
+{
+    data &= ~(1 << bitNumber);
+}
+
+template<class U, class T>
+inline void BitOnOrOff(U& data, T bitNumber, bool on)
+{
+    if (on)
+    {
+        BitOn(data, bitNumber);
+    }
+    else
+    {
+        BitOff(data, bitNumber);
+    }
+}
 
 class Actions
 {
 public:
     Actions() = default;
-    bool InputLeftPressed() const { return mActions[Left].mIsPressed; }
-    bool InputRightPressed() const { return mActions[Right].mIsPressed; }
-    bool InputUpPressed() const { return mActions[Up].mIsPressed; }
-    bool InputDownPressed() const { return mActions[Down].mIsPressed; }
-    bool InputChantPressed() const { return mActions[Chant].mIsPressed; }
-    bool InputRunPressed() const { return mActions[Run].mIsPressed; }
-    bool InputSneakPressed() const { return mActions[Sneak].mIsPressed; }
-    bool InputJumpPressed() const { return mActions[Jump].mIsPressed; }
-    bool InputThrowPressed() const { return mActions[Throw].mIsPressed; }
-    bool InputActionPressed() const { return mActions[Action].mIsPressed; }
-    bool InputRollOrFartPressed() const { return mActions[RollOrFart].mIsPressed; }
-    bool InputGameSpeak1Pressed() const { return mActions[GameSpeak1].mIsPressed; }
-    bool InputGameSpeak2Pressed() const { return mActions[GameSpeak2].mIsPressed; }
-    bool InputGameSpeak3Pressed() const { return mActions[GameSpeak3].mIsPressed; }
-    bool InputGameSpeak4Pressed() const { return mActions[GameSpeak4].mIsPressed; }
-    bool InputGameSpeak5Pressed() const { return mActions[GameSpeak5].mIsPressed; }
-    bool InputGameSpeak6Pressed() const { return mActions[GameSpeak6].mIsPressed; }
-    bool InputGameSpeak7Pressed() const { return mActions[GameSpeak7].mIsPressed; }
-    bool InputGameSpeak8Pressed() const { return mActions[GameSpeak8].mIsPressed; }
-    bool InputBackPressed() const { return mActions[Back].mIsPressed; }
-
-    bool InputLeft() const { return mActions[Left].mIsDown; }
-    bool InputRight() const { return mActions[Right].mIsDown; }
-    bool InputUp() const { return mActions[Up].mIsDown; }
-    bool InputDown() const { return mActions[Down].mIsDown; }
-    bool InputChant() const { return mActions[Chant].mIsDown; }
-    bool InputRun() const { return mActions[Run].mIsDown; }
-    bool InputSneak() const { return mActions[Sneak].mIsDown; }
-    bool InputJump() const { return mActions[Jump].mIsDown; }
-    bool InputThrow() const { return mActions[Throw].mIsDown; }
-    bool InputAction() const { return mActions[Action].mIsDown; }
-    bool InputRollOrFart() const { return mActions[RollOrFart].mIsDown; }
-    bool InputGameSpeak1() const { return mActions[GameSpeak1].mIsDown; }
-    bool InputGameSpeak2() const { return mActions[GameSpeak2].mIsDown; }
-    bool InputGameSpeak3() const { return mActions[GameSpeak3].mIsDown; }
-    bool InputGameSpeak4() const { return mActions[GameSpeak4].mIsDown; }
-    bool InputGameSpeak5() const { return mActions[GameSpeak5].mIsDown; }
-    bool InputGameSpeak6() const { return mActions[GameSpeak6].mIsDown; }
-    bool InputGameSpeak7() const { return mActions[GameSpeak7].mIsDown; }
-    bool InputGameSpeak8() const { return mActions[GameSpeak8].mIsDown; }
-    bool InputBack() const { return mActions[Back].mIsDown; }
+    
+    static bool Left(u32 state) { return IsBitOn(state, eLeft); }
+    static bool Right(u32 state) { return IsBitOn(state, eRight); }
+    static bool Up(u32 state) { return IsBitOn(state, eUp); }
+    static bool Down(u32 state) { return IsBitOn(state, eDown); }
+    static bool Chant(u32 state) { return IsBitOn(state, eChant); }
+    static bool Run(u32 state) { return IsBitOn(state, eRun);}
+    static bool Sneak(u32 state) { return IsBitOn(state, eSneak); }
+    static bool Jump(u32 state) { return IsBitOn(state, eJump); }
+    static bool Throw(u32 state) { return IsBitOn(state, eThrow); }
+    static bool Action(u32 state) { return IsBitOn(state, eAction); }
+    static bool RollOrFart(u32 state) { return IsBitOn(state, eRollOrFart); }
+    static bool GameSpeak1(u32 state) { return IsBitOn(state, eGameSpeak1); }
+    static bool GameSpeak2(u32 state) { return IsBitOn(state, eGameSpeak2); }
+    static bool GameSpeak3(u32 state) { return IsBitOn(state, eGameSpeak3); }
+    static bool GameSpeak4(u32 state) { return IsBitOn(state, eGameSpeak4); }
+    static bool GameSpeak5(u32 state) { return IsBitOn(state, eGameSpeak5); }
+    static bool GameSpeak6(u32 state) { return IsBitOn(state, eGameSpeak6); }
+    static bool GameSpeak7(u32 state) { return IsBitOn(state, eGameSpeak7); }
+    static  bool GameSpeak8(u32 state) { return IsBitOn(state, eGameSpeak8); }
+    static bool Back(u32 state) { return IsBitOn(state, eBack); }
 
     static void RegisterLuaBindings(sol::state& state);
 
-    enum EInputActions
+    enum EInputActions : u32
     {
-        Left,       // Arrow left
-        Right,      // Arrow right
-        Up,         // Arrow up
-        Down,       // Arrow down
-        Chant,      // 0
-        Run,        // Shift
-        Sneak,      // Alt
-        Jump,       // Space
-        Throw,      // Z
-        Action,     // Control
-        RollOrFart, // X (Only roll)
-        GameSpeak1, // 1 (Hello)
-        GameSpeak2, // 2 (Follow Me)
-        GameSpeak3, // 3 (Wait)
-        GameSpeak4, // 4 (Work) (Whistle 1)
-        GameSpeak5, // 5 (Anger)
-        GameSpeak6, // 6 (All ya) (Fart)
-        GameSpeak7, // 7 (Sympathy) (Whistle 2)
-        GameSpeak8, // 8 (Stop it) (Laugh)
-        Back,       // Esc
-        Max
+        eLeft =          1,   // Arrow left
+        eRight =         2,   // Arrow right
+        eUp =            3,   // Arrow up
+        eDown =          4,   // Arrow down
+        eChant =         5,   // 0
+        eRun =           6,   // Shift
+        eSneak =         7,   // Alt
+        eJump =          8,   // Space
+        eThrow =         9,   // Z
+        eAction =        10,  // Control
+        eRollOrFart =    11,  // X (Only roll)
+        eGameSpeak1 =    12,  // 1 (Hello)
+        eGameSpeak2 =    13,  // 2 (Follow Me)
+        eGameSpeak3 =    14,  // 3 (Wait)
+        eGameSpeak4 =    15,  // 4 (Work) (Whistle 1)
+        eGameSpeak5 =    16,  // 5 (Anger)
+        eGameSpeak6 =    17,  // 6 (All ya) (Fart)
+        eGameSpeak7 =    18,  // 7 (Sympathy) (Whistle 2)
+        eGameSpeak8 =    19,  // 8 (Stop it) (Laugh)
+        eBack =          20,  // Esc
+        Max =            21
     };
-    InputItemState mActions[Max];
+
+    // Same as InputItemState, but we collapse the bools into bitflags
+    // since we have less than 32bits of input. This also makes the scriping
+    // faster as we often need to save all of the old pressed states which becomes
+    // a simple u32 copy.
+
+    // So we can call UpdateStateInputItemGeneric which will then call
+    // InputStateAdaptor::SetIsPressed(state) which calls the outter SetIsPressed(action,state)
+    struct InputStateAdaptor
+    {
+        EInputActions mAction;
+        Actions& mParent;
+
+        InputStateAdaptor(Actions& parent, EInputActions action) : mParent(parent), mAction(action) { }
+        void SetIsPressed(bool val) { mParent.SetIsPressed(mAction, val); }
+        void SetIsReleased(bool val) { mParent.SetIsReleased(mAction, val); }
+        void SetIsDown(bool val) { mParent.SetIsDown(mAction, val); }
+        void SetRawDownState(bool val) { mParent.SetRawDownState(mAction, val); }
+
+        bool IsPressed() const { return mParent.IsPressed(mAction); }
+        bool IsReleased() const { return mParent.IsReleased(mAction); }
+        bool IsDown() const { return mParent.IsDown(mAction); }
+        bool RawDownState() const { return mParent.RawDownState(mAction); }
+    };
+
+    void SetIsPressed(EInputActions action, bool val) { BitOnOrOff(mIsPressed, action, val); }
+    void SetIsReleased(EInputActions action, bool val) { BitOnOrOff(mIsReleased, action, val); }
+    void SetIsDown(EInputActions action, bool val) { BitOnOrOff(mIsDown, action, val); }
+    void SetRawDownState(EInputActions action, bool val) { BitOnOrOff(mRawDownState, action, val); }
+
+    bool IsPressed(EInputActions action) const { return  IsBitOn(mIsPressed, action); }
+    bool IsReleased(EInputActions action) const { return IsBitOn(mIsReleased, action); }
+    bool IsDown(EInputActions action) const { return IsBitOn(mIsDown, action); }
+    bool RawDownState(EInputActions action) const { return IsBitOn(mRawDownState, action); }
+
+    void UpdateStates()
+    {
+        for (u32 i = eLeft; i<Max; i++)
+        {
+            InputStateAdaptor adaptor(*this, static_cast<EInputActions>(i));
+            UpdateStateInputItemGeneric(adaptor);
+        }
+    }
+
+    u32 mIsPressed = 0;
+    u32 mIsReleased = 0;
+    u32 mIsDown = 0;
+    u32 mRawDownState = 0;
 };
 
 class InputMapping
@@ -260,7 +335,7 @@ public:
     {
         // Update state from polling loop
         const u32 keyCode = event.keysym.scancode;
-        mKeys[keyCode].mRawDownState = (event.type == SDL_KEYDOWN);
+        mKeys[keyCode].SetRawDownState(event.type == SDL_KEYDOWN);
     }
 
     void OnMouseButtonEvent(const SDL_MouseButtonEvent& event)
@@ -268,11 +343,11 @@ public:
         // Update state from polling loop
         if (event.button == SDL_BUTTON_LEFT)
         {
-            mMouseButtons[0].mRawDownState = (event.type == SDL_MOUSEBUTTONDOWN);
+            mMouseButtons[0].SetRawDownState(event.type == SDL_MOUSEBUTTONDOWN);
         }
         else if (event.button == SDL_BUTTON_RIGHT)
         {
-            mMouseButtons[1].mRawDownState = (event.type == SDL_MOUSEBUTTONDOWN);
+            mMouseButtons[1].SetRawDownState(event.type == SDL_MOUSEBUTTONDOWN);
         }
     }
 
@@ -378,8 +453,8 @@ public:
 
         void OnControllerButton(const SDL_ControllerButtonEvent& event)
         {
-            mGamePadButtons[event.button].mRawDownState = (event.type == SDL_CONTROLLERBUTTONDOWN);
-            if (mGamePadButtons[event.button].mRawDownState)
+            mGamePadButtons[event.button].SetRawDownState(event.type == SDL_CONTROLLERBUTTONDOWN);
+            if (mGamePadButtons[event.button].RawDownState())
             {
                 //Rumble(1.0f);
             }

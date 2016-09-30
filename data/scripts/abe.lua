@@ -2,11 +2,13 @@ local Abe = {}
 Abe.__index = Abe
 
 function Abe:InputNotSameAsDirection()
-    return (self.mInput:InputLeft() and self.mApi:FacingRight()) or (self.mInput:InputRight() and self.mApi:FacingLeft())
+    return (Actions.Left(self.mInput.IsHeld)  and self.mApi:FacingRight()) 
+        or (Actions.Right(self.mInput.IsHeld) and self.mApi:FacingLeft())
 end
 
 function Abe:InputSameAsDirection()
-    return (self.mInput:InputLeft() and self.mApi:FacingLeft()) or (self.mInput:InputRight() and self.mApi:FacingRight())
+    return (Actions.Left(self.mInput.IsHeld)  and self.mApi:FacingLeft()) 
+        or (Actions.Right(self.mInput.IsHeld) and self.mApi:FacingRight())
 end
 
 function Abe:SetAnimation(anim)
@@ -126,7 +128,7 @@ function Abe:Run()
   
   if self:FrameIs(0+1) or self:FrameIs(8+1) then
     self:SnapToGrid()
-    if self:InputSameAsDirection() and self.mInput:InputRun() and self.mInput:InputJumpPressed() then
+    if self:InputSameAsDirection() and Actions.Run(self.mInput.IsHeld) and Actions.Jump(self.mInput.IsHeld) then
       return self:RunToJump()
     end
   end
@@ -137,11 +139,11 @@ function Abe:Run()
       return self:RunToSkidTurnAround()
     elseif self:InputSameAsDirection() then
       PlaySoundEffect("MOVEMENT_MUD_STEP") -- TODO: Always play fx?
-      if self.mInput:InputRun() == false then 
+      if Actions.Run(self.mInput.IsHeld) == false then 
         if self:FrameIs(4+1) then return self:RunToWalk() else return self:RunToWalk2() end
-      elseif self.mInput:InputJumpPressed() then
+      elseif Actions.Jump(self.mInput.IsHeld) then
         return self:RunToJump()
-      elseif self.mInput:InputRollOrFartPressed() then
+      elseif Actions.RollOrFart(self.mInput.IsHeld) then
         return self:RunToRoll()
       end
     else
@@ -184,7 +186,7 @@ function Abe:Sneak()
     if self:FrameIs(6+1) or self:FrameIs(16+1) then
       self:SnapToGrid()
       PlaySoundEffect("MOVEMENT_MUD_STEP") 
-      if self.mInput:InputSneak() == false then
+      if Actions.Sneak(self.mInput.IsHeld) == false then
         if self:FrameIs(6+1) then return self:SneakToWalk() else return self:SneakToWalk2() end
       end
     end
@@ -235,9 +237,9 @@ function Abe:Walk()
     PlaySoundEffect("MOVEMENT_MUD_STEP") 
     self:SnapToGrid()
     if (self:InputSameAsDirection() == true) then
-      if (self.mInput:InputRun()) then
+      if (Actions.Run(self.mInput.IsHeld)) then
         if self:FrameIs(5+1) then return self:WalkToRun() else return self:WalkToRun2() end
-      elseif (self.mInput:InputSneak()) then 
+      elseif (Actions.Sneak(self.mInput.IsHeld)) then 
         if self:FrameIs(5+1) then return self:WalkToSneak() else return self:WalkToSneak2() end
       end
     end
@@ -326,9 +328,10 @@ function Abe:Roll()
     PlaySoundEffect("MOVEMENT_MUD_STEP")
   end
   
-  if self:FrameIs(0+1) or self:FrameIs(4+1) or self:FrameIs(8+1) then
+  -- TODO: Check these frame numbers are correct, with +1 the StandToRun seems to jump a little
+  if self:FrameIs(0) or self:FrameIs(4) or self:FrameIs(8) then
     if self:InputSameAsDirection() then
-      if self.mInput:InputRunPressed() then
+      if Actions.Run(self.mInput.IsHeld) then
         -- TODO: Fix InputRunPressed and the likes, will be missed if pressed between frames
         -- TODO: Or AbeStandToRun if roll button is pressed
         return self:StandToRun()
@@ -346,21 +349,21 @@ end
 
 local game_speak = 
 {
-  { Actions.InputGameSpeak1Pressed, { "AbeStandSpeak2",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_HELLO"},
-  { Actions.InputGameSpeak2Pressed, { "AbeStandSpeak3",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_FOLLOWME"},
-  { Actions.InputGameSpeak3Pressed, { "AbeStandingSpeak4", "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_WAIT"},
-  { Actions.InputGameSpeak4Pressed, { "AbeStandingSpeak4", "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_ANGRY"},
-  { Actions.InputGameSpeak5Pressed, { "AbeStandingSpeak4", "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_WORK"},
-  { Actions.InputGameSpeak6Pressed, { "AbeStandSpeak2",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_ALLYA"},
-  { Actions.InputGameSpeak7Pressed, { "AbeStandSpeak5",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_SORRY"},
-  { Actions.InputGameSpeak8Pressed, { "AbeStandSpeak3",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_NO_SAD"},  -- TODO: actually "Stop it"
+  { Actions.GameSpeak1, { "AbeStandSpeak2",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_HELLO"},
+  { Actions.GameSpeak2, { "AbeStandSpeak3",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_FOLLOWME"},
+  { Actions.GameSpeak3, { "AbeStandingSpeak4", "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_WAIT"},
+  { Actions.GameSpeak4, { "AbeStandingSpeak4", "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_ANGRY"},
+  { Actions.GameSpeak5, { "AbeStandingSpeak4", "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_WORK"},
+  { Actions.GameSpeak6, { "AbeStandSpeak2",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_ALLYA"},
+  { Actions.GameSpeak7, { "AbeStandSpeak5",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_SORRY"},
+  { Actions.GameSpeak8, { "AbeStandSpeak3",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_NO_SAD"},  -- TODO: actually "Stop it"
 }
 
 function Abe:HandleGameSpeak(standing)
   local numGameSpeaks = #game_speak
   for i = 1, numGameSpeaks do
     local item = game_speak[i]
-      if item[1](self.mInput) then
+      if item[1](self.mInput.IsPressed) then
         if standing == 1 then
           self:GameSpeakStanding(item[2][standing], item[3])
         else
@@ -397,7 +400,7 @@ function Abe:GameSpeakFartCrouching()
 end
 
 function Abe:Crouch()
-  if self.mInput:InputUp() then
+  if Actions.Up(self.mInput.IsHeld) then
     return self:CrouchToStand()
   elseif self:InputSameAsDirection() then 
     return self:CrouchToRoll()
@@ -405,7 +408,7 @@ function Abe:Crouch()
     return self:CrouchStand()
   elseif self:HandleGameSpeak(2) then
     -- stay in this state
-  elseif self.mInput:InputRollOrFartPressed() then
+  elseif Actions.RollOrFart(self.mInput.IsHeld) then
     self:GameSpeakFartCrouching()
   end
   -- TODO: Crouching object pick up
@@ -413,19 +416,19 @@ end
 
 function Abe:Stand()
   if self:InputSameAsDirection() then 
-    if self.mInput:InputRun() then 
+    if Actions.Run(self.mInput.IsHeld) then 
       return self:StandToRun()
-    elseif self.mInput:InputSneak() then
+    elseif Actions.Sneak(self.mInput.IsHeld) then
       return self:StandToSneak()
     else 
       return self:StandToWalk() end
   elseif self:InputNotSameAsDirection() then 
     return self:StandTurnAround()
-  elseif self.mInput:InputDown() then
+  elseif Actions.Down(self.mInput.IsHeld) then
     return self:StandToCrouch()
   elseif self:HandleGameSpeak(1) then
     -- stay in this state
-  elseif self.mInput:InputRollOrFartPressed() then
+  elseif Actions.RollOrFart(self.mInput.IsHeld) then
     self:GameSpeakFartStanding()
   end
 end
@@ -433,6 +436,9 @@ end
 function Abe:Exec()
   while true do
     while true do
+      -- TODO Keep "pressed" flags for buttons that we can check mid animation
+      -- TODO Clear pressed flags before we change states
+      -- TODO: Change pressed checking to use stored flags/pressed states
       self:SetAnimation(self.mData.Animation)
       local frameChanged = self.mApi:AnimUpdate()
       if self.mData.mFunc(self) then
