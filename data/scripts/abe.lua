@@ -364,22 +364,19 @@ function Abe:Roll()
     PlaySoundEffect("MOVEMENT_MUD_STEP")
   end
   
-  -- TODO: Check these frame numbers are correct, with +1 the StandToRun seems to jump a little
-  -- TODO: This is certainly wrong as partial rolling can get you off the grid
-  if self:FrameIs(0) or self:FrameIs(4) or self:FrameIs(8) then
-    if self:InputSameAsDirection() then
-      if Actions.Run(self.mInput.IsHeld) then
-        -- TODO: Fix InputRunPressed and the likes, will be missed if pressed between frames
-        -- TODO: Or AbeStandToRun if roll button is pressed
-        return self:StandToRun()
-      end
-    else
-      return self:GoTo(self.Crouch)
-    end
-  elseif self:FrameIs(1+1) or self:FrameIs(5+1) or self:FrameIs(9+1) then
+  if self:FrameIs(0+1) or self:FrameIs(4+1) or self:FrameIs(8+1) then
     self:SnapXToGrid()
     if self:InputSameAsDirection() == false then
       return self:GoTo(self.Crouch)
+    end
+  elseif self:FrameIs(1+1) or self:FrameIs(5+1) or self:FrameIs(9+1) then
+    if self:InputSameAsDirection() == false then
+      return self:GoTo(self.Crouch)
+    else
+      if Actions.Run(self.mInput.IsHeld) then
+        -- TODO: Fix InputRunPressed and the likes, will be missed if pressed between frames
+        return self:StandToRun()
+      end
     end
   end
 end
