@@ -1895,7 +1895,7 @@ public:
     void SetFrame(u32 frame)
     {
         mCounter = 0;
-        mFrameDelay = mAnim.Animation().Fps();
+        mFrameDelay = 1; // Force change frame on first Update()
         mFrameNum = frame;
         mIsLastFrame = false;
         mCompleted = false;
@@ -1904,7 +1904,7 @@ public:
     void Restart()
     {
         mCounter = 0;
-        mFrameDelay = 1;
+        mFrameDelay = 1; // Force change frame on first Update()
         mFrameNum = -1;
         mIsLastFrame = false;
         mCompleted = false;

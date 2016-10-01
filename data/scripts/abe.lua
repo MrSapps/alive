@@ -11,6 +11,11 @@ function Abe:InputSameAsDirection()
         or (Actions.Right(self.mInput.IsHeld) and self.mApi:FacingRight())
 end
 
+function Abe:SetAnimationFrame(frame)
+  print("Force animation frame to " .. frame)
+  self.mApi:SetAnimationFrame(frame)
+end
+
 function Abe:SetAnimation(anim)
   if anim ~= self.mLastAnimationName then
     print("SetAnimation: " .. anim)
@@ -31,24 +36,13 @@ function Abe:SnapXToGrid()
   self.mApi:SnapXToGrid() 
 end
 
-function Abe:WaitForAnimationComplete() self:WaitForAnimationCompleteCb(nil) end
-
-function Abe:SetAndWaitForAnimationCompleteCb(anim, frameCallBackFunc, frame)
-  self:SetAnimation(anim)
-  self:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
-end
-
---function Abe:SetAndWaitForAnimationFrameCbAtFrame(firstFrame, anim, frame, cb) self:WaitForAnimationCompleteCb(firstFrame, anim, cb, frame) end
-function Abe:SetAndWaitForAnimationFrameCb(anim, frame, cb) self:SetAndWaitForAnimationCompleteCb(anim, cb, frame) end
-function Abe:SetAndWaitForAnimationFrame(anim, frame) self:SetAndWaitForAnimationCompleteCb(anim, nil, frame) end
-function Abe:SetAndWaitForAnimationComplete(anim) self:SetAndWaitForAnimationCompleteCb(anim, nil, -1) end
 
 function Abe:ToStandCommon(anim) 
   self:SetXSpeed(2.777771)
   self:SetXVelocity(0)
-  self:SetAndWaitForAnimationCompleteCb(anim, function() 
+  self:PlayAnimation{anim, onFrame = function() 
     if self:FrameIs(2) then PlaySoundEffect("MOVEMENT_MUD_STEP") end
-  end, -1) 
+  end} 
   --self:SnapXToGrid()
   return self:GoTo(self.Stand)
 end
@@ -57,7 +51,7 @@ function Abe:ToStand() return self:ToStandCommon("AbeWalkToStand") end
 function Abe:ToStand2() return self:ToStandCommon("AbeWalkToStandMidGrid") end
 
 function Abe:WalkToRunCommon(anim)
-  self:SetAndWaitForAnimationComplete(anim)
+  self:PlayAnimation{anim}
   return self:GoTo(self.Run)
 end
 
@@ -67,7 +61,7 @@ function Abe:WalkToRun2() return self:WalkToRunCommon("AbeWalkingToRunningMidGri
 function Abe:WalkToSneakCommon(anim)
   self:SetXSpeed(2.777771)
   self:SetXVelocity(0)
-  self:SetAndWaitForAnimationComplete(anim) 
+  self:PlayAnimation{anim} 
   return self:GoTo(self.Sneak)
 end
 
@@ -77,28 +71,27 @@ function Abe:WalkToSneak2() return self:WalkToSneakCommon("AbeWalkingToSneakingM
 function Abe:StandToRun()
   self:SetXSpeed(6.25)
   self:SetXVelocity(0)
-  self:SetAndWaitForAnimationComplete("AbeStandToRun")
+  self:PlayAnimation{"AbeStandToRun"}
   return self:GoTo(self.Run)
 end
 
 function Abe:RunToSkidTurnAround()
   self:SetXSpeed(6.25)
   self:SetXVelocity(0.375)
-  self:SetAndWaitForAnimationFrameCb('AbeRunningToSkidTurn', 15, 
-    function()
-      if self:FrameIs(14) then
-        print("Handle last frame of AbeRunningToSkidTurn")
-        self:SetXVelocity(0)
-        self:SnapXToGrid()
-      end
-    end) 
+  self:PlayAnimation{'AbeRunningToSkidTurn', endFrame = 15, onFrame = function()
+    if self:FrameIs(14) then
+      print("Handle last frame of AbeRunningToSkidTurn")
+      self:SetXVelocity(0)
+      self:SnapXToGrid()
+    end
+  end}
   
   if Actions.Run(self.mInput.IsHeld) then
     self:SetXSpeed(6.25)
     self:SetXVelocity(0)
     -- TODO: Probably better to have a FlipSpriteX and FlipDirectionX instead?
     self.mInvertX = true
-    self:SetAndWaitForAnimationComplete("AbeRunningTurnAround")
+    self:PlayAnimation{"AbeRunningTurnAround"}
     self.mInvertX = false
     self:FlipXDirection()
     --self:SnapXToGrid()
@@ -108,7 +101,7 @@ function Abe:RunToSkidTurnAround()
     self:SetXSpeed(2.777771)
     self:SetXVelocity(0)
     self.mInvertX = true
-    self:SetAndWaitForAnimationComplete("AbeRunningTurnAroundToWalk")
+    self:PlayAnimation{"AbeRunningTurnAroundToWalk"}
     self.mInvertX = false
     self:FlipXDirection()
    return self:GoTo(self.Walk)
@@ -119,7 +112,7 @@ end
 function Abe:RunToRoll()
   self:SetXVelocity(0)
   self:SetXSpeed(6.25)
-  self:SetAndWaitForAnimationComplete("AbeRunningToRoll")
+  self:PlayAnimation{"AbeRunningToRoll"}
   return self:GoTo(self.Roll)
 end
 
@@ -164,22 +157,23 @@ function Abe:Run()
 end
 
 function Abe:RunToSkidStop()
+  print("RunToSkidStop")
   self:SetXVelocity(0.375)
-  self:SetAndWaitForAnimationFrameCb('AbeRunningSkidStop', 15, 
-    function()
-      if self:FrameIs(14) then
-        print("Handle last frame of AbeRunningSkidStop")
-        self:SetXVelocity(0)
-        self:SnapXToGrid()
-      end
-  end) 
+  self:PlayAnimation{'AbeRunningSkidStop', endFrame = 15, onFrame = function()
+    if self:FrameIs(14) then
+      print("Handle last frame of AbeRunningSkidStop")
+      self:SetXVelocity(0)
+      self:SnapXToGrid()
+    end
+  end}
+
   return self:GoTo(self.Stand)
 end
 
 function Abe:RunToWalkCommon(anim)
   self:SetXSpeed(2.777771)
   self:SetXVelocity(0)
-  self:SetAndWaitForAnimationComplete(anim)
+  self:PlayAnimation{anim}
   return self:GoTo(self.Walk)
 end
 
@@ -188,7 +182,7 @@ function Abe:RunToWalk2() return self:RunToWalkCommon("AbeRunningToWalkingMidGri
 
 function Abe:StandToSneak() 
   self:SetXSpeed(2.5)
-  self:SetAndWaitForAnimationComplete("AbeStandToSneak")
+  self:PlayAnimation{"AbeStandToSneak"}
   return self:GoTo(self.Sneak)
 end
 
@@ -209,7 +203,7 @@ function Abe:Sneak()
 end
 
 function Abe:AbeSneakToStandCommon(anim)
-    self:SetAndWaitForAnimationComplete(anim)
+    self:PlayAnimation{anim}
     return self:GoTo(self.Stand)
 end
 
@@ -217,7 +211,7 @@ function Abe:AbeSneakToStand() return self:AbeSneakToStandCommon("AbeSneakToStan
 function Abe:AbeSneakToStand2() return self:AbeSneakToStandCommon("AbeSneakToStandMidGrid") end
 
 function Abe:SneakToWalkCommon(anim)
-  self:SetAndWaitForAnimationComplete(anim)
+  self:PlayAnimation{anim}
   return self:GoTo(self.Walk)
 end
 
@@ -267,14 +261,22 @@ function Abe:Walk()
   end
 end
 
-function Abe:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
-  print("Start wait for complete at frame " .. frame)
+function Abe:PlayAnimation(params)
+  self:SetAnimation(params[1])
+  if params.startFrame then
+    print("Start animation at frame " .. params.startFrame)
+    self:SetAnimationFrame(params.startFrame)
+  else
+    print("Start animation at beginning")
+  end
+
   local stop = false
   local frameChanged = true
   while true do
     if frameChanged then
-      if ((frame == -1 and self.mApi:FrameNumber() == self.mApi:NumberOfFrames()-1) or (frame ~= -1 and self.mApi:FrameNumber()+1==frame)) then
-        print("Wait for complete done at frame " .. frame)
+      if params.endFrame and self.mApi:FrameNumber()+1==params.endFrame 
+      or self.mApi:FrameNumber() == self.mApi:NumberOfFrames()-1 then
+        print("Wait for complete done at frame " .. self.mApi:FrameNumber())
         return
       else
         self:ApplyMovement()
@@ -283,8 +285,8 @@ function Abe:WaitForAnimationCompleteCb(frameCallBackFunc, frame)
     frameChanged = self.mApi:AnimUpdate()
     
     if frameChanged then
-      if frameCallBackFunc ~= nil then 
-        if (frameCallBackFunc()) then
+      if params.onFrame then 
+        if (params.onFrame()) then
           print("Request to stop at frame " .. self.mApi:FrameNumber())
           stop = true
         end
@@ -311,17 +313,17 @@ end
 function Abe:StandToWalk()
   self:SetXSpeed(2.777771)
   self:SetXVelocity(0)
-  self:SetAndWaitForAnimationComplete("AbeStandToWalk")
+  self:PlayAnimation{"AbeStandToWalk"}
   return self:GoTo(self.Walk)
 end
 
 function Abe:StandToCrouch()
-  self:SetAndWaitForAnimationComplete("AbeStandToCrouch")
+  self:PlayAnimation{"AbeStandToCrouch"}
   return self:GoTo(self.Crouch)
 end
 
 function Abe:CrouchToStand()
-  self:SetAndWaitForAnimationComplete("AbeCrouchToStand")
+  self:PlayAnimation{"AbeCrouchToStand"}
   return self:GoTo(self.Stand)
 end
 
@@ -330,25 +332,25 @@ function Abe:StandTurnAround()
   local toRun = false
   
   -- stop at frame 3 if we want to go to running
-  self:SetAndWaitForAnimationCompleteCb('AbeStandTurnAround', function()
-      if self:FrameIs(3) and Actions.Run(self.mInput.IsHeld) then
-        toRun = true
-        return true
-      end
-  end, -1) 
+  self:PlayAnimation{'AbeStandTurnAround', onFrame = function()
+    if self:FrameIs(3) and Actions.Run(self.mInput.IsHeld) then
+      toRun = true
+      return true
+    end
+  end}
 
   self:FlipXDirection()
   if toRun then
     self:SetXSpeed(6.25)
     self:SetXVelocity(0)
-    self:SetAndWaitForAnimationComplete('AbeStandTurnAroundToRunning')
+    self:PlayAnimation{"AbeStandTurnAroundToRunning"}
     return self:GoTo(self.Run)
   end
   return self:GoTo(self.Stand) 
 end
 
 function Abe:CrouchStand() 
-  self:SetAndWaitForAnimationComplete('AbeCrouchTurnAround') 
+  self:PlayAnimation{"AbeCrouchTurnAround"} 
   self:FlipXDirection()
   return self:GoTo(self.Crouch) 
 end
@@ -356,7 +358,7 @@ end
 function Abe:CrouchToRoll()
   self:SetXSpeed(6.25)
   self:SetXVelocity(0)
-  self:SetAndWaitForAnimationComplete('AbeCrouchToRoll') 
+  self:PlayAnimation{"AbeCrouchToRoll"} 
   return self:GoTo(self.Roll) 
 end
 
@@ -414,21 +416,21 @@ function Abe:HandleGameSpeak(standing)
 end
 
 function Abe:GameSpeakStanding(anim, soundEffect)
-  self:SetAndWaitForAnimationComplete("AbeStandSpeak1")
+  self:PlayAnimation{"AbeStandSpeak1"}
   PlaySoundEffect(soundEffect)
-  self:SetAndWaitForAnimationComplete(anim)
+  self:PlayAnimation{anim}
   self:SetAnimation("AbeStandIdle")
 end
 
 function Abe:GameSpeakFartStanding()
   PlaySoundEffect("GAMESPEAK_MUD_FART")
-  self:SetAndWaitForAnimationComplete("AbeStandSpeak5")
+  self:PlayAnimation{"AbeStandSpeak5"}
   self:SetAnimation("AbeStandIdle")
 end
 
 function Abe:GameSpeakCrouching(anim, soundEffect)
   PlaySoundEffect(soundEffect)
-  self:SetAndWaitForAnimationComplete(anim)
+  self:PlayAnimation{anim}
   self:SetAnimation("AbeCrouchIdle")
 end
 
@@ -454,29 +456,30 @@ end
 
 function Abe:StandToHop()
   -- TODO: Must start at frame 9!
-  self:SetAndWaitForAnimationCompleteCb('AbeStandToHop', function()
-      if self.mApi:FrameNumber() == 0 then
-        print("First")
-        self:SetXSpeed(17)
-      else
-        print("Others")
-        self:SetXSpeed(13.569992)
-        self:SetYSpeed(-2.7)
-      end
-  end, 3) 
+  -- TODO HACK should be passing 9 and 10 here?
+  self:PlayAnimation{"AbeStandToHop", startFrame = 8, endFrame = 9+3, onFrame = function()
+    if self.mApi:FrameNumber() == 8 then
+      print("First")
+      self:SetXSpeed(17)
+    else
+      print("Others")
+      self:SetXSpeed(13.569992)
+      self:SetYSpeed(-2.7)
+    end
+  end} 
 
   self:SetYVelocity(-1.8)
-  self:SetAndWaitForAnimationCompleteCb('AbeHopping', function()
-      if self:FrameIs(3) then
-        self:SnapXToGrid()
-      elseif self:FrameIs(2) then
-        self:SetYSpeed(0)
-        self:SetYVelocity(0)
-      end
-  end, -1) 
+  self:PlayAnimation{"AbeHopping", onFrame = function()
+    if self:FrameIs(3) then
+      self:SnapXToGrid()
+    elseif self:FrameIs(2) then
+      self:SetYSpeed(0)
+      self:SetYVelocity(0)
+    end
+  end}
 
   self:SetXSpeed(0)
-  self:SetAndWaitForAnimationComplete("AbeHoppingToStand")
+  self:PlayAnimation{"AbeHoppingToStand"}
 
   return self:GoTo(self.Stand)
 end

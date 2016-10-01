@@ -81,6 +81,7 @@ private:
 private: // Actions
     bool AnimationComplete() const;
     void SetAnimation(const std::string& animation);
+    void SetAnimationFrame(s32 frame);
     void SetAnimationAtFrame(const std::string& animation, u32 frame);
     bool FacingLeft() const { return mFlipX; }
     bool FacingRight() const { return !FacingLeft(); }

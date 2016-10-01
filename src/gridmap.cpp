@@ -100,6 +100,7 @@ MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::
 {
     state.new_usertype<MapObject>("MapObject",
         "SetAnimation", &MapObject::SetAnimation,
+        "SetAnimationFrame", &MapObject::SetAnimationFrame,
         "SnapXToGrid", &MapObject::SnapXToGrid,
         "FrameNumber", &MapObject::FrameNumber,
         "IsLastFrame", &MapObject::IsLastFrame,
@@ -291,6 +292,14 @@ void MapObject::SetAnimation(const std::string& animation)
         }
         mAnim = mAnims[animation].get();
         mAnim->Restart();
+    }
+}
+
+void MapObject::SetAnimationFrame(s32 frame)
+{
+    if (mAnim)
+    {
+        mAnim->SetFrame(frame);
     }
 }
 
