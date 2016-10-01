@@ -249,17 +249,10 @@ bool Engine::Init()
     }
 }
 
-void LuaLog(const char* msg)
-{
-    if (msg)
-    {
-        LOG_INFO(msg);
-    }
-    else
-    {
-        LOG_INFO("nil");
-    }
-}
+void LuaLogTrace(const char* msg) { if (msg) { LOG_NOFUNC_TRACE(msg); } else  { LOG_NOFUNC_TRACE("nil"); } }
+void LuaLogInfo(const char* msg) { if (msg) { LOG_NOFUNC_INFO(msg); } else { LOG_NOFUNC_INFO("nil"); } }
+void LuaLogWarning(const char* msg) { if (msg) { LOG_NOFUNC_WARNING(msg); } else { LOG_NOFUNC_WARNING("nil"); } }
+void LuaLogError(const char* msg) { if (msg) { LOG_NOFUNC_ERROR(msg); } else { LOG_NOFUNC_ERROR("nil"); } }
 
 void Engine::InitSubSystems()
 {
@@ -278,7 +271,13 @@ void Engine::InitSubSystems()
     mLuaState.open_libraries(sol::lib::base, sol::lib::string, sol::lib::jit, sol::lib::table, sol::lib::debug, sol::lib::math, sol::lib::bit32);
     
     // Redirect lua print()
-    mLuaState.set_function("print", LuaLog);
+    mLuaState.set_function("print", LuaLogTrace);
+
+    // Add other logging globals
+    mLuaState.set_function("log_info", LuaLogInfo);
+    mLuaState.set_function("log_trace", LuaLogTrace);
+    mLuaState.set_function("log_warning", LuaLogWarning);
+    mLuaState.set_function("log_error", LuaLogError);
 
     Oddlib::IStream::RegisterLuaBindings(mLuaState);
     Actions::RegisterLuaBindings(mLuaState);

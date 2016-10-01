@@ -167,6 +167,12 @@ inline void output(std::ostream& /*os*/, None)
 #define LOG_INFO(msg) (Log(FNAME, LogData<None>() << setcolour(GREEN) << " [I] " << msg << std::flush))
 #define LOG_WARNING(msg) (Log(FNAME, LogData<None>() << setcolour(YELLOW) << " [W] " << msg << std::flush))
 #define LOG_ERROR(msg) (Log(FNAME, LogData<None>() << setcolour(RED) << " [E] " << msg << std::flush))
+
+#define LOG_NOFUNC_TRACE(msg) (Log(LogData<None>() << setcolour(WHITE) << "[T] " << msg << std::flush))
+#define LOG_NOFUNC_INFO(msg) (Log(LogData<None>() << setcolour(GREEN) << "[I] " << msg << std::flush))
+#define LOG_NOFUNC_WARNING(msg) (Log(LogData<None>() << setcolour(YELLOW) << "[W] " << msg << std::flush))
+#define LOG_NOFUNC_ERROR(msg) (Log(LogData<None>() << setcolour(RED) << "[E] " << msg << std::flush))
+
 #define LOG(msg) (Log(LogData<None>() << msg))
 
 namespace Logging

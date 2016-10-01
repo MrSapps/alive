@@ -286,7 +286,7 @@ struct anim_struct
     WORD field_8A;
     DWORD field_8C;
     WORD field_90;
-    WORD mFrameNum;
+    s16 mFrameNum;
 };
 #pragma pack(pop)
 static_assert(sizeof(anim_struct) == 0x94, "Wrong size");
@@ -461,20 +461,68 @@ private:
 inline HalfFloat operator - (const HalfFloat& l, const HalfFloat& r) { return HalfFloat(l.mValue - r.mValue); }
 
 #pragma pack(push)
-#pragma pack(1)
+#pragma pack(4)
 struct abe
 {
-    BYTE gap0[184];
+
+    void *vtable;
+    __int16 type;
+    char objectMode;
+    char field_7;
+    char gap8;
+    int field_C;
+    char *field_10;
+    int field_14;
+    BYTE gap18[8];
+    int field_20;
+    char field_24;
+    __declspec(align(2)) char field_26;
+    __declspec(align(2)) char field_28;
+    char gap29;
+    __int16 field_2A;
+    __int16 field_2C;
+    BYTE gap2E[6];
+    __int16 field_34;
+    BYTE gap36[6];
+    int field_3C;
+    BYTE gap40[20];
+    int field_54;
+    __int16 gap58;
+    BYTE gap5A[88];
+    char field_B2;
+    BYTE gapB3[5];
     HalfFloat xpos;
     HalfFloat ypos;
-    WORD wordC0;
-    WORD wordC2;
-    BYTE gapC4[66];
-    WORD word106;
-    BYTE gap108[164];
-    BYTE byte1AC;
+    char field_C0;
+    HalfFloat velocity_x;
+    HalfFloat velocity_y;
+    int scale;
+    char color_r;
+    __declspec(align(2)) char color_g;
+    __declspec(align(2)) char color_b;
+    __declspec(align(2)) char layer;
+    __int16 sprite_offset_x;
+    __int16 sprite_offset_y;
+    BYTE gapDC[28];
+    int field_F8;
+    BYTE gapFC[4];
+    int field_100;
+    __int16 gap104;
+    __int16 alive_state;
+    BYTE gap108[4];
+    int health;
+    BYTE gap110[32];
+    int field_130;
+    int field_134;
+    __int16 field_138;
+    BYTE gap13A[48];
+    char ring_ability;
+    BYTE gap16B[55];
+    char rock_count;
+    BYTE gap1A3[148];
+    __declspec(align(1)) __int16 gap10A;
 };
-#pragma pack(1)
+#pragma pack(pop)
 
 abe ** hero = reinterpret_cast<abe**>(0x005C1B68);
 
@@ -482,15 +530,29 @@ void DumpDeltas(anim_struct* thisPtr)
 {
     static HalfFloat prevX = 0;
     static HalfFloat prevY = 0;
+    static HalfFloat preVX = 0;
+    static HalfFloat preVY = 0;
 
-    if (prevX != (*hero)->xpos || prevY != (*hero)->ypos)
+    if (prevX != (*hero)->xpos ||
+        prevY != (*hero)->ypos ||
+        preVX != (*hero)->velocity_x ||
+        preVY != (*hero)->velocity_y)
     {
-        printf("Player X Delta %f Y Delta %f frame %d\n", ((*hero)->xpos - prevX).AsDouble(), ((*hero)->ypos - prevY).AsDouble(), thisPtr->mFrameNum);
+
+        printf("XD:%f YD:%f F:%d XV:%f YV:%f\n",
+            ((*hero)->xpos - prevX).AsDouble(),
+            ((*hero)->ypos - prevY).AsDouble(),
+            thisPtr->mFrameNum,
+            ((*hero)->velocity_x - preVX).AsDouble(),
+            ((*hero)->velocity_y - preVY).AsDouble()
+        );
         //system("PAUSE");
     }
 
     prevX = (*hero)->xpos;
     prevY = (*hero)->ypos;
+    preVX = (*hero)->velocity_x;
+    preVY = (*hero)->velocity_y;
 }
 
 void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)

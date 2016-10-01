@@ -12,13 +12,13 @@ function Abe:InputSameAsDirection()
 end
 
 function Abe:SetAnimationFrame(frame)
-  print("Force animation frame to " .. frame)
+  log_info("Force animation frame to " .. frame)
   self.mApi:SetAnimationFrame(frame)
 end
 
 function Abe:SetAnimation(anim)
   if anim ~= self.mLastAnimationName then
-    print("SetAnimation: " .. anim)
+    log_info("SetAnimation: " .. anim)
     self.mApi:SetAnimation(anim)
     self.mLastAnimationName = anim
   end  
@@ -80,7 +80,7 @@ function Abe:RunToSkidTurnAround()
   self:SetXVelocity(0.375)
   self:PlayAnimation{'AbeRunningToSkidTurn', endFrame = 15, onFrame = function()
     if self:FrameIs(14) then
-      print("Handle last frame of AbeRunningToSkidTurn")
+      log_trace("Handle last frame of AbeRunningToSkidTurn")
       self:SetXVelocity(0)
       self:SnapXToGrid()
     end
@@ -117,7 +117,30 @@ function Abe:RunToRoll()
 end
 
 function Abe:RunToJump()
-  print("TODO: RunToJump")
+  log_error("TODO: RunToJump")
+
+  self:PlayAnimation{"AbeRuningToJump", onFrame = function() 
+      if self:FrameIs(2) then
+        self:SetYVelocity(9.6)
+      end 
+  end}
+
+  self:SetYVelocity(-1.8)
+  self:SetXSpeed(7.6)
+  self:PlayAnimation{"AbeRunningJumpInAir", onFrame = function() 
+      if self:FrameIs(10) then
+        self:SetYVelocity(1.8)
+        self:SetXSpeed(4.9)
+      end 
+  end}
+
+  self:SetYSpeed(0)
+  self:SetYVelocity(0)
+  self:SnapXToGrid()
+  
+  self:PlayAnimation{"AbeFallingToLand"}
+  
+  return self:RunToSkidStop()
 end
 
 function Abe:Run()
@@ -157,11 +180,11 @@ function Abe:Run()
 end
 
 function Abe:RunToSkidStop()
-  print("RunToSkidStop")
+  log_trace("RunToSkidStop")
   self:SetXVelocity(0.375)
   self:PlayAnimation{'AbeRunningSkidStop', endFrame = 15, onFrame = function()
     if self:FrameIs(14) then
-      print("Handle last frame of AbeRunningSkidStop")
+      log_trace("Handle last frame of AbeRunningSkidStop")
       self:SetXVelocity(0)
       self:SnapXToGrid()
     end
@@ -237,6 +260,8 @@ function Abe:ApplyMovement()
   end
   
   --if self.mYSpeed < 0 then
+    
+    --log_error("YSpeed from " .. self.mYSpeed .. " to " .. self.mYSpeed - self.mYVelocity)
     self.mYSpeed = self.mYSpeed - self.mYVelocity
     self.mApi.mYPos = self.mApi.mYPos + self.mYSpeed
   --end
@@ -264,10 +289,10 @@ end
 function Abe:PlayAnimation(params)
   self:SetAnimation(params[1])
   if params.startFrame then
-    print("Start animation at frame " .. params.startFrame)
+    log_info("Start animation at frame " .. params.startFrame)
     self:SetAnimationFrame(params.startFrame-1) -- first update will frame+1
   else
-    print("Start animation at beginning")
+    log_info("Start animation at beginning")
   end
 
   local stop = false
@@ -276,13 +301,13 @@ function Abe:PlayAnimation(params)
     if frameChanged then
       if params.endFrame and self.mApi:FrameNumber() == params.endFrame+1 
       or self.mApi:FrameNumber() == self.mApi:NumberOfFrames()-1 then
-        print("Wait for complete done at frame " .. self.mApi:FrameNumber())
+        log_info("Wait for complete done at frame " .. self.mApi:FrameNumber())
         stop = true
       end
 
       if params.onFrame then 
         if (params.onFrame()) then
-          print("Request to stop at frame " .. self.mApi:FrameNumber())
+          log_info("Request to stop at frame " .. self.mApi:FrameNumber())
           stop = true
         end
       end
@@ -297,12 +322,10 @@ end
 function Abe:GoTo(func)
   local data = self.mAnims[func]
   self.mData = { mFunc = func, Animation = data.name }
-  print(self.mData.Animation)
-  print(self.mData.mFunc)
   self:SetXSpeed(data.xspeed)
   self:SetXVelocity(data.xvel)
   if self.mData.Animation == nil then
-    print("ERROR: An animation mapping is missing!")
+    log_error("An animation mapping is missing!")
   end
   return true
 end
@@ -391,6 +414,7 @@ local game_speak =
   { Actions.GameSpeak6, { "AbeStandSpeak2",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_ALLYA"},
   { Actions.GameSpeak7, { "AbeStandSpeak5",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_SORRY"},
   { Actions.GameSpeak8, { "AbeStandSpeak3",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_NO_SAD"},  -- TODO: actually "Stop it"
+  -- TODO: Laugh, whistle1/2 for AO
 }
 
 function Abe:HandleGameSpeak(standing)
@@ -449,14 +473,10 @@ function Abe:Crouch()
 end
 
 function Abe:StandToHop()
-  -- TODO: Must start at frame 9!
-  -- TODO HACK should be passing 9 and 10 here?
   self:PlayAnimation{"AbeStandToHop", startFrame = 9, endFrame = 11, onFrame = function()
     if self.mApi:FrameNumber() == 9 then
-      print("First")
       self:SetXSpeed(17)
     else
-      print("Others")
       self:SetXSpeed(13.569992)
       self:SetYSpeed(-2.7)
     end
@@ -526,20 +546,23 @@ end
 local oldX = 0
 local oldY = 0
 function Abe:DebugPrintPosDeltas()
-  if oldX ~= self.mApi.mXPos then
-    local delta = self.mApi.mXPos - oldX
-    if delta ~= self.mApi.mXPos then
-      print("DELTA: " .. delta .. " on frame: " .. self.mApi:FrameNumber() .. " XPOS: " .. self.mApi.mXPos .. " speed " .. self.mXSpeed .. " xvel " .. self.mXVelocity)
+  if oldX ~= self.mApi.mXPos or oldY ~= self.mApi.mYPos then
+    local deltaX = self.mApi.mXPos - oldX
+    local deltaY = self.mApi.mYPos - oldY
+    if delta ~= self.mApi.mXPos or deltaY ~= self.mApi.mYPos then
+      log_trace(
+        "XD:"  .. string.format("%.6f", deltaX) .. 
+        " YD:" .. string.format("%.6f", deltaY) .. 
+        " F:"  .. self.mApi:FrameNumber() .. 
+        --" X:" .. string.format("%.2f", self.mApi.mXPos) .. 
+        --" Y:" .. string.format("%.2f", self.mApi.mYPos) ..
+        " XS:" .. string.format("%.2f", self.mXSpeed) .. 
+        " YS:" .. string.format("%.2f", self.mYSpeed) .. 
+        " XV:" .. string.format("%.2f", self.mXVelocity) ..
+        " YV:" .. string.format("%.2f", self.mYVelocity))
     end
   end
   oldX = self.mApi.mXPos
-  
-  if oldY ~= self.mApi.mYPos then
-    local delta = self.mApi.mYPos - oldY
-    if delta ~= self.mApi.mYPos then
-      print("DELTA: " .. delta .. " on frame: " .. self.mApi:FrameNumber() .. " YPOS: " .. self.mApi.mYPos .. " speed " .. self.mYSpeed .. " yvel " .. self.mYVelocity)
-    end
-  end
   oldY = self.mApi.mYPos
 end
 
@@ -577,7 +600,7 @@ local function Abe_Debug()
   a.mApi = {}
   a.mApi.mXPos = 0
   a.mApi.mYPos = 0
-  a.mApi.SetAnimation = function(anim) print("Fake set animation: " .. anim) end
+  a.mApi.SetAnimation = function(anim) log_trace("Fake set animation: " .. anim) end
    
   a:Test()
 end
