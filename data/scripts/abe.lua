@@ -138,9 +138,20 @@ function Abe:RunToJump()
   self:SetYVelocity(0)
   self:SnapXToGrid()
   
-  self:PlayAnimation{"AbeFallingToLand"}
-  
-  return self:RunToSkidStop()
+  if self:InputSameAsDirection() then
+    if Actions.Run(self.mInput.IsHeld) then
+      self:SetXSpeed(6.250000)
+      self:PlayAnimation{"AbeLandToRunning"}
+      return self:GoTo(Abe.Run)
+    else
+      self:SetXSpeed(2.777771)
+      self:PlayAnimation{"AbeLandToWalking"}
+      return self:GoTo(Abe.Walk)
+    end
+  else
+    self:PlayAnimation{"AbeFallingToLand"}
+    return self:RunToSkidStop()
+  end
 end
 
 function Abe:Run()
