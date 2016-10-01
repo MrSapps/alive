@@ -260,38 +260,35 @@ function Abe:Walk()
     end
   end
 end
-
+ 
 function Abe:PlayAnimation(params)
   self:SetAnimation(params[1])
   if params.startFrame then
     print("Start animation at frame " .. params.startFrame)
-    self:SetAnimationFrame(params.startFrame)
+    self:SetAnimationFrame(params.startFrame-1) -- first update will frame+1
   else
     print("Start animation at beginning")
   end
 
   local stop = false
-  local frameChanged = true
   while true do
+    local frameChanged = self.mApi:AnimUpdate()
     if frameChanged then
-      if params.endFrame and self.mApi:FrameNumber()+1==params.endFrame 
+      if params.endFrame and self.mApi:FrameNumber() == params.endFrame+1 
       or self.mApi:FrameNumber() == self.mApi:NumberOfFrames()-1 then
         print("Wait for complete done at frame " .. self.mApi:FrameNumber())
-        return
-      else
-        self:ApplyMovement()
+        stop = true
       end
-    end
-    frameChanged = self.mApi:AnimUpdate()
-    
-    if frameChanged then
+
       if params.onFrame then 
         if (params.onFrame()) then
           print("Request to stop at frame " .. self.mApi:FrameNumber())
           stop = true
         end
       end
+      self:ApplyMovement()
     end
+    
     coroutine.yield()
     if stop then return end
   end
@@ -457,8 +454,8 @@ end
 function Abe:StandToHop()
   -- TODO: Must start at frame 9!
   -- TODO HACK should be passing 9 and 10 here?
-  self:PlayAnimation{"AbeStandToHop", startFrame = 8, endFrame = 9+3, onFrame = function()
-    if self.mApi:FrameNumber() == 8 then
+  self:PlayAnimation{"AbeStandToHop", startFrame = 9, endFrame = 11, onFrame = function()
+    if self.mApi:FrameNumber() == 9 then
       print("First")
       self:SetXSpeed(17)
     else
@@ -469,16 +466,15 @@ function Abe:StandToHop()
   end} 
 
   self:SetYVelocity(-1.8)
-  self:PlayAnimation{"AbeHopping", onFrame = function()
+  self:PlayAnimation{"AbeHopping", endFrame = 3, onFrame = function()
     if self:FrameIs(3) then
-      self:SnapXToGrid()
-    elseif self:FrameIs(2) then
+      self:SetXSpeed(0)
       self:SetYSpeed(0)
       self:SetYVelocity(0)
+      self:SnapXToGrid()
     end
   end}
 
-  self:SetXSpeed(0)
   self:PlayAnimation{"AbeHoppingToStand"}
 
   return self:GoTo(self.Stand)
