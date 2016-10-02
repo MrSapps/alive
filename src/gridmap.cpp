@@ -696,9 +696,9 @@ void GridMap::Update(const InputState& input)
     }
 }
 
-bool GridMap::raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision * collision)
+bool GridMap::raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision)
 {
-    std::sort(std::begin(mCollisionItemsSorted), std::end(mCollisionItemsSorted), [line1p1](const Oddlib::Path::CollisionItem& lhs, const Oddlib::Path::CollisionItem& rhs)
+    std::sort(std::begin(mCollisionItemsSorted), std::end(mCollisionItemsSorted), [&](const Oddlib::Path::CollisionItem& lhs, const Oddlib::Path::CollisionItem& rhs)
     {
         return glm::distance((glm::vec2(lhs.mP1.mX, lhs.mP1.mY) + glm::vec2(lhs.mP2.mX, lhs.mP2.mY)) / 2.0f, line1p1) < glm::distance((glm::vec2(rhs.mP1.mX, rhs.mP1.mY) + glm::vec2(rhs.mP2.mX, rhs.mP2.mY)) / 2.0f, line1p1);
     });
@@ -974,37 +974,41 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
 {
     rend.mSmoothCameraPosition = false;
 
-    glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+    const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 
     rend.mScreenSize = glm::vec2(368, 240);
-    int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x);
-    int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y);
+    const int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x);
+    const int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y);
 
     rend.mCameraPosition = glm::vec2(camX * camGapSize.x, camY * camGapSize.y) + glm::vec2(368 / 2, 240 / 2);
 
     // Culling is disabled until proper camera position updating order is fixed
-    /*if (camX >= 0 && camY >= 0 && camX < static_cast<int>(mScreens.size()) && camY < static_cast<int>(mScreens[camX].size()))
+    // ^ not sure what this means, but rendering things at negative cam index seems to go wrong
+    if (camX >= 0 && camY >= 0 && camX < static_cast<int>(mScreens.size()) && camY < static_cast<int>(mScreens[camX].size()))
     {
-        GridScreen *screen = mScreens[camX][camY].get();
+        GridScreen* screen = mScreens[camX][camY].get();
         if (screen->hasTexture())
+        {
             rend.drawQuad(screen->getTexHandle(), camX * camGapSize.x, camY * camGapSize.y, 368.0f, 240.0f);
-    }*/
-
+        }
+    }
+    
+/*
     // For now draw every cam
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
         {
-            GridScreen *screen = mScreens[x][y].get();
+            GridScreen* screen = mScreens[x][y].get();
             if (!screen->hasTexture())
             {
-                screen = nullptr;
                 continue;
             }
 
             rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
         }
     }
+*/
 
     RenderDebug(rend);
 
