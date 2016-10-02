@@ -58,12 +58,13 @@ public:
 class MapObject
 {
 public:
+    MapObject(MapObject&&) = delete;
+    MapObject& operator = (MapObject&&) = delete;
     MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
     void Init();
     void Init(const ObjRect& rect, Oddlib::IStream& objData);
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale);
-    void Input(const InputState& input);
     static void RegisterLuaBindings(sol::state& state);
 
     bool ContainsPoint(s32 x, s32 y) const;
@@ -112,11 +113,12 @@ private:
 class Level
 {
 public:
+    Level(Level&&) = delete;
+    Level& operator = (Level&&) = delete;
     Level(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState, Renderer& render);
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
     void EnterState();
-    void Input(const InputState& input);
 private:
     void RenderDebugPathSelection(Renderer& rend, GuiContext& gui);
     std::unique_ptr<class GridMap> mMap;

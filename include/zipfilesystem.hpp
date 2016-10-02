@@ -7,6 +7,8 @@
 class ZipFileSystem : public IFileSystem
 {
 public:
+    ZipFileSystem(ZipFileSystem&&) = delete;
+    ZipFileSystem& operator = (ZipFileSystem&&) = delete;
     ZipFileSystem(const std::string& zipFile, IFileSystem& fs);
 
     virtual bool Init() override;

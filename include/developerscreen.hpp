@@ -6,6 +6,8 @@
 class DeveloperScreen : public IState
 {
 public:
+    DeveloperScreen(DeveloperScreen&&) = delete;
+    DeveloperScreen& operator = (DeveloperScreen&&) = delete;
     DeveloperScreen(StateMachine& stateMachine, GuiContext* gui, class Fmv& fmv, class Sound& sound, class Level& level, ResourceLocator& resMapper)
         : IState(stateMachine),
           mGui(gui),
