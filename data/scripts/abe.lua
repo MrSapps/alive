@@ -342,6 +342,19 @@ function Abe:GoTo(func)
 end
 
 function Abe:StandToWalk()
+  -- Blocked by wall at head height?
+  if self.mApi:WallCollision(25, 50) then
+    -- Blocked at knee height?
+    if self.mApi:WallCollision(25, 20) then
+      -- Way to get through
+      self:PlayAnimation{"AbeStandPushWall"}
+      return self:GoTo(self.Stand)
+    else
+      -- Goto crouch so we can roll through
+      return self:StandToCrouch()
+    end
+  end
+
   self:SetXSpeed(2.777771)
   self:SetXVelocity(0)
   self:PlayAnimation{"AbeStandToWalk"}
@@ -516,7 +529,7 @@ function Abe:Stand()
       return self:StandToRun()
     elseif Actions.Sneak(self.mInput.IsHeld) then
       return self:StandToSneak()
-    else 
+    else
       return self:StandToWalk() end
   elseif Actions.Down(self.mInput.IsHeld) then
     return self:StandToCrouch()

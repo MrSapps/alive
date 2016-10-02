@@ -48,10 +48,17 @@ struct ObjRect
     }
 };
 
+class IMap
+{
+public:
+    virtual ~IMap() = default;
+    virtual bool raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision) = 0;
+};
+
 class MapObject
 {
 public:
-    MapObject(sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
+    MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
     void Init();
     void Init(const ObjRect& rect, Oddlib::IStream& objData);
     void Update(const InputState& input);
@@ -69,8 +76,10 @@ public:
     float mYPos = 100.0f;
     s32 Id() const { return mId; }
     void Activate(bool direction);
+    bool WallCollision(f32 dx, f32 dy) const;
 private:
     void ScriptLoadAnimations();
+    IMap& mMap;
 
     std::map<std::string, std::unique_ptr<Animation>> mAnims;
     Animation* mAnim = nullptr;
@@ -141,7 +150,7 @@ private:
     Renderer& mRend;
 };
 
-class GridMap
+class GridMap : public IMap
 {
 public:
     GridMap(const GridMap&) = delete;
@@ -156,7 +165,7 @@ private:
     void RenderEditor(Renderer& rend, GuiContext& gui);
     void RenderGame(Renderer& rend, GuiContext& gui);
 
-    bool raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision);
+    virtual bool raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision) override final;
 
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
     
@@ -170,7 +179,7 @@ private:
 
     // TODO: This is not the in-game format
     std::vector<Oddlib::Path::CollisionItem> mCollisionItems;
-    std::vector<Oddlib::Path::CollisionItem> mCollisionItemsSorted;
+    std::vector<const Oddlib::Path::CollisionItem*> mCollisionItemsSorted; // Points into mCollisionItems and isn't owned
     bool mIsAo;
 
     MapObject mPlayer;
