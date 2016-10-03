@@ -343,9 +343,9 @@ end
 
 function Abe:StandToWalk()
   -- Blocked by wall at head height?
-  if self.mApi:WallCollision(25, 50) then
+  if self.mApi:WallCollision(25, -50) then
     -- Blocked at knee height?
-    if self.mApi:WallCollision(25, 20) then
+    if self.mApi:WallCollision(25, -20) then
       -- Way to get through
       self:PlayAnimation{"AbeStandPushWall"}
       return self:GoTo(self.Stand)

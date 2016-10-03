@@ -145,9 +145,9 @@ bool MapObject::WallCollision(f32 dx, f32 dy) const
 {
     // TODO: Check 1 and 2 types - maybe more
     return mMap.raycast_map(
-        glm::vec2(mXPos, mYPos + dy), 
-        glm::vec2(mXPos + (mFlipX ? dx : -dx), mYPos + dy), 
-        1, nullptr);
+        glm::vec2(mXPos, mYPos + dy),
+        glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy), 
+        mFlipX ? 1 : 2, nullptr);
 }
 
 void MapObject::ScriptLoadAnimations()
@@ -757,17 +757,54 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
     }
 }
 
+// 0 - Foreground Floor
+// 1 - Foreground Left Wall
+// 2 - Foreground Right Wall
+// 3 - Foreground Ceiling
+// 4 - Background Floor
+// 5 - Background Left Wall
+// 6 - Background Right Wall
+
+// 8 Follow Path
+// 10 - Slig Shoot Safety
+// 11 - Minecar Floor
+// 12 - Minecar Vertical
+// 13 - Minecar Ceiling
+static constexpr Color kLineColours[] = 
+{
+    { 255 / 255, 0 / 255,   0 / 255,   255 / 255 },
+    { 0 / 255,   0 / 255,   255 / 255, 255 / 255 },
+    { 0 / 255,   100 / 255, 255 / 255, 255 / 255 },
+    { 255 / 255, 100 / 255, 0 / 255,   255 / 255 },
+    { 255 / 255, 100 / 255, 0 / 255,   255 / 255 },
+    { 100 / 255, 100 / 255, 255 / 255, 255 / 255 },
+    { 0 / 255,   255 / 255, 255 / 255, 255 / 255 },
+    { 255 / 255, 100 / 255, 100 / 255, 255 / 255 },
+    { 255 / 255, 255 / 255, 0 / 255,   255 / 255 },
+    { 255 / 255, 255 / 255, 255 / 255, 255 / 255 }, // TODO: Type 9
+    { 255 / 255, 0 / 255,   255 / 255, 255 / 255 }
+};
+static bool IsKnownCollisionType(u32 idx) { return idx < _countof(kLineColours); }
+
 void GridMap::RenderDebug(Renderer& rend)
 {
     // Draw collisions
     if (Debugging().mCollisionLines)
     {
-        rend.strokeColor(Color{ 0, 0, 1, 1 });
         rend.strokeWidth(2.f);
         for (const Oddlib::Path::CollisionItem* item : mCollisionItemsSorted)
         {
-            glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item->mP1.mX, item->mP1.mY));
-            glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item->mP2.mX, item->mP2.mY));
+            if (IsKnownCollisionType(item->mType))
+            {
+                rend.strokeColor(kLineColours[item->mType]);
+            }
+            else
+            {
+                rend.strokeColor(Color{ 0, 0, 1, 1 });
+            }
+
+            const glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item->mP1.mX, item->mP1.mY));
+            const glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item->mP2.mX, item->mP2.mY));
 
             rend.beginPath();
             rend.moveTo(p1.x, p1.y);
@@ -1038,20 +1075,50 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
         0,
         1.0f);
 
-    Physics::raycast_collision collision;
-
     // Test raycasting for shadows
-    if (raycast_map(glm::vec2(mPlayer.mXPos, mPlayer.mYPos), glm::vec2(mPlayer.mXPos, mPlayer.mYPos + 500), 0, &collision))
-    {
-        if (Debugging().mRayCasts)
-        {
-            glm::vec2 screenSpaceHit = rend.WorldToScreen(collision.intersection);
+    DebugRayCast(rend,
+        glm::vec2(mPlayer.mXPos, mPlayer.mYPos),
+        glm::vec2(mPlayer.mXPos, mPlayer.mYPos + 500),
+        0,
+        glm::vec2(0, -10)); // -10 so when we are *ON* a line you can see something
 
-            rend.strokeColor(Color{ 1, 0, 0, 1 });
+    if (mPlayer.mFlipX)
+    {
+        DebugRayCast(rend,
+            glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 20),
+            glm::vec2(mPlayer.mXPos - 25, mPlayer.mYPos - 20), 1);
+
+        DebugRayCast(rend,
+            glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 50),
+            glm::vec2(mPlayer.mXPos - 25, mPlayer.mYPos - 50), 1);
+    }
+    else
+    {
+        DebugRayCast(rend,
+            glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 20),
+            glm::vec2(mPlayer.mXPos + 25, mPlayer.mYPos - 20), 2);
+
+        DebugRayCast(rend,
+            glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 50),
+            glm::vec2(mPlayer.mXPos + 25, mPlayer.mYPos - 50), 2);
+    }
+}
+
+void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, int collisionType, const glm::vec2& fromDrawOffset)
+{
+    if (Debugging().mRayCasts)
+    {
+        Physics::raycast_collision collision;
+        if (raycast_map(from, to, collisionType, &collision))
+        {
+            const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
+            const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);
+
+            rend.strokeColor(Color{ 1, 0, 1, 1 });
             rend.strokeWidth(2.f);
             rend.beginPath();
-            rend.moveTo(screenSpaceHit.x, screenSpaceHit.y);
-            rend.lineTo(screenSpaceHit.x, screenSpaceHit.y - 20);
+            rend.moveTo(fromDrawPos.x, fromDrawPos.y);
+            rend.lineTo(hitPos.x, hitPos.y);
             rend.stroke();
         }
     }

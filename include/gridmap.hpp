@@ -102,8 +102,9 @@ private:
     s32 NumberOfFrames() const;
     bool IsLastFrame() const;
     s32 FrameNumber() const;
+public:
     bool mFlipX = false;
-
+private:
     ResourceLocator& mLocator;
     std::string mScriptName;
     std::string mName;
@@ -168,6 +169,8 @@ private:
     void RenderGame(Renderer& rend, GuiContext& gui);
 
     virtual bool raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision) override final;
+
+    void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, int collisionType, const glm::vec2& fromDrawOffset = glm::vec2());
 
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
     
