@@ -417,9 +417,7 @@ function Abe:Roll()
       return self:GoTo(self.Crouch)
     end
   elseif self:FrameIs(1+1) or self:FrameIs(5+1) or self:FrameIs(9+1) then
-    if self:InputSameAsDirection() == false then
-      return self:GoTo(self.Crouch)
-    else
+    if self:InputSameAsDirection() then
       if Actions.Run(self.mInput.IsHeld) then
         -- TODO: Fix InputRunPressed and the likes, will be missed if pressed between frames
         return self:StandToRun()
