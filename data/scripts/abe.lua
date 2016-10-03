@@ -224,6 +224,10 @@ function Abe:Sneak()
   if (self:InputSameAsDirection()) then
     if self:FrameIs(6+1) or self:FrameIs(16+1) then
       self:SnapXToGrid()
+      
+      local collision = self:HandleStepWallCollision()
+      if collision then return collision end
+    
       PlaySoundEffect("MOVEMENT_MUD_STEP") 
       if Actions.Sneak(self.mInput.IsHeld) == false then
         if self:FrameIs(6+1) then return self:SneakToWalk() else return self:SneakToWalk2() end
@@ -279,10 +283,32 @@ function Abe:ApplyMovement()
   
 end
 
+function Abe:HandleStepWallCollision()
+  -- Blocked by wall at head height?
+  if self.mApi:WallCollision(25, -50) then
+    self:SetXSpeed(0)
+    self:SetXVelocity(0)
+      
+    -- Blocked at knee height?
+    if self.mApi:WallCollision(25, -20) then
+      -- Way to get through
+      self:PlayAnimation{"AbeStandPushWall"}
+      return self:GoTo(self.Stand)
+    else
+      -- Goto crouch so we can roll through
+      return self:StandToCrouch()
+    end
+  end
+end
+
 function Abe:Walk()
   if self:FrameIs(5+1) or self:FrameIs(14+1) then 
     PlaySoundEffect("MOVEMENT_MUD_STEP") 
     self:SnapXToGrid()
+
+    local collision = self:HandleStepWallCollision()
+    if collision then return collision end
+
     if (self:InputSameAsDirection() == true) then
       if (Actions.Run(self.mInput.IsHeld)) then
         if self:FrameIs(5+1) then return self:WalkToRun() else return self:WalkToRun2() end
@@ -342,19 +368,6 @@ function Abe:GoTo(func)
 end
 
 function Abe:StandToWalk()
-  -- Blocked by wall at head height?
-  if self.mApi:WallCollision(25, -50) then
-    -- Blocked at knee height?
-    if self.mApi:WallCollision(25, -20) then
-      -- Way to get through
-      self:PlayAnimation{"AbeStandPushWall"}
-      return self:GoTo(self.Stand)
-    else
-      -- Goto crouch so we can roll through
-      return self:StandToCrouch()
-    end
-  end
-
   self:SetXSpeed(2.777771)
   self:SetXVelocity(0)
   self:PlayAnimation{"AbeStandToWalk"}
@@ -393,7 +406,7 @@ function Abe:StandTurnAround()
   return self:GoTo(self.Stand) 
 end
 
-function Abe:CrouchStand() 
+function Abe:CrouchTurnAround() 
   self:PlayAnimation{"AbeCrouchTurnAround"} 
   self:FlipXDirection()
   return self:GoTo(self.Crouch) 
@@ -485,7 +498,7 @@ function Abe:Crouch()
   elseif self:InputSameAsDirection() then 
     return self:CrouchToRoll()
   elseif self:InputNotSameAsDirection() then
-    return self:CrouchStand()
+    return self:CrouchTurnAround()
   elseif self:HandleGameSpeak(2) then
     -- stay in this state
   elseif Actions.RollOrFart(self.mInput.IsHeld) then
@@ -526,8 +539,12 @@ function Abe:Stand()
     if Actions.Run(self.mInput.IsHeld) then 
       return self:StandToRun()
     elseif Actions.Sneak(self.mInput.IsHeld) then
+      local collision = self:HandleStepWallCollision()
+      if collision then return collision end
       return self:StandToSneak()
     else
+      local collision = self:HandleStepWallCollision()
+      if collision then return collision end
       return self:StandToWalk() end
   elseif Actions.Down(self.mInput.IsHeld) then
     return self:StandToCrouch()
