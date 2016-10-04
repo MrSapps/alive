@@ -79,6 +79,7 @@ public:
     void Activate(bool direction);
     bool WallCollision(f32 dx, f32 dy) const;
     bool CellingCollision(f32 dx, f32 dy) const;
+    bool FloorCollision() const;
 private:
     void ScriptLoadAnimations();
     IMap& mMap;

@@ -103,6 +103,7 @@ MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, 
         "SetAnimationFrame", &MapObject::SetAnimationFrame,
         "WallCollision", &MapObject::WallCollision,
         "CellingCollision", &MapObject::CellingCollision,
+        "FloorCollision", &MapObject::FloorCollision,
         "SnapXToGrid", &MapObject::SnapXToGrid,
         "FrameNumber", &MapObject::FrameNumber,
         "IsLastFrame", &MapObject::IsLastFrame,
@@ -164,6 +165,22 @@ bool MapObject::CellingCollision(f32 dx, f32 dy) const
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos),
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
         3, nullptr);
+}
+
+bool MapObject::FloorCollision() const
+{
+    Physics::raycast_collision c;
+    if (mMap.raycast_map(
+        glm::vec2(mXPos, mYPos),
+        glm::vec2(mXPos, mYPos + 20), // TODO: Should be terminal y velocity?
+        0, &c))
+    {
+        if (glm::distance(c.intersection.y, mYPos) < 2.0f)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void MapObject::ScriptLoadAnimations()

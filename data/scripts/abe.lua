@@ -278,6 +278,9 @@ function Abe:ApplyMovement()
     
     --log_error("YSpeed from " .. self.mYSpeed .. " to " .. self.mYSpeed - self.mYVelocity)
     self.mYSpeed = self.mYSpeed - self.mYVelocity
+    if self.mYSpeed > 20 then
+      self.mYSpeed = 20
+    end
     self.mApi.mYPos = self.mApi.mYPos + self.mYSpeed
   --end
   
@@ -301,7 +304,33 @@ function Abe:WillStepIntoWall()
   end
 end
 
+-- TODO
+function Abe:CollisionWithFloor()
+  return self.mApi:FloorCollision()
+end
+
+-- TODO
+function Abe:StandFalling()
+  --self:PlayAnimation{"AbeFreeFallToLand"}
+  
+   if self:CollisionWithFloor() then
+    self:SetXSpeed(0)
+    self:SetXVelocity(0)
+    self:SetYSpeed(0)
+    self:SetYVelocity(0)
+    self:PlayAnimation{"AbeHitGroundToStand"}
+    return self:GoTo(self.Stand)
+  else
+    
+  end
+end
+
 function Abe:Walk()
+  -- TODO
+  if self:CollisionWithFloor() == false then
+    return self:GoTo(self.StandFalling)
+  end
+  
   if self:FrameIs(5+1) or self:FrameIs(14+1) then 
     PlaySoundEffect("MOVEMENT_MUD_STEP") 
     self:SnapXToGrid()
@@ -361,6 +390,9 @@ function Abe:GoTo(func)
   self.mData = { mFunc = func, Animation = data.name }
   self:SetXSpeed(data.xspeed)
   self:SetXVelocity(data.xvel)
+  if data.yvel then
+    self:SetYVelocity(data.yvel)
+  end
   if self.mData.Animation == nil then
     log_error("An animation mapping is missing!")
   end
@@ -637,6 +669,7 @@ function Abe.create()
   ret.mAnims[Abe.Crouch] =  { name = "AbeCrouchIdle",   xspeed = 0,           xvel = 0 }
   ret.mAnims[Abe.Sneak] =   { name = "AbeSneaking",     xspeed = 2.5,         xvel = 0 }
   ret.mAnims[Abe.Roll] =    { name = "AbeRolling",      xspeed = 6.25,        xvel = 0 }
+  ret.mAnims[Abe.StandFalling] = { name = "AbeStandToFallingFromTrapDoor",     xspeed = 0,        xvel = 0, yvel = -1.8 }
 
   ret.mThread = coroutine.create(ret.CoRoutineProc)
   return ret
