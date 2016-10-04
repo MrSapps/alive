@@ -78,6 +78,7 @@ public:
     s32 Id() const { return mId; }
     void Activate(bool direction);
     bool WallCollision(f32 dx, f32 dy) const;
+    bool CellingCollision(f32 dx, f32 dy) const;
 private:
     void ScriptLoadAnimations();
     IMap& mMap;

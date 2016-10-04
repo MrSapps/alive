@@ -102,6 +102,7 @@ MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, 
         "SetAnimation", &MapObject::SetAnimation,
         "SetAnimationFrame", &MapObject::SetAnimationFrame,
         "WallCollision", &MapObject::WallCollision,
+        "CellingCollision", &MapObject::CellingCollision,
         "SnapXToGrid", &MapObject::SnapXToGrid,
         "FrameNumber", &MapObject::FrameNumber,
         "IsLastFrame", &MapObject::IsLastFrame,
@@ -143,11 +144,26 @@ void MapObject::Activate(bool direction)
 
 bool MapObject::WallCollision(f32 dx, f32 dy) const
 {
-    // TODO: Check 1 and 2 types - maybe more
+    // The game checks for both kinds of walls no matter the direction
+    // ddcheat into a tunnel and the "inside out" wall will still force
+    // a crouch.
+    return 
+        mMap.raycast_map(
+            glm::vec2(mXPos, mYPos + dy),
+            glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
+            1, nullptr) ||
+        mMap.raycast_map(
+            glm::vec2(mXPos, mYPos + dy),
+            glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
+            2, nullptr);
+}
+
+bool MapObject::CellingCollision(f32 dx, f32 dy) const
+{
     return mMap.raycast_map(
-        glm::vec2(mXPos, mYPos + dy),
-        glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy), 
-        mFlipX ? 1 : 2, nullptr);
+        glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos),
+        glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
+        3, nullptr);
 }
 
 void MapObject::ScriptLoadAnimations()

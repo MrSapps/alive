@@ -225,7 +225,7 @@ function Abe:Sneak()
     if self:FrameIs(6+1) or self:FrameIs(16+1) then
       self:SnapXToGrid()
       
-      local collision = self:HandleStepWallCollision()
+      local collision = self:WillStepIntoWall()
       if collision then return collision end
     
       PlaySoundEffect("MOVEMENT_MUD_STEP") 
@@ -283,7 +283,7 @@ function Abe:ApplyMovement()
   
 end
 
-function Abe:HandleStepWallCollision()
+function Abe:WillStepIntoWall()
   -- Blocked by wall at head height?
   if self.mApi:WallCollision(25, -50) then
     self:SetXSpeed(0)
@@ -306,7 +306,7 @@ function Abe:Walk()
     PlaySoundEffect("MOVEMENT_MUD_STEP") 
     self:SnapXToGrid()
 
-    local collision = self:HandleStepWallCollision()
+    local collision = self:WillStepIntoWall()
     if collision then return collision end
 
     if (self:InputSameAsDirection() == true) then
@@ -492,9 +492,17 @@ function Abe:GameSpeakFartCrouching()
   self:SetAnimation("AbeCrouchIdle")
 end
 
+function Abe:IsCellingAbove()
+  -- If we move up will we smack the celling?
+  if self.mApi:CellingCollision(0, -60) then return true end
+  return false
+end
+
 function Abe:Crouch()
   if Actions.Up(self.mInput.IsHeld) then
-    return self:CrouchToStand()
+    if self:IsCellingAbove() == false then
+      return self:CrouchToStand()
+    end
   elseif self:InputSameAsDirection() then 
     return self:CrouchToRoll()
   elseif self:InputNotSameAsDirection() then
@@ -539,11 +547,11 @@ function Abe:Stand()
     if Actions.Run(self.mInput.IsHeld) then 
       return self:StandToRun()
     elseif Actions.Sneak(self.mInput.IsHeld) then
-      local collision = self:HandleStepWallCollision()
+      local collision = self:WillStepIntoWall()
       if collision then return collision end
       return self:StandToSneak()
     else
-      local collision = self:HandleStepWallCollision()
+      local collision = self:WillStepIntoWall()
       if collision then return collision end
       return self:StandToWalk() end
   elseif Actions.Down(self.mInput.IsHeld) then
