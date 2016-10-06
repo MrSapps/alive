@@ -817,7 +817,7 @@ static constexpr Color kLineColours[] =
     { 255 / 255, 255 / 255, 255 / 255, 255 / 255 }, // TODO: Type 9
     { 255 / 255, 0 / 255,   255 / 255, 255 / 255 }
 };
-static bool IsKnownCollisionType(u32 idx) { return idx < _countof(kLineColours); }
+static bool IsKnownCollisionType(u32 idx) { return idx < glm::countof(kLineColours); }
 
 void GridMap::RenderDebug(Renderer& rend)
 {
