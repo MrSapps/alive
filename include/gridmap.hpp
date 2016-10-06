@@ -79,7 +79,7 @@ public:
     void Activate(bool direction);
     bool WallCollision(f32 dx, f32 dy) const;
     bool CellingCollision(f32 dx, f32 dy) const;
-    bool FloorCollision() const;
+    std::tuple<bool, f32, f32, f32> FloorCollision() const;
 private:
     void ScriptLoadAnimations();
     IMap& mMap;
@@ -186,7 +186,6 @@ private:
 
     // TODO: This is not the in-game format
     std::vector<Oddlib::Path::CollisionItem> mCollisionItems;
-    std::vector<const Oddlib::Path::CollisionItem*> mCollisionItemsSorted; // Points into mCollisionItems and isn't owned
     bool mIsAo;
 
     MapObject mPlayer;

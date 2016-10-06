@@ -167,20 +167,18 @@ bool MapObject::CellingCollision(f32 dx, f32 dy) const
         3, nullptr);
 }
 
-bool MapObject::FloorCollision() const
+std::tuple<bool, f32, f32, f32> MapObject::FloorCollision() const
 {
     Physics::raycast_collision c;
     if (mMap.raycast_map(
         glm::vec2(mXPos, mYPos),
-        glm::vec2(mXPos, mYPos + 20), // TODO: Should be terminal y velocity?
+        glm::vec2(mXPos, mYPos + 260*3), // Check up to 3 screen down
         0, &c))
     {
-        if (glm::distance(c.intersection.y, mYPos) < 2.0f)
-        {
-            return true;
-        }
+        const f32 distance = glm::distance(mYPos, c.intersection.y);
+        return std::make_tuple(true, c.intersection.x, c.intersection.y, distance);
     }
-    return false;
+    return std::make_tuple(false, 0.0f, 0.0f, 0.0f);
 }
 
 void MapObject::ScriptLoadAnimations()
@@ -380,16 +378,19 @@ s32 MapObject::FrameNumber() const
 
 void MapObject::Render(Renderer& rend, GuiContext& gui, int x, int y, float scale)
 {
-    // Debug ui
-    gui_begin_window(&gui, "Script debug");
-    if (gui_button(&gui, "Reload script"))
+    if (Debugging().mShowDebugUi)
     {
-        LoadScript(nullptr, nullptr);
-        SnapXToGrid();
+        // Debug ui
+        gui_begin_window(&gui, "Script debug");
+        if (gui_button(&gui, "Reload script"))
+        {
+            LoadScript(nullptr, nullptr);
+            SnapXToGrid();
 
-        
+
+        }
+        gui_end_window(&gui);
     }
-    gui_end_window(&gui);
 
     if (mAnim)
     {
@@ -578,11 +579,6 @@ bool GridScreen::hasTexture() const
 GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
     : mCollisionItems(path.CollisionItems()), mPlayer(*this, luaState, locator, "abe.lua")
 {
-    mCollisionItemsSorted.reserve(mCollisionItems.size());
-    for (const auto& c : mCollisionItems)
-    {
-        mCollisionItemsSorted.push_back(&c);
-    }
     mIsAo = path.IsAo();
 
 
@@ -745,20 +741,39 @@ void GridMap::Update(const InputState& input)
 
 bool GridMap::raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision)
 {
-    std::sort(std::begin(mCollisionItemsSorted), std::end(mCollisionItemsSorted), [&](const Oddlib::Path::CollisionItem* lhs, const Oddlib::Path::CollisionItem* rhs)
-    {
-        return glm::distance(
-            (glm::vec2(lhs->mP1.mX, lhs->mP1.mY) + glm::vec2(lhs->mP2.mX, lhs->mP2.mY)) / 2.0f, line1p1) < 
-                        glm::distance((glm::vec2(rhs->mP1.mX, rhs->mP1.mY) + glm::vec2(rhs->mP2.mX, rhs->mP2.mY)) / 2.0f, line1p1);
-    });
+    bool firstHit = true;
+    Physics::raycast_collision hitPoint;
+    f32 nearestDistance = 0.0f;
 
-    for (const Oddlib::Path::CollisionItem* item : mCollisionItemsSorted)
+    for (const Oddlib::Path::CollisionItem& item : mCollisionItems)
     {
-        if (item->mType != collisionType)
+        if (item.mType != collisionType)
+        {
             continue;
+        }
 
-        if (Physics::raycast_lines(glm::vec2(item->mP1.mX, item->mP1.mY), glm::vec2(item->mP2.mX, item->mP2.mY), line1p1, line1p2, collision))
-            return true;
+        Physics::raycast_collision tmpHitPoint;
+        if (Physics::raycast_lines(
+            glm::vec2(item.mP1.mX, item.mP1.mY),
+            glm::vec2(item.mP2.mX, item.mP2.mY), line1p1, line1p2, &tmpHitPoint))
+        {
+            const f32 distance = glm::distance(glm::vec2(item.mP1.mX, item.mP1.mY), tmpHitPoint.intersection);
+            if (distance < nearestDistance || firstHit)
+            {
+                firstHit = false;
+                hitPoint = tmpHitPoint;
+                nearestDistance = distance;
+            }
+        }
+    }
+
+    if (!firstHit)
+    {
+        if (collision)
+        {
+            *collision = hitPoint;
+        }
+        return true;
     }
 
     return false;
@@ -825,26 +840,26 @@ void GridMap::RenderDebug(Renderer& rend)
     if (Debugging().mCollisionLines)
     {
         rend.strokeWidth(2.f);
-        for (const Oddlib::Path::CollisionItem* item : mCollisionItemsSorted)
+        for (const Oddlib::Path::CollisionItem& item : mCollisionItems)
         {
-            if (IsKnownCollisionType(item->mType))
+            if (IsKnownCollisionType(item.mType))
             {
-                rend.strokeColor(kLineColours[item->mType]);
+                rend.strokeColor(kLineColours[item.mType]);
             }
             else
             {
                 rend.strokeColor(Color{ 0, 0, 1, 1 });
             }
 
-            const glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item->mP1.mX, item->mP1.mY));
-            const glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item->mP2.mX, item->mP2.mY));
+            const glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item.mP1.mX, item.mP1.mY));
+            const glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item.mP2.mX, item.mP2.mY));
 
             rend.beginPath();
             rend.moveTo(p1.x, p1.y);
             rend.lineTo(p2.x, p2.y);
             rend.stroke();
 
-            rend.text(p1.x, p1.y, std::string("T: " + std::to_string(item->mType)).c_str());
+            rend.text(p1.x, p1.y, std::string("T: " + std::to_string(item.mType)).c_str());
         }
     }
 

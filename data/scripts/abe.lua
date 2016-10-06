@@ -256,6 +256,14 @@ end
 function Abe:SneakToWalk() return self:SneakToWalkCommon("AbeSneakingToWalking") end
 function Abe:SneakToWalk2() return self:SneakToWalkCommon("AbeSneakingToWalkingMidGrid") end
 
+function Abe:CalculateYSpeed()
+  local newYSpeed = self.mYSpeed - self.mYVelocity
+  if newYSpeed > 20 then
+    newYSpeed = 20
+  end
+  return newYSpeed
+end
+
 function Abe:ApplyMovement()
   if self.mXSpeed > 0 then
     self.mXSpeed = self.mXSpeed - self.mXVelocity
@@ -277,10 +285,7 @@ function Abe:ApplyMovement()
   --if self.mYSpeed < 0 then
     
     --log_error("YSpeed from " .. self.mYSpeed .. " to " .. self.mYSpeed - self.mYVelocity)
-    self.mYSpeed = self.mYSpeed - self.mYVelocity
-    if self.mYSpeed > 20 then
-      self.mYSpeed = 20
-    end
+    self.mYSpeed = self:CalculateYSpeed()
     self.mApi.mYPos = self.mApi.mYPos + self.mYSpeed
   --end
   
@@ -311,26 +316,43 @@ end
 
 -- TODO
 function Abe:StandFalling()
-  --self:PlayAnimation{"AbeFreeFallToLand"}
-  
-   if self:CollisionWithFloor() then
+  -- TODO: Fix XVelocity, only correct for walking?
+  local collision, _, y, d = self:CollisionWithFloor()
+  if collision == false or collision == true and y > self.mApi.mYPos then
+    print("Not touching floor or floor is far away " .. y .. " VS " .. self.mApi.mYPos .. " distance " .. d)
+    local ySpeed = self:CalculateYSpeed()
+    local expectedYPos = self.mApi.mYPos + ySpeed
+    if collision == true and expectedYPos > y then
+      print("going to pass through the floor, glue to it!")
+      self.mApi.mYPos = y
+      self:SetXSpeed(0)
+      self:SetXVelocity(0)
+      self:SetYSpeed(0)
+      self:SetYVelocity(0)
+      self:SnapXToGrid()
+      self:PlayAnimation{"AbeHitGroundToStand"}
+      return self:GoTo(self.Stand)    
+    end
+  else
+    print("hit floor or gone through it")
     self:SetXSpeed(0)
     self:SetXVelocity(0)
     self:SetYSpeed(0)
     self:SetYVelocity(0)
+    self:SnapXToGrid()
     self:PlayAnimation{"AbeHitGroundToStand"}
     return self:GoTo(self.Stand)
-  else
-    
   end
 end
 
 function Abe:Walk()
   -- TODO
-  if self:CollisionWithFloor() == false then
+  local collision, _, y = self:CollisionWithFloor()
+  if collision == false or collision == true and y > self.mApi.mYPos then
+    print("Not on the floor " .. y .. " VS " .. self.mApi.mYPos)
     return self:GoTo(self.StandFalling)
   end
-  
+
   if self:FrameIs(5+1) or self:FrameIs(14+1) then 
     PlaySoundEffect("MOVEMENT_MUD_STEP") 
     self:SnapXToGrid()
@@ -388,7 +410,9 @@ end
 function Abe:GoTo(func)
   local data = self.mAnims[func]
   self.mData = { mFunc = func, Animation = data.name }
-  self:SetXSpeed(data.xspeed)
+  if data.xspeed then
+    self:SetXSpeed(data.xspeed)
+  end
   self:SetXVelocity(data.xvel)
   if data.yvel then
     self:SetYVelocity(data.yvel)
@@ -628,7 +652,7 @@ function Abe:DebugPrintPosDeltas()
   if oldX ~= self.mApi.mXPos or oldY ~= self.mApi.mYPos then
     local deltaX = self.mApi.mXPos - oldX
     local deltaY = self.mApi.mYPos - oldY
-    if delta ~= self.mApi.mXPos or deltaY ~= self.mApi.mYPos then
+    if deltaX ~= self.mApi.mXPos or deltaY ~= self.mApi.mYPos then
       log_trace(
         "XD:"  .. string.format("%.6f", deltaX) .. 
         " YD:" .. string.format("%.6f", deltaY) .. 
@@ -669,7 +693,7 @@ function Abe.create()
   ret.mAnims[Abe.Crouch] =  { name = "AbeCrouchIdle",   xspeed = 0,           xvel = 0 }
   ret.mAnims[Abe.Sneak] =   { name = "AbeSneaking",     xspeed = 2.5,         xvel = 0 }
   ret.mAnims[Abe.Roll] =    { name = "AbeRolling",      xspeed = 6.25,        xvel = 0 }
-  ret.mAnims[Abe.StandFalling] = { name = "AbeStandToFallingFromTrapDoor",     xspeed = 0,        xvel = 0, yvel = -1.8 }
+  ret.mAnims[Abe.StandFalling] = { name = "AbeStandToFallingFromTrapDoor",     xvel = 0.3, yvel = -1.8 }
 
   ret.mThread = coroutine.create(ret.CoRoutineProc)
   return ret
