@@ -237,7 +237,7 @@ bool MapObject::WallCollision(f32 dx, f32 dy) const
         Physics::raycast_map(mMap.Lines(),
             glm::vec2(mXPos, mYPos + dy),
             glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
-            { 1, 2 }, nullptr);
+            { 1u, 2u }, nullptr);
 }
 
 bool MapObject::CellingCollision(f32 dx, f32 dy) const
@@ -245,7 +245,7 @@ bool MapObject::CellingCollision(f32 dx, f32 dy) const
     return Physics::raycast_map(mMap.Lines(),
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos),
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
-        3, nullptr);
+        3u, nullptr);
 }
 
 std::tuple<bool, f32, f32, f32> MapObject::FloorCollision() const
@@ -254,7 +254,7 @@ std::tuple<bool, f32, f32, f32> MapObject::FloorCollision() const
     if (Physics::raycast_map(mMap.Lines(),
         glm::vec2(mXPos, mYPos),
         glm::vec2(mXPos, mYPos + 260*3), // Check up to 3 screen down
-        0, &c))
+        0u, &c))
     {
         const f32 distance = glm::distance(mYPos, c.intersection.y);
         return std::make_tuple(true, c.intersection.x, c.intersection.y, distance);
