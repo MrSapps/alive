@@ -27,10 +27,8 @@ namespace Physics
 
     bool raycast_lines(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision * collision);
 
-    template<size_t N>
+    template<u32 N>
     bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision);
-
-    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 collisionType, Physics::raycast_collision* const collision);
 }
 
 class Animation;
@@ -177,7 +175,7 @@ private:
 
     virtual const std::vector<Oddlib::Path::CollisionItem>& Lines() const override final { return mCollisionItems; }
 
-    void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, int collisionType, const glm::vec2& fromDrawOffset = glm::vec2());
+    void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2());
 
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
     

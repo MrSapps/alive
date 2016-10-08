@@ -89,7 +89,7 @@ namespace Physics
         return segments_intersect;
     }
 
-    template<size_t N>
+    template<u32 N>
     bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision)
     {
         const Oddlib::Path::CollisionItem* nearestLine = nullptr;
@@ -166,13 +166,6 @@ namespace Physics
 
         return false;
     }
-
-    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 collisionType, Physics::raycast_collision* const collision)
-    {
-        const u32 collisionTypes[] = { collisionType };
-        return raycast_map(lines, line1p1, line1p2, collisionTypes, collision);
-    }
-
 }
 
 MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName)
@@ -245,7 +238,7 @@ bool MapObject::CellingCollision(f32 dx, f32 dy) const
     return Physics::raycast_map(mMap.Lines(),
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos),
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
-        3u, nullptr);
+        { 3u }, nullptr);
 }
 
 std::tuple<bool, f32, f32, f32> MapObject::FloorCollision() const
@@ -254,7 +247,7 @@ std::tuple<bool, f32, f32, f32> MapObject::FloorCollision() const
     if (Physics::raycast_map(mMap.Lines(),
         glm::vec2(mXPos, mYPos),
         glm::vec2(mXPos, mYPos + 260*3), // Check up to 3 screen down
-        0u, &c))
+        { 0u }, &c))
     {
         const f32 distance = glm::distance(mYPos, c.intersection.y);
         return std::make_tuple(true, c.intersection.x, c.intersection.y, distance);
@@ -1193,12 +1186,12 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
     }
 }
 
-void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, int collisionType, const glm::vec2& fromDrawOffset)
+void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset)
 {
     if (Debugging().mRayCasts)
     {
         Physics::raycast_collision collision;
-        if (raycast_map(Lines(), from, to, collisionType, &collision))
+        if (raycast_map(Lines(), from, to, { collisionType }, &collision))
         {
             const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
             const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);
