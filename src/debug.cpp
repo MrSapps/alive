@@ -28,6 +28,11 @@ void Debug::Update(class InputState& input)
     {
         mShowDebugUi = !mShowDebugUi;
     }
+
+    if (input.ActiveController() && input.ActiveController()->mGamePadButtons[SDL_CONTROLLER_BUTTON_GUIDE].IsPressed())
+    {
+        mFnNextPath();
+    }
 }
 
 void Debug::Render(Renderer& /*renderer*/, GuiContext& gui)

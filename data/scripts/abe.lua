@@ -558,6 +558,8 @@ function Abe:Crouch()
   if Actions.Up(self.mInput.IsHeld) then
     if self:IsCellingAbove() == false then
       return self:CrouchToStand()
+    else
+      log_info("Can't stand due to celling")
     end
   elseif self:InputSameAsDirection() then 
     return self:CrouchToRoll()

@@ -236,7 +236,7 @@ bool MapObject::WallCollision(f32 dx, f32 dy) const
 bool MapObject::CellingCollision(f32 dx, f32 dy) const
 {
     return Physics::raycast_map<1>(mMap.Lines(),
-        glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos),
+        glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos - 2), // avoid collision if we are standing on a celling
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
         { 3u }, nullptr);
 }
@@ -1163,6 +1163,12 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
         glm::vec2(mPlayer.mXPos, mPlayer.mYPos + 500),
         0,
         glm::vec2(0, -10)); // -10 so when we are *ON* a line you can see something
+
+    DebugRayCast(rend,
+        glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 2),
+        glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 60),
+        3,
+        glm::vec2(0, 0));
 
     if (mPlayer.mFlipX)
     {
