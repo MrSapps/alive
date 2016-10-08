@@ -227,7 +227,7 @@ bool MapObject::WallCollision(f32 dx, f32 dy) const
     // ddcheat into a tunnel and the "inside out" wall will still force
     // a crouch.
     return
-        Physics::raycast_map(mMap.Lines(),
+        Physics::raycast_map<2>(mMap.Lines(),
             glm::vec2(mXPos, mYPos + dy),
             glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
             { 1u, 2u }, nullptr);
@@ -235,7 +235,7 @@ bool MapObject::WallCollision(f32 dx, f32 dy) const
 
 bool MapObject::CellingCollision(f32 dx, f32 dy) const
 {
-    return Physics::raycast_map(mMap.Lines(),
+    return Physics::raycast_map<1>(mMap.Lines(),
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos),
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
         { 3u }, nullptr);
@@ -244,7 +244,7 @@ bool MapObject::CellingCollision(f32 dx, f32 dy) const
 std::tuple<bool, f32, f32, f32> MapObject::FloorCollision() const
 {
     Physics::raycast_collision c;
-    if (Physics::raycast_map(mMap.Lines(),
+    if (Physics::raycast_map<1>(mMap.Lines(),
         glm::vec2(mXPos, mYPos),
         glm::vec2(mXPos, mYPos + 260*3), // Check up to 3 screen down
         { 0u }, &c))
@@ -1191,7 +1191,7 @@ void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec
     if (Debugging().mRayCasts)
     {
         Physics::raycast_collision collision;
-        if (raycast_map(Lines(), from, to, { collisionType }, &collision))
+        if (Physics::raycast_map<1>(Lines(), from, to, { collisionType }, &collision))
         {
             const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
             const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);
