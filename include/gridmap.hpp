@@ -26,6 +26,8 @@ namespace Physics
     };
 
     bool raycast_lines(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision * collision);
+
+    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision);
 }
 
 class Animation;
@@ -52,7 +54,7 @@ class IMap
 {
 public:
     virtual ~IMap() = default;
-    virtual bool raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision) = 0;
+    virtual const std::vector<Oddlib::Path::CollisionItem>& Lines() const = 0;
 };
 
 class MapObject
@@ -170,7 +172,7 @@ private:
     void RenderEditor(Renderer& rend, GuiContext& gui);
     void RenderGame(Renderer& rend, GuiContext& gui);
 
-    virtual bool raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision) override final;
+    virtual const std::vector<Oddlib::Path::CollisionItem>& Lines() const override final { return mCollisionItems; }
 
     void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, int collisionType, const glm::vec2& fromDrawOffset = glm::vec2());
 

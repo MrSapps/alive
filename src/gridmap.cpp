@@ -88,6 +88,73 @@ namespace Physics
 
         return segments_intersect;
     }
+
+    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision)
+    {
+        const Oddlib::Path::CollisionItem* nearestLine = nullptr;
+        float nearestCollisionX = 0;
+        float nearestCollisionY = 0;
+        float nearestDistance = 0.0f;
+
+        for (const Oddlib::Path::CollisionItem& line : lines)
+        {
+            if (line.mType != collisionType) { continue; }
+
+            const float line1p1x = line1p1.x;
+            const float line1p1y = line1p1.y;
+            const float line1p2x = line1p2.x;
+            const float line1p2y = line1p2.y;
+
+            const float line2p1x = line.mP1.mX;
+            const float line2p1y = line.mP1.mY;
+            const float line2p2x = line.mP2.mX;
+            const float line2p2y = line.mP2.mY;
+
+            // Get the segments' parameters.
+            const float dx12 = line1p2x - line1p1x;
+            const float dy12 = line1p2y - line1p1y;
+            const float dx34 = line2p2x - line2p1x;
+            const float dy34 = line2p2y - line2p1y;
+
+            // Solve for t1 and t2
+            const float denominator = (dy12 * dx34 - dx12 * dy34);
+            if (denominator == 0.0f) { continue; }
+
+            const float t1 = ((line1p1x - line2p1x) * dy34 + (line2p1y - line1p1y) * dx34) / denominator;
+            const float t2 = ((line2p1x - line1p1x) * dy12 + (line1p1y - line2p1y) * dx12) / -denominator;
+
+            // Find the point of intersection.
+            const float intersectionX = line1p1x + dx12 * t1;
+            const float intersectionY = line1p1y + dy12 * t1;
+
+            // The segments intersect if t1 and t2 are between 0 and 1.
+            const bool hasCollided = ((t1 >= 0) && (t1 <= 1) && (t2 >= 0) && (t2 <= 1));
+
+            if (hasCollided)
+            {
+                const float distance = glm::sqrt(powf((line1p1x - intersectionX), 2) + powf((line1p1y - intersectionY), 2));
+                if (!nearestLine || distance < nearestDistance)
+                {
+                    nearestCollisionX = intersectionX;
+                    nearestCollisionY = intersectionY;
+                    nearestDistance = distance;
+                    nearestLine = &line;
+                }
+            }
+        }
+
+        if (nearestLine)
+        {
+            if (collision)
+            {
+                collision->intersection.x = nearestCollisionX;
+                collision->intersection.y = nearestCollisionY;
+            }
+            return true;
+        }
+
+        return false;
+    }
 }
 
 MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName)
@@ -149,11 +216,11 @@ bool MapObject::WallCollision(f32 dx, f32 dy) const
     // ddcheat into a tunnel and the "inside out" wall will still force
     // a crouch.
     return 
-        mMap.raycast_map(
+        Physics::raycast_map(mMap.Lines(),
             glm::vec2(mXPos, mYPos + dy),
             glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
             1, nullptr) ||
-        mMap.raycast_map(
+        Physics::raycast_map(mMap.Lines(),
             glm::vec2(mXPos, mYPos + dy),
             glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
             2, nullptr);
@@ -161,7 +228,7 @@ bool MapObject::WallCollision(f32 dx, f32 dy) const
 
 bool MapObject::CellingCollision(f32 dx, f32 dy) const
 {
-    return mMap.raycast_map(
+    return Physics::raycast_map(mMap.Lines(),
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos),
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
         3, nullptr);
@@ -170,7 +237,7 @@ bool MapObject::CellingCollision(f32 dx, f32 dy) const
 std::tuple<bool, f32, f32, f32> MapObject::FloorCollision() const
 {
     Physics::raycast_collision c;
-    if (mMap.raycast_map(
+    if (Physics::raycast_map(mMap.Lines(),
         glm::vec2(mXPos, mYPos),
         glm::vec2(mXPos, mYPos + 260*3), // Check up to 3 screen down
         0, &c))
@@ -739,46 +806,6 @@ void GridMap::Update(const InputState& input)
     }
 }
 
-bool GridMap::raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision)
-{
-    bool firstHit = true;
-    Physics::raycast_collision hitPoint;
-    f32 nearestDistance = 0.0f;
-
-    for (const Oddlib::Path::CollisionItem& item : mCollisionItems)
-    {
-        if (item.mType != collisionType)
-        {
-            continue;
-        }
-
-        Physics::raycast_collision tmpHitPoint;
-        if (Physics::raycast_lines(
-            glm::vec2(item.mP1.mX, item.mP1.mY),
-            glm::vec2(item.mP2.mX, item.mP2.mY), line1p1, line1p2, &tmpHitPoint))
-        {
-            const f32 distance = glm::distance(glm::vec2(item.mP1.mX, item.mP1.mY), tmpHitPoint.intersection);
-            if (distance < nearestDistance || firstHit)
-            {
-                firstHit = false;
-                hitPoint = tmpHitPoint;
-                nearestDistance = distance;
-            }
-        }
-    }
-
-    if (!firstHit)
-    {
-        if (collision)
-        {
-            *collision = hitPoint;
-        }
-        return true;
-    }
-
-    return false;
-}
-
 MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
 {
     for (std::unique_ptr<MapObject>& obj : mObjs)
@@ -1157,7 +1184,7 @@ void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec
     if (Debugging().mRayCasts)
     {
         Physics::raycast_collision collision;
-        if (raycast_map(from, to, collisionType, &collision))
+        if (raycast_map(Lines(), from, to, collisionType, &collision))
         {
             const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
             const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);

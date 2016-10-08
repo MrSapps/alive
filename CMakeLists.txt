@@ -419,6 +419,7 @@ SET(test_src
     test/resource_locator_test.cpp
     test/zip_fs_tests.cpp
     test/string_util_tests.cpp
+    test/collision_test.cpp
     include/subtitles.hpp)
 
 add_executable(Tests 
