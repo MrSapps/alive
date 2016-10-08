@@ -2,6 +2,7 @@
 #include "string_util.hpp"
 #include "resourcemapper.hpp"
 #include "gridmap.hpp"
+#include <array>
 
 TEST(Collision, NoLines)
 {

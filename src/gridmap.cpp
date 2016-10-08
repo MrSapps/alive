@@ -89,7 +89,8 @@ namespace Physics
         return segments_intersect;
     }
 
-    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision)
+    template<size_t N>
+    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision)
     {
         const Oddlib::Path::CollisionItem* nearestLine = nullptr;
         float nearestCollisionX = 0;
@@ -98,7 +99,17 @@ namespace Physics
 
         for (const Oddlib::Path::CollisionItem& line : lines)
         {
-            if (line.mType != collisionType) { continue; }
+            bool found = false;
+            for (u32 type : collisionTypes)
+            {
+                if (type == line.mType)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) { continue; }
 
             const float line1p1x = line1p1.x;
             const float line1p1y = line1p1.y;
@@ -155,6 +166,13 @@ namespace Physics
 
         return false;
     }
+
+    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 collisionType, Physics::raycast_collision* const collision)
+    {
+        const u32 collisionTypes[] = { collisionType };
+        return raycast_map(lines, line1p1, line1p2, collisionTypes, collision);
+    }
+
 }
 
 MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName)
@@ -215,15 +233,11 @@ bool MapObject::WallCollision(f32 dx, f32 dy) const
     // The game checks for both kinds of walls no matter the direction
     // ddcheat into a tunnel and the "inside out" wall will still force
     // a crouch.
-    return 
+    return
         Physics::raycast_map(mMap.Lines(),
             glm::vec2(mXPos, mYPos + dy),
             glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
-            1, nullptr) ||
-        Physics::raycast_map(mMap.Lines(),
-            glm::vec2(mXPos, mYPos + dy),
-            glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
-            2, nullptr);
+            { 1, 2 }, nullptr);
 }
 
 bool MapObject::CellingCollision(f32 dx, f32 dy) const

@@ -27,7 +27,10 @@ namespace Physics
 
     bool raycast_lines(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision * collision);
 
-    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision* const collision);
+    template<size_t N>
+    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision);
+
+    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 collisionType, Physics::raycast_collision* const collision);
 }
 
 class Animation;
