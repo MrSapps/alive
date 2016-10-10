@@ -702,15 +702,22 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
     }
     mPlayer.SnapXToGrid();
 
-    const std::string script = locator.LocateScript("object_factory.lua");
-    try
+    // Hack: Don't reload object_factory as the require statements only execute once
+    // which results in the global factory table being cleared
+    static bool factoryLoaded = false;
+    if (!factoryLoaded)
     {
-        luaState.script(script);
-    }
-    catch (const sol::error& ex)
-    {
-        LOG_ERROR(ex.what()); // TODO: This is fatal
-        return;
+        const std::string script = locator.LocateScript("object_factory.lua");
+        try
+        {
+            luaState.script(script);
+        }
+        catch (const sol::error& ex)
+        {
+            LOG_ERROR(ex.what()); // TODO: This is fatal
+            return;
+        }
+        factoryLoaded = true;
     }
 
     // Load objects
