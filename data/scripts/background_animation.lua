@@ -8,6 +8,8 @@ function BackgroundAnimation.create(cppObj, rect, stream)
   local animName = nil
   if (animId == 1201) then
     animName = "BAP01C06.CAM_1201_AePc_0"
+    cppObj.mXPos = cppObj.mXPos + 5
+    cppObj.mYPos = cppObj.mYPos + 3
   elseif (animId == 1202) then
     animName = "FARTFAN.BAN_1202_AePc_0"
   else
