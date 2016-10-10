@@ -1,5 +1,6 @@
 local Switch = {}
 Switch.__index = Switch
+Switch.mName = "Switch"
 
 function Switch.create(cppObj, rect, stream)
   local ret = {}

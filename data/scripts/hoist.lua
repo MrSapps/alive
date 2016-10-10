@@ -1,5 +1,6 @@
 local Hoist = {}
 Hoist.__index = Hoist
+Hoist.mName = "Hoist"
 
 function Hoist.create(cppObj, rect, stream)
   local ret = {}

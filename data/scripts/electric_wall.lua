@@ -1,5 +1,6 @@
 local ElectricWall = {}
 ElectricWall.__index = ElectricWall
+ElectricWall.mName = "ElectricWall"
 
 function ElectricWall.create(cppObj, rect, stream)
   local ret = {}

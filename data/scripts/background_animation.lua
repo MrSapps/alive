@@ -1,5 +1,6 @@
 local BackgroundAnimation = {}
 BackgroundAnimation.__index = BackgroundAnimation
+BackgroundAnimation.mName = "BackgroundAnimation"
 
 function BackgroundAnimation.create(cppObj, rect, stream)
   local ret = {}

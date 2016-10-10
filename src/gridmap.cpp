@@ -168,6 +168,12 @@ namespace Physics
     }
 }
 
+MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const ObjRect& rect)
+    : mMap(map), mLuaState(luaState), mLocator(locator), mRect(rect)
+{
+
+}
+
 MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName)
     : mMap(map), mLuaState(luaState), mLocator(locator), mScriptName(scriptName)
 {
@@ -179,10 +185,6 @@ MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, 
     state.new_usertype<MapObject>("MapObject",
         "SetAnimation", &MapObject::SetAnimation,
         "SetAnimationFrame", &MapObject::SetAnimationFrame,
-        "WallCollision", &MapObject::WallCollision,
-        "CellingCollision", &MapObject::CellingCollision,
-        "FloorCollision", &MapObject::FloorCollision,
-        "SnapXToGrid", &MapObject::SnapXToGrid,
         "FrameNumber", &MapObject::FrameNumber,
         "IsLastFrame", &MapObject::IsLastFrame,
         "AnimUpdate", &MapObject::AnimUpdate,
@@ -190,10 +192,16 @@ MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, 
         "AnimationComplete", &MapObject::AnimationComplete,
         "NumberOfFrames", &MapObject::NumberOfFrames,
         "FrameCounter", &MapObject::FrameCounter,
+
+        "WallCollision", &MapObject::WallCollision,
+        "CellingCollision", &MapObject::CellingCollision,
+        "FloorCollision", &MapObject::FloorCollision,
+
+        "SnapXToGrid", &MapObject::SnapXToGrid,
         "FacingLeft", &MapObject::FacingLeft,
+
         "FacingRight", &MapObject::FacingRight,
         "FlipXDirection", &MapObject::FlipXDirection,
-        "ScriptLoadAnimations", &MapObject::ScriptLoadAnimations,
         "states", &MapObject::mStates,
         "mXPos", &MapObject::mXPos,
         "mYPos", &MapObject::mYPos);
@@ -201,12 +209,12 @@ MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, 
 
 void MapObject::Init()
 {
-    LoadScript(nullptr, nullptr);
+    LoadScript();
 }
 
-void MapObject::Init(const ObjRect& rect, Oddlib::IStream& objData)
+void MapObject::GetName()
 {
-    LoadScript(&rect, &objData);
+    mName = mStates["mName"];
 }
 
 void MapObject::Activate(bool direction)
@@ -255,50 +263,7 @@ std::tuple<bool, f32, f32, f32> MapObject::FloorCollision() const
     return std::make_tuple(false, 0.0f, 0.0f, 0.0f);
 }
 
-void MapObject::ScriptLoadAnimations()
-{
-    mAnim = nullptr;
-    mAnims.clear();
-    mStates.for_each([&](const sol::object& key, const sol::object& value)
-    {
-        std::string stateName = key.as<std::string>();
-        if (stateName == "name")
-        {
-            mName = value.as<std::string>();
-        }
-        else if (stateName == "id")
-        {
-            mId = value.as<s32>();
-        }
-        else if (value.is<sol::table>())
-        {
-            const sol::table& state = value.as<sol::table>();
-            state.for_each([&](const sol::object& key, const sol::object& value)
-            {
-                if (key.is<std::string>())
-                {
-                    std::string name = key.as<std::string>();
-                    if (name == "animation")
-                    {
-                        std::string strAnim = value.as<std::string>();
-                        if (!strAnim.empty())
-                        {
-                            auto pAnim = mLocator.LocateAnimation(strAnim.c_str());
-                            if (!pAnim)
-                            {
-                                LOG_ERROR("Animation: " << strAnim << " not found");
-                                abort();
-                            }
-                            mAnims.insert(std::make_pair(strAnim, std::move(pAnim)));
-                        }
-                    }
-                }
-            });
-        }
-    });
-}
-
-void MapObject::LoadScript(const ObjRect* rect, Oddlib::IStream* objData)
+void MapObject::LoadScript()
 {
     // Load FSM script
     const std::string script = mLocator.LocateScript(mScriptName.c_str());
@@ -315,28 +280,15 @@ void MapObject::LoadScript(const ObjRect* rect, Oddlib::IStream* objData)
     // Set initial state
     try
     {
-        if (objData)
+        sol::protected_function f = mLuaState["init"];
+        auto ret = f(this);
+        if (!ret.valid())
         {
-            sol::protected_function f = mLuaState["init_with_data"];
-            auto ret = f(this, *rect, *objData);
-            if (!ret.valid())
-            {
-                sol::error err = ret;
-                std::string what = err.what();
-                LOG_ERROR(what);
-            }
+            sol::error err = ret;
+            std::string what = err.what();
+            LOG_ERROR(what);
         }
-        else
-        {
-            sol::protected_function f = mLuaState["init"];
-            auto ret = f(this);
-            if (!ret.valid())
-            {
-                sol::error err = ret;
-                std::string what = err.what();
-                LOG_ERROR(what);
-            }
-        }
+
     }
     catch (const sol::error& e)
     {
@@ -457,24 +409,14 @@ s32 MapObject::FrameNumber() const
     return mAnim->FrameNumber();
 }
 
+void MapObject::ReloadScript()
+{
+    LoadScript();
+    SnapXToGrid();
+}
+
 void MapObject::Render(Renderer& rend, GuiContext& /*gui*/, int x, int y, float scale)
 {
-    if (Debugging().mShowDebugUi)
-    {
-        /*
-        // Debug ui
-        gui_begin_window(&gui, "Script debug");
-        if (gui_button(&gui, "Reload script"))
-        {
-            LoadScript(nullptr, nullptr);
-            SnapXToGrid();
-
-
-        }
-        gui_end_window(&gui);
-        */
-    }
-
     if (mAnim)
     {
         mAnim->SetXPos(static_cast<s32>(mXPos)+x);
@@ -488,7 +430,8 @@ bool MapObject::ContainsPoint(s32 x, s32 y) const
 {
     if (!mAnim)
     {
-        return false;
+        // For animationless objects use the object rect
+        return PointInRect(x, y, mRect.x, mRect.y, mRect.w, mRect.h);
     }
 
     return mAnim->Collision(x, y);
@@ -649,7 +592,8 @@ int GridScreen::getTexHandle()
 bool GridScreen::hasTexture() const
 {
     bool onlySpaces = true;
-    for (size_t i = 0; i < mFileName.size(); ++i) {
+    for (size_t i = 0; i < mFileName.size(); ++i) 
+    {
         if (mFileName[i] != ' ' && mFileName[i] != '\0')
         {
             onlySpaces = false;
@@ -738,7 +682,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                     obj.mRectBottomRight.mX - obj.mRectTopLeft.mX,
                     obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
                 };
-                auto tmp = std::make_unique<MapObject>(*this, luaState, locator, "");
+                auto tmp = std::make_unique<MapObject>(*this, luaState, locator, rect);
                 // Default "best guess" positioning
                 tmp->mXPos = obj.mRectTopLeft.mX;
                 tmp->mYPos = obj.mRectTopLeft.mY;
@@ -748,6 +692,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                 bool ret = f(*tmp, path.IsAo(), obj.mType, rect, *s);
                 if (ret)
                 {
+                    tmp->GetName();
                     mObjs.push_back(std::move(tmp));
                 }
             }
@@ -1102,6 +1047,17 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui)
 
 void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
 {
+    if (Debugging().mShowDebugUi)
+    {
+        // Debug ui
+        gui_begin_window(&gui, "Script debug");
+        if (gui_button(&gui, "Reload abe script"))
+        {
+            mPlayer.ReloadScript();
+        }
+        gui_end_window(&gui);
+    }
+
     rend.mSmoothCameraPosition = false;
 
     const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);

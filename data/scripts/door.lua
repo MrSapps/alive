@@ -1,5 +1,6 @@
 local Door = {}
 Door.__index = Door
+Door.mName = "Door"
 
 function Door.create(cppObj, rect, stream)
   local ret = {}

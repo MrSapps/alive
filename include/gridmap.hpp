@@ -63,12 +63,14 @@ class MapObject
 public:
     MapObject(MapObject&&) = delete;
     MapObject& operator = (MapObject&&) = delete;
-    MapObject(IMap& map, sol::state& luaState);
+    MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const ObjRect& rect);
     MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
     void Init();
+    void GetName();
     void Init(const ObjRect& rect, Oddlib::IStream& objData);
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale);
+    void ReloadScript();
     static void RegisterLuaBindings(sol::state& state);
 
     bool ContainsPoint(s32 x, s32 y) const;
@@ -93,7 +95,7 @@ private:
     sol::state& mLuaState;
     sol::table mStates;
 
-    void LoadScript(const ObjRect* rect, Oddlib::IStream* objData);
+    void LoadScript();
 private: // Actions
     bool AnimationComplete() const;
     void SetAnimation(const std::string& animation);
@@ -115,6 +117,7 @@ private:
     std::string mScriptName;
     std::string mName;
     s32 mId = 0;
+    ObjRect mRect;
 };
 
 class Level

@@ -1,5 +1,6 @@
 local Mine = {}
 Mine.__index = Mine
+Mine.mName = "Mine"
 
 function Mine.create(cppObj, rect, stream)
   local ret = {}

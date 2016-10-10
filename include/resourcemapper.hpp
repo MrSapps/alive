@@ -1734,6 +1734,17 @@ private:
     friend class FmvUi;
 };
 
+// TODO: Move to physics
+template<class T>
+inline bool PointInRect(T px, T py, T x, T y, T w, T h)
+{
+    if (px < x) return false;
+    if (py < y) return false;
+    if (px >= x + w) return false;
+    if (py >= y + h) return false;
+    return true;
+}
+
 class Animation
 {
 public:
@@ -1951,14 +1962,6 @@ public:
     u32 NumberOfFrames() const { return mAnim.Animation().NumFrames(); }
     void SetScale(f32 scale) { mScale = scale; }
 private:
-    bool PointInRect(f32 px, f32 py, f32 x, f32 y, f32 w, f32 h) const
-    {
-        if (px < x) return false;
-        if (py < y) return false;
-        if (px >= x + w) return false;
-        if (py >= y + h) return false;
-        return true;
-    }
 
     // 640 (pc xres) / 368 (psx xres) = 1.73913043478 scale factor
     const static f32 kPcToPsxScaleFactor;

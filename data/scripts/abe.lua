@@ -314,6 +314,37 @@ function Abe:CollisionWithFloor()
   return self.mApi:FloorCollision()
 end
 
+-- TODO Merge with StandFalling
+function Abe:StandFalling2()
+  -- TODO: Fix XVelocity, only correct for walking?
+  local collision, _, y, d = self:CollisionWithFloor()
+  if collision == false or collision == true and y > self.mApi.mYPos then
+    print("Not touching floor or floor is far away " .. y .. " VS " .. self.mApi.mYPos .. " distance " .. d)
+    local ySpeed = self:CalculateYSpeed()
+    local expectedYPos = self.mApi.mYPos + ySpeed
+    if collision == true and expectedYPos > y then
+      print("going to pass through the floor, glue to it!")
+      self.mApi.mYPos = y
+      self:SetXSpeed(0)
+      self:SetXVelocity(0)
+      self:SetYSpeed(0)
+      self:SetYVelocity(0)
+      self:SnapXToGrid()
+      self:PlayAnimation{"AbeHitGroundToStand"}
+      return self:GoTo(self.Stand)    
+    end
+  else
+    print("hit floor or gone through it")
+    self:SetXSpeed(0)
+    self:SetXVelocity(0)
+    self:SetYSpeed(0)
+    self:SetYVelocity(0)
+    self:SnapXToGrid()
+    self:PlayAnimation{"AbeHitGroundToStand"}
+    return self:GoTo(self.Stand)
+  end
+end
+
 -- TODO
 function Abe:StandFalling()
   -- TODO: Fix XVelocity, only correct for walking?
@@ -419,6 +450,7 @@ function Abe:GoTo(func)
   end
   if self.mData.Animation == nil then
     log_error("An animation mapping is missing!")
+    self.mData.Animation = self.mLastAnimationName
   end
   return true
 end
@@ -620,7 +652,74 @@ function Abe:Stand()
     self:GameSpeakFartStanding()
   elseif Actions.Jump(self.mInput.IsHeld) then
     return self:StandToHop()
+  elseif Actions.Up(self.mInput.IsHeld) then
+    return self:JumpUp()
   end
+end
+
+function Abe:HoistHang()
+  while true do
+    -- loop the animation until the user breaks out of it
+    local toDown = false
+    local toUp = false
+    self:PlayAnimation{"AbeHoistDangling", onFrame = function() 
+      if Actions.Down(self.mInput.IsHeld) then toDown = true end
+      if Actions.Up(self.mInput.IsHeld) then toUp = true end
+      if toDown or toUp then
+        return true
+      end
+    end}
+    if toDown then
+      -- TODO: Use the line ypos!
+      self.mApi.mYPos = self.mApi.mYPos + 78      
+      return self:GoTo(self.StandFalling2)
+    end
+    if toUp then
+      self:PlayAnimation{"AbeHoistPullSelfUp"}
+      return self:GoTo(self.Stand)
+    end
+  end
+end
+
+function Abe:JumpUp()
+  local oldY = self.mApi.mYPos
+  
+  self:PlayAnimation{"AbeStandToJump", onFrame = function()
+    if self.mApi:FrameNumber() == 9 then
+      self:SetYSpeed(-8)
+    end
+  end}
+
+  -- Look for a hoist at the head pos
+  local hoist = GetMapObject(self.mApi.mXPos, self.mApi.mYPos-50, "Hoist")
+  
+  self:SetYVelocity(-1.8)
+  self:PlayAnimation{"AbeJumpUpFalling", onFrame = function()
+    if self.mApi:FrameNumber() >= 3 then
+      if hoist then
+        -- TODO: Calculate pos to collision line, we can't reach
+        -- the hoist if its higher than the pos in this frame as its when
+        -- we start to fall back to the ground
+        print("TODO: Hoist check")
+        return true
+      end
+    end
+  end}
+
+  self:SetYSpeed(0)
+  self:SetYVelocity(0)
+  
+  if hoist then
+    -- TODO: Use the next line or hoist ypos!
+    self.mApi.mYPos = self.mApi.mYPos - 78
+    return self:GoTo(self.HoistHang)
+  else
+    print("TODO: Check for door, rope, well etc")
+
+    self.mApi.mYPos = oldY
+    self:PlayAnimation{"AbeHitGroundToStand"}
+    return self:GoTo(self.Stand)
+  end  
 end
 
 function Abe:Exec()
@@ -696,6 +795,8 @@ function Abe.create()
   ret.mAnims[Abe.Sneak] =   { name = "AbeSneaking",     xspeed = 2.5,         xvel = 0 }
   ret.mAnims[Abe.Roll] =    { name = "AbeRolling",      xspeed = 6.25,        xvel = 0 }
   ret.mAnims[Abe.StandFalling] = { name = "AbeStandToFallingFromTrapDoor",    xvel = 0.3, yvel = -1.8 }
+  ret.mAnims[Abe.StandFalling2] = { name = "AbeHoistDropDown",    xvel = 0, yvel = -1.8 }
+  ret.mAnims[Abe.HoistHang] = { xvel = 0.0, yvel = 0 }
 
   ret.mThread = coroutine.create(ret.CoRoutineProc)
   return ret

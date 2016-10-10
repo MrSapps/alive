@@ -1,5 +1,6 @@
 local SlamDoor = {}
 SlamDoor.__index = SlamDoor
+SlamDoor.mName = "SlamDoor"
 
 function SlamDoor.create(cppObj, rect, stream)
   local ret = {}
