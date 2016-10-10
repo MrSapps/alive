@@ -1,26 +1,34 @@
-function init_with_data(self, rect, stream)
-    self.mXPos = rect.x + 10
-    self.mYPos = rect.y + 22
+local Mine = {}
+Mine.__index = Mine
 
-    self.states = {}
-    self.states.name = "mine"
-
-    stream:ReadU32() -- Skip unused "num patterns"
-    stream:ReadU32() -- Skip unused "patterns"
-    local scale = stream:ReadU32()
-
-    if (animId == 1) then
-        print("Warning: Mine background scale not implemented")
-    end
-
-    self.states.WaitingForCollision =
-    {
-        animation = "LANDMINE.BAN_1036_AePc_0",
-        tick = function(s, i) end
-    }
-
-    self:ScriptLoadAnimations()
-
-    self.states.Active = self.states.WaitingForCollision
-    self:SetAnimation(self.states.Active.animation)
+function Mine.create(cppObj, rect, stream)
+  local ret = {}
+  setmetatable(ret, Mine)
+  
+  cppObj.mXPos = rect.x + 10
+  cppObj.mYPos = rect.y + 22
+  
+  stream:ReadU32() -- Skip unused "num patterns"
+  stream:ReadU32() -- Skip unused "patterns"
+  
+  ret.mScale= stream:ReadU32()
+  if (ret.mScale == 1) then
+     print("Warning: Mine background scale not implemented")
+  end
+  
+  return ret
 end
+
+function Mine:SetAnimation(anim)
+  if self.mLastAnim ~= anim then
+    self.mApi:SetAnimation(anim)
+    self.mLastAnim = anim
+  end
+end
+
+function Mine:Update()
+  self:SetAnimation("LANDMINE.BAN_1036_AePc_0")
+  self.mApi:AnimUpdate()
+end
+
+objects.ae[24] = Mine.create

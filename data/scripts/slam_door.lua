@@ -1,20 +1,37 @@
-function init_with_data(self, rect, stream)
-    self.mXPos = rect.x + 13
-    self.mYPos = rect.y + 18
+local SlamDoor = {}
+SlamDoor.__index = SlamDoor
 
-    self.states = {}
-    self.states.name = "slam_door"
+function SlamDoor.create(cppObj, rect, stream)
+  local ret = {}
+  setmetatable(ret, SlamDoor)
+  
+  cppObj.mXPos = rect.x + 13
+  cppObj.mYPos = rect.y + 18
+  
+  ret.mClosed = stream:ReadU16()   
+  ret.mScale = stream:ReadU16()
+  ret.mId = stream:ReadU16()
+  ret.mInverted = stream:ReadU16()
+  ret.mDelete = stream:ReadU32()
 
-    self.states.Closed =
-    {
-        animation = "SLAM.BAN_2020_AePc_1",
-        tick = function(s, i)
-            -- TODO: Detect if activated switch to opening
-        end
-    }
-
-    self:ScriptLoadAnimations()
-
-    self.states.Active = self.states.Closed
-    self:SetAnimation(self.states.Active.animation)
+  return ret
 end
+
+function SlamDoor:SetAnimation(anim)
+  if self.mLastAnim ~= anim then
+    self.mApi:SetAnimation(anim)
+    self.mLastAnim = anim
+  end
+end
+
+function SlamDoor:Update()
+  if self.mClosed then
+    -- TODO: Handle closed to opening etc
+    self:SetAnimation("SLAM.BAN_2020_AePc_1")
+    self.mApi:AnimUpdate()
+  else
+    self:SetAnimation(nil)
+  end
+end
+
+objects.ae[85] = SlamDoor.create

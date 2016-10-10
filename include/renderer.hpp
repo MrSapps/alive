@@ -201,11 +201,11 @@ public:
 
     int mW = 0;
     int mH = 0;
+    void updateCamera();
 
 private:
     void destroyTextures();
     void pushCmd(DrawCmd cmd);
-    void updateCamera();
 
     // Vector rendering
     struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;

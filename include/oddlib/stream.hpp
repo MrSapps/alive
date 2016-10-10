@@ -15,14 +15,7 @@ namespace Oddlib
     class IStream
     {
     public:
-        static void RegisterLuaBindings(sol::state& state)
-        {
-            state.new_usertype<IStream>("IStream",
-                "ReadU32", &IStream::ReadU32,
-                "ReadU16", &IStream::ReadU16
-                );
-        }
-
+        static inline void RegisterLuaBindings(sol::state& state);
 
         enum class ReadMode
         {
@@ -112,9 +105,6 @@ namespace Oddlib
             s.write(reinterpret_cast<const char*>(allStreamBytes.data()), allStreamBytes.size());
             return true;
         }
-    private:
-        u32 ReadU32(u32 v) { Read(v); return v; }
-        u16 ReadU16(u16 v) { Read(v); return v; }
     };
 
 
@@ -138,6 +128,15 @@ namespace Oddlib
         stream.Read(ret);
         return ret;
     }
+
+    /*static*/ inline void IStream::RegisterLuaBindings(sol::state& state)
+    {
+        state.new_usertype<IStream>("IStream",
+            "ReadU32", &ReadU32,
+            "ReadU16", &ReadU16
+            );
+    }
+
 
     template<class T = std::ifstream>
     class Stream : public IStream

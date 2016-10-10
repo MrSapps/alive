@@ -63,6 +63,7 @@ class MapObject
 public:
     MapObject(MapObject&&) = delete;
     MapObject& operator = (MapObject&&) = delete;
+    MapObject(IMap& map, sol::state& luaState);
     MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
     void Init();
     void Init(const ObjRect& rect, Oddlib::IStream& objData);

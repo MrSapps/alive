@@ -695,7 +695,7 @@ function Abe.create()
   ret.mAnims[Abe.Crouch] =  { name = "AbeCrouchIdle",   xspeed = 0,           xvel = 0 }
   ret.mAnims[Abe.Sneak] =   { name = "AbeSneaking",     xspeed = 2.5,         xvel = 0 }
   ret.mAnims[Abe.Roll] =    { name = "AbeRolling",      xspeed = 6.25,        xvel = 0 }
-  ret.mAnims[Abe.StandFalling] = { name = "AbeStandToFallingFromTrapDoor",     xvel = 0.3, yvel = -1.8 }
+  ret.mAnims[Abe.StandFalling] = { name = "AbeStandToFallingFromTrapDoor",    xvel = 0.3, yvel = -1.8 }
 
   ret.mThread = coroutine.create(ret.CoRoutineProc)
   return ret
@@ -720,6 +720,7 @@ function init(cppObj)
     cppObj.states.mApi = cppObj
 end
 
+-- TODO: Moved to object factory
 function update(cppObj, input)
     cppObj.states.mInput = input
     cppObj.states:Update()

@@ -268,7 +268,7 @@ void Engine::InitSubSystems()
 
     mInputState.AddControllers();
 
-    mLuaState.open_libraries(sol::lib::base, sol::lib::string, sol::lib::jit, sol::lib::table, sol::lib::debug, sol::lib::math, sol::lib::bit32);
+    mLuaState.open_libraries(sol::lib::base, sol::lib::string, sol::lib::jit, sol::lib::table, sol::lib::debug, sol::lib::math, sol::lib::bit32, sol::lib::package);
     
     // Redirect lua print()
     mLuaState.set_function("print", LuaLogTrace);
@@ -279,6 +279,10 @@ void Engine::InitSubSystems()
     mLuaState.set_function("log_warning", LuaLogWarning);
     mLuaState.set_function("log_error", LuaLogError);
 
+    // TODO: Include game base path
+    mLuaState.script("package.path = '" + mFileSystem->FsPath() + "data/scripts/?.lua'");
+
+    
     Oddlib::IStream::RegisterLuaBindings(mLuaState);
     Actions::RegisterLuaBindings(mLuaState);
     MapObject::RegisterLuaBindings(mLuaState);

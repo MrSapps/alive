@@ -313,27 +313,34 @@ void MapObject::LoadScript(const ObjRect* rect, Oddlib::IStream* objData)
     }
 
     // Set initial state
-    if (objData)
+    try
     {
-        sol::protected_function f = mLuaState["init_with_data"];
-        auto ret = f(this, *rect, *objData);
-        if (!ret.valid())
+        if (objData)
         {
-            sol::error err = ret;
-            std::string what = err.what();
-            LOG_ERROR(what);
+            sol::protected_function f = mLuaState["init_with_data"];
+            auto ret = f(this, *rect, *objData);
+            if (!ret.valid())
+            {
+                sol::error err = ret;
+                std::string what = err.what();
+                LOG_ERROR(what);
+            }
+        }
+        else
+        {
+            sol::protected_function f = mLuaState["init"];
+            auto ret = f(this);
+            if (!ret.valid())
+            {
+                sol::error err = ret;
+                std::string what = err.what();
+                LOG_ERROR(what);
+            }
         }
     }
-    else
+    catch (const sol::error& e)
     {
-        sol::protected_function f = mLuaState["init"];
-        auto ret = f(this);
-        if (!ret.valid())
-        {
-            sol::error err = ret;
-            std::string what = err.what();
-            LOG_ERROR(what);
-        }
+        LOG_ERROR(e.what());
     }
 }
 
@@ -450,10 +457,11 @@ s32 MapObject::FrameNumber() const
     return mAnim->FrameNumber();
 }
 
-void MapObject::Render(Renderer& rend, GuiContext& gui, int x, int y, float scale)
+void MapObject::Render(Renderer& rend, GuiContext& /*gui*/, int x, int y, float scale)
 {
     if (Debugging().mShowDebugUi)
     {
+        /*
         // Debug ui
         gui_begin_window(&gui, "Script debug");
         if (gui_button(&gui, "Reload script"))
@@ -464,6 +472,7 @@ void MapObject::Render(Renderer& rend, GuiContext& gui, int x, int y, float scal
 
         }
         gui_end_window(&gui);
+        */
     }
 
     if (mAnim)
@@ -693,8 +702,18 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
     }
     mPlayer.SnapXToGrid();
 
+    const std::string script = locator.LocateScript("object_factory.lua");
+    try
+    {
+        luaState.script(script);
+    }
+    catch (const sol::error& ex)
+    {
+        LOG_ERROR(ex.what()); // TODO: This is fatal
+        return;
+    }
+
     // Load objects
-    /*
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
@@ -704,60 +723,29 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
             for (size_t i = 0; i < cam.mObjects.size(); ++i)
             {
                 const Oddlib::Path::MapObject& obj = cam.mObjects[i];
-                if (path.IsAo() == false)
+                Oddlib::MemoryStream ms(std::vector<u8>(obj.mData.data(), obj.mData.data() + obj.mData.size()));
+                const ObjRect rect =
                 {
-                    // TODO: Delegate to lua object factory
-                    std::string scriptName;
-                    if (obj.mType == 24)
-                    {
-                        scriptName = "mine.lua";
-                    }
-                    else if (obj.mType == 13)
-                    {
-                        scriptName = "background_animation.lua";
-                    }
-                    else if (obj.mType == 17)
-                    {
-                        scriptName = "switch.lua";
-                    }
-                    else if (obj.mType == 85)
-                    {
-                        scriptName = "slam_door.lua";
-                    }
-                    else if (obj.mType == 5)
-                    {
-                        scriptName = "door.lua";
-                    }
-                    else if (obj.mType == 38)
-                    {
-                        scriptName = "electric_wall.lua";
-                    }
-                    else
-                    {
-                        continue;
-                    }
+                    obj.mRectTopLeft.mX,
+                    obj.mRectTopLeft.mY,
+                    obj.mRectBottomRight.mX - obj.mRectTopLeft.mX,
+                    obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
+                };
+                auto tmp = std::make_unique<MapObject>(*this, luaState, locator, "");
+                // Default "best guess" positioning
+                tmp->mXPos = obj.mRectTopLeft.mX;
+                tmp->mYPos = obj.mRectTopLeft.mY;
 
-                    auto tmp = std::make_unique<MapObject>(luaState, locator, scriptName.c_str());
-
-                    // Default "best guess" positioning
-                    tmp->mXPos = obj.mRectTopLeft.mX;
-                    tmp->mYPos = obj.mRectTopLeft.mY;
-
-                    const ObjRect rect =  {
-                            obj.mRectTopLeft.mX,
-                            obj.mRectTopLeft.mY,
-                            obj.mRectBottomRight.mX - obj.mRectTopLeft.mX,
-                            obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
-                    };
-
-                    Oddlib::MemoryStream ms(std::vector<u8>(obj.mData.data(), obj.mData.data() + obj.mData.size()));
-                    tmp->Init(rect, ms);
-
+                sol::function f = luaState["object_factory"];
+                Oddlib::IStream* s = &ms; // required else binding fails
+                bool ret = f(*tmp, path.IsAo(), obj.mType, rect, *s);
+                if (ret)
+                {
                     mObjs.push_back(std::move(tmp));
                 }
             }
         }
-    }*/
+    }
 }
 
 void GridMap::Update(const InputState& input)
@@ -1116,6 +1104,7 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
     const int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y);
 
     rend.mCameraPosition = glm::vec2(camX * camGapSize.x, camY * camGapSize.y) + glm::vec2(368 / 2, 240 / 2);
+    rend.updateCamera(); // TODO: this fixes headache inducing flicker on screen change, probably needs to go in Update()
 
     // Culling is disabled until proper camera position updating order is fixed
     // ^ not sure what this means, but rendering things at negative cam index seems to go wrong
