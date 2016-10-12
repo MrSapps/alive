@@ -15,6 +15,12 @@
 #include "phash.hpp"
 #include "oddlib/audio/vab.hpp"
 
+void HackToReferencePrintEtc()
+{
+    fprintf(stderr, "%d", 1);
+    // Add other unresolved functions
+}
+
 enum eDataSetType
 {
     eAoPc,
@@ -658,6 +664,31 @@ int main(int /*argc*/, char** /*argv*/)
         Db() = default;
         Db(Db&&) = delete;
         Db& operator = (Db&&) = delete;
+
+        void DumpAePsxDemoCameras(const std::vector<std::string>& lvls)
+        {
+            for (auto& lvlName : lvls)
+            {
+                const std::string lvlPath = "F:\\Data\\alive\\all_data\\exoddemo\\" + lvlName;
+                auto stream = std::make_unique<Oddlib::FileStream>(lvlPath, Oddlib::IStream::ReadMode::ReadOnly);
+                Oddlib::LvlArchive archive(std::move(stream));
+                for (u32 i = 0; i < archive.FileCount(); i++)
+                {
+                    Oddlib::LvlArchive::File* file = archive.FileByIndex(i);
+                    for (u32 j = 0; j < file->ChunkCount(); j++)
+                    {
+                        Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
+                        if (chunk->Type() == Oddlib::MakeType("Bits"))
+                        {
+                            auto bitsStream = chunk->Stream();
+                            auto bits = Oddlib::MakeBits(*bitsStream);
+                            bits->Save();
+                        }
+                    }
+                }
+            }
+        }
+
 
         void MergeDuplicatedLvlChunks(IFileSystem& fs, eDataSetType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         {
@@ -1367,6 +1398,9 @@ int main(int /*argc*/, char** /*argv*/)
     };
 
     Db db;
+    db.DumpAePsxDemoCameras(aePcDemoLvls);
+
+    /*
     GameFileSystem gameFs;
     if (!gameFs.Init())
     {
@@ -1394,6 +1428,7 @@ int main(int /*argc*/, char** /*argv*/)
     db.LoadVabs();
     // db.MergeDuplicateVhandVbs();
     db.SoundsToJson();
+    */
 
     return 0;
 }
