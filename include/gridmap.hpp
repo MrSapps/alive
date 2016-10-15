@@ -45,6 +45,13 @@ public:
 
     static eLineTypes ToType(u16 type, bool isAo);
     static void Render(Renderer& rend, const std::vector<CollisionLine>& lines);
+private:
+    struct LineData
+    {
+        std::string mName;
+        Color mColour;
+    };
+    static std::map<eLineTypes, LineData> mData;
 };
 
 namespace Physics

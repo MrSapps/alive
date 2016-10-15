@@ -789,6 +789,7 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
         return eUnknown;
     }
 
+    // TODO: Map of Ae and Ae collision lines to alive lines
     switch (type)
     {
     case eFloor: return eFloor;
@@ -809,23 +810,65 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
     return eUnknown;
 }
 
-// TODO: Use enum/map
-static constexpr Color kLineColours[] =
+/*static*/ std::map<CollisionLine::eLineTypes, CollisionLine::LineData> CollisionLine::mData =
 {
-    { 255 / 255, 0 / 255,   0 / 255,   255 / 255 },
-    { 0 / 255,   0 / 255,   255 / 255, 255 / 255 },
-    { 0 / 255,   100 / 255, 255 / 255, 255 / 255 },
-    { 255 / 255, 100 / 255, 0 / 255,   255 / 255 },
-    { 255 / 255, 100 / 255, 0 / 255,   255 / 255 },
-    { 100 / 255, 100 / 255, 255 / 255, 255 / 255 },
-    { 0 / 255,   255 / 255, 255 / 255, 255 / 255 },
-    { 255 / 255, 100 / 255, 100 / 255, 255 / 255 },
-    { 255 / 255, 255 / 255, 0 / 255,   255 / 255 },
-    { 255 / 255, 255 / 255, 255 / 255, 255 / 255 }, // TODO: Type 9
-    { 255 / 255, 0 / 255,   255 / 255, 255 / 255 }
+    { eFloor, {
+        "Floor",
+        { 255 / 255, 0 / 255,   0 / 255,   255 / 255 } }
+    },
+    { eWallLeft,
+        { "Wall left",
+        { 0 / 255,   0 / 255,   255 / 255, 255 / 255 }
+    } },
+    { eWallRight,
+        { "Wall right",
+        { 0 / 255,   100 / 255, 255 / 255, 255 / 255 }
+    } },
+    { eCeiling,
+        { "Ceiling",
+        { 255 / 255, 100 / 255, 0 / 255,   255 / 255 }
+    } },
+    { eBackGroundFloor,
+        { "Bg floor",
+        { 255 / 255, 100 / 255, 0 / 255,   255 / 255 }
+    } },
+    { eBackGroundWallLeft,
+        { "Bg wall left",
+        { 100 / 255, 100 / 255, 255 / 255, 255 / 255 }
+    } },
+    { eBackGroundWallRight,
+        { "Bg wall right",
+        { 0 / 255,   255 / 255, 255 / 255, 255 / 255 }
+    } },
+    { eFlyingSligLine,
+        { "Flying slig line",
+        { 255 / 255, 100 / 255, 100 / 255, 255 / 255 }
+    } },
+    { eBulletWall,
+        { "Bullet wall",
+        { 255 / 255, 255 / 255, 0 / 255,   255 / 255 }
+    } },
+    { eMineCarFloor,
+        { "Minecar floor",
+        { 255 / 255, 255 / 255, 255 / 255, 255 / 255 }
+    } },
+    { eMineCarWall,
+        { "Minecar wall",
+        { 255 / 255, 0 / 255,   255 / 255, 255 / 255 }
+    } },
+    { eMineCarCeiling,
+        { "Minecar ceiling",
+        { 255 / 255, 0 / 255,   255 / 255, 255 / 255 }
+    } },
+    { eFlyingSligCeiling,
+        { "Flying slig ceiling",
+        { 255 / 255, 0 / 255,   255 / 255, 255 / 255 }
+    } },
+    { eUnknown,
+        { "Unknown",
+        { 255 / 255, 0 / 255,   255 / 255, 255 / 255 }
+    } }
 };
-static bool IsKnownCollisionType(u32 idx) { return idx < glm::countof(kLineColours); }
-
 
 /*static*/ void CollisionLine::Render(Renderer& rend, const std::vector<CollisionLine>& lines)
 {
@@ -843,24 +886,19 @@ static bool IsKnownCollisionType(u32 idx) { return idx < glm::countof(kLineColou
         rend.lineTo(p2.x, p2.y);
         rend.stroke();
 
-        if (IsKnownCollisionType(item.mType))
-        {
-            rend.strokeColor(kLineColours[item.mType]);
-        }
-        else
-        {
-            rend.strokeColor(Color{ 0, 0, 1, 1 });
-        }
+        const auto it = mData.find(item.mType);
+        assert(it != std::end(mData));
 
+        rend.strokeColor(it->second.mColour);
         rend.lineCap(NVG_BUTT);
         rend.LineJoin(NVG_BEVEL);
-        rend.strokeWidth(4.0f);
+        rend.strokeWidth(2.0f);
         rend.beginPath();
         rend.moveTo(p1.x, p1.y);
         rend.lineTo(p2.x, p2.y);
         rend.stroke();
 
-        rend.text(p1.x, p1.y, std::string("T: " + std::to_string(item.mType)).c_str());
+        rend.text(p1.x, p1.y, std::string("T: " + it->second.mName).c_str());
     }
 }
 
