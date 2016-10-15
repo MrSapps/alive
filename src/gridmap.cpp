@@ -792,35 +792,35 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
     } }
 };
 
-/*static*/ void CollisionLine::Render(Renderer& rend, const std::vector<CollisionLine>& lines)
+/*static*/ void CollisionLine::Render(Renderer& rend, const CollisionLines& lines)
 {
-    for (const CollisionLine& item : lines)
+    for (const std::unique_ptr<CollisionLine>& item : lines)
     {
-        const glm::vec2 p1 = rend.WorldToScreen(item.mP1);
-        const glm::vec2 p2 = rend.WorldToScreen(item.mP2);
+        const glm::vec2 p1 = rend.WorldToScreen(item->mP1);
+        const glm::vec2 p2 = rend.WorldToScreen(item->mP2);
 
         rend.lineCap(NVG_ROUND);
         rend.LineJoin(NVG_ROUND);
         rend.strokeColor(Color{ 0, 0, 0, 1 });
-        rend.strokeWidth(8.0f);
+        rend.strokeWidth(10.0f);
         rend.beginPath();
         rend.moveTo(p1.x, p1.y);
         rend.lineTo(p2.x, p2.y);
         rend.stroke();
 
-        const auto it = mData.find(item.mType);
+        const auto it = mData.find(item->mType);
         assert(it != std::end(mData));
 
         rend.strokeColor(it->second.mColour);
         rend.lineCap(NVG_BUTT);
         rend.LineJoin(NVG_BEVEL);
-        rend.strokeWidth(2.0f);
+        rend.strokeWidth(4.0f);
         rend.beginPath();
         rend.moveTo(p1.x, p1.y);
         rend.lineTo(p2.x, p2.y);
         rend.stroke();
 
-        rend.text(p1.x, p1.y, std::string("T: " + it->second.mName).c_str());
+        rend.text(p1.x, p1.y, std::string(it->second.mName).c_str());
     }
 }
 
@@ -1159,19 +1159,53 @@ void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec
     }
 }
 
+static CollisionLine* GetCollisionIndexByIndex(CollisionLines& lines, u16 index)
+{
+    const s32 count = static_cast<s32>(lines.size());
+    if (index > 0)
+    {
+        if (index < count)
+        {
+            return lines[index].get();
+        }
+        else
+        {
+            LOG_ERROR("Link index is out of bounds: " << index);
+        }
+    }
+    return nullptr;
+}
+
+static void ConvertLink(CollisionLines& lines, const Oddlib::Path::Links& oldLink, CollisionLine::Link& newLink)
+{
+    newLink.mPrevious = GetCollisionIndexByIndex(lines, oldLink.mPrevious);
+    newLink.mNext = GetCollisionIndexByIndex(lines, oldLink.mNext);
+}
+
 void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items)
 {
-    const size_t count = items.size();
+    const s32 count = static_cast<s32>(items.size());
     mCollisionItems.resize(count);
-    for (auto i=0u; i<count; i++)
+
+    // First pass to create/convert from original/"raw" path format
+    for (auto i = 0; i < count; i++)
     {
-        mCollisionItems[i].mP1.x = items[i].mP1.mX;
-        mCollisionItems[i].mP1.y = items[i].mP1.mY;
+        mCollisionItems[i] = std::make_unique<CollisionLine>();
+        mCollisionItems[i]->mP1.x = items[i].mP1.mX;
+        mCollisionItems[i]->mP1.y = items[i].mP1.mY;
 
-        mCollisionItems[i].mP2.x = items[i].mP2.mX;
-        mCollisionItems[i].mP2.y = items[i].mP2.mY;
+        mCollisionItems[i]->mP2.x = items[i].mP2.mX;
+        mCollisionItems[i]->mP2.y = items[i].mP2.mY;
 
-        mCollisionItems[i].mType = CollisionLine::ToType(items[i].mType, mIsAo);
+        mCollisionItems[i]->mType = CollisionLine::ToType(items[i].mType, mIsAo);
+    }
+
+    // Second pass to set up raw pointers to existing lines for connected segments of 
+    // collision lines
+    for (auto i = 0; i < count; i++)
+    {
+        ConvertLink(mCollisionItems, items[i].mLinks[0], mCollisionItems[i]->mLink);
+        ConvertLink(mCollisionItems, items[i].mLinks[1], mCollisionItems[i]->mOptionalLink);
     }
 }
 

@@ -28,9 +28,12 @@ namespace Physics
     bool raycast_lines(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision * collision);
 }
 
+using CollisionLines = std::vector<std::unique_ptr<class CollisionLine>>;
+
 class CollisionLine
 {
 public:
+
     glm::vec2 mP1;
     glm::vec2 mP2;
 
@@ -51,25 +54,41 @@ public:
         eFlyingSligCeiling = 17,
         eUnknown = 99
     };
-    eLineTypes mType;
+    eLineTypes mType = eFloor;
+
+    struct Link
+    {
+        CollisionLine* mPrevious = nullptr;
+        CollisionLine* mNext = nullptr;
+    };
+
+    Link mLink;
+    Link mOptionalLink;
+
+    CollisionLine() = default;
+    CollisionLine(glm::vec2 p1, glm::vec2 p2, eLineTypes type)
+        : mP1(p1), mP2(p2), mType(type)
+    {
+
+    }
 
     static eLineTypes ToType(u16 type, bool isAo);
-    static void Render(Renderer& rend, const std::vector<CollisionLine>& lines);
+    static void Render(Renderer& rend, const CollisionLines& lines);
 
     template<u32 N>
-    static bool RayCast(const std::vector<CollisionLine>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision)
+    static bool RayCast(const CollisionLines& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision)
     {
         const CollisionLine* nearestLine = nullptr;
         float nearestCollisionX = 0;
         float nearestCollisionY = 0;
         float nearestDistance = 0.0f;
 
-        for (const CollisionLine& line : lines)
+        for (const std::unique_ptr<CollisionLine>& line : lines)
         {
             bool found = false;
             for (u32 type : collisionTypes)
             {
-                if (type == line.mType)
+                if (type == line->mType)
                 {
                     found = true;
                     break;
@@ -83,10 +102,10 @@ public:
             const float line1p2x = line1p2.x;
             const float line1p2y = line1p2.y;
 
-            const float line2p1x = line.mP1.x;
-            const float line2p1y = line.mP1.y;
-            const float line2p2x = line.mP2.x;
-            const float line2p2y = line.mP2.y;
+            const float line2p1x = line->mP1.x;
+            const float line2p1y = line->mP1.y;
+            const float line2p2x = line->mP2.x;
+            const float line2p2y = line->mP2.y;
 
             // Get the segments' parameters.
             const float dx12 = line1p2x - line1p1x;
@@ -116,7 +135,7 @@ public:
                     nearestCollisionX = intersectionX;
                     nearestCollisionY = intersectionY;
                     nearestDistance = distance;
-                    nearestLine = &line;
+                    nearestLine = line.get();
                 }
             }
         }
@@ -168,7 +187,7 @@ class IMap
 {
 public:
     virtual ~IMap() = default;
-    virtual const std::vector<class CollisionLine>& Lines() const = 0;
+    virtual const CollisionLines& Lines() const = 0;
 };
 
 class MapObject
@@ -290,7 +309,7 @@ private:
     void RenderEditor(Renderer& rend, GuiContext& gui);
     void RenderGame(Renderer& rend, GuiContext& gui);
 
-    virtual const std::vector<CollisionLine>& Lines() const override final { return mCollisionItems; }
+    virtual const CollisionLines& Lines() const override final { return mCollisionItems; }
 
     void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2());
 
@@ -304,9 +323,9 @@ private:
     const int mEditorGridSizeX = 25;
     const int mEditorGridSizeY = 20;
 
-    // TODO: This is not the in-game format
-    //std::vector<Oddlib::Path::CollisionItem> mCollisionItems;
-    std::vector<CollisionLine> mCollisionItems;
+    // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
+    // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
+    CollisionLines mCollisionItems;
 
     bool mIsAo;
 

@@ -5,6 +5,28 @@
 
 namespace Oddlib
 {
+    void Path::Point16::Read(IStream& stream)
+    {
+        stream.Read(mX);
+        stream.Read(mY);
+    }
+
+    void Path::Links::Read(IStream& stream)
+    {
+        stream.Read(mPrevious);
+        stream.Read(mNext);
+    }
+
+    void Path::CollisionItem::Read(IStream& stream)
+    {
+        mP1.Read(stream);
+        mP2.Read(stream);
+        stream.Read(mType);
+        mLinks[0].Read(stream);
+        mLinks[1].Read(stream);
+        stream.Read(mLineLength);
+    }
+
     Path::Path( IStream& pathChunkStream,
                 u32 collisionDataOffset,
                 u32 objectIndexTableOffset,
@@ -18,7 +40,7 @@ namespace Oddlib
         if (collisionDataOffset != 0)
         {
             const u32 numCollisionDataBytes = objectDataOffset - collisionDataOffset;
-            const u32 numCollisionItems = numCollisionDataBytes / sizeof(CollisionItem);
+            const u32 numCollisionItems = numCollisionDataBytes / kCollisionItemSize;
             ReadCollisionItems(pathChunkStream, numCollisionItems);
             ReadMapObjects(pathChunkStream, objectIndexTableOffset);
         }
@@ -66,20 +88,10 @@ namespace Oddlib
 
     void Path::ReadCollisionItems(IStream& stream, u32 numberOfCollisionItems)
     {
+        mCollisionItems.resize(numberOfCollisionItems);
         for (u32 i = 0; i < numberOfCollisionItems; i++)
         {
-            CollisionItem tmp = {};
-            stream.Read(tmp.mP1.mX);
-            stream.Read(tmp.mP1.mY);
-            stream.Read(tmp.mP2.mX);
-            stream.Read(tmp.mP2.mY);
-            stream.Read(tmp.mType);
-            for (int j = 0; j < 4; j++)
-            {
-                stream.Read(tmp.mUnknown[j]);
-            }
-            stream.Read(tmp.mLineLength);
-            mCollisionItems.emplace_back(tmp);
+            mCollisionItems[i].Read(stream);
         }
     }
 

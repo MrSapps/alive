@@ -10,7 +10,6 @@ namespace Oddlib
 {
     class IStream;
 
-
     class Path
     {
     public:
@@ -18,6 +17,7 @@ namespace Oddlib
         {
             u16 mX;
             u16 mY;
+            void Read(IStream& stream);
         };
         static_assert(sizeof(Point16) == 4, "Wrong point size");
 
@@ -49,17 +49,28 @@ namespace Oddlib
             std::vector<MapObject> mObjects;
         };
 
+        struct Links
+        {
+            u16 mPrevious;
+            u16 mNext;
+            void Read(IStream& stream);
+        };
+        static_assert(sizeof(Links) == 4, "Wrong link size");
+
         struct CollisionItem
         {
             Point16 mP1;
             Point16 mP2;
             u16 mType;
-            // TODO Actually contains links to previous/next collision
-            // item link depending on the type 
-            u16 mUnknown[4];
+            Links mLinks[2];
+            u16 mNextIndex1;
             u16 mLineLength;
+            void Read(IStream& stream);
         };
-        static_assert(sizeof(CollisionItem) == 20, "Wrong collision item size");
+        // sizeof(CollisionItem) != 20 due to padding, since we don't just memcpy things into the POD
+        // we had to add up each member individually which is annoying..
+        const static auto kCollisionItemSize = 20;
+        static_assert(sizeof(Point16) + sizeof(Point16) + sizeof(u16) + sizeof(s32) + sizeof(s32) + sizeof(u16) == kCollisionItemSize, "Wrong collision item size");
 
         Path(const Path&) = delete;
         Path& operator = (const Path&) = delete;
