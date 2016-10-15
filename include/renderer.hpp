@@ -109,7 +109,10 @@ enum DrawCmdType {
     DrawCmdType_fillPaint,
     DrawCmdType_scissor,
     DrawCmdType_resetScissor,
+    DrawCmdType_lineCap,
+    DrawCmdType_lineJoin
 };
+
 struct DrawCmd {
     DrawCmdType type;
     int layer;
@@ -190,6 +193,8 @@ public:
     void fillPaint(RenderPaint p);
     void scissor(f32 x, f32 y, f32 w, f32 h);
     void resetScissor();
+    void lineCap(int cap);
+    void LineJoin(int cap);
 
     // Not drawing commands
     RenderPaint linearGradient(f32 sx, f32 sy, f32 ex, f32 ey, Color sc, Color ec);

@@ -603,6 +603,8 @@ void Renderer::endFrame()
         } break;
         case DrawCmdType_scissor: nvgScissor(mNanoVg, cmd.s.f[0], cmd.s.f[1], cmd.s.f[2], cmd.s.f[3]); break;
         case DrawCmdType_resetScissor: nvgResetScissor(mNanoVg); break;
+        case DrawCmdType_lineCap: nvgLineCap(mNanoVg, cmd.s.integer); break;
+        case DrawCmdType_lineJoin: nvgLineJoin(mNanoVg, cmd.s.integer); break;
         default: assert(0 && "Unknown DrawCmdType");
         }
     }
@@ -926,4 +928,20 @@ void Renderer::pushCmd(DrawCmd cmd)
 {
     cmd.layer = mLayerStack.empty() ? 0 : mLayerStack.back();
     mDrawCmds.push_back(cmd);
+}
+
+void Renderer::lineCap(int cap)
+{
+    DrawCmd cmd;
+    cmd.type = DrawCmdType_lineCap;
+    cmd.s.integer = cap;
+    pushCmd(cmd);
+}
+
+void Renderer::LineJoin(int cap)
+{
+    DrawCmd cmd;
+    cmd.type = DrawCmdType_lineJoin;
+    cmd.s.integer = cap;
+    pushCmd(cmd);
 }

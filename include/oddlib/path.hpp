@@ -14,12 +14,12 @@ namespace Oddlib
     class Path
     {
     public:
-        struct Point
+        struct Point16
         {
             u16 mX;
             u16 mY;
         };
-        static_assert(sizeof(Point) == 4, "Wrong point size");
+        static_assert(sizeof(Point16) == 4, "Wrong point size");
 
         struct MapObject
         {
@@ -29,8 +29,8 @@ namespace Oddlib
             u32 mType;
 
             // RECT
-            Point mRectTopLeft;
-            Point mRectBottomRight;
+            Point16 mRectTopLeft;
+            Point16 mRectBottomRight;
 
             // TODO: Set to biggest known size
             // Assume 64 bytes is the biggest length for now
@@ -51,8 +51,8 @@ namespace Oddlib
 
         struct CollisionItem
         {
-            Point mP1;
-            Point mP2;
+            Point16 mP1;
+            Point16 mP2;
             u16 mType;
             // TODO Actually contains links to previous/next collision
             // item link depending on the type 

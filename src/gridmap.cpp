@@ -813,9 +813,20 @@ void GridMap::RenderDebug(Renderer& rend)
     // Draw collisions
     if (Debugging().mCollisionLines)
     {
-        rend.strokeWidth(2.f);
         for (const Oddlib::Path::CollisionItem& item : mCollisionItems)
         {
+            const glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item.mP1.mX, item.mP1.mY));
+            const glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item.mP2.mX, item.mP2.mY));
+
+            rend.lineCap(NVG_ROUND);
+            rend.LineJoin(NVG_ROUND);
+            rend.strokeColor(Color{ 0, 0, 0, 1 });
+            rend.strokeWidth(8.0f);
+            rend.beginPath();
+            rend.moveTo(p1.x, p1.y);
+            rend.lineTo(p2.x, p2.y);
+            rend.stroke();
+
             if (IsKnownCollisionType(item.mType))
             {
                 rend.strokeColor(kLineColours[item.mType]);
@@ -825,9 +836,9 @@ void GridMap::RenderDebug(Renderer& rend)
                 rend.strokeColor(Color{ 0, 0, 1, 1 });
             }
 
-            const glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item.mP1.mX, item.mP1.mY));
-            const glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item.mP2.mX, item.mP2.mY));
-
+            rend.lineCap(NVG_BUTT);
+            rend.LineJoin(NVG_BEVEL);
+            rend.strokeWidth(4.0f);
             rend.beginPath();
             rend.moveTo(p1.x, p1.y);
             rend.lineTo(p2.x, p2.y);
