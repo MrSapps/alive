@@ -15,7 +15,7 @@ void DeveloperScreen::Init()
 void DeveloperScreen::Update(const InputState& input)
 {
     // Set the "selected" animation
-    if (!mSelected && input.mMouseButtons[0].mIsPressed)
+    if (!mSelected && input.mMouseButtons[0].IsPressed())
     {
         for (auto& anim : mLoadedAnims)
         {
@@ -31,20 +31,20 @@ void DeveloperScreen::Update(const InputState& input)
     }
 
     // Move the "selected" animation
-    if (mSelected && input.mMouseButtons[0].mIsDown)
+    if (mSelected && input.mMouseButtons[0].IsDown())
     {
         LOG_INFO("Move selected to " << input.mMousePosition.mX << "," << input.mMousePosition.mY);
         mSelected->SetXPos(mXDelta + input.mMousePosition.mX);
         mSelected->SetYPos(mYDelta + input.mMousePosition.mY);
     }
 
-    if (input.mMouseButtons[0].mIsReleased)
+    if (input.mMouseButtons[0].IsReleased())
     {
         mSelected = nullptr;
     }
 
     // When the right button is released delete the "selected" animation
-    if (input.mMouseButtons[1].mIsPressed)
+    if (input.mMouseButtons[1].IsPressed())
     {
         for (auto it = mLoadedAnims.begin(); it != mLoadedAnims.end(); it++)
         {

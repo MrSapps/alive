@@ -24,9 +24,14 @@ Debug& Debugging()
 
 void Debug::Update(class InputState& input)
 {
-    if (input.mKeys[SDL_SCANCODE_F1].mIsPressed)
+    if (input.mKeys[SDL_SCANCODE_F1].IsPressed())
     {
         mShowDebugUi = !mShowDebugUi;
+    }
+
+    if (input.ActiveController() && input.ActiveController()->mGamePadButtons[SDL_CONTROLLER_BUTTON_GUIDE].IsPressed())
+    {
+        mFnNextPath();
     }
 }
 

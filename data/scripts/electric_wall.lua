@@ -1,54 +1,41 @@
-function init_with_data(self, rect, stream)
-    self.mXPos = rect.x
-    self.mYPos = rect.y
+local ElectricWall = {}
+ElectricWall.__index = ElectricWall
+ElectricWall.mName = "ElectricWall"
 
-    self.states = {}
-    self.states.name = "electric_wall"
-
-    local scale = stream:ReadU16()
-    if (scale == 1) then
-        print("Warning: electric_wall scale not implemented")
-    end
-
-    self.states.id = stream:ReadU16()
-    self.states.start_on = stream:ReadU16()
+function ElectricWall.create(cppObj, rect, stream)
+  local ret = {}
+  setmetatable(ret, ElectricWall)
+  
+  cppObj.mXPos = rect.x
+  cppObj.mYPos = rect.y
+  
+  ret.mScale = stream:ReadU16()
+  if (ret.mScale == 1) then
+    print("Warning: electric_wall scale not implemented")
+  end 
+  
+  ret.mId = stream:ReadU16()
+  ret.mEnabled = stream:ReadU16()
    
-    print("WALL ID IS " .. self.states.id .. " START ON IS " .. self.states.start_on .. " SCALE IS " .. scale)
+  print("WALL ID IS " .. ret.mId .. " START ON IS " .. ret.mEnabled .. " SCALE IS " .. ret.mScale)
 
-    self.states.On =
-    {
-        animation = "ELECWALL.BAN_6000_AePc_0",
-        tick = function(s, i)
-            if self.states.Change then
-                self.states.Change = false
-                return 'Off'
-            end
-        end
-    }
-
-    self.states.Off =
-    {
-        animation = "",
-        tick = function(s, i)
-            if self.states.Change then
-                self.states.Change = false
-                return 'On'
-            end
-        end
-    }
-
-    self.states.Activate = function(facingLeft)
-        print("activate")
-        self.states.Change = true
-    end
-
-    self:ScriptLoadAnimations()
-
-    if self.states.start_on then
-        self.states.Active = self.states.On
-    else
-        self.states.Active = self.states.Off
-    end
-
-    self:SetAnimation(self.states.Active.animation)
+  return ret
 end
+
+function ElectricWall:SetAnimation(anim)
+  if self.mLastAnim ~= anim then
+    self.mApi:SetAnimation(anim)
+    self.mLastAnim = anim
+  end
+end
+
+function ElectricWall:Update()
+  if self.mEnabled then
+    self:SetAnimation("ELECWALL.BAN_6000_AePc_0")
+    self.mApi:AnimUpdate()
+  else
+    self:SetAnimation(nil)
+  end
+end
+
+objects.ae[38] = ElectricWall.create

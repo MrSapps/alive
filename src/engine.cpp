@@ -70,58 +70,58 @@ void setWindowsIcon(SDL_Window *sdlWindow)
 InputMapping::InputMapping()
 {
     // Keyboard
-    mKeyBoardConfig[Actions::Left] =         { 1u, { SDL_SCANCODE_LEFT } };
-    mKeyBoardConfig[Actions::Right] =        { 1u, { SDL_SCANCODE_RIGHT } };
-    mKeyBoardConfig[Actions::Up] =           { 1u, { SDL_SCANCODE_UP } };
-    mKeyBoardConfig[Actions::Down] =         { 1u, { SDL_SCANCODE_DOWN } };
-    mKeyBoardConfig[Actions::Chant] =        { 1u, { SDL_SCANCODE_0 } };
-    mKeyBoardConfig[Actions::Run] =          { 1u, { SDL_SCANCODE_LSHIFT,    SDL_SCANCODE_RSHIFT } };
-    mKeyBoardConfig[Actions::Sneak] =        { 1u, { SDL_SCANCODE_LALT,      SDL_SCANCODE_RALT } };
-    mKeyBoardConfig[Actions::Jump] =         { 1u, { SDL_SCANCODE_SPACE } };
-    mKeyBoardConfig[Actions::Throw] =        { 1u, { SDL_SCANCODE_Z } };
-    mKeyBoardConfig[Actions::Action] =       { 1u, { SDL_SCANCODE_LCTRL,     SDL_SCANCODE_RCTRL } };
-    mKeyBoardConfig[Actions::RollOrFart] =   { 1u, { SDL_SCANCODE_X } };
-    mKeyBoardConfig[Actions::GameSpeak1] =   { 1u, { SDL_SCANCODE_1 } };
-    mKeyBoardConfig[Actions::GameSpeak2] =   { 1u, { SDL_SCANCODE_2 } };
-    mKeyBoardConfig[Actions::GameSpeak3] =   { 1u, { SDL_SCANCODE_3 } };
-    mKeyBoardConfig[Actions::GameSpeak4] =   { 1u, { SDL_SCANCODE_4 } };
-    mKeyBoardConfig[Actions::GameSpeak5] =   { 1u, { SDL_SCANCODE_5 } };
-    mKeyBoardConfig[Actions::GameSpeak6] =   { 1u, { SDL_SCANCODE_6 } };
-    mKeyBoardConfig[Actions::GameSpeak7] =   { 1u, { SDL_SCANCODE_7 } };
-    mKeyBoardConfig[Actions::GameSpeak8] =   { 1u, { SDL_SCANCODE_8 } };
-    mKeyBoardConfig[Actions::Back] =         { 1u, { SDL_SCANCODE_ESCAPE } };
+    mKeyBoardConfig[Actions::eLeft] =         { 1u, { SDL_SCANCODE_LEFT } };
+    mKeyBoardConfig[Actions::eRight] =        { 1u, { SDL_SCANCODE_RIGHT } };
+    mKeyBoardConfig[Actions::eUp] =           { 1u, { SDL_SCANCODE_UP } };
+    mKeyBoardConfig[Actions::eDown] =         { 1u, { SDL_SCANCODE_DOWN } };
+    mKeyBoardConfig[Actions::eChant] =        { 1u, { SDL_SCANCODE_0 } };
+    mKeyBoardConfig[Actions::eRun] =          { 1u, { SDL_SCANCODE_LSHIFT,    SDL_SCANCODE_RSHIFT } };
+    mKeyBoardConfig[Actions::eSneak] =        { 1u, { SDL_SCANCODE_LALT,      SDL_SCANCODE_RALT } };
+    mKeyBoardConfig[Actions::eJump] =         { 1u, { SDL_SCANCODE_SPACE } };
+    mKeyBoardConfig[Actions::eThrow] =        { 1u, { SDL_SCANCODE_Z } };
+    mKeyBoardConfig[Actions::eAction] =       { 1u, { SDL_SCANCODE_LCTRL,     SDL_SCANCODE_RCTRL } };
+    mKeyBoardConfig[Actions::eRollOrFart] =   { 1u, { SDL_SCANCODE_X } };
+    mKeyBoardConfig[Actions::eGameSpeak1] =   { 1u, { SDL_SCANCODE_1 } };
+    mKeyBoardConfig[Actions::eGameSpeak2] =   { 1u, { SDL_SCANCODE_2 } };
+    mKeyBoardConfig[Actions::eGameSpeak3] =   { 1u, { SDL_SCANCODE_3 } };
+    mKeyBoardConfig[Actions::eGameSpeak4] =   { 1u, { SDL_SCANCODE_4 } };
+    mKeyBoardConfig[Actions::eGameSpeak5] =   { 1u, { SDL_SCANCODE_5 } };
+    mKeyBoardConfig[Actions::eGameSpeak6] =   { 1u, { SDL_SCANCODE_6 } };
+    mKeyBoardConfig[Actions::eGameSpeak7] =   { 1u, { SDL_SCANCODE_7 } };
+    mKeyBoardConfig[Actions::eGameSpeak8] =   { 1u, { SDL_SCANCODE_8 } };
+    mKeyBoardConfig[Actions::eBack] =         { 1u, { SDL_SCANCODE_ESCAPE } };
 
     // Game pad
-    mGamePadConfig[Actions::Left] =          { 1u, { SDL_CONTROLLER_BUTTON_DPAD_LEFT } };
-    mGamePadConfig[Actions::Right] =         { 1u, { SDL_CONTROLLER_BUTTON_DPAD_RIGHT } };
-    mGamePadConfig[Actions::Up] =            { 1u, { SDL_CONTROLLER_BUTTON_DPAD_UP } };
-    mGamePadConfig[Actions::Down] =          { 1u, { SDL_CONTROLLER_BUTTON_DPAD_DOWN } };
+    mGamePadConfig[Actions::eLeft] =          { 1u, { SDL_CONTROLLER_BUTTON_DPAD_LEFT } };
+    mGamePadConfig[Actions::eRight] =         { 1u, { SDL_CONTROLLER_BUTTON_DPAD_RIGHT } };
+    mGamePadConfig[Actions::eUp] =            { 1u, { SDL_CONTROLLER_BUTTON_DPAD_UP } };
+    mGamePadConfig[Actions::eDown] =          { 1u, { SDL_CONTROLLER_BUTTON_DPAD_DOWN } };
 
     // TODO: Should actually be the trigger axes!
-    mGamePadConfig[Actions::Chant] =         { 2u, {
+    mGamePadConfig[Actions::eChant] =         { 2u, {
                                                 SDL_CONTROLLER_BUTTON_LEFTSHOULDER,
                                                 SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
                                                 SDL_CONTROLLER_BUTTON_LEFTSTICK,
                                                 SDL_CONTROLLER_BUTTON_RIGHTSTICK } };
 
-    mGamePadConfig[Actions::Run] =           { 1u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER } };
+    mGamePadConfig[Actions::eRun] =           { 1u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER } };
 
     // TODO: Should actually be the trigger axes!
-    mGamePadConfig[Actions::Sneak] =         { 1u, { SDL_CONTROLLER_BUTTON_RIGHTSTICK } };
+    mGamePadConfig[Actions::eSneak] =         { 1u, { SDL_CONTROLLER_BUTTON_RIGHTSTICK } };
 
-    mGamePadConfig[Actions::Jump] =          { 1u, { SDL_CONTROLLER_BUTTON_Y } };
-    mGamePadConfig[Actions::Throw] =         { 1u, { SDL_CONTROLLER_BUTTON_B } };
-    mGamePadConfig[Actions::Action] =        { 1u, { SDL_CONTROLLER_BUTTON_X } };
-    mGamePadConfig[Actions::RollOrFart] =    { 1u, { SDL_CONTROLLER_BUTTON_A } };
-    mGamePadConfig[Actions::GameSpeak1] =    { 2u, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER,  SDL_CONTROLLER_BUTTON_Y } };
-    mGamePadConfig[Actions::GameSpeak2] =    { 2u, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER,  SDL_CONTROLLER_BUTTON_B } };
-    mGamePadConfig[Actions::GameSpeak3] =    { 2u, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER,  SDL_CONTROLLER_BUTTON_A } };
-    mGamePadConfig[Actions::GameSpeak4] =    { 2u, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER,  SDL_CONTROLLER_BUTTON_X } };
-    mGamePadConfig[Actions::GameSpeak5] =    { 2u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER ,SDL_CONTROLLER_BUTTON_Y } };
-    mGamePadConfig[Actions::GameSpeak6] =    { 2u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, SDL_CONTROLLER_BUTTON_B } };
-    mGamePadConfig[Actions::GameSpeak7] =    { 2u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, SDL_CONTROLLER_BUTTON_A } };
-    mGamePadConfig[Actions::GameSpeak8] =    { 2u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, SDL_CONTROLLER_BUTTON_X } };
-    mGamePadConfig[Actions::Back] =          { 1u, { SDL_CONTROLLER_BUTTON_START } };
+    mGamePadConfig[Actions::eJump] =          { 1u, { SDL_CONTROLLER_BUTTON_Y } };
+    mGamePadConfig[Actions::eThrow] =         { 1u, { SDL_CONTROLLER_BUTTON_B } };
+    mGamePadConfig[Actions::eAction] =        { 1u, { SDL_CONTROLLER_BUTTON_X } };
+    mGamePadConfig[Actions::eRollOrFart] =    { 1u, { SDL_CONTROLLER_BUTTON_A } };
+    mGamePadConfig[Actions::eGameSpeak1] =    { 2u, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER,  SDL_CONTROLLER_BUTTON_Y } };
+    mGamePadConfig[Actions::eGameSpeak2] =    { 2u, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER,  SDL_CONTROLLER_BUTTON_B } };
+    mGamePadConfig[Actions::eGameSpeak3] =    { 2u, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER,  SDL_CONTROLLER_BUTTON_A } };
+    mGamePadConfig[Actions::eGameSpeak4] =    { 2u, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER,  SDL_CONTROLLER_BUTTON_X } };
+    mGamePadConfig[Actions::eGameSpeak5] =    { 2u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER ,SDL_CONTROLLER_BUTTON_Y } };
+    mGamePadConfig[Actions::eGameSpeak6] =    { 2u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, SDL_CONTROLLER_BUTTON_B } };
+    mGamePadConfig[Actions::eGameSpeak7] =    { 2u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, SDL_CONTROLLER_BUTTON_A } };
+    mGamePadConfig[Actions::eGameSpeak8] =    { 2u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, SDL_CONTROLLER_BUTTON_X } };
+    mGamePadConfig[Actions::eBack] =          { 1u, { SDL_CONTROLLER_BUTTON_START } };
 }
 
 void InputMapping::Update(const InputState& input)
@@ -131,13 +131,12 @@ void InputMapping::Update(const InputState& input)
         u32 numDowns = 0;
         for (const auto& key : cfg.second.mKeys)
         {
-            if (input.mKeys[key].mRawDownState)
+            if (input.mKeys[key].RawDownState())
             {
                 numDowns++;
             }
         }
-
-        mActions.mActions[cfg.first].mRawDownState = numDowns >= cfg.second.mNumberOfKeysRequired;
+        mActions.SetRawDownState(cfg.first, numDowns >= cfg.second.mNumberOfKeysRequired);
     }
 
     if (input.ActiveController())
@@ -145,50 +144,52 @@ void InputMapping::Update(const InputState& input)
         for (const auto& cfg : mGamePadConfig)
         {
             // The keyboard key isn't pressed so take the controller key state
-            if (mActions.mActions[cfg.first].mRawDownState == false)
+            if (mActions.RawDownState(cfg.first) == false)
             {
                 u32 numDowns = 0;
                 for (const auto& key : cfg.second.mButtons)
                 {
-                    if (input.ActiveController()->mGamePadButtons[key].mRawDownState)
+                    if (input.ActiveController()->mGamePadButtons[key].RawDownState())
                     {
                         numDowns++;
                     }
                 }
-                mActions.mActions[cfg.first].mRawDownState = numDowns >= cfg.second.mNumberOfKeysRequired;
+                mActions.SetRawDownState(cfg.first, numDowns >= cfg.second.mNumberOfKeysRequired);
             }
         }
     }
 
-    for (InputItemState& inputItem : mActions.mActions)
-    {
-        inputItem.UpdateState();
-    }
+    mActions.UpdateStates();
 }
 
 /*static*/ void Actions::RegisterLuaBindings(sol::state& state)
 {
+    std::ignore = state;
     state.new_usertype<Actions>("Actions",
-        "InputLeft", &Actions::InputLeft,
-        "InputRight", &Actions::InputRight,
-        "InputUp", &Actions::InputUp,
-        "InputDown", &Actions::InputDown,
-        "InputChant", &Actions::InputChant,
-        "InputRun", &Actions::InputRun,
-        "InputSneak", &Actions::InputSneak,
-        "InputJump", &Actions::InputJump,
-        "InputThrow", &Actions::InputThrow,
-        "InputAction", &Actions::InputAction,
-        "InputRollOrFart", &Actions::InputRollOrFart,
-        "InputGameSpeak1", &Actions::InputGameSpeak1,
-        "InputGameSpeak2", &Actions::InputGameSpeak2,
-        "InputGameSpeak3", &Actions::InputGameSpeak3,
-        "InputGameSpeak4", &Actions::InputGameSpeak4,
-        "InputGameSpeak5", &Actions::InputGameSpeak5,
-        "InputGameSpeak6", &Actions::InputGameSpeak6,
-        "InputGameSpeak7", &Actions::InputGameSpeak7,
-        "InputGameSpeak8", &Actions::InputGameSpeak8,
-        "InputBack", &Actions::InputBack);
+        "Left", &Actions::Left,
+        "Right", &Actions::Right,
+        "Up", &Actions::Up,
+        "Down", &Actions::Down,
+        "Chant", &Actions::Chant,
+        "Run", &Actions::Run,
+        "Sneak", &Actions::Sneak,
+        "Jump", &Actions::Jump,
+        "Throw", &Actions::Throw,
+        "Action", &Actions::Action,
+        "RollOrFart", &Actions::RollOrFart,
+        "GameSpeak1", &Actions::GameSpeak1,
+        "GameSpeak2", &Actions::GameSpeak2,
+        "GameSpeak3", &Actions::GameSpeak3,
+        "GameSpeak4", &Actions::GameSpeak4,
+        "GameSpeak5", &Actions::GameSpeak5,
+        "GameSpeak6", &Actions::GameSpeak6,
+        "GameSpeak7", &Actions::GameSpeak7,
+        "GameSpeak8", &Actions::GameSpeak8,
+        "Back", &Actions::Back,
+        "IsPressed", sol::readonly(&Actions::mIsPressed),
+        "IsReleased", sol::readonly(&Actions::mIsReleased),
+        "IsHeld", sol::readonly(&Actions::mIsDown)
+        );
 }
 
 Engine::Engine()
@@ -248,17 +249,10 @@ bool Engine::Init()
     }
 }
 
-void LuaLog(const char* msg)
-{
-    if (msg)
-    {
-        LOG_INFO(msg);
-    }
-    else
-    {
-        LOG_INFO("nil");
-    }
-}
+void LuaLogTrace(const char* msg) { if (msg) { LOG_NOFUNC_TRACE(msg); } else  { LOG_NOFUNC_TRACE("nil"); } }
+void LuaLogInfo(const char* msg) { if (msg) { LOG_NOFUNC_INFO(msg); } else { LOG_NOFUNC_INFO("nil"); } }
+void LuaLogWarning(const char* msg) { if (msg) { LOG_NOFUNC_WARNING(msg); } else { LOG_NOFUNC_WARNING("nil"); } }
+void LuaLogError(const char* msg) { if (msg) { LOG_NOFUNC_ERROR(msg); } else { LOG_NOFUNC_ERROR("nil"); } }
 
 void Engine::InitSubSystems()
 {
@@ -274,11 +268,21 @@ void Engine::InitSubSystems()
 
     mInputState.AddControllers();
 
-    mLuaState.open_libraries(sol::lib::base, sol::lib::string, sol::lib::jit, sol::lib::table, sol::lib::debug, sol::lib::math);
+    mLuaState.open_libraries(sol::lib::base, sol::lib::string, sol::lib::jit, sol::lib::table, sol::lib::debug, sol::lib::math, sol::lib::bit32, sol::lib::package);
     
     // Redirect lua print()
-    mLuaState.set_function("print", LuaLog);
+    mLuaState.set_function("print", LuaLogTrace);
 
+    // Add other logging globals
+    mLuaState.set_function("log_info", LuaLogInfo);
+    mLuaState.set_function("log_trace", LuaLogTrace);
+    mLuaState.set_function("log_warning", LuaLogWarning);
+    mLuaState.set_function("log_error", LuaLogError);
+
+    // TODO: Include game base path
+    mLuaState.script("package.path = '" + mFileSystem->FsPath() + "data/scripts/?.lua'");
+
+    
     Oddlib::IStream::RegisterLuaBindings(mLuaState);
     Actions::RegisterLuaBindings(mLuaState);
     MapObject::RegisterLuaBindings(mLuaState);

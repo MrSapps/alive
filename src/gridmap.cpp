@@ -88,10 +88,94 @@ namespace Physics
 
         return segments_intersect;
     }
+
+    template<u32 N>
+    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision)
+    {
+        const Oddlib::Path::CollisionItem* nearestLine = nullptr;
+        float nearestCollisionX = 0;
+        float nearestCollisionY = 0;
+        float nearestDistance = 0.0f;
+
+        for (const Oddlib::Path::CollisionItem& line : lines)
+        {
+            bool found = false;
+            for (u32 type : collisionTypes)
+            {
+                if (type == line.mType)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) { continue; }
+
+            const float line1p1x = line1p1.x;
+            const float line1p1y = line1p1.y;
+            const float line1p2x = line1p2.x;
+            const float line1p2y = line1p2.y;
+
+            const float line2p1x = line.mP1.mX;
+            const float line2p1y = line.mP1.mY;
+            const float line2p2x = line.mP2.mX;
+            const float line2p2y = line.mP2.mY;
+
+            // Get the segments' parameters.
+            const float dx12 = line1p2x - line1p1x;
+            const float dy12 = line1p2y - line1p1y;
+            const float dx34 = line2p2x - line2p1x;
+            const float dy34 = line2p2y - line2p1y;
+
+            // Solve for t1 and t2
+            const float denominator = (dy12 * dx34 - dx12 * dy34);
+            if (denominator == 0.0f) { continue; }
+
+            const float t1 = ((line1p1x - line2p1x) * dy34 + (line2p1y - line1p1y) * dx34) / denominator;
+            const float t2 = ((line2p1x - line1p1x) * dy12 + (line1p1y - line2p1y) * dx12) / -denominator;
+
+            // Find the point of intersection.
+            const float intersectionX = line1p1x + dx12 * t1;
+            const float intersectionY = line1p1y + dy12 * t1;
+
+            // The segments intersect if t1 and t2 are between 0 and 1.
+            const bool hasCollided = ((t1 >= 0) && (t1 <= 1) && (t2 >= 0) && (t2 <= 1));
+
+            if (hasCollided)
+            {
+                const float distance = glm::sqrt(powf((line1p1x - intersectionX), 2) + powf((line1p1y - intersectionY), 2));
+                if (!nearestLine || distance < nearestDistance)
+                {
+                    nearestCollisionX = intersectionX;
+                    nearestCollisionY = intersectionY;
+                    nearestDistance = distance;
+                    nearestLine = &line;
+                }
+            }
+        }
+
+        if (nearestLine)
+        {
+            if (collision)
+            {
+                collision->intersection.x = nearestCollisionX;
+                collision->intersection.y = nearestCollisionY;
+            }
+            return true;
+        }
+
+        return false;
+    }
 }
 
-MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::string& scriptName)
-    : mLuaState(luaState), mLocator(locator), mScriptName(scriptName)
+MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const ObjRect& rect)
+    : mMap(map), mLuaState(luaState), mLocator(locator), mRect(rect)
+{
+
+}
+
+MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName)
+    : mMap(map), mLuaState(luaState), mLocator(locator), mScriptName(scriptName)
 {
 
 }
@@ -100,7 +184,7 @@ MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::
 {
     state.new_usertype<MapObject>("MapObject",
         "SetAnimation", &MapObject::SetAnimation,
-        "SnapToGrid", &MapObject::SnapToGrid,
+        "SetAnimationFrame", &MapObject::SetAnimationFrame,
         "FrameNumber", &MapObject::FrameNumber,
         "IsLastFrame", &MapObject::IsLastFrame,
         "AnimUpdate", &MapObject::AnimUpdate,
@@ -108,10 +192,16 @@ MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::
         "AnimationComplete", &MapObject::AnimationComplete,
         "NumberOfFrames", &MapObject::NumberOfFrames,
         "FrameCounter", &MapObject::FrameCounter,
+
+        "WallCollision", &MapObject::WallCollision,
+        "CellingCollision", &MapObject::CellingCollision,
+        "FloorCollision", &MapObject::FloorCollision,
+
+        "SnapXToGrid", &MapObject::SnapXToGrid,
         "FacingLeft", &MapObject::FacingLeft,
+
         "FacingRight", &MapObject::FacingRight,
         "FlipXDirection", &MapObject::FlipXDirection,
-        "ScriptLoadAnimations", &MapObject::ScriptLoadAnimations,
         "states", &MapObject::mStates,
         "mXPos", &MapObject::mXPos,
         "mYPos", &MapObject::mYPos);
@@ -119,12 +209,12 @@ MapObject::MapObject(sol::state& luaState, ResourceLocator& locator, const std::
 
 void MapObject::Init()
 {
-    LoadScript(nullptr, nullptr);
+    LoadScript();
 }
 
-void MapObject::Init(const ObjRect& rect, Oddlib::IStream& objData)
+void MapObject::GetName()
 {
-    LoadScript(&rect, &objData);
+    mName = mStates["mName"];
 }
 
 void MapObject::Activate(bool direction)
@@ -139,50 +229,41 @@ void MapObject::Activate(bool direction)
     }
 }
 
-void MapObject::ScriptLoadAnimations()
+bool MapObject::WallCollision(f32 dx, f32 dy) const
 {
-    mAnim = nullptr;
-    mAnims.clear();
-    mStates.for_each([&](const sol::object& key, const sol::object& value)
-    {
-        std::string stateName = key.as<std::string>();
-        if (stateName == "name")
-        {
-            mName = value.as<std::string>();
-        }
-        else if (stateName == "id")
-        {
-            mId = value.as<s32>();
-        }
-        else if (value.is<sol::table>())
-        {
-            const sol::table& state = value.as<sol::table>();
-            state.for_each([&](const sol::object& key, const sol::object& value)
-            {
-                if (key.is<std::string>())
-                {
-                    std::string name = key.as<std::string>();
-                    if (name == "animation")
-                    {
-                        std::string strAnim = value.as<std::string>();
-                        if (!strAnim.empty())
-                        {
-                            auto pAnim = mLocator.LocateAnimation(strAnim.c_str());
-                            if (!pAnim)
-                            {
-                                LOG_ERROR("Animation: " << strAnim << " not found");
-                                abort();
-                            }
-                            mAnims.insert(std::make_pair(strAnim, std::move(pAnim)));
-                        }
-                    }
-                }
-            });
-        }
-    });
+    // The game checks for both kinds of walls no matter the direction
+    // ddcheat into a tunnel and the "inside out" wall will still force
+    // a crouch.
+    return
+        Physics::raycast_map<2>(mMap.Lines(),
+            glm::vec2(mXPos, mYPos + dy),
+            glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
+            { 1u, 2u }, nullptr);
 }
 
-void MapObject::LoadScript(const ObjRect* rect, Oddlib::IStream* objData)
+bool MapObject::CellingCollision(f32 dx, f32 dy) const
+{
+    return Physics::raycast_map<1>(mMap.Lines(),
+        glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos - 2), // avoid collision if we are standing on a celling
+        glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
+        { 3u }, nullptr);
+}
+
+std::tuple<bool, f32, f32, f32> MapObject::FloorCollision() const
+{
+    Physics::raycast_collision c;
+    if (Physics::raycast_map<1>(mMap.Lines(),
+        glm::vec2(mXPos, mYPos),
+        glm::vec2(mXPos, mYPos + 260*3), // Check up to 3 screen down
+        { 0u }, &c))
+    {
+        const f32 distance = glm::distance(mYPos, c.intersection.y);
+        return std::make_tuple(true, c.intersection.x, c.intersection.y, distance);
+    }
+    return std::make_tuple(false, 0.0f, 0.0f, 0.0f);
+}
+
+void MapObject::LoadScript()
 {
     // Load FSM script
     const std::string script = mLocator.LocateScript(mScriptName.c_str());
@@ -197,18 +278,7 @@ void MapObject::LoadScript(const ObjRect* rect, Oddlib::IStream* objData)
     }
 
     // Set initial state
-    if (objData)
-    {
-        sol::protected_function f = mLuaState["init_with_data"];
-        auto ret = f(this, *rect, *objData);
-        if (!ret.valid())
-        {
-            sol::error err = ret;
-            std::string what = err.what();
-            LOG_ERROR(what);
-        }
-    }
-    else
+    try
     {
         sol::protected_function f = mLuaState["init"];
         auto ret = f(this);
@@ -218,6 +288,11 @@ void MapObject::LoadScript(const ObjRect* rect, Oddlib::IStream* objData)
             std::string what = err.what();
             LOG_ERROR(what);
         }
+
+    }
+    catch (const sol::error& e)
+    {
+        LOG_ERROR(e.what());
     }
 }
 
@@ -294,6 +369,14 @@ void MapObject::SetAnimation(const std::string& animation)
     }
 }
 
+void MapObject::SetAnimationFrame(s32 frame)
+{
+    if (mAnim)
+    {
+        mAnim->SetFrame(frame);
+    }
+}
+
 void MapObject::SetAnimationAtFrame(const std::string& animation, u32 frame)
 {
     SetAnimation(animation);
@@ -326,19 +409,14 @@ s32 MapObject::FrameNumber() const
     return mAnim->FrameNumber();
 }
 
-void MapObject::Render(Renderer& rend, GuiContext& gui, int x, int y, float scale)
+void MapObject::ReloadScript()
 {
-    // Debug ui
-    gui_begin_window(&gui, "Script debug");
-    if (gui_button(&gui, "Reload script"))
-    {
-        LoadScript(nullptr, nullptr);
-        SnapToGrid();
+    LoadScript();
+    SnapXToGrid();
+}
 
-        
-    }
-    gui_end_window(&gui);
-
+void MapObject::Render(Renderer& rend, GuiContext& /*gui*/, int x, int y, float scale)
+{
     if (mAnim)
     {
         mAnim->SetXPos(static_cast<s32>(mXPos)+x);
@@ -352,17 +430,29 @@ bool MapObject::ContainsPoint(s32 x, s32 y) const
 {
     if (!mAnim)
     {
-        return false;
+        // For animationless objects use the object rect
+        return PointInRect(x, y, mRect.x, mRect.y, mRect.w, mRect.h);
     }
 
     return mAnim->Collision(x, y);
 }
 
-void MapObject::SnapToGrid()
+void MapObject::SnapXToGrid()
 {
     //25x20 grid hack
+    const float oldX = mXPos;
+    const s32 xpos = static_cast<s32>(mXPos);
+    const s32 gridPos = (xpos - 12) % 25;
+    if (gridPos >= 13)
+    {
+        mXPos = static_cast<float>(xpos - gridPos + 25);
+    }
+    else
+    {
+        mXPos = static_cast<float>(xpos - gridPos);
+    }
 
-    mXPos = (glm::round((mXPos + 12.5f) / 25) * 25) - 12.5f;
+    LOG_INFO("SnapX: " << oldX << " to " << mXPos);
 }
 
 // ============================================
@@ -502,7 +592,8 @@ int GridScreen::getTexHandle()
 bool GridScreen::hasTexture() const
 {
     bool onlySpaces = true;
-    for (size_t i = 0; i < mFileName.size(); ++i) {
+    for (size_t i = 0; i < mFileName.size(); ++i) 
+    {
         if (mFileName[i] != ' ' && mFileName[i] != '\0')
         {
             onlySpaces = false;
@@ -513,9 +604,8 @@ bool GridScreen::hasTexture() const
 }
 
 GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
-    : mCollisionItems(path.CollisionItems()), mPlayer(luaState, locator, "abe.lua")
+    : mCollisionItems(path.CollisionItems()), mPlayer(*this, luaState, locator, "abe.lua")
 {
-    mCollisionItemsSorted = mCollisionItems;
     mIsAo = path.IsAo();
 
 
@@ -554,10 +644,27 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
             }
         }
     }
-    mPlayer.SnapToGrid();
+    mPlayer.SnapXToGrid();
+
+    // Hack: Don't reload object_factory as the require statements only execute once
+    // which results in the global factory table being cleared
+    static bool factoryLoaded = false;
+    if (!factoryLoaded)
+    {
+        const std::string script = locator.LocateScript("object_factory.lua");
+        try
+        {
+            luaState.script(script);
+        }
+        catch (const sol::error& ex)
+        {
+            LOG_ERROR(ex.what()); // TODO: This is fatal
+            return;
+        }
+        factoryLoaded = true;
+    }
 
     // Load objects
-    /*
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
@@ -567,65 +674,35 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
             for (size_t i = 0; i < cam.mObjects.size(); ++i)
             {
                 const Oddlib::Path::MapObject& obj = cam.mObjects[i];
-                if (path.IsAo() == false)
+                Oddlib::MemoryStream ms(std::vector<u8>(obj.mData.data(), obj.mData.data() + obj.mData.size()));
+                const ObjRect rect =
                 {
-                    // TODO: Delegate to lua object factory
-                    std::string scriptName;
-                    if (obj.mType == 24)
-                    {
-                        scriptName = "mine.lua";
-                    }
-                    else if (obj.mType == 13)
-                    {
-                        scriptName = "background_animation.lua";
-                    }
-                    else if (obj.mType == 17)
-                    {
-                        scriptName = "switch.lua";
-                    }
-                    else if (obj.mType == 85)
-                    {
-                        scriptName = "slam_door.lua";
-                    }
-                    else if (obj.mType == 5)
-                    {
-                        scriptName = "door.lua";
-                    }
-                    else if (obj.mType == 38)
-                    {
-                        scriptName = "electric_wall.lua";
-                    }
-                    else
-                    {
-                        continue;
-                    }
+                    obj.mRectTopLeft.mX,
+                    obj.mRectTopLeft.mY,
+                    obj.mRectBottomRight.mX - obj.mRectTopLeft.mX,
+                    obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
+                };
+                auto tmp = std::make_unique<MapObject>(*this, luaState, locator, rect);
+                // Default "best guess" positioning
+                tmp->mXPos = obj.mRectTopLeft.mX;
+                tmp->mYPos = obj.mRectTopLeft.mY;
 
-                    auto tmp = std::make_unique<MapObject>(luaState, locator, scriptName.c_str());
-
-                    // Default "best guess" positioning
-                    tmp->mXPos = obj.mRectTopLeft.mX;
-                    tmp->mYPos = obj.mRectTopLeft.mY;
-
-                    const ObjRect rect =  {
-                            obj.mRectTopLeft.mX,
-                            obj.mRectTopLeft.mY,
-                            obj.mRectBottomRight.mX - obj.mRectTopLeft.mX,
-                            obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
-                    };
-
-                    Oddlib::MemoryStream ms(std::vector<u8>(obj.mData.data(), obj.mData.data() + obj.mData.size()));
-                    tmp->Init(rect, ms);
-
+                sol::function f = luaState["object_factory"];
+                Oddlib::IStream* s = &ms; // required else binding fails
+                bool ret = f(*tmp, path.IsAo(), obj.mType, rect, *s);
+                if (ret)
+                {
+                    tmp->GetName();
                     mObjs.push_back(std::move(tmp));
                 }
             }
         }
-    }*/
+    }
 }
 
 void GridMap::Update(const InputState& input)
 {
-    if (input.mKeys[SDL_SCANCODE_E].mIsPressed)
+    if (input.mKeys[SDL_SCANCODE_E].IsPressed())
     {
         if (mState == eStates::eEditor)
         {
@@ -643,28 +720,28 @@ void GridMap::Update(const InputState& input)
 
     f32 editorCamSpeed = 10.0f;
 
-    if (input.mKeys[SDL_SCANCODE_LCTRL].mIsDown)
+    if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
     {
-        if (input.mKeys[SDL_SCANCODE_W].mIsPressed)
+        if (input.mKeys[SDL_SCANCODE_W].IsPressed())
             mEditorCamZoom--;
-        else if (input.mKeys[SDL_SCANCODE_S].mIsPressed)
+        else if (input.mKeys[SDL_SCANCODE_S].IsPressed())
             mEditorCamZoom++;
 
         mEditorCamZoom = glm::clamp(mEditorCamZoom, 1, 15);
     }
     else
     {
-        if (input.mKeys[SDL_SCANCODE_LSHIFT].mIsDown)
+        if (input.mKeys[SDL_SCANCODE_LSHIFT].IsDown())
             editorCamSpeed *= 4;
 
-        if (input.mKeys[SDL_SCANCODE_W].mIsDown)
+        if (input.mKeys[SDL_SCANCODE_W].IsDown())
             mEditorCamOffset.y -= editorCamSpeed;
-        else if (input.mKeys[SDL_SCANCODE_S].mIsDown)
+        else if (input.mKeys[SDL_SCANCODE_S].IsDown())
             mEditorCamOffset.y += editorCamSpeed;
 
-        if (input.mKeys[SDL_SCANCODE_A].mIsDown)
+        if (input.mKeys[SDL_SCANCODE_A].IsDown())
             mEditorCamOffset.x -= editorCamSpeed;
-        else if (input.mKeys[SDL_SCANCODE_D].mIsDown)
+        else if (input.mKeys[SDL_SCANCODE_D].IsDown())
             mEditorCamOffset.x += editorCamSpeed;
     }
 
@@ -674,25 +751,6 @@ void GridMap::Update(const InputState& input)
     {
         obj->Update(input);
     }
-}
-
-bool GridMap::raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision * collision)
-{
-    std::sort(std::begin(mCollisionItemsSorted), std::end(mCollisionItemsSorted), [line1p1](const Oddlib::Path::CollisionItem& lhs, const Oddlib::Path::CollisionItem& rhs)
-    {
-        return glm::distance((glm::vec2(lhs.mP1.mX, lhs.mP1.mY) + glm::vec2(lhs.mP2.mX, lhs.mP2.mY)) / 2.0f, line1p1) < glm::distance((glm::vec2(rhs.mP1.mX, rhs.mP1.mY) + glm::vec2(rhs.mP2.mX, rhs.mP2.mY)) / 2.0f, line1p1);
-    });
-
-    for (const Oddlib::Path::CollisionItem& item : mCollisionItemsSorted)
-    {
-        if (item.mType != collisionType)
-            continue;
-
-        if (Physics::raycast_lines(glm::vec2(item.mP1.mX, item.mP1.mY), glm::vec2(item.mP2.mX, item.mP2.mY), line1p1, line1p2, collision))
-            return true;
-    }
-
-    return false;
 }
 
 MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
@@ -721,24 +779,61 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
     }
 }
 
+// 0 - Foreground Floor
+// 1 - Foreground Left Wall
+// 2 - Foreground Right Wall
+// 3 - Foreground Ceiling
+// 4 - Background Floor
+// 5 - Background Left Wall
+// 6 - Background Right Wall
+
+// 8 Follow Path
+// 10 - Slig Shoot Safety
+// 11 - Minecar Floor
+// 12 - Minecar Vertical
+// 13 - Minecar Ceiling
+static constexpr Color kLineColours[] = 
+{
+    { 255 / 255, 0 / 255,   0 / 255,   255 / 255 },
+    { 0 / 255,   0 / 255,   255 / 255, 255 / 255 },
+    { 0 / 255,   100 / 255, 255 / 255, 255 / 255 },
+    { 255 / 255, 100 / 255, 0 / 255,   255 / 255 },
+    { 255 / 255, 100 / 255, 0 / 255,   255 / 255 },
+    { 100 / 255, 100 / 255, 255 / 255, 255 / 255 },
+    { 0 / 255,   255 / 255, 255 / 255, 255 / 255 },
+    { 255 / 255, 100 / 255, 100 / 255, 255 / 255 },
+    { 255 / 255, 255 / 255, 0 / 255,   255 / 255 },
+    { 255 / 255, 255 / 255, 255 / 255, 255 / 255 }, // TODO: Type 9
+    { 255 / 255, 0 / 255,   255 / 255, 255 / 255 }
+};
+static bool IsKnownCollisionType(u32 idx) { return idx < glm::countof(kLineColours); }
+
 void GridMap::RenderDebug(Renderer& rend)
 {
     // Draw collisions
     if (Debugging().mCollisionLines)
     {
-        rend.strokeColor(Color{ 0, 0, 1, 1 });
         rend.strokeWidth(2.f);
-        for (const Oddlib::Path::CollisionItem& item : mCollisionItemsSorted)
+        for (const Oddlib::Path::CollisionItem& item : mCollisionItems)
         {
-            glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item.mP1.mX, item.mP1.mY));
-            glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item.mP2.mX, item.mP2.mY));
+            if (IsKnownCollisionType(item.mType))
+            {
+                rend.strokeColor(kLineColours[item.mType]);
+            }
+            else
+            {
+                rend.strokeColor(Color{ 0, 0, 1, 1 });
+            }
+
+            const glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item.mP1.mX, item.mP1.mY));
+            const glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item.mP2.mX, item.mP2.mY));
 
             rend.beginPath();
             rend.moveTo(p1.x, p1.y);
             rend.lineTo(p2.x, p2.y);
             rend.stroke();
 
-            rend.text(p1.x, p1.y, std::string("L: " + std::to_string(item.mType)).c_str());
+            rend.text(p1.x, p1.y, std::string("T: " + std::to_string(item.mType)).c_str());
         }
     }
 
@@ -952,39 +1047,55 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui)
 
 void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
 {
+    if (Debugging().mShowDebugUi)
+    {
+        // Debug ui
+        gui_begin_window(&gui, "Script debug");
+        if (gui_button(&gui, "Reload abe script"))
+        {
+            mPlayer.ReloadScript();
+        }
+        gui_end_window(&gui);
+    }
+
     rend.mSmoothCameraPosition = false;
 
-    glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+    const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 
     rend.mScreenSize = glm::vec2(368, 240);
-    int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x);
-    int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y);
+    const int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x);
+    const int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y);
 
     rend.mCameraPosition = glm::vec2(camX * camGapSize.x, camY * camGapSize.y) + glm::vec2(368 / 2, 240 / 2);
+    rend.updateCamera(); // TODO: this fixes headache inducing flicker on screen change, probably needs to go in Update()
 
     // Culling is disabled until proper camera position updating order is fixed
-    /*if (camX >= 0 && camY >= 0 && camX < static_cast<int>(mScreens.size()) && camY < static_cast<int>(mScreens[camX].size()))
+    // ^ not sure what this means, but rendering things at negative cam index seems to go wrong
+    if (camX >= 0 && camY >= 0 && camX < static_cast<int>(mScreens.size()) && camY < static_cast<int>(mScreens[camX].size()))
     {
-        GridScreen *screen = mScreens[camX][camY].get();
+        GridScreen* screen = mScreens[camX][camY].get();
         if (screen->hasTexture())
+        {
             rend.drawQuad(screen->getTexHandle(), camX * camGapSize.x, camY * camGapSize.y, 368.0f, 240.0f);
-    }*/
-
+        }
+    }
+    
+/*
     // For now draw every cam
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
         {
-            GridScreen *screen = mScreens[x][y].get();
+            GridScreen* screen = mScreens[x][y].get();
             if (!screen->hasTexture())
             {
-                screen = nullptr;
                 continue;
             }
 
             rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
         }
     }
+*/
 
     RenderDebug(rend);
 
@@ -998,20 +1109,56 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
         0,
         1.0f);
 
-    Physics::raycast_collision collision;
-
     // Test raycasting for shadows
-    if (raycast_map(glm::vec2(mPlayer.mXPos, mPlayer.mYPos), glm::vec2(mPlayer.mXPos, mPlayer.mYPos + 500), 0, &collision))
-    {
-        if (Debugging().mRayCasts)
-        {
-            glm::vec2 screenSpaceHit = rend.WorldToScreen(collision.intersection);
+    DebugRayCast(rend,
+        glm::vec2(mPlayer.mXPos, mPlayer.mYPos),
+        glm::vec2(mPlayer.mXPos, mPlayer.mYPos + 500),
+        0,
+        glm::vec2(0, -10)); // -10 so when we are *ON* a line you can see something
 
-            rend.strokeColor(Color{ 1, 0, 0, 1 });
+    DebugRayCast(rend,
+        glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 2),
+        glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 60),
+        3,
+        glm::vec2(0, 0));
+
+    if (mPlayer.mFlipX)
+    {
+        DebugRayCast(rend,
+            glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 20),
+            glm::vec2(mPlayer.mXPos - 25, mPlayer.mYPos - 20), 1);
+
+        DebugRayCast(rend,
+            glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 50),
+            glm::vec2(mPlayer.mXPos - 25, mPlayer.mYPos - 50), 1);
+    }
+    else
+    {
+        DebugRayCast(rend,
+            glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 20),
+            glm::vec2(mPlayer.mXPos + 25, mPlayer.mYPos - 20), 2);
+
+        DebugRayCast(rend,
+            glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 50),
+            glm::vec2(mPlayer.mXPos + 25, mPlayer.mYPos - 50), 2);
+    }
+}
+
+void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset)
+{
+    if (Debugging().mRayCasts)
+    {
+        Physics::raycast_collision collision;
+        if (Physics::raycast_map<1>(Lines(), from, to, { collisionType }, &collision))
+        {
+            const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
+            const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);
+
+            rend.strokeColor(Color{ 1, 0, 1, 1 });
             rend.strokeWidth(2.f);
             rend.beginPath();
-            rend.moveTo(screenSpaceHit.x, screenSpaceHit.y);
-            rend.lineTo(screenSpaceHit.x, screenSpaceHit.y - 20);
+            rend.moveTo(fromDrawPos.x, fromDrawPos.y);
+            rend.lineTo(hitPos.x, hitPos.y);
             rend.stroke();
         }
     }

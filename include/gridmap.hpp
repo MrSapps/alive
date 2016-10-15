@@ -26,6 +26,9 @@ namespace Physics
     };
 
     bool raycast_lines(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision * collision);
+
+    template<u32 N>
+    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision);
 }
 
 class Animation;
@@ -48,40 +51,55 @@ struct ObjRect
     }
 };
 
+class IMap
+{
+public:
+    virtual ~IMap() = default;
+    virtual const std::vector<Oddlib::Path::CollisionItem>& Lines() const = 0;
+};
+
 class MapObject
 {
 public:
     MapObject(MapObject&&) = delete;
     MapObject& operator = (MapObject&&) = delete;
-    MapObject(sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
+    MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const ObjRect& rect);
+    MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
     void Init();
+    void GetName();
     void Init(const ObjRect& rect, Oddlib::IStream& objData);
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale);
+    void ReloadScript();
     static void RegisterLuaBindings(sol::state& state);
 
     bool ContainsPoint(s32 x, s32 y) const;
     const std::string& Name() const { return mName; }
 
     // TODO: Shouldn't be part of this object
-    void SnapToGrid();
+    void SnapXToGrid();
 
     float mXPos = 50.0f;
     float mYPos = 100.0f;
     s32 Id() const { return mId; }
     void Activate(bool direction);
+    bool WallCollision(f32 dx, f32 dy) const;
+    bool CellingCollision(f32 dx, f32 dy) const;
+    std::tuple<bool, f32, f32, f32> FloorCollision() const;
 private:
     void ScriptLoadAnimations();
+    IMap& mMap;
 
     std::map<std::string, std::unique_ptr<Animation>> mAnims;
     Animation* mAnim = nullptr;
     sol::state& mLuaState;
     sol::table mStates;
 
-    void LoadScript(const ObjRect* rect, Oddlib::IStream* objData);
+    void LoadScript();
 private: // Actions
     bool AnimationComplete() const;
     void SetAnimation(const std::string& animation);
+    void SetAnimationFrame(s32 frame);
     void SetAnimationAtFrame(const std::string& animation, u32 frame);
     bool FacingLeft() const { return mFlipX; }
     bool FacingRight() const { return !FacingLeft(); }
@@ -92,12 +110,14 @@ private:
     s32 NumberOfFrames() const;
     bool IsLastFrame() const;
     s32 FrameNumber() const;
+public:
     bool mFlipX = false;
-
+private:
     ResourceLocator& mLocator;
     std::string mScriptName;
     std::string mName;
     s32 mId = 0;
+    ObjRect mRect;
 };
 
 class Level
@@ -142,7 +162,7 @@ private:
     Renderer& mRend;
 };
 
-class GridMap
+class GridMap : public IMap
 {
 public:
     GridMap(const GridMap&) = delete;
@@ -157,7 +177,9 @@ private:
     void RenderEditor(Renderer& rend, GuiContext& gui);
     void RenderGame(Renderer& rend, GuiContext& gui);
 
-    bool raycast_map(const glm::vec2& line1p1, const glm::vec2& line1p2, int collisionType, Physics::raycast_collision * collision);
+    virtual const std::vector<Oddlib::Path::CollisionItem>& Lines() const override final { return mCollisionItems; }
+
+    void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2());
 
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
     
@@ -171,7 +193,6 @@ private:
 
     // TODO: This is not the in-game format
     std::vector<Oddlib::Path::CollisionItem> mCollisionItems;
-    std::vector<Oddlib::Path::CollisionItem> mCollisionItemsSorted;
     bool mIsAo;
 
     MapObject mPlayer;

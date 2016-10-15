@@ -9,6 +9,8 @@
 #pragma warning(disable:5027) // move assignment operator was implicitly defined as deleted
 
 #endif
+#define SOL_CHECK_ARGUMENTS
+#define SOL_SAFE_USERTYPE
 #include "sol/sol.hpp"
 #ifdef _MSC_VER
 #pragma warning(pop)
