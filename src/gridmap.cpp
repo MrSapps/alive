@@ -88,84 +88,6 @@ namespace Physics
 
         return segments_intersect;
     }
-
-    template<u32 N>
-    bool raycast_map(const std::vector<CollisionLine>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision)
-    {
-        const CollisionLine* nearestLine = nullptr;
-        float nearestCollisionX = 0;
-        float nearestCollisionY = 0;
-        float nearestDistance = 0.0f;
-
-        for (const CollisionLine& line : lines)
-        {
-            bool found = false;
-            for (u32 type : collisionTypes)
-            {
-                if (type == line.mType)
-                {
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) { continue; }
-
-            const float line1p1x = line1p1.x;
-            const float line1p1y = line1p1.y;
-            const float line1p2x = line1p2.x;
-            const float line1p2y = line1p2.y;
-
-            const float line2p1x = line.mP1.x;
-            const float line2p1y = line.mP1.y;
-            const float line2p2x = line.mP2.x;
-            const float line2p2y = line.mP2.y;
-
-            // Get the segments' parameters.
-            const float dx12 = line1p2x - line1p1x;
-            const float dy12 = line1p2y - line1p1y;
-            const float dx34 = line2p2x - line2p1x;
-            const float dy34 = line2p2y - line2p1y;
-
-            // Solve for t1 and t2
-            const float denominator = (dy12 * dx34 - dx12 * dy34);
-            if (denominator == 0.0f) { continue; }
-
-            const float t1 = ((line1p1x - line2p1x) * dy34 + (line2p1y - line1p1y) * dx34) / denominator;
-            const float t2 = ((line2p1x - line1p1x) * dy12 + (line1p1y - line2p1y) * dx12) / -denominator;
-
-            // Find the point of intersection.
-            const float intersectionX = line1p1x + dx12 * t1;
-            const float intersectionY = line1p1y + dy12 * t1;
-
-            // The segments intersect if t1 and t2 are between 0 and 1.
-            const bool hasCollided = ((t1 >= 0) && (t1 <= 1) && (t2 >= 0) && (t2 <= 1));
-
-            if (hasCollided)
-            {
-                const float distance = glm::sqrt(powf((line1p1x - intersectionX), 2) + powf((line1p1y - intersectionY), 2));
-                if (!nearestLine || distance < nearestDistance)
-                {
-                    nearestCollisionX = intersectionX;
-                    nearestCollisionY = intersectionY;
-                    nearestDistance = distance;
-                    nearestLine = &line;
-                }
-            }
-        }
-
-        if (nearestLine)
-        {
-            if (collision)
-            {
-                collision->intersection.x = nearestCollisionX;
-                collision->intersection.y = nearestCollisionY;
-            }
-            return true;
-        }
-
-        return false;
-    }
 }
 
 MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const ObjRect& rect)
@@ -235,7 +157,7 @@ bool MapObject::WallCollision(f32 dx, f32 dy) const
     // ddcheat into a tunnel and the "inside out" wall will still force
     // a crouch.
     return
-        Physics::raycast_map<2>(mMap.Lines(),
+        CollisionLine::RayCast<2>(mMap.Lines(),
             glm::vec2(mXPos, mYPos + dy),
             glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
             { 1u, 2u }, nullptr);
@@ -243,7 +165,7 @@ bool MapObject::WallCollision(f32 dx, f32 dy) const
 
 bool MapObject::CellingCollision(f32 dx, f32 dy) const
 {
-    return Physics::raycast_map<1>(mMap.Lines(),
+    return CollisionLine::RayCast<1>(mMap.Lines(),
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos - 2), // avoid collision if we are standing on a celling
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
         { 3u }, nullptr);
@@ -252,7 +174,7 @@ bool MapObject::CellingCollision(f32 dx, f32 dy) const
 std::tuple<bool, f32, f32, f32> MapObject::FloorCollision() const
 {
     Physics::raycast_collision c;
-    if (Physics::raycast_map<1>(mMap.Lines(),
+    if (CollisionLine::RayCast<1>(mMap.Lines(),
         glm::vec2(mXPos, mYPos),
         glm::vec2(mXPos, mYPos + 260*3), // Check up to 3 screen down
         { 0u }, &c))
@@ -1222,7 +1144,7 @@ void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec
     if (Debugging().mRayCasts)
     {
         Physics::raycast_collision collision;
-        if (Physics::raycast_map<1>(Lines(), from, to, { collisionType }, &collision))
+        if (CollisionLine::RayCast<1>(Lines(), from, to, { collisionType }, &collision))
         {
             const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
             const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);

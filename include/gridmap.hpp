@@ -18,6 +18,16 @@ class InputState;
 
 namespace Oddlib { class LvlArchive; class IBits; }
 
+namespace Physics
+{
+    struct raycast_collision
+    {
+        glm::vec2 intersection;
+    };
+
+    bool raycast_lines(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision * collision);
+}
+
 class CollisionLine
 {
 public:
@@ -45,6 +55,84 @@ public:
 
     static eLineTypes ToType(u16 type, bool isAo);
     static void Render(Renderer& rend, const std::vector<CollisionLine>& lines);
+
+    template<u32 N>
+    static bool RayCast(const std::vector<CollisionLine>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision)
+    {
+        const CollisionLine* nearestLine = nullptr;
+        float nearestCollisionX = 0;
+        float nearestCollisionY = 0;
+        float nearestDistance = 0.0f;
+
+        for (const CollisionLine& line : lines)
+        {
+            bool found = false;
+            for (u32 type : collisionTypes)
+            {
+                if (type == line.mType)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) { continue; }
+
+            const float line1p1x = line1p1.x;
+            const float line1p1y = line1p1.y;
+            const float line1p2x = line1p2.x;
+            const float line1p2y = line1p2.y;
+
+            const float line2p1x = line.mP1.x;
+            const float line2p1y = line.mP1.y;
+            const float line2p2x = line.mP2.x;
+            const float line2p2y = line.mP2.y;
+
+            // Get the segments' parameters.
+            const float dx12 = line1p2x - line1p1x;
+            const float dy12 = line1p2y - line1p1y;
+            const float dx34 = line2p2x - line2p1x;
+            const float dy34 = line2p2y - line2p1y;
+
+            // Solve for t1 and t2
+            const float denominator = (dy12 * dx34 - dx12 * dy34);
+            if (denominator == 0.0f) { continue; }
+
+            const float t1 = ((line1p1x - line2p1x) * dy34 + (line2p1y - line1p1y) * dx34) / denominator;
+            const float t2 = ((line2p1x - line1p1x) * dy12 + (line1p1y - line2p1y) * dx12) / -denominator;
+
+            // Find the point of intersection.
+            const float intersectionX = line1p1x + dx12 * t1;
+            const float intersectionY = line1p1y + dy12 * t1;
+
+            // The segments intersect if t1 and t2 are between 0 and 1.
+            const bool hasCollided = ((t1 >= 0) && (t1 <= 1) && (t2 >= 0) && (t2 <= 1));
+
+            if (hasCollided)
+            {
+                const float distance = glm::sqrt(powf((line1p1x - intersectionX), 2) + powf((line1p1y - intersectionY), 2));
+                if (!nearestLine || distance < nearestDistance)
+                {
+                    nearestCollisionX = intersectionX;
+                    nearestCollisionY = intersectionY;
+                    nearestDistance = distance;
+                    nearestLine = &line;
+                }
+            }
+        }
+
+        if (nearestLine)
+        {
+            if (collision)
+            {
+                collision->intersection.x = nearestCollisionX;
+                collision->intersection.y = nearestCollisionY;
+            }
+            return true;
+        }
+
+        return false;
+    }
 private:
     struct LineData
     {
@@ -54,18 +142,7 @@ private:
     static std::map<eLineTypes, LineData> mData;
 };
 
-namespace Physics
-{
-    struct raycast_collision
-    {
-        glm::vec2 intersection;
-    };
 
-    bool raycast_lines(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision * collision);
-
-    template<u32 N>
-    bool raycast_map(const std::vector<CollisionLine>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision);
-}
 
 class Animation;
 
