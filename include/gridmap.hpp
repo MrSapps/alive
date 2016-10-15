@@ -18,6 +18,35 @@ class InputState;
 
 namespace Oddlib { class LvlArchive; class IBits; }
 
+class CollisionLine
+{
+public:
+    glm::vec2 mP1;
+    glm::vec2 mP2;
+
+    enum eLineTypes : u32
+    {
+        eFloor = 0,
+        eWallLeft = 1,
+        eWallRight = 2,
+        eCeiling = 3,
+        eBackGroundFloor = 4,
+        eBackGroundWallLeft = 5,
+        eBackGroundWallRight = 6,
+        eFlyingSligLine = 8,
+        eBulletWall = 10,
+        eMineCarFloor = 11,
+        eMineCarWall = 12,
+        eMineCarCeiling = 13,
+        eFlyingSligCeiling = 17,
+        eUnknown = 99
+    };
+    eLineTypes mType;
+
+    static eLineTypes ToType(u16 type, bool isAo);
+    static void Render(Renderer& rend, const std::vector<CollisionLine>& lines);
+};
+
 namespace Physics
 {
     struct raycast_collision
@@ -28,7 +57,7 @@ namespace Physics
     bool raycast_lines(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision * collision);
 
     template<u32 N>
-    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision);
+    bool raycast_map(const std::vector<CollisionLine>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision);
 }
 
 class Animation;
@@ -55,7 +84,7 @@ class IMap
 {
 public:
     virtual ~IMap() = default;
-    virtual const std::vector<Oddlib::Path::CollisionItem>& Lines() const = 0;
+    virtual const std::vector<class CollisionLine>& Lines() const = 0;
 };
 
 class MapObject
@@ -177,7 +206,7 @@ private:
     void RenderEditor(Renderer& rend, GuiContext& gui);
     void RenderGame(Renderer& rend, GuiContext& gui);
 
-    virtual const std::vector<Oddlib::Path::CollisionItem>& Lines() const override final { return mCollisionItems; }
+    virtual const std::vector<CollisionLine>& Lines() const override final { return mCollisionItems; }
 
     void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2());
 
@@ -192,7 +221,9 @@ private:
     const int mEditorGridSizeY = 20;
 
     // TODO: This is not the in-game format
-    std::vector<Oddlib::Path::CollisionItem> mCollisionItems;
+    //std::vector<Oddlib::Path::CollisionItem> mCollisionItems;
+    std::vector<CollisionLine> mCollisionItems;
+
     bool mIsAo;
 
     MapObject mPlayer;
@@ -204,4 +235,6 @@ private:
         eEditor
     };
     eStates mState = eStates::eInGame;
+
+    void ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items);
 };

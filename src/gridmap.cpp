@@ -90,14 +90,14 @@ namespace Physics
     }
 
     template<u32 N>
-    bool raycast_map(const std::vector<Oddlib::Path::CollisionItem>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision)
+    bool raycast_map(const std::vector<CollisionLine>& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision)
     {
-        const Oddlib::Path::CollisionItem* nearestLine = nullptr;
+        const CollisionLine* nearestLine = nullptr;
         float nearestCollisionX = 0;
         float nearestCollisionY = 0;
         float nearestDistance = 0.0f;
 
-        for (const Oddlib::Path::CollisionItem& line : lines)
+        for (const CollisionLine& line : lines)
         {
             bool found = false;
             for (u32 type : collisionTypes)
@@ -116,10 +116,10 @@ namespace Physics
             const float line1p2x = line1p2.x;
             const float line1p2y = line1p2.y;
 
-            const float line2p1x = line.mP1.mX;
-            const float line2p1y = line.mP1.mY;
-            const float line2p2x = line.mP2.mX;
-            const float line2p2y = line.mP2.mY;
+            const float line2p1x = line.mP1.x;
+            const float line2p1y = line.mP1.y;
+            const float line2p2x = line.mP2.x;
+            const float line2p2y = line.mP2.y;
 
             // Get the segments' parameters.
             const float dx12 = line1p2x - line1p1x;
@@ -604,10 +604,11 @@ bool GridScreen::hasTexture() const
 }
 
 GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
-    : mCollisionItems(path.CollisionItems()), mPlayer(*this, luaState, locator, "abe.lua")
+    : mPlayer(*this, luaState, locator, "abe.lua")
 {
     mIsAo = path.IsAo();
 
+    ConvertCollisionItems(path.CollisionItems());
 
     luaState.set_function("GetMapObject", &GridMap::GetMapObject, this);
     luaState.set_function("ActivateObjectsWithId", &GridMap::ActivateObjectsWithId, this);
@@ -779,20 +780,37 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
     }
 }
 
-// 0 - Foreground Floor
-// 1 - Foreground Left Wall
-// 2 - Foreground Right Wall
-// 3 - Foreground Ceiling
-// 4 - Background Floor
-// 5 - Background Left Wall
-// 6 - Background Right Wall
+/*static*/ CollisionLine::eLineTypes CollisionLine::ToType(u16 type, bool isAo)
+{
+    if (isAo)
+    {
+        // TODO: Implement me
+        LOG_ERROR("No conversion of AO collision items yet");
+        return eUnknown;
+    }
 
-// 8 Follow Path
-// 10 - Slig Shoot Safety
-// 11 - Minecar Floor
-// 12 - Minecar Vertical
-// 13 - Minecar Ceiling
-static constexpr Color kLineColours[] = 
+    switch (type)
+    {
+    case eFloor: return eFloor;
+    case eWallLeft: return eWallLeft;
+    case eWallRight: return eWallRight;
+    case eCeiling: return eCeiling;
+    case eBackGroundFloor: return eBackGroundFloor;
+    case eBackGroundWallLeft: return eBackGroundWallLeft;
+    case eBackGroundWallRight: return eBackGroundWallRight;
+    case eFlyingSligLine: return eFlyingSligLine;
+    case eBulletWall: return eBulletWall;
+    case eMineCarFloor: return eMineCarFloor;
+    case eMineCarWall: return eMineCarWall;
+    case eMineCarCeiling: return eMineCarCeiling;
+    case eFlyingSligCeiling: return eFlyingSligCeiling;
+    }
+    LOG_ERROR("Unknown AE collision type: " << type);
+    return eUnknown;
+}
+
+// TODO: Use enum/map
+static constexpr Color kLineColours[] =
 {
     { 255 / 255, 0 / 255,   0 / 255,   255 / 255 },
     { 0 / 255,   0 / 255,   255 / 255, 255 / 255 },
@@ -808,44 +826,50 @@ static constexpr Color kLineColours[] =
 };
 static bool IsKnownCollisionType(u32 idx) { return idx < glm::countof(kLineColours); }
 
+
+/*static*/ void CollisionLine::Render(Renderer& rend, const std::vector<CollisionLine>& lines)
+{
+    for (const CollisionLine& item : lines)
+    {
+        const glm::vec2 p1 = rend.WorldToScreen(item.mP1);
+        const glm::vec2 p2 = rend.WorldToScreen(item.mP2);
+
+        rend.lineCap(NVG_ROUND);
+        rend.LineJoin(NVG_ROUND);
+        rend.strokeColor(Color{ 0, 0, 0, 1 });
+        rend.strokeWidth(8.0f);
+        rend.beginPath();
+        rend.moveTo(p1.x, p1.y);
+        rend.lineTo(p2.x, p2.y);
+        rend.stroke();
+
+        if (IsKnownCollisionType(item.mType))
+        {
+            rend.strokeColor(kLineColours[item.mType]);
+        }
+        else
+        {
+            rend.strokeColor(Color{ 0, 0, 1, 1 });
+        }
+
+        rend.lineCap(NVG_BUTT);
+        rend.LineJoin(NVG_BEVEL);
+        rend.strokeWidth(4.0f);
+        rend.beginPath();
+        rend.moveTo(p1.x, p1.y);
+        rend.lineTo(p2.x, p2.y);
+        rend.stroke();
+
+        rend.text(p1.x, p1.y, std::string("T: " + std::to_string(item.mType)).c_str());
+    }
+}
+
 void GridMap::RenderDebug(Renderer& rend)
 {
     // Draw collisions
     if (Debugging().mCollisionLines)
     {
-        for (const Oddlib::Path::CollisionItem& item : mCollisionItems)
-        {
-            const glm::vec2 p1 = rend.WorldToScreen(glm::vec2(item.mP1.mX, item.mP1.mY));
-            const glm::vec2 p2 = rend.WorldToScreen(glm::vec2(item.mP2.mX, item.mP2.mY));
-
-            rend.lineCap(NVG_ROUND);
-            rend.LineJoin(NVG_ROUND);
-            rend.strokeColor(Color{ 0, 0, 0, 1 });
-            rend.strokeWidth(8.0f);
-            rend.beginPath();
-            rend.moveTo(p1.x, p1.y);
-            rend.lineTo(p2.x, p2.y);
-            rend.stroke();
-
-            if (IsKnownCollisionType(item.mType))
-            {
-                rend.strokeColor(kLineColours[item.mType]);
-            }
-            else
-            {
-                rend.strokeColor(Color{ 0, 0, 1, 1 });
-            }
-
-            rend.lineCap(NVG_BUTT);
-            rend.LineJoin(NVG_BEVEL);
-            rend.strokeWidth(4.0f);
-            rend.beginPath();
-            rend.moveTo(p1.x, p1.y);
-            rend.lineTo(p2.x, p2.y);
-            rend.stroke();
-
-            rend.text(p1.x, p1.y, std::string("T: " + std::to_string(item.mType)).c_str());
-        }
+        CollisionLine::Render(rend, mCollisionItems);
     }
 
     // Draw grid
@@ -1172,6 +1196,22 @@ void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec
             rend.lineTo(hitPos.x, hitPos.y);
             rend.stroke();
         }
+    }
+}
+
+void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items)
+{
+    const size_t count = items.size();
+    mCollisionItems.resize(count);
+    for (auto i=0u; i<count; i++)
+    {
+        mCollisionItems[i].mP1.x = items[i].mP1.mX;
+        mCollisionItems[i].mP1.y = items[i].mP1.mY;
+
+        mCollisionItems[i].mP2.x = items[i].mP2.mX;
+        mCollisionItems[i].mP2.y = items[i].mP2.mY;
+
+        mCollisionItems[i].mType = CollisionLine::ToType(items[i].mType, mIsAo);
     }
 }
 
