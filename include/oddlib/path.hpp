@@ -51,8 +51,8 @@ namespace Oddlib
 
         struct Links
         {
-            u16 mPrevious;
-            u16 mNext;
+            s16 mPrevious;
+            s16 mNext;
             void Read(IStream& stream);
         };
         static_assert(sizeof(Links) == 4, "Wrong link size");
@@ -63,14 +63,13 @@ namespace Oddlib
             Point16 mP2;
             u16 mType;
             Links mLinks[2];
-            u16 mNextIndex1;
             u16 mLineLength;
             void Read(IStream& stream);
         };
         // sizeof(CollisionItem) != 20 due to padding, since we don't just memcpy things into the POD
         // we had to add up each member individually which is annoying..
         const static auto kCollisionItemSize = 20;
-        static_assert(sizeof(Point16) + sizeof(Point16) + sizeof(u16) + sizeof(s32) + sizeof(s32) + sizeof(u16) == kCollisionItemSize, "Wrong collision item size");
+        static_assert(sizeof(Point16) + sizeof(Point16) + sizeof(u16) + sizeof(Links) + sizeof(Links) + sizeof(u16) == kCollisionItemSize, "Wrong collision item size");
 
         Path(const Path&) = delete;
         Path& operator = (const Path&) = delete;

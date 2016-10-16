@@ -1159,7 +1159,7 @@ void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec
     }
 }
 
-static CollisionLine* GetCollisionIndexByIndex(CollisionLines& lines, u16 index)
+static CollisionLine* GetCollisionIndexByIndex(CollisionLines& lines, s16 index)
 {
     const s32 count = static_cast<s32>(lines.size());
     if (index > 0)
@@ -1204,9 +1204,29 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
     // collision lines
     for (auto i = 0; i < count; i++)
     {
+        // TODO: Check if optional link is ever used in conjunction with link
         ConvertLink(mCollisionItems, items[i].mLinks[0], mCollisionItems[i]->mLink);
         ConvertLink(mCollisionItems, items[i].mLinks[1], mCollisionItems[i]->mOptionalLink);
     }
+
+    // Now we can re-order collision items without breaking prev/next links, thus we want to ensure
+    // that anything that either has no links, or only a single prev/next links is placed first
+    // so that we can render connected segments from the start or end.
+    std::sort(std::begin(mCollisionItems), std::end(mCollisionItems), [](std::unique_ptr<CollisionLine>& a, std::unique_ptr<CollisionLine>& b)
+    {
+        return std::tie(a->mLink.mNext, a->mLink.mPrevious) < std::tie(b->mLink.mNext, b->mLink.mPrevious);
+    });
+
+    // Ensure that lines link together physically
+    for (auto i = 0; i < count; i++)
+    {
+        if (mCollisionItems[i]->mLink.mNext)
+        {
+            mCollisionItems[i]->mP2 = mCollisionItems[i]->mLink.mNext->mP1;
+        }
+    }
+
+    // TODO: Render connected segments as one with control points
 }
 
 void GridMap::Render(Renderer& rend, GuiContext& gui)
