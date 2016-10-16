@@ -1868,7 +1868,7 @@ public:
             xFrameOffset = -xFrameOffset;
         }
         // Render sprite as textured quad
-        const Color color = Color::white();
+        const ColourF32 color = ColourF32::white();
         const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
         rend.drawQuad(
             textureId, 
@@ -1884,7 +1884,7 @@ public:
         {
             // Render bounding box
             rend.beginPath();
-            const ::Color c{ 1.0f, 0.0f, 1.0f, 1.0f };
+            const ::ColourF32 c{ 1.0f, 0.0f, 1.0f, 1.0f };
             rend.strokeColor(c);
             rend.resetTransform();
             const f32 width = static_cast<f32>(std::abs(frame.mTopLeft.x - frame.mBottomRight.x)) * mScale;

@@ -156,7 +156,7 @@ private:
     struct LineData
     {
         std::string mName;
-        Color mColour;
+        ColourU8 mColour;
     };
     static std::map<eLineTypes, LineData> mData;
 };

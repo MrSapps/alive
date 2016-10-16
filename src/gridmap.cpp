@@ -736,59 +736,59 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
 {
     { eFloor, {
         "Floor",
-        { 255 / 255, 0 / 255,   0 / 255,   255 / 255 } }
+        { 255, 0, 0, 255 } }
     },
     { eWallLeft,
         { "Wall left",
-        { 0 / 255,   0 / 255,   255 / 255, 255 / 255 }
+        { 0, 0, 255, 255 }
     } },
     { eWallRight,
         { "Wall right",
-        { 0 / 255,   100 / 255, 255 / 255, 255 / 255 }
+        { 0, 100, 255, 255 }
     } },
     { eCeiling,
         { "Ceiling",
-        { 255 / 255, 100 / 255, 0 / 255,   255 / 255 }
+        { 255, 100, 0, 255 }
     } },
     { eBackGroundFloor,
         { "Bg floor",
-        { 255 / 255, 100 / 255, 0 / 255,   255 / 255 }
+        { 255, 100, 0, 255 }
     } },
     { eBackGroundWallLeft,
         { "Bg wall left",
-        { 100 / 255, 100 / 255, 255 / 255, 255 / 255 }
+        { 100, 100, 255, 255 }
     } },
     { eBackGroundWallRight,
         { "Bg wall right",
-        { 0 / 255,   255 / 255, 255 / 255, 255 / 255 }
+        { 0, 255, 255, 255 }
     } },
     { eFlyingSligLine,
         { "Flying slig line",
-        { 255 / 255, 100 / 255, 100 / 255, 255 / 255 }
+        { 255, 255, 0, 255 }
     } },
     { eBulletWall,
         { "Bullet wall",
-        { 255 / 255, 255 / 255, 0 / 255,   255 / 255 }
+        { 255, 255, 0, 255 }
     } },
     { eMineCarFloor,
         { "Minecar floor",
-        { 255 / 255, 255 / 255, 255 / 255, 255 / 255 }
+        { 255, 255, 255, 255 }
     } },
     { eMineCarWall,
         { "Minecar wall",
-        { 255 / 255, 0 / 255,   255 / 255, 255 / 255 }
+        { 255, 0,   255, 255 }
     } },
     { eMineCarCeiling,
         { "Minecar ceiling",
-        { 255 / 255, 0 / 255,   255 / 255, 255 / 255 }
+        { 255, 0, 255, 255 }
     } },
     { eFlyingSligCeiling,
         { "Flying slig ceiling",
-        { 255 / 255, 0 / 255,   255 / 255, 255 / 255 }
+        { 255, 0, 255, 255 }
     } },
     { eUnknown,
         { "Unknown",
-        { 255 / 255, 0 / 255,   255 / 255, 255 / 255 }
+        { 255, 0, 255, 255 }
     } }
 };
 
@@ -801,7 +801,7 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
 
         rend.lineCap(NVG_ROUND);
         rend.LineJoin(NVG_ROUND);
-        rend.strokeColor(Color{ 0, 0, 0, 1 });
+        rend.strokeColor(ColourF32{ 0, 0, 0, 1 });
         rend.strokeWidth(10.0f);
         rend.beginPath();
         rend.moveTo(p1.x, p1.y);
@@ -811,7 +811,7 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
         const auto it = mData.find(item->mType);
         assert(it != std::end(mData));
 
-        rend.strokeColor(it->second.mColour);
+        rend.strokeColor(it->second.mColour.ToColourF32());
         rend.lineCap(NVG_BUTT);
         rend.LineJoin(NVG_BEVEL);
         rend.strokeWidth(4.0f);
@@ -835,7 +835,7 @@ void GridMap::RenderDebug(Renderer& rend)
     // Draw grid
     if (Debugging().mGrid)
     {
-        rend.strokeColor(Color{ 1, 1, 1, 0.1f });
+        rend.strokeColor(ColourF32{ 1, 1, 1, 0.1f });
         rend.strokeWidth(2.f);
         int gridLineCountX = static_cast<int>((rend.mScreenSize.x / mEditorGridSizeX) / 2) + 2;
         for (int x = -gridLineCountX; x < gridLineCountX; x++)
@@ -860,7 +860,7 @@ void GridMap::RenderDebug(Renderer& rend)
     // Draw objects
     if (Debugging().mObjectBoundingBoxes)
     {
-        rend.strokeColor(Color{ 1, 1, 1, 1 });
+        rend.strokeColor(ColourF32{ 1, 1, 1, 1 });
         rend.strokeWidth(1.f);
         for (auto x = 0u; x < mScreens.size(); x++)
         {
@@ -1149,7 +1149,7 @@ void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec
             const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
             const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);
 
-            rend.strokeColor(Color{ 1, 0, 1, 1 });
+            rend.strokeColor(ColourF32{ 1, 0, 1, 1 });
             rend.strokeWidth(2.f);
             rend.beginPath();
             rend.moveTo(fromDrawPos.x, fromDrawPos.y);
@@ -1220,7 +1220,8 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
     // Ensure that lines link together physically
     for (auto i = 0; i < count; i++)
     {
-        if (mCollisionItems[i]->mLink.mNext)
+        // Some walls have next links, overlapping the walls will break them
+        if (mCollisionItems[i]->mLink.mNext && mCollisionItems[i]->mType == CollisionLine::eFlyingSligLine)
         {
             mCollisionItems[i]->mP2 = mCollisionItems[i]->mLink.mNext->mP1;
         }

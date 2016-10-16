@@ -30,7 +30,7 @@ static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w
     f32 xpos = 0.0f;
     f32 ypos = static_cast<f32>(y + h);
 
-    rend.fillColor(Color{ 0, 0, 0, 1 });
+    rend.fillColor(ColourF32{ 0, 0, 0, 1 });
     rend.fontSize(Percent(static_cast<f32>(h), 6.7f));
     rend.textAlign(TEXT_ALIGN_TOP);
     
@@ -49,7 +49,7 @@ static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w
     xpos = x + (w / 2) - (fontW / 2);
 
     rend.text(xpos, ypos, msg);
-    rend.fillColor(Color{ 1, 1, 1, 1 });
+    rend.fillColor(ColourF32{ 1, 1, 1, 1 });
     f32 adjust = Percent(static_cast<f32>(h), 0.3f);
     rend.text(xpos - adjust, ypos - adjust, msg);
 }

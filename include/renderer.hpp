@@ -54,11 +54,21 @@ enum TextAlign {
     TEXT_ALIGN_BASELINE	= 1<<6, // Default, align text vertically to baseline. 
 };
 
-struct Color {
+struct ColourF32 
+{
     f32 r, g, b, a;
-
-    static Color white();
+    static ColourF32 white();
 };
+
+struct ColourU8
+{
+    u8 r, g, b, a;
+    constexpr ColourF32 ToColourF32() const
+    {
+        return { r / 255.0f, g / 255.0f, b/255.0f, a / 255.0f };
+    }
+};
+
 
 // For NanoVG wrap
 struct RenderPaint {
@@ -66,8 +76,8 @@ struct RenderPaint {
     f32 extent[2];
     f32 radius;
     f32 feather;
-    Color innerColor;
-    Color outerColor;
+    ColourF32 innerColor;
+    ColourF32 outerColor;
     int image;
 };
 
@@ -121,7 +131,7 @@ struct DrawCmd {
             int integer;
             f32 f[5];
             BlendMode blendMode; // Used only for quads, for now.
-            Color color;
+            ColourF32 color;
             char str[128]; // TODO: Allocate dynamically from cheap frame allocator
         } s;
         RenderPaint paint;
@@ -154,7 +164,7 @@ public:
     // All color components are given in 0..1 floating point.
 
     // Use negative w or h to flip uv coordinates
-    void drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, Color color = Color::white(), BlendMode blendMode = BlendMode::normal());
+    void drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, ColourF32 color = ColourF32::white(), BlendMode blendMode = BlendMode::normal());
 
     glm::vec2 WorldToScreen(const glm::vec2& worldPos)
     {
@@ -172,8 +182,8 @@ public:
     }
 
     // NanoVG wrap
-    void fillColor(Color c);
-    void strokeColor(Color c);
+    void fillColor(ColourF32 c);
+    void strokeColor(ColourF32 c);
     void strokeWidth(f32 size);
     void fontSize(f32 s);
     void fontBlur(f32 s);
@@ -197,10 +207,10 @@ public:
     void LineJoin(int cap);
 
     // Not drawing commands
-    RenderPaint linearGradient(f32 sx, f32 sy, f32 ex, f32 ey, Color sc, Color ec);
+    RenderPaint linearGradient(f32 sx, f32 sy, f32 ex, f32 ey, ColourF32 sc, ColourF32 ec);
     RenderPaint boxGradient(f32 x, f32 y, f32 w, f32 h,
-                            f32 r, f32 f, Color icol, Color ocol);
-    RenderPaint radialGradient(f32 cx, f32 cy, f32 inr, f32 outr, Color icol, Color ocol);
+                            f32 r, f32 f, ColourF32 icol, ColourF32 ocol);
+    RenderPaint radialGradient(f32 cx, f32 cy, f32 inr, f32 outr, ColourF32 icol, ColourF32 ocol);
     // TODO: Add fontsize param to make independent of "current state"
     void textBounds(int x, int y, const char *msg, f32 bounds[4]);
 

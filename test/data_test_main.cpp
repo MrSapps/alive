@@ -665,6 +665,30 @@ int main(int /*argc*/, char** /*argv*/)
         Db(Db&&) = delete;
         Db& operator = (Db&&) = delete;
 
+        void DumpAllPaths(const std::vector<std::string>& lvls)
+        {
+            for (auto& lvlName : lvls)
+            {
+                const std::string lvlPath = "F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\" + lvlName;
+                auto stream = std::make_unique<Oddlib::FileStream>(lvlPath, Oddlib::IStream::ReadMode::ReadOnly);
+                Oddlib::LvlArchive archive(std::move(stream));
+                for (u32 i = 0; i < archive.FileCount(); i++)
+                {
+                    Oddlib::LvlArchive::File* file = archive.FileByIndex(i);
+                    for (u32 j = 0; j < file->ChunkCount(); j++)
+                    {
+                        Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
+                        if (chunk->Type() == Oddlib::MakeType("Bits"))
+                        {
+                            auto bitsStream = chunk->Stream();
+                            auto bits = Oddlib::MakeBits(*bitsStream);
+                            bits->Save();
+                        }
+                    }
+                }
+            }
+        }
+
         void DumpAePsxDemoCameras(const std::vector<std::string>& lvls)
         {
             for (auto& lvlName : lvls)
@@ -1398,7 +1422,7 @@ int main(int /*argc*/, char** /*argv*/)
     };
 
     Db db;
-    db.DumpAePsxDemoCameras(aePcDemoLvls);
+    db.DumpAllPaths(aePcLvls);
 
     /*
     GameFileSystem gameFs;

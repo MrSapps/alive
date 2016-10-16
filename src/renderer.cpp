@@ -54,7 +54,7 @@ struct TriMeshVertex
 {
     glm::vec2 pos;
     glm::vec2 uv;
-    Color color;
+    ColourF32 color;
 };
 
 typedef struct VertexAttrib
@@ -201,9 +201,9 @@ void draw_vao(const Vao *vao)
 }
 
 
-Color Color::white()
+ColourF32 ColourF32::white()
 {
-    Color c = {};
+    ColourF32 c = {};
     c.r = c.g = c.b = c.a = 1.f;
     return c;
 }
@@ -523,7 +523,7 @@ void Renderer::endFrame()
             f32 w = cmd.s.f[2];
             f32 h = cmd.s.f[3];
             BlendMode blend = cmd.s.blendMode;
-            Color color = cmd.s.color;
+            ColourF32 color = cmd.s.color;
 
             color.r *= blend.colorMul;
             color.g *= blend.colorMul;
@@ -665,7 +665,7 @@ void Renderer::destroyTexture(int handle)
     }
 }
 
-void Renderer::drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, Color color, BlendMode blendMode)
+void Renderer::drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, ColourF32 color, BlendMode blendMode)
 {
     // Keep quad in the same position when flipping uv coords
     // This gets in the way of offsets for animations, so lets not use this - mlg
@@ -689,7 +689,7 @@ void Renderer::drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, Color color, 
     pushCmd(cmd);
 }
 
-void Renderer::fillColor(Color c)
+void Renderer::fillColor(ColourF32 c)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_fillColor;
@@ -697,7 +697,7 @@ void Renderer::fillColor(Color c)
     pushCmd(cmd);
 }
 
-void Renderer::strokeColor(Color c)
+void Renderer::strokeColor(ColourF32 c)
 {
     DrawCmd cmd;
     cmd.type = DrawCmdType_strokeColor;
@@ -899,20 +899,20 @@ static RenderPaint NVGpaintToRenderPaint(NVGpaint nvp)
     return p;
 }
 
-RenderPaint Renderer::linearGradient(f32 sx, f32 sy, f32 ex, f32 ey, Color sc, Color ec)
+RenderPaint Renderer::linearGradient(f32 sx, f32 sy, f32 ex, f32 ey, ColourF32 sc, ColourF32 ec)
 {
     NVGpaint nvp = nvgLinearGradient(mNanoVg, sx, sy, ex, ey, nvgRGBAf(sc.r, sc.g, sc.b, sc.a), nvgRGBAf(ec.r, ec.g, ec.b, ec.a));
     return NVGpaintToRenderPaint(nvp);
 }
 
 RenderPaint Renderer::boxGradient(f32 x, f32 y, f32 w, f32 h,
-                                  f32 r, f32 f, Color icol, Color ocol)
+                                  f32 r, f32 f, ColourF32 icol, ColourF32 ocol)
 {
     NVGpaint nvp = nvgBoxGradient(mNanoVg, x, y, w, h, r, f, nvgRGBAf(icol.r, icol.g, icol.b, icol.a), nvgRGBAf(ocol.r, ocol.g, ocol.b, ocol.a));
     return NVGpaintToRenderPaint(nvp);
 }
 
-RenderPaint Renderer::radialGradient(f32 cx, f32 cy, f32 inr, f32 outr, Color icol, Color ocol)
+RenderPaint Renderer::radialGradient(f32 cx, f32 cy, f32 inr, f32 outr, ColourF32 icol, ColourF32 ocol)
 {
     NVGpaint nvp = nvgRadialGradient(mNanoVg, cx, cy, inr, outr, 
                       nvgRGBAf(icol.r, icol.g, icol.b, icol.a), nvgRGBAf(ocol.r, ocol.g, ocol.b, ocol.a));

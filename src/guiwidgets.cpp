@@ -13,15 +13,15 @@ void drawButton(void *void_rend, f32 x, f32 y, f32 w, f32 h, bool down, bool hov
         rend->resetScissor();
 
     f32 cornerRadius = 4.0f;
-    Color gradBegin = { 1.f, 1.f, 1.f, 64 / 255.f };
-    Color gradEnd = { 0.f, 0.f, 0.f, 64 / 255.f };
+    ColourF32 gradBegin = { 1.f, 1.f, 1.f, 64 / 255.f };
+    ColourF32 gradEnd = { 0.f, 0.f, 0.f, 64 / 255.f };
 
-    Color bgColor = { 0.3f, 0.3f, 0.3f, 0.5f };
+    ColourF32 bgColor = { 0.3f, 0.3f, 0.3f, 0.5f };
 
     if (down)
     {
-        Color begin = { 0.f, 0.f, 0.f, 64 / 255.f };
-        Color end = { 0.3f, 0.3f, 0.3f, 64 / 255.f };
+        ColourF32 begin = { 0.f, 0.f, 0.f, 64 / 255.f };
+        ColourF32 end = { 0.3f, 0.3f, 0.3f, 64 / 255.f };
         gradBegin = begin;
         gradEnd = end;
     }
@@ -39,7 +39,7 @@ void drawButton(void *void_rend, f32 x, f32 y, f32 w, f32 h, bool down, bool hov
     rend->fillPaint(overlay);
     rend->fill();
 
-    Color outlineColor = Color{ 0, 0, 0, 0.3f };
+    ColourF32 outlineColor = ColourF32{ 0, 0, 0, 0.3f };
     if (hover && !down)
     {
         outlineColor.r = 1.f;
@@ -68,18 +68,18 @@ void drawCheckBox(void *void_rend, f32 x, f32 y, f32 w, bool checked, bool /*dow
     rend->beginPath();
 
     if (checked)
-        bg = rend->boxGradient(x + 2, y + 2, x + w - 2, x + w - 2, 3, 3, Color{ 0.5f, 1.f, 0.5f, 92 / 255.f }, Color{ 0.5f, 1.f, 0.5f, 30 / 255.f });
+        bg = rend->boxGradient(x + 2, y + 2, x + w - 2, x + w - 2, 3, 3, ColourF32{ 0.5f, 1.f, 0.5f, 92 / 255.f }, ColourF32{ 0.5f, 1.f, 0.5f, 30 / 255.f });
     else
-        bg = rend->boxGradient(x + 2, y + 2, x + w - 2, x + w - 2, 3, 3, Color{ 0.f, 0.f, 0.f, 30 / 255.f }, Color{ 0.f, 0.f, 0.f, 92 / 255.f });
+        bg = rend->boxGradient(x + 2, y + 2, x + w - 2, x + w - 2, 3, 3, ColourF32{ 0.f, 0.f, 0.f, 30 / 255.f }, ColourF32{ 0.f, 0.f, 0.f, 92 / 255.f });
     rend->roundedRect(x + 1, y + 1, w - 2, w - 2, 3);
     rend->fillPaint(bg);
     rend->fill();
 
     rend->strokeWidth(1.0f);
     if (hover)
-        rend->strokeColor(Color{ 1.f, 1.f, 1.f, 0.3f });
+        rend->strokeColor(ColourF32{ 1.f, 1.f, 1.f, 0.3f });
     else
-        rend->strokeColor(Color{ 0.f, 0.f, 0.f, 0.3f });
+        rend->strokeColor(ColourF32{ 0.f, 0.f, 0.f, 0.3f });
     rend->stroke();
 
     rend->endLayer();
@@ -99,18 +99,18 @@ void drawRadioButton(void *void_rend, f32 x, f32 y, f32 w, bool checked, bool /*
     rend->beginPath();
 
     if (checked)
-        bg = rend->radialGradient(x + w / 2 + 1, y + w / 2 + 1, w / 2 - 2, w / 2, Color{ 0.5f, 1.f, 0.5f, 92 / 255.f }, Color{ 0.5f, 1.f, 0.5f, 30 / 255.f });
+        bg = rend->radialGradient(x + w / 2 + 1, y + w / 2 + 1, w / 2 - 2, w / 2, ColourF32{ 0.5f, 1.f, 0.5f, 92 / 255.f }, ColourF32{ 0.5f, 1.f, 0.5f, 30 / 255.f });
     else
-        bg = rend->radialGradient(x + w / 2 + 1, y + w / 2 + 1, w / 2 - 2, w / 2, Color{ 0.f, 0.f, 0.f, 30 / 255.f }, Color{ 0.f, 0.f, 0.f, 92 / 255.f });
+        bg = rend->radialGradient(x + w / 2 + 1, y + w / 2 + 1, w / 2 - 2, w / 2, ColourF32{ 0.f, 0.f, 0.f, 30 / 255.f }, ColourF32{ 0.f, 0.f, 0.f, 92 / 255.f });
     rend->circle(x + w / 2, y + w / 2, w / 2);
     rend->fillPaint(bg);
     rend->fill();
 
     rend->strokeWidth(1.0f);
     if (hover)
-        rend->strokeColor(Color{ 1.f, 1.f, 1.f, 0.3f });
+        rend->strokeColor(ColourF32{ 1.f, 1.f, 1.f, 0.3f });
     else
-        rend->strokeColor(Color{ 0.f, 0.f, 0.f, 0.3f });
+        rend->strokeColor(ColourF32{ 0.f, 0.f, 0.f, 0.3f });
     rend->stroke();
 
     rend->endLayer();
@@ -125,7 +125,7 @@ void drawTextBox(void *void_rend, f32 x, f32 y, f32 w, f32 h, bool active, bool 
     else
         rend->resetScissor();
 
-    RenderPaint bg = rend->boxGradient(x + 1, y + 1 + 1.5f, w - 2, h - 2, 3, 4, Color{ 1.f, 1.f, 1.f, 32 / 255.f }, Color{ 32 / 255.f, 32 / 255.f, 32 / 255.f, 32 / 255.f });
+    RenderPaint bg = rend->boxGradient(x + 1, y + 1 + 1.5f, w - 2, h - 2, 3, 4, ColourF32{ 1.f, 1.f, 1.f, 32 / 255.f }, ColourF32{ 32 / 255.f, 32 / 255.f, 32 / 255.f, 32 / 255.f });
     rend->beginPath();
     rend->roundedRect(x + 1, y + 1, w - 2, h - 2, 4 - 1);
     rend->fillPaint(bg);
@@ -134,9 +134,9 @@ void drawTextBox(void *void_rend, f32 x, f32 y, f32 w, f32 h, bool active, bool 
     rend->beginPath();
     rend->roundedRect(x + 0.5f, y + 0.5f, w - 1, h - 1, 4 - 0.5f);
     if (hover || active)
-        rend->strokeColor(Color{ 1.f, 1.f, 1.f, 0.3f });
+        rend->strokeColor(ColourF32{ 1.f, 1.f, 1.f, 0.3f });
     else
-        rend->strokeColor(Color{ 0.f, 0.f, 0.f, 48 / 255.f });
+        rend->strokeColor(ColourF32{ 0.f, 0.f, 0.f, 48 / 255.f });
     rend->stroke();
 
     rend->endLayer();
@@ -156,7 +156,7 @@ void drawText(void *void_rend, f32 x, f32 y, const char *text, int layer, f32 *s
     rend->fontSize(g_gui_font_size);
     rend->textAlign(TEXT_ALIGN_LEFT | TEXT_ALIGN_TOP);
     rend->fontBlur(0);
-    rend->fillColor(Color{ 1.f, 1.f, 1.f, 160 / 255.f });
+    rend->fillColor(ColourF32{ 1.f, 1.f, 1.f, 160 / 255.f });
     rend->text(x, y, text);
 
     rend->endLayer();
@@ -185,9 +185,9 @@ void drawTitleBar(void *void_rend, f32 x, f32 y, f32 w, f32 h, const char *title
 
     // Header
     if (focus)
-        headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.0f, 1.f, 1.0f, 16 / 255.f }, Color{ 0.f, 0.0f, 0.f, 32 / 255.f });
+        headerPaint = rend->linearGradient(x, y, x, y + 15, ColourF32{ 1.0f, 1.f, 1.0f, 16 / 255.f }, ColourF32{ 0.f, 0.0f, 0.f, 32 / 255.f });
     else
-        headerPaint = rend->linearGradient(x, y, x, y + 15, Color{ 1.f, 1.f, 1.f, 16 / 255.f }, Color{ 1.f, 1.f, 1.f, 16 / 255.f });
+        headerPaint = rend->linearGradient(x, y, x, y + 15, ColourF32{ 1.f, 1.f, 1.f, 16 / 255.f }, ColourF32{ 1.f, 1.f, 1.f, 16 / 255.f });
     rend->beginPath();
     rend->roundedRect(x + 1, y, w - 2, h, cornerRadius - 1);
     rend->fillPaint(headerPaint);
@@ -195,17 +195,17 @@ void drawTitleBar(void *void_rend, f32 x, f32 y, f32 w, f32 h, const char *title
     rend->beginPath();
     rend->moveTo(x + 0.5f, y - 0.5f + h);
     rend->lineTo(x + 0.5f + w - 1, y - 0.5f + h);
-    rend->strokeColor(Color{ 0, 0, 0, 64 / 255.f });
+    rend->strokeColor(ColourF32{ 0, 0, 0, 64 / 255.f });
     rend->stroke();
 
     rend->fontSize(18.0f);
     rend->textAlign(TEXT_ALIGN_CENTER | TEXT_ALIGN_MIDDLE);
     rend->fontBlur(3);
-    rend->fillColor(Color{ 0.f, 0.f, 0.f, 160 / 255.f });
+    rend->fillColor(ColourF32{ 0.f, 0.f, 0.f, 160 / 255.f });
     rend->text(x + w / 2, y + 16 + 1, title);
 
     rend->fontBlur(0);
-    rend->fillColor(Color{ 230 / 255.f, 230 / 255.f, 230 / 255.f, 200 / 255.f });
+    rend->fillColor(ColourF32{ 230 / 255.f, 230 / 255.f, 230 / 255.f, 200 / 255.f });
     rend->text(x + w / 2, y + 16, title);
 
     rend->endLayer();
@@ -223,12 +223,12 @@ void drawPanel(void *void_rend, f32 x, f32 y, f32 w, f32 h, int layer)
     // Window
     rend->beginPath();
     rend->roundedRect(x, y, w, h, cornerRadius);
-    rend->fillColor(Color{ 28 / 255.f, 30 / 255.f, 34 / 255.f, 220 / 255.f });
+    rend->fillColor(ColourF32{ 28 / 255.f, 30 / 255.f, 34 / 255.f, 220 / 255.f });
     //	nvgFillColor(vg, nvgRGBA(0,0,0,128));
     rend->fill();
 
     // Drop shadow
-    shadowPaint = rend->boxGradient(x, y + 2, w, h, cornerRadius * 2, 10, Color{ 0.f, 0.f, 0.f, 128 / 255.f }, Color{ 0.f, 0.f, 0.f, 0.f });
+    shadowPaint = rend->boxGradient(x, y + 2, w, h, cornerRadius * 2, 10, ColourF32{ 0.f, 0.f, 0.f, 128 / 255.f }, ColourF32{ 0.f, 0.f, 0.f, 0.f });
     rend->beginPath();
     rend->rect(x - 10, y - 10, w + 20, h + 30);
     rend->roundedRect(x, y, w, h, cornerRadius);
