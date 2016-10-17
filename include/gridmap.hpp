@@ -154,13 +154,13 @@ public:
 
         return false;
     }
-private:
+
     struct LineData
     {
         std::string mName;
         ColourU8 mColour;
     };
-    static std::map<eLineTypes, LineData> mData;
+    static const std::map<eLineTypes, LineData> mData;
 };
 
 

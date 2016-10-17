@@ -734,7 +734,7 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
     return eUnknown;
 }
 
-/*static*/ std::map<CollisionLine::eLineTypes, CollisionLine::LineData> CollisionLine::mData =
+/*static*/ const std::map<CollisionLine::eLineTypes, CollisionLine::LineData> CollisionLine::mData =
 {
     { eFloor, {
         "Floor",

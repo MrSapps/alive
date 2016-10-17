@@ -16,6 +16,8 @@
 
 #undef private
 
+#include "gridmap.hpp"
+
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_Primary;
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_BackBuffer;
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_FakePrimary;
@@ -860,38 +862,6 @@ void GdiLoop(HDC hdc)
             int renderOffsetX = camRoomSizeX * camX;
             int renderOffsetY = camRoomSizeY * camY;
 
-            // 0 - Foreground Floor
-            // 1 - Foreground Left Wall
-            // 2 - Foreground Right Wall
-            // 3 - Foreground Ceiling
-            // 4 - Background Floor
-            // 5 - Background Left Wall
-            // 6 - Background Right Wall
-
-            // 8 Follow Path
-            // 10 - Slig Shoot Safety
-            // 11 - Minecar Floor
-            // 12 - Minecar Vertical
-            // 13 - Minecar Ceiling
-            COLORREF lineColors[32];
-            for (int i = 0; i < 32; i++)
-            {
-                lineColors[i] = RGB(255, 255, 255);
-            }
-            lineColors[0] = RGB(255, 0, 0);
-            lineColors[1] = RGB(0, 0, 255);
-            lineColors[2] = RGB(0, 100, 255);
-            lineColors[3] = RGB(255, 100, 0);
-
-            lineColors[4] = RGB(255, 100, 0);
-            lineColors[5] = RGB(100, 100, 255);
-            lineColors[6] = RGB(0, 255, 255);
-            lineColors[7] = RGB(255, 100, 100);
-
-            lineColors[8] = RGB(255, 255, 0);
-
-            lineColors[10] = RGB(255, 0, 255);
-
             for (auto collision : gPath->mCollisionItems)
             {
                 int p1x = collision.mP1.mX - renderOffsetX;
@@ -909,7 +879,12 @@ void GdiLoop(HDC hdc)
                 p2y = glm::clamp(p2y, 0, 240);
 
                 DeleteObject(hLinePen);
-                qLineColor = lineColors[collision.mType];
+
+                const auto type = CollisionLine::ToType(collision.mType, false);
+                const auto it = CollisionLine::mData.find(type);
+
+                qLineColor = RGB(it->second.mColour.r, it->second.mColour.g, it->second.mColour.b);
+
                 hLinePen = CreatePen(PS_SOLID, 1, qLineColor);
                 hPenOld = (HPEN)SelectObject(hdc, hLinePen);
 
