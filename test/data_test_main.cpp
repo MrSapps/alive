@@ -736,7 +736,7 @@ int main(int /*argc*/, char** /*argv*/)
             }
         }
 
-        void HandleLvl(ResourceMapper& mapper, std::unique_ptr<Oddlib::LvlArchive> archive, const std::string& /*lvl*/, eDataSetType eType)
+        void HandleLvl(ResourceMapper& mapper, std::unique_ptr<Oddlib::LvlArchive> archive, const std::string& lvl, eDataSetType eType)
         {
             for (u32 i = 0; i < archive->FileCount(); i++)
             {
@@ -769,6 +769,9 @@ int main(int /*argc*/, char** /*argv*/)
 
                         if (!found)
                         {
+                            // A legal case in AePsxCd1/2 split data
+                            LOG_ERROR("Path " << genResName << " not found in lvl " << lvl << " for " << ToString(eType));
+                            //continue;
                             abort();
                         }
 
