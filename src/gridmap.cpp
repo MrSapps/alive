@@ -714,7 +714,7 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
     case eBackGroundWallLeft: return eBackGroundWallLeft;
     case eBackGroundWallRight: return eBackGroundWallRight;
     case eBackGroundCeiling: return eBackGroundCeiling;
-    case eFlyingSligLine: return eFlyingSligLine;
+    case eTrackLine: return eTrackLine;
     case eArt: return eArt;
     case eBulletWall: return eBulletWall;
     case eMineCarFloor: return eMineCarFloor;
@@ -760,8 +760,8 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
         { "Bg ceiling",
         { 255, 100, 0, 255 }
     } },
-    { eFlyingSligLine,
-        { "Flying slig line",
+    { eTrackLine,
+        { "Track line",
         { 255, 255, 0, 255 }
     } },
     { eArt,
@@ -1223,7 +1223,7 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
     for (auto i = 0; i < count; i++)
     {
         // Some walls have next links, overlapping the walls will break them
-        if (mCollisionItems[i]->mLink.mNext && mCollisionItems[i]->mType == CollisionLine::eFlyingSligLine)
+        if (mCollisionItems[i]->mLink.mNext && mCollisionItems[i]->mType == CollisionLine::eTrackLine)
         {
             mCollisionItems[i]->mP2 = mCollisionItems[i]->mLink.mNext->mP1;
         }

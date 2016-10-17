@@ -47,7 +47,7 @@ public:
         eBackGroundWallLeft = 5,
         eBackGroundWallRight = 6,
         eBackGroundCeiling = 7,
-        eFlyingSligLine = 8,
+        eTrackLine = 8,
         eArt = 9,
         eBulletWall = 10,
         eMineCarFloor = 11,
