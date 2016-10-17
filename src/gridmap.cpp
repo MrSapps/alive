@@ -808,6 +808,7 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
         rend.beginPath();
         rend.moveTo(p1.x, p1.y);
         rend.lineTo(p2.x, p2.y);
+  
         rend.stroke();
 
         const auto it = mData.find(item->mType);
@@ -820,10 +821,43 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
         rend.beginPath();
         rend.moveTo(p1.x, p1.y);
         rend.lineTo(p2.x, p2.y);
+
+        // Arrow head
+        rend.moveTo(p1.x, p1.y);
+        rend.lineTo(p1.x + 20, p1.y + 10);
+        rend.moveTo(p1.x, p1.y);
+        rend.lineTo(p1.x + 20, p1.y - 10);
+
         rend.stroke();
 
-        rend.text(p1.x, p1.y, std::string(it->second.mName).c_str());
+        //rend.text(p1.x, p1.y, std::string(it->second.mName).c_str());
     }
+    /*
+    // Render would-be connection points
+    for (const std::unique_ptr<CollisionLine>& item : lines)
+    {
+        const glm::vec2 p1 = rend.WorldToScreen(item->mP1);
+        const glm::vec2 p2 = rend.WorldToScreen(item->mP2);
+
+      
+        rend.strokeColor(ColourF32{ 0, 0, 0, 1 });
+        rend.strokeWidth(10.0f + 4.0f);
+
+        rend.beginPath();
+        rend.circle(p1.x, p1.y, 1.0f);
+        rend.stroke();
+
+        const auto it = mData.find(item->mType);
+        assert(it != std::end(mData));
+
+        rend.strokeColor(it->second.mColour.ToColourF32());
+      
+        rend.strokeWidth(4.0f+4.0f);
+       
+        rend.beginPath();
+        rend.circle(p1.x, p1.y, 1.0f);
+        rend.stroke();
+    }*/
 }
 
 void GridMap::RenderDebug(Renderer& rend)
@@ -898,7 +932,8 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui)
 
     rend.beginLayer(gui_layer(&gui) + 1);
 
-    glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+    const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+    const glm::vec2 camOffset = (mIsAo) ? glm::vec2(257, 114) : glm::vec2(0, 0);
 
     rend.mScreenSize = glm::vec2(rend.mW / 8, rend.mH / 8) * static_cast<f32>(mEditorCamZoom);
 
@@ -913,7 +948,7 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui)
             if (!screen->hasTexture())
                 continue;
 
-            rend.drawQuad(screen->getTexHandle(), x * camGapSize.x, y * camGapSize.y, 368.0f, 240.0f);
+            rend.drawQuad(screen->getTexHandle(), (x * camGapSize.x) + camOffset.x, (y * camGapSize.y) + camOffset.y, 368.0f, 240.0f);
         }
     }
 
@@ -1058,12 +1093,14 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
     rend.mSmoothCameraPosition = false;
 
     const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+    const glm::vec2 camOffset = (mIsAo) ? glm::vec2(257, 114) : glm::vec2(0, 0);
 
     rend.mScreenSize = glm::vec2(368, 240);
     const int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x);
     const int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y);
 
-    rend.mCameraPosition = glm::vec2(camX * camGapSize.x, camY * camGapSize.y) + glm::vec2(368 / 2, 240 / 2);
+    rend.mCameraPosition = glm::vec2((camX * camGapSize.x)+camOffset.x, (camY * camGapSize.y)+camOffset.y) + glm::vec2(368 / 2, 240 / 2);
+
     rend.updateCamera(); // TODO: this fixes headache inducing flicker on screen change, probably needs to go in Update()
 
     // Culling is disabled until proper camera position updating order is fixed
@@ -1073,7 +1110,7 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
         GridScreen* screen = mScreens[camX][camY].get();
         if (screen->hasTexture())
         {
-            rend.drawQuad(screen->getTexHandle(), camX * camGapSize.x, camY * camGapSize.y, 368.0f, 240.0f);
+            rend.drawQuad(screen->getTexHandle(), (camX * camGapSize.x) + camOffset.x, (camY * camGapSize.y) + camOffset.y, 368.0f, 240.0f);
         }
     }
     
