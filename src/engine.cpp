@@ -604,7 +604,7 @@ void Engine::AddModDefinitionsFrom(const char* path)
 {
     std::string strPath(path);
     AddDirectoryBasedModDefinitionsFrom(strPath);
-    AddZipsedModDefinitionsFrom(strPath);
+    AddZipedModDefinitionsFrom(strPath);
 }
 
 void Engine::AddDirectoryBasedModDefinitionsFrom(std::string path)
@@ -624,7 +624,7 @@ void Engine::AddDirectoryBasedModDefinitionsFrom(std::string path)
     }
 }
 
-void Engine::AddZipsedModDefinitionsFrom(std::string path)
+void Engine::AddZipedModDefinitionsFrom(std::string path)
 {
     const auto possibleModZips = mFileSystem->EnumerateFiles(path, "*.zip");
     for (const auto& possibleModZip : possibleModZips)

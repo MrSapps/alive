@@ -721,7 +721,9 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
     case eBackGroundFloor: return eBackGroundFloor;
     case eBackGroundWallLeft: return eBackGroundWallLeft;
     case eBackGroundWallRight: return eBackGroundWallRight;
+    case eBackGroundCeiling: return eBackGroundCeiling;
     case eFlyingSligLine: return eFlyingSligLine;
+    case eArt: return eArt;
     case eBulletWall: return eBulletWall;
     case eMineCarFloor: return eMineCarFloor;
     case eMineCarWall: return eMineCarWall;
@@ -762,9 +764,17 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
         { "Bg wall right",
         { 0, 255, 255, 255 }
     } },
+    { eBackGroundCeiling,
+        { "Bg ceiling",
+        { 255, 100, 0, 255 }
+    } },
     { eFlyingSligLine,
         { "Flying slig line",
         { 255, 255, 0, 255 }
+    } },
+    { eArt,
+        { "Art line",
+        { 255, 255, 255, 255 }
     } },
     { eBulletWall,
         { "Bullet wall",

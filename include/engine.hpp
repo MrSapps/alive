@@ -550,7 +550,7 @@ private:
     void AddGameDefinitionsFrom(const char* path);
     void AddModDefinitionsFrom(const char* path);
     void AddDirectoryBasedModDefinitionsFrom(std::string path);
-    void AddZipsedModDefinitionsFrom(std::string path);
+    void AddZipedModDefinitionsFrom(std::string path);
     void InitResources();
     void InitGL();
 protected:

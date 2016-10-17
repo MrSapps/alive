@@ -14,6 +14,7 @@
 #include "resourcemapper.hpp"
 #include "phash.hpp"
 #include "oddlib/audio/vab.hpp"
+#include "gridmap.hpp"
 
 void HackToReferencePrintEtc()
 {
@@ -50,6 +51,26 @@ bool IsPsx(eDataSetType type)
     case eAePsxCd2:
     case eAePsxDemo:
         return true;
+    }
+    abort();
+}
+
+bool IsAo(eDataSetType type)
+{
+    switch (type)
+    {
+    case eAoPc:
+    case eAoPcDemo:
+    case eAoPsx:
+    case eAoPsxDemo:
+        return true;
+
+    case eAePsxCd1:
+    case eAePsxCd2:
+    case eAePsxDemo:
+    case eAePc:
+    case eAePcDemo:
+        return false;
     }
     abort();
 }
@@ -646,7 +667,7 @@ int main(int /*argc*/, char** /*argv*/)
         { eDataSetType::eAePsxDemo, dataPath + "Euro Demo 38 (E) (Track 1) [SCED-01148].bin" },
         { eDataSetType::eAePsxCd1, dataPath + "Oddworld - Abe's Exoddus (E) (Disc 1) [SLES-01480].bin" },
         { eDataSetType::eAePsxCd2, dataPath + "Oddworld - Abe's Exoddus (E) (Disc 2) [SLES-11480].bin" },
-        
+
         { eDataSetType::eAoPc, dataPath + "Oddworld Abes Oddysee" },
         { eDataSetType::eAoPcDemo, dataPath + "abeodd" },
         { eDataSetType::eAoPsxDemo, dataPath + "Oddworld - Abe's Oddysee (Demo) (E) [SLED-00725].bin" },
@@ -664,30 +685,6 @@ int main(int /*argc*/, char** /*argv*/)
         Db() = default;
         Db(Db&&) = delete;
         Db& operator = (Db&&) = delete;
-
-        void DumpAllPaths(const std::vector<std::string>& lvls)
-        {
-            for (auto& lvlName : lvls)
-            {
-                const std::string lvlPath = "F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\" + lvlName;
-                auto stream = std::make_unique<Oddlib::FileStream>(lvlPath, Oddlib::IStream::ReadMode::ReadOnly);
-                Oddlib::LvlArchive archive(std::move(stream));
-                for (u32 i = 0; i < archive.FileCount(); i++)
-                {
-                    Oddlib::LvlArchive::File* file = archive.FileByIndex(i);
-                    for (u32 j = 0; j < file->ChunkCount(); j++)
-                    {
-                        Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
-                        if (chunk->Type() == Oddlib::MakeType("Bits"))
-                        {
-                            auto bitsStream = chunk->Stream();
-                            auto bits = Oddlib::MakeBits(*bitsStream);
-                            bits->Save();
-                        }
-                    }
-                }
-            }
-        }
 
         void DumpAePsxDemoCameras(const std::vector<std::string>& lvls)
         {
@@ -713,6 +710,99 @@ int main(int /*argc*/, char** /*argv*/)
             }
         }
 
+        void DumpPaths(IFileSystem& gameFs, eDataSetType dataSet, const std::string& resourcePath, const std::vector<std::string>& lvlFiles)
+        {
+            ResourceMapper mapper(gameFs, "{GameDir}/data/resources.json");
+
+            auto fs = IFileSystem::Factory(gameFs, resourcePath);
+            if (!fs)
+            {
+                throw std::runtime_error("FS init failed");
+            }
+
+            for (const auto& lvl : lvlFiles)
+            {
+                LOG_INFO("Opening LVL: " << lvl);
+                auto stream = fs->Open(lvl);
+                if (stream)
+                {
+                    HandleLvl(mapper, std::make_unique<Oddlib::LvlArchive>(std::move(stream)), lvl, dataSet);
+                }
+                else
+                {
+                    LOG_WARNING("LVL not found: " << lvl);
+                    abort();
+                }
+            }
+        }
+
+        void HandleLvl(ResourceMapper& mapper, std::unique_ptr<Oddlib::LvlArchive> archive, const std::string& /*lvl*/, eDataSetType eType)
+        {
+            for (u32 i = 0; i < archive->FileCount(); i++)
+            {
+                Oddlib::LvlArchive::File* file = archive->FileByIndex(i);
+                for (u32 j = 0; j < file->ChunkCount(); j++)
+                {
+                    Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
+                    if (chunk->Type() == Oddlib::MakeType("Path"))
+                    {
+                        // Get the data from resource.json about hard coded path info
+                        std::string baseName = file->FileName();
+                        string_util::replace_all(baseName, ".BND", "");
+                        const std::string genResName = baseName + "_" + std::to_string(chunk->Id());
+                        const ResourceMapper::PathMapping* pathData = mapper.FindPath(genResName.c_str());
+                        if (!pathData)
+                        {
+                            abort();
+                        }
+
+                        // Check the lvl/data set we have matches whats in the json
+                        bool found = false;
+                        for (const ResourceMapper::PathLocation& loc : pathData->mLocations)
+                        {
+                            if (loc.mDataSetName == ToString(eType) && loc.mDataSetFileName == file->FileName())
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found)
+                        {
+                            abort();
+                        }
+
+                        // TODO: Figure out if the lines using alt prev/next are even used in this path, seems like they probably are not.
+                        if (baseName == "BMPATH") continue; 
+
+                        // Load the path block
+                        auto pathStream = chunk->Stream();
+                        Oddlib::Path path(*pathStream, pathData->mCollisionOffset, pathData->mIndexTableOffset, pathData->mObjectOffset, pathData->mNumberOfScreensX, pathData->mNumberOfScreensY, IsAo(eType));
+                        CheckSecondLinkIsNotUsed(path.CollisionItems(), IsAo(eType));
+                    }
+                }
+            }
+        }
+
+        void CheckSecondLinkIsNotUsed(const std::vector<Oddlib::Path::CollisionItem>& items, bool isAo)
+        {
+
+            for (const Oddlib::Path::CollisionItem& item : items)
+            {
+                CollisionLine::ToType(item.mType, isAo);
+                if (   item.mType != CollisionLine::eBulletWall
+                    && item.mType != CollisionLine::eArt
+                    && item.mType != CollisionLine::eCeiling
+                    && item.mType != CollisionLine::eWallRight
+                    && item.mType != CollisionLine::eFlyingSligCeiling)
+                {
+                    if (item.mLinks[1].mNext != -1 || item.mLinks[1].mPrevious != -1)
+                    {
+                        abort();
+                    }
+                }
+            }
+        }
 
         void MergeDuplicatedLvlChunks(IFileSystem& fs, eDataSetType eType, const std::string& resourcePath, const std::vector<std::string>& lvls)
         {
@@ -1422,9 +1512,7 @@ int main(int /*argc*/, char** /*argv*/)
     };
 
     Db db;
-    db.DumpAllPaths(aePcLvls);
-
-    /*
+    
     GameFileSystem gameFs;
     if (!gameFs.Init())
     {
@@ -1440,10 +1528,12 @@ int main(int /*argc*/, char** /*argv*/)
             // Defined struct is wrong
             abort();
         }
-       // db.MergeDuplicatedLvlChunks(gameFs, data.first, data.second, *it->second);
-        db.CollectSounds(gameFs, data.first, data.second, *it->second);
-
+        if (it->first == eAePc)
+        {
+            db.DumpPaths(gameFs, data.first, data.second, *it->second);
+        }
     }
+    /*
 
     // db.MergeDuplicateAnimations();
     // db.AnimationsToJson();
