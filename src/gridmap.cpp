@@ -702,16 +702,8 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
     }
 }
 
-/*static*/ CollisionLine::eLineTypes CollisionLine::ToType(u16 type, bool isAo)
+/*static*/ CollisionLine::eLineTypes CollisionLine::ToType(u16 type)
 {
-    if (isAo)
-    {
-        // TODO: Implement me
-        LOG_ERROR("No conversion of AO collision items yet");
-        return eUnknown;
-    }
-
-    // TODO: Map of Ae and Ae collision lines to alive lines
     switch (type)
     {
     case eFloor: return eFloor;
@@ -730,7 +722,7 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
     case eMineCarCeiling: return eMineCarCeiling;
     case eFlyingSligCeiling: return eFlyingSligCeiling;
     }
-    LOG_ERROR("Unknown AE collision type: " << type);
+    LOG_ERROR("Unknown collision type: " << type);
     return eUnknown;
 }
 
@@ -1207,7 +1199,7 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
         mCollisionItems[i]->mP2.x = items[i].mP2.mX;
         mCollisionItems[i]->mP2.y = items[i].mP2.mY;
 
-        mCollisionItems[i]->mType = CollisionLine::ToType(items[i].mType, mIsAo);
+        mCollisionItems[i]->mType = CollisionLine::ToType(items[i].mType);
     }
 
     // Second pass to set up raw pointers to existing lines for connected segments of 

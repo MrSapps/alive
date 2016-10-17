@@ -781,18 +781,18 @@ int main(int /*argc*/, char** /*argv*/)
                         // Load the path block
                         auto pathStream = chunk->Stream();
                         Oddlib::Path path(*pathStream, pathData->mCollisionOffset, pathData->mIndexTableOffset, pathData->mObjectOffset, pathData->mNumberOfScreensX, pathData->mNumberOfScreensY, IsAo(eType));
-                        CheckSecondLinkIsNotUsed(path.CollisionItems(), IsAo(eType));
+                        CheckSecondLinkIsNotUsed(path.CollisionItems());
                     }
                 }
             }
         }
 
-        void CheckSecondLinkIsNotUsed(const std::vector<Oddlib::Path::CollisionItem>& items, bool isAo)
+        void CheckSecondLinkIsNotUsed(const std::vector<Oddlib::Path::CollisionItem>& items)
         {
 
             for (const Oddlib::Path::CollisionItem& item : items)
             {
-                CollisionLine::ToType(item.mType, isAo);
+                CollisionLine::ToType(item.mType);
                 if (   item.mType != CollisionLine::eBulletWall
                     && item.mType != CollisionLine::eArt
                     && item.mType != CollisionLine::eCeiling
@@ -1531,7 +1531,7 @@ int main(int /*argc*/, char** /*argv*/)
             // Defined struct is wrong
             abort();
         }
-        if (it->first == eAoPsx)
+        if (it->first == eAoPc)
         {
             db.DumpPaths(gameFs, data.first, data.second, *it->second);
         }

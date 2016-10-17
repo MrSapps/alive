@@ -880,7 +880,7 @@ void GdiLoop(HDC hdc)
 
                 DeleteObject(hLinePen);
 
-                const auto type = CollisionLine::ToType(collision.mType, false);
+                const auto type = CollisionLine::ToType(collision.mType);
                 const auto it = CollisionLine::mData.find(type);
 
                 qLineColor = RGB(it->second.mColour.r, it->second.mColour.g, it->second.mColour.b);

@@ -74,7 +74,7 @@ public:
 
     }
 
-    static eLineTypes ToType(u16 type, bool isAo);
+    static eLineTypes ToType(u16 type);
     static void Render(Renderer& rend, const CollisionLines& lines);
 
     template<u32 N>
