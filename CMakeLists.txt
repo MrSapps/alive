@@ -356,6 +356,7 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         tools/engine_hook/dllmain.cpp
         tools/engine_hook/ddraw7proxy.hpp
         tools/engine_hook/dsurface7proxy.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
         )
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_RELEASE  "/SUBSYSTEM:WINDOWS")
@@ -484,6 +485,14 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resources.json" DESTINATION "${D
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}/subtitles")
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/abe.lua" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/background_animation.lua" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/door.lua" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/electric_wall.lua" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/hoist.lua" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/mine.lua" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/object_factory.lua" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/slam_door.lua" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/switch.lua" DESTINATION "${DATA_DIR}/scripts")
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPc.json" DESTINATION "${DATA_DIR}/GameDefinitions")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPcDemo.json" DESTINATION "${DATA_DIR}/GameDefinitions")
