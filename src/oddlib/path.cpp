@@ -38,10 +38,17 @@ namespace Oddlib
         TRACE_ENTRYEXIT;
         ReadCameraMap(pathChunkStream);
 
+
         if (collisionDataOffset != 0)
         {
+            //pathChunkStream.BinaryDump("PATH.DUMP");
+
             assert(pathChunkStream.Pos()+16 == collisionDataOffset);
         }
+
+        // TODO: Psx data != pc data for Ao
+        const u32 indexTableOffset = (pathChunkStream.Size() - (mCameras.size() * sizeof(u32))) + 16;
+        assert(indexTableOffset == objectIndexTableOffset);
 
         if (collisionDataOffset != 0)
         {

@@ -801,7 +801,7 @@ int main(int /*argc*/, char** /*argv*/)
                 {
                     if (item.mLinks[1].mNext != -1 || item.mLinks[1].mPrevious != -1)
                     {
-                        abort();
+                       // abort();
                     }
                 }
             }
@@ -1531,7 +1531,7 @@ int main(int /*argc*/, char** /*argv*/)
             // Defined struct is wrong
             abort();
         }
-        if (it->first == eAePc)
+        if (it->first == eAoPsx)
         {
             db.DumpPaths(gameFs, data.first, data.second, *it->second);
         }
