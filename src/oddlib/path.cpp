@@ -37,6 +37,12 @@ namespace Oddlib
     {
         TRACE_ENTRYEXIT;
         ReadCameraMap(pathChunkStream);
+
+        if (collisionDataOffset != 0)
+        {
+            assert(pathChunkStream.Pos()+16 == collisionDataOffset);
+        }
+
         if (collisionDataOffset != 0)
         {
             const u32 numCollisionDataBytes = objectDataOffset - collisionDataOffset;

@@ -650,7 +650,7 @@ void GridMap::Update(const InputState& input)
         else if (input.mKeys[SDL_SCANCODE_S].IsPressed())
             mEditorCamZoom++;
 
-        mEditorCamZoom = glm::clamp(mEditorCamZoom, 1, 15);
+        mEditorCamZoom = glm::clamp(mEditorCamZoom, 1, 35);
     }
     else
     {
