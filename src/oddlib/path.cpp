@@ -47,8 +47,8 @@ namespace Oddlib
         }
 
         // TODO: Psx data != pc data for Ao
-        const u32 indexTableOffset = (pathChunkStream.Size() - (mCameras.size() * sizeof(u32))) + 16;
-        assert(indexTableOffset == objectIndexTableOffset);
+        //const u32 indexTableOffset = (pathChunkStream.Size() - (mCameras.size() * sizeof(u32))) + 16;
+        //assert(indexTableOffset == objectIndexTableOffset);
 
         if (collisionDataOffset != 0)
         {
