@@ -243,6 +243,8 @@ public:
         EInputActions mAction;
 
         InputStateAdaptor(Actions& parent, EInputActions action) : mParent(parent), mAction(action) { }
+        InputStateAdaptor(InputStateAdaptor&&) = delete;
+        InputStateAdaptor& operator = (InputStateAdaptor&&) = delete;
         void SetIsPressed(bool val) { mParent.SetIsPressed(mAction, val); }
         void SetIsReleased(bool val) { mParent.SetIsReleased(mAction, val); }
         void SetIsDown(bool val) { mParent.SetIsDown(mAction, val); }
