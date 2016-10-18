@@ -1,6 +1,5 @@
 #include "renderer.hpp"
 #include "oddlib/exceptions.hpp"
-#include "logger.hpp"
 #include "proxy_nanovg.h"
 #define NANOVG_GL3_IMPLEMENTATION
 #ifdef _MSC_VER
@@ -34,21 +33,6 @@ static GLuint       g_FontTexture = 0;
 
 // TODO: Error message
 #define ALIVE_FATAL_ERROR() abort()
-
-#ifdef NDEBUG
-#   define GL(x) x
-#else
-static void assertOnGlError(const char *msg)
-{
-    GLenum error = glGetError();
-    if (error != GL_NO_ERROR)
-    {
-        LOG_ERROR("GL ERROR: " << error << ", " << msg); 
-        assert(0 && "GL ERROR");
-    }
-}
-#   define GL(x) do { assertOnGlError("before " #x); x; assertOnGlError("after " #x); } while(0)
-#endif
 
 struct TriMeshVertex
 {
