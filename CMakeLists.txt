@@ -287,6 +287,10 @@ SET(alivelib_src
     src/zipfilesystem.cpp
     include/debug.hpp
     src/debug.cpp
+    include/collisionline.hpp
+    src/collisionline.cpp
+    include/physics.hpp
+    src/physics.cpp
 )
 
 add_library(AliveLib STATIC
