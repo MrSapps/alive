@@ -843,16 +843,6 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui)
 
 void GridMap::RenderGame(Renderer& rend, GuiContext& gui)
 {
-    /*
-    {
-        OpenGL::RenderToTexture rrt(640, 480);
-        Renderer r("F:\\Data\\alive\\alive\\data\\Roboto-Regular.ttf");
-        r.beginFrame(640, 480);
-        RenderDebug(r);
-        r.endFrame();
-    }
-    */
-
     if (Debugging().mShowDebugUi)
     {
         // Debug ui
