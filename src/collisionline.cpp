@@ -139,30 +139,27 @@ glm::vec2 normalize(const glm::vec2& vec)
 
         //rend.text(p1.x, p1.y, std::string(it->second.mName).c_str());
     }
-    /*
+    
     // Render would-be connection points
     for (const std::unique_ptr<CollisionLine>& item : lines)
     {
-    const glm::vec2 p1 = rend.WorldToScreen(item->mP1);
-    const glm::vec2 p2 = rend.WorldToScreen(item->mP2);
+        if (item->mLink.mNext)
+        {
+            const glm::vec2 p1 = rend.WorldToScreen(item->mP1);
+            //const glm::vec2 p2 = rend.WorldToScreen(item->mP2);
 
+            rend.strokeWidth(4.0f);
+            rend.strokeColor(ColourF32{ 0, 0, 0, 1 });
+            rend.beginPath();
+            rend.circle(p1.x, p1.y, 5.0f);
+            rend.stroke();
 
-    rend.strokeColor(ColourF32{ 0, 0, 0, 1 });
-    rend.strokeWidth(10.0f + 4.0f);
+            rend.strokeWidth(4.0f);
+            rend.strokeColor(ColourF32{ 1, 0, 1, 1 });
+            rend.beginPath();
+            rend.circle(p1.x, p1.y, 2.0f);
+            rend.stroke();
 
-    rend.beginPath();
-    rend.circle(p1.x, p1.y, 1.0f);
-    rend.stroke();
-
-    const auto it = mData.find(item->mType);
-    assert(it != std::end(mData));
-
-    rend.strokeColor(it->second.mColour.ToColourF32());
-
-    rend.strokeWidth(4.0f+4.0f);
-
-    rend.beginPath();
-    rend.circle(p1.x, p1.y, 1.0f);
-    rend.stroke();
-    }*/
+        }
+    }
 }
