@@ -1,5 +1,7 @@
 #include "collisionline.hpp"
 #include "proxy_nanovg.h"
+#include <glm/glm.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 /*static*/ const std::map<CollisionLine::eLineTypes, CollisionLine::LineData> CollisionLine::mData =
 {
@@ -45,6 +47,15 @@
     return eUnknown;
 }
 
+glm::vec2 normalize(const glm::vec2& vec)
+{
+    if (vec.x != 0.0f || vec.y != 0.0f)
+    {
+        return glm::normalize(vec);
+    }
+    return vec;
+}
+
 /*static*/ void CollisionLine::Render(Renderer& rend, const CollisionLines& lines)
 {
     for (const std::unique_ptr<CollisionLine>& item : lines)
@@ -52,33 +63,78 @@
         const glm::vec2 p1 = rend.WorldToScreen(item->mP1);
         const glm::vec2 p2 = rend.WorldToScreen(item->mP2);
 
-        rend.lineCap(NVG_ROUND);
-        rend.LineJoin(NVG_ROUND);
-        rend.strokeColor(ColourF32{ 0, 0, 0, 1 });
-        rend.strokeWidth(10.0f);
-        rend.beginPath();
-        rend.moveTo(p1.x, p1.y);
-        rend.lineTo(p2.x, p2.y);
+        {
+            rend.lineCap(NVG_ROUND);
+            rend.LineJoin(NVG_ROUND);
+            rend.strokeColor(ColourF32{ 0, 0, 0, 1 });
+            rend.strokeWidth(10.0f);
+            rend.beginPath();
+            rend.moveTo(p1.x, p1.y);
+            rend.lineTo(p2.x, p2.y);
 
-        rend.stroke();
+            if (!item->mLink.mNext)
+            {
+                // Arrow head   
+                glm::vec2 vx = p2 - p1;
+                vx = glm::normalize(vx);
+
+                glm::vec2 pos
+                {   p1.x + (vx.x * 10.0f),
+                    p1.y + (vx.y * 10.0f) 
+                };
+                pos += glm::rotate(pos - p1, 20.0f);
+
+                rend.moveTo(p1.x, p1.y);
+                rend.lineTo(pos.x, pos.y);
+
+                glm::vec2 pos2
+                {   p1.x + (vx.x * 10.0f),
+                    p1.y + (vx.y * 10.0f) 
+                };
+                pos2 += glm::rotate(pos2 - p1, -20.0f);
+                rend.moveTo(p1.x, p1.y);
+                rend.lineTo(pos2.x, pos2.y);
+            }
+
+            rend.stroke();
+        }
 
         const auto it = mData.find(item->mType);
         assert(it != std::end(mData));
 
         rend.strokeColor(it->second.mColour.ToColourF32());
-        rend.lineCap(NVG_BUTT);
-        rend.LineJoin(NVG_BEVEL);
+        rend.lineCap(NVG_ROUND);
+        rend.LineJoin(NVG_ROUND);
         rend.strokeWidth(4.0f);
         rend.beginPath();
         rend.moveTo(p1.x, p1.y);
         rend.lineTo(p2.x, p2.y);
 
-        // Arrow head
-        rend.moveTo(p1.x, p1.y);
-        rend.lineTo(p1.x + 20, p1.y + 10);
-        rend.moveTo(p1.x, p1.y);
-        rend.lineTo(p1.x + 20, p1.y - 10);
+        if (!item->mLink.mNext)
+        {
+            // Arrow head   
+            glm::vec2 vx = p2 - p1;
+            vx = glm::normalize(vx);
 
+            glm::vec2 pos
+            {
+                p1.x + (vx.x * 10.0f),
+                p1.y + (vx.y * 10.0f)
+            };
+            pos += glm::rotate(pos - p1, 20.0f);
+
+            rend.moveTo(p1.x, p1.y);
+            rend.lineTo(pos.x, pos.y);
+
+            glm::vec2 pos2
+            {
+                p1.x + (vx.x * 10.0f),
+                p1.y + (vx.y * 10.0f)
+            };
+            pos2 += glm::rotate(pos2 - p1, -20.0f);
+            rend.moveTo(p1.x, p1.y);
+            rend.lineTo(pos2.x, pos2.y);
+        }
         rend.stroke();
 
         //rend.text(p1.x, p1.y, std::string(it->second.mName).c_str());
