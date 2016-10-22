@@ -111,7 +111,7 @@ public:
 
             if (hasCollided)
             {
-                const float distance = glm::sqrt(powf((line1p1x - intersectionX), 2) + powf((line1p1y - intersectionY), 2));
+                const float distance = glm::distance(glm::vec2(line1p1x - intersectionX), glm::vec2(line1p1y - intersectionY));
                 if (!nearestLine || distance < nearestDistance)
                 {
                     nearestCollisionX = intersectionX;
