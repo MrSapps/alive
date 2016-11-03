@@ -55,13 +55,12 @@
     {
         // Check collision with the arrow head triangle, if there is one
 
+
         // Check collision with the connection point circle, if there is one
 
+        // TODO: Adjust P1 depending on if there is an arrow head or not
         // Check collision with the main line segment
-
-        // Rotate pos by the angle of item, then do a regular axes aligned bounding box check
-
-        if (Physics::point_in_thick_line(item->mLine.mP1, item->mLine.mP2, pos, 4.0f))
+        if (Physics::IsPointInThickLine(item->mLine.mP1, item->mLine.mP2, pos, 4.0f))
         {
             LOG_INFO("Item selected");
             return item.get();

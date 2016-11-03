@@ -3,7 +3,16 @@
 
 namespace Physics
 {
-    bool raycast_lines(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision * collision)
+    // Compute the cross product AB x AC
+    f32 CrossProduct(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC)
+    {
+        glm::vec2 AB = pointB - pointA;
+        glm::vec2 AC = pointC - pointA;
+        f32 cross = AB.x * AC.y - AB.y * AC.x;
+        return cross;
+    }
+
+    bool IsLineSegmentsIntersecting(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision * collision)
     {
         //bool lines_intersect = false;
         bool segments_intersect = false;
@@ -86,15 +95,6 @@ namespace Physics
         return glm::dot(AB, BC);
     }
 
-    // Compute the cross product AB x AC
-    f32 CrossProduct(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC)
-    {
-        glm::vec2 AB = pointB - pointA;
-        glm::vec2 AC = pointC - pointA;
-        f32 cross = AB.x * AC.y - AB.y * AC.x;
-        return cross;
-    }
-
     f32 LineToPointDistance(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC)
     {
         const f32 dot1 = DotProduct(pointA, pointB, pointC);
@@ -113,7 +113,15 @@ namespace Physics
         return glm::abs(dist);
     }
 
-    bool point_in_thick_line(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC, f32 width)
+    bool IsPointInTriangle(const glm::vec2& triPointA, const glm::vec2& triPointB, const glm::vec2& triPointC, const glm::vec2& point)
+    {
+        const bool b1 = CrossProduct(point, triPointA, triPointB) < 0.0f;
+        const bool b2 = CrossProduct(point, triPointB, triPointC) < 0.0f;
+        const bool b3 = CrossProduct(point, triPointC, triPointA) < 0.0f;
+        return (b1 == b2) && (b2 == b3);
+    }
+
+    bool IsPointInThickLine(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC, f32 width)
     {
         const f32 dist = LineToPointDistance(pointA, pointB, pointC);
         if (dist < width / 2.0f)
