@@ -4,6 +4,20 @@
 #include "gridmap.hpp"
 #include <array>
 
+TEST(CollisionLines, PointInLineSegmentRect)
+{
+    const f32 kWidth = 2.0f;
+
+    ASSERT_TRUE(Physics::point_in_thick_line(glm::vec2(0.0f, 0.0f), glm::vec2(20.0f, 0.0f), glm::vec2(10.0f, 0.0f), kWidth));
+    ASSERT_FALSE(Physics::point_in_thick_line(glm::vec2(0.0f, 0.0f), glm::vec2(20.0f, 0.0f), glm::vec2(10.0f, 10.0f), kWidth));
+
+    ASSERT_TRUE(Physics::point_in_thick_line(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 200.0f), glm::vec2(0.0f, 50.0f), kWidth));
+    ASSERT_FALSE(Physics::point_in_thick_line(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 200.0f), glm::vec2(10.0f, 50.0f), kWidth));
+
+    ASSERT_TRUE(Physics::point_in_thick_line(glm::vec2(0.0f, 0.0f), glm::vec2(10.0f, 10.0f), glm::vec2(5.0f, 5.0f), kWidth));
+    ASSERT_FALSE(Physics::point_in_thick_line(glm::vec2(0.0f, 0.0f), glm::vec2(10.0f, 10.0f), glm::vec2(0.0f, 5.0f), kWidth));
+}
+
 TEST(Collision, NoLines)
 {
     Physics::raycast_collision hitPoint;

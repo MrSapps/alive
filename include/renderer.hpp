@@ -185,7 +185,7 @@ public:
 
     glm::vec2 WorldToScreen(const glm::vec2& worldPos)
     {
-        return ((mCameraProjection * mCameraView) * glm::vec4(worldPos, 1, 1)) * glm::vec4(mW / 2, -mH / 2, 1, 1) + glm::vec4(mW / 2, mH / 2, 0, 0);
+        return ((mProjection * mView) * glm::vec4(worldPos, 1, 1)) * glm::vec4(mW / 2, -mH / 2, 1, 1) + glm::vec4(mW / 2, mH / 2, 0, 0);
     }
 
     glm::vec4 WorldToScreenRect(f32 x, f32 y, f32 width, f32 height)
@@ -249,9 +249,13 @@ private:
     GLuint mProgram;
     Vao mQuadVao;
 
+    // There is no "world" matrix as objects are already in world space
+
+    // 2d ortho projection
+    glm::mat4 mProjection;
+
+    // camera location into the world
     glm::mat4 mView;
-    glm::mat4 mCameraProjection;
-    glm::mat4 mCameraView;
 
     enum Mode
     {

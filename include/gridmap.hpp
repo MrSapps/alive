@@ -175,7 +175,6 @@ private:
     std::string mLvlName;
 
     // Editor stuff
-    glm::vec2 mEditorCamOffset;
     int mEditorCamZoom = 5;
     const int mEditorGridSizeX = 25;
     const int mEditorGridSizeY = 20;
@@ -197,4 +196,6 @@ private:
     eStates mState = eStates::eInGame;
 
     void ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items);
+
+    glm::vec2 mCameraPosition;
 };

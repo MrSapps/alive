@@ -77,4 +77,49 @@ namespace Physics
 
         return segments_intersect;
     }
+
+    // Compute the dot product AB . BC
+    f32 DotProduct(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC)
+    {
+        glm::vec2 AB = pointB - pointA;
+        glm::vec2 BC = pointC - pointB;
+        return glm::dot(AB, BC);
+    }
+
+    // Compute the cross product AB x AC
+    f32 CrossProduct(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC)
+    {
+        glm::vec2 AB = pointB - pointA;
+        glm::vec2 AC = pointC - pointA;
+        f32 cross = AB.x * AC.y - AB.y * AC.x;
+        return cross;
+    }
+
+    f32 LineToPointDistance(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC)
+    {
+        const f32 dot1 = DotProduct(pointA, pointB, pointC);
+        if (dot1 > 0.0f)
+        {
+            return glm::distance(pointB, pointC);
+        }
+
+        const f32 dot2 = DotProduct(pointB, pointA, pointC);
+        if (dot2 > 0.0f)
+        {
+            return glm::distance(pointA, pointC);
+        }
+
+        const f32 dist = CrossProduct(pointA, pointB, pointC) / glm::distance(pointA, pointB);
+        return glm::abs(dist);
+    }
+
+    bool point_in_thick_line(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC, f32 width)
+    {
+        const f32 dist = LineToPointDistance(pointA, pointB, pointC);
+        if (dist < width / 2.0f)
+        {
+            return true;
+        }
+        return false;
+    }
 }

@@ -32,6 +32,8 @@ elseif("${arch}" STREQUAL "x86_64")
     add_definitions(-D_M_X64)
 endif()
 
+add_definitions(-DGLM_FORCE_SWIZZLE=1)
+
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 

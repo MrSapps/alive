@@ -6,16 +6,63 @@
 #include <vector>
 #include <memory>
 #include <map>
+
+#include <glm/glm.hpp>
 #include <glm/vec2.hpp>
+#include <glm/gtx/vector_angle.hpp>
 
 using CollisionLines = std::vector<std::unique_ptr<class CollisionLine>>;
+
+inline glm::vec2 normalize_zero_safe(const glm::vec2& vec)
+{
+    if (vec.x != 0.0f || vec.y != 0.0f)
+    {
+        return glm::normalize(vec);
+    }
+    return vec;
+}
+
+struct Line
+{
+    Line() = default;
+    Line(glm::vec2 p1, glm::vec2 p2) : mP1(p1), mP2(p2) { }
+
+    glm::vec2 Delta() const { return mP2 - mP1; }
+
+    // Return a line from P1 to P2 with a length of 1.0
+    Line UnitVector() const
+    {
+        return Line(mP1, normalize_zero_safe(Delta()));
+    }
+
+    // Return a perpendicular line from P1
+    Line NormalVector() const
+    {
+        glm::vec2 delta = Delta();
+        return Line(mP1, mP1 + glm::vec2(delta.y, -delta.x));
+    }
+
+    glm::vec2 MidPoint() const
+    {
+        return{ (mP1.x + mP2.x) / 2.0f, (mP1.y + mP2.y) / 2.0f };
+    }
+
+    f32 Angle() const
+    {
+        f32 xd = mP2.x - mP1.x;
+        if (xd == 0.0f) { xd = 1.0f; }
+        const f32 tanx = (mP2.y - mP1.y) / (xd);
+        return glm::atan(tanx);
+    }
+
+    glm::vec2 mP1;
+    glm::vec2 mP2;
+};
 
 class CollisionLine
 {
 public:
-
-    glm::vec2 mP1;
-    glm::vec2 mP2;
+    Line mLine;
 
     enum eLineTypes : u32
     {
@@ -49,13 +96,14 @@ public:
 
     CollisionLine() = default;
     CollisionLine(glm::vec2 p1, glm::vec2 p2, eLineTypes type)
-        : mP1(p1), mP2(p2), mType(type)
+        : mLine(p1, p2), mType(type)
     {
 
     }
 
     static eLineTypes ToType(u16 type);
     static void Render(Renderer& rend, const CollisionLines& lines);
+    static CollisionLine* Pick(const CollisionLines& lines, const glm::vec2& pos);
 
     template<u32 N>
     static bool RayCast(const CollisionLines& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision)
@@ -84,10 +132,10 @@ public:
             const float line1p2x = line1p2.x;
             const float line1p2y = line1p2.y;
 
-            const float line2p1x = line->mP1.x;
-            const float line2p1y = line->mP1.y;
-            const float line2p2x = line->mP2.x;
-            const float line2p2y = line->mP2.y;
+            const float line2p1x = line->mLine.mP1.x;
+            const float line2p1y = line->mLine.mP1.y;
+            const float line2p2x = line->mLine.mP2.x;
+            const float line2p2y = line->mLine.mP2.y;
 
             // Get the segments' parameters.
             const float dx12 = line1p2x - line1p1x;

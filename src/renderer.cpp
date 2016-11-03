@@ -286,19 +286,18 @@ void Renderer::updateCamera()
     glm::mat4 target_projection = glm::ortho(-mScreenSize.x / 2.0f, mScreenSize.x / 2.0f, mScreenSize.y / 2.0f, -mScreenSize.y / 2.0f, -1.0f, 1.0f);
     glm::mat4 camMat = glm::translate(glm::mat4(1.0f), glm::vec3(-mCameraPosition, 0));
 
-    //target_projection = glm::perspective(80.0f, static_cast<f32>(mW / mH), 0.01f, 2000.0f);
-    //camMat = glm::lookAt(glm::vec3(mCameraPosition.x, mCameraPosition.y, -800), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-
     if (mSmoothCameraPosition)
     {
         glm::mat4 targetCameraPos = camMat;
-        MatrixLerp(glm::value_ptr(mCameraView), glm::value_ptr(targetCameraPos), 0.1f);
+        MatrixLerp(glm::value_ptr(mView), glm::value_ptr(targetCameraPos), 0.1f);
     }
     else
-        mCameraView = camMat;
+    {
+        mView = camMat;
+    }
 
     // Lerp camera matrix
-    MatrixLerp(glm::value_ptr(mCameraProjection), glm::value_ptr(target_projection), 0.1f);
+    MatrixLerp(glm::value_ptr(mProjection), glm::value_ptr(target_projection), 0.1f);
 }
 
 Renderer::Renderer(const char *fontPath)
@@ -535,8 +534,8 @@ void Renderer::endFrame()
             GL(glBindTexture(GL_TEXTURE_2D, texHandle));
             GL(glUseProgram(mProgram));
             GL(glUniform4fv(glGetUniformLocation(mProgram, "m_color"), 1, reinterpret_cast<float*>(&color)));
-            GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_projection"), 1, false, glm::value_ptr(mCameraProjection)));
-            GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_view"), 1, false, glm::value_ptr(mCameraView)));
+            GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_projection"), 1, false, glm::value_ptr(mProjection)));
+            GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_view"), 1, false, glm::value_ptr(mView)));
             GL(glUniformMatrix4fv(glGetUniformLocation(mProgram, "m_transform"), 1, false, glm::value_ptr(transform)));
             GL(glBlendFunc(blend.srcFactor, blend.dstFactor));
             GL(glBlendEquation(blend.equation));
