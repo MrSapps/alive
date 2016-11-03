@@ -4,6 +4,12 @@
 #include "gridmap.hpp"
 #include <array>
 
+TEST(CollisionLines, IsPointInTriangle)
+{
+    //ASSERT_TRUE(Physics::IsPointInTriangle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 100.0f), glm::vec2(50.0f, 100.0f), glm::vec2(0.0f, 20.0f)));
+    ASSERT_FALSE(Physics::IsPointInTriangle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 100.0f), glm::vec2(50.0f, 100.0f), glm::vec2(1000.0f, 1000.0f)));
+}
+
 TEST(CollisionLines, PointInLineSegmentRect)
 {
     const f32 kWidth = 2.0f;

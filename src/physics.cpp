@@ -3,15 +3,6 @@
 
 namespace Physics
 {
-    // Compute the cross product AB x AC
-    f32 CrossProduct(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC)
-    {
-        glm::vec2 AB = pointB - pointA;
-        glm::vec2 AC = pointC - pointA;
-        f32 cross = AB.x * AC.y - AB.y * AC.x;
-        return cross;
-    }
-
     bool IsLineSegmentsIntersecting(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision* const collision)
     {
         // Get the segments' parameters.
@@ -28,8 +19,8 @@ namespace Physics
             return false;
         }
 
-        float t1 = ((line1p1.x - line2p1.x) * dy34 + (line2p1.y - line1p1.y) * dx34) / denominator;
-        float t2 = ((line2p1.x - line1p1.x) * dy12 + (line1p1.y - line2p1.y) * dx12) / -denominator;
+        const float t1 = ((line1p1.x - line2p1.x) * dy34 + (line2p1.y - line1p1.y) * dx34) / denominator;
+        const float t2 = ((line2p1.x - line1p1.x) * dy12 + (line1p1.y - line2p1.y) * dx12) / -denominator;
 
         // The segments intersect if t1 and t2 are between 0 and 1.
         const bool intersecting = (t1 >= 0.0f) && (t1 <= 1.0f) && (t2 >= 0.0f) && (t2 <= 1.0f);
@@ -51,6 +42,14 @@ namespace Physics
         return glm::dot(AB, BC);
     }
 
+    // Compute the cross product AB x AC
+    f32 CrossProduct(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC)
+    {
+        const glm::vec2 AB = pointB - pointA;
+        const glm::vec2 AC = pointC - pointA;
+        return AB.x * AC.y - AB.y * AC.x;
+    }
+
     f32 LineToPointDistance(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC)
     {
         const f32 dot1 = DotProduct(pointA, pointB, pointC);
@@ -69,21 +68,23 @@ namespace Physics
         return glm::abs(dist);
     }
 
+    
+    f32 Sign(const glm::vec2& p1, const glm::vec2& p2, const glm::vec2& p3)
+    {
+         return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+    }
+
     bool IsPointInTriangle(const glm::vec2& triPointA, const glm::vec2& triPointB, const glm::vec2& triPointC, const glm::vec2& point)
     {
-        const bool b1 = CrossProduct(point, triPointA, triPointB) < 0.0f;
-        const bool b2 = CrossProduct(point, triPointB, triPointC) < 0.0f;
-        const bool b3 = CrossProduct(point, triPointC, triPointA) < 0.0f;
+        const bool b1 = Sign(point, triPointA, triPointB) < 0.0f;
+        const bool b2 = Sign(point, triPointB, triPointC) < 0.0f;
+        const bool b3 = Sign(point, triPointC, triPointA) < 0.0f;
         return (b1 == b2) && (b2 == b3);
     }
 
     bool IsPointInThickLine(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC, f32 width)
     {
         const f32 dist = LineToPointDistance(pointA, pointB, pointC);
-        if (dist < width / 2.0f)
-        {
-            return true;
-        }
-        return false;
+        return dist < width / 2.0f;
     }
 }
