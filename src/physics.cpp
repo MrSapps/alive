@@ -31,25 +31,6 @@ namespace Physics
         float t1 = ((line1p1.x - line2p1.x) * dy34 + (line2p1.y - line1p1.y) * dx34) / denominator;
         float t2 = ((line2p1.x - line1p1.x) * dy12 + (line1p1.y - line2p1.y) * dx12) / -denominator;
 
-        // Find the closest points on the segments.
-        if (t1 < 0)
-        {
-            t1 = 0;
-        }
-        else if (t1 > 1)
-        {
-            t1 = 1;
-        }
-
-        if (t2 < 0)
-        {
-            t2 = 0;
-        }
-        else if (t2 > 1)
-        {
-            t2 = 1;
-        }
-
         // The segments intersect if t1 and t2 are between 0 and 1.
         const bool intersecting = (t1 >= 0.0f) && (t1 <= 1.0f) && (t2 >= 0.0f) && (t2 <= 1.0f);
 
