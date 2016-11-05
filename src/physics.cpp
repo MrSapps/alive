@@ -87,4 +87,10 @@ namespace Physics
         const f32 dist = LineToPointDistance(pointA, pointB, pointC);
         return dist < width / 2.0f;
     }
+
+    bool IsPointInCircle(const glm::vec2& circleCentre, f32 radius, const glm::vec2& point)
+    {
+        const f32 distance = glm::pow(circleCentre.x - point.x, 2.0f) + glm::pow(circleCentre.y - point.y, 2.0f);
+        return distance <= glm::pow(radius, 2.0f);
+    }
 }

@@ -4,9 +4,16 @@
 #include "gridmap.hpp"
 #include <array>
 
+TEST(CollisionLines, IsPointInCircle)
+{
+    ASSERT_TRUE(Physics::IsPointInCircle(glm::vec2(0.0f, 0.0f), 5.0f, glm::vec2(0.0f, 0.0f)));
+    ASSERT_FALSE(Physics::IsPointInCircle(glm::vec2(0.0f, 0.0f), 5.0f, glm::vec2(0.0f, 7.0f)));
+    ASSERT_TRUE(Physics::IsPointInCircle(glm::vec2(0.0f, 0.0f), 5.0f, glm::vec2(-3.0f, 3.0f)));
+}
+
 TEST(CollisionLines, IsPointInTriangle)
 {
-    //ASSERT_TRUE(Physics::IsPointInTriangle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 100.0f), glm::vec2(50.0f, 100.0f), glm::vec2(0.0f, 20.0f)));
+    ASSERT_TRUE(Physics::IsPointInTriangle(glm::vec2(0.0f, 0.0f), glm::vec2(100.0f, 0.0f), glm::vec2(0.0f, 50.0f), glm::vec2(30.0f, 10.0f)));
     ASSERT_FALSE(Physics::IsPointInTriangle(glm::vec2(0.0f, 0.0f), glm::vec2(0.0f, 100.0f), glm::vec2(50.0f, 100.0f), glm::vec2(1000.0f, 1000.0f)));
 }
 
