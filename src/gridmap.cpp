@@ -545,21 +545,21 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
     }
 }
 
-void GridMap::Update(const InputState& input, CoordinateSpace& rend)
+void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 {
     if (input.mKeys[SDL_SCANCODE_E].IsPressed())
     {
         if (mState == eStates::eEditor)
         {
             mState = eStates::eInGame;
-            rend.mSmoothCameraPosition = false;
+            coords.mSmoothCameraPosition = false;
             mPlayer.mXPos = mCameraPosition.x;
             mPlayer.mYPos = mCameraPosition.y;
         }
         else if (mState == eStates::eInGame)
         {
             mState = eStates::eEditor;
-            rend.mSmoothCameraPosition = true;
+            coords.mSmoothCameraPosition = true;
             mCameraPosition.x = mPlayer.mXPos;
             mCameraPosition.y = mPlayer.mYPos;
         }
@@ -567,7 +567,7 @@ void GridMap::Update(const InputState& input, CoordinateSpace& rend)
 
     if (mState == eStates::eEditor)
     {
-        rend.mScreenSize = glm::vec2(rend.Width() / 8, rend.Height() / 8) * static_cast<f32>(mEditorCamZoom);
+        coords.mScreenSize = glm::vec2(coords.Width() / 8, coords.Height() / 8) * static_cast<f32>(mEditorCamZoom);
 
         f32 editorCamSpeed = 10.0f;
 
@@ -598,7 +598,7 @@ void GridMap::Update(const InputState& input, CoordinateSpace& rend)
     }
     else if (mState == eStates::eInGame)
     {
-        rend.mScreenSize = glm::vec2(368, 240);
+        coords.mScreenSize = glm::vec2(368, 240);
 
         mPlayer.Update(input);
 
@@ -616,11 +616,14 @@ void GridMap::Update(const InputState& input, CoordinateSpace& rend)
 
         mCameraPosition = glm::vec2((camX * camGapSize.x) + camOffset.x, (camY * camGapSize.y) + camOffset.y) + glm::vec2(368 / 2, 240 / 2);
     }
-    rend.mCameraPosition = mCameraPosition;
+    coords.mCameraPosition = mCameraPosition;
 
     if (input.mMouseButtons[0].IsPressed())
     {
-        CollisionLine* line = CollisionLine::Pick(mCollisionItems, { input.mMousePosition.mX, input.mMousePosition.mY });
+        glm::vec2 mousePosWorld = { input.mMousePosition.mX, input.mMousePosition.mY };
+        mousePosWorld = coords.ScreenToWorld(mousePosWorld);
+
+        CollisionLine* line = CollisionLine::Pick(mCollisionItems, mousePosWorld );
         if (line)
         {
             // TODO: Add to activate selection, move all editor state else where
