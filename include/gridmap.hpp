@@ -58,7 +58,7 @@ public:
     void GetName();
     void Init(const ObjRect& rect, Oddlib::IStream& objData);
     void Update(const InputState& input);
-    void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale);
+    void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale) const;
     void ReloadScript();
     static void RegisterLuaBindings(sol::state& state);
 
@@ -115,7 +115,7 @@ public:
     Level(Level&&) = delete;
     Level& operator = (Level&&) = delete;
     Level(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState, Renderer& render);
-    void Update(const InputState& input);
+    void Update(const InputState& input, CoordinateSpace& coords);
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
     void EnterState();
 private:
@@ -157,18 +157,18 @@ public:
     GridMap(const GridMap&) = delete;
     GridMap& operator = (const GridMap&) = delete;
     GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend);
-    void Update(const InputState& input);
-    void Render(Renderer& rend, GuiContext& gui);
+    void Update(const InputState& input, CoordinateSpace& rend);
+    void Render(Renderer& rend, GuiContext& gui) const;
 private:
     MapObject* GetMapObject(s32 x, s32 y, const char* type);
     void ActivateObjectsWithId(MapObject* from, s32 id, bool direction);
-    void RenderDebug(Renderer& rend);
-    void RenderEditor(Renderer& rend, GuiContext& gui);
-    void RenderGame(Renderer& rend, GuiContext& gui);
+    void RenderDebug(Renderer& rend) const;
+    void RenderEditor(Renderer& rend, GuiContext& gui) const;
+    void RenderGame(Renderer& rend, GuiContext& gui) const;
 
     virtual const CollisionLines& Lines() const override final { return mCollisionItems; }
 
-    void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2());
+    void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
 
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
     

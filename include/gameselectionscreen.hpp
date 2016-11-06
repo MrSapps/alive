@@ -27,7 +27,7 @@ public:
         mVisibleGameDefinitions = GameDefinition::GetVisibleGameDefinitions(mGameDefinitions);
     }
     virtual void Render(int w, int h, Renderer& renderer) override;
-    virtual void Update(const InputState& input) override;
+    virtual void Update(const InputState& input, CoordinateSpace& coords) override;
     virtual void EnterState() override;
     virtual void ExitState() override;
 private:

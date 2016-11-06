@@ -49,6 +49,7 @@
 
 /*static*/ CollisionLine* CollisionLine::Pick(const CollisionLines& lines, const glm::vec2& pos)
 {
+    LOG_INFO("Check for line at " << pos.x << "," << pos.y);
     LOG_ERROR("TODO");
 
     for (const std::unique_ptr<CollisionLine>& item : lines)
@@ -57,6 +58,7 @@
         //Physics::IsPointInTriangle(item->mLine.mP1, ? , ? , pos);
 
         // Check collision with the connection point circle, if there is one
+        //Physics::IsPointInCircle(centre, radius, pos);
 
         // TODO: Adjust P1 depending on if there is an arrow head or not
         // Check collision with the main line segment

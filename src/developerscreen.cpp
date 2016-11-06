@@ -12,7 +12,7 @@ void DeveloperScreen::Init()
     
 }
 
-void DeveloperScreen::Update(const InputState& input)
+void DeveloperScreen::Update(const InputState& input, CoordinateSpace& coords)
 {
     // Set the "selected" animation
     if (!mSelected && input.mMouseButtons[0].IsPressed())
@@ -60,7 +60,7 @@ void DeveloperScreen::Update(const InputState& input)
     //mFmv.Play("INGRDNT.DDV");
     mFmv.Update();
     mSound.Update();
-    mLevel.Update(input);
+    mLevel.Update(input, coords);
 
     for (auto& anim : mLoadedAnims)
     {

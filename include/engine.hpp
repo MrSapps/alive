@@ -19,7 +19,7 @@ public:
     IState& operator = (const IState&) = delete;
     virtual ~IState() = default;
 
-    virtual void Update(const InputState& input) = 0;
+    virtual void Update(const InputState& input, CoordinateSpace& coords) = 0;
     virtual void Render(int w, int h, class Renderer& renderer) = 0;
     virtual void ExitState() = 0;
     virtual void EnterState() = 0;
@@ -50,11 +50,11 @@ public:
         }
     }
 
-    void Update(const InputState& input)
+    void Update(const InputState& input, CoordinateSpace& coords)
     {
         if (mState)
         {
-            mState->Update(input);
+            mState->Update(input, coords);
         }
 
         // Destroy previous state one update later

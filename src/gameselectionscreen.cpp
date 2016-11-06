@@ -25,7 +25,7 @@ namespace
     }
 }
 
-void GameSelectionScreen::Update(const InputState& /*input*/)
+void GameSelectionScreen::Update(const InputState& /*input*/, CoordinateSpace& /*coords*/)
 {
 
 }

@@ -155,16 +155,97 @@ static inline void assertOnGlError(const char *msg)
 #   define GL(x) do { assertOnGlError("before " #x); x; assertOnGlError("after " #x); } while(0)
 #endif
 
-// GLES2 renderer
-class Renderer {
-public:
-    
-    Renderer(const char *fontPath);
-    ~Renderer();
+// TODO: Pass array ref
+inline void MatrixLerp(float* from, float* to, float speed)
+{
+    for (int m = 0; m < 16; m++)
+    {
+        from[m] = glm::lerp(from[m], to[m], speed);
+    }
+}
 
+class CoordinateSpace
+{
+public:
+    glm::vec2 WorldToScreen(const glm::vec2& worldPos)
+    {
+        return ((mProjection * mView) * glm::vec4(worldPos, 1, 1)) * glm::vec4(mW / 2, -mH / 2, 1, 1) + glm::vec4(mW / 2, mH / 2, 0, 0);
+    }
+
+    glm::vec2 ScreenToWorld(const glm::vec2& screenPos)
+    {
+        glm::mat4 inverse = glm::inverse(mProjection * mView);
+        return ((inverse)* glm::vec4(screenPos, 1, 1)) * glm::vec4(mW / 2, -mH / 2, 1, 1) + glm::vec4(mW / 2, mH / 2, 0, 0);
+    }
+
+    glm::vec4 WorldToScreenRect(f32 x, f32 y, f32 width, f32 height)
+    {
+        glm::vec2 rectPos = glm::vec2(x, y);
+        glm::vec2 rectSize = glm::vec2(width, height);
+        glm::vec2 screenRectPos = WorldToScreen(rectPos);
+        glm::vec2 screenRectSize = WorldToScreen(rectPos + rectSize) - screenRectPos;
+
+        return glm::vec4(screenRectPos, screenRectSize);
+    }
+
+    const glm::vec2& CameraPosition() const
+    {
+        return mCameraPosition;
+    }
+
+    const glm::vec2& ScreenSize() const
+    {
+        return mScreenSize;
+    }
+
+    s32 Height() const { return mH; }
+    s32 Width() const { return mW; }
+protected:
+    void UpdateCamera()
+    {
+        glm::mat4 target_projection = glm::ortho(-mScreenSize.x / 2.0f, mScreenSize.x / 2.0f, mScreenSize.y / 2.0f, -mScreenSize.y / 2.0f, -1.0f, 1.0f);
+        glm::mat4 camMat = glm::translate(glm::mat4(1.0f), glm::vec3(-mCameraPosition, 0));
+
+        // TODO: Auto turn this off when we've reached the target? Otherwise resizing a window acts "strange"
+        if (mSmoothCameraPosition)
+        {
+            glm::mat4 targetCameraPos = camMat;
+            MatrixLerp(glm::value_ptr(mView), glm::value_ptr(targetCameraPos), 0.1f);
+        }
+        else
+        {
+            mView = camMat;
+        }
+
+        // Lerp camera matrix
+        MatrixLerp(glm::value_ptr(mProjection), glm::value_ptr(target_projection), 0.1f);
+    }
+
+public: // TODO: Only allow writing to during Update() and make read only during Render()
     glm::vec2 mScreenSize = glm::vec2(368, 240);
     glm::vec2 mCameraPosition = glm::vec2(0, 0);
     bool mSmoothCameraPosition = false;
+
+protected:
+
+    int mW = 0;
+    int mH = 0;
+
+    // There is no "world" matrix as objects are already in world space
+
+    // 2d ortho projection
+    glm::mat4 mProjection;
+
+    // camera location into the world
+    glm::mat4 mView;
+};
+
+// GLES2 renderer
+class Renderer : public CoordinateSpace
+{
+public:
+    Renderer(const char *fontPath);
+    ~Renderer();
 
     void beginFrame(int w, int h);
     void endFrame();
@@ -182,21 +263,6 @@ public:
 
     // Use negative w or h to flip uv coordinates
     void drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, ColourF32 color = ColourF32::white(), BlendMode blendMode = BlendMode::normal());
-
-    glm::vec2 WorldToScreen(const glm::vec2& worldPos)
-    {
-        return ((mProjection * mView) * glm::vec4(worldPos, 1, 1)) * glm::vec4(mW / 2, -mH / 2, 1, 1) + glm::vec4(mW / 2, mH / 2, 0, 0);
-    }
-
-    glm::vec4 WorldToScreenRect(f32 x, f32 y, f32 width, f32 height)
-    {
-        glm::vec2 rectPos = glm::vec2(x, y);
-        glm::vec2 rectSize = glm::vec2(width, height);
-        glm::vec2 screenRectPos = WorldToScreen(rectPos);
-        glm::vec2 screenRectSize = WorldToScreen(rectPos + rectSize) - screenRectPos;
-
-        return glm::vec4(screenRectPos, screenRectSize);
-    }
 
     // NanoVG wrap
     void fillColor(ColourF32 c);
@@ -231,10 +297,7 @@ public:
     // TODO: Add fontsize param to make independent of "current state"
     void textBounds(int x, int y, const char *msg, f32 bounds[4]);
 
-    int mW = 0;
-    int mH = 0;
-    void updateCamera();
-
+    void Update() { UpdateCamera(); }
 private:
     void destroyTextures();
     void pushCmd(DrawCmd cmd);
@@ -249,13 +312,6 @@ private:
     GLuint mProgram;
     Vao mQuadVao;
 
-    // There is no "world" matrix as objects are already in world space
-
-    // 2d ortho projection
-    glm::mat4 mProjection;
-
-    // camera location into the world
-    glm::mat4 mView;
 
     enum Mode
     {

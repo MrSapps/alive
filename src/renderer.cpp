@@ -273,33 +273,6 @@ GLuint createShader(GLenum type, const char *shaderSrc)
     return shader;
 }
 
-void MatrixLerp(float * from, float * to, float speed)
-{
-    for (int m = 0; m < 16; m++)
-    {
-        from[m] = glm::lerp(from[m], to[m], speed);
-    }
-}
-
-void Renderer::updateCamera()
-{
-    glm::mat4 target_projection = glm::ortho(-mScreenSize.x / 2.0f, mScreenSize.x / 2.0f, mScreenSize.y / 2.0f, -mScreenSize.y / 2.0f, -1.0f, 1.0f);
-    glm::mat4 camMat = glm::translate(glm::mat4(1.0f), glm::vec3(-mCameraPosition, 0));
-
-    if (mSmoothCameraPosition)
-    {
-        glm::mat4 targetCameraPos = camMat;
-        MatrixLerp(glm::value_ptr(mView), glm::value_ptr(targetCameraPos), 0.1f);
-    }
-    else
-    {
-        mView = camMat;
-    }
-
-    // Lerp camera matrix
-    MatrixLerp(glm::value_ptr(mProjection), glm::value_ptr(target_projection), 0.1f);
-}
-
 Renderer::Renderer(const char *fontPath)
 {
     { // Vector rendering init
@@ -605,8 +578,6 @@ void Renderer::endFrame()
        // LOG_ERROR(gluErrorString(error));
         LOG_ERROR("glGetError:" << error);
     }
-
-    updateCamera();
 }
 
 void Renderer::beginLayer(int depth)

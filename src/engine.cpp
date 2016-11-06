@@ -533,7 +533,8 @@ void Engine::Update()
     mInputState.Update();
     Debugging().Update(mInputState);
 
-    mStateMachine.Update(mInputState);
+    mStateMachine.Update(mInputState, *mRenderer);
+    mRenderer->Update();
 }
 
 void Engine::Render()
