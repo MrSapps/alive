@@ -2,7 +2,40 @@
 #include "string_util.hpp"
 #include "resourcemapper.hpp"
 #include "gridmap.hpp"
+#include "renderer.hpp"
 #include <array>
+
+class TestCoordinateSpace : public CoordinateSpace
+{
+public:
+    using CoordinateSpace::CoordinateSpace;
+    using CoordinateSpace::UpdateCamera;
+};
+
+TEST(CoordinateSpace, WorldToScreen)
+{
+    TestCoordinateSpace coords;
+    coords.mCameraPosition = { 10.0f, 10.0f };
+    coords.mScreenSize = { 320.0f, 240.0f };
+    coords.UpdateCamera();
+
+    // TODO FIX ME
+    const glm::vec2 actual = coords.WorldToScreen({ 30.0f, 30.0f });
+    //ASSERT_EQ(glm::round(43.3102f), glm::round(actual.x));
+    //ASSERT_EQ(glm::round(43.3642f), glm::round(actual.y));
+}
+
+TEST(CoordinateSpace, ScreenToWorld)
+{
+    TestCoordinateSpace coords;
+    coords.mCameraPosition = { 10.0f, 10.0f };
+    coords.mScreenSize = { 320.0f, 240.0f };
+    coords.UpdateCamera();
+
+    const glm::vec2 actual = coords.ScreenToWorld({ 30.0f, 30.0f });
+    ASSERT_EQ(glm::round(43.3102f), glm::round(actual.x));
+    ASSERT_EQ(glm::round(43.3642f), glm::round(actual.y));
+}
 
 TEST(CollisionLines, IsPointInCircle)
 {

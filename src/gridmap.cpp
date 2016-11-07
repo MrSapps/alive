@@ -567,8 +567,7 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 
     if (mState == eStates::eEditor)
     {
-        coords.mScreenSize = glm::vec2(coords.Width() / 8, coords.Height() / 8) * static_cast<f32>(mEditorCamZoom);
-
+       
         f32 editorCamSpeed = 10.0f;
 
         if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
@@ -595,6 +594,8 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
             else if (input.mKeys[SDL_SCANCODE_D].IsDown())
                 mCameraPosition.x += editorCamSpeed;
         }
+        coords.mScreenSize = glm::vec2(coords.Width() / 8, coords.Height() / 8) * static_cast<f32>(mEditorCamZoom);
+
     }
     else if (mState == eStates::eInGame)
     {

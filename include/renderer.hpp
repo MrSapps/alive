@@ -167,19 +167,8 @@ inline void MatrixLerp(float* from, float* to, float speed)
 class CoordinateSpace
 {
 public:
-    glm::vec2 WorldToScreen(const glm::vec2& worldPos)
-    {
-        return ((mProjection * mView) * glm::vec4(worldPos, 1, 1)) * glm::vec4(mW / 2, -mH / 2, 1, 1) + glm::vec4(mW / 2, mH / 2, 0, 0);
-    }
-
-    // TODO: FIX ME
-    glm::vec2 ScreenToWorld(const glm::vec2& screenPos)
-    {
-        glm::mat4 inverse = glm::inverse(mView * mProjection);
-        glm::vec2 norm = glm::normalize(screenPos);
-
-        return glm::vec4(norm, 1, 1) * inverse;
-    }
+    glm::vec2 WorldToScreen(const glm::vec2& worldPos);
+    glm::vec2 ScreenToWorld(const glm::vec2& screenPos);
 
     glm::vec4 WorldToScreenRect(f32 x, f32 y, f32 width, f32 height)
     {
