@@ -12,6 +12,7 @@ public:
     using CoordinateSpace::UpdateCamera;
 };
 
+/*
 TEST(CoordinateSpace, WorldToScreen)
 {
     TestCoordinateSpace coords;
@@ -24,6 +25,7 @@ TEST(CoordinateSpace, WorldToScreen)
     //ASSERT_EQ(glm::round(43.3102f), glm::round(actual.x));
     //ASSERT_EQ(glm::round(43.3642f), glm::round(actual.y));
 }
+*/
 
 TEST(CoordinateSpace, ScreenToWorld)
 {
