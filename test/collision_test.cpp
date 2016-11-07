@@ -8,36 +8,94 @@
 class TestCoordinateSpace : public CoordinateSpace
 {
 public:
-    using CoordinateSpace::CoordinateSpace;
+    TestCoordinateSpace(int w, int h)
+    {
+        mW = w;
+        mH = h;
+    }
     using CoordinateSpace::UpdateCamera;
 };
 
 /*
-TEST(CoordinateSpace, WorldToScreen)
+TEST(CoordinateSpace, WorldToScreen_11)
 {
-    TestCoordinateSpace coords;
-    coords.mCameraPosition = { 10.0f, 10.0f };
-    coords.mScreenSize = { 320.0f, 240.0f };
+    TestCoordinateSpace coords(640, 480);
+    coords.mCameraPosition = { 0.0f, 0.0f };
+    coords.mScreenSize = { 640.0f, 480.0f };
     coords.UpdateCamera();
 
-    // TODO FIX ME
-    const glm::vec2 actual = coords.WorldToScreen({ 30.0f, 30.0f });
-    //ASSERT_EQ(glm::round(43.3102f), glm::round(actual.x));
-    //ASSERT_EQ(glm::round(43.3642f), glm::round(actual.y));
+    const glm::vec2 actual = coords.WorldToScreen({ 50.0f, 100.0f });
+    ASSERT_EQ(glm::round(50.0f), glm::round(actual.x));
+    ASSERT_EQ(glm::round(100.0f), glm::round(actual.y));
+}
+
+
+TEST(CoordinateSpace, ScreenToWorld_11)
+{
+    TestCoordinateSpace coords(640, 480);
+    coords.mCameraPosition = { 0.0f, 0.0f };
+    coords.mScreenSize = { 640.0f, 480.0f };
+    coords.UpdateCamera();
+
+    const glm::vec2 actual = coords.ScreenToWorld({ 50.0f, 100.0f });
+    ASSERT_EQ(glm::round(50.0f - 640/2), glm::round(actual.x));
+    ASSERT_EQ(glm::round(100.0f - 480/2), glm::round(actual.y));
 }
 */
 
-TEST(CoordinateSpace, ScreenToWorld)
+/*
+TEST(CoordinateSpace, WorldToScreen_12)
 {
-    TestCoordinateSpace coords;
-    coords.mCameraPosition = { 10.0f, 10.0f };
-    coords.mScreenSize = { 320.0f, 240.0f };
+    TestCoordinateSpace coords(640*2, 480*2);
+    coords.mCameraPosition = { 0.0f, 0.0f };
+    coords.mScreenSize = { 640.0f, 480.0f };
     coords.UpdateCamera();
 
-    const glm::vec2 actual = coords.ScreenToWorld({ 30.0f, 30.0f });
-    ASSERT_EQ(glm::round(43.3102f), glm::round(actual.x));
-    ASSERT_EQ(glm::round(43.3642f), glm::round(actual.y));
+    const glm::vec2 actual = coords.WorldToScreen({ 50.0f, 100.0f });
+    ASSERT_EQ(glm::round(50.0f*2), glm::round(actual.x));
+    ASSERT_EQ(glm::round(100.0f*2), glm::round(actual.y));
 }
+
+TEST(CoordinateSpace, ScreenToWorld_12)
+{
+    TestCoordinateSpace coords(640 * 2, 480 * 2);
+    coords.mCameraPosition = { 0.0f, 0.0f };
+    coords.mScreenSize = { 640.0f, 480.0f };
+    coords.UpdateCamera();
+
+    const glm::vec2 actual = coords.ScreenToWorld({ 50.0f * 2, 100.0f * 2 });
+    ASSERT_EQ(glm::round(50.0f), glm::round(actual.x));
+    ASSERT_EQ(glm::round(100.0f), glm::round(actual.y));
+}
+
+TEST(CoordinateSpace, WorldToScreen_11_offset)
+{
+    TestCoordinateSpace coords(640, 480);
+    coords.mCameraPosition = { 10.0f, 10.0f };
+    coords.mScreenSize = { 640.0f, 480.0f };
+    coords.UpdateCamera();
+
+    const glm::vec2 actual = coords.WorldToScreen({ 50.0f, 100.0f });
+    ASSERT_EQ(glm::round(50.0f + 10.0f), glm::round(actual.x));
+    ASSERT_EQ(glm::round(100.0f + 10.0f), glm::round(actual.y));
+}
+
+// TODO: Screen
+
+TEST(CoordinateSpace, WorldToScreen_12_offset)
+{
+    TestCoordinateSpace coords(640*2, 480 * 2);
+    coords.mCameraPosition = { 10.0f, 10.0f };
+    coords.mScreenSize = { 640.0f, 480.0f };
+    coords.UpdateCamera();
+
+    const glm::vec2 actual = coords.WorldToScreen({ 50.0f, 100.0f });
+    ASSERT_EQ(glm::round((50.0f + 10.0f)*2), glm::round(actual.x));
+    ASSERT_EQ(glm::round((100.0f + 10.0f)*2), glm::round(actual.y));
+}
+
+// TODO: Screen
+*/
 
 TEST(CollisionLines, IsPointInCircle)
 {

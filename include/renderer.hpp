@@ -195,7 +195,30 @@ public:
 protected:
     void UpdateCamera()
     {
-        glm::mat4 target_projection = glm::ortho(-mScreenSize.x / 2.0f, mScreenSize.x / 2.0f, mScreenSize.y / 2.0f, -mScreenSize.y / 2.0f, -1.0f, 1.0f);
+        
+        glm::mat4 target_projection = glm::ortho(
+            -mScreenSize.x / 2.0f, 
+            mScreenSize.x / 2.0f, 
+            mScreenSize.y / 2.0f, 
+            -mScreenSize.y / 2.0f, 
+            -1.0f,
+            1.0f);
+        
+        /*
+        T left, T right,
+        T bottom, T top,
+        T zNear, T zFar
+        */
+        /*
+        glm::mat4 target_projection = glm::ortho(
+            0.0f,
+            mScreenSize.x,
+            mScreenSize.y,
+            0.0f,
+            -1.0f,
+            1.0f);
+        */
+
         glm::mat4 camMat = glm::translate(glm::mat4(1.0f), glm::vec3(-mCameraPosition, 0));
 
         // TODO: Auto turn this off when we've reached the target? Otherwise resizing a window acts "strange"
@@ -203,14 +226,15 @@ protected:
         {
             glm::mat4 targetCameraPos = camMat;
             MatrixLerp(glm::value_ptr(mView), glm::value_ptr(targetCameraPos), 0.1f);
+
+            // Lerp camera matrix
+            MatrixLerp(glm::value_ptr(mProjection), glm::value_ptr(target_projection), 0.1f);
         }
         else
         {
             mView = camMat;
+            mProjection = target_projection;
         }
-
-        // Lerp camera matrix
-        MatrixLerp(glm::value_ptr(mProjection), glm::value_ptr(target_projection), 0.1f);
     }
 
 public: // TODO: Only allow writing to during Update() and make read only during Render()

@@ -279,10 +279,9 @@ void Engine::InitSubSystems()
     mLuaState.set_function("log_warning", LuaLogWarning);
     mLuaState.set_function("log_error", LuaLogError);
 
-    // TODO: Include game base path
+    // Get lua to look for scripts in the correction location
     mLuaState.script("package.path = '" + mFileSystem->FsPath() + "data/scripts/?.lua'");
 
-    
     Oddlib::IStream::RegisterLuaBindings(mLuaState);
     Actions::RegisterLuaBindings(mLuaState);
     MapObject::RegisterLuaBindings(mLuaState);
