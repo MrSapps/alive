@@ -375,7 +375,7 @@ function(make_header src dst targetname varname)
     message(STATUS "Generating header '${dst}' from " '${src}')
     ADD_CUSTOM_COMMAND(OUTPUT "${dst}"
                    COMMAND bin2h "${src}" "${dst}" ${varname}
-                   DEPENDS "${src}" )
+                   DEPENDS "${src}" bin2h )
 
     add_custom_target(
       Generate_${targetname} ALL
