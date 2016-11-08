@@ -278,10 +278,9 @@ glm::vec2 CoordinateSpace::WorldToScreen(const glm::vec2& worldPos)
     return ((mProjection * mView) * glm::vec4(worldPos, 1, 1)) * glm::vec4(mW / 2, -mH / 2, 1, 1) + glm::vec4(mW / 2, mH / 2, 0, 0);
 }
 
-// TODO: FIX ME
 glm::vec2 CoordinateSpace::ScreenToWorld(const glm::vec2& screenPos)
 {
-    return (glm::inverse(mProjection * mView) * glm::vec4(screenPos, 1, 1)) * glm::vec4(mW / 2, -mH / 2, 1, 1) + glm::vec4(mW / 2, mH / 2, 0, 0);
+    return glm::inverse(mProjection * mView) * ((glm::vec4(screenPos.x ,screenPos.y, 1, 1) - glm::vec4(mW / 2, mH / 2, 0, 0)) / glm::vec4(mW / 2, -mH / 2, 1, 1));
 }
 
 Renderer::Renderer(const char *fontPath)

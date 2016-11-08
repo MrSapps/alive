@@ -16,7 +16,7 @@ public:
     using CoordinateSpace::UpdateCamera;
 };
 
-/*
+
 TEST(CoordinateSpace, WorldToScreen_11)
 {
     TestCoordinateSpace coords(640, 480);
@@ -25,8 +25,8 @@ TEST(CoordinateSpace, WorldToScreen_11)
     coords.UpdateCamera();
 
     const glm::vec2 actual = coords.WorldToScreen({ 50.0f, 100.0f });
-    ASSERT_EQ(glm::round(50.0f), glm::round(actual.x));
-    ASSERT_EQ(glm::round(100.0f), glm::round(actual.y));
+    ASSERT_EQ(glm::round((640.0f/2)+50.0f), glm::round(actual.x));
+    ASSERT_EQ(glm::round((480.0f/2)+100.0f), glm::round(actual.y));
 }
 
 
@@ -41,7 +41,6 @@ TEST(CoordinateSpace, ScreenToWorld_11)
     ASSERT_EQ(glm::round(50.0f - 640/2), glm::round(actual.x));
     ASSERT_EQ(glm::round(100.0f - 480/2), glm::round(actual.y));
 }
-*/
 
 /*
 TEST(CoordinateSpace, WorldToScreen_12)
