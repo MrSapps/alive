@@ -619,17 +619,25 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
     }
     coords.mCameraPosition = mCameraPosition;
 
+    const glm::vec2 mousePosWorld = coords.ScreenToWorld({ input.mMousePosition.mX, input.mMousePosition.mY });
+    CollisionLine* line = CollisionLine::Pick(mCollisionItems, mousePosWorld, mState == eStates::eInGame ? 1.0f : (static_cast<float>(mEditorCamZoom) / 4.0f));
+
+    if (line)
+    {
+        SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND)); // SDL_SYSTEM_CURSOR_CROSSHAIR
+    }
+    else
+    {
+        SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
+    }
+
     if (input.mMouseButtons[0].IsPressed())
     {
-        glm::vec2 mousePosWorld = { input.mMousePosition.mX, input.mMousePosition.mY };
-        mousePosWorld = coords.ScreenToWorld(mousePosWorld);
-
         for (auto& l : mCollisionItems)
         {
             l->SetSelected(false);
         }
 
-        CollisionLine* line = CollisionLine::Pick(mCollisionItems, mousePosWorld, mState == eStates::eInGame ? 1.0f : (static_cast<float>(mEditorCamZoom) / 4.0f));
         if (line)
         {
             // TODO: Add to activate selection, move all editor state else where

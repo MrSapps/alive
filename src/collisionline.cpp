@@ -54,9 +54,6 @@ void CollisionLine::SetSelected(bool selected)
 
 /*static*/ CollisionLine* CollisionLine::Pick(const CollisionLines& lines, const glm::vec2& pos, float lineScale)
 {
-    LOG_INFO("Check for line at " << pos.x << "," << pos.y << " scale " << lineScale);
-    LOG_ERROR("TODO");
-
     for (const std::unique_ptr<CollisionLine>& item : lines)
     {
         // Check collision with the arrow head triangle, if there is one
@@ -69,12 +66,9 @@ void CollisionLine::SetSelected(bool selected)
         // Check collision with the main line segment
         if (Physics::IsPointInThickLine(item->mLine.mP1, item->mLine.mP2, pos, 5.0f * lineScale))
         {
-            LOG_INFO("Item selected");
             return item.get();
         }
     }
-
-    LOG_INFO("Nothing selected");
     return nullptr;
 }
 
