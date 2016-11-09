@@ -23,6 +23,11 @@
     { eUnknown,             { "Unknown",                { 255, 0, 255, 255 } } }
 };
 
+void CollisionLine::SetSelected(bool selected)
+{
+    mSelected = selected;
+}
+
 /*static*/ CollisionLine::eLineTypes CollisionLine::ToType(u16 type)
 {
     switch (type)
@@ -47,9 +52,9 @@
     return eUnknown;
 }
 
-/*static*/ CollisionLine* CollisionLine::Pick(const CollisionLines& lines, const glm::vec2& pos)
+/*static*/ CollisionLine* CollisionLine::Pick(const CollisionLines& lines, const glm::vec2& pos, float lineScale)
 {
-    LOG_INFO("Check for line at " << pos.x << "," << pos.y);
+    LOG_INFO("Check for line at " << pos.x << "," << pos.y << " scale " << lineScale);
     LOG_ERROR("TODO");
 
     for (const std::unique_ptr<CollisionLine>& item : lines)
@@ -62,7 +67,7 @@
 
         // TODO: Adjust P1 depending on if there is an arrow head or not
         // Check collision with the main line segment
-        if (Physics::IsPointInThickLine(item->mLine.mP1, item->mLine.mP2, pos, 4.0f))
+        if (Physics::IsPointInThickLine(item->mLine.mP1, item->mLine.mP2, pos, 5.0f * lineScale))
         {
             LOG_INFO("Item selected");
             return item.get();
@@ -81,7 +86,7 @@
 
         rend.lineCap(NVG_ROUND);
         rend.LineJoin(NVG_ROUND);
-        rend.strokeColor(ColourF32{ 0, 0, 0, 1 });
+        rend.strokeColor(item->mSelected ? ColourF32{ 1, 0, 0, 1 } : ColourF32{ 0, 0, 0, 1 });
         rend.strokeWidth(10.0f);
         rend.beginPath();
 

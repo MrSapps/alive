@@ -85,7 +85,7 @@ namespace Physics
     bool IsPointInThickLine(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC, f32 width)
     {
         const f32 dist = LineToPointDistance(pointA, pointB, pointC);
-        return dist < width / 2.0f;
+        return dist <= width / 2.0f;
     }
 
     bool IsPointInCircle(const glm::vec2& circleCentre, f32 radius, const glm::vec2& point)

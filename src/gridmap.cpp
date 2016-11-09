@@ -624,11 +624,17 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
         glm::vec2 mousePosWorld = { input.mMousePosition.mX, input.mMousePosition.mY };
         mousePosWorld = coords.ScreenToWorld(mousePosWorld);
 
-        CollisionLine* line = CollisionLine::Pick(mCollisionItems, mousePosWorld );
+        for (auto& l : mCollisionItems)
+        {
+            l->SetSelected(false);
+        }
+
+        CollisionLine* line = CollisionLine::Pick(mCollisionItems, mousePosWorld, mState == eStates::eInGame ? 1.0f : (static_cast<float>(mEditorCamZoom) / 4.0f));
         if (line)
         {
             // TODO: Add to activate selection, move all editor state else where
             LOG_ERROR("Line selected");
+            line->SetSelected(true);
         }
     }
 
