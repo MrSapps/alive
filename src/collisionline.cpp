@@ -2,6 +2,7 @@
 #include "proxy_nanovg.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
+#include "reverse_for.hpp"
 
 /*static*/ const std::map<CollisionLine::eLineTypes, CollisionLine::LineData> CollisionLine::mData =
 {
@@ -52,9 +53,33 @@ void CollisionLine::SetSelected(bool selected)
     return eUnknown;
 }
 
+
+namespace std {
+    template<class T>
+    T begin(std::pair<T, T> p)
+    {
+        return p.first;
+    }
+    template<class T>
+    T end(std::pair<T, T> p)
+    {
+        return p.second;
+    }
+}
+
+template<class Range>
+std::pair<
+    std::reverse_iterator<decltype(begin(std::declval<Range>()))>, 
+    std::reverse_iterator<decltype(begin(std::declval<Range>()))>
+    > 
+        make_reverse_range(Range&& r)
+{
+    return std::make_pair(make_reverse_iterator(begin(r)), make_reverse_iterator(end(r)));
+}
+
 /*static*/ CollisionLine* CollisionLine::Pick(const CollisionLines& lines, const glm::vec2& pos, float lineScale)
 {
-    for (const std::unique_ptr<CollisionLine>& item : lines)
+    for (const std::unique_ptr<CollisionLine>& item : reverse_for(lines))
     {
         // Check collision with the arrow head triangle, if there is one
         //Physics::IsPointInTriangle(item->mLine.mP1, ? , ? , pos);
