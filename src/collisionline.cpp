@@ -24,9 +24,10 @@
     { eUnknown,             { "Unknown",                { 255, 0, 255, 255 } } }
 };
 
-void CollisionLine::SetSelected(bool selected)
+bool CollisionLine::SetSelected(bool selected)
 {
     mSelected = selected;
+    return selected;
 }
 
 /*static*/ CollisionLine::eLineTypes CollisionLine::ToType(u16 type)
@@ -53,34 +54,13 @@ void CollisionLine::SetSelected(bool selected)
     return eUnknown;
 }
 
-
-namespace std {
-    template<class T>
-    T begin(std::pair<T, T> p)
-    {
-        return p.first;
-    }
-    template<class T>
-    T end(std::pair<T, T> p)
-    {
-        return p.second;
-    }
-}
-
-template<class Range>
-std::pair<
-    std::reverse_iterator<decltype(begin(std::declval<Range>()))>, 
-    std::reverse_iterator<decltype(begin(std::declval<Range>()))>
-    > 
-        make_reverse_range(Range&& r)
+/*static*/ s32 CollisionLine::Pick(const CollisionLines& lines, const glm::vec2& pos, float lineScale)
 {
-    return std::make_pair(make_reverse_iterator(begin(r)), make_reverse_iterator(end(r)));
-}
-
-/*static*/ CollisionLine* CollisionLine::Pick(const CollisionLines& lines, const glm::vec2& pos, float lineScale)
-{
+    s32 idx = static_cast<s32>(lines.size());
     for (const std::unique_ptr<CollisionLine>& item : reverse_for(lines))
     {
+        idx--;
+
         // Check collision with the arrow head triangle, if there is one
         //Physics::IsPointInTriangle(item->mLine.mP1, ? , ? , pos);
 
@@ -91,10 +71,10 @@ std::pair<
         // Check collision with the main line segment
         if (Physics::IsPointInThickLine(item->mLine.mP1, item->mLine.mP2, pos, 5.0f * lineScale))
         {
-            return item.get();
+            return idx;
         }
     }
-    return nullptr;
+    return -1;
 }
 
 /*static*/ void CollisionLine::Render(Renderer& rend, const CollisionLines& lines)

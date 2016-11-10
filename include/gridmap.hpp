@@ -151,6 +151,72 @@ private:
     Renderer& mRend;
 };
 
+class ICommand
+{
+public:
+    virtual void Redo() = 0;
+    virtual void Undo() = 0;
+    virtual std::string Message() = 0;
+    virtual ~ICommand() = default;
+};
+
+// TODO
+class CommandSelectLine
+{
+public:
+};
+
+// TODO
+class CommandToggleLineSelectionStatus
+{
+public:
+
+};
+
+class Selection
+{
+public:
+    std::set<s32> Clear(CollisionLines& items);
+    void Toggle(CollisionLines& items, s32 idx);
+    void Select(CollisionLines& items, s32 idx);
+    bool HasSelection() const { return mSelectedLines.empty() == false; }
+private:
+    std::set<s32> mSelectedLines;
+};
+
+class CommandClearSelection : public ICommand
+{
+public:
+    CommandClearSelection(CollisionLines& lines, Selection& selection)
+        : mLines(lines), mSelection(selection)
+    {
+
+    }
+
+    virtual void Redo() final
+    {
+        mOldSelection = mSelection.Clear(mLines);
+    }
+
+    virtual void Undo() final
+    {
+        for (s32 idx : mOldSelection)
+        {
+            mSelection.Select(mLines, idx);
+        }
+    }
+
+    virtual std::string Message() final
+    {
+        return "Clear selection";
+    }
+
+private:
+    CollisionLines& mLines;
+    Selection& mSelection;
+    std::set<s32> mOldSelection;
+};
+
 class GridMap : public IMap
 {
 public:
@@ -170,6 +236,9 @@ private:
 
     void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
 
+    template<class T, class... Args>
+    void AddCommand(Args&&... args);
+
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
     
     std::string mLvlName;
@@ -178,6 +247,10 @@ private:
     int mEditorCamZoom = 5;
     const int mEditorGridSizeX = 25;
     const int mEditorGridSizeY = 20;
+
+    Selection mSelection;
+    // TODO: Implement Undo/Redo for other editing commands + stack limit
+    std::deque<std::unique_ptr<ICommand>> mUndoStack;
 
     // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
     // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
@@ -198,4 +271,5 @@ private:
     void ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items);
 
     glm::vec2 mCameraPosition;
+
 };

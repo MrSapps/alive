@@ -195,7 +195,11 @@ public:
 protected:
     void UpdateCamera()
     {
-        
+        /*
+        T left, T right,
+        T bottom, T top,
+        T zNear, T zFar
+        */
         glm::mat4 target_projection = glm::ortho(
             -mScreenSize.x / 2.0f, 
             mScreenSize.x / 2.0f, 
@@ -204,21 +208,6 @@ protected:
             -1.0f,
             1.0f);
         
-        /*
-        T left, T right,
-        T bottom, T top,
-        T zNear, T zFar
-        */
-        /*
-        glm::mat4 target_projection = glm::ortho(
-            0.0f,
-            mScreenSize.x,
-            mScreenSize.y,
-            0.0f,
-            -1.0f,
-            1.0f);
-        */
-
         glm::mat4 camMat = glm::translate(glm::mat4(1.0f), glm::vec3(-mCameraPosition, 0));
 
         // TODO: Auto turn this off when we've reached the target? Otherwise resizing a window acts "strange"

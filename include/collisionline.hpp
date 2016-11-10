@@ -103,8 +103,9 @@ public:
 
     static eLineTypes ToType(u16 type);
     static void Render(Renderer& rend, const CollisionLines& lines);
-    static CollisionLine* Pick(const CollisionLines& lines, const glm::vec2& pos, float lineScale = 1.0f);
-    void SetSelected(bool selected);
+    static s32 Pick(const CollisionLines& lines, const glm::vec2& pos, float lineScale = 1.0f);
+    bool IsSelected() const { return mSelected; }
+    bool SetSelected(bool selected);
 
     template<u32 N>
     static bool RayCast(const CollisionLines& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision)

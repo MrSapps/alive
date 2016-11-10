@@ -620,9 +620,8 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
     coords.mCameraPosition = mCameraPosition;
 
     const glm::vec2 mousePosWorld = coords.ScreenToWorld({ input.mMousePosition.mX, input.mMousePosition.mY });
-    CollisionLine* line = CollisionLine::Pick(mCollisionItems, mousePosWorld, mState == eStates::eInGame ? 1.0f : (static_cast<float>(mEditorCamZoom) / 4.0f));
-
-    if (line)
+    const s32 lineIdx = CollisionLine::Pick(mCollisionItems, mousePosWorld, mState == eStates::eInGame ? 1.0f : (static_cast<float>(mEditorCamZoom) / 4.0f));
+    if (lineIdx >= 0)
     {
         SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND)); // SDL_SYSTEM_CURSOR_CROSSHAIR
     }
@@ -633,16 +632,27 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 
     if (input.mMouseButtons[0].IsPressed())
     {
-        for (auto& l : mCollisionItems)
+        const bool bAddToSelection = input.mKeys[SDL_SCANCODE_LCTRL].IsDown();
+        if (!bAddToSelection)
         {
-            l->SetSelected(false);
+            if (mSelection.HasSelection())
+            {
+                AddCommand<CommandClearSelection>(mCollisionItems, mSelection);
+            }
+
+            //mSelection.Clear(mCollisionItems);
         }
 
-        if (line)
+        if (lineIdx >= 0)
         {
-            // TODO: Add to activate selection, move all editor state else where
-            LOG_ERROR("Line selected");
-            line->SetSelected(true);
+            if (bAddToSelection)
+            {
+                mSelection.Toggle(mCollisionItems, lineIdx);
+            }
+            else
+            {
+                mSelection.Select(mCollisionItems, lineIdx);
+            }
         }
     }
 
@@ -862,6 +872,14 @@ void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec
     }
 }
 
+template<class T, class... Args>
+void GridMap::AddCommand(Args&&... args)
+{
+    auto cmd = std::make_unique<T>(std::forward<Args>(args)...);
+    cmd->Redo();
+    mUndoStack.emplace_back(std::move(cmd));
+}
+
 static CollisionLine* GetCollisionIndexByIndex(CollisionLines& lines, s16 index)
 {
     const s32 count = static_cast<s32>(lines.size());
@@ -943,4 +961,32 @@ void GridMap::Render(Renderer& rend, GuiContext& gui) const
     {
         RenderGame(rend, gui);
     }
+}
+
+std::set<s32> Selection::Clear(CollisionLines& items)
+{
+    for (s32 idx : mSelectedLines)
+    {
+        items[idx]->SetSelected(false);
+    }
+    auto ret = std::move(mSelectedLines);
+    return ret;
+}
+
+void Selection::Toggle(CollisionLines& items, s32 idx)
+{
+    if (items[idx]->SetSelected(!items[idx]->IsSelected()))
+    {
+        mSelectedLines.insert(idx);
+    }
+    else
+    {
+        mSelectedLines.erase(idx);
+    }
+}
+
+void Selection::Select(CollisionLines& items, s32 idx)
+{
+    items[idx]->SetSelected(true);
+    mSelectedLines.insert(idx);
 }
