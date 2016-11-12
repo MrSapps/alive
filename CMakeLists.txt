@@ -428,6 +428,8 @@ SET(test_src
     test/zip_fs_tests.cpp
     test/string_util_tests.cpp
     test/collision_test.cpp
+    test/coordinatespace_test.cpp
+    test/undoredo_test.cpp
     include/subtitles.hpp)
 
 add_executable(Tests 

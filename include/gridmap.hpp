@@ -160,38 +160,55 @@ public:
     virtual ~ICommand() = default;
 };
 
-// TODO
-class CommandSelectLine
-{
-public:
-};
-
-// TODO
-class CommandToggleLineSelectionStatus
-{
-public:
-
-};
-
 class Selection
 {
 public:
     std::set<s32> Clear(CollisionLines& items);
-    void Toggle(CollisionLines& items, s32 idx);
-    void Select(CollisionLines& items, s32 idx);
+    void Select(CollisionLines& items, s32 idx, bool select);
     bool HasSelection() const { return mSelectedLines.empty() == false; }
 private:
     std::set<s32> mSelectedLines;
+};
+
+class CommandSelectOrDeselectLine : public ICommand
+{
+public:
+    CommandSelectOrDeselectLine(CollisionLines& lines, Selection& selection, s32 idx, bool select) 
+        : mLines(lines), mSelection(selection), mIdx(idx), mSelect(select) { }
+
+    virtual void Redo() final
+    {
+        mSelection.Select(mLines, mIdx, mSelect);
+    }
+
+    virtual void Undo() final
+    {
+        mSelection.Select(mLines, mIdx, !mSelect);
+    }
+
+    virtual std::string Message() final
+    {
+        if (mSelect)
+        {
+            return "Select line " + std::to_string(mIdx);
+        }
+        else
+        {
+            return "De select line " + std::to_string(mIdx);
+        }
+    }
+private:
+    CollisionLines& mLines;
+    Selection& mSelection;
+    const s32 mIdx;
+    const bool mSelect;
 };
 
 class CommandClearSelection : public ICommand
 {
 public:
     CommandClearSelection(CollisionLines& lines, Selection& selection)
-        : mLines(lines), mSelection(selection)
-    {
-
-    }
+        : mLines(lines), mSelection(selection) { }
 
     virtual void Redo() final
     {
@@ -202,7 +219,7 @@ public:
     {
         for (s32 idx : mOldSelection)
         {
-            mSelection.Select(mLines, idx);
+            mSelection.Select(mLines, idx, true);
         }
     }
 
@@ -215,6 +232,35 @@ private:
     CollisionLines& mLines;
     Selection& mSelection;
     std::set<s32> mOldSelection;
+};
+
+// TODO: Implement stack limit
+class UndoStack
+{
+public:
+    template<class T, class... Args>
+    void Push(Args&&... args)
+    {
+        auto cmd = std::make_unique<T>(std::forward<Args>(args)...);
+
+        if (mCommandIndex != Count())
+        {
+            mUndoStack.erase(mUndoStack.begin() + mCommandIndex, mUndoStack.end());
+        }
+
+        cmd->Redo();
+        mUndoStack.emplace_back(std::move(cmd));
+        mCommandIndex++;
+    }
+
+    void Undo();
+    void Redo();
+    void Clear();
+    u32 Count() const { return static_cast<u32>(mUndoStack.size()); }
+    void DebugRenderCommandList(GuiContext& gui) const;
+private:
+    std::vector<std::unique_ptr<ICommand>> mUndoStack;
+    u32 mCommandIndex = 0;
 };
 
 class GridMap : public IMap
@@ -236,8 +282,7 @@ private:
 
     void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
 
-    template<class T, class... Args>
-    void AddCommand(Args&&... args);
+
 
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
     
@@ -249,8 +294,7 @@ private:
     const int mEditorGridSizeY = 20;
 
     Selection mSelection;
-    // TODO: Implement Undo/Redo for other editing commands + stack limit
-    std::deque<std::unique_ptr<ICommand>> mUndoStack;
+    UndoStack mUndoStack;
 
     // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
     // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.

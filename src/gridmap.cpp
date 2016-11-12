@@ -567,32 +567,24 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 
     if (mState == eStates::eEditor)
     {
-       
         f32 editorCamSpeed = 10.0f;
 
         if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
         {
-            if (input.mKeys[SDL_SCANCODE_W].IsPressed())
-                mEditorCamZoom--;
-            else if (input.mKeys[SDL_SCANCODE_S].IsPressed())
-                mEditorCamZoom++;
+            if (input.mKeys[SDL_SCANCODE_W].IsPressed()) { mEditorCamZoom--; }
+            else if (input.mKeys[SDL_SCANCODE_S].IsPressed()) { mEditorCamZoom++; }
 
             mEditorCamZoom = glm::clamp(mEditorCamZoom, 1, 35);
         }
         else
         {
-            if (input.mKeys[SDL_SCANCODE_LSHIFT].IsDown())
-                editorCamSpeed *= 4;
+            if (input.mKeys[SDL_SCANCODE_LSHIFT].IsDown())  { editorCamSpeed *= 4; }
 
-            if (input.mKeys[SDL_SCANCODE_W].IsDown())
-                mCameraPosition.y -= editorCamSpeed;
-            else if (input.mKeys[SDL_SCANCODE_S].IsDown())
-                mCameraPosition.y += editorCamSpeed;
+            if (input.mKeys[SDL_SCANCODE_W].IsDown())       { mCameraPosition.y -= editorCamSpeed; }
+            else if (input.mKeys[SDL_SCANCODE_S].IsDown())  { mCameraPosition.y += editorCamSpeed; }
 
-            if (input.mKeys[SDL_SCANCODE_A].IsDown())
-                mCameraPosition.x -= editorCamSpeed;
-            else if (input.mKeys[SDL_SCANCODE_D].IsDown())
-                mCameraPosition.x += editorCamSpeed;
+            if (input.mKeys[SDL_SCANCODE_A].IsDown())       { mCameraPosition.x -= editorCamSpeed; }
+            else if (input.mKeys[SDL_SCANCODE_D].IsDown())  { mCameraPosition.x += editorCamSpeed; }
         }
         coords.mScreenSize = glm::vec2(coords.Width() / 8, coords.Height() / 8) * static_cast<f32>(mEditorCamZoom);
 
@@ -630,6 +622,18 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
         SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
     }
 
+    if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
+    {
+        if (input.mKeys[SDL_SCANCODE_Z].IsPressed())
+        {
+            mUndoStack.Undo();
+        }
+        else if (input.mKeys[SDL_SCANCODE_Y].IsPressed())
+        {
+            mUndoStack.Redo();
+        }
+    }
+
     if (input.mMouseButtons[0].IsPressed())
     {
         const bool bAddToSelection = input.mKeys[SDL_SCANCODE_LCTRL].IsDown();
@@ -637,21 +641,19 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
         {
             if (mSelection.HasSelection())
             {
-                AddCommand<CommandClearSelection>(mCollisionItems, mSelection);
+                mUndoStack.Push<CommandClearSelection>(mCollisionItems, mSelection);
             }
-
-            //mSelection.Clear(mCollisionItems);
         }
 
         if (lineIdx >= 0)
         {
             if (bAddToSelection)
             {
-                mSelection.Toggle(mCollisionItems, lineIdx);
+                mUndoStack.Push<CommandSelectOrDeselectLine>(mCollisionItems, mSelection, lineIdx, !mCollisionItems[lineIdx]->IsSelected());
             }
             else
             {
-                mSelection.Select(mCollisionItems, lineIdx);
+                mUndoStack.Push<CommandSelectOrDeselectLine>(mCollisionItems, mSelection, lineIdx, true);
             }
         }
     }
@@ -786,6 +788,9 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
         }
         gui_end_window(&gui);
     }
+    
+    mUndoStack.DebugRenderCommandList(gui);
+
 
     // TODO: Partly duplicated in Update
     const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
@@ -872,13 +877,49 @@ void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec
     }
 }
 
-template<class T, class... Args>
-void GridMap::AddCommand(Args&&... args)
+void UndoStack::DebugRenderCommandList(GuiContext& gui) const
 {
-    auto cmd = std::make_unique<T>(std::forward<Args>(args)...);
-    cmd->Redo();
-    mUndoStack.emplace_back(std::move(cmd));
+    gui_begin_window(&gui, "Undo stack");
+    for (const auto& cmd : mUndoStack)
+    {
+        gui_label(&gui, cmd->Message().c_str());
+    }
+    gui_end_window(&gui);
 }
+
+void UndoStack::Clear()
+{
+    mUndoStack.clear();
+}
+
+void UndoStack::Undo()
+{
+    if (Count() > 0 && mCommandIndex >= 1)
+    {
+        LOG_ERROR("Undoing command: " << mUndoStack[mCommandIndex - 1]->Message());
+
+        // Undo the current command
+        mUndoStack[mCommandIndex-1]->Undo();
+
+        // Go back one command
+        mCommandIndex--;
+    }
+}
+
+void UndoStack::Redo()
+{
+    if (mCommandIndex + 1 <= Count())
+    {
+        LOG_ERROR("Redoing command: " << mUndoStack[mCommandIndex]->Message());
+
+        // Redo the current command
+        mUndoStack[mCommandIndex]->Redo();
+
+        // Go forward one command
+        mCommandIndex++;
+    }
+}
+
 
 static CollisionLine* GetCollisionIndexByIndex(CollisionLines& lines, s16 index)
 {
@@ -973,9 +1014,9 @@ std::set<s32> Selection::Clear(CollisionLines& items)
     return ret;
 }
 
-void Selection::Toggle(CollisionLines& items, s32 idx)
+void Selection::Select(CollisionLines& items, s32 idx, bool select)
 {
-    if (items[idx]->SetSelected(!items[idx]->IsSelected()))
+    if (items[idx]->SetSelected(select))
     {
         mSelectedLines.insert(idx);
     }
@@ -983,10 +1024,4 @@ void Selection::Toggle(CollisionLines& items, s32 idx)
     {
         mSelectedLines.erase(idx);
     }
-}
-
-void Selection::Select(CollisionLines& items, s32 idx)
-{
-    items[idx]->SetSelected(true);
-    mSelectedLines.insert(idx);
 }
