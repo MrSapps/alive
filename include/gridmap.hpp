@@ -166,6 +166,7 @@ public:
     std::set<s32> Clear(CollisionLines& items);
     void Select(CollisionLines& items, s32 idx, bool select);
     bool HasSelection() const { return mSelectedLines.empty() == false; }
+    const std::set<s32>& SelectedLines() const { return mSelectedLines; }
 private:
     std::set<s32> mSelectedLines;
 };
@@ -295,6 +296,8 @@ private:
 
     Selection mSelection;
     UndoStack mUndoStack;
+    bool mDraggingItems = false;
+    glm::vec2 mLastMousePos;
 
     // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
     // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.

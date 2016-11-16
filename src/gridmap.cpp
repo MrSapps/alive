@@ -622,6 +622,11 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
         SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
     }
 
+    if (input.mMouseButtons[0].IsReleased())
+    {
+        mDraggingItems = false;
+    }
+
     if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
     {
         if (input.mKeys[SDL_SCANCODE_Z].IsPressed())
@@ -636,28 +641,88 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 
     if (input.mMouseButtons[0].IsPressed())
     {
-        const bool bAddToSelection = input.mKeys[SDL_SCANCODE_LCTRL].IsDown();
-        if (!bAddToSelection)
-        {
-            if (mSelection.HasSelection())
-            {
-                mUndoStack.Push<CommandClearSelection>(mCollisionItems, mSelection);
-            }
-        }
-
+        const bool bGroupSelection = input.mKeys[SDL_SCANCODE_LCTRL].IsDown();
         if (lineIdx >= 0)
         {
-            if (bAddToSelection)
+            if (bGroupSelection)
             {
+                LOG_INFO("Toggle line selected status");
                 mUndoStack.Push<CommandSelectOrDeselectLine>(mCollisionItems, mSelection, lineIdx, !mCollisionItems[lineIdx]->IsSelected());
             }
             else
             {
-                mUndoStack.Push<CommandSelectOrDeselectLine>(mCollisionItems, mSelection, lineIdx, true);
+                // If clicking on a line that is already selected then don't clear out any other lines that are already selected
+                if (mSelection.SelectedLines().find(lineIdx) == std::end(mSelection.SelectedLines()))
+                {
+                    LOG_INFO("Select single line");
+                    mUndoStack.Push<CommandClearSelection>(mCollisionItems, mSelection);
+                    mUndoStack.Push<CommandSelectOrDeselectLine>(mCollisionItems, mSelection, lineIdx, true);
+                }
+                else
+                {
+                    LOG_INFO("Line already selected, do nothing");
+                }
+            }
+
+            if (mSelection.HasSelection())
+            {
+                mDraggingItems = true;
+                mLastMousePos = mousePosWorld;
+            }
+        }
+        else
+        {
+            if (mSelection.HasSelection())
+            {
+                LOG_INFO("Nothing clicked, clear selected");
+                mUndoStack.Push<CommandClearSelection>(mCollisionItems, mSelection);
             }
         }
     }
+    else if (input.mMouseButtons[0].IsDown() && mDraggingItems && mLastMousePos != mousePosWorld)
+    {
+        // TODO: Update mouse cursor to reflect action
+        if (mSelection.SelectedLines().size() == 1)
+        {
+            LOG_INFO("Move single line");
+            
+            std::unique_ptr<CollisionLine>& selectedLine = mCollisionItems[*mSelection.SelectedLines().begin()];
 
+            const f32 distToP1 = glm::distance(selectedLine->mLine.mP1, mousePosWorld);
+            const f32 distToP2 = glm::distance(selectedLine->mLine.mP2, mousePosWorld);
+            const f32 distToMid = glm::distance(selectedLine->mLine.MidPoint(), mousePosWorld);
+
+            // TODO: Check dragging the body through the arrow head, should point switching
+            // be legal?
+
+            if (distToP1 < distToP2)
+            {
+                selectedLine->mLine.mP1 = mousePosWorld;
+            }
+            // TODO: Need a tolerance to mid point, normalize coords?
+            else if (distToP2 < distToP1)
+            {
+                selectedLine->mLine.mP2 = mousePosWorld;
+            }
+            else
+            {
+                const glm::vec2 mouseDelta = mousePosWorld - mLastMousePos;
+                selectedLine->mLine.mP1 += mouseDelta;
+                selectedLine->mLine.mP2 += mouseDelta;
+            }
+        }
+        else if (mSelection.SelectedLines().size() > 1)
+        {
+            LOG_INFO("Move all lines");
+            const glm::vec2 mouseDelta = mousePosWorld - mLastMousePos;
+            for (s32 idx : mSelection.SelectedLines())
+            {
+                mCollisionItems[idx]->mLine.mP1 += mouseDelta;
+                mCollisionItems[idx]->mLine.mP2 += mouseDelta;
+            }
+        }
+        mLastMousePos = mousePosWorld;
+    }
 }
 
 MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
