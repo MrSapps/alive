@@ -235,6 +235,81 @@ private:
     std::set<s32> mOldSelection;
 };
 
+class CommandMoveLinePoint : public ICommand
+{
+public:
+    CommandMoveLinePoint(CollisionLines& lines, Selection& selection, const glm::vec2& newPos, bool moveP1)
+        : mLines(lines), mSelection(selection), mNewPos(newPos), mApplyToP1(moveP1)
+    {
+        const auto& line = mLines[*mSelection.SelectedLines().begin()];
+        mOldPos = mApplyToP1 ? line->mLine.mP1 : line->mLine.mP2;
+    }
+
+    virtual void Redo() final
+    {
+        const auto& line = mLines[*mSelection.SelectedLines().begin()];
+        (mApplyToP1 ? line->mLine.mP1 : line->mLine.mP2) = mNewPos;
+    }
+
+    virtual void Undo() final
+    {
+        const auto& line = mLines[*mSelection.SelectedLines().begin()];
+        (mApplyToP1 ? line->mLine.mP1 : line->mLine.mP2) = mOldPos;
+    }
+
+    virtual std::string Message() final
+    {
+        return "Move line point " + std::to_string(mApplyToP1 ? 1 : 2) +
+            " from (" + std::to_string(mOldPos.x) + "," + std::to_string(mOldPos.y)
+            + ") to (" + std::to_string(mNewPos.x) + "," + std::to_string(mNewPos.y) + ")";
+    }
+private:
+    CollisionLines& mLines;
+    Selection& mSelection;
+    glm::vec2 mOldPos;
+    const glm::vec2 mNewPos;
+    bool mApplyToP1;
+};
+
+
+class MoveSelection : public ICommand
+{
+public:
+    MoveSelection(CollisionLines& lines, Selection& selection, const glm::vec2& delta)
+        : mLines(lines), mSelection(selection), mDelta(delta)
+    {
+
+    }
+
+    virtual void Redo() final
+    {
+        for (s32 idx : mSelection.SelectedLines())
+        {
+            mLines[idx]->mLine.mP1 += mDelta;
+            mLines[idx]->mLine.mP2 += mDelta;
+        }
+    }
+
+    virtual void Undo() final
+    {
+        for (s32 idx : mSelection.SelectedLines())
+        {
+            mLines[idx]->mLine.mP1 -= mDelta;
+            mLines[idx]->mLine.mP2 -= mDelta;
+        }
+    }
+
+    virtual std::string Message() final
+    {
+        return "Move selection by " + std::to_string(mDelta.x) + "," + std::to_string(mDelta.y);
+    }
+
+private:
+    CollisionLines& mLines;
+    Selection& mSelection;
+    const glm::vec2 mDelta;
+};
+
 // TODO: Implement stack limit
 class UndoStack
 {
@@ -298,6 +373,13 @@ private:
     UndoStack mUndoStack;
     bool mDraggingItems = false;
     glm::vec2 mLastMousePos;
+    enum class eSelectedArea
+    {
+        eP1,
+        eP2,
+        eMiddle
+    };
+    eSelectedArea mSelectedArea = eSelectedArea::eP1;
 
     // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
     // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.

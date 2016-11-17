@@ -571,8 +571,8 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 
         if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
         {
-            if (input.mKeys[SDL_SCANCODE_W].IsPressed()) { mEditorCamZoom--; }
-            else if (input.mKeys[SDL_SCANCODE_S].IsPressed()) { mEditorCamZoom++; }
+            if (input.mKeys[SDL_SCANCODE_W].IsPressed())        { mEditorCamZoom--; }
+            else if (input.mKeys[SDL_SCANCODE_S].IsPressed())   { mEditorCamZoom++; }
 
             mEditorCamZoom = glm::clamp(mEditorCamZoom, 1, 35);
         }
@@ -602,7 +602,7 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 
         // TODO: Partly duplicated in render
         const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
-        const glm::vec2 camOffset = (mIsAo) ? glm::vec2(257, 114) : glm::vec2(0, 0);
+        const glm::vec2 camOffset =  (mIsAo) ? glm::vec2(257, 114)  : glm::vec2(0, 0);
 
         const int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x);
         const int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y);
@@ -644,6 +644,7 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
         const bool bGroupSelection = input.mKeys[SDL_SCANCODE_LCTRL].IsDown();
         if (lineIdx >= 0)
         {
+            const auto kOldSelectionCount = mSelection.SelectedLines().size();
             if (bGroupSelection)
             {
                 LOG_INFO("Toggle line selected status");
@@ -664,8 +665,25 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
                 }
             }
 
-            if (mSelection.HasSelection())
+            const auto kNewSelectionCount = mSelection.SelectedLines().size();
+            if (kNewSelectionCount >= kOldSelectionCount)
             {
+                const f32 distToP1 = glm::distance(mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld);
+                const f32 distToP2 = glm::distance(mCollisionItems[lineIdx]->mLine.mP2, mousePosWorld);
+                const f32 distToMid = glm::distance(mCollisionItems[lineIdx]->mLine.MidPoint(), mousePosWorld);
+                // TODO: Fix tolerance on checks use thirds of line length ? , can't pick middle currently
+                if (distToP1 < distToP2)
+                {
+                    mSelectedArea = eSelectedArea::eP1;
+                }
+                else if (distToP2 < distToP1)
+                {
+                    mSelectedArea = eSelectedArea::eP2;
+                }
+                else
+                {
+                    mSelectedArea = eSelectedArea::eMiddle;
+                }
                 mDraggingItems = true;
                 mLastMousePos = mousePosWorld;
             }
@@ -684,42 +702,28 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
         // TODO: Update mouse cursor to reflect action
         if (mSelection.SelectedLines().size() == 1)
         {
-            LOG_INFO("Move single line");
-            
-            std::unique_ptr<CollisionLine>& selectedLine = mCollisionItems[*mSelection.SelectedLines().begin()];
+            LOG_INFO("Edit single line");
 
-            const f32 distToP1 = glm::distance(selectedLine->mLine.mP1, mousePosWorld);
-            const f32 distToP2 = glm::distance(selectedLine->mLine.mP2, mousePosWorld);
-            const f32 distToMid = glm::distance(selectedLine->mLine.MidPoint(), mousePosWorld);
-
-            // TODO: Check dragging the body through the arrow head, should point switching
-            // be legal?
-
-            if (distToP1 < distToP2)
+            // TODO: Need to merge or commit as 1 move operation instead of 1 per mouse delta
+            switch (mSelectedArea)
             {
-                selectedLine->mLine.mP1 = mousePosWorld;
-            }
-            // TODO: Need a tolerance to mid point, normalize coords?
-            else if (distToP2 < distToP1)
-            {
-                selectedLine->mLine.mP2 = mousePosWorld;
-            }
-            else
-            {
-                const glm::vec2 mouseDelta = mousePosWorld - mLastMousePos;
-                selectedLine->mLine.mP1 += mouseDelta;
-                selectedLine->mLine.mP2 += mouseDelta;
+            case eSelectedArea::eP1:
+                mUndoStack.Push<CommandMoveLinePoint>(mCollisionItems, mSelection, mousePosWorld, true);
+                break;
+            case eSelectedArea::eP2:
+                mUndoStack.Push<CommandMoveLinePoint>(mCollisionItems, mSelection, mousePosWorld, false);
+                break;
+            case eSelectedArea::eMiddle:
+                mUndoStack.Push<MoveSelection>(mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
+                break;
             }
         }
         else if (mSelection.SelectedLines().size() > 1)
         {
             LOG_INFO("Move all lines");
-            const glm::vec2 mouseDelta = mousePosWorld - mLastMousePos;
-            for (s32 idx : mSelection.SelectedLines())
-            {
-                mCollisionItems[idx]->mLine.mP1 += mouseDelta;
-                mCollisionItems[idx]->mLine.mP2 += mouseDelta;
-            }
+
+            // TODO: Need to merge or commit as 1 move operation instead of 1 per mouse delta
+            mUndoStack.Push<MoveSelection>(mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
         }
         mLastMousePos = mousePosWorld;
     }
