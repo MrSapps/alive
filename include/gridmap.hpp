@@ -151,7 +151,7 @@ private:
     Renderer& mRend;
 };
 
-#define NO_MOVE_OR_MOVE_ASSIGN(x)  x(x&&) = delete; x& operator = (x&&) = delete;
+#define NO_MOVE_OR_MOVE_ASSIGN(x)  x(x&&) = delete; x& operator = (x&&) = delete
 
 class ICommand
 {
