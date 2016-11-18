@@ -363,7 +363,7 @@ public:
             mUndoStack.erase(mUndoStack.begin() + mCommandIndex, mUndoStack.end());
         }
 
-        if (!mUndoStack.empty() && cmd->Id() == (*mUndoStack.end())->Id())
+        if (!mUndoStack.empty() && cmd->Id() == mUndoStack.back()->Id())
         {
             LOG_INFO("TODO: Possibly merge commands");
         }
