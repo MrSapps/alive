@@ -153,6 +153,16 @@ private:
 
 #define NO_MOVE_OR_MOVE_ASSIGN(x)  x(x&&) = delete; x& operator = (x&&) = delete
 
+u32 NextId();
+
+template<class T>
+u32 GenerateTypeId()
+{
+    static u32 id = NextId();
+    return id;
+}
+
+
 class ICommand
 {
 public:
@@ -162,6 +172,23 @@ public:
     virtual void Undo() = 0;
     virtual std::string Message() = 0;
     virtual ~ICommand() = default;
+    virtual u32 Id() const = 0;
+private:
+    u32 mId;
+};
+
+template<class T>
+class CommandWidthId : public ICommand
+{
+public:
+    NO_MOVE_OR_MOVE_ASSIGN(CommandWidthId);
+    CommandWidthId()
+    {
+        mId = GenerateTypeId<T>();
+    }
+    virtual u32 Id() const override { return mId; }
+private:
+    u32 mId;
 };
 
 class Selection
@@ -175,7 +202,7 @@ private:
     std::set<s32> mSelectedLines;
 };
 
-class CommandSelectOrDeselectLine : public ICommand
+class CommandSelectOrDeselectLine : public CommandWidthId<CommandSelectOrDeselectLine>
 {
 public:
     NO_MOVE_OR_MOVE_ASSIGN(CommandSelectOrDeselectLine);
@@ -211,7 +238,7 @@ private:
     const bool mSelect;
 };
 
-class CommandClearSelection : public ICommand
+class CommandClearSelection : public CommandWidthId<CommandClearSelection>
 {
 public:
     NO_MOVE_OR_MOVE_ASSIGN(CommandClearSelection);
@@ -243,7 +270,7 @@ private:
     std::set<s32> mOldSelection;
 };
 
-class CommandMoveLinePoint : public ICommand
+class CommandMoveLinePoint : public CommandWidthId<CommandMoveLinePoint>
 {
 public:
     NO_MOVE_OR_MOVE_ASSIGN(CommandMoveLinePoint);
@@ -282,7 +309,7 @@ private:
 };
 
 
-class MoveSelection : public ICommand
+class MoveSelection : public CommandWidthId<MoveSelection>
 {
 public:
     NO_MOVE_OR_MOVE_ASSIGN(MoveSelection);
@@ -334,6 +361,11 @@ public:
         if (mCommandIndex != Count())
         {
             mUndoStack.erase(mUndoStack.begin() + mCommandIndex, mUndoStack.end());
+        }
+
+        if (!mUndoStack.empty() && cmd->Id() == (*mUndoStack.end())->Id())
+        {
+            LOG_INFO("TODO: Possibly merge commands");
         }
 
         cmd->Redo();

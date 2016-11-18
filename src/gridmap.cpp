@@ -1073,6 +1073,14 @@ void GridMap::Render(Renderer& rend, GuiContext& gui) const
     }
 }
 
+static u32 gTypeIds = 0;
+u32 NextId()
+{
+    gTypeIds++;
+    return gTypeIds;
+}
+
+
 std::set<s32> Selection::Clear(CollisionLines& items)
 {
     for (s32 idx : mSelectedLines)
