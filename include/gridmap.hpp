@@ -151,9 +151,13 @@ private:
     Renderer& mRend;
 };
 
+#define NO_MOVE_OR_MOVE_ASSIGN(x)  x(x&&) = delete; x& operator = (x&&) = delete;
+
 class ICommand
 {
 public:
+    NO_MOVE_OR_MOVE_ASSIGN(ICommand);
+    ICommand() = default;
     virtual void Redo() = 0;
     virtual void Undo() = 0;
     virtual std::string Message() = 0;
@@ -174,6 +178,8 @@ private:
 class CommandSelectOrDeselectLine : public ICommand
 {
 public:
+    NO_MOVE_OR_MOVE_ASSIGN(CommandSelectOrDeselectLine);
+
     CommandSelectOrDeselectLine(CollisionLines& lines, Selection& selection, s32 idx, bool select) 
         : mLines(lines), mSelection(selection), mIdx(idx), mSelect(select) { }
 
@@ -208,6 +214,8 @@ private:
 class CommandClearSelection : public ICommand
 {
 public:
+    NO_MOVE_OR_MOVE_ASSIGN(CommandClearSelection);
+
     CommandClearSelection(CollisionLines& lines, Selection& selection)
         : mLines(lines), mSelection(selection) { }
 
@@ -238,6 +246,8 @@ private:
 class CommandMoveLinePoint : public ICommand
 {
 public:
+    NO_MOVE_OR_MOVE_ASSIGN(CommandMoveLinePoint);
+
     CommandMoveLinePoint(CollisionLines& lines, Selection& selection, const glm::vec2& newPos, bool moveP1)
         : mLines(lines), mSelection(selection), mNewPos(newPos), mApplyToP1(moveP1)
     {
@@ -275,6 +285,8 @@ private:
 class MoveSelection : public ICommand
 {
 public:
+    NO_MOVE_OR_MOVE_ASSIGN(MoveSelection);
+
     MoveSelection(CollisionLines& lines, Selection& selection, const glm::vec2& delta)
         : mLines(lines), mSelection(selection), mDelta(delta)
     {
