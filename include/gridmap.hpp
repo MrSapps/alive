@@ -173,8 +173,6 @@ public:
     virtual std::string Message() = 0;
     virtual ~ICommand() = default;
     virtual u32 Id() const = 0;
-private:
-    u32 mId;
 };
 
 template<class T>
