@@ -157,3 +157,48 @@ TEST(UndoStack, UndoRedo)
     stack.Undo();
     ASSERT_TRUE(SetsEqual(data, {}));
 }
+
+TEST(UndoStack, StackLimit)
+{
+    std::set<s32> data;
+
+    UndoStack stack(2);
+    ASSERT_TRUE(SetsEqual(data, {}));
+
+    stack.Push<TestCommand>(data, 1, TestCommand::eOperation::eAdd);
+    ASSERT_TRUE(SetsEqual(data, { 1 }));
+
+    stack.Push<TestCommand>(data, 2, TestCommand::eOperation::eAdd);
+    ASSERT_TRUE(SetsEqual(data, { 1, 2 }));
+
+    stack.Push<TestCommand>(data, 3, TestCommand::eOperation::eAdd);
+    ASSERT_TRUE(SetsEqual(data, { 1, 2, 3 }));
+
+    stack.Undo();
+    ASSERT_TRUE(SetsEqual(data, { 1, 2 }));
+
+    stack.Undo();
+    ASSERT_TRUE(SetsEqual(data, { 1 }));
+
+    // 1 can't be undone as command 3 will have deleted 1 since the stack limit is 2
+    stack.Undo();
+    ASSERT_TRUE(SetsEqual(data, { 1 }));
+
+    stack.Redo();
+    stack.Redo();
+    ASSERT_TRUE(SetsEqual(data, { 1, 2, 3 }));
+
+    stack.Push<TestCommand>(data, 4, TestCommand::eOperation::eAdd);
+    ASSERT_TRUE(SetsEqual(data, { 1, 2, 3, 4 }));
+
+    stack.Undo();
+    ASSERT_TRUE(SetsEqual(data, { 1, 2, 3 }));
+
+    stack.Undo();
+    ASSERT_TRUE(SetsEqual(data, { 1, 2 }));
+
+    // 2 can't be undone as command 4 will have deleted 2 since the stack limit is 2
+    stack.Undo();
+    ASSERT_TRUE(SetsEqual(data, { 1, 2 }));
+
+}

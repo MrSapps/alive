@@ -641,6 +641,7 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 
     if (input.mMouseButtons[0].IsPressed())
     {
+        mIsNewOperation = true;
         const bool bGroupSelection = input.mKeys[SDL_SCANCODE_LCTRL].IsDown();
         if (lineIdx >= 0)
         {
@@ -656,7 +657,10 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
                 if (mSelection.SelectedLines().find(lineIdx) == std::end(mSelection.SelectedLines()))
                 {
                     LOG_INFO("Select single line");
-                    mUndoStack.Push<CommandClearSelection>(mCollisionItems, mSelection);
+                    if (mSelection.HasSelection())
+                    {
+                        mUndoStack.Push<CommandClearSelection>(mCollisionItems, mSelection);
+                    }
                     mUndoStack.Push<CommandSelectOrDeselectLine>(mCollisionItems, mSelection, lineIdx, true);
                 }
                 else
@@ -703,29 +707,26 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
         if (mSelection.SelectedLines().size() == 1)
         {
             LOG_INFO("Edit single line");
-
-            // TODO: Need to merge or commit as 1 move operation instead of 1 per mouse delta
             switch (mSelectedArea)
             {
             case eSelectedArea::eP1:
-                mUndoStack.Push<CommandMoveLinePoint>(mCollisionItems, mSelection, mousePosWorld, true);
+                mUndoStack.PushMerge<CommandMoveLinePoint>(!mIsNewOperation, mCollisionItems, mSelection, mousePosWorld, true);
                 break;
             case eSelectedArea::eP2:
-                mUndoStack.Push<CommandMoveLinePoint>(mCollisionItems, mSelection, mousePosWorld, false);
+                mUndoStack.PushMerge<CommandMoveLinePoint>(!mIsNewOperation, mCollisionItems, mSelection, mousePosWorld, false);
                 break;
             case eSelectedArea::eMiddle:
-                mUndoStack.Push<MoveSelection>(mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
+                mUndoStack.PushMerge<MoveSelection>(!mIsNewOperation, mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
                 break;
             }
         }
         else if (mSelection.SelectedLines().size() > 1)
         {
             LOG_INFO("Move all lines");
-
-            // TODO: Need to merge or commit as 1 move operation instead of 1 per mouse delta
-            mUndoStack.Push<MoveSelection>(mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
+            mUndoStack.PushMerge<MoveSelection>(!mIsNewOperation, mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
         }
         mLastMousePos = mousePosWorld;
+        mIsNewOperation = false;
     }
 }
 

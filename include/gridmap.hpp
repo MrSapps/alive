@@ -173,6 +173,7 @@ public:
     virtual std::string Message() = 0;
     virtual ~ICommand() = default;
     virtual u32 Id() const = 0;
+    virtual bool CanMerge() const { return false; }
 };
 
 template<class T>
@@ -280,6 +281,11 @@ public:
         mOldPos = mApplyToP1 ? line->mLine.mP1 : line->mLine.mP2;
     }
 
+    void Merge(CollisionLines& /*lines*/, Selection& /*selection*/, const glm::vec2& newPos, bool /*moveP1*/)
+    {
+        mNewPos = newPos;
+    }
+
     virtual void Redo() final
     {
         const auto& line = mLines[*mSelection.SelectedLines().begin()];
@@ -292,6 +298,8 @@ public:
         (mApplyToP1 ? line->mLine.mP1 : line->mLine.mP2) = mOldPos;
     }
 
+    virtual bool CanMerge() const final { return true; }
+
     virtual std::string Message() final
     {
         return "Move line point " + std::to_string(mApplyToP1 ? 1 : 2) +
@@ -302,7 +310,7 @@ private:
     CollisionLines& mLines;
     Selection& mSelection;
     glm::vec2 mOldPos;
-    const glm::vec2 mNewPos;
+    glm::vec2 mNewPos;
     bool mApplyToP1;
 };
 
@@ -316,6 +324,11 @@ public:
         : mLines(lines), mSelection(selection), mDelta(delta)
     {
 
+    }
+
+    void Merge(CollisionLines& /*lines*/, Selection& /*selection*/, const glm::vec2& delta)
+    {
+        mDelta += delta;
     }
 
     virtual void Redo() final
@@ -341,36 +354,69 @@ public:
         return "Move selection by " + std::to_string(mDelta.x) + "," + std::to_string(mDelta.y);
     }
 
+    virtual bool CanMerge() const final
+    {
+        return true;
+    }
 private:
     CollisionLines& mLines;
     Selection& mSelection;
-    const glm::vec2 mDelta;
+    glm::vec2 mDelta;
 };
 
-// TODO: Implement stack limit
 class UndoStack
 {
 public:
+    UndoStack(s32 stackLimit = -1)
+        : mStackLimit(stackLimit)
+    {
+
+    }
+
+    template<class T, class... Args>
+    void PushMerge(bool shouldMerge, Args&&... args)
+    {
+        // If the last item on the stack is of the same type we are about to create
+        if (shouldMerge && !mUndoStack.empty() && GenerateTypeId<T>() == mUndoStack.back()->Id() && mUndoStack.back()->CanMerge())
+        {
+            // Undo the last action
+            mUndoStack.back()->Undo();
+
+            // Update its internals with the new target data
+            static_cast<T*>(mUndoStack.back().get())->Merge(std::forward<Args>(args)...);
+
+            // Re-apply with new internals
+            mUndoStack.back()->Redo();
+        }
+        else
+        {
+            Push<T>(std::forward<Args>(args)...);
+        }
+    }
+
     template<class T, class... Args>
     void Push(Args&&... args)
     {
-        if (!mUndoStack.empty() && cmd->Id() == mUndoStack.back()->Id())
-        {
-            LOG_INFO("TODO: Possibly merge commands");
-        }
-
-
-        auto cmd = std::make_unique<T>(std::forward<Args>(args)...);
-
+        // If the active index isn't the latest item then remove everything after it
         if (mCommandIndex != Count())
         {
             mUndoStack.erase(mUndoStack.begin() + mCommandIndex, mUndoStack.end());
         }
 
-      
-        cmd->Redo();
+        // Apply action of new command and add to stack
+        auto cmd = std::make_unique<T>(std::forward<Args>(args)...);
         mUndoStack.emplace_back(std::move(cmd));
-        mCommandIndex++;
+        mUndoStack.back()->Redo();
+
+        // If we are over the stack limit remove the first item to stay within the limit
+        if (mStackLimit != -1 && static_cast<s32>(Count()) > mStackLimit)
+        {
+            mUndoStack.erase(mUndoStack.begin(), mUndoStack.begin() + 1);
+        }
+        else
+        {
+            mCommandIndex++;
+        }
     }
 
     void Undo();
@@ -381,6 +427,7 @@ public:
 private:
     std::vector<std::unique_ptr<ICommand>> mUndoStack;
     u32 mCommandIndex = 0;
+    s32 mStackLimit = -1;
 };
 
 class GridMap : public IMap
@@ -415,6 +462,7 @@ private:
 
     Selection mSelection;
     UndoStack mUndoStack;
+    bool mIsNewOperation = false;
     bool mDraggingItems = false;
     glm::vec2 mLastMousePos;
     enum class eSelectedArea
