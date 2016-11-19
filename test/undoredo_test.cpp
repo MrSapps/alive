@@ -2,7 +2,7 @@
 #include <algorithm>
 #include "gridmap.hpp"
 
-class TestCommand : public CommandWidthId<TestCommand>
+class TestCommand : public ICommandWithId<TestCommand>
 {
 public:
     enum class eOperation

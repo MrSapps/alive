@@ -176,11 +176,11 @@ public:
 };
 
 template<class T>
-class CommandWidthId : public ICommand
+class ICommandWithId : public ICommand
 {
 public:
-    NO_MOVE_OR_MOVE_ASSIGN(CommandWidthId);
-    CommandWidthId()
+    NO_MOVE_OR_MOVE_ASSIGN(ICommandWithId);
+    ICommandWithId()
     {
         mId = GenerateTypeId<T>();
     }
@@ -200,7 +200,7 @@ private:
     std::set<s32> mSelectedLines;
 };
 
-class CommandSelectOrDeselectLine : public CommandWidthId<CommandSelectOrDeselectLine>
+class CommandSelectOrDeselectLine : public ICommandWithId<CommandSelectOrDeselectLine>
 {
 public:
     NO_MOVE_OR_MOVE_ASSIGN(CommandSelectOrDeselectLine);
@@ -236,7 +236,7 @@ private:
     const bool mSelect;
 };
 
-class CommandClearSelection : public CommandWidthId<CommandClearSelection>
+class CommandClearSelection : public ICommandWithId<CommandClearSelection>
 {
 public:
     NO_MOVE_OR_MOVE_ASSIGN(CommandClearSelection);
@@ -268,7 +268,7 @@ private:
     std::set<s32> mOldSelection;
 };
 
-class CommandMoveLinePoint : public CommandWidthId<CommandMoveLinePoint>
+class CommandMoveLinePoint : public ICommandWithId<CommandMoveLinePoint>
 {
 public:
     NO_MOVE_OR_MOVE_ASSIGN(CommandMoveLinePoint);
@@ -307,7 +307,7 @@ private:
 };
 
 
-class MoveSelection : public CommandWidthId<MoveSelection>
+class MoveSelection : public ICommandWithId<MoveSelection>
 {
 public:
     NO_MOVE_OR_MOVE_ASSIGN(MoveSelection);
@@ -354,6 +354,12 @@ public:
     template<class T, class... Args>
     void Push(Args&&... args)
     {
+        if (!mUndoStack.empty() && cmd->Id() == mUndoStack.back()->Id())
+        {
+            LOG_INFO("TODO: Possibly merge commands");
+        }
+
+
         auto cmd = std::make_unique<T>(std::forward<Args>(args)...);
 
         if (mCommandIndex != Count())
@@ -361,11 +367,7 @@ public:
             mUndoStack.erase(mUndoStack.begin() + mCommandIndex, mUndoStack.end());
         }
 
-        if (!mUndoStack.empty() && cmd->Id() == mUndoStack.back()->Id())
-        {
-            LOG_INFO("TODO: Possibly merge commands");
-        }
-
+      
         cmd->Redo();
         mUndoStack.emplace_back(std::move(cmd));
         mCommandIndex++;
