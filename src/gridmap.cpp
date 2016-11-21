@@ -647,10 +647,17 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
         if (lineIdx >= 0)
         {
             const bool bGroupSelection = input.mKeys[SDL_SCANCODE_LCTRL].IsDown();
+            bool updateState = true;
             if (bGroupSelection)
             {
                 LOG_INFO("Toggle line selected status");
+                // Only change state if we select a new line, when we de-select there is no selection area to update
+                updateState = !mCollisionItems[lineIdx]->IsSelected();
                 mUndoStack.Push<CommandSelectOrDeselectLine>(mCollisionItems, mSelection, lineIdx, !mCollisionItems[lineIdx]->IsSelected());
+                if (!updateState)
+                {
+                    mSelectionState = eSelectionState::eNone;
+                }
             }
             else
             {
@@ -670,31 +677,34 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
                 }
             }
 
-            if (mSelection.SelectedLines().size() > 1)
+            if (updateState)
             {
-                mSelectionState = eSelectionState::eMoveSelected;
-            }
-            else if (mSelection.SelectedLines().size() == 1)
-            {
-                const f32 lineLength = mCollisionItems[lineIdx]->mLine.Length();
-                const f32 distToP1 = glm::distance(mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld) / lineLength;
-                const f32 distToP2 = glm::distance(mCollisionItems[lineIdx]->mLine.mP2, mousePosWorld) / lineLength;
-                if (distToP1 < 0.2f)
+                if (mSelection.SelectedLines().size() > 1)
                 {
-                    mSelectionState = eSelectionState::eLineP1Selected;
+                    mSelectionState = eSelectionState::eMoveSelected;
                 }
-                else if (distToP2 < 0.2f)
+                else if (mSelection.SelectedLines().size() == 1)
                 {
-                    mSelectionState = eSelectionState::eLineP2Selected;
+                    const f32 lineLength = mCollisionItems[lineIdx]->mLine.Length();
+                    const f32 distToP1 = glm::distance(mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld) / lineLength;
+                    const f32 distToP2 = glm::distance(mCollisionItems[lineIdx]->mLine.mP2, mousePosWorld) / lineLength;
+                    if (distToP1 < 0.2f)
+                    {
+                        mSelectionState = eSelectionState::eLineP1Selected;
+                    }
+                    else if (distToP2 < 0.2f)
+                    {
+                        mSelectionState = eSelectionState::eLineP2Selected;
+                    }
+                    else
+                    {
+                        mSelectionState = eSelectionState::eLineMiddleSelected;
+                    }
                 }
                 else
                 {
-                    mSelectionState = eSelectionState::eLineMiddleSelected;
+                    mSelectionState = eSelectionState::eNone;
                 }
-            }
-            else
-            {
-                mSelectionState = eSelectionState::eNone;
             }
             mLastMousePos = mousePosWorld;
         }
@@ -713,11 +723,9 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
         switch (mSelectionState)
         {
         case eSelectionState::eLineP1Selected:
-            // TODO: Handle dis/connect to other lines when moving end points
-            mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mCollisionItems, mSelection, mousePosWorld, true);
-            break;
         case eSelectionState::eLineP2Selected:
-            mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mCollisionItems, mSelection, mousePosWorld, false);
+            // TODO: Handle dis/connect to other lines when moving end points
+            mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mCollisionItems, mSelection, mousePosWorld, mSelectionState == eSelectionState::eLineP1Selected);
             break;
 
         case eSelectionState::eMoveSelected:
