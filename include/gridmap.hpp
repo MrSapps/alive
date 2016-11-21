@@ -462,16 +462,16 @@ private:
 
     Selection mSelection;
     UndoStack mUndoStack;
-    bool mIsNewOperation = false;
-    bool mDraggingItems = false;
+    bool mMergeCommand = false;
     glm::vec2 mLastMousePos;
-    enum class eSelectedArea
+    enum class eSelectionState
     {
-        eP1,
-        eP2,
-        eMiddle
+        eNone,
+        eLineP1Selected,
+        eLineP2Selected,
+        eLineMiddleSelected
     };
-    eSelectedArea mSelectedArea = eSelectedArea::eP1;
+    eSelectionState mSelectionState = eSelectionState::eNone;
 
     // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
     // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
