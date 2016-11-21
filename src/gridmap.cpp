@@ -613,6 +613,8 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 
     const glm::vec2 mousePosWorld = coords.ScreenToWorld({ input.mMousePosition.mX, input.mMousePosition.mY });
     const s32 lineIdx = CollisionLine::Pick(mCollisionItems, mousePosWorld, mState == eStates::eInGame ? 1.0f : (static_cast<float>(mEditorCamZoom) / 4.0f));
+    
+
     if (lineIdx >= 0)
     {
         SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND)); // SDL_SYSTEM_CURSOR_CROSSHAIR
@@ -642,22 +644,16 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
     if (input.mMouseButtons[0].IsPressed())
     {
         mMergeCommand = false; // New mouse press/selection, start a new undo command
-        const bool bGroupSelection = input.mKeys[SDL_SCANCODE_LCTRL].IsDown();
         if (lineIdx >= 0)
         {
-            bool bUpdateSelectionState = false;
+            const bool bGroupSelection = input.mKeys[SDL_SCANCODE_LCTRL].IsDown();
             if (bGroupSelection)
             {
                 LOG_INFO("Toggle line selected status");
-                const auto kOldSelectionCount = mSelection.SelectedLines().size();
                 mUndoStack.Push<CommandSelectOrDeselectLine>(mCollisionItems, mSelection, lineIdx, !mCollisionItems[lineIdx]->IsSelected());
-                const auto kNewSelectionCount = mSelection.SelectedLines().size();
-                bUpdateSelectionState = kNewSelectionCount >= kOldSelectionCount;
             }
             else
             {
-                bUpdateSelectionState = true;
-
                 // If clicking on a line that is already selected then don't clear out any other lines that are already selected
                 if (mSelection.SelectedLines().find(lineIdx) == std::end(mSelection.SelectedLines()))
                 {
@@ -674,7 +670,11 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
                 }
             }
 
-            if (bUpdateSelectionState)
+            if (mSelection.SelectedLines().size() > 1)
+            {
+                mSelectionState = eSelectionState::eMoveSelected;
+            }
+            else if (mSelection.SelectedLines().size() == 1)
             {
                 const f32 lineLength = mCollisionItems[lineIdx]->mLine.Length();
                 const f32 distToP1 = glm::distance(mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld) / lineLength;
@@ -691,8 +691,12 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
                 {
                     mSelectionState = eSelectionState::eLineMiddleSelected;
                 }
-                mLastMousePos = mousePosWorld;
             }
+            else
+            {
+                mSelectionState = eSelectionState::eNone;
+            }
+            mLastMousePos = mousePosWorld;
         }
         else
         {
@@ -706,33 +710,26 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
     else if (input.mMouseButtons[0].IsDown() && mSelectionState != eSelectionState::eNone && mLastMousePos != mousePosWorld)
     {
         // TODO: Update mouse cursor to reflect action
-        if (mSelection.SelectedLines().size() == 1)
+        switch (mSelectionState)
         {
-            LOG_INFO("Edit single line");
-            switch (mSelectionState)
-            {
-            case eSelectionState::eLineP1Selected:
-                // TODO: Handle dis/connect to other lines when moving end points
-                mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mCollisionItems, mSelection, mousePosWorld, true);
-                break;
-            case eSelectionState::eLineP2Selected:
-                mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mCollisionItems, mSelection, mousePosWorld, false);
-                break;
-            case eSelectionState::eLineMiddleSelected:
-                // TODO: Disconnect from other lines if moved away
-                mUndoStack.PushMerge<MoveSelection>(mMergeCommand, mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
-                break;
+        case eSelectionState::eLineP1Selected:
+            // TODO: Handle dis/connect to other lines when moving end points
+            mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mCollisionItems, mSelection, mousePosWorld, true);
+            break;
+        case eSelectionState::eLineP2Selected:
+            mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mCollisionItems, mSelection, mousePosWorld, false);
+            break;
 
-            case eSelectionState::eNone:
-                break;
-            }
-        }
-        else if (mSelection.SelectedLines().size() > 1)
-        {
-            LOG_INFO("Move all lines");
+        case eSelectionState::eMoveSelected:
+        case eSelectionState::eLineMiddleSelected:
             // TODO: Disconnect from other lines if moved away
-            mUndoStack.PushMerge<MoveSelection>(!mMergeCommand, mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
+            mUndoStack.PushMerge<MoveSelection>(mMergeCommand, mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
+            break;
+
+        case eSelectionState::eNone:
+            break;
         }
+
         mLastMousePos = mousePosWorld;
         mMergeCommand = true;
     }

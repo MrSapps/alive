@@ -469,7 +469,8 @@ private:
         eNone,
         eLineP1Selected,
         eLineP2Selected,
-        eLineMiddleSelected
+        eLineMiddleSelected,
+        eMoveSelected
     };
     eSelectionState mSelectionState = eSelectionState::eNone;
 
