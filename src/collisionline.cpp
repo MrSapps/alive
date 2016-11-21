@@ -173,3 +173,7 @@ bool CollisionLine::SetSelected(bool selected)
     }
 }
 
+f32 Line::Length() const
+{
+    return glm::distance(mP1, mP2);
+}

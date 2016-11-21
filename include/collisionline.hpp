@@ -57,6 +57,7 @@ struct Line
 
     glm::vec2 mP1;
     glm::vec2 mP2;
+    f32 Length() const;
 };
 
 class CollisionLine

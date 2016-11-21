@@ -672,15 +672,14 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
             const auto kNewSelectionCount = mSelection.SelectedLines().size();
             if (kNewSelectionCount >= kOldSelectionCount)
             {
-                const f32 distToP1 = glm::distance(mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld);
-                const f32 distToP2 = glm::distance(mCollisionItems[lineIdx]->mLine.mP2, mousePosWorld);
-                //const f32 distToMid = glm::distance(mCollisionItems[lineIdx]->mLine.MidPoint(), mousePosWorld);
-                // TODO: Fix tolerance on checks use thirds of line length ? , can't pick middle currently
-                if (distToP1 < distToP2)
+                const f32 lineLength = mCollisionItems[lineIdx]->mLine.Length();
+                const f32 distToP1 = glm::distance(mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld) / lineLength;
+                const f32 distToP2 = glm::distance(mCollisionItems[lineIdx]->mLine.mP2, mousePosWorld) / lineLength;
+                if (distToP1 < 0.2f)
                 {
                     mSelectedArea = eSelectedArea::eP1;
                 }
-                else if (distToP2 < distToP1)
+                else if (distToP2 < 0.2f)
                 {
                     mSelectedArea = eSelectedArea::eP2;
                 }
