@@ -4,6 +4,8 @@
 #include <vector>
 #include <map>
 #include <deque>
+#include <iomanip>
+#include <sstream>
 #include "core/audiobuffer.hpp"
 #include "proxy_nanovg.h"
 #include "oddlib/path.hpp"
@@ -269,6 +271,17 @@ private:
     std::set<s32> mOldSelection;
 };
 
+inline std::string FormatVec2(const glm::vec2& vec)
+{
+    std::ostringstream out;
+    out << "("
+        << static_cast<s32>(vec.x)
+        << ","
+        << static_cast<s32>(vec.y)
+        << ")";
+    return out.str();
+}
+
 class CommandMoveLinePoint : public ICommandWithId<CommandMoveLinePoint>
 {
 public:
@@ -277,8 +290,7 @@ public:
     CommandMoveLinePoint(CollisionLines& lines, Selection& selection, const glm::vec2& newPos, bool moveP1)
         : mLines(lines), mSelection(selection), mNewPos(newPos), mApplyToP1(moveP1)
     {
-        const auto& line = mLines[*mSelection.SelectedLines().begin()];
-        mOldPos = mApplyToP1 ? line->mLine.mP1 : line->mLine.mP2;
+        mOldPos = Point();
     }
 
     void Merge(CollisionLines& /*lines*/, Selection& /*selection*/, const glm::vec2& newPos, bool /*moveP1*/)
@@ -288,25 +300,27 @@ public:
 
     virtual void Redo() final
     {
-        const auto& line = mLines[*mSelection.SelectedLines().begin()];
-        (mApplyToP1 ? line->mLine.mP1 : line->mLine.mP2) = mNewPos;
+        Point() = mNewPos;
     }
 
     virtual void Undo() final
     {
-        const auto& line = mLines[*mSelection.SelectedLines().begin()];
-        (mApplyToP1 ? line->mLine.mP1 : line->mLine.mP2) = mOldPos;
+        Point() = mOldPos;
     }
 
     virtual bool CanMerge() const final { return true; }
 
     virtual std::string Message() final
     {
-        return "Move line point " + std::to_string(mApplyToP1 ? 1 : 2) +
-            " from (" + std::to_string(mOldPos.x) + "," + std::to_string(mOldPos.y)
-            + ") to (" + std::to_string(mNewPos.x) + "," + std::to_string(mNewPos.y) + ")";
+        return "Move line point " + std::to_string(mApplyToP1 ? 1 : 2) + " from " + FormatVec2(mOldPos) + " to " + FormatVec2(mNewPos);
     }
 private:
+    glm::vec2& Point()
+    {
+        const auto& line = mLines[*mSelection.SelectedLines().begin()];
+        return mApplyToP1 ? line->mLine.mP1 : line->mLine.mP2;
+    }
+
     CollisionLines& mLines;
     Selection& mSelection;
     glm::vec2 mOldPos;
@@ -351,7 +365,7 @@ public:
 
     virtual std::string Message() final
     {
-        return "Move selection by " + std::to_string(mDelta.x) + "," + std::to_string(mDelta.y);
+        return "Move selection by " + FormatVec2(mDelta);
     }
 
     virtual bool CanMerge() const final
@@ -473,6 +487,16 @@ private:
         eMoveSelected
     };
     eSelectionState mSelectionState = eSelectionState::eNone;
+
+    /* TODO: Set correct cursors
+    enum class eMouseCursor
+    {
+        eArrow,
+        eOpenHand,
+        eClosedHand,
+    };
+    eMouseCursor mMouseCursor = eMouseCursor::eArrow;
+    */
 
     // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
     // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
