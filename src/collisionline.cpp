@@ -54,18 +54,50 @@ bool CollisionLine::SetSelected(bool selected)
     return eUnknown;
 }
 
+static glm::vec2 ArrowHeadP1(const Line& line, const glm::vec2& unitVec)
+{
+    return Line::PointOnLine(unitVec, 10.0f, 20.0f) + line.mP1;
+}
+
+static glm::vec2 ArrowHeadP2(const Line& line, const glm::vec2& unitVec)
+{
+    return Line::PointOnLine(unitVec, 10.0f, -20.0f) + line.mP1;
+}
+
 /*static*/ s32 CollisionLine::Pick(const CollisionLines& lines, const glm::vec2& pos, float lineScale)
 {
     s32 idx = static_cast<s32>(lines.size());
     for (const std::unique_ptr<CollisionLine>& item : reverse_for(lines))
     {
         idx--;
+        if (item->mLink.mNext)
+        {
+            // TODO: Check this actually works
+            // Check collision with the connection point circle, if there is one
+            if (Physics::IsPointInCircle(item->mLine.mP1, 5.0f * lineScale, pos))
+            {
+                return idx;
+            }
+        }
+    }
+
+    idx = static_cast<s32>(lines.size());
+    for (const std::unique_ptr<CollisionLine>& item : reverse_for(lines))
+    {
+        idx--;
 
         // Check collision with the arrow head triangle, if there is one
-        //Physics::IsPointInTriangle(item->mLine.mP1, ? , ? , pos);
-
-        // Check collision with the connection point circle, if there is one
-        //Physics::IsPointInCircle(centre, radius, pos);
+        if (!item->mLink.mNext)
+        {
+            const Line unitVec = item->mLine.UnitVector();
+            const glm::vec2 arrowP1 = ArrowHeadP1(item->mLine, unitVec.mP2);
+            const glm::vec2 arrowP2 = ArrowHeadP2(item->mLine, unitVec.mP2);
+            // TODO: This isn't correct as the tri points don't take the line width into account
+            if (Physics::IsPointInTriangle(item->mLine.mP1, arrowP1, arrowP2, pos))
+            {
+                return idx;
+            }
+        }
 
         // TODO: Adjust P1 depending on if there is an arrow head or not
         // Check collision with the main line segment
@@ -120,8 +152,8 @@ static void RenderLineAndOptionalArrowHead(Renderer& rend, const Line& line, f32
     if (arrowHead)
     {
         const Line unitVec = line.UnitVector();
-        const glm::vec2 arrowP1 = Line::PointOnLine(unitVec.mP2, 10.0f, 20.0f) + line.mP1;
-        const glm::vec2 arrowP2 = Line::PointOnLine(unitVec.mP2, 10.0f, -20.0f) + line.mP1;
+        const glm::vec2 arrowP1 = ArrowHeadP1(line, unitVec.mP2);
+        const glm::vec2 arrowP2 = ArrowHeadP2(line, unitVec.mP2);
 
         rend.moveTo(line.mP1.x, line.mP1.y);
         rend.lineTo(arrowP1.x, arrowP1.y);
