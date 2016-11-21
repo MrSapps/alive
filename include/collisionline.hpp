@@ -29,6 +29,13 @@ struct Line
 
     glm::vec2 Delta() const { return mP2 - mP1; }
 
+    static glm::vec2 PointOnLine(const glm::vec2& unitVector, f32 distance, f32 rotation)
+    {
+        glm::vec2 pos = unitVector * distance;
+        pos += glm::rotate(pos, rotation);
+        return pos;
+    }
+
     // Return a line from P1 to P2 with a length of 1.0
     Line UnitVector() const
     {
@@ -193,5 +200,7 @@ public:
     };
     static const std::map<eLineTypes, LineData> mData;
 private:
+    static void RenderLine(Renderer& rend, const CollisionLine& line);
+
     bool mSelected = false;
 };

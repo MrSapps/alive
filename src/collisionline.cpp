@@ -77,100 +77,82 @@ bool CollisionLine::SetSelected(bool selected)
     return -1;
 }
 
+static void RenderCircle(Renderer& rend, const glm::vec2& pos, const ColourF32& colour, f32 radius)
+{
+    rend.strokeWidth(4.0f);
+    rend.strokeColor(colour);
+    rend.beginPath();
+    rend.circle(pos.x, pos.y, radius);
+    rend.stroke();
+}
+
 /*static*/ void CollisionLine::Render(Renderer& rend, const CollisionLines& lines)
 {
     for (const std::unique_ptr<CollisionLine>& item : lines)
     {
-        const Line line(rend.WorldToScreen(item->mLine.mP1), rend.WorldToScreen(item->mLine.mP2));
-
-        rend.lineCap(NVG_ROUND);
-        rend.LineJoin(NVG_ROUND);
-        rend.strokeColor(item->mSelected ? ColourF32{ 1, 0, 0, 1 } : ColourF32{ 0, 0, 0, 1 });
-        rend.strokeWidth(10.0f);
-        rend.beginPath();
-
-        rend.moveTo(line.mP1.x, line.mP1.y);
-        rend.lineTo(line.mP2.x, line.mP2.y);
-
-        Line unitVec = line.UnitVector();
-
-        if (!item->mLink.mNext)
-        {
-            // Arrow head
-            glm::vec2 pos = unitVec.mP2 * 10.0f;
-            pos += glm::rotate(pos, 20.0f);
-            pos += line.mP1;
-
-            rend.moveTo(line.mP1.x, line.mP1.y);
-            rend.lineTo(pos.x, pos.y);
-
-            glm::vec2 pos2 = unitVec.mP2 * 10.0f;
-            pos2 += glm::rotate(pos2, -20.0f);
-            pos2 += line.mP1;
-
-            rend.moveTo(line.mP1.x, line.mP1.y);
-            rend.lineTo(pos2.x, pos2.y);
-        }
-
-        rend.stroke();
-
-        const auto it = mData.find(item->mType);
-        assert(it != std::end(mData));
-
-        rend.strokeColor(it->second.mColour.ToColourF32());
-        rend.lineCap(NVG_ROUND);
-        rend.LineJoin(NVG_ROUND);
-        rend.strokeWidth(4.0f);
-        rend.beginPath();
-
-        rend.moveTo(line.mP1.x, line.mP1.y);
-        rend.lineTo(line.mP2.x, line.mP2.y);
-
-        // TODO: Don't duplicate with above code
-        if (!item->mLink.mNext)
-        {
-            // Arrow head
-            glm::vec2 pos = unitVec.mP2 * 10.0f;
-            pos += glm::rotate(pos, 20.0f);
-            pos += line.mP1;
-
-            rend.moveTo(line.mP1.x, line.mP1.y);
-            rend.lineTo(pos.x, pos.y);
-
-            glm::vec2 pos2 = unitVec.mP2 * 10.0f;
-            pos2 += glm::rotate(pos2, -20.0f);
-            pos2 += line.mP1;
-
-            rend.moveTo(line.mP1.x, line.mP1.y);
-            rend.lineTo(pos2.x, pos2.y);
-        }
-        rend.stroke();
-        
-        //rend.text(p1.x, p1.y, std::string(it->second.mName).c_str());
+        RenderLine(rend, *item);
     }
-    
-    // Render would-be connection points
+
+    // Render would-be connection points - always on top of lines
     for (const std::unique_ptr<CollisionLine>& item : lines)
     {
         if (item->mLink.mNext)
         {
             const glm::vec2 p1 = rend.WorldToScreen(item->mLine.mP1);
-            //const glm::vec2 p2 = rend.WorldToScreen(item->mP2);
-
-            rend.strokeWidth(4.0f);
-            rend.strokeColor(ColourF32{ 0, 0, 0, 1 });
-            rend.beginPath();
-            rend.circle(p1.x, p1.y, 5.0f);
-            rend.stroke();
-
-            rend.strokeWidth(4.0f);
-            rend.strokeColor(ColourF32{ 1, 0, 1, 1 });
-            rend.beginPath();
-            rend.circle(p1.x, p1.y, 2.0f);
-            rend.stroke();
-
+            RenderCircle(rend, p1, ColourF32{ 0, 0, 0, 1 }, 5.0f);
+            RenderCircle(rend, p1, ColourF32{ 1, 0, 1, 1 }, 2.0f);
         }
     }
+}
+
+static void RenderLineAndOptionalArrowHead(Renderer& rend, const Line& line, f32 width, const ColourF32& colour, bool arrowHead)
+{
+    rend.lineCap(NVG_ROUND);
+    rend.LineJoin(NVG_ROUND);
+
+    rend.strokeColor(colour);
+    rend.strokeWidth(width);
+    rend.beginPath();
+
+    rend.moveTo(line.mP1.x, line.mP1.y);
+    rend.lineTo(line.mP2.x, line.mP2.y);
+
+    if (arrowHead)
+    {
+        const Line unitVec = line.UnitVector();
+        const glm::vec2 arrowP1 = Line::PointOnLine(unitVec.mP2, 10.0f, 20.0f) + line.mP1;
+        const glm::vec2 arrowP2 = Line::PointOnLine(unitVec.mP2, 10.0f, -20.0f) + line.mP1;
+
+        rend.moveTo(line.mP1.x, line.mP1.y);
+        rend.lineTo(arrowP1.x, arrowP1.y);
+        rend.moveTo(line.mP1.x, line.mP1.y);
+        rend.lineTo(arrowP2.x, arrowP2.y);
+    }
+
+    rend.stroke();
+}
+
+/*static*/ void CollisionLine::RenderLine(Renderer& rend, const CollisionLine& item)
+{
+    const Line line(rend.WorldToScreen(item.mLine.mP1), rend.WorldToScreen(item.mLine.mP2));
+
+    // Draw the big outline
+    RenderLineAndOptionalArrowHead(
+        rend, 
+        line, 
+        10.0f, 
+        (item.mSelected ? ColourF32{ 1, 0, 0, 1 } : ColourF32{ 0, 0, 0, 1 }), 
+        !item.mLink.mNext);
+
+    // Over draw the middle with the "fill" colour
+    const auto it = mData.find(item.mType);
+    assert(it != std::end(mData));
+    RenderLineAndOptionalArrowHead(
+        rend,
+        line,
+        4.0f,
+        it->second.mColour.ToColourF32(),
+        !item.mLink.mNext);
 }
 
 f32 Line::Length() const
