@@ -192,15 +192,43 @@ public:
 
     s32 Height() const { return mH; }
     s32 Width() const { return mW; }
-protected:
+
+    void SetScreenSize(const glm::vec2& size)
+    {
+        if (mScreenSize != size)
+        {
+            mScreenSize = size;
+            ReCalculateCamera();
+        }
+    }
+
+    void SetCameraPosition(const glm::vec2& pos)
+    {
+        if (mCameraPosition != pos)
+        {
+            mCameraPosition = pos;
+            ReCalculateCamera();
+        }
+    }
+
     void UpdateCamera()
+    {
+        if (mSmoothCameraPosition)
+        {
+            MatrixLerp(glm::value_ptr(mView), glm::value_ptr(mTargetView), 0.1f);
+            MatrixLerp(glm::value_ptr(mProjection), glm::value_ptr(mTargetProjection), 0.1f);
+        }
+    }
+
+protected:
+    void ReCalculateCamera()
     {
         /*
         T left, T right,
         T bottom, T top,
         T zNear, T zFar
         */
-        glm::mat4 target_projection = glm::ortho(
+        mTargetProjection = glm::ortho(
             -mScreenSize.x / 2.0f, 
             mScreenSize.x / 2.0f, 
             mScreenSize.y / 2.0f, 
@@ -208,27 +236,20 @@ protected:
             -1.0f,
             1.0f);
         
-        glm::mat4 camMat = glm::translate(glm::mat4(1.0f), glm::vec3(-mCameraPosition, 0));
+        mTargetView = glm::translate(glm::mat4(1.0f), glm::vec3(-mCameraPosition, 0));
 
-        // TODO: Auto turn this off when we've reached the target? Otherwise resizing a window acts "strange"
-        if (mSmoothCameraPosition)
+        if (!mSmoothCameraPosition)
         {
-            glm::mat4 targetCameraPos = camMat;
-            MatrixLerp(glm::value_ptr(mView), glm::value_ptr(targetCameraPos), 0.1f);
-
-            // Lerp camera matrix
-            MatrixLerp(glm::value_ptr(mProjection), glm::value_ptr(target_projection), 0.1f);
-        }
-        else
-        {
-            mView = camMat;
-            mProjection = target_projection;
+            mView = mTargetView;
+            mProjection = mTargetProjection;
         }
     }
 
-public: // TODO: Only allow writing to during Update() and make read only during Render()
     glm::vec2 mScreenSize = glm::vec2(368, 240);
     glm::vec2 mCameraPosition = glm::vec2(0, 0);
+
+public: // TODO: Only allow writing to during Update() and make read only during Render()
+
     bool mSmoothCameraPosition = false;
 
 protected:
@@ -237,6 +258,9 @@ protected:
     int mH = 0;
 
     // There is no "world" matrix as objects are already in world space
+
+    glm::mat4 mTargetProjection;
+    glm::mat4 mTargetView;
 
     // 2d ortho projection
     glm::mat4 mProjection;
@@ -302,7 +326,7 @@ public:
     // TODO: Add fontsize param to make independent of "current state"
     void textBounds(int x, int y, const char *msg, f32 bounds[4]);
 
-    void Update() { UpdateCamera(); }
+    void Update() { ReCalculateCamera(); }
 private:
     void destroyTextures();
     void pushCmd(DrawCmd cmd);

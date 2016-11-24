@@ -401,7 +401,7 @@ void Engine::Update()
             case SDL_WINDOWEVENT_RESIZED:
             case SDL_WINDOWEVENT_MAXIMIZED:
             case SDL_WINDOWEVENT_RESTORED:
-
+                mRenderer->mSmoothCameraPosition = false;
                 break;
             }
             break;
@@ -533,7 +533,6 @@ void Engine::Update()
     Debugging().Update(mInputState);
 
     mStateMachine.Update(mInputState, *mRenderer);
-    mRenderer->Update();
 }
 
 void Engine::Render()
@@ -557,6 +556,8 @@ void Engine::Render()
     mRenderer->endFrame();
 
     SDL_GL_SwapWindow(mWindow);
+
+    mRenderer->UpdateCamera();
 }
 
 bool Engine::InitSDL()

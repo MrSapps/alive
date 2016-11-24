@@ -9,7 +9,7 @@ struct Debug
     bool mAnimDebugStrings = false;
     bool mCollisionLines = true;
     bool mGrid = true;
-    bool mObjectBoundingBoxes = true;
+    bool mObjectBoundingBoxes = false;
     bool mRayCasts = true;
     bool mShowDebugUi = true;
     bool mShowBrowserUi = false;

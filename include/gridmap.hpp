@@ -470,7 +470,7 @@ private:
     std::string mLvlName;
 
     // Editor stuff
-    int mEditorCamZoom = 5;
+    f32 mEditorCamZoom = 1.0f;
     const int mEditorGridSizeX = 25;
     const int mEditorGridSizeY = 20;
 

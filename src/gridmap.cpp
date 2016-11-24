@@ -549,17 +549,17 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 {
     if (input.mKeys[SDL_SCANCODE_E].IsPressed())
     {
+        coords.mSmoothCameraPosition = true;
+
         if (mState == eStates::eEditor)
         {
             mState = eStates::eInGame;
-            coords.mSmoothCameraPosition = false;
             mPlayer.mXPos = mCameraPosition.x;
             mPlayer.mYPos = mCameraPosition.y;
         }
         else if (mState == eStates::eInGame)
         {
             mState = eStates::eEditor;
-            coords.mSmoothCameraPosition = true;
             mCameraPosition.x = mPlayer.mXPos;
             mCameraPosition.y = mPlayer.mYPos;
         }
@@ -567,18 +567,23 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 
     if (mState == eStates::eEditor)
     {
-        f32 editorCamSpeed = 10.0f;
-
+        bool bGoFaster = false;
         if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
         {
-            if (input.mKeys[SDL_SCANCODE_W].IsPressed())        { mEditorCamZoom--; }
-            else if (input.mKeys[SDL_SCANCODE_S].IsPressed())   { mEditorCamZoom++; }
+            if (input.mKeys[SDL_SCANCODE_W].IsPressed())        { mEditorCamZoom -= 0.1f; }
+            else if (input.mKeys[SDL_SCANCODE_S].IsPressed())   { mEditorCamZoom += 0.1f; }
 
-            mEditorCamZoom = glm::clamp(mEditorCamZoom, 1, 35);
+            mEditorCamZoom = glm::clamp(mEditorCamZoom, 0.1f, 3.0f);
         }
         else
         {
-            if (input.mKeys[SDL_SCANCODE_LSHIFT].IsDown())  { editorCamSpeed *= 4; }
+            if (input.mKeys[SDL_SCANCODE_LSHIFT].IsDown())  { bGoFaster = true; }
+
+            f32 editorCamSpeed = 10.0f * mEditorCamZoom;
+            if (bGoFaster)
+            {
+                editorCamSpeed *= 4.0f;
+            }
 
             if (input.mKeys[SDL_SCANCODE_W].IsDown())       { mCameraPosition.y -= editorCamSpeed; }
             else if (input.mKeys[SDL_SCANCODE_S].IsDown())  { mCameraPosition.y += editorCamSpeed; }
@@ -586,12 +591,11 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
             if (input.mKeys[SDL_SCANCODE_A].IsDown())       { mCameraPosition.x -= editorCamSpeed; }
             else if (input.mKeys[SDL_SCANCODE_D].IsDown())  { mCameraPosition.x += editorCamSpeed; }
         }
-        coords.mScreenSize = glm::vec2(coords.Width() / 8, coords.Height() / 8) * static_cast<f32>(mEditorCamZoom);
-
+        coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorCamZoom);
     }
     else if (mState == eStates::eInGame)
     {
-        coords.mScreenSize = glm::vec2(368, 240);
+        coords.SetScreenSize(glm::vec2(368, 240));
 
         mPlayer.Update(input);
 
@@ -607,12 +611,18 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
         const int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x);
         const int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y);
 
-        mCameraPosition = glm::vec2((camX * camGapSize.x) + camOffset.x, (camY * camGapSize.y) + camOffset.y) + glm::vec2(368 / 2, 240 / 2);
+        glm::vec2 camPos = glm::vec2((camX * camGapSize.x) + camOffset.x, (camY * camGapSize.y) + camOffset.y) + glm::vec2(368 / 2, 240 / 2);
+        if (mCameraPosition != camPos)
+        {
+            LOG_INFO("TODO: Screen change");
+            coords.mSmoothCameraPosition = false;
+            mCameraPosition = camPos;
+        }
     }
-    coords.mCameraPosition = mCameraPosition;
+    coords.SetCameraPosition(mCameraPosition);
 
     const glm::vec2 mousePosWorld = coords.ScreenToWorld({ input.mMousePosition.mX, input.mMousePosition.mY });
-    const s32 lineIdx = CollisionLine::Pick(mCollisionItems, mousePosWorld, mState == eStates::eInGame ? 1.0f : (static_cast<float>(mEditorCamZoom) / 4.0f));
+    const s32 lineIdx = CollisionLine::Pick(mCollisionItems, mousePosWorld, mState == eStates::eInGame ? 1.0f : mEditorCamZoom);
     
 
     if (lineIdx >= 0)
@@ -782,7 +792,8 @@ void GridMap::RenderDebug(Renderer& rend) const
     {
         rend.strokeColor(ColourF32{ 1, 1, 1, 0.1f });
         rend.strokeWidth(2.f);
-        int gridLineCountX = static_cast<int>((rend.ScreenSize().x / mEditorGridSizeX) / 2) + 2;
+
+        int gridLineCountX = static_cast<int>((rend.ScreenSize().x / mEditorGridSizeX));
         for (int x = -gridLineCountX; x < gridLineCountX; x++)
         {
             rend.beginPath();
@@ -791,7 +802,8 @@ void GridMap::RenderDebug(Renderer& rend) const
             rend.lineTo(screenPos.x, static_cast<f32>(rend.Height()));
             rend.stroke();
         }
-        int gridLineCountY = static_cast<int>((rend.ScreenSize().y / mEditorGridSizeY) / 2) + 2;
+
+        int gridLineCountY = static_cast<int>((rend.ScreenSize().y / mEditorGridSizeY));
         for (int y = -gridLineCountY; y < gridLineCountY; y++)
         {
             rend.beginPath();
