@@ -326,7 +326,6 @@ public:
     // TODO: Add fontsize param to make independent of "current state"
     void textBounds(int x, int y, const char *msg, f32 bounds[4]);
 
-    void Update() { ReCalculateCamera(); }
 private:
     void destroyTextures();
     void pushCmd(DrawCmd cmd);
