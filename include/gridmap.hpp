@@ -450,12 +450,19 @@ public:
     GridMap(const GridMap&) = delete;
     GridMap& operator = (const GridMap&) = delete;
     GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend);
-    void Update(const InputState& input, CoordinateSpace& rend);
+    void Update(const InputState& input, CoordinateSpace& coords);
     void Render(Renderer& rend, GuiContext& gui) const;
 private:
+
+    void UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& coords);
+    void UpdateEditor(const InputState& input, CoordinateSpace& coords);
+    void UpdateGame(const InputState& input, CoordinateSpace& coords);
+
     MapObject* GetMapObject(s32 x, s32 y, const char* type);
     void ActivateObjectsWithId(MapObject* from, s32 id, bool direction);
     void RenderDebug(Renderer& rend) const;
+    
+    void RenderToEditorOrToGame(Renderer& rend, GuiContext& gui) const;
     void RenderEditor(Renderer& rend, GuiContext& gui) const;
     void RenderGame(Renderer& rend, GuiContext& gui) const;
 
@@ -464,7 +471,9 @@ private:
     void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
 
 
-
+    glm::vec2 kVirtualScreenSize;
+    glm::vec2 kCameraBlockSize;
+    glm::vec2 kCameraBlockImageOffset;
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
     
     std::string mLvlName;
@@ -473,6 +482,7 @@ private:
     f32 mEditorCamZoom = 1.0f;
     const int mEditorGridSizeX = 25;
     const int mEditorGridSizeY = 20;
+    u32 mModeSwitchTimeout = 0;
 
     Selection mSelection;
     UndoStack mUndoStack;
@@ -510,7 +520,9 @@ private:
     enum class eStates
     {
         eInGame,
-        eEditor
+        eToEditor,
+        eEditor,
+        eToGame
     };
     eStates mState = eStates::eInGame;
 

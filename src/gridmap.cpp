@@ -452,6 +452,16 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
 {
     mIsAo = path.IsAo();
 
+    // Size of the screen you see during normal game play, this is always less the the "block" the camera image fits into
+    kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
+
+    // The "block" or grid square that a camera fits into, it never usually fills the grid
+    kCameraBlockSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+
+    // Since the camera won't fill a block it can be offset so the camera image is in the middle
+    // of the block or else where.
+    kCameraBlockImageOffset = (mIsAo) ? glm::vec2(257, 114) : glm::vec2(0, 0);
+
     ConvertCollisionItems(path.CollisionItems());
 
     luaState.set_function("GetMapObject", &GridMap::GetMapObject, this);
@@ -547,83 +557,95 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
 
 void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 {
-    if (input.mKeys[SDL_SCANCODE_E].IsPressed())
-    {
-        coords.mSmoothCameraPosition = true;
-
-        if (mState == eStates::eEditor)
-        {
-            mState = eStates::eInGame;
-            mPlayer.mXPos = mCameraPosition.x;
-            mPlayer.mYPos = mCameraPosition.y;
-        }
-        else if (mState == eStates::eInGame)
-        {
-            mState = eStates::eEditor;
-            mCameraPosition.x = mPlayer.mXPos;
-            mCameraPosition.y = mPlayer.mYPos;
-        }
-    }
-
     if (mState == eStates::eEditor)
     {
-        bool bGoFaster = false;
-        if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
-        {
-            if (input.mKeys[SDL_SCANCODE_W].IsPressed())        { mEditorCamZoom -= 0.1f; }
-            else if (input.mKeys[SDL_SCANCODE_S].IsPressed())   { mEditorCamZoom += 0.1f; }
-
-            mEditorCamZoom = glm::clamp(mEditorCamZoom, 0.1f, 3.0f);
-        }
-        else
-        {
-            if (input.mKeys[SDL_SCANCODE_LSHIFT].IsDown())  { bGoFaster = true; }
-
-            f32 editorCamSpeed = 10.0f * mEditorCamZoom;
-            if (bGoFaster)
-            {
-                editorCamSpeed *= 4.0f;
-            }
-
-            if (input.mKeys[SDL_SCANCODE_W].IsDown())       { mCameraPosition.y -= editorCamSpeed; }
-            else if (input.mKeys[SDL_SCANCODE_S].IsDown())  { mCameraPosition.y += editorCamSpeed; }
-
-            if (input.mKeys[SDL_SCANCODE_A].IsDown())       { mCameraPosition.x -= editorCamSpeed; }
-            else if (input.mKeys[SDL_SCANCODE_D].IsDown())  { mCameraPosition.x += editorCamSpeed; }
-        }
-        coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorCamZoom);
+        UpdateEditor(input, coords);
     }
     else if (mState == eStates::eInGame)
     {
-        coords.SetScreenSize(glm::vec2(368, 240));
+        UpdateGame(input, coords);
+    }
+    else
+    {
+        UpdateToEditorOrToGame(input, coords);
+    }
+}
 
-        mPlayer.Update(input);
+void GridMap::UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& coords)
+{
+    std::ignore = input;
 
-        for (std::unique_ptr<MapObject>& obj : mObjs)
+    if (mState == eStates::eToEditor)
+    {
+        coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorCamZoom);
+        if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
         {
-            obj->Update(input);
+            mState = eStates::eEditor;
         }
-
-        // TODO: Partly duplicated in render
-        const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
-        const glm::vec2 camOffset =  (mIsAo) ? glm::vec2(257, 114)  : glm::vec2(0, 0);
-
-        const int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x);
-        const int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y);
-
-        glm::vec2 camPos = glm::vec2((camX * camGapSize.x) + camOffset.x, (camY * camGapSize.y) + camOffset.y) + glm::vec2(368 / 2, 240 / 2);
-        if (mCameraPosition != camPos)
+    }
+    else if (mState == eStates::eToGame)
+    {
+        coords.SetScreenSize(glm::vec2(368, 240));
+        if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
         {
-            LOG_INFO("TODO: Screen change");
-            coords.mSmoothCameraPosition = false;
-            mCameraPosition = camPos;
+            mState = eStates::eInGame;
         }
     }
     coords.SetCameraPosition(mCameraPosition);
+}
 
+constexpr u32 kSwitchTimeMs = 300;
+
+void GridMap::UpdateEditor(const InputState& input, CoordinateSpace& coords)
+{
     const glm::vec2 mousePosWorld = coords.ScreenToWorld({ input.mMousePosition.mX, input.mMousePosition.mY });
+
+    if (input.mKeys[SDL_SCANCODE_E].IsPressed())
+    {
+        mState = eStates::eToGame;
+        coords.mSmoothCameraPosition = true;
+        mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
+
+        const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / kCameraBlockSize.x);
+        const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / kCameraBlockSize.y);
+
+        mPlayer.mXPos = (mouseCamX * kCameraBlockSize.x) + (kVirtualScreenSize.x / 2);
+        mPlayer.mYPos = (mouseCamY * kCameraBlockSize.y) + (kVirtualScreenSize.y / 2);
+
+        mCameraPosition.x = mPlayer.mXPos;
+        mCameraPosition.y = mPlayer.mYPos;
+    }
+
+    bool bGoFaster = false;
+    if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
+    {
+        if (input.mKeys[SDL_SCANCODE_W].IsPressed()) { mEditorCamZoom -= 0.1f; }
+        else if (input.mKeys[SDL_SCANCODE_S].IsPressed()) { mEditorCamZoom += 0.1f; }
+
+        mEditorCamZoom = glm::clamp(mEditorCamZoom, 0.1f, 3.0f);
+    }
+    else
+    {
+        if (input.mKeys[SDL_SCANCODE_LSHIFT].IsDown()) { bGoFaster = true; }
+
+        f32 editorCamSpeed = 10.0f * mEditorCamZoom;
+        if (bGoFaster)
+        {
+            editorCamSpeed *= 4.0f;
+        }
+
+        if (input.mKeys[SDL_SCANCODE_W].IsDown()) { mCameraPosition.y -= editorCamSpeed; }
+        else if (input.mKeys[SDL_SCANCODE_S].IsDown()) { mCameraPosition.y += editorCamSpeed; }
+
+        if (input.mKeys[SDL_SCANCODE_A].IsDown()) { mCameraPosition.x -= editorCamSpeed; }
+        else if (input.mKeys[SDL_SCANCODE_D].IsDown()) { mCameraPosition.x += editorCamSpeed; }
+    }
+
+    coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorCamZoom);
+    coords.SetCameraPosition(mCameraPosition);
+
     const s32 lineIdx = CollisionLine::Pick(mCollisionItems, mousePosWorld, mState == eStates::eInGame ? 1.0f : mEditorCamZoom);
-    
+
 
     if (lineIdx >= 0)
     {
@@ -753,6 +775,44 @@ void GridMap::Update(const InputState& input, CoordinateSpace& coords)
     }
 }
 
+void GridMap::UpdateGame(const InputState& input, CoordinateSpace& coords)
+{
+    if (input.mKeys[SDL_SCANCODE_E].IsPressed())
+    {
+        mState = eStates::eToEditor;
+        coords.mSmoothCameraPosition = true;
+
+        mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
+
+        mCameraPosition.x = mPlayer.mXPos;
+        mCameraPosition.y = mPlayer.mYPos;
+    }
+
+    coords.SetScreenSize(glm::vec2(368, 240));
+ 
+    mPlayer.Update(input);
+
+    for (std::unique_ptr<MapObject>& obj : mObjs)
+    {
+        obj->Update(input);
+    }
+
+    const s32 camX = static_cast<s32>(mPlayer.mXPos / kCameraBlockSize.x);
+    const s32 camY = static_cast<s32>(mPlayer.mYPos / kCameraBlockSize.y);
+
+    const glm::vec2 camPos = glm::vec2(
+        (camX * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
+        (camY * kCameraBlockSize.y) + kCameraBlockImageOffset.y) + glm::vec2(kVirtualScreenSize.x / 2, kVirtualScreenSize.y / 2);
+
+    if (mCameraPosition != camPos)
+    {
+        LOG_INFO("TODO: Screen change");
+        coords.mSmoothCameraPosition = false;
+        mCameraPosition = camPos;
+    }
+    coords.SetCameraPosition(mCameraPosition);
+}
+
 MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
 {
     for (std::unique_ptr<MapObject>& obj : mObjs)
@@ -845,12 +905,16 @@ void GridMap::RenderDebug(Renderer& rend) const
     }
 }
 
+void GridMap::RenderToEditorOrToGame(Renderer& rend, GuiContext& gui) const
+{
+    // TODO: Better transition
+    // Keep everything rendered for now
+    RenderEditor(rend, gui);
+}
+
 void GridMap::RenderEditor(Renderer& rend, GuiContext& gui) const
 {
     rend.beginLayer(gui_layer(&gui) + 1);
-
-    const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
-    const glm::vec2 camOffset = (mIsAo) ? glm::vec2(257, 114) : glm::vec2(0, 0);
 
     // Draw every cam
     for (auto x = 0u; x < mScreens.size(); x++)
@@ -861,7 +925,10 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui) const
             if (!screen->hasTexture())
                 continue;
 
-            rend.drawQuad(screen->getTexHandle(), (x * camGapSize.x) + camOffset.x, (y * camGapSize.y) + camOffset.y, 368.0f, 240.0f);
+            rend.drawQuad(screen->getTexHandle(), 
+                (x * kCameraBlockSize.x) + kCameraBlockImageOffset.x, 
+                (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y, 
+                kVirtualScreenSize.x, kVirtualScreenSize.y);
         }
     }
 
@@ -886,23 +953,23 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
     
     mUndoStack.DebugRenderCommandList(gui);
 
-
-    // TODO: Partly duplicated in Update
-    const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
-    const glm::vec2 camOffset = (mIsAo) ? glm::vec2(257, 114) : glm::vec2(0, 0);
-
-    const int camX = static_cast<int>(mPlayer.mXPos / camGapSize.x);
-    const int camY = static_cast<int>(mPlayer.mYPos / camGapSize.y);
+    const s32 camX = static_cast<s32>(mPlayer.mXPos / kCameraBlockSize.x);
+    const s32 camY = static_cast<s32>(mPlayer.mYPos / kCameraBlockSize.y);
 
 
     // Culling is disabled until proper camera position updating order is fixed
     // ^ not sure what this means, but rendering things at negative cam index seems to go wrong
-    if (camX >= 0 && camY >= 0 && camX < static_cast<int>(mScreens.size()) && camY < static_cast<int>(mScreens[camX].size()))
+    if (camX >= 0 && camY >= 0 && 
+        camX < static_cast<s32>(mScreens.size()) && 
+        camY < static_cast<s32>(mScreens[camX].size()))
     {
         GridScreen* screen = mScreens[camX][camY].get();
         if (screen->hasTexture())
         {
-            rend.drawQuad(screen->getTexHandle(), (camX * camGapSize.x) + camOffset.x, (camY * camGapSize.y) + camOffset.y, 368.0f, 240.0f);
+            rend.drawQuad(screen->getTexHandle(),
+                (camX * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
+                (camY * kCameraBlockSize.y) + kCameraBlockImageOffset.y,
+                kVirtualScreenSize.x, kVirtualScreenSize.y);
         }
     }
     RenderDebug(rend);
@@ -1096,6 +1163,10 @@ void GridMap::Render(Renderer& rend, GuiContext& gui) const
     else if (mState == eStates::eInGame)
     {
         RenderGame(rend, gui);
+    }
+    else
+    {
+        RenderToEditorOrToGame(rend, gui);
     }
 }
 

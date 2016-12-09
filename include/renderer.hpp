@@ -215,8 +215,8 @@ public:
     {
         if (mSmoothCameraPosition)
         {
-            MatrixLerp(glm::value_ptr(mView), glm::value_ptr(mTargetView), 0.1f);
-            MatrixLerp(glm::value_ptr(mProjection), glm::value_ptr(mTargetProjection), 0.1f);
+            MatrixLerp(glm::value_ptr(mView), glm::value_ptr(mTargetView), 0.2f);
+            MatrixLerp(glm::value_ptr(mProjection), glm::value_ptr(mTargetProjection), 0.2f);
         }
     }
 
