@@ -380,17 +380,18 @@ function(make_header src dst targetname varname)
 
     add_custom_target(
       Generate_${targetname} ALL
-      DEPENDS "${dst}"
+      DEPENDS "${dst}" bin2h
     )
 
     SET_PROPERTY(TARGET Generate_${targetname} PROPERTY FOLDER "Header generators")
 
 endfunction()
-  
+
+SET(generated_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers)
+
 # Helper to take file foo.dat in any path and place it in generated headers as foo.dat.g.h with
 # var name of foo
 function(to_vec src_file out_file_name)
-    SET(generated_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers)
     get_filename_component(NameOnly ${samples_dir}/${src_file} NAME)
     get_filename_component(NameOnlyNoExt ${samples_dir}/${src_file} NAME_WE)
     message(STATUS "File name is ${NameOnly} with out ext is ${NameOnlyNoExt}")
@@ -422,6 +423,28 @@ to_vec(${samples_dir}/ae_ddv/video_only/all_colours_max_compression_30_fps.ddv a
 to_vec(${samples_dir}/ae_ddv/video_only/all_colours_medium_compression_30_fps.ddv all_colours_medium_compression_30_fps.ddv)
 to_vec(${samples_dir}/ae_ddv/video_only/all_colours_min_compression_30_fps.ddv all_colours_min_compression_30_fps.ddv)
 
+SET(generated_headers
+    ${generated_headers_dir}/MaxECDRComment.zip.g.h
+    ${generated_headers_dir}/SimpleNoComp.zip.g.h
+    ${generated_headers_dir}/test.bin.g.h
+    ${generated_headers_dir}/xa.bin.g.h
+    ${generated_headers_dir}/sample.lvl.g.h
+    ${generated_headers_dir}/mono_8_high_compression_all_samples.ddv.g.h
+    ${generated_headers_dir}/mono_8_low_compression_all_samples.ddv.g.h
+    ${generated_headers_dir}/mono_16_high_compression_all_samples.ddv.g.h
+    ${generated_headers_dir}/mono_16_low_compression_all_samples.ddv.g.h
+    ${generated_headers_dir}/stereo_8_high_compression_all_samples.ddv.g.h
+    ${generated_headers_dir}/stereo_8_low_compression_all_samples.ddv.g.h
+    ${generated_headers_dir}/stereo_16_high_compression_all_samples.ddv.g.h
+    ${generated_headers_dir}/stereo_16_low_compression_all_samples.ddv.g.h
+    ${generated_headers_dir}/all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave.ddv.g.h
+    ${generated_headers_dir}/all_colours_high_compression_30_fps.ddv.g.h
+    ${generated_headers_dir}/all_colours_low_compression_30_fps.ddv.g.h
+    ${generated_headers_dir}/all_colours_max_compression_30_fps.ddv.g.h
+    ${generated_headers_dir}/all_colours_medium_compression_30_fps.ddv.g.h
+    ${generated_headers_dir}/all_colours_min_compression_30_fps.ddv.g.h
+)
+
 SET(test_src
     test/main.cpp
     test/resource_locator_test.cpp
@@ -434,6 +457,7 @@ SET(test_src
 
 add_executable(Tests 
     ${test_src}
+    ${generated_headers}
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 
