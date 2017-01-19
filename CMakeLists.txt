@@ -437,7 +437,7 @@ SET(generated_headers
     ${generated_headers_dir}/stereo_8_low_compression_all_samples.ddv.g.h
     ${generated_headers_dir}/stereo_16_high_compression_all_samples.ddv.g.h
     ${generated_headers_dir}/stereo_16_low_compression_all_samples.ddv.g.h
-    ${generated_headers_dir}/all_colours_low_compression_15fps_8bit_mono_high_compression_5_frames_interleave.ddv.g.h
+    ${generated_headers_dir}/ddv_test1.ddv.g.h
     ${generated_headers_dir}/all_colours_high_compression_30_fps.ddv.g.h
     ${generated_headers_dir}/all_colours_low_compression_30_fps.ddv.g.h
     ${generated_headers_dir}/all_colours_max_compression_30_fps.ddv.g.h
