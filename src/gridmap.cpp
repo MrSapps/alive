@@ -644,8 +644,8 @@ void GridMap::UpdateEditor(const InputState& input, CoordinateSpace& coords)
     coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorCamZoom);
     coords.SetCameraPosition(mCameraPosition);
 
+    // Find out what line is under the mouse pos, if any
     const s32 lineIdx = CollisionLine::Pick(mCollisionItems, mousePosWorld, mState == eStates::eInGame ? 1.0f : mEditorCamZoom);
-
 
     if (lineIdx >= 0)
     {

@@ -245,7 +245,7 @@ namespace Oddlib
     }
 
     // This function takes a 16x240 strip of bits and processes as 16x16 sized macro blocks, thus there are 240/16=15 macro blocks
-    void AeBitsPc::process_segment(unsigned short int *aVlcBufferPtr, int xPos)
+    void AeBitsPc::process_segment(u16 *aVlcBufferPtr, int xPos)
     {
         g_pointer_to_vlc_buffer = aVlcBufferPtr;       // This is decoding one 16x240 seg
 

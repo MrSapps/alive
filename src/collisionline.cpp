@@ -66,6 +66,7 @@ static glm::vec2 ArrowHeadP2(const Line& line, const glm::vec2& unitVec)
 
 /*static*/ s32 CollisionLine::Pick(const CollisionLines& lines, const glm::vec2& pos, float lineScale)
 {
+    /*
     s32 idx = static_cast<s32>(lines.size());
     for (const std::unique_ptr<CollisionLine>& item : reverse_for(lines))
     {
@@ -80,12 +81,14 @@ static glm::vec2 ArrowHeadP2(const Line& line, const glm::vec2& unitVec)
             }
         }
     }
+    */
 
-    idx = static_cast<s32>(lines.size());
+    s32 idx = static_cast<s32>(lines.size());
     for (const std::unique_ptr<CollisionLine>& item : reverse_for(lines))
     {
         idx--;
 
+        /*
         // Check collision with the arrow head triangle, if there is one
         if (!item->mLink.mNext)
         {
@@ -98,13 +101,26 @@ static glm::vec2 ArrowHeadP2(const Line& line, const glm::vec2& unitVec)
                 return idx;
             }
         }
+        */
 
         // TODO: Adjust P1 depending on if there is an arrow head or not
         // Check collision with the main line segment
-        if (Physics::IsPointInThickLine(item->mLine.mP1, item->mLine.mP2, pos, 5.0f * lineScale))
+        if (Physics::IsPointInThickLine(item->mLine.mP1, item->mLine.mP2, pos, 10.0f * lineScale))
         {
             return idx;
         }
+
+        /*
+        if (Physics::IsPointInCircle(item->mLine.mP2, 5.0f * lineScale, pos))
+        {
+           // return idx;
+        }
+
+        if (Physics::IsPointInCircle(item->mLine.mP1, 6.0f * lineScale, pos))
+        {
+          //  return idx;
+        }
+        */
     }
     return -1;
 }
