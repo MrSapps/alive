@@ -1,4 +1,4 @@
-#include "oddlib/psx_bits.hpp"
+#include "oddlib/bits_psx.hpp"
 #include "oddlib/stream.hpp"
 #include "oddlib/PSXMDECDecoder.h"
 #include "logger.hpp"

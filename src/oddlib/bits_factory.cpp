@@ -1,8 +1,8 @@
 #include "oddlib/bits_factory.hpp"
 #include "oddlib/stream.hpp"
-#include "oddlib/ao_bits_pc.hpp"
-#include "oddlib/ae_bits_pc.hpp"
-#include "oddlib/psx_bits.hpp"
+#include "oddlib/bits_ao_pc.hpp"
+#include "oddlib/bits_ae_pc.hpp"
+#include "oddlib/bits_psx.hpp"
 #include "logger.hpp"
 #include <array>
 #include <fstream>

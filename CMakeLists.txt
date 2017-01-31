@@ -228,7 +228,7 @@ SET(oddlib_src
     include/oddlib/bits_ao_pc.hpp
     src/oddlib/bits_ae_pc.cpp
     include/oddlib/bits_ae_pc.hpp
-    src/oddlib/psx_bits.cpp
+    src/oddlib/bits_psx.cpp
     include/oddlib/bits_psx.hpp
     src/oddlib/bits_factory.cpp
     include/oddlib/bits_factory.hpp
