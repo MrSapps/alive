@@ -224,12 +224,12 @@ SET(oddlib_src
     include/oddlib/cdromfilesystem.hpp
     src/oddlib/path.cpp
     include/oddlib/path.hpp
-    src/oddlib/ao_bits_pc.cpp
-    include/oddlib/ao_bits_pc.hpp
-    src/oddlib/ae_bits_pc.cpp
-    include/oddlib/ae_bits_pc.hpp
+    src/oddlib/bits_ao_pc.cpp
+    include/oddlib/bits_ao_pc.hpp
+    src/oddlib/bits_ae_pc.cpp
+    include/oddlib/bits_ae_pc.hpp
     src/oddlib/psx_bits.cpp
-    include/oddlib/psx_bits.hpp
+    include/oddlib/bits_psx.hpp
     src/oddlib/bits_factory.cpp
     include/oddlib/bits_factory.hpp
     include/oddlib/compressiontype3ae.hpp
