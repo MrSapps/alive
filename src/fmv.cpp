@@ -221,7 +221,6 @@ void IMovie::RenderFrame(Renderer &rend, GuiContext &gui, int width, int height,
     gui_turtle_pos(&gui, &x, &y);
     gui_window_client_size(&gui, &w, &h);
 
-    rend.beginLayer(gui_layer(&gui) + 1);
     rend.drawQuad(texhandle, static_cast<f32>(x), static_cast<f32>(y), static_cast<f32>(w), static_cast<f32>(h));
 
     if (subtitles)
@@ -229,7 +228,6 @@ void IMovie::RenderFrame(Renderer &rend, GuiContext &gui, int width, int height,
         RenderSubtitles(rend, subtitles, x, y, w, h);
     }
 
-    rend.endLayer();
 
     gui_end_window(&gui);
 

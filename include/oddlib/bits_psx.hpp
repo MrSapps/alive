@@ -16,6 +16,7 @@ namespace Oddlib
         PsxBits& operator = (const PsxBits&) = delete;
         PsxBits(IStream& stream, bool includeLengthInStripSize, bool singleSlice);
         virtual SDL_Surface* GetSurface() const override;
+        virtual IFg1* GetFg1() const override { return nullptr; }
         bool IncludeLength() const { return mIncludeLengthInStripSize; }
     private:
         void GenerateImage(IStream& stream, bool singleSlice);

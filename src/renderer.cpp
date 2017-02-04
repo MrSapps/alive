@@ -386,7 +386,6 @@ Renderer::Renderer(const char *fontPath)
 
     // These should be large enough so that no allocations are done during game
     mDrawCmds.reserve(1024 * 4);
-    mLayerStack.reserve(64);
     mDestroyTextureList.reserve(8);
 }
 
@@ -447,7 +446,6 @@ void Renderer::beginFrame(int w, int h)
 
 void Renderer::endFrame()
 {
-    assert(mLayerStack.empty());
 
     // This is the primary reason for buffering drawing command. Call order doesn't determine draw order, but layers do.
     std::stable_sort(mDrawCmds.begin(), mDrawCmds.end(), [](const DrawCmd& a, const DrawCmd& b)
@@ -590,16 +588,6 @@ void Renderer::endFrame()
     }
 }
 
-void Renderer::beginLayer(int depth)
-{
-    mLayerStack.push_back(depth);
-}
-
-void Renderer::endLayer()
-{
-    mLayerStack.pop_back();
-}
-
 int Renderer::createTexture(GLenum internalFormat, int width, int height, GLenum inputFormat, GLenum colorDataType, const void *pixels, bool interpolation)
 {
     GLuint tex;
@@ -631,14 +619,19 @@ void Renderer::destroyTexture(int handle)
 
 void Renderer::drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, ColourF32 color, BlendMode blendMode)
 {
+    drawQuad(texHandle, x, y, w, h, mActiveLayer, color, blendMode);
+}
+
+void Renderer::drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, int layer, ColourF32 color, BlendMode blendMode)
+{
     // Keep quad in the same position when flipping uv coords
     // This gets in the way of offsets for animations, so lets not use this - mlg
     // If rectangles need to be fixed in the future for some reason, we can do it manually out of this scope
     /*if (w < 0) {
-        x += -w;
+    x += -w;
     }
     if (h < 0) {
-        y += -h;
+    y += -h;
     }*/
 
     DrawCmd cmd;
@@ -650,7 +643,7 @@ void Renderer::drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, ColourF32 col
     cmd.s.f[2] = w;
     cmd.s.f[3] = h;
     cmd.s.color = color;
-    pushCmd(cmd);
+    pushCmd(cmd, layer);
 }
 
 void Renderer::fillColor(ColourF32 c)
@@ -888,10 +881,20 @@ void Renderer::textBounds(int x, int y, const char *msg, f32 bounds[4])
     nvgTextBounds(mNanoVg, 1.f*x, 1.f*y, msg, nullptr, bounds);
 }
 
+void Renderer::SetActiveLayer(int layer)
+{
+    mActiveLayer = layer;
+}
+
+void Renderer::pushCmd(DrawCmd cmd, int layer)
+{
+    cmd.layer = layer;
+    mDrawCmds.push_back(cmd);
+}
+
 void Renderer::pushCmd(DrawCmd cmd)
 {
-    cmd.layer = mLayerStack.empty() ? 0 : mLayerStack.back();
-    mDrawCmds.push_back(cmd);
+    pushCmd(cmd, mActiveLayer);
 }
 
 void Renderer::lineCap(int cap)

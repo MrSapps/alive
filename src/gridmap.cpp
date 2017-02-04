@@ -259,14 +259,14 @@ void MapObject::ReloadScript()
     SnapXToGrid();
 }
 
-void MapObject::Render(Renderer& rend, GuiContext& /*gui*/, int x, int y, float scale) const
+void MapObject::Render(Renderer& rend, GuiContext& /*gui*/, int x, int y, float scale, int layer) const
 {
     if (mAnim)
     {
         mAnim->SetXPos(static_cast<s32>(mXPos)+x);
         mAnim->SetYPos(static_cast<s32>(mYPos)+y);
         mAnim->SetScale(scale);
-        mAnim->Render(rend, mFlipX);
+        mAnim->Render(rend, mFlipX, layer);
     }
 }
 
@@ -407,6 +407,7 @@ GridScreen::GridScreen(const std::string& lvlName, const Oddlib::Path::Camera& c
     : mLvlName(lvlName)
     , mFileName(camera.mName)
     , mTexHandle(0)
+    , mTexHandle2(0)
     , mCamera(camera)
     , mLocator(locator)
     , mRend(rend)
@@ -419,7 +420,7 @@ GridScreen::~GridScreen()
 
 }
 
-int GridScreen::getTexHandle()
+void GridScreen::LoadTextures()
 {
     if (!mTexHandle)
     {
@@ -428,9 +429,20 @@ int GridScreen::getTexHandle()
         {
             SDL_Surface* surf = mCam->GetSurface();
             mTexHandle = mRend.createTexture(GL_RGB, surf->w, surf->h, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels, true);
+
+            if (!mTexHandle2)
+            {
+                if (mCam->GetFg1())
+                {
+                    SDL_Surface* fg1Surf = mCam->GetFg1()->GetSurface();
+                    if (fg1Surf)
+                    {
+                        mTexHandle2 = mRend.createTexture(GL_RGBA, fg1Surf->w, fg1Surf->h, GL_RGBA, GL_UNSIGNED_BYTE, fg1Surf->pixels, true);
+                    }
+                }
+            }
         }
     }
-    return mTexHandle;
 }
 
 bool GridScreen::hasTexture() const
@@ -445,6 +457,16 @@ bool GridScreen::hasTexture() const
         }
     }
     return !onlySpaces;
+}
+
+void GridScreen::Render(float x, float y, float w, float h)
+{
+    LoadTextures();
+    mRend.drawQuad(mTexHandle, x, y, w, h, Renderer::eForegroundLayer0);
+    if (mTexHandle2)
+    {
+        mRend.drawQuad(mTexHandle2, x, y, w, h, Renderer::eForegroundLayer1);
+    }
 }
 
 GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
@@ -841,6 +863,8 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
 
 void GridMap::RenderDebug(Renderer& rend) const
 {
+    rend.SetActiveLayer(Renderer::eEditor);
+
     // Draw collisions
     if (Debugging().mCollisionLines)
     {
@@ -912,9 +936,9 @@ void GridMap::RenderToEditorOrToGame(Renderer& rend, GuiContext& gui) const
     RenderEditor(rend, gui);
 }
 
-void GridMap::RenderEditor(Renderer& rend, GuiContext& gui) const
+void GridMap::RenderEditor(Renderer& rend, GuiContext& /*gui*/) const
 {
-    rend.beginLayer(gui_layer(&gui) + 1);
+    // rend.beginLayer(gui_layer(&gui) + 1);
 
     // Draw every cam
     for (auto x = 0u; x < mScreens.size(); x++)
@@ -925,16 +949,13 @@ void GridMap::RenderEditor(Renderer& rend, GuiContext& gui) const
             if (!screen->hasTexture())
                 continue;
 
-            rend.drawQuad(screen->getTexHandle(), 
-                (x * kCameraBlockSize.x) + kCameraBlockImageOffset.x, 
-                (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y, 
-                kVirtualScreenSize.x, kVirtualScreenSize.y);
+            screen->Render((x * kCameraBlockSize.x) + kCameraBlockImageOffset.x, 
+                           (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y, 
+                           kVirtualScreenSize.x, kVirtualScreenSize.y);
         }
     }
 
     RenderDebug(rend);
-
-    rend.endLayer();
 }
 
 void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
@@ -966,7 +987,7 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
         GridScreen* screen = mScreens[camX][camY].get();
         if (screen->hasTexture())
         {
-            rend.drawQuad(screen->getTexHandle(),
+            screen->Render(
                 (camX * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
                 (camY * kCameraBlockSize.y) + kCameraBlockImageOffset.y,
                 kVirtualScreenSize.x, kVirtualScreenSize.y);
@@ -976,13 +997,14 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
 
     for (const std::unique_ptr<MapObject>& obj : mObjs)
     {
-        obj->Render(rend, gui, 0, 0, 1.0f);
+        obj->Render(rend, gui, 0, 0, 1.0f, Renderer::eForegroundLayer0);
     }
 
     mPlayer.Render(rend, gui,
         0,
         0,
-        1.0f);
+        1.0f,
+        Renderer::eForegroundLayer0);
 
     // Test raycasting for shadows
     DebugRayCast(rend,
@@ -1041,12 +1063,15 @@ void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec
 
 void UndoStack::DebugRenderCommandList(GuiContext& gui) const
 {
-    gui_begin_window(&gui, "Undo stack");
-    for (const auto& cmd : mUndoStack)
+    if (Debugging().mShowDebugUi)
     {
-        gui_label(&gui, cmd->Message().c_str());
+        gui_begin_window(&gui, "Undo stack");
+        for (const auto& cmd : mUndoStack)
+        {
+            gui_label(&gui, cmd->Message().c_str());
+        }
+        gui_end_window(&gui);
     }
-    gui_end_window(&gui);
 }
 
 void UndoStack::Clear()

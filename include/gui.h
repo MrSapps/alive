@@ -176,7 +176,7 @@ typedef struct GuiDrawInfo {
 	GUI_BOOL held;
 	GUI_BOOL selected; // Synonym for checked, focused and active
 	const char *text;
-	int layer;
+    int layer;
 	GUI_BOOL has_scissor;
 	int scissor_pos[2];
 	int scissor_size[2];

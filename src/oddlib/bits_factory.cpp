@@ -157,6 +157,8 @@ namespace Oddlib
             return mCameraImage.get();
         }
 
+        virtual IFg1* GetFg1() const override { return nullptr; }
+
     private:
         SDL_SurfacePtr mCameraImage;
     };
@@ -166,16 +168,16 @@ namespace Oddlib
         return std::make_unique<Bits>(std::move(camImage));
     }
 
-    std::unique_ptr<IBits> MakeBits(IStream& stream)
+    std::unique_ptr<IBits> MakeBits(IStream& bitsStream, IStream* fg1Stream)
     {
-        const eCameraType cameraType = GetCameraType(stream);
+        const eCameraType cameraType = GetCameraType(bitsStream);
         switch (cameraType)
         {
-        case eAoPsxDemo: return std::make_unique<PsxBits>(stream, false, true);
-        case eAePsx:     return std::make_unique<PsxBits>(stream, true, false);
-        case eAoPsx:     return std::make_unique<PsxBits>(stream, false, false);
-        case eAoPc:      return std::make_unique<AoBitsPc>(stream);
-        case eAePc:      return std::make_unique<AeBitsPc>(stream);
+        case eAoPsxDemo: return std::make_unique<PsxBits>(bitsStream, false, true);
+        case eAePsx:     return std::make_unique<PsxBits>(bitsStream, true, false);
+        case eAoPsx:     return std::make_unique<PsxBits>(bitsStream, false, false);
+        case eAoPc:      return std::make_unique<AoBitsPc>(bitsStream);
+        case eAePc:      return std::make_unique<AeBitsPc>(bitsStream, fg1Stream);
         }
         abort();
     }

@@ -71,6 +71,7 @@ void DeveloperScreen::Update(const InputState& input, CoordinateSpace& coords)
 void DeveloperScreen::EnterState()
 {
     mLevel.EnterState();
+    Debugging().mFnNextPath();
 }
 
 void DeveloperScreen::ExitState()
@@ -151,7 +152,6 @@ void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)
     gui_textfield(mGui, "Filter", filterString, sizeof(filterString));
 
 
-    renderer.beginLayer(gui_layer(mGui));
     s32 spacer = 0;
     for (auto& anim : mLoadedAnims)
     {
@@ -160,10 +160,9 @@ void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)
             anim->Restart();
         }
         //anim->SetXPos(70 + spacer);
-        anim->Render(renderer, false);
+        anim->Render(renderer, false, Renderer::eForegroundLayer0);
         spacer += (anim->MaxW() + (anim->MaxW()/3));
     }
-    renderer.endLayer();
 
     auto animsToLoad = mResourceLocator.DebugUi(renderer, mGui, filterString);
     for (const auto& res : animsToLoad)

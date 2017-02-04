@@ -14,8 +14,9 @@ namespace Oddlib
     public:
         AeBitsPc(const AeBitsPc&) = delete;
         AeBitsPc& operator = (const AeBitsPc&) = delete;
-        explicit AeBitsPc(IStream& stream);
+        AeBitsPc(IStream& bitsStream, IStream* fg1Stream);
         virtual SDL_Surface* GetSurface() const override;
+        virtual IFg1* GetFg1() const override;
     private:
         void vlc_decode(const std::vector<u16>& aCamSeg, std::vector<u16>& aDst);
         void process_segment(u16* aVlcBufferPtr, int xPos);
@@ -32,5 +33,7 @@ namespace Oddlib
 
         void GenerateImage(IStream& stream);
         SDL_SurfacePtr mSurface;
+
+        std::unique_ptr<class BitsFg1AePc> mFg1;
     };
 }

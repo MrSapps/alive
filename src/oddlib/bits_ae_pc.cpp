@@ -1,6 +1,7 @@
 #include "oddlib/bits_ae_pc.hpp"
 #include "oddlib/stream.hpp"
 #include "oddlib/vlctable.hpp"
+#include "oddlib/bits_fg1_ae_pc.hpp"
 #include "logger.hpp"
 
 namespace Oddlib
@@ -101,14 +102,23 @@ namespace Oddlib
     const auto green_mask = 0x7E0;
     const auto blue_mask = 0x1F;
 
-    AeBitsPc::AeBitsPc(IStream& stream)
+    AeBitsPc::AeBitsPc(IStream& bitsStream, IStream* fg1Stream)
     {
-        GenerateImage(stream);
+        GenerateImage(bitsStream);
+        if (fg1Stream)
+        {
+            mFg1 = std::make_unique<BitsFg1AePc>(mSurface.get(), *fg1Stream);
+        }
     }
 
     SDL_Surface* AeBitsPc::GetSurface() const
     {
         return mSurface.get();
+    }
+
+    IFg1* AeBitsPc::GetFg1() const
+    {
+        return mFg1.get();
     }
 
     void AeBitsPc::GenerateImage(IStream& stream)

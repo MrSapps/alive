@@ -3,8 +3,9 @@
 #include "SDL.h"
 #include <memory>
 #include <fstream>
-#include "lodepng/lodepng.h"
+#include "logger.hpp"
 #include "oddlib/exceptions.hpp"
+#include "oddlib/stream.hpp"
 
 struct FreeSurface_Functor
 {
@@ -49,31 +50,8 @@ public:
         return scaledCopy;
     }
 
-    static void SaveSurfaceAsPng(const char* fileName, SDL_Surface* surface)
-    {
-        lodepng::State state = {};
+    static void SaveSurfaceAsPng(const char* fileName, SDL_Surface* surface);
 
-        // input color type
-        state.info_raw.colortype = LCT_RGBA;
-        state.info_raw.bitdepth = 8;
+    static SDL_SurfacePtr LoadPng(Oddlib::IStream& stream, bool hasAlpha);
 
-        // output color type
-        state.info_png.color.colortype = LCT_RGBA;
-        state.info_png.color.bitdepth = 8;
-        state.encoder.auto_convert = 0;
-
-        // encode to PNG
-        std::vector<unsigned char> out;
-        lodepng::encode(out, (const unsigned char*)surface->pixels, surface->w, surface->h, state);
-
-        // write out PNG buffer
-        std::ofstream fileStream;
-        fileStream.open(fileName, std::ios::binary);
-        if (!fileStream.is_open())
-        {
-            throw Oddlib::Exception("Can't open output file");
-        }
-
-        fileStream.write(reinterpret_cast<const char*>(out.data()), out.size());
-    }
 };

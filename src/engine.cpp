@@ -544,6 +544,8 @@ void Engine::Render()
     mGui->host_win_size[1] = h;
 
     mRenderer->beginFrame(w, h);
+    mRenderer->SetActiveLayer(Renderer::eDefaultLayer);
+
     gui_pre_frame(mGui); 
 
     mStateMachine.Render(w, h, *mRenderer);

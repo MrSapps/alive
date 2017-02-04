@@ -702,7 +702,7 @@ int main(int /*argc*/, char** /*argv*/)
                         if (chunk->Type() == Oddlib::MakeType("Bits"))
                         {
                             auto bitsStream = chunk->Stream();
-                            auto bits = Oddlib::MakeBits(*bitsStream);
+                            auto bits = Oddlib::MakeBits(*bitsStream, nullptr);
                             bits->Save();
                         }
                     }

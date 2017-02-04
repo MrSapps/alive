@@ -3,10 +3,9 @@
 #include "gui.h"
 #include "logger.hpp"
 
-void drawButton(void *void_rend, f32 x, f32 y, f32 w, f32 h, bool down, bool hover, int layer, f32 *s)
+void drawButton(void *void_rend, f32 x, f32 y, f32 w, f32 h, bool down, bool hover, f32 *s)
 {
     Renderer *rend = (Renderer*)void_rend;
-    rend->beginLayer(layer);
     if (s)
         rend->scissor(1.f*s[0], 1.f*s[1], 1.f*s[2], 1.f*s[3]);
     else
@@ -50,14 +49,11 @@ void drawButton(void *void_rend, f32 x, f32 y, f32 w, f32 h, bool down, bool hov
     rend->roundedRect(x + 0.5f, y + 0.5f, w - 1, h - 1, cornerRadius - 0.5f);
     rend->strokeColor(outlineColor);
     rend->stroke();
-
-    rend->endLayer();
 }
 
-void drawCheckBox(void *void_rend, f32 x, f32 y, f32 w, bool checked, bool /*down*/, bool hover, int layer, f32 *s)
+void drawCheckBox(void *void_rend, f32 x, f32 y, f32 w, bool checked, bool /*down*/, bool hover, f32 *s)
 {
     Renderer *rend = (Renderer*)void_rend;
-    rend->beginLayer(layer);
     if (s)
         rend->scissor(1.f*s[0], 1.f*s[1], 1.f*s[2], 1.f*s[3]);
     else
@@ -81,14 +77,11 @@ void drawCheckBox(void *void_rend, f32 x, f32 y, f32 w, bool checked, bool /*dow
     else
         rend->strokeColor(ColourF32{ 0.f, 0.f, 0.f, 0.3f });
     rend->stroke();
-
-    rend->endLayer();
 }
 
-void drawRadioButton(void *void_rend, f32 x, f32 y, f32 w, bool checked, bool /*down*/, bool hover, int layer, f32 *s)
+void drawRadioButton(void *void_rend, f32 x, f32 y, f32 w, bool checked, bool /*down*/, bool hover, f32 *s)
 {
     Renderer *rend = (Renderer*)void_rend;
-    rend->beginLayer(layer);
     if (s)
         rend->scissor(1.f*s[0], 1.f*s[1], 1.f*s[2], 1.f*s[3]);
     else
@@ -112,14 +105,11 @@ void drawRadioButton(void *void_rend, f32 x, f32 y, f32 w, bool checked, bool /*
     else
         rend->strokeColor(ColourF32{ 0.f, 0.f, 0.f, 0.3f });
     rend->stroke();
-
-    rend->endLayer();
 }
 
-void drawTextBox(void *void_rend, f32 x, f32 y, f32 w, f32 h, bool active, bool hover, int layer, f32 *s)
+void drawTextBox(void *void_rend, f32 x, f32 y, f32 w, f32 h, bool active, bool hover, f32 *s)
 {
     Renderer *rend = (Renderer*)void_rend;
-    rend->beginLayer(layer);
     if (s)
         rend->scissor(1.f*s[0], 1.f*s[1], 1.f*s[2], 1.f*s[3]);
     else
@@ -138,16 +128,13 @@ void drawTextBox(void *void_rend, f32 x, f32 y, f32 w, f32 h, bool active, bool 
     else
         rend->strokeColor(ColourF32{ 0.f, 0.f, 0.f, 48 / 255.f });
     rend->stroke();
-
-    rend->endLayer();
 }
 
 static const f32 g_gui_font_size = 16.f;
 
-void drawText(void *void_rend, f32 x, f32 y, const char *text, int layer, f32 *s)
+void drawText(void *void_rend, f32 x, f32 y, const char *text, f32 *s)
 {
     Renderer *rend = (Renderer*)void_rend;
-    rend->beginLayer(layer);
     if (s)
         rend->scissor(1.f*s[0], 1.f*s[1], 1.f*s[2], 1.f*s[3]);
     else
@@ -158,8 +145,6 @@ void drawText(void *void_rend, f32 x, f32 y, const char *text, int layer, f32 *s
     rend->fontBlur(0);
     rend->fillColor(ColourF32{ 1.f, 1.f, 1.f, 160 / 255.f });
     rend->text(x, y, text);
-
-    rend->endLayer();
 }
 
 void calcTextSize(int ret[2], void *void_rend, const char *text)
@@ -174,10 +159,9 @@ void calcTextSize(int ret[2], void *void_rend, const char *text)
     ret[1] = (int)(bounds[3] - bounds[1]);
 }
 
-void drawTitleBar(void *void_rend, f32 x, f32 y, f32 w, f32 h, const char *title, bool focus, int layer)
+void drawTitleBar(void *void_rend, f32 x, f32 y, f32 w, f32 h, const char *title, bool focus)
 {
     Renderer *rend = (Renderer*)void_rend;
-    rend->beginLayer(layer); // Makes window reordering possible
     rend->resetScissor();
 
     f32 cornerRadius = 3.0f;
@@ -207,14 +191,11 @@ void drawTitleBar(void *void_rend, f32 x, f32 y, f32 w, f32 h, const char *title
     rend->fontBlur(0);
     rend->fillColor(ColourF32{ 230 / 255.f, 230 / 255.f, 230 / 255.f, 200 / 255.f });
     rend->text(x + w / 2, y + 16, title);
-
-    rend->endLayer();
 }
 
-void drawPanel(void *void_rend, f32 x, f32 y, f32 w, f32 h, int layer)
+void drawPanel(void *void_rend, f32 x, f32 y, f32 w, f32 h)
 {
     Renderer *rend = (Renderer*)void_rend;
-    rend->beginLayer(layer); // Makes window reordering possible
     rend->resetScissor();
 
     f32 cornerRadius = 3.0f;
@@ -236,8 +217,6 @@ void drawPanel(void *void_rend, f32 x, f32 y, f32 w, f32 h, int layer)
     rend->fillPaint(shadowPaint);
     rend->fill();
     rend->solidPathWinding(true);
-
-    rend->endLayer();
 }
 
 void drawWidgets(GuiContext &gui, Renderer &rend)
@@ -258,6 +237,8 @@ void drawWidgets(GuiContext &gui, Renderer &rend)
         f32 w = (f32)d.size[0];
         f32 h = (f32)d.size[1];
 
+        rend.SetActiveLayer(d.layer);
+
         // Separate draw functions are artifacts of the old callback-based drawing api
         switch (d.type) {
         case GuiDrawInfo_button:
@@ -265,28 +246,28 @@ void drawWidgets(GuiContext &gui, Renderer &rend)
         case GuiDrawInfo_slider:
         case GuiDrawInfo_slider_handle:
         case GuiDrawInfo_textbox: {
-            drawButton(&rend, x, y, w, h, d.held, d.hovered, d.layer, s);
+            drawButton(&rend, x, y, w, h, d.held, d.hovered, s);
         } break;
 
         case GuiDrawInfo_checkbox: {
-            drawCheckBox(&rend, x, y, w, d.selected, false, d.hovered, d.layer, s);
+            drawCheckBox(&rend, x, y, w, d.selected, false, d.hovered, s);
         } break;
 
         case GuiDrawInfo_radiobutton: {
-            drawRadioButton(&rend, x, y, w, d.selected, false, d.hovered, d.layer, s);
+            drawRadioButton(&rend, x, y, w, d.selected, false, d.hovered, s);
         } break;
 
         case GuiDrawInfo_text: {
-            drawText(&rend, x, y, d.text, d.layer, s);
+            drawText(&rend, x, y, d.text, s);
         } break;
 
         case GuiDrawInfo_panel: {
-            drawPanel(&rend, x, y, w, h, d.layer);
+            drawPanel(&rend, x, y, w, h);
         } break;
 
         case GuiDrawInfo_title_bar: {
-            drawTitleBar(&rend, x, y, w, h, d.text, d.selected, d.layer);
-        } break;
+            drawTitleBar(&rend, x, y, w, h, d.text, d.selected);
+        } break; 
 
         default: LOG_ERROR("Unknown GuiDrawInfo: " << (int)d.type);
         }

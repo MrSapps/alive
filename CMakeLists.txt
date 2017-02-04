@@ -190,6 +190,7 @@ SET(oddlib_src
     src/gpuselect.cpp
     include/reverse_for.hpp
     include/types.hpp
+    include/bitutils.hpp
     include/proxy_nanovg.h
     include/msvc_sdl_link.hpp
     include/stdthread.h
@@ -232,6 +233,8 @@ SET(oddlib_src
     include/oddlib/bits_psx.hpp
     src/oddlib/bits_factory.cpp
     include/oddlib/bits_factory.hpp
+    src/oddlib/bits_fg1_ae_pc.cpp
+    include/oddlib/bits_fg1_ae_pc.hpp
     include/oddlib/compressiontype3ae.hpp
     src/oddlib/compressiontype3ae.cpp
     include/oddlib/compressiontype4or5.hpp
@@ -283,6 +286,7 @@ SET(alivelib_src
     src/gridobject.cpp
     include/subtitles.hpp
     include/sdl_raii.hpp
+    src/sdl_raii.cpp
     include/proxy_sol.hpp
     include/resourcemapper.hpp
     src/resourcemapper.cpp

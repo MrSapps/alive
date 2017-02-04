@@ -17,6 +17,7 @@ namespace Oddlib
 
         // Returns observing pointer to surface
         virtual SDL_Surface* GetSurface() const override;
+        virtual IFg1* GetFg1() const override { return nullptr; }
     private:
         void GenerateImage(IStream& stream);
         SDL_SurfacePtr mSurface;

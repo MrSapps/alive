@@ -127,7 +127,7 @@ enum DrawCmdType {
 
 struct DrawCmd {
     DrawCmdType type;
-    int layer;
+    u64 layer;
     union { // This union is to make the struct smaller, as RenderPaint is quite large
         struct {
             int integer;
@@ -279,10 +279,6 @@ public:
     void beginFrame(int w, int h);
     void endFrame();
 
-    // Layers with larger depth are drawn on top
-    void beginLayer(int depth);
-    void endLayer();
-
     int createTexture(GLenum internalFormat, int width, int height, GLenum inputFormat, GLenum colorDataType, const void *pixels, bool interpolation);
     void destroyTexture(int handle);
 
@@ -292,6 +288,7 @@ public:
 
     // Use negative w or h to flip uv coordinates
     void drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, ColourF32 color = ColourF32::white(), BlendMode blendMode = BlendMode::normal());
+    void drawQuad(int texHandle, f32 x, f32 y, f32 w, f32 h, int layer, ColourF32 color = ColourF32::white(), BlendMode blendMode = BlendMode::normal());
 
     // NanoVG wrap
     void fillColor(ColourF32 c);
@@ -326,9 +323,32 @@ public:
     // TODO: Add fontsize param to make independent of "current state"
     void textBounds(int x, int y, const char *msg, f32 bounds[4]);
 
+    enum eLayers
+    {
+        // Higher numbers render on top
+
+        // Set at the start of each frame
+        eDefaultLayer, 
+
+        // Main background image
+        eForegroundMain,
+
+        // Aka FG1 - the layer that renders on top of the "background"
+        eForegroundLayer0,
+
+        // Aka FG1 - the layer that renders on top of the "foreground"
+        eForegroundLayer1,
+
+        eEditor,
+
+        eDebugUi,
+    };
+
+    void SetActiveLayer(int layer);
 private:
     void destroyTextures();
     void pushCmd(DrawCmd cmd);
+    void pushCmd(DrawCmd cmd, int layer);
 
     // Vector rendering
     struct NVGLUframebuffer* mNanoVgFrameBuffer = nullptr;
@@ -348,7 +368,7 @@ private:
         Mode_quads,
     };
 
-    std::vector<int> mLayerStack;
+    int mActiveLayer = eForegroundMain;
     std::vector<DrawCmd> mDrawCmds;
     std::vector<int> mDestroyTextureList;
 };

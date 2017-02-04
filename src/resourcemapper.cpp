@@ -360,44 +360,6 @@ static bool CanDeltaBeApplied(int camW, int camH, int deltaW, int deltaH)
     return false;
 }
 
-static SDL_SurfacePtr LoadPng(Oddlib::IStream& stream)
-{
-    lodepng::State state = {};
-
-    // input color type
-    state.info_raw.colortype = LCT_RGB;
-    state.info_raw.bitdepth = 8;
-
-    // output color type
-    state.info_png.color.colortype = LCT_RGB;
-    state.info_png.color.bitdepth = 8;
-    state.encoder.auto_convert = 0;
-
-    // decode PNG
-    std::vector<unsigned char> out;
-    std::vector<unsigned char> in = Oddlib::IStream::ReadAll(stream);
-
-    unsigned int w = 0;
-    unsigned int h = 0;
-
-    const auto decodeRet = lodepng::decode(out, w, h, state, in);
-
-    if (decodeRet == 0)
-    {
-        SDL_SurfacePtr scaled;
-        scaled.reset(SDL_CreateRGBSurfaceFrom(out.data(), w, h, 24, w * 3, 0xFF, 0x00FF, 0x0000FF, 0));
-
-        SDL_SurfacePtr ownedBuffer(SDL_CreateRGBSurface(0, w, h, 24, 0xFF, 0x00FF, 0x0000FF, 0));
-        SDL_BlitSurface(scaled.get(), NULL, ownedBuffer.get(), NULL);
-        return ownedBuffer;
-    }
-    else
-    {
-        LOG_ERROR(lodepng_error_text(decodeRet));
-    }
-    return nullptr;
-}
-
 static void ApplyDelta(SDL_Surface* deltaSurface, SDL_Surface* originalCameraSurface)
 {
     auto dst = static_cast<u8*>(deltaSurface->pixels);
@@ -481,7 +443,7 @@ std::unique_ptr<Oddlib::IBits> ResourceLocator::DoLocateCamera(const char* resou
             if (fs.mFileSystem->FileExists(modName))
             {
                 auto stream = fs.mFileSystem->Open(modName);
-                auto surface = LoadPng(*stream);
+                auto surface = SDLHelpers::LoadPng(*stream, false);
                 if (surface)
                 {
                     LOG_INFO("Loaded new or replacement camera from mod " << fs.mDataSetName);
@@ -501,7 +463,7 @@ std::unique_ptr<Oddlib::IBits> ResourceLocator::DoLocateCamera(const char* resou
                 {
                     auto originalCameraSurface = cam->GetSurface();
                     auto deltaPngStream = fs.mFileSystem->Open(deltaName);
-                    auto deltaSurface = LoadPng(*deltaPngStream);
+                    auto deltaSurface = SDLHelpers::LoadPng(*deltaPngStream, false);
                     if (deltaSurface)
                     {
                         if (CanDeltaBeApplied(originalCameraSurface->w, originalCameraSurface->h, deltaSurface->w, deltaSurface->h))
@@ -527,10 +489,18 @@ std::unique_ptr<Oddlib::IBits> ResourceLocator::DoLocateCamera(const char* resou
                         auto lvlFile = lvl->FileByName(resourceName);
                         if (lvlFile)
                         {
-                            auto chunk = lvlFile->ChunkByType(Oddlib::MakeType("Bits"));
-                            auto stream = chunk->Stream();
-                            LOG_INFO("Loaded original camera from " << fs.mDataSetName);
-                            return Oddlib::MakeBits(*stream);
+                            auto bitsChunk = lvlFile->ChunkByType(Oddlib::MakeType("Bits"));
+                            auto bitsStream = bitsChunk->Stream();
+                      
+                            auto fg1Chunk = lvlFile->ChunkByType(Oddlib::MakeType("FG1 "));
+                            std::unique_ptr<Oddlib::IStream> fg1Stream;
+                            if (fg1Chunk)
+                            {
+                                fg1Stream = fg1Chunk->Stream();
+                            }
+
+                            LOG_INFO("Loaded original camera from " << fs.mDataSetName << " has foreground layer: " << (fg1Stream ? "true" : "false"));
+                            return Oddlib::MakeBits(*bitsStream, fg1Stream.get());
                         }
                     }
                 }

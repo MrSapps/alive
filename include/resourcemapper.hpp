@@ -1842,7 +1842,7 @@ public:
     bool IsComplete() const { return mCompleted; }
 
     // TODO: Position calculation should be refactored
-    void Render(Renderer& rend, bool flipX) const
+    void Render(Renderer& rend, bool flipX, int layer) const
     {
         /*
         static std::string msg;
@@ -1876,6 +1876,7 @@ public:
             ypos + yFrameOffset, 
             static_cast<f32>(frame.mFrame->w) * (flipX ? -ScaleX() : ScaleX()), 
             static_cast<f32>(frame.mFrame->h) * mScale, 
+            layer,
             color, 
             mBlendingMode);
         rend.destroyTexture(textureId);

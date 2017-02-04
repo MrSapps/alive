@@ -60,7 +60,7 @@ public:
     void GetName();
     void Init(const ObjRect& rect, Oddlib::IStream& objData);
     void Update(const InputState& input);
-    void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale) const;
+    void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale, int layer) const;
     void ReloadScript();
     static void RegisterLuaBindings(sol::state& state);
 
@@ -135,13 +135,15 @@ public:
     GridScreen(const std::string& lvlName, const Oddlib::Path::Camera& camera, Renderer& rend, ResourceLocator& locator);
     ~GridScreen();
     const std::string& FileName() const { return mFileName; }
-    int getTexHandle();
+    void LoadTextures();
     bool hasTexture() const;
     const Oddlib::Path::Camera &getCamera() const { return mCamera; }
+    void Render(float x, float y, float w, float h);
 private:
     std::string mLvlName;
     std::string mFileName;
     int mTexHandle;
+    int mTexHandle2; 
 
     // TODO: This is not the in-game format
     Oddlib::Path::Camera mCamera;
@@ -152,6 +154,7 @@ private:
     ResourceLocator& mLocator;
     Renderer& mRend;
 };
+
 
 #define NO_MOVE_OR_MOVE_ASSIGN(x)  x(x&&) = delete; x& operator = (x&&) = delete
 
