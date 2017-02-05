@@ -1,5 +1,6 @@
 #include "oddlib/bits_ao_pc.hpp"
 #include "oddlib/stream.hpp"
+#include "oddlib/bits_fg1_ae_pc.hpp"
 
 namespace Oddlib
 {
@@ -7,15 +8,24 @@ namespace Oddlib
     const auto green_mask = 0x7E0;
     const auto blue_mask = 0x1F;
 
-    AoBitsPc::AoBitsPc(IStream& stream)
+    AoBitsPc::AoBitsPc(IStream& bitsStream, IStream* fg1Stream)
     {
         mSurface.reset(SDL_CreateRGBSurface(0, 640, 240, 16, red_mask, green_mask, blue_mask, 0));
-        GenerateImage(stream);
+        GenerateImage(bitsStream);
+        if (fg1Stream)
+        {
+            mFg1 = std::make_unique<BitsFg1AePc>(mSurface.get(), *fg1Stream, true);
+        }
     }
 
     SDL_Surface* AoBitsPc::GetSurface() const
     {
         return mSurface.get();
+    }
+
+    IFg1* AoBitsPc::GetFg1() const
+    {
+        return mFg1.get();
     }
 
     void AoBitsPc::GenerateImage(IStream& stream)

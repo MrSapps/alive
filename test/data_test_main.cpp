@@ -710,6 +710,37 @@ int main(int /*argc*/, char** /*argv*/)
             }
         }
 
+        void DumpAoPcFg1(const std::vector<std::string>& lvls)
+        {
+            for (auto& lvlName : lvls)
+            {
+                const std::string lvlPath = "F:\\Data\\alive\\all_data\\Oddworld Abes Oddysee\\" + lvlName;
+                auto stream = std::make_unique<Oddlib::FileStream>(lvlPath, Oddlib::IStream::ReadMode::ReadOnly);
+                Oddlib::LvlArchive archive(std::move(stream));
+                for (u32 i = 0; i < archive.FileCount(); i++)
+                {
+                    Oddlib::LvlArchive::File* file = archive.FileByIndex(i);
+                    for (u32 j = 0; j < file->ChunkCount(); j++)
+                    {
+                        Oddlib::LvlArchive::FileChunk* chunk = file->ChunkByIndex(j);
+                        if (chunk->Type() == Oddlib::MakeType("Bits"))
+                        {
+                            auto bitsStream = chunk->Stream();
+
+                            auto fg1Chunk = file->ChunkByType(Oddlib::MakeType("FG1 "));
+                            if (fg1Chunk)
+                            {
+                                auto fg1Stream = fg1Chunk->Stream();
+                                auto bits = Oddlib::MakeBits(*bitsStream, fg1Stream.get());
+                                //bits->Save();
+                                bits->GetFg1()->Save();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         void DumpPaths(IFileSystem& gameFs, eDataSetType dataSet, const std::string& resourcePath, const std::vector<std::string>& lvlFiles)
         {
             ResourceMapper mapper(gameFs, "{GameDir}/data/resources.json");
@@ -1533,7 +1564,10 @@ int main(int /*argc*/, char** /*argv*/)
         }
         if (it->first == eAoPc)
         {
-            db.DumpPaths(gameFs, data.first, data.second, *it->second);
+            db.DumpAoPcFg1({ "R1.LVL" });
+
+            db.DumpAoPcFg1(*it->second);
+            //db.DumpPaths(gameFs, data.first, data.second, *it->second);
         }
     }
     /*

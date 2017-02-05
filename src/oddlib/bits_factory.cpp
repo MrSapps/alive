@@ -176,7 +176,7 @@ namespace Oddlib
         case eAoPsxDemo: return std::make_unique<PsxBits>(bitsStream, false, true);
         case eAePsx:     return std::make_unique<PsxBits>(bitsStream, true, false);
         case eAoPsx:     return std::make_unique<PsxBits>(bitsStream, false, false);
-        case eAoPc:      return std::make_unique<AoBitsPc>(bitsStream);
+        case eAoPc:      return std::make_unique<AoBitsPc>(bitsStream, fg1Stream);
         case eAePc:      return std::make_unique<AeBitsPc>(bitsStream, fg1Stream);
         }
         abort();

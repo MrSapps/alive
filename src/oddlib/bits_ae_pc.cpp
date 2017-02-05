@@ -107,7 +107,7 @@ namespace Oddlib
         GenerateImage(bitsStream);
         if (fg1Stream)
         {
-            mFg1 = std::make_unique<BitsFg1AePc>(mSurface.get(), *fg1Stream);
+            mFg1 = std::make_unique<BitsFg1AePc>(mSurface.get(), *fg1Stream, false);
         }
     }
 

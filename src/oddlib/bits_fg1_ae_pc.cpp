@@ -1,4 +1,5 @@
 #include "oddlib/bits_fg1_ae_pc.hpp"
+#include "oddlib/compressiontype4or5.hpp"
 #include "bitutils.hpp"
 
 namespace Oddlib
@@ -7,6 +8,8 @@ namespace Oddlib
     {
         ePartialChunk = 0,
         eFullChunk = 0xFFFE,
+        eEndCompressedData = 0xFFFC,     // Ao only
+        eStartCompressedData = 0xFFFD,   // Ao only
         eEndChunk = 0xFFFF
     };
 
@@ -42,7 +45,118 @@ namespace Oddlib
         *target_pixel |= ((((Uint32)alpha) << 24));
     }
 
-    BitsFg1AePc::BitsFg1AePc(SDL_Surface* camera, IStream& stream)
+    static void ProcessFG1(SDL_Surface* fg1, IStream& stream, u32 numberOfPartialChunks, u32& chunksRead, bool isAo)
+    {
+        FgChunk chunk = {};
+        for (;;)
+        {
+            chunk.Read(stream);
+
+            if (chunk.nType == ePartialChunk)
+            {
+                chunksRead++;
+
+                LOG_INFO("ePartialBlock");
+                if (chunk.nWidth && chunk.nHeight)
+                {
+                    if (isAo)
+                    {
+                        for (u32 y = 0; y < chunk.nHeight; y++)
+                        {
+                            for (u32 x = 0; x < chunk.nWidth; x++)
+                            {
+                                u16 pixel = 0;
+                                stream.Read(pixel);
+                                if (pixel)
+                                {
+                                    set_pixel_alpha(fg1, x + chunk.nXOffset, y + chunk.nYOffset, 255);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (u32 y = 0; y < chunk.nHeight; y++)
+                        {
+
+                            u32 bitMask = 0;
+                            stream.Read(bitMask);
+                            for (u32 x = 0; x < chunk.nWidth; x++)
+                            {
+                                if (IsBitOn(bitMask, x))
+                                {
+                                    set_pixel_alpha(fg1, x + chunk.nXOffset, y + chunk.nYOffset, 255);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (chunk.nType == eFullChunk)
+            {
+                LOG_INFO("eFullBlock");
+                for (u32 x = 0; x < chunk.nWidth; x++)
+                {
+                    for (u32 y = 0; y < chunk.nHeight; y++)
+                    {
+                        set_pixel_alpha(fg1, x + chunk.nXOffset, y + chunk.nYOffset, 255);
+                    }
+                }
+            }
+            else if (chunk.nType == eEndChunk)
+            {
+                if (chunksRead != numberOfPartialChunks)
+                {
+                    LOG_ERROR("End block hit before all chunks read");
+                }
+                break;
+            }
+            else
+            {
+                if (isAo)
+                {
+                    if (chunk.nType == eStartCompressedData)
+                    {
+                        const size_t oldPos = stream.Pos();
+
+                        u32 uncompressedSize = 0;
+                        stream.Read(uncompressedSize);
+
+                        CompressionType4Or5 dec;
+                        auto data = dec.Decompress(stream, 0, 0, 0, 0); // TODO: Reads the wrong amount of data most of the time ??
+
+                        MemoryStream ms(std::move(data));
+                        ProcessFG1(fg1, ms, numberOfPartialChunks, chunksRead, isAo);
+
+                        stream.Seek(oldPos + chunk.nXOffset);
+                    }
+                    else if (chunk.nType == eEndCompressedData)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        LOG_ERROR("Unknown block type: " << chunk.nType);
+                        abort();
+                    }
+                }
+                else
+                {
+                    LOG_ERROR("Unknown block type: " << chunk.nType);
+                    abort();
+                }
+            }
+        }
+
+        // Exited the loop with out reading an EOF block
+        if (chunk.nType != eEndChunk)
+        {
+            LOG_ERROR("End chunk is missing");
+        }
+
+    }
+
+    BitsFg1AePc::BitsFg1AePc(SDL_Surface* camera, IStream& stream, bool isAo)
     {
         TRACE_ENTRYEXIT;
 
@@ -57,65 +171,9 @@ namespace Oddlib
         // black pixels and cause strange rendering artifacts.
         SDL_BlitSurface(camera, NULL, fg1.get(), NULL);
 
-        FgChunk chunk = {};
         u32 chunksRead = 0;
-        for (;;)
-        {
-            chunk.Read(stream);
-
-            if (chunk.nType == ePartialChunk)
-            {
-                chunksRead++;
-
-                LOG_INFO("ePartialBlock");
-                if (chunk.nWidth && chunk.nHeight)
-                {
-                    for (u32 y = 0; y < chunk.nHeight; y++)
-                    {
-                        u32 bitMask = 0;
-                        stream.Read(bitMask);
-                        for (u32 x = 0; x < chunk.nWidth; x++)
-                        {
-                            if (IsBitOn(bitMask, x))
-                            {
-                                set_pixel_alpha(fg1.get(), x + chunk.nXOffset, y + chunk.nYOffset, 255);
-                            }
-                        }
-                    }
-                }
-            }
-            else if (chunk.nType == eFullChunk)
-            {
-                LOG_INFO("eFullBlock");
-                for (u32 x = 0; x < chunk.nWidth; x++)
-                {
-                    for (u32 y = 0; y < chunk.nHeight; y++)
-                    {
-                        set_pixel_alpha(fg1.get(), x + chunk.nXOffset, y + chunk.nYOffset, 255);
-                    }
-                }
-            }
-            else if (chunk.nType == eEndChunk)
-            {
-                if (chunksRead != numberOfPartialChunks)
-                {
-                    LOG_ERROR("End block hit before all chunks read");
-                }
-                break;
-            }
-            else
-            {
-                LOG_ERROR("Unknown block type: " << chunk.nType);
-                abort();
-            }
-        }
-
-        // Exited the loop with out reading an EOF block
-        if (chunk.nType != eEndChunk)
-        {
-            LOG_ERROR("End chunk is missing");
-        }
-
+        ProcessFG1(fg1.get(), stream, numberOfPartialChunks, chunksRead, isAo);
+      
         mSurface = std::move(fg1);
     }
 

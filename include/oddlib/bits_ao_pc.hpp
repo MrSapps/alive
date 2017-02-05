@@ -13,13 +13,14 @@ namespace Oddlib
     public:
         AoBitsPc(const AoBitsPc&) = delete;
         AoBitsPc& operator = (const AoBitsPc&) = delete;
-        explicit AoBitsPc(IStream& stream);
+        AoBitsPc(IStream& bitsStream, IStream* fg1Stream);
 
         // Returns observing pointer to surface
         virtual SDL_Surface* GetSurface() const override;
-        virtual IFg1* GetFg1() const override { return nullptr; }
+        virtual IFg1* GetFg1() const override;
     private:
         void GenerateImage(IStream& stream);
         SDL_SurfacePtr mSurface;
+        std::unique_ptr<IFg1> mFg1;
     };
 }

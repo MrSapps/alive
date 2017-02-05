@@ -6,7 +6,7 @@ namespace Oddlib
     class BitsFg1AePc : public IFg1
     {
     public:
-        BitsFg1AePc(SDL_Surface* camera, IStream& stream);
+        BitsFg1AePc(SDL_Surface* camera, IStream& stream, bool isAo);
         virtual SDL_Surface* GetSurface() const;
     private:
         SDL_SurfacePtr mSurface;
