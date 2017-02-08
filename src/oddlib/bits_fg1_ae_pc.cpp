@@ -45,7 +45,7 @@ namespace Oddlib
         *target_pixel |= ((((Uint32)alpha) << 24));
     }
 
-    static void ProcessFG1(SDL_Surface* fg1, IStream& stream, u32 numberOfPartialChunks, u32& chunksRead, bool isAo)
+    static void ProcessFG1(SDL_Surface* fg1, IStream& stream, u32 numberOfPartialChunks, u32& chunksRead, bool bBitMaskedPartialBlocks)
     {
         FgChunk chunk = {};
         for (;;)
@@ -59,15 +59,16 @@ namespace Oddlib
                 LOG_INFO("ePartialBlock");
                 if (chunk.nWidth && chunk.nHeight)
                 {
-                    if (isAo)
+                    if (bBitMaskedPartialBlocks)
                     {
                         for (u32 y = 0; y < chunk.nHeight; y++)
                         {
+
+                            u32 bitMask = 0;
+                            stream.Read(bitMask);
                             for (u32 x = 0; x < chunk.nWidth; x++)
                             {
-                                u16 pixel = 0;
-                                stream.Read(pixel);
-                                if (pixel)
+                                if (IsBitOn(bitMask, x))
                                 {
                                     set_pixel_alpha(fg1, x + chunk.nXOffset, y + chunk.nYOffset, 255);
                                 }
@@ -78,12 +79,11 @@ namespace Oddlib
                     {
                         for (u32 y = 0; y < chunk.nHeight; y++)
                         {
-
-                            u32 bitMask = 0;
-                            stream.Read(bitMask);
                             for (u32 x = 0; x < chunk.nWidth; x++)
                             {
-                                if (IsBitOn(bitMask, x))
+                                u16 pixel = 0;
+                                stream.Read(pixel);
+                                if (pixel)
                                 {
                                     set_pixel_alpha(fg1, x + chunk.nXOffset, y + chunk.nYOffset, 255);
                                 }
@@ -103,60 +103,42 @@ namespace Oddlib
                     }
                 }
             }
+            else if (chunk.nType == eStartCompressedData)
+            {
+                const size_t oldPos = stream.Pos();
+
+                u32 uncompressedSize = 0;
+                stream.Read(uncompressedSize);
+
+                CompressionType4Or5 dec;
+                auto data = dec.Decompress(stream, 0, 0, 0, 0); // TODO: Reads the wrong amount of data most of the time ??
+
+                MemoryStream ms(std::move(data));
+                ProcessFG1(fg1, ms, numberOfPartialChunks, chunksRead, bBitMaskedPartialBlocks);
+
+                stream.Seek(oldPos + chunk.nXOffset);
+            }
+            else if (chunk.nType == eEndCompressedData)
+            {
+                return;
+            }
             else if (chunk.nType == eEndChunk)
             {
                 if (chunksRead != numberOfPartialChunks)
                 {
                     LOG_ERROR("End block hit before all chunks read");
                 }
-                break;
+                return;
             }
             else
             {
-                if (isAo)
-                {
-                    if (chunk.nType == eStartCompressedData)
-                    {
-                        const size_t oldPos = stream.Pos();
-
-                        u32 uncompressedSize = 0;
-                        stream.Read(uncompressedSize);
-
-                        CompressionType4Or5 dec;
-                        auto data = dec.Decompress(stream, 0, 0, 0, 0); // TODO: Reads the wrong amount of data most of the time ??
-
-                        MemoryStream ms(std::move(data));
-                        ProcessFG1(fg1, ms, numberOfPartialChunks, chunksRead, isAo);
-
-                        stream.Seek(oldPos + chunk.nXOffset);
-                    }
-                    else if (chunk.nType == eEndCompressedData)
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        LOG_ERROR("Unknown block type: " << chunk.nType);
-                        abort();
-                    }
-                }
-                else
-                {
-                    LOG_ERROR("Unknown block type: " << chunk.nType);
-                    abort();
-                }
+                LOG_ERROR("Unknown block type: " << chunk.nType);
+                abort();
             }
         }
-
-        // Exited the loop with out reading an EOF block
-        if (chunk.nType != eEndChunk)
-        {
-            LOG_ERROR("End chunk is missing");
-        }
-
     }
 
-    BitsFg1AePc::BitsFg1AePc(SDL_Surface* camera, IStream& stream, bool isAo)
+    BitsFg1AePc::BitsFg1AePc(SDL_Surface* camera, IStream& stream, bool bBitMaskedPartialBlocks)
     {
         TRACE_ENTRYEXIT;
 
@@ -172,7 +154,7 @@ namespace Oddlib
         SDL_BlitSurface(camera, NULL, fg1.get(), NULL);
 
         u32 chunksRead = 0;
-        ProcessFG1(fg1.get(), stream, numberOfPartialChunks, chunksRead, isAo);
+        ProcessFG1(fg1.get(), stream, numberOfPartialChunks, chunksRead, bBitMaskedPartialBlocks);
       
         mSurface = std::move(fg1);
     }

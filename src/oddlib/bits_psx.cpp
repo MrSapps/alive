@@ -3,6 +3,7 @@
 #include "oddlib/PSXMDECDecoder.h"
 #include "logger.hpp"
 #include <string>
+#include "oddlib/bits_fg1_ae_pc.hpp"
 
 namespace Oddlib
 {
@@ -10,16 +11,25 @@ namespace Oddlib
     const auto green_mask = 0x7E0;
     const auto blue_mask = 0x1F;
 
-    PsxBits::PsxBits(IStream& stream, bool includeLengthInStripSize, bool singleSlice)
+    PsxBits::PsxBits(IStream& stream, bool includeLengthInStripSize, bool singleSlice, IStream* fg1Stream)
         : mIncludeLengthInStripSize(includeLengthInStripSize)
     {
         mSurface.reset(SDL_CreateRGBSurface(0, 368, 240, 16, red_mask, green_mask, blue_mask, 0));
         GenerateImage(stream, singleSlice);
+        if (fg1Stream)
+        {
+            mFg1 = std::make_unique<BitsFg1AePc>(mSurface.get(), *fg1Stream, false);
+        }
     }
 
     SDL_Surface* PsxBits::GetSurface() const
     {
         return mSurface.get();
+    }
+
+    IFg1* PsxBits::GetFg1() const
+    {
+        return mFg1.get();
     }
 
     void PsxBits::GenerateImage(IStream& stream, bool singleSlice)

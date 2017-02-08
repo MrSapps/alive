@@ -16,11 +16,11 @@ namespace Oddlib
         virtual ~IFg1() = default;
         virtual SDL_Surface* GetSurface() const = 0;
 
-        void Save()
+        void Save(const std::string& baseName)
         {
             static int i = 1;
             //SDL_SaveBMP(GetSurface(), ("camera_fg1" + std::to_string(i++) + ".bmp").c_str());
-            SDLHelpers::SaveSurfaceAsPng(("camera_fg1" + std::to_string(i++) + ".png").c_str(), GetSurface());
+            SDLHelpers::SaveSurfaceAsPng((baseName + "_camera_fg1" + std::to_string(i++) + ".png").c_str(), GetSurface());
         }
     };
 

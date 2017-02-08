@@ -173,9 +173,9 @@ namespace Oddlib
         const eCameraType cameraType = GetCameraType(bitsStream);
         switch (cameraType)
         {
-        case eAoPsxDemo: return std::make_unique<PsxBits>(bitsStream, false, true);
-        case eAePsx:     return std::make_unique<PsxBits>(bitsStream, true, false);
-        case eAoPsx:     return std::make_unique<PsxBits>(bitsStream, false, false);
+        case eAoPsxDemo: return std::make_unique<PsxBits>(bitsStream, false, true, fg1Stream);
+        case eAePsx:     return std::make_unique<PsxBits>(bitsStream, true, false, fg1Stream);
+        case eAoPsx:     return std::make_unique<PsxBits>(bitsStream, false, false, fg1Stream);
         case eAoPc:      return std::make_unique<AoBitsPc>(bitsStream, fg1Stream);
         case eAePc:      return std::make_unique<AeBitsPc>(bitsStream, fg1Stream);
         }

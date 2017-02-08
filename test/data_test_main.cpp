@@ -710,12 +710,19 @@ int main(int /*argc*/, char** /*argv*/)
             }
         }
 
-        void DumpAoPcFg1(const std::vector<std::string>& lvls)
+        void DumpFg1(IFileSystem& gameFs, const std::string& resourcePath, const std::vector<std::string>& lvls, eDataSetType dataSet)
         {
+            auto fs = IFileSystem::Factory(gameFs, resourcePath);
+            if (!fs)
+            {
+                throw std::runtime_error("FS init failed");
+            }
+
+            auto dataSetName = ToString(dataSet);
+
             for (auto& lvlName : lvls)
             {
-                const std::string lvlPath = "F:\\Data\\alive\\all_data\\Oddworld Abes Oddysee\\" + lvlName;
-                auto stream = std::make_unique<Oddlib::FileStream>(lvlPath, Oddlib::IStream::ReadMode::ReadOnly);
+                auto stream = fs->Open(lvlName);
                 Oddlib::LvlArchive archive(std::move(stream));
                 for (u32 i = 0; i < archive.FileCount(); i++)
                 {
@@ -731,9 +738,15 @@ int main(int /*argc*/, char** /*argv*/)
                             if (fg1Chunk)
                             {
                                 auto fg1Stream = fg1Chunk->Stream();
+
+                                //fg1Stream->BinaryDump("FG1_DATA.DAT");
+
                                 auto bits = Oddlib::MakeBits(*bitsStream, fg1Stream.get());
                                 //bits->Save();
-                                bits->GetFg1()->Save();
+                                //if (bits->GetFg1())
+                                {
+                                    bits->GetFg1()->Save(dataSetName);
+                                }
                             }
                         }
                     }
@@ -1562,11 +1575,11 @@ int main(int /*argc*/, char** /*argv*/)
             // Defined struct is wrong
             abort();
         }
-        if (it->first == eAoPc)
-        {
-            db.DumpAoPcFg1({ "R1.LVL" });
 
-            db.DumpAoPcFg1(*it->second);
+        {
+            //db.DumpAoPcFg1({ "R1.LVL" });
+
+            db.DumpFg1(gameFs, data.second, *it->second, it->first);
             //db.DumpPaths(gameFs, data.first, data.second, *it->second);
         }
     }
