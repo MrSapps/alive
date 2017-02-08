@@ -233,8 +233,8 @@ SET(oddlib_src
     include/oddlib/bits_psx.hpp
     src/oddlib/bits_factory.cpp
     include/oddlib/bits_factory.hpp
-    src/oddlib/bits_fg1_ae_pc.cpp
-    include/oddlib/bits_fg1_ae_pc.hpp
+    src/oddlib/bits_fg1.cpp
+    include/oddlib/bits_fg1.hpp
     include/oddlib/compressiontype3ae.hpp
     src/oddlib/compressiontype3ae.cpp
     include/oddlib/compressiontype4or5.hpp

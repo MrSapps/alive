@@ -3,7 +3,7 @@
 #include "oddlib/PSXMDECDecoder.h"
 #include "logger.hpp"
 #include <string>
-#include "oddlib/bits_fg1_ae_pc.hpp"
+#include "oddlib/bits_fg1.hpp"
 
 namespace Oddlib
 {
@@ -18,7 +18,7 @@ namespace Oddlib
         GenerateImage(stream, singleSlice);
         if (fg1Stream)
         {
-            mFg1 = std::make_unique<BitsFg1AePc>(mSurface.get(), *fg1Stream, false);
+            mFg1 = std::make_unique<BitsFg1>(mSurface.get(), *fg1Stream, false);
         }
     }
 

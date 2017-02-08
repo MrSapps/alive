@@ -1,4 +1,4 @@
-#include "oddlib/bits_fg1_ae_pc.hpp"
+#include "oddlib/bits_fg1.hpp"
 #include "oddlib/compressiontype4or5.hpp"
 #include "bitutils.hpp"
 
@@ -138,7 +138,7 @@ namespace Oddlib
         }
     }
 
-    BitsFg1AePc::BitsFg1AePc(SDL_Surface* camera, IStream& stream, bool bBitMaskedPartialBlocks)
+    BitsFg1::BitsFg1(SDL_Surface* camera, IStream& stream, bool bBitMaskedPartialBlocks)
     {
         TRACE_ENTRYEXIT;
 
@@ -159,7 +159,7 @@ namespace Oddlib
         mSurface = std::move(fg1);
     }
 
-    SDL_Surface* BitsFg1AePc::GetSurface() const
+    SDL_Surface* BitsFg1::GetSurface() const
     {
         return mSurface.get();
     }

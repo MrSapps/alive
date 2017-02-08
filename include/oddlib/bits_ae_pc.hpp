@@ -34,6 +34,6 @@ namespace Oddlib
         void GenerateImage(IStream& stream);
         SDL_SurfacePtr mSurface;
 
-        std::unique_ptr<class BitsFg1AePc> mFg1;
+        std::unique_ptr<class BitsFg1> mFg1;
     };
 }

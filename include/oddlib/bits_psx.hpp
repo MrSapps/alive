@@ -22,6 +22,6 @@ namespace Oddlib
         void GenerateImage(IStream& stream, bool singleSlice);
         SDL_SurfacePtr mSurface;
         bool mIncludeLengthInStripSize = false;
-        std::unique_ptr<class BitsFg1AePc> mFg1;
+        std::unique_ptr<class BitsFg1> mFg1;
     };
 }

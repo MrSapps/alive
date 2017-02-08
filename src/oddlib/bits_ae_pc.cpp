@@ -1,7 +1,7 @@
 #include "oddlib/bits_ae_pc.hpp"
 #include "oddlib/stream.hpp"
 #include "oddlib/vlctable.hpp"
-#include "oddlib/bits_fg1_ae_pc.hpp"
+#include "oddlib/bits_fg1.hpp"
 #include "logger.hpp"
 
 namespace Oddlib
@@ -107,7 +107,7 @@ namespace Oddlib
         GenerateImage(bitsStream);
         if (fg1Stream)
         {
-            mFg1 = std::make_unique<BitsFg1AePc>(mSurface.get(), *fg1Stream, true);
+            mFg1 = std::make_unique<BitsFg1>(mSurface.get(), *fg1Stream, true);
         }
     }
 
