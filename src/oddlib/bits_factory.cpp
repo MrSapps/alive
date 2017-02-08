@@ -1,4 +1,5 @@
 #include "oddlib/bits_factory.hpp"
+#include "oddlib/bits_fg1.hpp"
 #include "oddlib/stream.hpp"
 #include "oddlib/bits_ao_pc.hpp"
 #include "oddlib/bits_ae_pc.hpp"
