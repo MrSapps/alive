@@ -738,15 +738,8 @@ int main(int /*argc*/, char** /*argv*/)
                             if (fg1Chunk)
                             {
                                 auto fg1Stream = fg1Chunk->Stream();
-
-                                //fg1Stream->BinaryDump("FG1_DATA.DAT");
-
                                 auto bits = Oddlib::MakeBits(*bitsStream, fg1Stream.get());
-                                //bits->Save();
-                                //if (bits->GetFg1())
-                                {
-                                    bits->GetFg1()->Save(dataSetName);
-                                }
+                                bits->GetFg1()->Save(dataSetName);
                             }
                         }
                     }
