@@ -102,9 +102,11 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/Detours/src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/sol2/single
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glm
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/vorbis/include
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${GTK3_INCLUDE_DIRS}
 )
+
 
 SET(nativefiledialog_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include/nfd.h
@@ -185,6 +187,64 @@ SET_PROPERTY(TARGET buildvm PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET liblua PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET luajit PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET minilua PROPERTY FOLDER "3rdparty")
+
+set(VORBIS_HEADERS
+    3rdParty/vorbis/lib/envelope.h
+    3rdParty/vorbis/lib/lpc.h
+    3rdParty/vorbis/lib/lsp.h
+    3rdParty/vorbis/lib/codebook.h
+    3rdParty/vorbis/lib/misc.h
+    3rdParty/vorbis/lib/psy.h
+    3rdParty/vorbis/lib/masking.h
+    3rdParty/vorbis/lib/os.h
+    3rdParty/vorbis/lib/mdct.h
+    3rdParty/vorbis/lib/smallft.h
+    3rdParty/vorbis/lib/highlevel.h
+    3rdParty/vorbis/lib/registry.h
+    3rdParty/vorbis/lib/scales.h
+    3rdParty/vorbis/lib/window.h
+    3rdParty/vorbis/lib/lookup.h
+    3rdParty/vorbis/lib/lookup_data.h
+    3rdParty/vorbis/lib/codec_internal.h
+    3rdParty/vorbis/lib/backends.h
+    3rdParty/vorbis/lib/bitrate.h
+)
+
+set(VORBIS_SOURCES
+    3rdParty/vorbis/lib/mdct.c
+    3rdParty/vorbis/lib/smallft.c
+    3rdParty/vorbis/lib/block.c
+    3rdParty/vorbis/lib/envelope.c
+    3rdParty/vorbis/lib/window.c
+    3rdParty/vorbis/lib/lsp.c
+    3rdParty/vorbis/lib/lpc.c
+    3rdParty/vorbis/lib/analysis.c
+    3rdParty/vorbis/lib/synthesis.c
+    3rdParty/vorbis/lib/psy.c
+    3rdParty/vorbis/lib/info.c
+    3rdParty/vorbis/lib/floor1.c
+    3rdParty/vorbis/lib/floor0.c
+    3rdParty/vorbis/lib/res0.c
+    3rdParty/vorbis/lib/mapping0.c
+    3rdParty/vorbis/lib/registry.c
+    3rdParty/vorbis/lib/codebook.c
+    3rdParty/vorbis/lib/sharedbook.c
+    3rdParty/vorbis/lib/lookup.c
+    3rdParty/vorbis/lib/bitrate.c
+    3rdParty/ogg/framing.c
+    3rdParty/ogg/bitwise.c
+)
+
+set(VORBISFILE_SOURCES
+    3rdParty/vorbis/lib/vorbisfile.c
+)
+
+set(VORBISENC_SOURCES
+    3rdParty/vorbis/lib/vorbisenc.c
+)
+
+add_library(libvorbis STATIC ${VORBISFILE_SOURCES} ${VORBISENC_SOURCES} ${VORBIS_SOURCES} ${VORBIS_HEADERS})
+SET_PROPERTY(TARGET libvorbis PROPERTY FOLDER "3rdparty")
 
 SET(oddlib_src
     src/gpuselect.cpp
@@ -323,9 +383,9 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(LINUX)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES})
+    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES})
 ELSE()
-    SET(Alive_Libs AliveLib jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate nativefiledialog)
+    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate nativefiledialog)
 ENDIF()
 
 #cotire(Alive)
@@ -338,8 +398,6 @@ add_executable(DataTool
   ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
-
-
 
 #cotire(oddlib)
 
@@ -566,6 +624,9 @@ if (MSVC)
     set_source_files_properties(${oddlib_src} PROPERTIES COMPILE_FLAGSS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
     set_source_files_properties(${alivelib_src} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
     set_source_files_properties(${nanovg_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4456 /wd4457 /wd4459")
+
+    set_source_files_properties(${VORBISFILE_SOURCES} ${VORBISENC_SOURCES} ${VORBIS_SOURCES} ${VORBIS_HEADERS} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4305")
+
 else()
     set_source_files_properties(${stk_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-sign-compare")
     set_source_files_properties(${nanovg_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-unused-result")
