@@ -538,8 +538,8 @@ static int MaxH(const Oddlib::Animation& anim)
 
 #include <vorbis/vorbisenc.h>
 
-#define READ 1024
-signed char readbuffer[READ * 4]; /* out of the data segment, not the stack */
+//#define READ 1024
+//signed char readbuffer[READ * 4]; /* out of the data segment, not the stack */
 
 
 class OggEncoder
@@ -571,11 +571,9 @@ public:
         third header holds the bitstream codebook.  We merely need to
         make the headers, then pass them to libvorbis one at a time;
         libvorbis handles the additional Ogg bitstream constraints */
-        bool eos = false;
-        FILE* f = fopen("F:\\Data\\alive\\alive\\test.wav", "rb");
-        //Oddlib::FileStream f("F:\\Data\\alive\\alive\\test.raw", Oddlib::IStream::ReadMode::ReadOnly);
 
-        FILE* out = fopen("F:\\Data\\alive\\alive\\test.ogg", "wb");
+
+        FILE* output = fopen("F:\\Data\\alive\\alive\\test.ogg", "wb");
 
         
         ogg_packet header;
@@ -590,93 +588,26 @@ public:
         /* This ensures the actual
         * audio data will start on a new page, as per spec
         */
-        //while (!eos)
+        /*int result =*/ ogg_stream_flush(&os, &og);
+        //if (result == 0)break;
+        fwrite(og.header, 1, og.header_len, output);
+        fwrite(og.body, 1, og.body_len, output);
+
+        FILE* input = fopen("F:\\Data\\alive\\alive\\test.raw", "rb");
+        for (;;)
         {
-            /*int result =*/ ogg_stream_flush(&os, &og);
-            //if (result == 0)break;
-            fwrite(og.header, 1, og.header_len, out);
-            fwrite(og.body, 1, og.body_len, out);
-        }
-
-
-
-        while (!eos)
-        {
-            long i;
-            long bytes = fread(readbuffer, 1, READ * 4, f); /* stereo hardwired here */
-
-            //f.ReadBytes(readbuffer, READ * 4);
-            //int bytes = READ * 4;
-
-            if (bytes == 0)
+            signed char buffer[1024*4] = {};
+            long bytes = fread(buffer, 1, 1024 * 4, input); /* stereo hardwired here */
+            if (bytes > 0)
             {
-                /* end of file.  this can be done implicitly in the mainline,
-                but it's easier to see here in non-clever fashion.
-                Tell the library we're at end of stream so that it can handle
-                the last frame and mark end of stream in the output properly */
-                vorbis_analysis_wrote(&vd, 0);
-
+                Consume(buffer, bytes, output);
             }
-            else 
+            else
             {
-                /* data to encode */
-
-                /* expose the buffer to submit data */
-                float **buffer = vorbis_analysis_buffer(&vd, READ); // 32bit float buffer
-
-                /* uninterleave samples */
-                for (i = 0; i<bytes / 4; i++) 
-                {
-                    // And convert to float
-                    buffer[0][i] = ((readbuffer[i * 4 + 1] << 8) | (0x00ff & (int)readbuffer[i * 4])) / 32768.f;
-                    buffer[1][i] = ((readbuffer[i * 4 + 3] << 8) | (0x00ff & (int)readbuffer[i * 4 + 2])) / 32768.f;
-                }
-
-                /* tell the library how much we actually submitted */
-                vorbis_analysis_wrote(&vd, i);
-            }
-
-            /* vorbis does some data preanalysis, then divvies up blocks for
-            more involved (potentially parallel) processing.  Get a single
-            block for encoding now */
-            while (vorbis_analysis_blockout(&vd, &vb) == 1) 
-            {
-
-                /* analysis, assume we want to use bitrate management */
-                vorbis_analysis(&vb, NULL);
-                vorbis_bitrate_addblock(&vb);
-
-                while (vorbis_bitrate_flushpacket(&vd, &op)) 
-                {
-
-                    /* weld the packet into the bitstream */
-                    ogg_stream_packetin(&os, &op);
-
-                    /* write out pages (if any) */
-                    while (!eos) 
-                    {
-                        int result = ogg_stream_pageout(&os, &og);
-                        if (result == 0)
-                        {
-                            // Error or not enough data, ogg_stream_flush can force a new page
-                            break;
-                        }
-
-                        fwrite(og.header, 1, og.header_len, out);
-                        fwrite(og.body, 1, og.body_len, out);
-
-                        /* this could be set above, but for illustrative purposes, I do
-                        it here (to show that vorbis does know where the stream ends) */
-
-                        if (ogg_page_eos(&og))
-                        {
-                            eos = true;
-                        }
-                    }
-                }
+                break;
             }
         }
-
+      
         /* clean up and exit.  vorbis_info_clear() must be called last */
 
         ogg_stream_clear(&os);
@@ -686,6 +617,78 @@ public:
         vorbis_info_clear(&vi);
 
     }
+
+    // float buffer
+    void Consume(signed char* readbuffer, long bytes, FILE* out)
+    {
+
+
+        long i;
+        if (bytes == 0)
+        {
+            // Mark as the last frame
+            vorbis_analysis_wrote(&vd, 0);
+        }
+        else
+        {
+            /* data to encode */
+
+            /* expose the buffer to submit data */
+            float** buffer = vorbis_analysis_buffer(&vd, bytes); // 32bit float buffer
+
+            // uninterleave samples 
+            for (i = 0; i < bytes / 4; i++)
+            {
+                // And convert to float
+                buffer[0][i] = ((readbuffer[i * 4 + 1] << 8) | (0x00ff & (int)readbuffer[i * 4])) / 32768.f;
+                buffer[1][i] = ((readbuffer[i * 4 + 3] << 8) | (0x00ff & (int)readbuffer[i * 4 + 2])) / 32768.f;
+            }
+
+            /* tell the library how much we actually submitted */
+            vorbis_analysis_wrote(&vd, i);
+        }
+
+        /* vorbis does some data preanalysis, then divvies up blocks for
+        more involved (potentially parallel) processing.  Get a single
+        block for encoding now */
+        while (vorbis_analysis_blockout(&vd, &vb) == 1)
+        {
+
+            /* analysis, assume we want to use bitrate management */
+            vorbis_analysis(&vb, NULL);
+            vorbis_bitrate_addblock(&vb);
+
+            while (vorbis_bitrate_flushpacket(&vd, &op))
+            {
+
+                /* weld the packet into the bitstream */
+                ogg_stream_packetin(&os, &op);
+
+                /* write out pages (if any) */
+                //while (!eos)
+               // {
+                    int result = ogg_stream_pageout(&os, &og);
+                    if (result == 0)
+                    {
+                        // Error or not enough data, ogg_stream_flush can force a new page
+                        break;
+                    }
+
+                    fwrite(og.header, 1, og.header_len, out);
+                    fwrite(og.body, 1, og.body_len, out);
+
+                    /* this could be set above, but for illustrative purposes, I do
+                    it here (to show that vorbis does know where the stream ends) */
+
+                    // if (ogg_page_eos(&og))
+                    {
+                        //   eos = true;
+                    }
+                //}
+            }
+        }
+    }
+
 private:
     ogg_stream_state os; // take physical pages, weld into a logical stream of packets
     ogg_page         og; // one Ogg bitstream page.  Vorbis packets are inside
