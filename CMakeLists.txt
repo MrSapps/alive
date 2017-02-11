@@ -103,6 +103,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/sol2/single
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glm
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/vorbis/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/vorbis/lib
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${GTK3_INCLUDE_DIRS}
 )
