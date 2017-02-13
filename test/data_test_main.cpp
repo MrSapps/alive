@@ -646,8 +646,6 @@ public:
     void Consume(float* readbuffer, long bytes, FILE* out)
     {
 
-
-        long i;
         if (bytes == 0)
         {
             // Mark as the last frame
@@ -657,22 +655,26 @@ public:
         {
             /* data to encode */
 
+            auto numFloats = bytes / sizeof(float);
+            const auto numChannels = 2;
+
             /* expose the buffer to submit data */
-            float** buffer = vorbis_analysis_buffer(&vd, bytes); // 32bit float buffer
+            float** buffer = vorbis_analysis_buffer(&vd, numFloats / numChannels); // 32bit float buffer
 
             // uninterleave samples 
-            for (i = 0; i < bytes / 4; i++)
+            int pos = 0;
+            for (auto i = 0u; i < numFloats / numChannels; i++)
             {
                 // And convert to float
                 //buffer[0][i] = ((readbuffer[i * 4 + 1] << 8) | (0x00ff & (int)readbuffer[i * 4])) / 32768.f;
                 //buffer[1][i] = ((readbuffer[i * 4 + 3] << 8) | (0x00ff & (int)readbuffer[i * 4 + 2])) / 32768.f;
 
-                buffer[0][i] = readbuffer[i];
-                buffer[1][i] = readbuffer[i];
+                buffer[0][i] = readbuffer[pos++];
+                buffer[1][i] = readbuffer[pos++];
             }
 
             /* tell the library how much we actually submitted */
-            vorbis_analysis_wrote(&vd, i);
+            vorbis_analysis_wrote(&vd, numFloats / numChannels);
         }
 
         /* vorbis does some data preanalysis, then divvies up blocks for
