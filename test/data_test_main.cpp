@@ -541,11 +541,14 @@ static int MaxH(const Oddlib::Animation& anim)
 //#define READ 1024
 //signed char readbuffer[READ * 4]; /* out of the data segment, not the stack */
 
+#include <oddlib/audio/Soundbank.h>
+#include <oddlib/audio/SequencePlayer.h>
 
 class OggEncoder
 {
 public:
-    void InitEncoder()
+
+    void InitEncoder(ResourceLocator& locator)
     {
         vorbis_info_init(&vi);
 
@@ -593,18 +596,39 @@ public:
         fwrite(og.header, 1, og.header_len, output);
         fwrite(og.body, 1, og.body_len, output);
 
-        FILE* input = fopen("F:\\Data\\alive\\alive\\test.raw", "rb");
-        for (;;)
+       // FILE* input = fopen("F:\\Data\\alive\\alive\\test.raw", "rb");
+        std::unique_ptr<IMusic> music = locator.LocateMusic("d1_D1SEQ_46_D1SNDFX_AoPc");
+        if (!music)
+        {
+            return;
+        }
+
+        AliveAudio audio;
+        auto seqPlayer = std::make_unique<SequencePlayer>(audio);
+        auto soundBank = std::make_unique<AliveAudioSoundbank>(*music->mVab, audio);
+        audio.SetSoundbank(std::move(soundBank));
+        seqPlayer->LoadSequenceStream(*music->mSeqData);
+        seqPlayer->PlaySequence();
+
+ 
+       // for (;;)
+        for (int i=0; i<700; i++)
         {
             signed char buffer[1024*4] = {};
-            long bytes = fread(buffer, 1, 1024 * 4, input); /* stereo hardwired here */
-            if (bytes > 0)
+
+            seqPlayer->PlayerThreadFunction();
+
+            audio.Play((u8*)buffer, 1024*4);
+
+
+            //long bytes = fread(buffer, 1, 1024 * 4, input); /* stereo hardwired here */
+           // if (bytes > 0)
             {
-                Consume(buffer, bytes, output);
+                Consume((float*)buffer, 1024*4, output);
             }
-            else
+            //else
             {
-                break;
+               // break;
             }
         }
       
@@ -619,7 +643,7 @@ public:
     }
 
     // float buffer
-    void Consume(signed char* readbuffer, long bytes, FILE* out)
+    void Consume(float* readbuffer, long bytes, FILE* out)
     {
 
 
@@ -640,8 +664,11 @@ public:
             for (i = 0; i < bytes / 4; i++)
             {
                 // And convert to float
-                buffer[0][i] = ((readbuffer[i * 4 + 1] << 8) | (0x00ff & (int)readbuffer[i * 4])) / 32768.f;
-                buffer[1][i] = ((readbuffer[i * 4 + 3] << 8) | (0x00ff & (int)readbuffer[i * 4 + 2])) / 32768.f;
+                //buffer[0][i] = ((readbuffer[i * 4 + 1] << 8) | (0x00ff & (int)readbuffer[i * 4])) / 32768.f;
+                //buffer[1][i] = ((readbuffer[i * 4 + 3] << 8) | (0x00ff & (int)readbuffer[i * 4 + 2])) / 32768.f;
+
+                buffer[0][i] = readbuffer[i];
+                buffer[1][i] = readbuffer[i];
             }
 
             /* tell the library how much we actually submitted */
@@ -1717,9 +1744,6 @@ int main(int /*argc*/, char** /*argv*/)
     };
 
     Db db;
-    
-    OggEncoder ogg;
-    ogg.InitEncoder();
 
     GameFileSystem gameFs;
     if (!gameFs.Init())
@@ -1727,6 +1751,33 @@ int main(int /*argc*/, char** /*argv*/)
         std::cout << "Game FS init failed" << std::endl;
         return 1;
     }
+
+    DataPaths dataPaths(gameFs, "{GameDir}/data/DataSetIds.json", "{UserDir}/DataSets.json");
+    ResourceMapper mapper(gameFs, "{GameDir}/data/resources.json");
+
+    const auto jsonFiles = gameFs.EnumerateFiles("{GameDir}/data/GameDefinitions", "*.json");
+    std::vector<GameDefinition> gameDefs;
+    for (const auto& gameDef : jsonFiles)
+    {
+        gameDefs.emplace_back(gameFs, (std::string("{GameDir}/data/GameDefinitions") + "/" + gameDef).c_str(), false);
+    }
+
+    ResourceLocator resourceLocator(std::move(mapper), std::move(dataPaths));
+
+    DataSetMap dataSet;
+
+    for (const auto& gd : gameDefs)
+    {
+        PriorityDataSet pd(gd.DataSetName(), &gd);
+        pd.mDataSetPath = resourceLocator.GetDataPaths().PathFor(pd.mDataSetName);
+        dataSet.emplace_back(pd);
+    }
+
+    resourceLocator.GetDataPaths().SetActiveDataPaths(gameFs, dataSet);
+
+    OggEncoder ogg;
+    ogg.InitEncoder(resourceLocator);
+
 
     for (const auto& data : datas)
     {
