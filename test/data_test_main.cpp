@@ -544,6 +544,12 @@ static int MaxH(const Oddlib::Animation& anim)
 #include <oddlib/audio/Soundbank.h>
 #include <oddlib/audio/SequencePlayer.h>
 
+class OggDecoder
+{
+public:
+
+};
+
 class OggEncoder
 {
 public:
@@ -578,7 +584,6 @@ public:
 
         FILE* output = fopen("F:\\Data\\alive\\alive\\test.ogg", "wb");
 
-        
         ogg_packet header;
         ogg_packet header_comm;
         ogg_packet header_code;
@@ -592,11 +597,10 @@ public:
         * audio data will start on a new page, as per spec
         */
         /*int result =*/ ogg_stream_flush(&os, &og);
-        //if (result == 0)break;
+
         fwrite(og.header, 1, og.header_len, output);
         fwrite(og.body, 1, og.body_len, output);
 
-       // FILE* input = fopen("F:\\Data\\alive\\alive\\test.raw", "rb");
         std::unique_ptr<IMusic> music = locator.LocateMusic("d1_D1SEQ_46_D1SNDFX_AoPc");
         if (!music)
         {
@@ -604,36 +608,24 @@ public:
         }
 
         AliveAudio audio;
-        auto seqPlayer = std::make_unique<SequencePlayer>(audio);
+        SequencePlayer seqPlayer(audio);
         auto soundBank = std::make_unique<AliveAudioSoundbank>(*music->mVab, audio);
         audio.SetSoundbank(std::move(soundBank));
-        seqPlayer->LoadSequenceStream(*music->mSeqData);
-        seqPlayer->PlaySequence();
+        seqPlayer.LoadSequenceStream(*music->mSeqData);
+        seqPlayer.PlaySequence();
 
- 
-       // for (;;)
-        for (int i=0; i<700; i++)
+        for (int i = 0; i < 700; i++)
         {
-            signed char buffer[1024*4] = {};
+            signed char buffer[1024 * 4] = {};
 
-            seqPlayer->PlayerThreadFunction();
+            seqPlayer.PlayerThreadFunction();
 
-            audio.Play((u8*)buffer, 1024*4);
+            audio.Play((u8*)buffer, 1024 * 4);
 
-
-            //long bytes = fread(buffer, 1, 1024 * 4, input); /* stereo hardwired here */
-           // if (bytes > 0)
-            {
-                Consume((float*)buffer, 1024*4, output);
-            }
-            //else
-            {
-               // break;
-            }
+            Consume((float*)buffer, 1024 * 4, output);
         }
       
         /* clean up and exit.  vorbis_info_clear() must be called last */
-
         ogg_stream_clear(&os);
         vorbis_block_clear(&vb);
         vorbis_dsp_clear(&vd);
@@ -643,10 +635,9 @@ public:
     }
 
     // float buffer
-    void Consume(float* readbuffer, long bytes, FILE* out)
+    void Consume(float* readbuffer, long bufferSizeInBytes, FILE* out)
     {
-
-        if (bytes == 0)
+        if (bufferSizeInBytes == 0)
         {
             // Mark as the last frame
             vorbis_analysis_wrote(&vd, 0);
@@ -654,27 +645,22 @@ public:
         else
         {
             /* data to encode */
-
-            auto numFloats = bytes / sizeof(float);
+            auto numFloats = bufferSizeInBytes / sizeof(float);
             const auto numChannels = 2;
+            const auto floatsPerChannel = numFloats / numChannels;
 
             /* expose the buffer to submit data */
-            float** buffer = vorbis_analysis_buffer(&vd, numFloats / numChannels); // 32bit float buffer
+            float** buffer = vorbis_analysis_buffer(&vd, floatsPerChannel); // 32bit float buffer
 
-            // uninterleave samples 
             int pos = 0;
-            for (auto i = 0u; i < numFloats / numChannels; i++)
+            for (auto i = 0u; i <floatsPerChannel; i++)
             {
-                // And convert to float
-                //buffer[0][i] = ((readbuffer[i * 4 + 1] << 8) | (0x00ff & (int)readbuffer[i * 4])) / 32768.f;
-                //buffer[1][i] = ((readbuffer[i * 4 + 3] << 8) | (0x00ff & (int)readbuffer[i * 4 + 2])) / 32768.f;
-
                 buffer[0][i] = readbuffer[pos++];
                 buffer[1][i] = readbuffer[pos++];
             }
 
             /* tell the library how much we actually submitted */
-            vorbis_analysis_wrote(&vd, numFloats / numChannels);
+            vorbis_analysis_wrote(&vd, floatsPerChannel);
         }
 
         /* vorbis does some data preanalysis, then divvies up blocks for
@@ -682,38 +668,25 @@ public:
         block for encoding now */
         while (vorbis_analysis_blockout(&vd, &vb) == 1)
         {
-
             /* analysis, assume we want to use bitrate management */
             vorbis_analysis(&vb, NULL);
             vorbis_bitrate_addblock(&vb);
 
             while (vorbis_bitrate_flushpacket(&vd, &op))
             {
-
                 /* weld the packet into the bitstream */
                 ogg_stream_packetin(&os, &op);
 
                 /* write out pages (if any) */
-                //while (!eos)
-               // {
-                    int result = ogg_stream_pageout(&os, &og);
-                    if (result == 0)
-                    {
-                        // Error or not enough data, ogg_stream_flush can force a new page
-                        break;
-                    }
+                int result = ogg_stream_pageout(&os, &og);
+                if (result == 0)
+                {
+                    // Error or not enough data, ogg_stream_flush can force a new page
+                    break;
+                }
 
-                    fwrite(og.header, 1, og.header_len, out);
-                    fwrite(og.body, 1, og.body_len, out);
-
-                    /* this could be set above, but for illustrative purposes, I do
-                    it here (to show that vorbis does know where the stream ends) */
-
-                    // if (ogg_page_eos(&og))
-                    {
-                        //   eos = true;
-                    }
-                //}
+                fwrite(og.header, 1, og.header_len, out);
+                fwrite(og.body, 1, og.body_len, out);
             }
         }
     }

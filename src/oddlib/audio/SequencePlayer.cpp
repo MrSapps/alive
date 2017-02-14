@@ -52,7 +52,7 @@ void SequencePlayer::PlayerThreadFunction()
 
         for (size_t i = 0; i < m_MessageList.size(); i++)
         {
-            AliveAudioMidiMessage m = m_MessageList[i];
+            const AliveAudioMidiMessage& m = m_MessageList[i];
             switch (m.Type)
             {
             case ALIVE_MIDI_NOTE_ON:
