@@ -936,9 +936,11 @@ void GridMap::RenderToEditorOrToGame(Renderer& rend, GuiContext& gui) const
     RenderEditor(rend, gui);
 }
 
-void GridMap::RenderEditor(Renderer& rend, GuiContext& /*gui*/) const
+void GridMap::RenderEditor(Renderer& rend, GuiContext& gui) const
 {
     // rend.beginLayer(gui_layer(&gui) + 1);
+
+    mUndoStack.DebugRenderCommandList(gui);
 
     // Draw every cam
     for (auto x = 0u; x < mScreens.size(); x++)

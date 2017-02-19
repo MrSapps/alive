@@ -553,7 +553,7 @@ std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(IAudioController& audioCont
                 if (stream)
                 {
                     std::unique_ptr<SubTitleParser> subTitles;
-                    const std::string subTitleFileName = "data/subtitles/" + std::string(resourceName) + ".SRT";
+                    const std::string subTitleFileName = "{GameDir}/data/subtitles/" + std::string(resourceName) + ".SRT";
                     if (mDataPaths.GameFs().FileExists(subTitleFileName))
                     {
                         auto subsStream = mDataPaths.GameFs().Open(subTitleFileName);

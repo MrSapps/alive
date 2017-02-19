@@ -45,7 +45,7 @@ protected:
     virtual void Play(u8* stream, u32 len) override;
 
 
-    void RenderFrame(Renderer& rend, GuiContext& gui, int width, int height, const GLvoid* pixels, const char* subtitles);
+    void RenderFrame(Renderer& rend, GuiContext& gui, int width, int height, const GLvoid* pixels, const char* subtitles, int screenW, int screenH);
 
 protected:
     struct Frame

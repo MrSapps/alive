@@ -298,6 +298,7 @@ public:
     void fontBlur(f32 s);
     void textAlign(int align); // TextAlign bitfield
     void text(f32 x, f32 y, const char *msg);
+    void text(f32 x, f32 y, const char *msg, int layer);
     void resetTransform();
     void beginPath();
     void moveTo(f32 x, f32 y);
@@ -340,6 +341,8 @@ public:
         eForegroundLayer1,
 
         eEditor,
+
+        eFmv = 9999999,
 
         eDebugUi,
     };

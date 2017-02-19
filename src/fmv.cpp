@@ -25,13 +25,13 @@ static f32 Percent(f32 max, f32 percent)
     return (max / 100.0f) * percent;
 }
 
-static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w, int h)
+static void RenderSubtitles(Renderer& rend, const char* msg, float x, float y, float w, float h)
 {
     f32 xpos = 0.0f;
-    f32 ypos = static_cast<f32>(y + h);
+    f32 ypos = y + h;
 
     rend.fillColor(ColourF32{ 0, 0, 0, 1 });
-    rend.fontSize(Percent(static_cast<f32>(h), 6.7f));
+    rend.fontSize(Percent(h, 6.7f));
     rend.textAlign(TEXT_ALIGN_TOP);
     
     f32 bounds[4];
@@ -48,10 +48,10 @@ static void RenderSubtitles(Renderer& rend, const char* msg, int x, int y, int w
     // Center XPos in the screenW
     xpos = x + (w / 2) - (fontW / 2);
 
-    rend.text(xpos, ypos, msg);
+    rend.text(xpos, ypos, msg, Renderer::eDebugUi+1);
     rend.fillColor(ColourF32{ 1, 1, 1, 1 });
-    f32 adjust = Percent(static_cast<f32>(h), 0.3f);
-    rend.text(xpos - adjust, ypos - adjust, msg);
+    f32 adjust = Percent(h, 0.3f);
+    rend.text(xpos - adjust, ypos - adjust, msg, Renderer::eDebugUi+1);
 }
 
 // Make FMV window title unique, duplicates will cause a crash
@@ -75,7 +75,7 @@ IMovie:: ~IMovie()
 
 
 // Main thread context
-void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int /*screenH*/)
+void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui, int screenW, int screenH)
 {
     // TODO: Populate mAudioBuffer and mVideoBuffer
     // for up to N buffered frames
@@ -139,7 +139,7 @@ void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int
         if (f.mFrameNum == videoFrameIndex)
         {
             mLast = f;
-            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
+            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs, screenW, screenH);
             played = true;
             break;
         }
@@ -151,12 +151,12 @@ void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int
     if (!played && !mVideoBuffer.empty())
     {
         Frame& f = mVideoBuffer.front();
-        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
+        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs, screenW, screenH);
     }
     else if (!played && mVideoBuffer.empty())
     {
         Frame& f = mLast;
-        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
+        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs, screenW, screenH);
     }
 
     while (NeedBuffer())
@@ -211,25 +211,28 @@ void IMovie::Play(u8* stream, u32 len)
     mConsumedAudioBytes += take*sizeof(int16_t);
 }
 
-void IMovie::RenderFrame(Renderer &rend, GuiContext &gui, int width, int height, const GLvoid *pixels, const char *subtitles)
+void IMovie::RenderFrame(Renderer &rend, GuiContext& /*gui*/, int width, int height, const GLvoid *pixels, const char* subtitles, int screenW, int screenH)
 {
     // TODO: Optimize - should update 1 texture rather than creating per frame
     int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
-
-    gui_begin_window(&gui, mName.c_str());
-    int x, y, w, h;
-    gui_turtle_pos(&gui, &x, &y);
-    gui_window_client_size(&gui, &w, &h);
-
-    rend.drawQuad(texhandle, static_cast<f32>(x), static_cast<f32>(y), static_cast<f32>(w), static_cast<f32>(h));
+    
+    rend.drawQuad(texhandle, 
+        rend.CameraPosition().x - (rend.ScreenSize().x / 2), 
+        rend.CameraPosition().y - (rend.ScreenSize().y / 2), 
+        rend.ScreenSize().x, 
+        rend.ScreenSize().y,
+        Renderer::eDebugUi);
+    
+    rend.SetActiveLayer(Renderer::eDebugUi + 1);
 
     if (subtitles)
     {
-        RenderSubtitles(rend, subtitles, x, y, w, h);
+        RenderSubtitles(rend, subtitles,
+            0,
+            0,
+            static_cast<f32>(screenW),
+            static_cast<f32>(screenH));
     }
-
-
-    gui_end_window(&gui);
 
     rend.destroyTexture(texhandle);
 }

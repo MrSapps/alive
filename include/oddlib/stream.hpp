@@ -73,6 +73,14 @@ namespace Oddlib
             ReadBytes(reinterpret_cast<u8*>(&value[0]), sizeof(T)* count);
         }
 
+        // Write any fundamental type
+        template<class T>
+        void Write(T& type)
+        {
+            static_assert(std::is_fundamental<T>::value, "Can only write fundamental types");
+            WriteBytes(reinterpret_cast<u8*>(&type), sizeof(type));
+        }
+
         // Write a string
         void Write(const std::string& type)
         {

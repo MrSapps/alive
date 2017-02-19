@@ -702,13 +702,18 @@ void Renderer::textAlign(int align)
 
 void Renderer::text(f32 x, f32 y, const char *msg)
 {
+    text(x, y, msg, mActiveLayer);
+}
+
+void Renderer::text(f32 x, f32 y, const char *msg, int layer)
+{
     DrawCmd cmd;
     cmd.type = DrawCmdType_text;
     cmd.s.f[0] = x;
     cmd.s.f[1] = y;
     strncpy(cmd.s.str, msg, sizeof(cmd.s.str));
     cmd.s.str[sizeof(cmd.s.str) - 1] = '\0';
-    pushCmd(cmd);
+    pushCmd(cmd, layer);
 }
 
 void Renderer::resetTransform()
