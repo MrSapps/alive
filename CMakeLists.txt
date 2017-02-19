@@ -424,6 +424,8 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
     add_library(ddraw SHARED
         tools/engine_hook/exports.def
         tools/engine_hook/dllmain.cpp
+        tools/engine_hook/sound_hooks.cpp
+        tools/engine_hook/sound_hooks.hpp
         tools/engine_hook/ddraw7proxy.hpp
         tools/engine_hook/dsurface7proxy.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
@@ -578,7 +580,7 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/DataSetIds.json" DESTINATION "${
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/Roboto-Regular.ttf" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resources.json" DESTINATION "${DATA_DIR}")
 
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT.DDV.SRT" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT_DDV_AePc.SRT" DESTINATION "${DATA_DIR}/subtitles")
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/abe.lua" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/background_animation.lua" DESTINATION "${DATA_DIR}/scripts")
