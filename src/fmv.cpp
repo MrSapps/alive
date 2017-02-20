@@ -653,7 +653,10 @@ Fmv::~Fmv()
 void Fmv::Play(const std::string& name)
 {
     auto fmv = mResourceLocator.LocateFmv(mAudioController, name.c_str());
-    mFmvs.emplace_back(std::move(fmv));
+    if (fmv)
+    {
+        mFmvs.emplace_back(std::move(fmv));
+    }
 }
 
 bool Fmv::IsPlaying() const
