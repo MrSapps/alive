@@ -208,7 +208,7 @@ public:
     };
     std::vector<SampleData> mSamples;
 
-private:
+//private:
     // VAG Data body / (VB 254 VAG data) ("Samples" in AE?)
     // 512bytes /2 = 256 samps max
     std::vector<AEVh> iOffs;
