@@ -1,6 +1,8 @@
 #include <gmock/gmock.h>
 #include "string_util.hpp"
 #include "resourcemapper.hpp"
+#include <boost/utility/string_view.hpp>
+
 
 TEST(StringHash, hash)
 {
@@ -76,17 +78,32 @@ TEST(string_util, endsWith)
 
 TEST(string_util, contains)
 {
-    std::string t1 = "LOLrofl";
-    std::string t2 = "roflLOL";
-    std::string t3 = "LroflL";
-    ASSERT_FALSE(string_util::contains(t1, "zzz"));
-    ASSERT_TRUE(string_util::contains(t1, "LOL"));
-    ASSERT_TRUE(string_util::contains(t1, "rofl"));
-    ASSERT_TRUE(string_util::contains(t2, "LOL"));
-    ASSERT_TRUE(string_util::contains(t2, "rofl"));
-    ASSERT_TRUE(string_util::contains(t3, "Lr"));
-    ASSERT_TRUE(string_util::contains(t3, ""));
-    ASSERT_TRUE(string_util::contains(t3, "lL"));
+    {
+        std::string t1 = "LOLrofl";
+        std::string t2 = "roflLOL";
+        std::string t3 = "LroflL";
+        ASSERT_FALSE(string_util::contains(t1, "zzz"));
+        ASSERT_TRUE(string_util::contains(t1, "LOL"));
+        ASSERT_TRUE(string_util::contains(t1, "rofl"));
+        ASSERT_TRUE(string_util::contains(t2, "LOL"));
+        ASSERT_TRUE(string_util::contains(t2, "rofl"));
+        ASSERT_TRUE(string_util::contains(t3, "Lr"));
+        ASSERT_TRUE(string_util::contains(t3, ""));
+        ASSERT_TRUE(string_util::contains(t3, "lL"));
+    }
+    {
+        boost::string_view t1 = "LOLrofl";
+        boost::string_view t2 = "roflLOL";
+        boost::string_view t3 = "LroflL";
+        ASSERT_FALSE(string_util::contains(t1, "zzz"));
+        ASSERT_TRUE(string_util::contains(t1, "LOL"));
+        ASSERT_TRUE(string_util::contains(t1, "rofl"));
+        ASSERT_TRUE(string_util::contains(t2, "LOL"));
+        ASSERT_TRUE(string_util::contains(t2, "rofl"));
+        ASSERT_TRUE(string_util::contains(t3, "Lr"));
+        ASSERT_TRUE(string_util::contains(t3, ""));
+        ASSERT_TRUE(string_util::contains(t3, "lL"));
+    }
 }
 
 TEST(string_util, iequals)

@@ -8,6 +8,7 @@
 #include "types.hpp"
 #include "oddlib/anim.hpp"
 #include "oddlib/stream.hpp"
+#include "sound_hooks.hpp"
 
 // Hack to access private parts of ResourceMapper
 #define private public
@@ -330,7 +331,7 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
 
     // Setting to Feco lets us go directly in game, with the side effect that pausing will crash
     // and some other nasties, still its good enough for debugging animations
-    levelNumber = 5;
+    //levelNumber = 5;
 
     // Abe "hello" screen when levelNumber is left as the intro level
     cameraNumber = 1;

@@ -10,6 +10,7 @@
 // but MSVC for now.
 #include <codecvt>
 #endif
+#include <boost/utility/string_view.hpp>
 
 namespace string_util
 {
@@ -124,6 +125,11 @@ namespace string_util
     inline bool contains(const std::string& haystack, const std::string& needle)
     {
         return (haystack.find(needle) != std::string::npos);
+    }
+
+    inline bool contains(boost::string_view haystack, boost::string_view needle)
+    {
+        return (haystack.find(needle) != boost::string_view::npos);
     }
 
 #ifdef _MSC_VER
