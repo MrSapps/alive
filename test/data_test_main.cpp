@@ -601,7 +601,7 @@ public:
         fwrite(og.header, 1, og.header_len, output);
         fwrite(og.body, 1, og.body_len, output);
 
-        std::unique_ptr<IMusic> music = locator.LocateMusic("d1_D1SEQ_46_D1SNDFX_AoPc");
+        std::unique_ptr<IMusic> music = locator.LocateMusic("d1_D1SEQ_0_D1SNDFX_AoPsx");
         if (!music)
         {
             return;
@@ -614,7 +614,7 @@ public:
         seqPlayer.LoadSequenceStream(*music->mSeqData);
         seqPlayer.PlaySequence();
 
-        for (int i = 0; i < 700; i++)
+        for (int i = 0; i < 7000; i++)
         {
             signed char buffer[1024 * 4] = {};
 
@@ -645,7 +645,7 @@ public:
         else
         {
             /* data to encode */
-            auto numFloats = bufferSizeInBytes / sizeof(float);
+            int numFloats = bufferSizeInBytes / sizeof(float);
             const auto numChannels = 2;
             const auto floatsPerChannel = numFloats / numChannels;
 
@@ -653,7 +653,7 @@ public:
             float** buffer = vorbis_analysis_buffer(&vd, floatsPerChannel); // 32bit float buffer
 
             int pos = 0;
-            for (auto i = 0u; i <floatsPerChannel; i++)
+            for (auto i = 0; i <floatsPerChannel; i++)
             {
                 buffer[0][i] = readbuffer[pos++];
                 buffer[1][i] = readbuffer[pos++];
@@ -700,6 +700,41 @@ private:
     vorbis_dsp_state vd; // central working state for the packet->PCM decoder
     vorbis_block     vb; // local working space for packet->PCM decode
 };
+
+void LoopFlagTest()
+{
+    
+    //Vab
+
+    Oddlib::LvlArchive lvl("F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\mi.lvl");
+
+    Oddlib::LvlArchive::File* vh = lvl.FileByName("MINES.VH");
+    Oddlib::LvlArchive::File* vb = lvl.FileByName("MINES.VB");
+
+    auto stream = std::make_unique<Oddlib::FileStream>("F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\sounds.dat", Oddlib::IStream::ReadMode::ReadOnly);
+    
+    Vab vab;
+    vab.ReadVh(*vh->ChunkByIndex(0)->Stream(), false);
+    vab.ReadVb(*vb->ChunkByIndex(0)->Stream(), false, true, stream.get());
+
+    stream = nullptr;
+
+    FILE* f = fopen("F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\sounds.dat", "r+b");
+
+    for (AEVh& rec : vab.iOffs)
+    {
+        fseek(f, rec.iFileOffset, 0);
+
+        char b[3] = { 1, 1, 1};
+
+        for (u32  i = 0; i < 14; i++)
+        {
+            fwrite(b, 1, 1, f);
+        }
+    }
+
+    fclose(f);
+}
 
 int main(int /*argc*/, char** /*argv*/)
 {
@@ -1753,6 +1788,7 @@ int main(int /*argc*/, char** /*argv*/)
     OggEncoder ogg;
     ogg.InitEncoder(resourceLocator);
 
+    LoopFlagTest();
 
     for (const auto& data : datas)
     {
