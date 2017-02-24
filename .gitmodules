@@ -44,3 +44,6 @@
 [submodule "3rdParty/vorbis"]
 	path = 3rdParty/vorbis
 	url = https://github.com/xiph/vorbis.git
+[submodule "3rdParty/boost_1_63_mini"]
+	path = 3rdParty/boost_1_63_mini
+	url = https://github.com/paulsapps/boost_1_63_mini.git
