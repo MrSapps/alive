@@ -47,3 +47,6 @@
 [submodule "3rdParty/boost_1_63_mini"]
 	path = 3rdParty/boost_1_63_mini
 	url = https://github.com/paulsapps/boost_1_63_mini.git
+[submodule "3rdParty/squirrel"]
+	path = 3rdParty/squirrel
+	url = https://github.com/paulsapps/squirrel
