@@ -75,6 +75,7 @@ if (LINUX)
   pkg_check_modules (GTK3 REQUIRED gtk+-3.0)
 endif()
 
+
 include_directories(
     include
     ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers
@@ -109,6 +110,11 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${GTK3_INCLUDE_DIRS}
 )
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squirrel)
+SET_PROPERTY(TARGET sq_static PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET sqstdlib_static PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET squirrel_static PROPERTY FOLDER "3rdparty")
 
 
 SET(nativefiledialog_src 
@@ -386,9 +392,9 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(LINUX)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES})
+    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
 ELSE()
-    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate nativefiledialog)
+    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
 ENDIF()
 
 #cotire(Alive)
