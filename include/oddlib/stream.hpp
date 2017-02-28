@@ -15,7 +15,7 @@ namespace Oddlib
     class IStream
     {
     public:
-        static inline void RegisterLuaBindings(sol::state& state);
+        static inline void RegisterScriptBindings(sol::state& state);
 
         enum class ReadMode
         {
@@ -137,7 +137,7 @@ namespace Oddlib
         return ret;
     }
 
-    /*static*/ inline void IStream::RegisterLuaBindings(sol::state& state)
+    /*static*/ inline void IStream::RegisterScriptBindings(sol::state& state)
     {
         state.new_usertype<IStream>("IStream",
             "ReadU32", &ReadU32,

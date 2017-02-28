@@ -50,3 +50,6 @@
 [submodule "3rdParty/squirrel"]
 	path = 3rdParty/squirrel
 	url = https://github.com/paulsapps/squirrel
+[submodule "3rdParty/squall"]
+	path = 3rdParty/squall
+	url = https://github.com/paulsapps/squall.git

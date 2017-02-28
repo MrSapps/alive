@@ -8,6 +8,7 @@
 #include "resourcemapper.hpp"
 #include "proxy_sol.hpp"
 #include "bitutils.hpp"
+#include "proxy_squall.hpp"
 
 class StateMachine;
 class InputState;
@@ -173,7 +174,7 @@ public:
     static  bool GameSpeak8(u32 state) { return IsBitOn(state, eGameSpeak8); }
     static bool Back(u32 state) { return IsBitOn(state, eBack); }
 
-    static void RegisterLuaBindings(sol::state& state);
+    static void RegisterScriptBindings(sol::state& state, squall::VM& vm);
 
     enum EInputActions : u32
     {
@@ -550,4 +551,5 @@ protected:
     StateMachine mStateMachine;
 
     sol::state mLuaState;
+    squall::VMStd mSquirrelVm;
 };

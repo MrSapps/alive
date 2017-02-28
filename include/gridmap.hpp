@@ -13,6 +13,7 @@
 #include "proxy_sol.hpp"
 #include "renderer.hpp"
 #include "collisionline.hpp"
+#include "proxy_squall.hpp"
 
 struct GuiContext;
 class Renderer;
@@ -32,8 +33,14 @@ struct ObjRect
     s32 w;
     s32 h;
 
-    static void RegisterLuaBindings(sol::state& state)
+    static void RegisterScriptBindings(sol::state& state, squall::VM& vm)
     {
+        squall::Klass<ObjRect> k(vm, "ObjRect");
+        k.var("x", &ObjRect::x);
+        k.var("y", &ObjRect::y);
+        k.var("w", &ObjRect::h);
+        k.var("h", &ObjRect::h);
+
         state.new_usertype<ObjRect>("ObjRect",
             "x", &ObjRect::x,
             "y", &ObjRect::y,
@@ -62,7 +69,7 @@ public:
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale, int layer) const;
     void ReloadScript();
-    static void RegisterLuaBindings(sol::state& state);
+    static void RegisterScriptBindings(sol::state& state, squall::VM& vm);
 
     bool ContainsPoint(s32 x, s32 y) const;
     const std::string& Name() const { return mName; }

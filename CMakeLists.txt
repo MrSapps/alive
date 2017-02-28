@@ -83,6 +83,7 @@ include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}/packaging
     ${OPENGL_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squirrel/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squall
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/boost_1_63_mini
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src
@@ -590,6 +591,7 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resources.json" DESTINATION "${D
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT_DDV_AePc.SRT" DESTINATION "${DATA_DIR}/subtitles")
 
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.nut" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/abe.lua" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/background_animation.lua" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/door.lua" DESTINATION "${DATA_DIR}/scripts")

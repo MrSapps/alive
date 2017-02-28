@@ -16,7 +16,6 @@
 #include "gameselectionscreen.hpp"
 #include "generated_gui_layout.cpp" // Has function "load_layout" to set gui layout. Only used in single .cpp file.
 
-
 #ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -162,9 +161,33 @@ void InputMapping::Update(const InputState& input)
     mActions.UpdateStates();
 }
 
-/*static*/ void Actions::RegisterLuaBindings(sol::state& state)
+/*static*/ void Actions::RegisterScriptBindings(sol::state& state, squall::VM& vm)
 {
-    std::ignore = state;
+    squall::Klass<Actions> k(vm, "Actions");
+    k.func("Left", &Actions::Left);
+    k.func("Right", &Actions::Right);
+    k.func("Up", &Actions::Up);
+    k.func("Down", &Actions::Down);
+    k.func("Chant", &Actions::Chant);
+    k.func("Run", &Actions::Run);
+    k.func("Sneak", &Actions::Sneak);
+    k.func("Jump", &Actions::Jump);
+    k.func("Throw", &Actions::Throw);
+    k.func("Action", &Actions::Action);
+    k.func("RollOrFart", &Actions::RollOrFart);
+    k.func("GameSpeak1", &Actions::GameSpeak1);
+    k.func("GameSpeak2", &Actions::GameSpeak2);
+    k.func("GameSpeak3", &Actions::GameSpeak3);
+    k.func("GameSpeak4", &Actions::GameSpeak4);
+    k.func("GameSpeak5", &Actions::GameSpeak5);
+    k.func("GameSpeak6", &Actions::GameSpeak6);
+    k.func("GameSpeak7", &Actions::GameSpeak7);
+    k.func("GameSpeak8", &Actions::GameSpeak8);
+    k.func("Back", &Actions::Back);
+    k.var("IsPressed", &Actions::mIsPressed);
+    k.var("IsReleased", &Actions::mIsReleased);
+    k.var("IsHeld", &Actions::mIsDown);
+
     state.new_usertype<Actions>("Actions",
         "Left", &Actions::Left,
         "Right", &Actions::Right,
@@ -256,6 +279,8 @@ void LuaLogError(const char* msg) { if (msg) { LOG_NOFUNC_ERROR(msg); } else { L
 
 void Engine::InitSubSystems()
 {
+    TRACE_ENTRYEXIT;
+
     mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
     mFmv = std::make_unique<DebugFmv>(mAudioHandler, *mResourceLocator);
     mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, mLuaState);
@@ -282,10 +307,20 @@ void Engine::InitSubSystems()
     // Get lua to look for scripts in the correction location
     mLuaState.script("package.path = '" + mFileSystem->FsPath() + "data/scripts/?.lua'");
 
-    Oddlib::IStream::RegisterLuaBindings(mLuaState);
-    Actions::RegisterLuaBindings(mLuaState);
-    MapObject::RegisterLuaBindings(mLuaState);
-    ObjRect::RegisterLuaBindings(mLuaState);
+    // TODO: Override the stdout/stderr/compile error functions to LOG's
+    mSquirrelVm.dostring(mResourceLocator->LocateScript("main.nut").c_str());
+    mSquirrelVm.defun("log_info", LuaLogInfo);
+    mSquirrelVm.defun("log_trace", LuaLogTrace);
+    mSquirrelVm.defun("log_warning", LuaLogWarning);
+    mSquirrelVm.defun("log_error", LuaLogError);
+
+    Oddlib::IStream::RegisterScriptBindings(mLuaState);
+    Actions::RegisterScriptBindings(mLuaState, mSquirrelVm);
+    MapObject::RegisterScriptBindings(mLuaState, mSquirrelVm);
+    ObjRect::RegisterScriptBindings(mLuaState, mSquirrelVm);
+
+    LOG_INFO("Calling script init()");
+    mSquirrelVm.call<void>("init");
 }
 
 // TODO: Using averaging value or anything that is more accurate than this
@@ -531,6 +566,9 @@ void Engine::Update()
 
     mInputState.Update();
     Debugging().Update(mInputState);
+
+    // HACK: Should be called from within the "init/starting" state
+    mSquirrelVm.call<void>("update");
 
     mStateMachine.Update(mInputState, *mRenderer);
 }

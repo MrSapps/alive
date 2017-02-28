@@ -24,8 +24,33 @@ MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, 
 
 }
 
-/*static*/ void MapObject::RegisterLuaBindings(sol::state& state)
+/*static*/ void MapObject::RegisterScriptBindings(sol::state& state, squall::VM& vm)
 {
+    squall::Klass<MapObject> k(vm, "MapObject");
+
+    k.func("SetAnimation", &MapObject::SetAnimation);
+    k.func("SetAnimationFrame", &MapObject::SetAnimationFrame);
+    k.func("FrameNumber", &MapObject::FrameNumber);
+    k.func("IsLastFrame", &MapObject::IsLastFrame);
+    k.func("AnimUpdate", &MapObject::AnimUpdate);
+    k.func("SetAnimationAtFrame", &MapObject::SetAnimationAtFrame);
+    k.func("AnimationComplete", &MapObject::AnimationComplete);
+    k.func("NumberOfFrames", &MapObject::NumberOfFrames);
+    k.func("FrameCounter", &MapObject::FrameCounter);
+
+    k.func("WallCollision", &MapObject::WallCollision);
+    k.func("CellingCollision", &MapObject::CellingCollision);
+    k.func("FloorCollision", &MapObject::FloorCollision);
+
+    k.func("SnapXToGrid", &MapObject::SnapXToGrid);
+    k.func("FacingLeft", &MapObject::FacingLeft);
+
+    k.func("FacingRight", &MapObject::FacingRight);
+    k.func("FlipXDirection", &MapObject::FlipXDirection);
+    k.var("states", &MapObject::mStates);
+    k.var("mXPos", &MapObject::mXPos);
+    k.var("mYPos", &MapObject::mYPos);
+
     state.new_usertype<MapObject>("MapObject",
         "SetAnimation", &MapObject::SetAnimation,
         "SetAnimationFrame", &MapObject::SetAnimationFrame,
