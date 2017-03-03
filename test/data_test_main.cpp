@@ -17,6 +17,7 @@
 #include "phash.hpp"
 #include "oddlib/audio/vab.hpp"
 #include "gridmap.hpp"
+#include "gamefilesystem.hpp"
 
 void HackToReferencePrintEtc()
 {
@@ -1774,11 +1775,11 @@ int main(int /*argc*/, char** /*argv*/)
 
     ResourceLocator resourceLocator(std::move(mapper), std::move(dataPaths));
 
-    DataSetMap dataSet;
+    DataSetPathVector dataSet;
 
     for (const auto& gd : gameDefs)
     {
-        PriorityDataSet pd(gd.DataSetName(), &gd);
+        DataSetPath pd(gd.DataSetName(), &gd);
         pd.mDataSetPath = resourceLocator.GetDataPaths().PathFor(pd.mDataSetName);
         dataSet.emplace_back(pd);
     }

@@ -15,6 +15,7 @@
 #include "guiwidgets.hpp"
 #include "gameselectionscreen.hpp"
 #include "generated_gui_layout.cpp" // Has function "load_layout" to set gui layout. Only used in single .cpp file.
+#include "gamefilesystem.hpp"
 
 #ifdef _WIN32
 #ifndef NOMINMAX

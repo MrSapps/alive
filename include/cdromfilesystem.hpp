@@ -7,6 +7,7 @@
 #include "oddlib/stream.hpp"
 #include "logger.hpp"
 #include <cassert>
+#include "filesystem.hpp"
 
 class InvalidCdImageException : public Oddlib::Exception
 {
@@ -664,4 +665,63 @@ private:
     };
 
     Directory mRoot;
+};
+
+
+class CdIsoFileSystem : public IFileSystem
+{
+public:
+    explicit CdIsoFileSystem(const char* fileName)
+        : mRawCdImage(fileName), mCdImagePath(fileName)
+    {
+
+    }
+
+    virtual ~CdIsoFileSystem() = default;
+
+    virtual std::string FsPath() const override
+    {
+        return mCdImagePath;
+    }
+
+    virtual bool Init() override
+    {
+        // TODO
+        return true;
+    }
+
+    virtual std::unique_ptr<Oddlib::IStream> Open(const std::string& fileName) override
+    {
+        // Only PSX FMV's need raw sector reading, everything else is a "normal" file
+        return mRawCdImage.ReadFile(fileName, string_util::ends_with(fileName, ".MOV", true));
+    }
+
+    virtual std::unique_ptr<Oddlib::IStream> Create(const std::string& /*fileName*/) override
+    {
+        TRACE_ENTRYEXIT;
+        throw Oddlib::Exception("Create is not implemented");
+    }
+
+    virtual std::vector<std::string> EnumerateFiles(const std::string& /*directory*/, const char* /*filter*/) override
+    {
+        // TODO
+        LOG_ERROR("Not implemented");
+        abort();
+    }
+
+    virtual std::vector<std::string> EnumerateFolders(const std::string& /*directory*/) override
+    {
+        // TODO
+        LOG_ERROR("Not implemented");
+        abort();
+    }
+
+    virtual bool FileExists(const std::string& fileName) override
+    {
+        return mRawCdImage.FileExists(fileName) != -1;
+    }
+
+private:
+    RawCdImage mRawCdImage;
+    std::string mCdImagePath;
 };

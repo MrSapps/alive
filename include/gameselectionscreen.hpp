@@ -53,5 +53,5 @@ private:
     eState mState = eState::eSelectGame;
     std::vector<std::string> mMissingDataPaths;
     std::vector<std::string> mRequiredDataSetNames;
-    DataSetMap mRequiredDataSets;
+    DataSetPathVector mRequiredDataSets;
 };

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "resourcemapper.hpp"
+#include "filesystem.hpp"
+#include "types.hpp"
 
 // Actually "ZIP64" file system, which removes 65k file limit and 4GB zip file size limit
 // TODO: Add ZIP64 extensions, currently only supports "ZIP32" which is enough for now
@@ -33,16 +34,7 @@ private:
         u16 mCommentSize = 0;
         // [comment data]
 
-        void DeSerialize(Oddlib::IStream& stream)
-        {
-            stream.Read(mThisDiskNumber);
-            stream.Read(mStartCentralDirectoryDiskNumber);
-            stream.Read(mNumEntriesInCentaralDirectoryOnThisDisk);
-            stream.Read(mNumEntriesInCentaralDirectory);
-            stream.Read(mCentralDirectorySize);
-            stream.Read(mCentralDirectoryStartOffset);
-            stream.Read(mCommentSize);
-        }
+        void DeSerialize(Oddlib::IStream& stream);
     };
 
     EndOfCentralDirectoryRecord mEndOfCentralDirectoryRecord;
@@ -61,12 +53,7 @@ private:
         u32 mCompressedSize;
         u32 mUnCompressedSize;
 
-        void DeSerialize(Oddlib::IStream& stream)
-        {
-            stream.Read(mCrc32);
-            stream.Read(mCompressedSize);
-            stream.Read(mUnCompressedSize);
-        }
+        void DeSerialize(Oddlib::IStream& stream);
     };
 
     const u32 kLocalFileHeader = 0x04034b50;
@@ -84,17 +71,7 @@ private:
 
         // extra field
 
-        void DeSerialize(Oddlib::IStream& stream)
-        {
-            stream.Read(mMinVersionRequiredToExtract);
-            stream.Read(mGeneralPurposeFlags);
-            stream.Read(mCompressionMethod);
-            stream.Read(mFileLastModifiedTime);
-            stream.Read(mFileLastModifiedDate);
-            mDataDescriptor.DeSerialize(stream);
-            stream.Read(mFileNameLength);
-            stream.Read(mExtraFieldLength);
-        }
+        void DeSerialize(Oddlib::IStream& stream);
     };
 
     const u32 kCentralDirectory = 0x02014b50;
@@ -111,28 +88,7 @@ private:
         // extra field
         // file comment
 
-        void DeSerialize(Oddlib::IStream& stream)
-        {
-            stream.Read(mCreatedByVersion);
-            mLocalFileHeader.DeSerialize(stream);
-            stream.Read(mFileCommentLength);
-            stream.Read(mFileDiskNumber);
-            stream.Read(mInternalFileAttributes);
-            stream.Read(mExternalFileAttributes);
-            stream.Read(mRelativeLocalFileHeaderOffset);
-
-            if (mLocalFileHeader.mFileNameLength > 0)
-            {
-                mLocalFileHeader.mFileName.resize(mLocalFileHeader.mFileNameLength);
-                stream.Read(mLocalFileHeader.mFileName);
-            }
-
-            const u32 sizeOfExtraFieldAndFileComment = mLocalFileHeader.mExtraFieldLength + mFileCommentLength;
-            if (sizeOfExtraFieldAndFileComment > 0)
-            {
-                stream.Seek(stream.Pos() + sizeOfExtraFieldAndFileComment);
-            }
-        }
+        void DeSerialize(Oddlib::IStream& stream);
     };
 
 

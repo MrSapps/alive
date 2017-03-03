@@ -5,6 +5,7 @@
 #include "stdthread.h"
 #include "renderer.hpp"
 #include "resourcemapper.hpp"
+#include "cdromfilesystem.hpp"
 
 class AutoMouseCursorHide
 {

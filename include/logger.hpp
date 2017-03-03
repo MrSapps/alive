@@ -33,6 +33,8 @@ enum colour
 #endif
 
 #include <windows.h>
+#undef GetObject
+
 static void* gConsoleHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
 
 struct setcolour

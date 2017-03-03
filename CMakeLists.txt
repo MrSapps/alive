@@ -292,7 +292,6 @@ SET(oddlib_src
     include/oddlib/audio/Soundbank.h
     include/oddlib/audio/vab.hpp
     include/oddlib/audio/Voice.h
-    include/oddlib/cdromfilesystem.hpp
     src/oddlib/path.cpp
     include/oddlib/path.hpp
     src/oddlib/bits_ao_pc.cpp
@@ -368,6 +367,15 @@ SET(alivelib_src
     src/collisionline.cpp
     include/physics.hpp
     src/physics.cpp
+    include/gamedefinition.hpp
+    src/gamedefinition.cpp
+    include/filesystem.hpp
+    src/filesystem.cpp
+    include/gamefilesystem.hpp
+    src/gamefilesystem.cpp
+    include/cdromfilesystem.hpp
+    include/directorylimitedfilesystem.hpp
+    include/rapid_jsonproxy.hpp
 )
 
 add_library(AliveLib STATIC

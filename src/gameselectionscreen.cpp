@@ -46,7 +46,7 @@ void GameSelectionScreen::LoadGameDefinition()
     mResLocator.GetDataPaths().Persist();
 
     // Get the paths for the datasets
-    for (PriorityDataSet& pds : mRequiredDataSets)
+    for (DataSetPath& pds : mRequiredDataSets)
     {
         if (!pds.mSourceGameDefinition->IsMod())
         {
@@ -154,17 +154,23 @@ void GameSelectionScreen::RenderSelectGame()
             allGameDefs.push_back(&t);
         }
 
+        //GameDefinitionGraph graph = userSelectedGameDef.GetGraph(mGameDefinitions);
+        //graph.MissingGameDefinitions();
+        //graph.RequiredDataSets();
+
+
         // Check we have the required data sets
         GameDefinition::GetDependencies(mRequiredDataSets, missingDataSets, &userSelectedGameDef, allGameDefs);
         if (missingDataSets.empty())
         {
-            const BuiltInAndModGameDefs sorted = GameDefinition::SplitInToBuiltInAndMods(mRequiredDataSets);
-
             // Check we have a valid path to the "builtin" (i.e original) game files
             mRequiredDataSetNames.clear();
-            for (const PriorityDataSet* dSetName : sorted.gameDefs)
+            for (const DataSetPath& dataSet : mRequiredDataSets)
             {
-                mRequiredDataSetNames.push_back(dSetName->mDataSetName);
+                if (!dataSet.mSourceGameDefinition->IsMod())
+                {
+                    mRequiredDataSetNames.push_back(dataSet.mDataSetName);
+                }
             }
 
             mMissingDataPaths = mResLocator.GetDataPaths().MissingDataSetPaths(mRequiredDataSetNames);

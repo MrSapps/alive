@@ -2,8 +2,64 @@
 #include <memory>
 #include "zipfilesystem.hpp"
 #include "libdeflate.h"
+#include "oddlib/stream.hpp"
+#include "logger.hpp"
+#include "oddlib/exceptions.hpp"
 
 #undef max
+
+void ZipFileSystem::EndOfCentralDirectoryRecord::DeSerialize(Oddlib::IStream& stream)
+{
+    stream.Read(mThisDiskNumber);
+    stream.Read(mStartCentralDirectoryDiskNumber);
+    stream.Read(mNumEntriesInCentaralDirectoryOnThisDisk);
+    stream.Read(mNumEntriesInCentaralDirectory);
+    stream.Read(mCentralDirectorySize);
+    stream.Read(mCentralDirectoryStartOffset);
+    stream.Read(mCommentSize);
+}
+
+void ZipFileSystem::DataDescriptor::DeSerialize(Oddlib::IStream& stream)
+{
+    stream.Read(mCrc32);
+    stream.Read(mCompressedSize);
+    stream.Read(mUnCompressedSize);
+}
+
+void ZipFileSystem::LocalFileHeader::DeSerialize(Oddlib::IStream& stream)
+{
+    stream.Read(mMinVersionRequiredToExtract);
+    stream.Read(mGeneralPurposeFlags);
+    stream.Read(mCompressionMethod);
+    stream.Read(mFileLastModifiedTime);
+    stream.Read(mFileLastModifiedDate);
+    mDataDescriptor.DeSerialize(stream);
+    stream.Read(mFileNameLength);
+    stream.Read(mExtraFieldLength);
+}
+
+void ZipFileSystem::CentralDirectoryRecord::DeSerialize(Oddlib::IStream& stream)
+{
+    stream.Read(mCreatedByVersion);
+    mLocalFileHeader.DeSerialize(stream);
+    stream.Read(mFileCommentLength);
+    stream.Read(mFileDiskNumber);
+    stream.Read(mInternalFileAttributes);
+    stream.Read(mExternalFileAttributes);
+    stream.Read(mRelativeLocalFileHeaderOffset);
+
+    if (mLocalFileHeader.mFileNameLength > 0)
+    {
+        mLocalFileHeader.mFileName.resize(mLocalFileHeader.mFileNameLength);
+        stream.Read(mLocalFileHeader.mFileName);
+    }
+
+    const u32 sizeOfExtraFieldAndFileComment = mLocalFileHeader.mExtraFieldLength + mFileCommentLength;
+    if (sizeOfExtraFieldAndFileComment > 0)
+    {
+        stream.Seek(stream.Pos() + sizeOfExtraFieldAndFileComment);
+    }
+}
 
 ZipFileSystem::ZipFileSystem(const std::string& zipFile, IFileSystem& fs)
     : mFileName(zipFile)

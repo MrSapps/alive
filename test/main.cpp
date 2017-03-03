@@ -4,7 +4,7 @@
 #include "oddlib/masher.hpp"
 #include "oddlib/anim.hpp"
 #include "oddlib/exceptions.hpp"
-#include "oddlib/cdromfilesystem.hpp"
+#include "cdromfilesystem.hpp"
 #include "logger.hpp"
 #include "SDL.h"
 #include "sample.lvl.g.h"
