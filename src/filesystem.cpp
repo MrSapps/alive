@@ -188,7 +188,7 @@ struct closedirDeleter
 };
 typedef std::unique_ptr<DIR, closedirDeleter> closedirHandle;
 
-std::vector<std::string> OSBaseFileSystem::DoEnumerate(const std::string& directory, const char* filter, bool files)
+std::vector<std::string> OSBaseFileSystem::DoEnumerate(const std::string& directory, bool files, const char* filter)
 {
     std::vector<std::string> ret;
     const std::string dirPath = ExpandPath(directory) + "/";
