@@ -9,6 +9,7 @@
 #include "oddlib/anim.hpp"
 #include "oddlib/stream.hpp"
 #include "sound_hooks.hpp"
+#include "gamefilesystem.hpp"
 
 // Hack to access private parts of ResourceMapper
 #define private public
