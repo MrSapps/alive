@@ -1775,11 +1775,11 @@ int main(int /*argc*/, char** /*argv*/)
 
     ResourceLocator resourceLocator(std::move(mapper), std::move(dataPaths));
 
-    DataSetPathVector dataSet;
+    DataPaths::PathVector dataSet;
 
     for (const auto& gd : gameDefs)
     {
-        DataSetPath pd(gd.DataSetName(), &gd);
+        DataPaths::Path pd(gd.DataSetName(), &gd);
         pd.mDataSetPath = resourceLocator.GetDataPaths().PathFor(pd.mDataSetName);
         dataSet.emplace_back(pd);
     }

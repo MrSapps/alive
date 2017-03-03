@@ -58,33 +58,9 @@ class DataSetIdentifiers
 {
 public:
     DataSetIdentifiers() = default;
-
-    DataSetIdentifiers(IFileSystem& fs, const char* dataSetsIdsFileName)
-    {
-        auto stream = fs.Open(dataSetsIdsFileName);
-        if (stream)
-        {
-            Parse(stream->LoadAllToString());
-        }
-    }
-
-    bool IsMetaPath(const std::string& dataSetName) const
-    {
-        return mMetaPaths.find(dataSetName) != std::end(mMetaPaths);
-    }
-
-    std::string Identify(IFileSystem& fs) const
-    {
-        for (const auto& dataPathId : mDataPathIds)
-        {
-            if (DoMatchFileSystemPathWithDataSetIdentifier(fs, dataPathId))
-            {
-                return dataPathId.first;
-            }
-        }
-        return "";
-    }
-
+    DataSetIdentifiers(IFileSystem& fs, const char* dataSetsIdsFileName);
+    bool IsMetaPath(const std::string& dataSetName) const;
+    std::string Identify(IFileSystem& fs) const;
 private:
     struct DataPathFiles
     {
@@ -93,109 +69,42 @@ private:
         std::vector<std::string> mMustNotContain;
     };
 
+    bool DoMatchFileSystemPathWithDataSetIdentifier(IFileSystem& fs, const std::pair<std::string, struct DataPathFiles>& dataPathId) const;
+    void Parse(const std::string& json);
+
+private:
     std::map<std::string, DataPathFiles> mDataPathIds;
 
     // A meta path is one that exists just to include other paths
     // e.g AePsx includes AePsxCd1 and AxePsxCd1, but AePsx won't actually have a path as such
     std::set<std::string> mMetaPaths;
-
-    bool DoMatchFileSystemPathWithDataSetIdentifier(IFileSystem& fs, const std::pair<std::string, DataPathFiles>& dataPathId) const
-    {
-        // Check all of the "must exist files" do exist
-        for (const auto& f : dataPathId.second.mContainAllOf)
-        {
-            if (!fs.FileExists(f.c_str()))
-            {
-                // Skip this dataPathId, the path doesn't match all of the "must contain"
-                return false;
-            }
-        }
-
-        // Check that all of the "must not exist" files don't exist
-        for (const auto& f : dataPathId.second.mMustNotContain)
-        {
-            if (fs.FileExists(f.c_str()))
-            {
-                // Found a file that shouldn't exist, skip to the next dataPathId
-                return false;
-            }
-        }
-
-        // Check we can find at least one of the "any of" set of files
-        bool foundAnyOf = false;
-        for (const auto& f : dataPathId.second.mContainAnyOf)
-        {
-            if (fs.FileExists(f.c_str()))
-            {
-                foundAnyOf = true;
-                break;
-            }
-        }
-
-        // If one of the "any of" files exists or we have one or more "must exist" files
-        // then this dataPathId matches path
-        if (foundAnyOf || dataPathId.second.mContainAllOf.empty() == false)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    void Parse(const std::string& json)
-    {
-        rapidjson::Document document;
-        document.Parse(json.c_str());
-
-        if (document.HasMember("data_set_ids"))
-        {
-            const auto& dataSetIds = document["data_set_ids"].GetObject();
-            for (auto it = dataSetIds.MemberBegin(); it != dataSetIds.MemberEnd(); ++it)
-            {
-                const auto& dataSetId = it->value.GetObject();
-
-                DataPathFiles dpFiles;
-                JsonDeserializer::ReadStringArray("contains_any", dataSetId, dpFiles.mContainAnyOf);
-                JsonDeserializer::ReadStringArray("contains_all", dataSetId, dpFiles.mContainAllOf);
-                JsonDeserializer::ReadStringArray("not_contains", dataSetId, dpFiles.mMustNotContain);
-
-                if (dpFiles.mContainAnyOf.empty() && dpFiles.mContainAllOf.empty() && dpFiles.mMustNotContain.empty())
-                {
-                    mMetaPaths.insert(it->name.GetString());
-                }
-                else
-                {
-                    mDataPathIds[it->name.GetString()] = dpFiles;
-                }
-            }
-        }
-    }
 };
 
-struct DataSetPath
-{
-public:
-    DataSetPath(std::string dataSetName, const class GameDefinition* sourceGameDefinition)
-        : mDataSetName(dataSetName), mSourceGameDefinition(sourceGameDefinition)
-    {
-
-    }
-
-    bool operator == (const DataSetPath& other) const
-    {
-        return (mDataSetName == other.mDataSetName && mSourceGameDefinition == other.mSourceGameDefinition);
-    }
-
-    std::string mDataSetName;
-    std::string mDataSetPath;
-    const GameDefinition* mSourceGameDefinition;
-};
-
-using DataSetPathVector = std::vector<DataSetPath>;
 
 class DataPaths
 {
 public:
+    struct Path
+    {
+    public:
+        Path(std::string dataSetName, const class GameDefinition* sourceGameDefinition)
+            : mDataSetName(dataSetName), mSourceGameDefinition(sourceGameDefinition)
+        {
+
+        }
+
+        bool operator == (const Path& other) const
+        {
+            return (mDataSetName == other.mDataSetName && mSourceGameDefinition == other.mSourceGameDefinition);
+        }
+
+        std::string mDataSetName;
+        std::string mDataSetPath;
+        const GameDefinition* mSourceGameDefinition;
+    };
+
+    using PathVector = std::vector<Path>;
+
     DataPaths(const DataPaths&) = delete;
     DataPaths& operator = (const DataPaths&) = delete;
 
@@ -320,7 +229,7 @@ public:
         return ret;
     }
 
-    bool SetActiveDataPaths(IFileSystem& fs, const DataSetPathVector& paths);
+    bool SetActiveDataPaths(IFileSystem& fs, const PathVector& paths);
 
     struct FileSystemInfo
     {
@@ -407,9 +316,9 @@ private:
 class GameDefinition
 {
 private:
-    static bool Exists(const std::string& dataSetName, const DataSetPathVector& dataSets)
+    static bool Exists(const std::string& dataSetName, const DataPaths::PathVector& dataSets)
     {
-        for (const DataSetPath& dataSet : dataSets)
+        for (const DataPaths::Path& dataSet : dataSets)
         {
             if (dataSet.mDataSetName == dataSetName)
             {
@@ -431,7 +340,7 @@ private:
         return nullptr;
     }
 
-    static void GetDependencies(int& priority, DataSetPathVector& requiredDataSets, std::set<std::string>& missingDataSets, const GameDefinition* gd, const std::vector<const GameDefinition*>& gds)
+    static void GetDependencies(int& priority, DataPaths::PathVector& requiredDataSets, std::set<std::string>& missingDataSets, const GameDefinition* gd, const std::vector<const GameDefinition*>& gds)
     {
         requiredDataSets.emplace_back(gd->DataSetName(), gd);
         for (const std::string& dataSetName : gd->RequiredDataSets())
@@ -461,7 +370,7 @@ public:
     // mod -> [ AePsx, AePc]
     // Where AePsx depends on AePsxCd1 and AePsxCd1 then the search order of resources would be:
     // mod, AePsx, AePsxCd1, AePsxCd2, AePc.
-    static void GetDependencies(DataSetPathVector& requiredDataSets, std::set<std::string>& missingDataSets, const GameDefinition* gd, const std::vector<const GameDefinition*>& gds)
+    static void GetDependencies(DataPaths::PathVector& requiredDataSets, std::set<std::string>& missingDataSets, const GameDefinition* gd, const std::vector<const GameDefinition*>& gds)
     {
         int priority = 0;
         GetDependencies(priority, requiredDataSets, missingDataSets, gd, gds);

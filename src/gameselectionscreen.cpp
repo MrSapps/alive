@@ -46,7 +46,7 @@ void GameSelectionScreen::LoadGameDefinition()
     mResLocator.GetDataPaths().Persist();
 
     // Get the paths for the datasets
-    for (DataSetPath& pds : mRequiredDataSets)
+    for (DataPaths::Path& pds : mRequiredDataSets)
     {
         if (!pds.mSourceGameDefinition->IsMod())
         {
@@ -165,7 +165,7 @@ void GameSelectionScreen::RenderSelectGame()
         {
             // Check we have a valid path to the "builtin" (i.e original) game files
             mRequiredDataSetNames.clear();
-            for (const DataSetPath& dataSet : mRequiredDataSets)
+            for (const DataPaths::Path& dataSet : mRequiredDataSets)
             {
                 if (!dataSet.mSourceGameDefinition->IsMod())
                 {

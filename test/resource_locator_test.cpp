@@ -621,14 +621,14 @@ TEST(ResourceLocator, GameDefinitionDeps)
 
         const std::vector<const GameDefinition*> gds { &a, &b, &c, &d };
 
-        DataSetPathVector requiredDataSets;
+        DataPaths::PathVector requiredDataSets;
         std::set<std::string> missingDataSets;
         GameDefinition::GetDependencies(requiredDataSets, missingDataSets, &a, gds);
 
         const std::set<std::string> expectedMissingDataSets {};
         ASSERT_EQ(expectedMissingDataSets, missingDataSets);
 
-        const DataSetPathVector expectedRequiredDataSets = { { "SetA", &a }, { "SetB", &b }, { "SetC", &c }, { "SetD", &d } };
+        const DataPaths::PathVector expectedRequiredDataSets = { { "SetA", &a }, { "SetB", &b }, { "SetC", &c }, { "SetD", &d } };
         ASSERT_EQ(expectedRequiredDataSets, requiredDataSets);
     }
 
@@ -649,14 +649,14 @@ TEST(ResourceLocator, GameDefinitionDeps)
 
         const std::vector<const GameDefinition*> gds { &a, &b, &c, &d, &e };
 
-        DataSetPathVector requiredDataSets;
+        DataPaths::PathVector requiredDataSets;
         std::set<std::string> missingDataSets;
         GameDefinition::GetDependencies(requiredDataSets, missingDataSets, &a, gds);
 
         const std::set<std::string> expectedMissingDataSets {};
         ASSERT_EQ(expectedMissingDataSets, missingDataSets);
 
-        const DataSetPathVector expectedRequiredDataSets{ { "SetA", &a }, { "SetB", &b }, { "SetC", &c }, { "SetD", &d }, { "SetE", &e } };
+        const DataPaths::PathVector expectedRequiredDataSets{ { "SetA", &a }, { "SetB", &b }, { "SetC", &c }, { "SetD", &d }, { "SetE", &e } };
         ASSERT_EQ(expectedRequiredDataSets, requiredDataSets);
     }
 
@@ -666,14 +666,14 @@ TEST(ResourceLocator, GameDefinitionDeps)
 
         const std::vector<const GameDefinition*> gds { };
 
-        DataSetPathVector requiredDataSets;
+        DataPaths::PathVector requiredDataSets;
         std::set<std::string> missingDataSets;
         GameDefinition::GetDependencies(requiredDataSets, missingDataSets, &a, gds);
 
         const std::set<std::string> expectedMissingDataSets{ "SetB", "SetC" };
         ASSERT_EQ(expectedMissingDataSets, missingDataSets);
 
-        const DataSetPathVector expectedRequiredDataSets{ { "SetA", &a } };
+        const DataPaths::PathVector expectedRequiredDataSets{ { "SetA", &a } };
         ASSERT_EQ(expectedRequiredDataSets, requiredDataSets);
     }
 
