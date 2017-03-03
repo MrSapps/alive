@@ -261,7 +261,9 @@ SET(oddlib_src
     include/reverse_for.hpp
     include/types.hpp
     include/bitutils.hpp
+    include/proxy_rapidjson.hpp
     include/proxy_nanovg.h
+    include/proxy_sol.hpp
     include/msvc_sdl_link.hpp
     include/stdthread.h
     include/logger.hpp
@@ -356,7 +358,6 @@ SET(alivelib_src
     include/subtitles.hpp
     include/sdl_raii.hpp
     src/sdl_raii.cpp
-    include/proxy_sol.hpp
     include/resourcemapper.hpp
     src/resourcemapper.cpp
     include/zipfilesystem.hpp
@@ -375,7 +376,6 @@ SET(alivelib_src
     src/gamefilesystem.cpp
     include/cdromfilesystem.hpp
     include/directorylimitedfilesystem.hpp
-    include/rapid_jsonproxy.hpp
 )
 
 add_library(AliveLib STATIC
