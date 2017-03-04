@@ -53,3 +53,6 @@
 [submodule "3rdParty/squall"]
 	path = 3rdParty/squall
 	url = https://github.com/paulsapps/squall.git
+[submodule "3rdParty/sqrat"]
+	path = 3rdParty/sqrat
+	url = https://github.com/paulsapps/sqrat
