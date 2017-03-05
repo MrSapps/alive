@@ -154,11 +154,6 @@ void GameSelectionScreen::RenderSelectGame()
             allGameDefs.push_back(&t);
         }
 
-        //GameDefinitionGraph graph = userSelectedGameDef.GetGraph(mGameDefinitions);
-        //graph.MissingGameDefinitions();
-        //graph.RequiredDataSets();
-
-
         // Check we have the required data sets
         GameDefinition::GetDependencies(mRequiredDataSets, missingDataSets, &userSelectedGameDef, allGameDefs);
         if (missingDataSets.empty())

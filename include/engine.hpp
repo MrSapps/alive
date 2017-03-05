@@ -151,7 +151,10 @@ public:
 class Actions
 {
 public:
-    Actions() = default;
+    Actions()
+    {
+        LOG_INFO("Get down with the sickness");
+    }
     
     static bool Left(u32 state) { return IsBitOn(state, eLeft); }
     static bool Right(u32 state) { return IsBitOn(state, eRight); }
@@ -171,10 +174,10 @@ public:
     static bool GameSpeak5(u32 state) { return IsBitOn(state, eGameSpeak5); }
     static bool GameSpeak6(u32 state) { return IsBitOn(state, eGameSpeak6); }
     static bool GameSpeak7(u32 state) { return IsBitOn(state, eGameSpeak7); }
-    static  bool GameSpeak8(u32 state) { return IsBitOn(state, eGameSpeak8); }
+    static bool GameSpeak8(u32 state) { return IsBitOn(state, eGameSpeak8); }
     static bool Back(u32 state) { return IsBitOn(state, eBack); }
 
-    static void RegisterScriptBindings(sol::state& state, squall::VM& vm);
+    static void RegisterScriptBindings(sol::state& state);
 
     enum EInputActions : u32
     {

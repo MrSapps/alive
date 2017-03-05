@@ -8,6 +8,7 @@
 #include <sstream>
 #include "SDL.h"
 #include "proxy_sol.hpp"
+#include "proxy_sqrat.hpp"
 #include "types.hpp"
 
 namespace Oddlib
@@ -139,6 +140,10 @@ namespace Oddlib
 
     /*static*/ inline void IStream::RegisterScriptBindings(sol::state& state)
     {
+        Sqrat::Class<IStream, Sqrat::NoConstructor<IStream>> c(Sqrat::DefaultVM::Get(), "IStream");
+        c.StaticFunc("ReadU32", &ReadU32);
+        c.StaticFunc("ReadU16", &ReadU16);
+
         state.new_usertype<IStream>("IStream",
             "ReadU32", &ReadU32,
             "ReadU16", &ReadU16

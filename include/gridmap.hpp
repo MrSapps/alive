@@ -14,6 +14,7 @@
 #include "renderer.hpp"
 #include "collisionline.hpp"
 #include "proxy_squall.hpp"
+#include "proxy_sqrat.hpp"
 
 struct GuiContext;
 class Renderer;
@@ -33,13 +34,14 @@ struct ObjRect
     s32 w;
     s32 h;
 
-    static void RegisterScriptBindings(sol::state& state, squall::VM& vm)
+    static void RegisterScriptBindings(sol::state& state)
     {
-        squall::Klass<ObjRect> k(vm, "ObjRect");
-        k.var("x", &ObjRect::x);
-        k.var("y", &ObjRect::y);
-        k.var("w", &ObjRect::h);
-        k.var("h", &ObjRect::h);
+        Sqrat::Class<ObjRect> c(Sqrat::DefaultVM::Get(), "ObjRect");
+        c.Var("x", &ObjRect::x)
+         .Var("y", &ObjRect::y)
+         .Var("w", &ObjRect::h)
+         .Var("h", &ObjRect::h)
+         .Ctor();
 
         state.new_usertype<ObjRect>("ObjRect",
             "x", &ObjRect::x,
@@ -69,7 +71,7 @@ public:
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale, int layer) const;
     void ReloadScript();
-    static void RegisterScriptBindings(sol::state& state, squall::VM& vm);
+    static void RegisterScriptBindings(sol::state& state);
 
     bool ContainsPoint(s32 x, s32 y) const;
     const std::string& Name() const { return mName; }

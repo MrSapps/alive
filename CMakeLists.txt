@@ -84,6 +84,7 @@ include_directories(
     ${OPENGL_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squirrel/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squall
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/sqrat/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/boost_1_63_mini
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src
@@ -264,6 +265,7 @@ SET(oddlib_src
     include/proxy_rapidjson.hpp
     include/proxy_nanovg.h
     include/proxy_sol.hpp
+    include/proxy_sqrat.hpp
     include/msvc_sdl_link.hpp
     include/stdthread.h
     include/logger.hpp

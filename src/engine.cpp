@@ -5,6 +5,7 @@
 #include "logger.hpp"
 #include "jsonxx/jsonxx.h"
 #include <fstream>
+#include "proxy_sqrat.hpp"
 #include "alive_version.h"
 #include "core/audiobuffer.hpp"
 #include "fmv.hpp"
@@ -162,32 +163,36 @@ void InputMapping::Update(const InputState& input)
     mActions.UpdateStates();
 }
 
-/*static*/ void Actions::RegisterScriptBindings(sol::state& state, squall::VM& vm)
+/*static*/ void Actions::RegisterScriptBindings(sol::state& state)
 {
-    squall::Klass<Actions> k(vm, "Actions");
-    k.func("Left", &Actions::Left);
-    k.func("Right", &Actions::Right);
-    k.func("Up", &Actions::Up);
-    k.func("Down", &Actions::Down);
-    k.func("Chant", &Actions::Chant);
-    k.func("Run", &Actions::Run);
-    k.func("Sneak", &Actions::Sneak);
-    k.func("Jump", &Actions::Jump);
-    k.func("Throw", &Actions::Throw);
-    k.func("Action", &Actions::Action);
-    k.func("RollOrFart", &Actions::RollOrFart);
-    k.func("GameSpeak1", &Actions::GameSpeak1);
-    k.func("GameSpeak2", &Actions::GameSpeak2);
-    k.func("GameSpeak3", &Actions::GameSpeak3);
-    k.func("GameSpeak4", &Actions::GameSpeak4);
-    k.func("GameSpeak5", &Actions::GameSpeak5);
-    k.func("GameSpeak6", &Actions::GameSpeak6);
-    k.func("GameSpeak7", &Actions::GameSpeak7);
-    k.func("GameSpeak8", &Actions::GameSpeak8);
-    k.func("Back", &Actions::Back);
-    k.var("IsPressed", &Actions::mIsPressed);
-    k.var("IsReleased", &Actions::mIsReleased);
-    k.var("IsHeld", &Actions::mIsDown);
+    Sqrat::Class<Actions> c(Sqrat::DefaultVM::Get(), "Actions");
+    c
+        .StaticFunc("Left", &Actions::Left)
+        .StaticFunc("Right", &Actions::Right)
+        .StaticFunc("Up", &Actions::Up)
+        .StaticFunc("Down", &Actions::Down)
+        .StaticFunc("Chant", &Actions::Chant)
+        .StaticFunc("Run", &Actions::Run)
+        .StaticFunc("Sneak", &Actions::Sneak)
+        .StaticFunc("Jump", &Actions::Jump)
+        .StaticFunc("Throw", &Actions::Throw)
+        .StaticFunc("Action", &Actions::Action)
+        .StaticFunc("RollOrFart", &Actions::RollOrFart)
+        .StaticFunc("GameSpeak1", &Actions::GameSpeak1)
+        .StaticFunc("GameSpeak2", &Actions::GameSpeak2)
+        .StaticFunc("GameSpeak3", &Actions::GameSpeak3)
+        .StaticFunc("GameSpeak4", &Actions::GameSpeak4)
+        .StaticFunc("GameSpeak5", &Actions::GameSpeak5)
+        .StaticFunc("GameSpeak6", &Actions::GameSpeak6)
+        .StaticFunc("GameSpeak7", &Actions::GameSpeak7)
+        .StaticFunc("GameSpeak8", &Actions::GameSpeak8)
+        .StaticFunc("Back", &Actions::Back)
+        .Var("IsPressed", &Actions::mIsPressed)
+        .Var("IsReleased", &Actions::mIsReleased)
+        .Var("IsHeld", &Actions::mIsDown)
+        .Ctor();
+
+    Sqrat::RootTable().Bind("Actions", c);
 
     state.new_usertype<Actions>("Actions",
         "Left", &Actions::Left,
@@ -308,17 +313,20 @@ void Engine::InitSubSystems()
     // Get lua to look for scripts in the correction location
     mLuaState.script("package.path = '" + mFileSystem->FsPath() + "data/scripts/?.lua'");
 
-    // TODO: Override the stdout/stderr/compile error functions to LOG's
-    mSquirrelVm.dostring(mResourceLocator->LocateScript("main.nut").c_str());
     mSquirrelVm.defun("log_info", LuaLogInfo);
     mSquirrelVm.defun("log_trace", LuaLogTrace);
     mSquirrelVm.defun("log_warning", LuaLogWarning);
     mSquirrelVm.defun("log_error", LuaLogError);
 
+    Sqrat::DefaultVM::Set(mSquirrelVm.handle());
+
     Oddlib::IStream::RegisterScriptBindings(mLuaState);
-    Actions::RegisterScriptBindings(mLuaState, mSquirrelVm);
-    MapObject::RegisterScriptBindings(mLuaState, mSquirrelVm);
-    ObjRect::RegisterScriptBindings(mLuaState, mSquirrelVm);
+    Actions::RegisterScriptBindings(mLuaState);
+    MapObject::RegisterScriptBindings(mLuaState);
+    ObjRect::RegisterScriptBindings(mLuaState);
+
+    // TODO: Override the stdout/stderr/compile error functions to LOG's
+    mSquirrelVm.dostring(mResourceLocator->LocateScript("main.nut").c_str());
 
     LOG_INFO("Calling script init()");
     mSquirrelVm.call<void>("init");

@@ -24,32 +24,31 @@ MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, 
 
 }
 
-/*static*/ void MapObject::RegisterScriptBindings(sol::state& state, squall::VM& vm)
+/*static*/ void MapObject::RegisterScriptBindings(sol::state& state)
 {
-    squall::Klass<MapObject> k(vm, "MapObject");
+    Sqrat::Class<MapObject, Sqrat::NoConstructor<MapObject>> c(Sqrat::DefaultVM::Get(), "MapObject");
+    c.Func("SetAnimation", &MapObject::SetAnimation);
+    c.Func("SetAnimationFrame", &MapObject::SetAnimationFrame);
+    c.Func("FrameNumber", &MapObject::FrameNumber);
+    c.Func("IsLastFrame", &MapObject::IsLastFrame);
+    c.Func("AnimUpdate", &MapObject::AnimUpdate);
+    c.Func("SetAnimationAtFrame", &MapObject::SetAnimationAtFrame);
+    c.Func("AnimationComplete", &MapObject::AnimationComplete);
+    c.Func("NumberOfFrames", &MapObject::NumberOfFrames);
+    c.Func("FrameCounter", &MapObject::FrameCounter);
 
-    k.func("SetAnimation", &MapObject::SetAnimation);
-    k.func("SetAnimationFrame", &MapObject::SetAnimationFrame);
-    k.func("FrameNumber", &MapObject::FrameNumber);
-    k.func("IsLastFrame", &MapObject::IsLastFrame);
-    k.func("AnimUpdate", &MapObject::AnimUpdate);
-    k.func("SetAnimationAtFrame", &MapObject::SetAnimationAtFrame);
-    k.func("AnimationComplete", &MapObject::AnimationComplete);
-    k.func("NumberOfFrames", &MapObject::NumberOfFrames);
-    k.func("FrameCounter", &MapObject::FrameCounter);
+    c.Func("WallCollision", &MapObject::WallCollision);
+    c.Func("CellingCollision", &MapObject::CellingCollision);
+    c.Func("FloorCollision", &MapObject::FloorCollision);
 
-    k.func("WallCollision", &MapObject::WallCollision);
-    k.func("CellingCollision", &MapObject::CellingCollision);
-    k.func("FloorCollision", &MapObject::FloorCollision);
+    c.Func("SnapXToGrid", &MapObject::SnapXToGrid);
+    c.Func("FacingLeft", &MapObject::FacingLeft);
 
-    k.func("SnapXToGrid", &MapObject::SnapXToGrid);
-    k.func("FacingLeft", &MapObject::FacingLeft);
-
-    k.func("FacingRight", &MapObject::FacingRight);
-    k.func("FlipXDirection", &MapObject::FlipXDirection);
-    k.var("states", &MapObject::mStates);
-    k.var("mXPos", &MapObject::mXPos);
-    k.var("mYPos", &MapObject::mYPos);
+    c.Func("FacingRight", &MapObject::FacingRight);
+    c.Func("FlipXDirection", &MapObject::FlipXDirection);
+    c.Var("states", &MapObject::mStates);
+    c.Var("mXPos", &MapObject::mXPos);
+    c.Var("mYPos", &MapObject::mYPos);
 
     state.new_usertype<MapObject>("MapObject",
         "SetAnimation", &MapObject::SetAnimation,
