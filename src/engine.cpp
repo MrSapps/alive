@@ -323,12 +323,7 @@ void Engine::InitSubSystems()
     MapObject::RegisterScriptBindings(mLuaState);
     ObjRect::RegisterScriptBindings(mLuaState);
 
-    Sqrat::Script script;
-    script.CompileString(mResourceLocator->LocateScript("main.nut"), "main.nut");
-    SquirrelVm::CheckError();
-
-    script.Run();
-    SquirrelVm::CheckError();
+    SquirrelVm::CompileAndRun(*mResourceLocator, "main.nut");
 
     LOG_INFO("Calling script init()");
     Sqrat::Function initFunc(Sqrat::RootTable(), "init");

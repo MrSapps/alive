@@ -548,6 +548,18 @@ public:
         }
     }
 
+    static void CompileAndRun(ResourceLocator& resourceLocator, const std::string& scriptName)
+    {
+        TRACE_ENTRYEXIT;
+
+        Sqrat::Script script;
+        script.CompileString(resourceLocator.LocateScript(scriptName.c_str()), scriptName);
+        CheckError();
+
+        script.Run();
+        CheckError();
+    }
+
     HSQUIRRELVM Handle() const { return mVm; }
 private:
     static void OnPrint(HSQUIRRELVM, const SQChar* s, ...)
