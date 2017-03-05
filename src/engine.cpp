@@ -278,10 +278,10 @@ bool Engine::Init()
     }
 }
 
-void LuaLogTrace(const char* msg) { if (msg) { LOG_NOFUNC_TRACE(msg); } else  { LOG_NOFUNC_TRACE("nil"); } }
-void LuaLogInfo(const char* msg) { if (msg) { LOG_NOFUNC_INFO(msg); } else { LOG_NOFUNC_INFO("nil"); } }
-void LuaLogWarning(const char* msg) { if (msg) { LOG_NOFUNC_WARNING(msg); } else { LOG_NOFUNC_WARNING("nil"); } }
-void LuaLogError(const char* msg) { if (msg) { LOG_NOFUNC_ERROR(msg); } else { LOG_NOFUNC_ERROR("nil"); } }
+void ScriptLogTrace(const char* msg) { if (msg) { LOG_NOFUNC_TRACE(msg); } else  { LOG_NOFUNC_TRACE("nil"); } }
+void ScriptLogInfo(const char* msg) { if (msg) { LOG_NOFUNC_INFO(msg); } else { LOG_NOFUNC_INFO("nil"); } }
+void ScriptLogWarning(const char* msg) { if (msg) { LOG_NOFUNC_WARNING(msg); } else { LOG_NOFUNC_WARNING("nil"); } }
+void ScriptLogError(const char* msg) { if (msg) { LOG_NOFUNC_ERROR(msg); } else { LOG_NOFUNC_ERROR("nil"); } }
 
 void Engine::InitSubSystems()
 {
@@ -302,37 +302,38 @@ void Engine::InitSubSystems()
     mLuaState.open_libraries(sol::lib::base, sol::lib::string, sol::lib::jit, sol::lib::table, sol::lib::debug, sol::lib::math, sol::lib::bit32, sol::lib::package);
     
     // Redirect lua print()
-    mLuaState.set_function("print", LuaLogTrace);
+    mLuaState.set_function("print", ScriptLogTrace);
 
     // Add other logging globals
-    mLuaState.set_function("log_info", LuaLogInfo);
-    mLuaState.set_function("log_trace", LuaLogTrace);
-    mLuaState.set_function("log_warning", LuaLogWarning);
-    mLuaState.set_function("log_error", LuaLogError);
+    mLuaState.set_function("log_info", ScriptLogInfo);
+    mLuaState.set_function("log_trace", ScriptLogTrace);
+    mLuaState.set_function("log_warning", ScriptLogWarning);
+    mLuaState.set_function("log_error", ScriptLogError);
 
     // Get lua to look for scripts in the correction location
     mLuaState.script("package.path = '" + mFileSystem->FsPath() + "data/scripts/?.lua'");
 
-    Sqrat::DefaultVM::Set(mSquirrelVm.Handle());
-
-    Sqrat::RootTable().Func("log_info", LuaLogInfo);
-    Sqrat::RootTable().Func("log_trace", LuaLogTrace);
-    Sqrat::RootTable().Func("log_warning", LuaLogWarning);
-    Sqrat::RootTable().Func("log_error", LuaLogError);
+    Sqrat::RootTable().Func("log_info", ScriptLogInfo);
+    Sqrat::RootTable().Func("log_trace", ScriptLogTrace);
+    Sqrat::RootTable().Func("log_warning", ScriptLogWarning);
+    Sqrat::RootTable().Func("log_error", ScriptLogError);
 
     Oddlib::IStream::RegisterScriptBindings(mLuaState);
     Actions::RegisterScriptBindings(mLuaState);
     MapObject::RegisterScriptBindings(mLuaState);
     ObjRect::RegisterScriptBindings(mLuaState);
 
-    // TODO: Override the stdout/stderr/compile error functions to LOG's
     Sqrat::Script script;
-    script.CompileString(mResourceLocator->LocateScript("main.nut"));
+    script.CompileString(mResourceLocator->LocateScript("main.nut"), "main.nut");
+    SquirrelVm::CheckError();
+
     script.Run();
+    SquirrelVm::CheckError();
 
     LOG_INFO("Calling script init()");
     Sqrat::Function initFunc(Sqrat::RootTable(), "init");
     initFunc.Execute();
+    SquirrelVm::CheckError();
 }
 
 // TODO: Using averaging value or anything that is more accurate than this
@@ -582,6 +583,7 @@ void Engine::Update()
     // HACK: Should be called from within the "init/starting" state
     Sqrat::Function initFunc(Sqrat::RootTable(), "update");
     initFunc.Execute();
+    SquirrelVm::CheckError();
 
     mStateMachine.Update(mInputState, *mRenderer);
 }

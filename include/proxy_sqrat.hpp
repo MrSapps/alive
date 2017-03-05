@@ -6,6 +6,10 @@
 #pragma warning(disable: 4244)
 #endif
 
+#ifndef SCRAT_USE_CXX11_OPTIMIZATIONS
+#define SCRAT_USE_CXX11_OPTIMIZATIONS
+#endif
+
 #include <sqrat.h>
 
 #ifdef _MSC_VER
