@@ -49,6 +49,7 @@ MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, 
     c.Var("states", &MapObject::mStates);
     c.Var("mXPos", &MapObject::mXPos);
     c.Var("mYPos", &MapObject::mYPos);
+    Sqrat::RootTable().Bind("MapObject", c);
 
     state.new_usertype<MapObject>("MapObject",
         "SetAnimation", &MapObject::SetAnimation,

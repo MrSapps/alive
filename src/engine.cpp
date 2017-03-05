@@ -313,12 +313,12 @@ void Engine::InitSubSystems()
     // Get lua to look for scripts in the correction location
     mLuaState.script("package.path = '" + mFileSystem->FsPath() + "data/scripts/?.lua'");
 
-    mSquirrelVm.defun("log_info", LuaLogInfo);
-    mSquirrelVm.defun("log_trace", LuaLogTrace);
-    mSquirrelVm.defun("log_warning", LuaLogWarning);
-    mSquirrelVm.defun("log_error", LuaLogError);
+    Sqrat::DefaultVM::Set(mSquirrelVm.Handle());
 
-    Sqrat::DefaultVM::Set(mSquirrelVm.handle());
+    Sqrat::RootTable().Func("log_info", LuaLogInfo);
+    Sqrat::RootTable().Func("log_trace", LuaLogTrace);
+    Sqrat::RootTable().Func("log_warning", LuaLogWarning);
+    Sqrat::RootTable().Func("log_error", LuaLogError);
 
     Oddlib::IStream::RegisterScriptBindings(mLuaState);
     Actions::RegisterScriptBindings(mLuaState);
@@ -326,10 +326,13 @@ void Engine::InitSubSystems()
     ObjRect::RegisterScriptBindings(mLuaState);
 
     // TODO: Override the stdout/stderr/compile error functions to LOG's
-    mSquirrelVm.dostring(mResourceLocator->LocateScript("main.nut").c_str());
+    Sqrat::Script script;
+    script.CompileString(mResourceLocator->LocateScript("main.nut"));
+    script.Run();
 
     LOG_INFO("Calling script init()");
-    mSquirrelVm.call<void>("init");
+    Sqrat::Function initFunc(Sqrat::RootTable(), "init");
+    initFunc.Execute();
 }
 
 // TODO: Using averaging value or anything that is more accurate than this
@@ -577,7 +580,8 @@ void Engine::Update()
     Debugging().Update(mInputState);
 
     // HACK: Should be called from within the "init/starting" state
-    mSquirrelVm.call<void>("update");
+    Sqrat::Function initFunc(Sqrat::RootTable(), "update");
+    initFunc.Execute();
 
     mStateMachine.Update(mInputState, *mRenderer);
 }

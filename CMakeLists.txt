@@ -83,7 +83,6 @@ include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}/packaging
     ${OPENGL_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squirrel/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squall
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/sqrat/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/boost_1_63_mini
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/include

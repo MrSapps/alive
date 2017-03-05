@@ -143,6 +143,7 @@ namespace Oddlib
         Sqrat::Class<IStream, Sqrat::NoConstructor<IStream>> c(Sqrat::DefaultVM::Get(), "IStream");
         c.StaticFunc("ReadU32", &ReadU32);
         c.StaticFunc("ReadU16", &ReadU16);
+        Sqrat::RootTable().Bind("IStream", c);
 
         state.new_usertype<IStream>("IStream",
             "ReadU32", &ReadU32,

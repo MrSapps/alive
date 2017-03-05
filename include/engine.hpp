@@ -8,7 +8,6 @@
 #include "resourcemapper.hpp"
 #include "proxy_sol.hpp"
 #include "bitutils.hpp"
-#include "proxy_squall.hpp"
 
 class StateMachine;
 class InputState;
@@ -153,7 +152,7 @@ class Actions
 public:
     Actions()
     {
-        LOG_INFO("Get down with the sickness");
+        TRACE_ENTRYEXIT;
     }
     
     static bool Left(u32 state) { return IsBitOn(state, eLeft); }
@@ -511,6 +510,30 @@ private:
     InputMapping mInputMapping;
 };
 
+class SquirrelVm
+{
+public:
+    SquirrelVm(const SquirrelVm&) = delete;
+    SquirrelVm& operator = (const SquirrelVm&) = delete;
+
+    SquirrelVm(int stackSize = 1024)
+    {
+        mVm = sq_open(stackSize);
+    }
+
+    ~SquirrelVm()
+    {
+        if (mVm)
+        {
+            sq_close(mVm);
+        }
+    }
+
+    HSQUIRRELVM Handle() const { return mVm; }
+private:
+    HSQUIRRELVM mVm = 0;
+};
+
 class Engine final
 {
 public:
@@ -554,5 +577,5 @@ protected:
     StateMachine mStateMachine;
 
     sol::state mLuaState;
-    squall::VMStd mSquirrelVm;
+    SquirrelVm mSquirrelVm;
 };

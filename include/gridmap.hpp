@@ -13,7 +13,6 @@
 #include "proxy_sol.hpp"
 #include "renderer.hpp"
 #include "collisionline.hpp"
-#include "proxy_squall.hpp"
 #include "proxy_sqrat.hpp"
 
 struct GuiContext;
@@ -42,6 +41,7 @@ struct ObjRect
          .Var("w", &ObjRect::h)
          .Var("h", &ObjRect::h)
          .Ctor();
+        Sqrat::RootTable().Bind("ObjRect", c);
 
         state.new_usertype<ObjRect>("ObjRect",
             "x", &ObjRect::x,
