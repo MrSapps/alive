@@ -352,6 +352,8 @@ SET(alivelib_src
     include/gameselectionscreen.hpp
     include/gridmap.hpp
     src/gridmap.cpp
+    include/mapobject.hpp
+    src/mapobject.cpp
     include/fsm.hpp
     src/fsm.cpp
     include/gridobject.hpp
