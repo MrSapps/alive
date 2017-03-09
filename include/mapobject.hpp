@@ -40,6 +40,7 @@ class InputState;
 class Renderer;
 class Animation;
 struct GuiContext;
+class ResourceLocator;
 
 class MapObject
 {
@@ -59,14 +60,13 @@ public:
     //MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const ObjRect& rect);
     //MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
 
-    void SetScriptInstance(std::shared_ptr<Sqrat::Object> obj)
+    void SetScriptInstance(Sqrat::Object obj)
     {
         TRACE_ENTRYEXIT;
         mScriptObject = obj;
     }
 
-    void Init();
-    void Init(const ObjRect& rect, Oddlib::IStream& objData);
+    void Init(ResourceLocator& locator);
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale, int layer) const;
     void ReloadScript();
@@ -117,6 +117,6 @@ private:
     std::string mScriptName;
     std::string mName;
     s32 mId = 0;
-    ObjRect mRect;
-    std::shared_ptr<Sqrat::Object> mScriptObject; // Derived script object instance
+   // ObjRect mRect;
+    Sqrat::Object mScriptObject; // Derived script object instance
 };

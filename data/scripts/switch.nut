@@ -1,10 +1,11 @@
 
-class Switch extends MapObject
+class Switch
 {
     mScale = 0;
     mId = 0;
     mLastAnim = "";
-
+	mBase = 0;
+	
     static kAnimationResources =
     [
         "SwitchIdle",
@@ -19,16 +20,16 @@ class Switch extends MapObject
         "FX_LEVER"
     ];
 
-    constructor(xpos, ypos, rect, stream)
+    constructor(mapObj, rect, stream)
     {
-        base.constructor();
-    
-        mName = "Switch";
+		mBase = mapObj;
+		
+        mBase.mName = "Switch";
     
         log_info("Switch ctor");
         
-        mXPos = xpos + rect.x + 37;
-        mYPos = ypos + rect.y + rect.h - 5;
+        mBase.mXPos = rect.x + 37;
+        mBase.mYPos = rect.y + rect.h - 5;
   
         log_info("Switch ctor stream");
      
@@ -47,25 +48,12 @@ class Switch extends MapObject
         // The ID of the object that this switch will apply "targetAction" to
         mId = IStream.ReadU16(stream)
     }
-    
-    function Init()
-    {
-        log_info("Switch init");
-    }
-    
-    /*
-    // TODO: Implement me
-    function Init(resources)
-    {
-        CacheAnimation(resources, "SwitchIdle");
-    }
-    */
 
     function SetAnimation(anim)
     {
         if (mLastAnim != anim)
         {
-            base.SetAnimation(anim);
+            mBase.SetAnimation(anim);
             mLastAnim = anim;
         }
     }
@@ -79,12 +67,13 @@ class Switch extends MapObject
     // TODO: Make this work
     function Update(actions)
     {
-        //SetAnimation("SwitchIdle");
+		log_info("switch Update")
+        SetAnimation("SwitchIdle");
         // SwitchActivateLeft
         // SwitchDeactivateLeft
         // SwitchActivateRight
         // SwitchDeactivateRight
         // PlaySoundEffect("FX_LEVER");
-        //base.AnimUpdate();
+        mBase.AnimUpdate();
     }
 }

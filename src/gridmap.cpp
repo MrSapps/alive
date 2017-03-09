@@ -258,21 +258,18 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                     obj.mRectBottomRight.mX - obj.mRectTopLeft.mX,
                     obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
                 };
-                /*
-                auto tmp = std::make_unique<MapObject>(*this, luaState, locator, rect);
-                // Default "best guess" positioning
-                tmp->mXPos = obj.mRectTopLeft.mX;
-                tmp->mYPos = obj.mRectTopLeft.mY;
-                */
+                
+                auto tmp = std::make_shared<MapObject>();
+
 
                 Sqrat::Function objFactory(Sqrat::RootTable(), "object_factory");
                 Oddlib::IStream* s = &ms; // Script only knows about IStream, not the derived types
-                Sqrat::SharedPtr<MapObject> ret = objFactory.Evaluate<MapObject>(obj.mRectTopLeft.mX, obj.mRectTopLeft.mY, path.IsAo(), obj.mType, rect, s);
+                Sqrat::SharedPtr<bool> ret = objFactory.Evaluate<bool>(tmp, path.IsAo(), obj.mType, rect, s);
                 SquirrelVm::CheckError();
-                if (ret.get())
+                if (ret.get() && *ret)
                 {
-                    ret->Init();
-                    mObjs.push_back(ret);
+                    tmp->Init(locator);
+                    mObjs.push_back(tmp);
                 }
 
                 /*

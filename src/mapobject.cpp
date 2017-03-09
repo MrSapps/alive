@@ -94,15 +94,15 @@ MapObject::~MapObject()
     LOG_INFO("this = " << std::hex << "0x" << static_cast<void*>(this));
 }
 
-void MapObject::Init()
+void MapObject::Init(ResourceLocator& locator)
 {
-    Sqrat::Function updateFn(*mScriptObject, "Init");
-    updateFn.Execute();
-    SquirrelVm::CheckError();
-    
-    
     // Read the kAnimationResources array and kSoundResources
-    IterateArray<std::string>(*mScriptObject, "kAnimationResources", [](const std::string& anim)
+    IterateArray<std::string>(mScriptObject, "kAnimationResources", [&](const std::string& anim)
+    {
+       mAnims[anim] = locator.LocateAnimation(anim.c_str());
+    });
+
+    IterateArray<std::string>(mScriptObject, "kSoundResources", [&](const std::string& anim)
     {
         LOG_INFO(anim);
     });
@@ -209,7 +209,7 @@ void MapObject::Update(const InputState& input)
     //if (mAnim)
     {
 
-        Sqrat::Function updateFn(*mScriptObject, "Update");
+        Sqrat::Function updateFn(mScriptObject, "Update");
         updateFn.Execute(input.Mapping().GetActions());
         SquirrelVm::CheckError();
 
@@ -340,7 +340,7 @@ bool MapObject::ContainsPoint(s32 x, s32 y) const
     if (!mAnim)
     {
         // For animationless objects use the object rect
-        return PointInRect(x, y, mRect.x, mRect.y, mRect.w, mRect.h);
+//        return PointInRect(x, y, mRect.x, mRect.y, mRect.w, mRect.h);
     }
 
     return mAnim->Collision(x, y);

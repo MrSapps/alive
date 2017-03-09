@@ -17,7 +17,7 @@ function init_object_factory()
     };
 }
 
-function object_factory(xpos, ypos, isAo, typeId, /*ObjRect*/ rect, /*IStream*/ stream)
+function object_factory(/*MapObject*/ mapObj, isAo, typeId, /*ObjRect*/ rect, /*IStream*/ stream)
 {
     if (isAo)
     {
@@ -29,14 +29,14 @@ function object_factory(xpos, ypos, isAo, typeId, /*ObjRect*/ rect, /*IStream*/ 
     {
         local factory = objects.ae[typeId];
         log_info("Constructing object for type " + typeId);
-        local obj = factory(xpos, ypos, rect, stream);
+        local obj = factory(mapObj, rect, stream);
 		log_info("Setting instance");
-		obj.SetScriptInstance(obj); // Store the squirrel object instance ref in the C++ object
+		mapObj.SetScriptInstance(obj); // Store the squirrel object instance ref in the C++ object
 		log_info("Returning");
-		return obj;
+		return true;
     }
 
     log_info("No factory found for object type " + typeId);
-    return null;
+    return false;
 }
 
