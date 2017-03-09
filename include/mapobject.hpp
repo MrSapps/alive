@@ -44,11 +44,17 @@ struct GuiContext;
 class MapObject
 {
 public:
-    MapObject() = default;
+    MapObject()
+    {
+        TRACE_ENTRYEXIT;
+        LOG_INFO("this = " << std::hex << "0x" << static_cast<void*>(this));
+    }
     MapObject(const MapObject&) = default;
     MapObject(MapObject&& other) = default;
+   
     MapObject& operator = (const MapObject&) = default;
     MapObject& operator = (MapObject&& other) = default;
+    ~MapObject();
 
     //MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const ObjRect& rect);
     //MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);

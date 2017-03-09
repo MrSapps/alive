@@ -267,9 +267,9 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
 
                 Sqrat::Function objFactory(Sqrat::RootTable(), "object_factory");
                 Oddlib::IStream* s = &ms; // Script only knows about IStream, not the derived types
-                std::shared_ptr<MapObject> ret = objFactory.Evaluate<MapObject>(obj.mRectTopLeft.mX, obj.mRectTopLeft.mY, path.IsAo(), obj.mType, rect, s);
+                Sqrat::SharedPtr<MapObject> ret = objFactory.Evaluate<MapObject>(obj.mRectTopLeft.mX, obj.mRectTopLeft.mY, path.IsAo(), obj.mType, rect, s);
                 SquirrelVm::CheckError();
-                if (ret)
+                if (ret.get())
                 {
                     ret->Init();
                     mObjs.push_back(ret);

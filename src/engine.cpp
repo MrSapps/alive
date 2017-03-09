@@ -228,6 +228,8 @@ Engine::Engine()
 
 Engine::~Engine()
 {
+    TRACE_ENTRYEXIT;
+
     destroy_gui(mGui);
 
     mFmv.reset();

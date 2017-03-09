@@ -8,7 +8,7 @@ function init_object_factory()
     objects <- {};
     objects.ae <- 
     {
-       [ObjectTypesAe.Switch] = Switch.create
+       [ObjectTypesAe.Switch] = Switch
     };
 
     objects.ao <- 

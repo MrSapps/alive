@@ -530,6 +530,7 @@ public:
 
     ~SquirrelVm()
     {
+        TRACE_ENTRYEXIT;
         if (mVm)
         {
             sq_close(mVm);
@@ -630,6 +631,7 @@ private:
     void InitGL();
 protected:
     void InitSubSystems();
+    
 
     // Audio must init early
     SdlAudioWrapper mAudioHandler;
@@ -653,5 +655,7 @@ protected:
     StateMachine mStateMachine;
 
     sol::state mLuaState;
+
     SquirrelVm mSquirrelVm;
+
 };

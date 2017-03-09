@@ -1,6 +1,4 @@
 
-// TODO: const/static table of anim/sound resources?
-
 class Switch extends MapObject
 {
     mScale = 0;
@@ -63,12 +61,6 @@ class Switch extends MapObject
     }
     */
 
-    // TODO: Can we call ctor directly?
-    static function create(xpos, ypos, rect, stream)
-    {
-        return Switch(xpos, ypos, rect, stream);
-    }
-    
     function SetAnimation(anim)
     {
         if (mLastAnim != anim)

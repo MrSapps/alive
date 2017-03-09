@@ -37,6 +37,10 @@ class Level
 public:
     Level(Level&&) = delete;
     Level& operator = (Level&&) = delete;
+    ~Level()
+    {
+        TRACE_ENTRYEXIT;
+    }
     Level(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState, Renderer& render);
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
@@ -374,6 +378,10 @@ public:
     GridMap(const GridMap&) = delete;
     GridMap& operator = (const GridMap&) = delete;
     GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend);
+    ~GridMap()
+    {
+        TRACE_ENTRYEXIT;
+    }
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(Renderer& rend, GuiContext& gui) const;
 private:
@@ -439,7 +447,7 @@ private:
     bool mIsAo;
 
     MapObject mPlayer;
-    std::vector<std::shared_ptr<MapObject>> mObjs;
+    std::vector<Sqrat::SharedPtr<MapObject>> mObjs;
 
     enum class eStates
     {

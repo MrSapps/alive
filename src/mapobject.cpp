@@ -70,11 +70,42 @@ MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, 
         "mYPos", &MapObject::mYPos);
 }
 
+template<class T, class U>
+static void IterateArray(Sqrat::Object& sqObj, const char* arrayName, U callBack)
+{
+    Sqrat::Array sqArray = sqObj[arrayName];
+    if (!sqArray.IsNull())
+    {
+        const SQInteger arraySize = sqArray.GetSize();
+        for (SQInteger i = 0; i < arraySize; i++)
+        {
+            Sqrat::SharedPtr<T> item = sqArray.GetValue<T>(static_cast<int>(i));
+            if (item)
+            {
+                callBack(*item);
+            }
+        }
+    }
+}
+
+MapObject::~MapObject()
+{
+    TRACE_ENTRYEXIT;
+    LOG_INFO("this = " << std::hex << "0x" << static_cast<void*>(this));
+}
+
 void MapObject::Init()
 {
     Sqrat::Function updateFn(mScriptObject, "Init");
     updateFn.Execute();
     SquirrelVm::CheckError();
+    
+    
+    // Read the kAnimationResources array and kSoundResources
+    IterateArray<std::string>(mScriptObject, "kAnimationResources", [](const std::string& anim)
+    {
+        LOG_INFO(anim);
+    });
 }
 
 void MapObject::Activate(bool direction)
@@ -181,6 +212,7 @@ void MapObject::Update(const InputState& input)
         Sqrat::Function updateFn(mScriptObject, "Update");
         updateFn.Execute(input.Mapping().GetActions());
         SquirrelVm::CheckError();
+
         /*
         sol::protected_function f = mLuaState["update"];
         auto ret = f(this, input.Mapping().GetActions());
