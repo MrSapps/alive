@@ -59,7 +59,7 @@ public:
     //MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const ObjRect& rect);
     //MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
 
-    void SetScriptInstance(Sqrat::Object obj)
+    void SetScriptInstance(std::shared_ptr<Sqrat::Object> obj)
     {
         TRACE_ENTRYEXIT;
         mScriptObject = obj;
@@ -118,5 +118,5 @@ private:
     std::string mName;
     s32 mId = 0;
     ObjRect mRect;
-    Sqrat::Object mScriptObject; // Derived script object instance
+    std::shared_ptr<Sqrat::Object> mScriptObject; // Derived script object instance
 };

@@ -96,13 +96,13 @@ MapObject::~MapObject()
 
 void MapObject::Init()
 {
-    Sqrat::Function updateFn(mScriptObject, "Init");
+    Sqrat::Function updateFn(*mScriptObject, "Init");
     updateFn.Execute();
     SquirrelVm::CheckError();
     
     
     // Read the kAnimationResources array and kSoundResources
-    IterateArray<std::string>(mScriptObject, "kAnimationResources", [](const std::string& anim)
+    IterateArray<std::string>(*mScriptObject, "kAnimationResources", [](const std::string& anim)
     {
         LOG_INFO(anim);
     });
@@ -209,7 +209,7 @@ void MapObject::Update(const InputState& input)
     //if (mAnim)
     {
 
-        Sqrat::Function updateFn(mScriptObject, "Update");
+        Sqrat::Function updateFn(*mScriptObject, "Update");
         updateFn.Execute(input.Mapping().GetActions());
         SquirrelVm::CheckError();
 
