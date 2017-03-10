@@ -4,8 +4,8 @@ class Switch
     mScale = 0;
     mId = 0;
     mLastAnim = "";
-	mBase = 0;
-	
+    mBase = 0;
+
     static kAnimationResources =
     [
         "SwitchIdle",
@@ -22,8 +22,8 @@ class Switch
 
     constructor(mapObj, rect, stream)
     {
-		mBase = mapObj;
-		
+        mBase = mapObj;
+
         mBase.mName = "Switch";
     
         log_info("Switch ctor");
@@ -67,7 +67,6 @@ class Switch
     // TODO: Make this work
     function Update(actions)
     {
-		log_info("switch Update")
         SetAnimation("SwitchIdle");
         // SwitchActivateLeft
         // SwitchDeactivateLeft
