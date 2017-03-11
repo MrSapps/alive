@@ -213,30 +213,12 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
         }
     }
 
-    //mPlayer.Init();
-
-    // TODO: Need to figure out what the right way to figure out where abe goes is
-    // HACK: Place the player in the first screen that isn't blank
-    for (auto x = 0u; x < mScreens.size(); x++)
-    {
-        for (auto y = 0u; y < mScreens[x].size(); y++)
-        {
-            GridScreen *screen = mScreens[x][y].get();
-            if (screen->hasTexture())
-            {
-                const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
-
-                //mPlayer.mXPos = (x * camGapSize.x) + 100.0f;
-                //mPlayer.mYPos = (y * camGapSize.y) + 100.0f;
-            }
-        }
-    }
-    //mPlayer.SnapXToGrid();
-
     SquirrelVm::CompileAndRun(locator, "object_factory.nut");
     Sqrat::Function objFactoryInit(Sqrat::RootTable(), "init_object_factory");
     objFactoryInit.Execute();
     SquirrelVm::CheckError();
+
+    SquirrelVm::CompileAndRun(locator, "map.nut");
 
     // Load objects
     for (auto x = 0u; x < mScreens.size(); x++)
@@ -257,28 +239,49 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                     obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
                 };
                 
-                auto tmp = std::make_shared<MapObject>(locator);
+                auto tmp = std::make_unique<MapObject>(locator);
 
 
                 Sqrat::Function objFactory(Sqrat::RootTable(), "object_factory");
                 Oddlib::IStream* s = &ms; // Script only knows about IStream, not the derived types
-                Sqrat::SharedPtr<bool> ret = objFactory.Evaluate<bool>(tmp, path.IsAo(), obj.mType, rect, s);
+                Sqrat::SharedPtr<bool> ret = objFactory.Evaluate<bool>(tmp.get(), path.IsAo(), obj.mType, rect, s);
                 SquirrelVm::CheckError();
                 if (ret.get() && *ret)
                 {
                     tmp->Init();
-                    mObjs.push_back(tmp);
-                }
-
-                /*
-                sol::function f = luaState["object_factory"];
-                Oddlib::IStream* s = &ms; // required else binding fails
-                bool ret = f(*tmp, path.IsAo(), obj.mType, rect, *s);
-                if (ret)
-                {
-                    tmp->GetName();
                     mObjs.push_back(std::move(tmp));
-                }*/
+                }
+            }
+        }
+    }
+
+    // TODO: Need to figure out what the right way to figure out where abe goes is
+    // HACK: Place the player in the first screen that isn't blank
+    for (auto x = 0u; x < mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mScreens[x].size(); y++)
+        {
+            GridScreen *screen = mScreens[x][y].get();
+            if (screen->hasTexture())
+            {
+                const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+
+                auto xPos = (x * camGapSize.x) + 100.0f;
+                auto yPos = (y * camGapSize.y) + 100.0f;
+
+                auto tmp = std::make_unique<MapObject>(locator);
+
+                Sqrat::Function onInitMap(Sqrat::RootTable(), "on_init_map");
+                Sqrat::SharedPtr<bool> ret = onInitMap.Evaluate<bool>(tmp.get(), xPos, yPos);
+                SquirrelVm::CheckError();
+                if (ret.get() && *ret)
+                {
+                    tmp->Init();
+                    tmp->SnapXToGrid(); // Ensure player is locked to grid
+                    mCameraSubject = tmp.get();
+                    mObjs.push_back(std::move(tmp));
+                    return;
+                }
             }
         }
     }
@@ -338,11 +341,14 @@ void GridMap::UpdateEditor(const InputState& input, CoordinateSpace& coords)
         const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / kCameraBlockSize.x);
         const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / kCameraBlockSize.y);
 
-        //mPlayer.mXPos = (mouseCamX * kCameraBlockSize.x) + (kVirtualScreenSize.x / 2);
-        //mPlayer.mYPos = (mouseCamY * kCameraBlockSize.y) + (kVirtualScreenSize.y / 2);
+        mCameraPosition.x = (mouseCamX * kCameraBlockSize.x) + (kVirtualScreenSize.x / 2);
+        mCameraPosition.y = (mouseCamY * kCameraBlockSize.y) + (kVirtualScreenSize.y / 2);
 
-        //mCameraPosition.x = mPlayer.mXPos;
-        //mCameraPosition.y = mPlayer.mYPos;
+        if (mCameraSubject)
+        {
+            mCameraSubject->mXPos = mCameraPosition.x;
+            mCameraSubject->mYPos = mCameraPosition.y;
+        }
     }
 
     bool bGoFaster = false;
@@ -519,29 +525,30 @@ void GridMap::UpdateGame(const InputState& input, CoordinateSpace& coords)
 
     coords.SetScreenSize(glm::vec2(368, 240));
  
-    //mPlayer.Update(input);
 
     for (auto& obj : mObjs)
     {
         obj->Update(input);
     }
 
-    /*
-    const s32 camX = static_cast<s32>(mPlayer.mXPos / kCameraBlockSize.x);
-    const s32 camY = static_cast<s32>(mPlayer.mYPos / kCameraBlockSize.y);
-
-    const glm::vec2 camPos = glm::vec2(
-        (camX * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
-        (camY * kCameraBlockSize.y) + kCameraBlockImageOffset.y) + glm::vec2(kVirtualScreenSize.x / 2, kVirtualScreenSize.y / 2);
-
-    if (mCameraPosition != camPos)
+    if (mCameraSubject)
     {
-        LOG_INFO("TODO: Screen change");
-        coords.mSmoothCameraPosition = false;
-        mCameraPosition = camPos;
+        const s32 camX = static_cast<s32>(mCameraSubject->mXPos / kCameraBlockSize.x);
+        const s32 camY = static_cast<s32>(mCameraSubject->mYPos / kCameraBlockSize.y);
+
+        const glm::vec2 camPos = glm::vec2(
+            (camX * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
+            (camY * kCameraBlockSize.y) + kCameraBlockImageOffset.y) + glm::vec2(kVirtualScreenSize.x / 2, kVirtualScreenSize.y / 2);
+
+        if (mCameraPosition != camPos)
+        {
+            LOG_INFO("TODO: Screen change");
+            coords.mSmoothCameraPosition = false;
+            mCameraPosition = camPos;
+        }
+
+        coords.SetCameraPosition(mCameraPosition);
     }
-    */
-    coords.SetCameraPosition(mCameraPosition);
 }
 
 MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
@@ -682,30 +689,32 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
         }
         gui_end_window(&gui);
     }
-    
+
     mUndoStack.DebugRenderCommandList(gui);
 
-    /*
-    const s32 camX = static_cast<s32>(mPlayer.mXPos / kCameraBlockSize.x);
-    const s32 camY = static_cast<s32>(mPlayer.mYPos / kCameraBlockSize.y);
-
-
-    // Culling is disabled until proper camera position updating order is fixed
-    // ^ not sure what this means, but rendering things at negative cam index seems to go wrong
-    if (camX >= 0 && camY >= 0 && 
-        camX < static_cast<s32>(mScreens.size()) && 
-        camY < static_cast<s32>(mScreens[camX].size()))
+    if (mCameraSubject)
     {
-        GridScreen* screen = mScreens[camX][camY].get();
-        if (screen->hasTexture())
+        const s32 camX = static_cast<s32>(mCameraSubject->mXPos / kCameraBlockSize.x);
+        const s32 camY = static_cast<s32>(mCameraSubject->mYPos / kCameraBlockSize.y);
+
+
+        // Culling is disabled until proper camera position updating order is fixed
+        // ^ not sure what this means, but rendering things at negative cam index seems to go wrong
+        if (camX >= 0 && camY >= 0 &&
+            camX < static_cast<s32>(mScreens.size()) &&
+            camY < static_cast<s32>(mScreens[camX].size()))
         {
-            screen->Render(
-                (camX * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
-                (camY * kCameraBlockSize.y) + kCameraBlockImageOffset.y,
-                kVirtualScreenSize.x, kVirtualScreenSize.y);
+            GridScreen* screen = mScreens[camX][camY].get();
+            if (screen->hasTexture())
+            {
+                screen->Render(
+                    (camX * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
+                    (camY * kCameraBlockSize.y) + kCameraBlockImageOffset.y,
+                    kVirtualScreenSize.x, kVirtualScreenSize.y);
+            }
         }
     }
-    */
+
     RenderDebug(rend);
 
     for (const auto& obj : mObjs)
@@ -713,47 +722,44 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
         obj->Render(rend, gui, 0, 0, 1.0f, Renderer::eForegroundLayer0);
     }
 
-    /*
-    mPlayer.Render(rend, gui,
-        0,
-        0,
-        1.0f,
-        Renderer::eForegroundLayer0);
 
-    // Test raycasting for shadows
-    DebugRayCast(rend,
-        glm::vec2(mPlayer.mXPos, mPlayer.mYPos),
-        glm::vec2(mPlayer.mXPos, mPlayer.mYPos + 500),
-        0,
-        glm::vec2(0, -10)); // -10 so when we are *ON* a line you can see something
 
-    DebugRayCast(rend,
-        glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 2),
-        glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 60),
-        3,
-        glm::vec2(0, 0));
-
-    if (mPlayer.mFlipX)
+    if (mCameraSubject)
     {
+        // Test raycasting for shadows
         DebugRayCast(rend,
-            glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 20),
-            glm::vec2(mPlayer.mXPos - 25, mPlayer.mYPos - 20), 1);
+            glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos),
+            glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos + 500),
+            0,
+            glm::vec2(0, -10)); // -10 so when we are *ON* a line you can see something
 
         DebugRayCast(rend,
-            glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 50),
-            glm::vec2(mPlayer.mXPos - 25, mPlayer.mYPos - 50), 1);
-    }
-    else
-    {
-        DebugRayCast(rend,
-            glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 20),
-            glm::vec2(mPlayer.mXPos + 25, mPlayer.mYPos - 20), 2);
+            glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos - 2),
+            glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos - 60),
+            3,
+            glm::vec2(0, 0));
 
-        DebugRayCast(rend,
-            glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 50),
-            glm::vec2(mPlayer.mXPos + 25, mPlayer.mYPos - 50), 2);
+        if (mCameraSubject->mFlipX)
+        {
+            DebugRayCast(rend,
+                glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos - 20),
+                glm::vec2(mCameraSubject->mXPos - 25, mCameraSubject->mYPos - 20), 1);
+
+            DebugRayCast(rend,
+                glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos - 50),
+                glm::vec2(mCameraSubject->mXPos - 25, mCameraSubject->mYPos - 50), 1);
+        }
+        else
+        {
+            DebugRayCast(rend,
+                glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos - 20),
+                glm::vec2(mCameraSubject->mXPos + 25, mCameraSubject->mYPos - 20), 2);
+
+            DebugRayCast(rend,
+                glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos - 50),
+                glm::vec2(mCameraSubject->mXPos + 25, mCameraSubject->mYPos - 50), 2);
+        }
     }
-    */
 }
 
 void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset) const

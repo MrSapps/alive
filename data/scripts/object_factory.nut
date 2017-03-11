@@ -19,6 +19,7 @@ enum ObjectTypesAe
     SlamDoor = 85
 }
 
+
 function init_object_factory()
 {
     objects <- {};
@@ -61,4 +62,3 @@ function object_factory(/*MapObject*/ mapObj, isAo, typeId, /*ObjRect*/ rect, /*
     log_info("No factory found for object type " + typeId);
     return false;
 }
-

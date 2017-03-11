@@ -446,8 +446,9 @@ private:
 
     bool mIsAo;
 
+    MapObject* mCameraSubject = nullptr;
    // MapObject mPlayer;
-    std::vector<Sqrat::SharedPtr<MapObject>> mObjs;
+    std::vector<std::unique_ptr<MapObject>> mObjs;
 
     enum class eStates
     {

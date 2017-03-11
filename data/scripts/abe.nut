@@ -1,35 +1,43 @@
-class Abe 
+class Abe extends BaseMapObject
 {
+    mXSpeed = 0;
+    mYSpeed = 0;
+    mXVelocity = 0;
+    mYVelocity = 0;
+    mNextFunction = "";
+
+    static kAnimationResources = 
+    [
+        "AbeStandIdle"
+    ];
+
+    function constructor(mapObj)
+    {
+        base.constructor(mapObj, "Abe");
+
+        mNextFunction = Stand;
+    }
+
     function InputNotSameAsDirection()
     {
-        return (Actions.Left(mInput.IsHeld)  && mApi.FacingRight()) 
-            || (Actions.Right(mInput.IsHeld) && mApi.FacingLeft());
+        return (Actions.Left(mInput.IsHeld)  && base.FacingRight()) 
+            || (Actions.Right(mInput.IsHeld) && base.FacingLeft());
     }
     
     function InputSameAsDirection()
     {
-        return (Actions.Left(mInput.IsHeld)  && mApi.FacingLeft()) 
-            || (Actions.Right(mInput.IsHeld) && mApi.FacingRight());
+        return (Actions.Left(mInput.IsHeld)  && base.FacingLeft()) 
+            || (Actions.Right(mInput.IsHeld) && base.FacingRight());
     }
     
     function SetAnimationFrame(frame)
     {
         log_info("Force animation frame to " + frame);
-        mApi.SetAnimationFrame(frame);
+        base.SetAnimationFrame(frame);
     }
     
-    function SetAnimation(anim)
-    {
-        if (anim != mLastAnimationName)
-        {
-            log_info("SetAnimation: " + anim);
-            mApi.SetAnimation(anim);
-            mLastAnimationName = anim;
-        }  
-    }
-    
-    function FlipXDirection() { mApi.FlipXDirection(); }
-    function FrameIs(frame) { return mApi.FrameNumber() == frame && mApi.FrameCounter() == 0; }
+    function FlipXDirection() { base.FlipXDirection(); }
+    function FrameIs(frame) { return base.FrameNumber() == frame && base.FrameCounter() == 0; }
     function SetXSpeed(speed) { mXSpeed = speed; }
     function SetYSpeed(speed) { mYSpeed = speed; }
     function SetXVelocity(velocity) { mXVelocity = velocity; }
@@ -65,10 +73,68 @@ class Abe
 
     function WalkToRunCommon(anim)
     {
-        PlayAnimation{anim};
+        PlayAnimation(anim);
         return GoTo(Run);
     }
 
+    function Stand()
+    {
+        if (InputNotSameAsDirection())
+        { 
+            return StandTurnAround();
+        }
+        else if (InputSameAsDirection())
+        { 
+            if (Actions.Run(self.mInput.IsHeld))
+            {
+                return StandToRun();
+            }
+            else if (Actions.Sneak(self.mInput.IsHeld))
+            {
+                local collision = WillStepIntoWall();
+                if (collision)
+                {
+                    return collision;
+                }
+                return StandToSneak();
+            }
+            else
+            {
+                local collision = WillStepIntoWall();
+                if (collision)
+                {
+                    return collision;
+                }
+                return StandToWalk();
+            }
+        }
+        else if (Actions.Down(self.mInput.IsHeld))
+        {
+            return StandToCrouch();
+        }
+        else if (HandleGameSpeak(1))
+        {
+            // stay in this state
+        }
+        else if (Actions.RollOrFart(self.mInput.IsHeld))
+        {
+            GameSpeakFartStanding();
+        }
+        else if (Actions.Jump(self.mInput.IsHeld))
+        {
+            return StandToHop();
+        }
+        else if (Actions.Up(self.mInput.IsHeld))
+        {
+            return JumpUp();
+        }
+    }
+
+    function Update(actions)
+    {
+        base.SetAnimation("AbeStandIdle");
+        base.AnimUpdate();
+    }
 }
 
 
@@ -78,7 +144,7 @@ class Abe
 
 
 
-
+/*
 function Abe:WalkToRun() return self:WalkToRunCommon("AbeWalkingToRunning") end
 function Abe:WalkToRun2() return self:WalkToRunCommon("AbeWalkingToRunningMidGrid") end
 
@@ -654,32 +720,6 @@ function Abe:StandToHop()
   return self:GoTo(self.Stand)
 end
 
-function Abe:Stand()
-  if self:InputNotSameAsDirection() then 
-    return self:StandTurnAround()
-  elseif self:InputSameAsDirection() then 
-    if Actions.Run(self.mInput.IsHeld) then 
-      return self:StandToRun()
-    elseif Actions.Sneak(self.mInput.IsHeld) then
-      local collision = self:WillStepIntoWall()
-      if collision then return collision end
-      return self:StandToSneak()
-    else
-      local collision = self:WillStepIntoWall()
-      if collision then return collision end
-      return self:StandToWalk() end
-  elseif Actions.Down(self.mInput.IsHeld) then
-    return self:StandToCrouch()
-  elseif self:HandleGameSpeak(1) then
-    -- stay in this state
-  elseif Actions.RollOrFart(self.mInput.IsHeld) then
-    self:GameSpeakFartStanding()
-  elseif Actions.Jump(self.mInput.IsHeld) then
-    return self:StandToHop()
-  elseif Actions.Up(self.mInput.IsHeld) then
-    return self:JumpUp()
-  end
-end
 
 function Abe:HoistHang()
   while true do
@@ -850,3 +890,4 @@ function update(cppObj, input)
     cppObj.states.mInput = input
     cppObj.states:Update()
 end
+*/
