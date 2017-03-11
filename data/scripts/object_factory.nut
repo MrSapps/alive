@@ -5,6 +5,7 @@ include("background_animation.nut");
 include("switch.nut");
 include("mine.nut");
 include("electric_wall.nut");
+include("slam_door.nut");
 
 enum ObjectTypesAe
 {
@@ -12,7 +13,8 @@ enum ObjectTypesAe
     BackgroundAnimation = 13,
     Switch = 17,
     Mine = 24,
-    ElectricWall = 38
+    ElectricWall = 38,
+    SlamDoor = 85
 }
 
 function init_object_factory()
@@ -24,7 +26,8 @@ function init_object_factory()
        [ObjectTypesAe.BackgroundAnimation] = BackgroundAnimation,
        [ObjectTypesAe.Switch] = Switch,
        [ObjectTypesAe.Mine] = Mine,
-       [ObjectTypesAe.ElectricWall] = ElectricWall
+       [ObjectTypesAe.ElectricWall] = ElectricWall,
+       [ObjectTypesAe.SlamDoor] = SlamDoor
     };
 
     objects.ao <- 
