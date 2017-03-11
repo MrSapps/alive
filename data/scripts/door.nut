@@ -1,8 +1,5 @@
-class Door
+class Door extends BaseMapObject
 {
-    mLastAnim = "";
-    mBase = 0;
-
     static kAnimationResources = 
     [
         // AE door types
@@ -19,10 +16,7 @@ class Door
     
     constructor(mapObj, rect, stream)
     {
-        mBase = mapObj;
-
-        mBase.mName = "Door";
-        log_info("Door ctor");
+        base.constructor(mapObj, "Door");
 
         local level = IStream.ReadU16(stream);
         local path = IStream.ReadU16(stream);
@@ -65,18 +59,9 @@ class Door
         mBase.mYPos = rect.y + rect.h + yoffset;
     }
 
-    function SetAnimation(anim)
-    {
-        if (mLastAnim != anim)
-        {
-            mBase.SetAnimation(anim);
-            mLastAnim = anim;
-        }
-    }
-
     function Update(actions)
     {
-        SetAnimation("DoorClosed_Barracks");
-        mBase.AnimUpdate();
+        base.SetAnimation("DoorClosed_Barracks");
+        base.AnimUpdate();
     }
 }

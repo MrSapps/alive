@@ -446,7 +446,7 @@ private:
 
     bool mIsAo;
 
-    MapObject mPlayer;
+   // MapObject mPlayer;
     std::vector<Sqrat::SharedPtr<MapObject>> mObjs;
 
     enum class eStates

@@ -1,9 +1,6 @@
 
-class Mine
+class Mine extends BaseMapObject
 {
-    mBase = 0;
-    mLastAnim = "";
-
     static kAnimationResources = 
     [
         "LANDMINE.BAN_1036_AePc_0"
@@ -11,10 +8,7 @@ class Mine
 
     constructor(mapObj, rect, stream)
     {
-        log_info("Mine ctor");
-
-        mBase = mapObj;
-        mBase.mName = "Mine";
+        base.constructor(mapObj, "Mine");
 
         mBase.mXPos = rect.x + 10;
         mBase.mYPos = rect.y + 22;
@@ -29,18 +23,9 @@ class Mine
         }
     }
 
-    function SetAnimation(anim)
-    {
-        if (mLastAnim != anim)
-        {
-            mBase.SetAnimation(anim);
-            mLastAnim = anim;
-        }
-    }
-
     function Update(actions)
     {
-        SetAnimation("LANDMINE.BAN_1036_AePc_0");
-        mBase.AnimUpdate();
+        base.SetAnimation("LANDMINE.BAN_1036_AePc_0");
+        base.AnimUpdate();
     }
 }

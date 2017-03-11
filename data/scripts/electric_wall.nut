@@ -1,11 +1,9 @@
 
-class ElectricWall
+class ElectricWall extends BaseMapObject
 {
     mScale = 0;
-    mBase = 0;
     mId = 0;
     mEnabled = 0;
-    mLastAnim = "";
 
     static kAnimationResources = 
     [
@@ -14,11 +12,7 @@ class ElectricWall
 
     constructor(mapObj, rect, stream)
     {
-        mBase = mapObj;
-
-        mBase.mName = "ElectricWall";
-
-        log_info("ElectricWall ctor");
+        base.constructor(mapObj, "ElectricWall");
 
         mBase.mXPos = rect.x;
         mBase.mYPos = rect.y;
@@ -35,18 +29,9 @@ class ElectricWall
         log_info("WALL ID IS " + mId + " START ON IS " + mEnabled + " SCALE IS " + mScale);
     }
 
-    function SetAnimation(anim)
-    {
-        if (mLastAnim != anim)
-        {
-            mBase.SetAnimation(anim);
-            mLastAnim = anim;
-        }
-    }
-
     function Update(actions)
     {
-        SetAnimation("ELECWALL.BAN_6000_AePc_0");
-        mBase.AnimUpdate();
+        base.SetAnimation("ELECWALL.BAN_6000_AePc_0");
+        base.AnimUpdate();
     }
 }

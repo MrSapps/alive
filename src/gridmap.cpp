@@ -226,12 +226,12 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
             {
                 const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 
-                mPlayer.mXPos = (x * camGapSize.x) + 100.0f;
-                mPlayer.mYPos = (y * camGapSize.y) + 100.0f;
+                //mPlayer.mXPos = (x * camGapSize.x) + 100.0f;
+                //mPlayer.mYPos = (y * camGapSize.y) + 100.0f;
             }
         }
     }
-    mPlayer.SnapXToGrid();
+    //mPlayer.SnapXToGrid();
 
     SquirrelVm::CompileAndRun(locator, "object_factory.nut");
     Sqrat::Function objFactoryInit(Sqrat::RootTable(), "init_object_factory");
@@ -257,7 +257,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                     obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
                 };
                 
-                auto tmp = std::make_shared<MapObject>();
+                auto tmp = std::make_shared<MapObject>(locator);
 
 
                 Sqrat::Function objFactory(Sqrat::RootTable(), "object_factory");
@@ -266,7 +266,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                 SquirrelVm::CheckError();
                 if (ret.get() && *ret)
                 {
-                    tmp->Init(locator);
+                    tmp->Init();
                     mObjs.push_back(tmp);
                 }
 
@@ -338,11 +338,11 @@ void GridMap::UpdateEditor(const InputState& input, CoordinateSpace& coords)
         const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / kCameraBlockSize.x);
         const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / kCameraBlockSize.y);
 
-        mPlayer.mXPos = (mouseCamX * kCameraBlockSize.x) + (kVirtualScreenSize.x / 2);
-        mPlayer.mYPos = (mouseCamY * kCameraBlockSize.y) + (kVirtualScreenSize.y / 2);
+        //mPlayer.mXPos = (mouseCamX * kCameraBlockSize.x) + (kVirtualScreenSize.x / 2);
+        //mPlayer.mYPos = (mouseCamY * kCameraBlockSize.y) + (kVirtualScreenSize.y / 2);
 
-        mCameraPosition.x = mPlayer.mXPos;
-        mCameraPosition.y = mPlayer.mYPos;
+        //mCameraPosition.x = mPlayer.mXPos;
+        //mCameraPosition.y = mPlayer.mYPos;
     }
 
     bool bGoFaster = false;
@@ -513,8 +513,8 @@ void GridMap::UpdateGame(const InputState& input, CoordinateSpace& coords)
 
         mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
 
-        mCameraPosition.x = mPlayer.mXPos;
-        mCameraPosition.y = mPlayer.mYPos;
+        //mCameraPosition.x = mPlayer.mXPos;
+        //mCameraPosition.y = mPlayer.mYPos;
     }
 
     coords.SetScreenSize(glm::vec2(368, 240));
@@ -526,6 +526,7 @@ void GridMap::UpdateGame(const InputState& input, CoordinateSpace& coords)
         obj->Update(input);
     }
 
+    /*
     const s32 camX = static_cast<s32>(mPlayer.mXPos / kCameraBlockSize.x);
     const s32 camY = static_cast<s32>(mPlayer.mYPos / kCameraBlockSize.y);
 
@@ -539,6 +540,7 @@ void GridMap::UpdateGame(const InputState& input, CoordinateSpace& coords)
         coords.mSmoothCameraPosition = false;
         mCameraPosition = camPos;
     }
+    */
     coords.SetCameraPosition(mCameraPosition);
 }
 
@@ -676,13 +678,14 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
         if (gui_button(&gui, "Reload abe script"))
         {
             // TODO: Debug hack
-            const_cast<MapObject&>(mPlayer).ReloadScript();
+            //const_cast<MapObject&>(mPlayer).ReloadScript();
         }
         gui_end_window(&gui);
     }
     
     mUndoStack.DebugRenderCommandList(gui);
 
+    /*
     const s32 camX = static_cast<s32>(mPlayer.mXPos / kCameraBlockSize.x);
     const s32 camY = static_cast<s32>(mPlayer.mYPos / kCameraBlockSize.y);
 
@@ -702,6 +705,7 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
                 kVirtualScreenSize.x, kVirtualScreenSize.y);
         }
     }
+    */
     RenderDebug(rend);
 
     for (const auto& obj : mObjs)
@@ -709,6 +713,7 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
         obj->Render(rend, gui, 0, 0, 1.0f, Renderer::eForegroundLayer0);
     }
 
+    /*
     mPlayer.Render(rend, gui,
         0,
         0,
@@ -748,6 +753,7 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
             glm::vec2(mPlayer.mXPos, mPlayer.mYPos - 50),
             glm::vec2(mPlayer.mXPos + 25, mPlayer.mYPos - 50), 2);
     }
+    */
 }
 
 void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset) const

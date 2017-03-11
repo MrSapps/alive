@@ -45,20 +45,24 @@ class ResourceLocator;
 class MapObject
 {
 public:
-    MapObject()
+    MapObject() = delete;
+    MapObject(ResourceLocator& locator)
+        : mLocator(locator)
     {
         TRACE_ENTRYEXIT;
         LOG_INFO("this = " << std::hex << "0x" << static_cast<void*>(this));
     }
-    MapObject(const MapObject&) = default;
-    MapObject(MapObject&& other) = default;
+    MapObject(const MapObject&) = delete;
+    MapObject(MapObject&& other) = delete;
    
-    MapObject& operator = (const MapObject&) = default;
-    MapObject& operator = (MapObject&& other) = default;
+    MapObject& operator = (const MapObject&) = delete;
+    MapObject& operator = (MapObject&& other) = delete;
     ~MapObject();
 
     //MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const ObjRect& rect);
     //MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
+
+    void LoadAnimation(const std::string& name);
 
     void SetScriptInstance(Sqrat::Object obj)
     {
@@ -66,7 +70,7 @@ public:
         mScriptObject = obj;
     }
 
-    void Init(ResourceLocator& locator);
+    void Init();
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale, int layer) const;
     void ReloadScript();
@@ -113,7 +117,7 @@ private:
 public:
     bool mFlipX = false;
 private:
-    //ResourceLocator& mLocator;
+    ResourceLocator& mLocator;
     std::string mScriptName;
     std::string mName;
     s32 mId = 0;

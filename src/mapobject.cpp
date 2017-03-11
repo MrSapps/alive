@@ -18,8 +18,9 @@ MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, 
 
 /*static*/ void MapObject::RegisterScriptBindings(sol::state& state)
 {
-    Sqrat::Class<MapObject> c(Sqrat::DefaultVM::Get(), "MapObject");
+    Sqrat::Class<MapObject, Sqrat::NoConstructor<MapObject>> c(Sqrat::DefaultVM::Get(), "MapObject");
     c.Func("SetScriptInstance", &MapObject::SetScriptInstance);
+    c.Func("LoadAnimation", &MapObject::LoadAnimation);
     c.Func("SetAnimation", &MapObject::SetAnimation);
     c.Func("SetAnimationFrame", &MapObject::SetAnimationFrame);
     c.Func("FrameNumber", &MapObject::FrameNumber);
@@ -94,18 +95,25 @@ MapObject::~MapObject()
     LOG_INFO("this = " << std::hex << "0x" << static_cast<void*>(this));
 }
 
-void MapObject::Init(ResourceLocator& locator)
+void MapObject::LoadAnimation(const std::string& name)
+{
+    mAnims[name] = mLocator.LocateAnimation(name.c_str());
+}
+
+void MapObject::Init()
 {
     // Read the kAnimationResources array and kSoundResources
     IterateArray<std::string>(mScriptObject, "kAnimationResources", [&](const std::string& anim)
     {
-       mAnims[anim] = locator.LocateAnimation(anim.c_str());
+        LoadAnimation(anim);
     });
 
     IterateArray<std::string>(mScriptObject, "kSoundResources", [&](const std::string& anim)
     {
         LOG_INFO(anim);
     });
+
+
 }
 
 void MapObject::Activate(bool direction)
