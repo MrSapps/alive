@@ -1,11 +1,13 @@
 include("door.nut");
 include("switch.nut");
+include("mine.nut");
 include("electric_wall.nut");
 
 enum ObjectTypesAe
 {
     Door = 5,
     Switch = 17,
+    Mine = 24,
     ElectricWall = 38
 }
 
@@ -16,6 +18,7 @@ function init_object_factory()
     {
        [ObjectTypesAe.Door] = Door,
        [ObjectTypesAe.Switch] = Switch,
+       [ObjectTypesAe.Mine] = Mine,
        [ObjectTypesAe.ElectricWall] = ElectricWall
     };
 
