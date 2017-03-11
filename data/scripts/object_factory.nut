@@ -1,5 +1,6 @@
 include("base_map_object.nut");
 
+include("hoist.nut");
 include("door.nut");
 include("background_animation.nut");
 include("switch.nut");
@@ -9,6 +10,7 @@ include("slam_door.nut");
 
 enum ObjectTypesAe
 {
+    Hoist = 2,
     Door = 5,
     BackgroundAnimation = 13,
     Switch = 17,
@@ -22,6 +24,7 @@ function init_object_factory()
     objects <- {};
     objects.ae <- 
     {
+       [ObjectTypesAe.Hoist] = Hoist,
        [ObjectTypesAe.Door] = Door,
        [ObjectTypesAe.BackgroundAnimation] = BackgroundAnimation,
        [ObjectTypesAe.Switch] = Switch,
