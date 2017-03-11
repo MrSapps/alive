@@ -519,10 +519,15 @@ public:
     SquirrelVm(int stackSize = 1024)
     {
         mVm = sq_open(stackSize);
+        
+        sqstd_register_iolib(mVm);
+        //sqstd_printcallstack(mVm);
+
         sq_setprintfunc(mVm, OnPrint, OnPrint);
         sq_newclosure(mVm, OnVmError, 0);
         sq_seterrorhandler(mVm);
         sq_setcompilererrorhandler(mVm, OnVmCompileError);
+
 
         Sqrat::DefaultVM::Set(mVm);
         Sqrat::ErrorHandling::Enable(true);
@@ -619,6 +624,7 @@ public:
     bool Init();
     int Run();
 private:
+    void Include(const std::string& scriptName);
     void Update();
     void Render();
     bool InitSDL();

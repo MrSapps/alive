@@ -285,6 +285,11 @@ void ScriptLogInfo(const char* msg) { if (msg) { LOG_NOFUNC_INFO(msg); } else { 
 void ScriptLogWarning(const char* msg) { if (msg) { LOG_NOFUNC_WARNING(msg); } else { LOG_NOFUNC_WARNING("nil"); } }
 void ScriptLogError(const char* msg) { if (msg) { LOG_NOFUNC_ERROR(msg); } else { LOG_NOFUNC_ERROR("nil"); } }
 
+void Engine::Include(const std::string& scriptName)
+{
+    SquirrelVm::CompileAndRun(*mResourceLocator, scriptName);
+}
+
 void Engine::InitSubSystems()
 {
     TRACE_ENTRYEXIT;
@@ -319,6 +324,12 @@ void Engine::InitSubSystems()
     Sqrat::RootTable().Func("log_trace", ScriptLogTrace);
     Sqrat::RootTable().Func("log_warning", ScriptLogWarning);
     Sqrat::RootTable().Func("log_error", ScriptLogError);
+
+    Sqrat::Class<Engine, Sqrat::NoConstructor<Engine>> engine(Sqrat::DefaultVM::Get(), "Engine");
+    engine.Func("include", &Engine::Include);
+    Sqrat::RootTable().Bind("Engine", engine);
+
+    Sqrat::RootTable().SetInstance("gEngine", this);
 
     Oddlib::IStream::RegisterScriptBindings(mLuaState);
     Actions::RegisterScriptBindings(mLuaState);

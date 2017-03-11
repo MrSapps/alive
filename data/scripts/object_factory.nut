@@ -1,5 +1,10 @@
+include("door.nut");
+include("switch.nut");
+include("electric_wall.nut");
+
 enum ObjectTypesAe
 {
+    Door = 5,
     Switch = 17,
     ElectricWall = 38
 }
@@ -9,6 +14,7 @@ function init_object_factory()
     objects <- {};
     objects.ae <- 
     {
+       [ObjectTypesAe.Door] = Door,
        [ObjectTypesAe.Switch] = Switch,
        [ObjectTypesAe.ElectricWall] = ElectricWall
     };

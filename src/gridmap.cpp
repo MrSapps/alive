@@ -233,10 +233,6 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
     }
     mPlayer.SnapXToGrid();
 
-    // HACK: object_factory.nut should load these
-    SquirrelVm::CompileAndRun(locator, "switch.nut");
-    SquirrelVm::CompileAndRun(locator, "electric_wall.nut");
-
     SquirrelVm::CompileAndRun(locator, "object_factory.nut");
     Sqrat::Function objFactoryInit(Sqrat::RootTable(), "init_object_factory");
     objFactoryInit.Execute();
