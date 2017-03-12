@@ -722,8 +722,6 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
         obj->Render(rend, gui, 0, 0, 1.0f, Renderer::eForegroundLayer0);
     }
 
-
-
     if (mCameraSubject)
     {
         // Test raycasting for shadows

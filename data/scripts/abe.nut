@@ -1,41 +1,93 @@
 class Abe extends BaseMapObject
 {
-    mXSpeed = 0;
-    mYSpeed = 0;
-    mXVelocity = 0;
-    mYVelocity = 0;
-    mNextFunction = "";
-
     static kAnimationResources = 
     [
-        "AbeStandIdle"
+        "AbeWalkToStand",
+        "AbeWalkToStandMidGrid",
+        "AbeWalkingToRunning",
+        "AbeWalkingToRunningMidGrid",
+        "AbeWalkingToSneaking",
+        "AbeWalkingToSneakingMidGrid",
+        "AbeStandToRun",
+        "AbeRunningToSkidTurn",
+        "AbeRunningTurnAround",
+        "AbeRunningTurnAroundToWalk",
+        "AbeRunningToRoll",
+        "AbeRuningToJump",
+        "AbeRunningJumpInAir",
+        "AbeLandToRunning",
+        "AbeLandToWalking",
+        "AbeFallingToLand",
+        "RunToSkidStop",
+        "AbeRunningSkidStop",
+        "AbeRunningToWalk",
+        "AbeRunningToWalkingMidGrid",
+        "AbeStandToSneak",
+        "AbeSneakToStand",
+        "AbeSneakToStandMidGrid",
+        "AbeSneakingToWalking",
+        "AbeSneakingToWalkingMidGrid",
+        "AbeStandPushWall",
+        "AbeHitGroundToStand",
+        "AbeStandToWalk",
+        "AbeStandToCrouch",
+        "AbeCrouchToStand",
+        "AbeStandTurnAround",
+        "AbeStandTurnAroundToRunning",
+        "AbeCrouchTurnAround",
+        "AbeCrouchToRoll",
+        "AbeStandSpeak1",
+        "AbeStandSpeak2",
+        "AbeStandSpeak3",
+        "AbeStandingSpeak4",
+        "AbeStandSpeak5",
+        "AbeCrouchSpeak1",
+        "AbeCrouchSpeak2",
+        "AbeStandIdle",
+        "AbeCrouchIdle",
+        "AbeStandToHop",
+        "AbeHopping",
+        "AbeHoppingToStand",
+        "AbeHoistDangling",
+        "AbeHoistPullSelfUp",
+        "AbeStandToJump",
+        "AbeJumpUpFalling",
+        "AbeHitGroundToStand",
+        "AbeWalking",
+        "AbeRunning",
+        "AbeSneaking",
+        "AbeStandToFallingFromTrapDoor",
+        "AbeHoistDropDown"
     ];
-
-    function constructor(mapObj)
-    {
-        base.constructor(mapObj, "Abe");
-
-        mNextFunction = Stand;
-    }
 
     function InputNotSameAsDirection()
     {
         return (Actions.Left(mInput.IsHeld)  && base.FacingRight()) 
             || (Actions.Right(mInput.IsHeld) && base.FacingLeft());
     }
-    
+
     function InputSameAsDirection()
     {
         return (Actions.Left(mInput.IsHeld)  && base.FacingLeft()) 
             || (Actions.Right(mInput.IsHeld) && base.FacingRight());
     }
-    
+
     function SetAnimationFrame(frame)
     {
         log_info("Force animation frame to " + frame);
         base.SetAnimationFrame(frame);
     }
-    
+
+    function SetAnimation(anim)
+    {
+        if (anim != mLastAnimationName)
+        {
+            log_info("SetAnimation: " + anim);
+            base.SetAnimation(anim);
+            mLastAnimationName = anim;
+        }
+    }
+
     function FlipXDirection() { base.FlipXDirection(); }
     function FrameIs(frame) { return base.FrameNumber() == frame && base.FrameCounter() == 0; }
     function SetXSpeed(speed) { mXSpeed = speed; }
@@ -43,28 +95,27 @@ class Abe extends BaseMapObject
     function SetXVelocity(velocity) { mXVelocity = velocity; }
     function SetYVelocity(velocity) { mYVelocity = velocity; }
 
-    function SnapXToGrid() 
+    function SnapXToGrid()
     {
         // TODO: This breaks sometimes, stand idle, press inverse direction and take 1 step to repro issue
-        mApi.SnapXToGrid() 
+        base.SnapXToGrid();
     }
 
-
-    function ToStandCommon(anim)
+    function ToStandCommon(anim) 
     {
         SetXSpeed(2.777771);
         SetXVelocity(0);
-        PlayAnimation 
+        PlayAnimation(anim,
         { 
-            anim, 
             onFrame = function()
             {
-                if (FrameIs(2)) 
-                { 
+                if (FrameIs(2))
+                {
                     PlaySoundEffect("MOVEMENT_MUD_STEP");
                 }
             }
-        };
+        });
+        //SnapXToGrid();
         return GoTo(Stand);
     }
 
@@ -77,38 +128,793 @@ class Abe extends BaseMapObject
         return GoTo(Run);
     }
 
+    function WalkToRun() { return WalkToRunCommon("AbeWalkingToRunning"); }
+    function WalkToRun2() { return WalkToRunCommon("AbeWalkingToRunningMidGrid"); }
+
+    function WalkToSneakCommon(anim)
+    {
+        SetXSpeed(2.777771);
+        SetXVelocity(0);
+        PlayAnimation(anim);
+        return GoTo(Sneak);
+    }
+
+    function WalkToSneak() { return WalkToSneakCommon("AbeWalkingToSneaking"); }
+    function WalkToSneak2() { return WalkToSneakCommon("AbeWalkingToSneakingMidGrid"); }
+
+    function StandToRun()
+    {
+        SetXSpeed(6.25);
+        SetXVelocity(0);
+        PlayAnimation("AbeStandToRun");
+        return GoTo(Run);
+    }
+
+    function RunToSkidTurnAround()
+    {
+        SetXSpeed(6.25);
+        SetXVelocity(0.375);
+        PlayAnimation("AbeRunningToSkidTurn", 
+        { 
+            endFrame = 15, 
+            onFrame = function()
+            {
+                if (FrameIs(14)) 
+                {
+                    log_trace("Handle last frame of AbeRunningToSkidTurn");
+                    SetXVelocity(0);
+                    SnapXToGrid();
+                }
+            }
+        });
+    
+        if (Actions.Run(mInput.IsHeld))
+        {
+            SetXSpeed(6.25);
+            SetXVelocity(0);
+            // TODO: Probably better to have a FlipSpriteX and FlipDirectionX instead?
+            mInvertX = true;
+            PlayAnimation("AbeRunningTurnAround");
+            mInvertX = false;
+            FlipXDirection();
+            //SnapXToGrid();
+     
+            return GoTo(Run);
+        }
+        else
+        {
+            SetXSpeed(2.777771);
+            SetXVelocity(0);
+            mInvertX = true;
+            PlayAnimation("AbeRunningTurnAroundToWalk");
+            mInvertX = false;
+            FlipXDirection();
+            return GoTo(Walk);
+        }
+
+    }
+
+    function RunToRoll()
+    {
+        SetXVelocity(0);
+        SetXSpeed(6.25);
+        PlayAnimation("AbeRunningToRoll");
+        return GoTo(Roll);
+    }
+
+    function RunToJump()
+    {
+        log_error("TODO: RunToJump");
+
+        PlayAnimation("AbeRuningToJump",
+        { 
+            onFrame = function()
+            {
+                if (FrameIs(2))
+                {
+                    SetYVelocity(9.6);
+                }
+            }
+        });
+
+        SetYVelocity(-1.8);
+        SetXSpeed(7.6);
+        PlayAnimation("AbeRunningJumpInAir", 
+        { 
+            onFrame = function()
+            {
+                if (FrameIs(10))
+                {
+                    SetYVelocity(1.8);
+                    SetXSpeed(4.9);
+                }
+            }
+        });
+
+        SetYSpeed(0);
+        SetYVelocity(0);
+        SnapXToGrid();
+    
+        if (InputSameAsDirection())
+        {
+            if (Actions.Run(mInput.IsHeld))
+            {
+                SetXSpeed(6.250000);
+                PlayAnimation("AbeLandToRunning");
+                return GoTo(Abe.Run);
+            }
+            else
+            {
+                SetXSpeed(2.777771);
+                PlayAnimation("AbeLandToWalking");
+                return GoTo(Abe.Walk);
+            }
+        }
+        else
+        {
+            PlayAnimation("AbeFallingToLand");
+            return RunToSkidStop();
+        }
+    }
+
+    function Run()
+    {
+        if (FrameIs(0) && base.AnimationComplete() == false)
+        {
+            // SetXSpeed(12.5);
+            // the real game uses 12.5 sometimes depending on the previous state, but 6.25
+            // seems to always look correct..
+            SetXSpeed(6.25);
+        }
+        else
+        {
+            SetXSpeed(6.25);
+        }
+    
+        if (FrameIs(0+1) || FrameIs(8+1))
+        {
+            SnapXToGrid();
+            if (InputSameAsDirection() && Actions.Run(mInput.IsHeld) && Actions.Jump(mInput.IsHeld))
+            {
+                return RunToJump();
+            }
+        }
+
+        if (FrameIs(4+1) || FrameIs(12+1))
+        {
+            SnapXToGrid();
+            if (InputNotSameAsDirection())
+            { 
+                return RunToSkidTurnAround();
+            }
+            else if (InputSameAsDirection())
+            {
+                PlaySoundEffect("MOVEMENT_MUD_STEP"); // TODO: Always play fx?
+                if (Actions.Run(mInput.IsHeld) == false)
+                {
+                    if (FrameIs(4+1))
+                    {
+                        return RunToWalk();
+                    }
+                    else
+                    {
+                        return RunToWalk2();
+                    }
+                }
+                else if (Actions.Jump(mInput.IsHeld))
+                {
+                    return RunToJump();
+                }
+                else if (Actions.RollOrFart(mInput.IsHeld))
+                {
+                    return RunToRoll();
+                }
+            }
+            else
+            {
+                return RunToSkidStop();
+            }
+        }
+    }
+
+    function RunToSkidStop()
+    {
+        log_trace("RunToSkidStop");
+        SetXVelocity(0.375);
+        PlayAnimation("AbeRunningSkidStop",
+        {
+            endFrame = 15,
+            onFrame = function()
+            {
+                if (FrameIs(14))
+                {
+                    log_trace("Handle last frame of AbeRunningSkidStop");
+                    SetXVelocity(0);
+                    SnapXToGrid();
+                }
+            }
+        });
+
+        return GoTo(Stand);
+    }
+
+    function RunToWalkCommon(anim)
+    {
+        SetXSpeed(2.777771);
+        SetXVelocity(0);
+        PlayAnimation(anim);
+        return GoTo(Walk);
+    }
+
+    function RunToWalk() { return RunToWalkCommon("AbeRunningToWalk"); }
+    function RunToWalk2() { return RunToWalkCommon("AbeRunningToWalkingMidGrid"); }
+
+    function StandToSneak()
+    {
+        SetXSpeed(2.5);
+        PlayAnimation("AbeStandToSneak");
+        return GoTo(Sneak);
+    }
+
+    function Sneak()
+    {
+        if (InputSameAsDirection()) 
+        {
+            if (FrameIs(6+1) || FrameIs(16+1))
+            {
+                SnapXToGrid();
+            
+                local collision = WillStepIntoWall();
+                if (collision) { return collision; }
+        
+                PlaySoundEffect("MOVEMENT_MUD_STEP"); 
+                if (Actions.Sneak(mInput.IsHeld) == false)
+                {
+                    if (FrameIs(6+1)) { return SneakToWalk(); } else { return SneakToWalk2(); }
+                }
+            }
+        }
+        else
+        {
+            if (FrameIs(3+1) || FrameIs(13+1))
+            {
+                if (FrameIs(3+1)) { return AbeSneakToStand(); } else { return AbeSneakToStand2(); }
+            }
+        }
+    }
+
+    function AbeSneakToStandCommon(anim)
+    {
+        PlayAnimation(anim);
+        return GoTo(Stand);
+    }
+
+    function AbeSneakToStand() { return AbeSneakToStandCommon("AbeSneakToStand"); }
+    function AbeSneakToStand2() { return AbeSneakToStandCommon("AbeSneakToStandMidGrid"); }
+
+    function SneakToWalkCommon(anim)
+    {
+        PlayAnimation(anim);
+        return GoTo(Walk);
+    }
+
+    function SneakToWalk() { return SneakToWalkCommon("AbeSneakingToWalking"); }
+    function SneakToWalk2() { return SneakToWalkCommon("AbeSneakingToWalkingMidGrid"); }
+
+    function CalculateYSpeed()
+    {
+        local newYSpeed = mYSpeed - mYVelocity;
+        if (newYSpeed > 20) 
+        {
+            newYSpeed = 20;
+        }
+        return newYSpeed;
+    }
+
+    function ApplyMovement()
+    {
+        if (mXSpeed > 0)
+        {
+            mXSpeed = mXSpeed - mXVelocity;
+            if (base.FacingLeft())
+            {
+                if (mInvertX)
+                {
+                    mApi.mXPos = mApi.mXPos + mXSpeed;
+                }
+                else
+                {
+                    mApi.mXPos = mApi.mXPos - mXSpeed;
+                }
+            }
+            else
+            {
+                if (mInvertX)
+                {
+                    mApi.mXPos = mApi.mXPos - mXSpeed;
+                }
+                else
+                {
+                    mApi.mXPos = mApi.mXPos + mXSpeed;
+                }
+            }
+        }
+    
+        //if (mYSpeed < 0) 
+        //{
+            //log_error("YSpeed from " + mYSpeed + " to " + mYSpeed - mYVelocity);
+            mYSpeed = CalculateYSpeed();
+            mYPos += mYSpeed;
+        //}
+    
+    }
+
+    function WillStepIntoWall()
+    {
+        // Blocked by wall at head height?
+        if (base.WallCollision(25, -50))
+        {
+            SetXSpeed(0);
+            SetXVelocity(0);
+            
+            // Blocked at knee height?
+            if (base.WallCollision(25, -20))
+            {
+                // Way to get through
+                PlayAnimation("AbeStandPushWall");
+                return GoTo(Stand);
+            }
+            else
+            {
+                // Goto crouch so we can roll through
+                return StandToCrouch();
+            }
+        }
+    }
+
+    // TODO
+    function CollisionWithFloor()
+    {
+        return base.FloorCollision();
+    }
+
+    // TODO Merge with StandFalling
+    function StandFalling2()
+    {
+        // TODO: Fix XVelocity, only correct for walking?
+        local collision, _, y, d = CollisionWithFloor();
+        if (collision == false || (collision == true && y > mApi.mYPos))
+        {
+            log_info("Not touching floor or floor is far away " + y + " VS " + mApi.mYPos + " distance " + d);
+            local ySpeed = CalculateYSpeed();
+            local expectedYPos = mApi.mYPos + ySpeed;
+            if (collision == true && expectedYPos > y)
+            {
+                log_info("going to pass through the floor, glue to it!");
+                mApi.mYPos = y;
+                SetXSpeed(0);
+                SetXVelocity(0);
+                SetYSpeed(0);
+                SetYVelocity(0);
+                SnapXToGrid();
+                PlayAnimation("AbeHitGroundToStand");
+                return GoTo(Stand);
+            }
+        }
+        else
+        {
+            log_info("hit floor or gone through it");
+            SetXSpeed(0);
+            SetXVelocity(0);
+            SetYSpeed(0);
+            SetYVelocity(0);
+            SnapXToGrid();
+            PlayAnimation("AbeHitGroundToStand");
+            return GoTo(Stand);
+        }
+    }
+
+    // TODO
+    function StandFalling()
+    {
+        // TODO: Fix XVelocity, only correct for walking?
+        local collision, _, y, d = CollisionWithFloor();
+        if (collision == false || (collision == true && y > mApi.mYPos))
+        {
+            log_info("Not touching floor or floor is far away " + y + " VS " + mApi.mYPos + " distance " + d);
+            local ySpeed = CalculateYSpeed();
+            local expectedYPos = mApi.mYPos + ySpeed;
+            if (collision == true && expectedYPos > y)
+            {
+                log_info("going to pass through the floor, glue to it!");
+                mApi.mYPos = y;
+                SetXSpeed(0);
+                SetXVelocity(0);
+                SetYSpeed(0);
+                SetYVelocity(0);
+                SnapXToGrid();
+                PlayAnimation("AbeHitGroundToStand");
+                return GoTo(Stand);
+            }
+        }
+        else
+        {
+            log_info("hit floor or gone through it");
+            SetXSpeed(0);
+            SetXVelocity(0);
+            SetYSpeed(0);
+            SetYVelocity(0);
+            SnapXToGrid();
+            PlayAnimation("AbeHitGroundToStand");
+            return GoTo(Stand);
+        }
+    }
+
+    function Walk()
+    {
+        // TODO
+        local collision, _, y = CollisionWithFloor();
+        if (collision == false || (collision == true && y > mApi.mYPos))
+        {
+            log_info("Not on the floor " + y + " VS " + mApi.mYPos);
+            return GoTo(StandFalling);
+        }
+
+        if (FrameIs(5+1) || FrameIs(14+1))
+        {
+            PlaySoundEffect("MOVEMENT_MUD_STEP");
+            SnapXToGrid();
+
+            local collision = WillStepIntoWall();
+            if (collision) { return collision; }
+
+            if (InputSameAsDirection() == true)
+            {
+                if (Actions.Run(mInput.IsHeld))
+                {
+                    if (FrameIs(5+1)) { return WalkToRun(); } else { return WalkToRun2(); }
+                }
+                else if (Actions.Sneak(mInput.IsHeld))
+                {
+                    if (FrameIs(5+1)) { return WalkToSneak(); } else { return WalkToSneak2(); }
+                }
+            }
+        }
+        else if (FrameIs(2+1) || FrameIs(11+1))
+        {
+            if (InputSameAsDirection() == false)
+            {
+                if (FrameIs(2+1)) { return ToStand(); } else { return ToStand2(); }
+            }
+        }
+    }
+ 
+    function PlayAnimation(name, params)
+    {
+        base.SetAnimation(name);
+        if (startFrame in params)
+        {
+            log_info("Start animation at frame " + params.startFrame);
+            SetAnimationFrame(params.startFrame-1); // first update will frame+1
+        }
+        else
+        {
+            log_info("Start animation at beginning");
+        }
+
+        local stop = false;
+        while(true)
+        {
+            local frameChanged = base.AnimUpdate();
+            if (frameChanged)
+            {
+                if (params.endFrame && base.FrameNumber() == params.endFrame+1 || base.FrameNumber() == base.NumberOfFrames()-1)
+                {
+                    log_info("Wait for complete done at frame " + base.FrameNumber());
+                    stop = true;
+                }
+
+                if (onFrame in params)
+                {
+                    if (params.onFrame())
+                    {
+                        log_info("Request to stop at frame " + base.FrameNumber());
+                        stop = true;
+                    }
+                }
+                ApplyMovement();
+            }
+        
+            ::suspend();
+
+            if (stop) { return; }
+        }
+    }
+
+    function GoTo(func)
+    {
+        local data = mAnims[func];
+        mData = { mFunc = func, Animation = data.name };
+        if (data.xspeed)
+        {
+            SetXSpeed(data.xspeed);
+        }
+        SetXVelocity(data.xvel);
+    
+        if (data.yvel)
+        {
+            SetYVelocity(data.yvel);
+        }
+
+        if (mData.Animation == null)
+        {
+            log_error("An animation mapping is missing!");
+            mData.Animation = mLastAnimationName;
+        }
+
+        return true;
+    }
+
+    function StandToWalk()
+    {
+        SetXSpeed(2.777771);
+        SetXVelocity(0);
+        PlayAnimation("AbeStandToWalk");
+        return GoTo(Walk);
+    }
+
+    function StandToCrouch()
+    {
+        PlayAnimation("AbeStandToCrouch");
+        return GoTo(Crouch);
+    }
+
+    function CrouchToStand()
+    {
+        PlayAnimation("AbeCrouchToStand");
+        return GoTo(Stand);
+    }
+
+    function StandTurnAround() 
+    {
+        PlaySoundEffect("GRAVEL_SMALL"); // TODO: Add to json
+        local toRun = false;
+    
+        // stop at frame 3 if we want to go to running
+        PlayAnimation("AbeStandTurnAround", 
+        { 
+            onFrame = function()
+            {
+                if (FrameIs(3) && Actions.Run(mInput.IsHeld))
+                {
+                    toRun = true;
+                    return true;
+                }
+            }
+        });
+
+        FlipXDirection()
+        if (toRun)
+        {
+            SetXSpeed(6.25);
+            SetXVelocity(0);
+            PlayAnimation("AbeStandTurnAroundToRunning");
+            return GoTo(Run);
+        }
+        return GoTo(Stand);
+    }
+
+    function CrouchTurnAround()
+    {
+        PlayAnimation("AbeCrouchTurnAround");
+        FlipXDirection();
+        return GoTo(Crouch);
+    }
+
+    function CrouchToRoll()
+    {
+        SetXSpeed(6.25);
+        SetXVelocity(0);
+        PlayAnimation("AbeCrouchToRoll");
+        return GoTo(Roll);
+    }
+
+    function Roll()
+    {
+        if (FrameIs(0+1) || FrameIs(6+1))
+        {
+            PlaySoundEffect("MOVEMENT_MUD_STEP");
+        }
+    
+        if (FrameIs(0+1) || FrameIs(4+1) || FrameIs(8+1))
+        {
+            SnapXToGrid();
+            if (InputSameAsDirection() == false)
+            {
+                return GoTo(Crouch);
+            }
+        }
+        else if (FrameIs(1+1) || FrameIs(5+1) || FrameIs(9+1))
+        {
+            if (InputSameAsDirection())
+            {
+                if (Actions.Run(mInput.IsHeld))
+                {
+                    // TODO: Fix InputRunPressed and the likes, will be missed if pressed between frames
+                    return StandToRun();
+                }
+            }
+        }
+    }
+
+    static game_speak = 
+    {
+         GameSpeak1 = { anims = [ "AbeStandSpeak2",    "AbeCrouchSpeak1" ], sound = "GAMESPEAK_MUD_HELLO"},
+         GameSpeak2 = { anims = [ "AbeStandSpeak3",    "AbeCrouchSpeak1" ], sound = "GAMESPEAK_MUD_FOLLOWME"},
+         GameSpeak3 = { anims = [ "AbeStandingSpeak4", "AbeCrouchSpeak2" ], sound = "GAMESPEAK_MUD_WAIT"},
+         GameSpeak4 = { anims = [ "AbeStandingSpeak4", "AbeCrouchSpeak1" ], sound = "GAMESPEAK_MUD_ANGRY"},
+         GameSpeak5 = { anims = [ "AbeStandingSpeak4", "AbeCrouchSpeak2" ], sound = "GAMESPEAK_MUD_WORK"},
+         GameSpeak6 = { anims = [ "AbeStandSpeak2",    "AbeCrouchSpeak2" ], sound = "GAMESPEAK_MUD_ALLYA"},
+         GameSpeak7 = { anims = [ "AbeStandSpeak5",    "AbeCrouchSpeak1" ], sound = "GAMESPEAK_MUD_SORRY"},
+         GameSpeak8 = { anims = [ "AbeStandSpeak3",    "AbeCrouchSpeak2" ], sound = "GAMESPEAK_MUD_NO_SAD"},    // TODO: actually "Stop it"
+        // TODO: Laugh, whistle1/2 for AO
+    };
+
+    function HandleGameSpeak(standing)
+    {
+        local numGameSpeaks = game_speak.len();
+        foreach(key, item in game_speak)
+        {
+            if (Actions[key](mInput.IsPressed))
+            {
+                if (standing == 1)
+                {
+                    GameSpeakStanding(item.anims[standing], item.sound);
+                }
+                else
+                {
+                    GameSpeakCrouching(item.anims[standing], item.sound);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function GameSpeakStanding(anim, soundEffect)
+    {
+        PlayAnimation("AbeStandSpeak1");
+        PlaySoundEffect(soundEffect);
+        PlayAnimation(anim);
+        SetAnimation("AbeStandIdle");
+    }
+
+    function GameSpeakFartStanding()
+    {
+        PlaySoundEffect("GAMESPEAK_MUD_FART");
+        PlayAnimation("AbeStandSpeak5");
+        SetAnimation("AbeStandIdle");
+    }
+
+    function GameSpeakCrouching(anim, soundEffect)
+    {
+        PlaySoundEffect(soundEffect);
+        PlayAnimation(anim);
+        SetAnimation("AbeCrouchIdle");
+    }
+
+    function GameSpeakFartCrouching()
+    {
+        GameSpeakCrouching("AbeCrouchSpeak1", "GAMESPEAK_MUD_FART");
+        SetAnimation("AbeCrouchIdle");
+    }
+
+    function IsCellingAbove()
+    {
+        // If we move up will we smack the celling?
+        if (base.CellingCollision(0, -60)) { return true; }
+        return false;
+    }
+
+    function Crouch()
+    {
+        if (Actions.Up(mInput.IsHeld))
+        {
+            if (IsCellingAbove() == false)
+            {
+                return CrouchToStand();
+            }
+            else
+            {
+                log_info("Can't stand due to celling");
+            }
+        }
+        else if (InputSameAsDirection())
+        {
+            return CrouchToRoll();
+        }
+        else if (InputNotSameAsDirection())
+        {
+            return CrouchTurnAround();
+        }
+        else if (HandleGameSpeak(2))
+        {
+            // stay in this state
+        }
+        else if (Actions.RollOrFart(mInput.IsHeld))
+        {
+            GameSpeakFartCrouching();
+        }
+        // TODO: Crouching object pick up
+    }
+
+    function StandToHop()
+    {
+        PlayAnimation("AbeStandToHop",
+        { 
+            startFrame = 9, 
+            endFrame = 11, 
+            onFrame = function()
+            {
+                if (base.FrameNumber() == 9)
+                {
+                    SetXSpeed(17);
+                }
+                else
+                {
+                    SetXSpeed(13.569992);
+                    SetYSpeed(-2.7);
+                }
+            }
+        });
+
+        SetYVelocity(-1.8);
+        PlayAnimation("AbeHopping",
+        { 
+            endFrame = 3, 
+            onFrame = function()
+            {
+                if (FrameIs(3))
+                {
+                    SetXSpeed(0);
+                    SetYSpeed(0);
+                    SetYVelocity(0);
+                    SnapXToGrid();
+                }
+            }
+        });
+
+        PlayAnimation("AbeHoppingToStand");
+
+        return GoTo(Stand);
+    }
+
     function Stand()
     {
         if (InputNotSameAsDirection())
-        { 
+        {
             return StandTurnAround();
         }
         else if (InputSameAsDirection())
-        { 
-            if (Actions.Run(self.mInput.IsHeld))
+        {
+            if (Actions.Run(mInput.IsHeld))
             {
                 return StandToRun();
             }
-            else if (Actions.Sneak(self.mInput.IsHeld))
+            else if (Actions.Sneak(mInput.IsHeld))
             {
                 local collision = WillStepIntoWall();
-                if (collision)
-                {
-                    return collision;
-                }
+                if (collision) { return collision };
                 return StandToSneak();
             }
             else
             {
                 local collision = WillStepIntoWall();
-                if (collision)
-                {
-                    return collision;
-                }
-                return StandToWalk();
+                if (collision) { return collision; }
+                return StandToWalk(); 
             }
         }
-        else if (Actions.Down(self.mInput.IsHeld))
+        else if (Actions.Down(mInput.IsHeld))
         {
             return StandToCrouch();
         }
@@ -116,778 +922,199 @@ class Abe extends BaseMapObject
         {
             // stay in this state
         }
-        else if (Actions.RollOrFart(self.mInput.IsHeld))
+        else if (Actions.RollOrFart(mInput.IsHeld))
         {
             GameSpeakFartStanding();
         }
-        else if (Actions.Jump(self.mInput.IsHeld))
+        else if (Actions.Jump(mInput.IsHeld))
         {
             return StandToHop();
         }
-        else if (Actions.Up(self.mInput.IsHeld))
+        else if (Actions.Up(mInput.IsHeld))
         {
             return JumpUp();
         }
     }
 
+    function HoistHang()
+    {
+        while(true)
+        {
+            // loop the animation until the user breaks out of it
+            local toDown = false;
+            local toUp = false;
+            PlayAnimation("AbeHoistDangling",
+            {
+                onFrame = function()
+                {
+                    if (Actions.Down(mInput.IsHeld)) { toDown = true; }
+                    if (Actions.Up(mInput.IsHeld)) { toUp = true; }
+                    if (toDown || toUp)
+                    {
+                        return true;
+                    }
+                }
+            });
+
+            if (toDown)
+            {
+                // TODO: Use the line ypos!
+                mApi.mYPos = mApi.mYPos + 78;
+                return GoTo(StandFalling2);
+            }
+
+            if (toUp)
+            {
+                PlayAnimation("AbeHoistPullSelfUp");
+                return GoTo(Stand);
+            }
+        }
+    }
+
+    function JumpUp()
+    {
+        local oldY = mApi.mYPos;
+    
+        PlayAnimation("AbeStandToJump",
+        { 
+            onFrame = function()
+            {
+                if (base.FrameNumber() == 9)
+                {
+                    SetYSpeed(-8);
+                }
+            }
+        });
+
+        // Look for a hoist at the head pos
+        local hoist = GetMapObject(mApi.mXPos, mApi.mYPos-50, "Hoist");
+    
+        SetYVelocity(-1.8);
+        PlayAnimation("AbeJumpUpFalling",
+        { 
+            onFrame = function()
+            {
+                if (base.FrameNumber() >= 3)
+                {
+                    if (hoist)
+                    {
+                        // TODO: Calculate pos to collision line, we can't reach
+                        // the hoist if its higher than the pos in this frame as its when
+                        // we start to fall back to the ground
+                        log_info("TODO: Hoist check");
+                        return true;
+                    }
+                }
+            }
+        });
+
+        SetYSpeed(0);
+        SetYVelocity(0);
+    
+        if (hoist)
+        {
+            // TODO: Use the next line or hoist ypos!
+            mApi.mYPos = mApi.mYPos - 78;
+            return GoTo(HoistHang);
+        }
+        else
+        {
+            log_info("TODO: Check for door, rope, well etc");
+
+            mApi.mYPos = oldY;
+            PlayAnimation("AbeHitGroundToStand");
+            return GoTo(Stand);
+        }
+    }
+
+    function Exec()
+    {
+        while (true)
+        {
+            while (true)
+            {
+                // TODO Keep "pressed" flags for buttons that we can check mid animation
+                // TODO Clear pressed flags before we change states
+                // TODO: Change pressed checking to use stored flags/pressed states
+                SetAnimation(mData.Animation);
+                local frameChanged = base.AnimUpdate();
+                if (mData.mFunc(self))
+                {
+                    //ApplyMovement();
+                    break;
+                }
+                if (frameChanged)
+                {
+                    ApplyMovement();
+                }
+                ::suspend();
+            }
+        }
+    }
+
+    function CoRoutineProc()
+    {
+        GoTo(Stand);
+        Exec();
+    }
+
+    oldX = 0;
+    oldY = 0;
+    function DebugPrintPosDeltas()
+    {
+        if (oldX != mApi.mXPos || oldY != mApi.mYPos)
+        {
+            local deltaX = mApi.mXPos - oldX;
+            local deltaY = mApi.mYPos - oldY;
+            if (deltaX != mApi.mXPos || deltaY != mApi.mYPos)
+            {
+                log_trace(
+                    "XD:"   + string.format("%.6f", deltaX) +
+                    " YD:" + string.format("%.6f", deltaY) + 
+                    " F:"   + base.FrameNumber() +
+                    //" X:" + string.format("%.2f", mApi.mXPos) +
+                    //" Y:" + string.format("%.2f", mApi.mYPos) +
+                    " XS:" + string.format("%.2f", mXSpeed) +
+                    " YS:" + string.format("%.2f", mYSpeed) +
+                    " XV:" + string.format("%.2f", mXVelocity) +
+                    " YV:" + string.format("%.2f", mYVelocity));
+            }
+        }
+        oldX = mApi.mXPos;
+        oldY = mApi.mYPos;
+    }
+
     function Update(actions)
     {
-        base.SetAnimation("AbeStandIdle");
-        base.AnimUpdate();
+        //log_info("+Update");
+        mThread.call();
+        //log_info("-Update");
+        DebugPrintPosDeltas();
     }
+
+    mAnims = {};
+    mInvertX = false;
+    mXSpeed = 0;
+    mXVelocity = 0;
+    mYSpeed = 0;
+    mYVelocity = 0;
+    mNextFunction = "";
+
+    function constructor(mapObj)
+    {
+        base.constructor(mapObj, "Abe");
+
+        mAnims[Abe.Stand] =          { name = "AbeStandIdle",                xspeed = 0,               xvel = 0 };
+        mAnims[Abe.Walk] =           { name = "AbeWalking",                  xspeed = 2.777771,        xvel = 0 };
+        mAnims[Abe.Run] =            { name = "AbeRunning",                  xspeed = 6.25,            xvel = 0 };
+        mAnims[Abe.Crouch] =         { name = "AbeCrouchIdle",               xspeed = 0,               xvel = 0 };
+        mAnims[Abe.Sneak] =          { name = "AbeSneaking",                 xspeed = 2.5,             xvel = 0 };
+        mAnims[Abe.Roll] =           { name = "AbeRolling",                  xspeed = 6.25,            xvel = 0 };
+        mAnims[Abe.StandFalling] =   { name = "AbeStandToFallingFromTrapDoor",                         xvel = 0.3,  yvel = -1.8 };
+        mAnims[Abe.StandFalling2] =  { name = "AbeHoistDropDown",                                      xvel = 0,    yvel = -1.8 };
+        mAnims[Abe.HoistHang] =      {                                                                 xvel = 0.0,  yvel = 0 };
+        mNextFunction = Abe.Stand;
+        mThread = ::newthread(CoRoutineProc);
+    }
+
 }
-
-
-
-
-
-
-
-
-/*
-function Abe:WalkToRun() return self:WalkToRunCommon("AbeWalkingToRunning") end
-function Abe:WalkToRun2() return self:WalkToRunCommon("AbeWalkingToRunningMidGrid") end
-
-function Abe:WalkToSneakCommon(anim)
-  self:SetXSpeed(2.777771)
-  self:SetXVelocity(0)
-  self:PlayAnimation{anim} 
-  return self:GoTo(self.Sneak)
-end
-
-function Abe:WalkToSneak() return self:WalkToSneakCommon("AbeWalkingToSneaking") end
-function Abe:WalkToSneak2() return self:WalkToSneakCommon("AbeWalkingToSneakingMidGrid") end
-
-function Abe:StandToRun()
-  self:SetXSpeed(6.25)
-  self:SetXVelocity(0)
-  self:PlayAnimation{"AbeStandToRun"}
-  return self:GoTo(self.Run)
-end
-
-function Abe:RunToSkidTurnAround()
-  self:SetXSpeed(6.25)
-  self:SetXVelocity(0.375)
-  self:PlayAnimation{'AbeRunningToSkidTurn', endFrame = 15, onFrame = function()
-    if self:FrameIs(14) then
-      log_trace("Handle last frame of AbeRunningToSkidTurn")
-      self:SetXVelocity(0)
-      self:SnapXToGrid()
-    end
-  end}
-  
-  if Actions.Run(self.mInput.IsHeld) then
-    self:SetXSpeed(6.25)
-    self:SetXVelocity(0)
-    -- TODO: Probably better to have a FlipSpriteX and FlipDirectionX instead?
-    self.mInvertX = true
-    self:PlayAnimation{"AbeRunningTurnAround"}
-    self.mInvertX = false
-    self:FlipXDirection()
-    --self:SnapXToGrid()
-   
-    return self:GoTo(self.Run)
-  else
-    self:SetXSpeed(2.777771)
-    self:SetXVelocity(0)
-    self.mInvertX = true
-    self:PlayAnimation{"AbeRunningTurnAroundToWalk"}
-    self.mInvertX = false
-    self:FlipXDirection()
-   return self:GoTo(self.Walk)
-  end
-
-end
-
-function Abe:RunToRoll()
-  self:SetXVelocity(0)
-  self:SetXSpeed(6.25)
-  self:PlayAnimation{"AbeRunningToRoll"}
-  return self:GoTo(self.Roll)
-end
-
-function Abe:RunToJump()
-  log_error("TODO: RunToJump")
-
-  self:PlayAnimation{"AbeRuningToJump", onFrame = function() 
-      if self:FrameIs(2) then
-        self:SetYVelocity(9.6)
-      end 
-  end}
-
-  self:SetYVelocity(-1.8)
-  self:SetXSpeed(7.6)
-  self:PlayAnimation{"AbeRunningJumpInAir", onFrame = function() 
-      if self:FrameIs(10) then
-        self:SetYVelocity(1.8)
-        self:SetXSpeed(4.9)
-      end 
-  end}
-
-  self:SetYSpeed(0)
-  self:SetYVelocity(0)
-  self:SnapXToGrid()
-  
-  if self:InputSameAsDirection() then
-    if Actions.Run(self.mInput.IsHeld) then
-      self:SetXSpeed(6.250000)
-      self:PlayAnimation{"AbeLandToRunning"}
-      return self:GoTo(Abe.Run)
-    else
-      self:SetXSpeed(2.777771)
-      self:PlayAnimation{"AbeLandToWalking"}
-      return self:GoTo(Abe.Walk)
-    end
-  else
-    self:PlayAnimation{"AbeFallingToLand"}
-    return self:RunToSkidStop()
-  end
-end
-
-function Abe:Run()
-  if self:FrameIs(0) and self.mApi:AnimationComplete() == false then
-    --self:SetXSpeed(12.5)
-    -- the real game uses 12.5 sometimes depending on the previous state, but 6.25
-    -- seems to always look correct..
-    self:SetXSpeed(6.25)
-  else
-    self:SetXSpeed(6.25)
-  end
-  
-  if self:FrameIs(0+1) or self:FrameIs(8+1) then
-    self:SnapXToGrid()
-    if self:InputSameAsDirection() and Actions.Run(self.mInput.IsHeld) and Actions.Jump(self.mInput.IsHeld) then
-      return self:RunToJump()
-    end
-  end
-
-  if self:FrameIs(4+1) or self:FrameIs(12+1) then
-    self:SnapXToGrid()
-    if self:InputNotSameAsDirection() then 
-      return self:RunToSkidTurnAround()
-    elseif self:InputSameAsDirection() then
-      PlaySoundEffect("MOVEMENT_MUD_STEP") -- TODO: Always play fx?
-      if Actions.Run(self.mInput.IsHeld) == false then 
-        if self:FrameIs(4+1) then return self:RunToWalk() else return self:RunToWalk2() end
-      elseif Actions.Jump(self.mInput.IsHeld) then
-        return self:RunToJump()
-      elseif Actions.RollOrFart(self.mInput.IsHeld) then
-        return self:RunToRoll()
-      end
-    else
-      return self:RunToSkidStop()
-    end
-  end
-end
-
-function Abe:RunToSkidStop()
-  log_trace("RunToSkidStop")
-  self:SetXVelocity(0.375)
-  self:PlayAnimation{'AbeRunningSkidStop', endFrame = 15, onFrame = function()
-    if self:FrameIs(14) then
-      log_trace("Handle last frame of AbeRunningSkidStop")
-      self:SetXVelocity(0)
-      self:SnapXToGrid()
-    end
-  end}
-
-  return self:GoTo(self.Stand)
-end
-
-function Abe:RunToWalkCommon(anim)
-  self:SetXSpeed(2.777771)
-  self:SetXVelocity(0)
-  self:PlayAnimation{anim}
-  return self:GoTo(self.Walk)
-end
-
-function Abe:RunToWalk() return self:RunToWalkCommon("AbeRunningToWalk") end
-function Abe:RunToWalk2() return self:RunToWalkCommon("AbeRunningToWalkingMidGrid") end
-
-function Abe:StandToSneak() 
-  self:SetXSpeed(2.5)
-  self:PlayAnimation{"AbeStandToSneak"}
-  return self:GoTo(self.Sneak)
-end
-
-function Abe:Sneak()
-  if (self:InputSameAsDirection()) then
-    if self:FrameIs(6+1) or self:FrameIs(16+1) then
-      self:SnapXToGrid()
-      
-      local collision = self:WillStepIntoWall()
-      if collision then return collision end
-    
-      PlaySoundEffect("MOVEMENT_MUD_STEP") 
-      if Actions.Sneak(self.mInput.IsHeld) == false then
-        if self:FrameIs(6+1) then return self:SneakToWalk() else return self:SneakToWalk2() end
-      end
-    end
-  else
-    if self:FrameIs(3+1) or self:FrameIs(13+1) then
-      if self:FrameIs(3+1) then return self:AbeSneakToStand() else return self:AbeSneakToStand2() end
-    end
-  end
-end
-
-function Abe:AbeSneakToStandCommon(anim)
-    self:PlayAnimation{anim}
-    return self:GoTo(self.Stand)
-end
-
-function Abe:AbeSneakToStand() return self:AbeSneakToStandCommon("AbeSneakToStand") end
-function Abe:AbeSneakToStand2() return self:AbeSneakToStandCommon("AbeSneakToStandMidGrid") end
-
-function Abe:SneakToWalkCommon(anim)
-  self:PlayAnimation{anim}
-  return self:GoTo(self.Walk)
-end
-
-function Abe:SneakToWalk() return self:SneakToWalkCommon("AbeSneakingToWalking") end
-function Abe:SneakToWalk2() return self:SneakToWalkCommon("AbeSneakingToWalkingMidGrid") end
-
-function Abe:CalculateYSpeed()
-  local newYSpeed = self.mYSpeed - self.mYVelocity
-  if newYSpeed > 20 then
-    newYSpeed = 20
-  end
-  return newYSpeed
-end
-
-function Abe:ApplyMovement()
-  if self.mXSpeed > 0 then
-    self.mXSpeed = self.mXSpeed - self.mXVelocity
-    if self.mApi:FacingLeft() then
-      if self.mInvertX then
-        self.mApi.mXPos = self.mApi.mXPos + self.mXSpeed
-      else
-        self.mApi.mXPos = self.mApi.mXPos - self.mXSpeed
-      end
-    else
-      if self.mInvertX then
-        self.mApi.mXPos = self.mApi.mXPos - self.mXSpeed
-      else
-        self.mApi.mXPos = self.mApi.mXPos + self.mXSpeed
-      end
-    end
-  end
-  
-  --if self.mYSpeed < 0 then
-    
-    --log_error("YSpeed from " .. self.mYSpeed .. " to " .. self.mYSpeed - self.mYVelocity)
-    self.mYSpeed = self:CalculateYSpeed()
-    self.mApi.mYPos = self.mApi.mYPos + self.mYSpeed
-  --end
-  
-end
-
-function Abe:WillStepIntoWall()
-  -- Blocked by wall at head height?
-  if self.mApi:WallCollision(25, -50) then
-    self:SetXSpeed(0)
-    self:SetXVelocity(0)
-      
-    -- Blocked at knee height?
-    if self.mApi:WallCollision(25, -20) then
-      -- Way to get through
-      self:PlayAnimation{"AbeStandPushWall"}
-      return self:GoTo(self.Stand)
-    else
-      -- Goto crouch so we can roll through
-      return self:StandToCrouch()
-    end
-  end
-end
-
--- TODO
-function Abe:CollisionWithFloor()
-  return self.mApi:FloorCollision()
-end
-
--- TODO Merge with StandFalling
-function Abe:StandFalling2()
-  -- TODO: Fix XVelocity, only correct for walking?
-  local collision, _, y, d = self:CollisionWithFloor()
-  if collision == false or collision == true and y > self.mApi.mYPos then
-    print("Not touching floor or floor is far away " .. y .. " VS " .. self.mApi.mYPos .. " distance " .. d)
-    local ySpeed = self:CalculateYSpeed()
-    local expectedYPos = self.mApi.mYPos + ySpeed
-    if collision == true and expectedYPos > y then
-      print("going to pass through the floor, glue to it!")
-      self.mApi.mYPos = y
-      self:SetXSpeed(0)
-      self:SetXVelocity(0)
-      self:SetYSpeed(0)
-      self:SetYVelocity(0)
-      self:SnapXToGrid()
-      self:PlayAnimation{"AbeHitGroundToStand"}
-      return self:GoTo(self.Stand)    
-    end
-  else
-    print("hit floor or gone through it")
-    self:SetXSpeed(0)
-    self:SetXVelocity(0)
-    self:SetYSpeed(0)
-    self:SetYVelocity(0)
-    self:SnapXToGrid()
-    self:PlayAnimation{"AbeHitGroundToStand"}
-    return self:GoTo(self.Stand)
-  end
-end
-
--- TODO
-function Abe:StandFalling()
-  -- TODO: Fix XVelocity, only correct for walking?
-  local collision, _, y, d = self:CollisionWithFloor()
-  if collision == false or collision == true and y > self.mApi.mYPos then
-    print("Not touching floor or floor is far away " .. y .. " VS " .. self.mApi.mYPos .. " distance " .. d)
-    local ySpeed = self:CalculateYSpeed()
-    local expectedYPos = self.mApi.mYPos + ySpeed
-    if collision == true and expectedYPos > y then
-      print("going to pass through the floor, glue to it!")
-      self.mApi.mYPos = y
-      self:SetXSpeed(0)
-      self:SetXVelocity(0)
-      self:SetYSpeed(0)
-      self:SetYVelocity(0)
-      self:SnapXToGrid()
-      self:PlayAnimation{"AbeHitGroundToStand"}
-      return self:GoTo(self.Stand)    
-    end
-  else
-    print("hit floor or gone through it")
-    self:SetXSpeed(0)
-    self:SetXVelocity(0)
-    self:SetYSpeed(0)
-    self:SetYVelocity(0)
-    self:SnapXToGrid()
-    self:PlayAnimation{"AbeHitGroundToStand"}
-    return self:GoTo(self.Stand)
-  end
-end
-
-function Abe:Walk()
-  -- TODO
-  local collision, _, y = self:CollisionWithFloor()
-  if collision == false or collision == true and y > self.mApi.mYPos then
-    print("Not on the floor " .. y .. " VS " .. self.mApi.mYPos)
-    return self:GoTo(self.StandFalling)
-  end
-
-  if self:FrameIs(5+1) or self:FrameIs(14+1) then 
-    PlaySoundEffect("MOVEMENT_MUD_STEP") 
-    self:SnapXToGrid()
-
-    local collision = self:WillStepIntoWall()
-    if collision then return collision end
-
-    if (self:InputSameAsDirection() == true) then
-      if (Actions.Run(self.mInput.IsHeld)) then
-        if self:FrameIs(5+1) then return self:WalkToRun() else return self:WalkToRun2() end
-      elseif (Actions.Sneak(self.mInput.IsHeld)) then 
-        if self:FrameIs(5+1) then return self:WalkToSneak() else return self:WalkToSneak2() end
-      end
-    end
-  elseif self:FrameIs(2+1) or self:FrameIs(11+1) then
-    if (self:InputSameAsDirection() == false) then 
-      if self:FrameIs(2+1) then return self:ToStand() else return self:ToStand2() end
-    end
-  end
-end
- 
-function Abe:PlayAnimation(params)
-  self:SetAnimation(params[1])
-  if params.startFrame then
-    log_info("Start animation at frame " .. params.startFrame)
-    self:SetAnimationFrame(params.startFrame-1) -- first update will frame+1
-  else
-    log_info("Start animation at beginning")
-  end
-
-  local stop = false
-  while true do
-    local frameChanged = self.mApi:AnimUpdate()
-    if frameChanged then
-      if params.endFrame and self.mApi:FrameNumber() == params.endFrame+1 
-      or self.mApi:FrameNumber() == self.mApi:NumberOfFrames()-1 then
-        log_info("Wait for complete done at frame " .. self.mApi:FrameNumber())
-        stop = true
-      end
-
-      if params.onFrame then 
-        if (params.onFrame()) then
-          log_info("Request to stop at frame " .. self.mApi:FrameNumber())
-          stop = true
-        end
-      end
-      self:ApplyMovement()
-    end
-    
-    coroutine.yield()
-    if stop then return end
-  end
-end
-
-function Abe:GoTo(func)
-  local data = self.mAnims[func]
-  self.mData = { mFunc = func, Animation = data.name }
-  if data.xspeed then
-    self:SetXSpeed(data.xspeed)
-  end
-  self:SetXVelocity(data.xvel)
-  if data.yvel then
-    self:SetYVelocity(data.yvel)
-  end
-  if self.mData.Animation == nil then
-    log_error("An animation mapping is missing!")
-    self.mData.Animation = self.mLastAnimationName
-  end
-  return true
-end
-
-function Abe:StandToWalk()
-  self:SetXSpeed(2.777771)
-  self:SetXVelocity(0)
-  self:PlayAnimation{"AbeStandToWalk"}
-  return self:GoTo(self.Walk)
-end
-
-function Abe:StandToCrouch()
-  self:PlayAnimation{"AbeStandToCrouch"}
-  return self:GoTo(self.Crouch)
-end
-
-function Abe:CrouchToStand()
-  self:PlayAnimation{"AbeCrouchToStand"}
-  return self:GoTo(self.Stand)
-end
-
-function Abe:StandTurnAround() 
-  PlaySoundEffect("GRAVEL_SMALL") -- TODO: Add to json
-  local toRun = false
-  
-  -- stop at frame 3 if we want to go to running
-  self:PlayAnimation{'AbeStandTurnAround', onFrame = function()
-    if self:FrameIs(3) and Actions.Run(self.mInput.IsHeld) then
-      toRun = true
-      return true
-    end
-  end}
-
-  self:FlipXDirection()
-  if toRun then
-    self:SetXSpeed(6.25)
-    self:SetXVelocity(0)
-    self:PlayAnimation{"AbeStandTurnAroundToRunning"}
-    return self:GoTo(self.Run)
-  end
-  return self:GoTo(self.Stand) 
-end
-
-function Abe:CrouchTurnAround() 
-  self:PlayAnimation{"AbeCrouchTurnAround"} 
-  self:FlipXDirection()
-  return self:GoTo(self.Crouch) 
-end
-
-function Abe:CrouchToRoll()
-  self:SetXSpeed(6.25)
-  self:SetXVelocity(0)
-  self:PlayAnimation{"AbeCrouchToRoll"} 
-  return self:GoTo(self.Roll) 
-end
-
-function Abe:Roll()
-  if self:FrameIs(0+1) or self:FrameIs(6+1) then
-    PlaySoundEffect("MOVEMENT_MUD_STEP")
-  end
-  
-  if self:FrameIs(0+1) or self:FrameIs(4+1) or self:FrameIs(8+1) then
-    self:SnapXToGrid()
-    if self:InputSameAsDirection() == false then
-      return self:GoTo(self.Crouch)
-    end
-  elseif self:FrameIs(1+1) or self:FrameIs(5+1) or self:FrameIs(9+1) then
-    if self:InputSameAsDirection() then
-      if Actions.Run(self.mInput.IsHeld) then
-        -- TODO: Fix InputRunPressed and the likes, will be missed if pressed between frames
-        return self:StandToRun()
-      end
-    end
-  end
-end
-
-local game_speak = 
-{
-  { Actions.GameSpeak1, { "AbeStandSpeak2",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_HELLO"},
-  { Actions.GameSpeak2, { "AbeStandSpeak3",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_FOLLOWME"},
-  { Actions.GameSpeak3, { "AbeStandingSpeak4", "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_WAIT"},
-  { Actions.GameSpeak4, { "AbeStandingSpeak4", "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_ANGRY"},
-  { Actions.GameSpeak5, { "AbeStandingSpeak4", "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_WORK"},
-  { Actions.GameSpeak6, { "AbeStandSpeak2",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_ALLYA"},
-  { Actions.GameSpeak7, { "AbeStandSpeak5",    "AbeCrouchSpeak1" }, "GAMESPEAK_MUD_SORRY"},
-  { Actions.GameSpeak8, { "AbeStandSpeak3",    "AbeCrouchSpeak2" }, "GAMESPEAK_MUD_NO_SAD"},  -- TODO: actually "Stop it"
-  -- TODO: Laugh, whistle1/2 for AO
-}
-
-function Abe:HandleGameSpeak(standing)
-  local numGameSpeaks = #game_speak
-  for i = 1, numGameSpeaks do
-    local item = game_speak[i]
-      if item[1](self.mInput.IsPressed) then
-        if standing == 1 then
-          self:GameSpeakStanding(item[2][standing], item[3])
-        else
-          self:GameSpeakCrouching(item[2][standing], item[3])
-        end
-        return true
-      end
-  end
-  return false
-end
-
-function Abe:GameSpeakStanding(anim, soundEffect)
-  self:PlayAnimation{"AbeStandSpeak1"}
-  PlaySoundEffect(soundEffect)
-  self:PlayAnimation{anim}
-  self:SetAnimation("AbeStandIdle")
-end
-
-function Abe:GameSpeakFartStanding()
-  PlaySoundEffect("GAMESPEAK_MUD_FART")
-  self:PlayAnimation{"AbeStandSpeak5"}
-  self:SetAnimation("AbeStandIdle")
-end
-
-function Abe:GameSpeakCrouching(anim, soundEffect)
-  PlaySoundEffect(soundEffect)
-  self:PlayAnimation{anim}
-  self:SetAnimation("AbeCrouchIdle")
-end
-
-function Abe:GameSpeakFartCrouching()
-  self:GameSpeakCrouching("AbeCrouchSpeak1", "GAMESPEAK_MUD_FART")
-  self:SetAnimation("AbeCrouchIdle")
-end
-
-function Abe:IsCellingAbove()
-  -- If we move up will we smack the celling?
-  if self.mApi:CellingCollision(0, -60) then return true end
-  return false
-end
-
-function Abe:Crouch()
-  if Actions.Up(self.mInput.IsHeld) then
-    if self:IsCellingAbove() == false then
-      return self:CrouchToStand()
-    else
-      log_info("Can't stand due to celling")
-    end
-  elseif self:InputSameAsDirection() then 
-    return self:CrouchToRoll()
-  elseif self:InputNotSameAsDirection() then
-    return self:CrouchTurnAround()
-  elseif self:HandleGameSpeak(2) then
-    -- stay in this state
-  elseif Actions.RollOrFart(self.mInput.IsHeld) then
-    self:GameSpeakFartCrouching()
-  end
-  -- TODO: Crouching object pick up
-end
-
-function Abe:StandToHop()
-  self:PlayAnimation{"AbeStandToHop", startFrame = 9, endFrame = 11, onFrame = function()
-    if self.mApi:FrameNumber() == 9 then
-      self:SetXSpeed(17)
-    else
-      self:SetXSpeed(13.569992)
-      self:SetYSpeed(-2.7)
-    end
-  end} 
-
-  self:SetYVelocity(-1.8)
-  self:PlayAnimation{"AbeHopping", endFrame = 3, onFrame = function()
-    if self:FrameIs(3) then
-      self:SetXSpeed(0)
-      self:SetYSpeed(0)
-      self:SetYVelocity(0)
-      self:SnapXToGrid()
-    end
-  end}
-
-  self:PlayAnimation{"AbeHoppingToStand"}
-
-  return self:GoTo(self.Stand)
-end
-
-
-function Abe:HoistHang()
-  while true do
-    -- loop the animation until the user breaks out of it
-    local toDown = false
-    local toUp = false
-    self:PlayAnimation{"AbeHoistDangling", onFrame = function() 
-      if Actions.Down(self.mInput.IsHeld) then toDown = true end
-      if Actions.Up(self.mInput.IsHeld) then toUp = true end
-      if toDown or toUp then
-        return true
-      end
-    end}
-    if toDown then
-      -- TODO: Use the line ypos!
-      self.mApi.mYPos = self.mApi.mYPos + 78      
-      return self:GoTo(self.StandFalling2)
-    end
-    if toUp then
-      self:PlayAnimation{"AbeHoistPullSelfUp"}
-      return self:GoTo(self.Stand)
-    end
-  end
-end
-
-function Abe:JumpUp()
-  local oldY = self.mApi.mYPos
-  
-  self:PlayAnimation{"AbeStandToJump", onFrame = function()
-    if self.mApi:FrameNumber() == 9 then
-      self:SetYSpeed(-8)
-    end
-  end}
-
-  -- Look for a hoist at the head pos
-  local hoist = GetMapObject(self.mApi.mXPos, self.mApi.mYPos-50, "Hoist")
-  
-  self:SetYVelocity(-1.8)
-  self:PlayAnimation{"AbeJumpUpFalling", onFrame = function()
-    if self.mApi:FrameNumber() >= 3 then
-      if hoist then
-        -- TODO: Calculate pos to collision line, we can't reach
-        -- the hoist if its higher than the pos in this frame as its when
-        -- we start to fall back to the ground
-        print("TODO: Hoist check")
-        return true
-      end
-    end
-  end}
-
-  self:SetYSpeed(0)
-  self:SetYVelocity(0)
-  
-  if hoist then
-    -- TODO: Use the next line or hoist ypos!
-    self.mApi.mYPos = self.mApi.mYPos - 78
-    return self:GoTo(self.HoistHang)
-  else
-    print("TODO: Check for door, rope, well etc")
-
-    self.mApi.mYPos = oldY
-    self:PlayAnimation{"AbeHitGroundToStand"}
-    return self:GoTo(self.Stand)
-  end  
-end
-
-function Abe:Exec()
-  while true do
-    while true do
-      -- TODO Keep "pressed" flags for buttons that we can check mid animation
-      -- TODO Clear pressed flags before we change states
-      -- TODO: Change pressed checking to use stored flags/pressed states
-      self:SetAnimation(self.mData.Animation)
-      local frameChanged = self.mApi:AnimUpdate()
-      if self.mData.mFunc(self) then
-        --self:ApplyMovement()
-        break 
-      end
-      if frameChanged then
-        self:ApplyMovement()
-      end
-      coroutine.yield()
-    end
-  end
-end
-
-function Abe:CoRoutineProc()
-  self:GoTo(self.Stand)
-  self:Exec()
-end
-
-local oldX = 0
-local oldY = 0
-function Abe:DebugPrintPosDeltas()
-  if oldX ~= self.mApi.mXPos or oldY ~= self.mApi.mYPos then
-    local deltaX = self.mApi.mXPos - oldX
-    local deltaY = self.mApi.mYPos - oldY
-    if deltaX ~= self.mApi.mXPos or deltaY ~= self.mApi.mYPos then
-      log_trace(
-        "XD:"  .. string.format("%.6f", deltaX) .. 
-        " YD:" .. string.format("%.6f", deltaY) .. 
-        " F:"  .. self.mApi:FrameNumber() .. 
-        --" X:" .. string.format("%.2f", self.mApi.mXPos) .. 
-        --" Y:" .. string.format("%.2f", self.mApi.mYPos) ..
-        " XS:" .. string.format("%.2f", self.mXSpeed) .. 
-        " YS:" .. string.format("%.2f", self.mYSpeed) .. 
-        " XV:" .. string.format("%.2f", self.mXVelocity) ..
-        " YV:" .. string.format("%.2f", self.mYVelocity))
-    end
-  end
-  oldX = self.mApi.mXPos
-  oldY = self.mApi.mYPos
-end
-
-function Abe:Update() 
-  --print("+Update") 
-  coroutine.resume(self.mThread, self) 
-  --print("-Update")
-  self:DebugPrintPosDeltas()
-end
-
-function Abe.create()
-  local ret = {}
-  setmetatable(ret, Abe)
-  ret.mNextFunction = ret.Stand
-  ret.mLastAnimationName = ""
-  ret.mInvertX = false
-  ret.mXSpeed = 0
-  ret.mXVelocity = 0
-  ret.mYSpeed = 0
-  ret.mYVelocity = 0
-  ret.mAnims = {}
-  ret.mAnims[Abe.Stand] =   { name = "AbeStandIdle",    xspeed = 0,           xvel = 0 }
-  ret.mAnims[Abe.Walk] =    { name = "AbeWalking",      xspeed = 2.777771,    xvel = 0 }
-  ret.mAnims[Abe.Run] =     { name = "AbeRunning",      xspeed = 6.25,        xvel = 0 }
-  ret.mAnims[Abe.Crouch] =  { name = "AbeCrouchIdle",   xspeed = 0,           xvel = 0 }
-  ret.mAnims[Abe.Sneak] =   { name = "AbeSneaking",     xspeed = 2.5,         xvel = 0 }
-  ret.mAnims[Abe.Roll] =    { name = "AbeRolling",      xspeed = 6.25,        xvel = 0 }
-  ret.mAnims[Abe.StandFalling] = { name = "AbeStandToFallingFromTrapDoor",    xvel = 0.3, yvel = -1.8 }
-  ret.mAnims[Abe.StandFalling2] = { name = "AbeHoistDropDown",    xvel = 0, yvel = -1.8 }
-  ret.mAnims[Abe.HoistHang] = { xvel = 0.0, yvel = 0 }
-
-  ret.mThread = coroutine.create(ret.CoRoutineProc)
-  return ret
-end
-
-local function Abe_Debug()
-  local a = Abe.create()
-  a.mApi = {}
-  a.mApi.mXPos = 0
-  a.mApi.mYPos = 0
-  a.mApi.SetAnimation = function(anim) log_trace("Fake set animation: " .. anim) end
-   
-  a:Test()
-end
-
--- Use when testing logic outside of the engine
---Abe_Debug()
-
--- C++ call points
-function init(cppObj)
-    cppObj.states = Abe.create()
-    cppObj.states.mApi = cppObj
-end
-
--- TODO: Moved to object factory
-function update(cppObj, input)
-    cppObj.states.mInput = input
-    cppObj.states:Update()
-end
-*/
