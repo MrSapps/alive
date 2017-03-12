@@ -78,16 +78,6 @@ class Abe extends BaseMapObject
         base.SetAnimationFrame(frame);
     }
 
-    function SetAnimation(anim)
-    {
-        if (anim != mLastAnimationName)
-        {
-            log_info("SetAnimation: " + anim);
-            base.SetAnimation(anim);
-            mLastAnimationName = anim;
-        }
-    }
-
     function FlipXDirection() { base.FlipXDirection(); }
     function FrameIs(frame) { return base.FrameNumber() == frame && base.FrameCounter() == 0; }
     function SetXSpeed(speed) { mXSpeed = speed; }
@@ -592,7 +582,7 @@ class Abe extends BaseMapObject
     function PlayAnimation(name, params)
     {
         base.SetAnimation(name);
-        if (startFrame in params)
+        if ("startFrame" in params)
         {
             log_info("Start animation at frame " + params.startFrame);
             SetAnimationFrame(params.startFrame-1); // first update will frame+1
@@ -614,7 +604,7 @@ class Abe extends BaseMapObject
                     stop = true;
                 }
 
-                if (onFrame in params)
+                if ("onFrame" in params)
                 {
                     if (params.onFrame())
                     {
@@ -633,15 +623,17 @@ class Abe extends BaseMapObject
 
     function GoTo(func)
     {
+        log_info("Goto " + func);
+
         local data = mAnims[func];
         mData = { mFunc = func, Animation = data.name };
-        if (data.xspeed)
+        if ("xspeed" in data)
         {
             SetXSpeed(data.xspeed);
         }
         SetXVelocity(data.xvel);
     
-        if (data.yvel)
+        if ("yvel" in data)
         {
             SetYVelocity(data.yvel);
         }
@@ -891,8 +883,11 @@ class Abe extends BaseMapObject
 
     function Stand()
     {
+        log_info("IN STAND this = " + this);
+
         if (InputNotSameAsDirection())
         {
+            log_info("StandTurnAround");
             return StandTurnAround();
         }
         else if (InputSameAsDirection())
@@ -934,6 +929,8 @@ class Abe extends BaseMapObject
         {
             return JumpUp();
         }
+
+        log_info("exit Stand");
     }
 
     function HoistHang()
@@ -1027,6 +1024,8 @@ class Abe extends BaseMapObject
         }
     }
 
+    mData = {};
+
     function Exec()
     {
         while (true)
@@ -1038,31 +1037,39 @@ class Abe extends BaseMapObject
                 // TODO: Change pressed checking to use stored flags/pressed states
                 SetAnimation(mData.Animation);
                 local frameChanged = base.AnimUpdate();
-                if (mData.mFunc(self))
+
+                //log_info("call mFunc..");
+                if (mData.mFunc.bindenv(this))
                 {
                     //ApplyMovement();
                     break;
                 }
+
                 if (frameChanged)
                 {
                     ApplyMovement();
                 }
+
+                log_info("suspending..");
                 ::suspend();
             }
         }
     }
 
-    function CoRoutineProc()
+    function CoRoutineProc(thisPtr)
     {
-        GoTo(Stand);
-        Exec();
+        log_info("set first state..");
+        thisPtr.GoTo.bindenv(thisPtr)(Abe.Stand);
+
+        log_info("inf exec..");
+        thisPtr.Exec.bindenv(thisPtr)();
     }
 
     oldX = 0;
     oldY = 0;
     function DebugPrintPosDeltas()
     {
-        if (oldX != mApi.mXPos || oldY != mApi.mYPos)
+        if (oldX != mXPos || oldY != mApi.mYPos)
         {
             local deltaX = mApi.mXPos - oldX;
             local deltaY = mApi.mYPos - oldY;
@@ -1087,9 +1094,11 @@ class Abe extends BaseMapObject
     function Update(actions)
     {
         //log_info("+Update");
-        mThread.call();
+        mThread.call(this);
         //log_info("-Update");
-        DebugPrintPosDeltas();
+        
+        // TODO: Fix me
+        //DebugPrintPosDeltas();
     }
 
     mAnims = {};
@@ -1099,20 +1108,21 @@ class Abe extends BaseMapObject
     mYSpeed = 0;
     mYVelocity = 0;
     mNextFunction = "";
+    mThread = "";
 
     function constructor(mapObj)
     {
         base.constructor(mapObj, "Abe");
 
-        mAnims[Abe.Stand] =          { name = "AbeStandIdle",                xspeed = 0,               xvel = 0 };
-        mAnims[Abe.Walk] =           { name = "AbeWalking",                  xspeed = 2.777771,        xvel = 0 };
-        mAnims[Abe.Run] =            { name = "AbeRunning",                  xspeed = 6.25,            xvel = 0 };
-        mAnims[Abe.Crouch] =         { name = "AbeCrouchIdle",               xspeed = 0,               xvel = 0 };
-        mAnims[Abe.Sneak] =          { name = "AbeSneaking",                 xspeed = 2.5,             xvel = 0 };
-        mAnims[Abe.Roll] =           { name = "AbeRolling",                  xspeed = 6.25,            xvel = 0 };
-        mAnims[Abe.StandFalling] =   { name = "AbeStandToFallingFromTrapDoor",                         xvel = 0.3,  yvel = -1.8 };
-        mAnims[Abe.StandFalling2] =  { name = "AbeHoistDropDown",                                      xvel = 0,    yvel = -1.8 };
-        mAnims[Abe.HoistHang] =      {                                                                 xvel = 0.0,  yvel = 0 };
+        mAnims[Abe.Stand] <-          { name = "AbeStandIdle",                xspeed = 0,               xvel = 0 };
+        mAnims[Abe.Walk] <-           { name = "AbeWalking",                  xspeed = 2.777771,        xvel = 0 };
+        mAnims[Abe.Run] <-            { name = "AbeRunning",                  xspeed = 6.25,            xvel = 0 };
+        mAnims[Abe.Crouch] <-         { name = "AbeCrouchIdle",               xspeed = 0,               xvel = 0 };
+        mAnims[Abe.Sneak] <-          { name = "AbeSneaking",                 xspeed = 2.5,             xvel = 0 };
+        mAnims[Abe.Roll] <-           { name = "AbeRolling",                  xspeed = 6.25,            xvel = 0 };
+        mAnims[Abe.StandFalling] <-   { name = "AbeStandToFallingFromTrapDoor",                         xvel = 0.3,  yvel = -1.8 };
+        mAnims[Abe.StandFalling2] <-  { name = "AbeHoistDropDown",                                      xvel = 0,    yvel = -1.8 };
+        mAnims[Abe.HoistHang] <-      {                                                                 xvel = 0.0,  yvel = 0 };
         mNextFunction = Abe.Stand;
         mThread = ::newthread(CoRoutineProc);
     }
