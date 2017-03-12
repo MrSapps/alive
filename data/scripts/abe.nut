@@ -644,6 +644,8 @@ class Abe extends BaseMapObject
             mData.Animation = mLastAnimationName;
         }
 
+        log_info("Goto sets " + mData.Animation);
+
         return true;
     }
 
@@ -1042,7 +1044,7 @@ class Abe extends BaseMapObject
                 if (mData.mFunc.bindenv(this))
                 {
                     //ApplyMovement();
-                    break;
+                    //break;
                 }
 
                 if (frameChanged)
@@ -1052,6 +1054,7 @@ class Abe extends BaseMapObject
 
                 log_info("suspending..");
                 ::suspend();
+                log_info("resumed");
             }
         }
     }
@@ -1059,7 +1062,7 @@ class Abe extends BaseMapObject
     function CoRoutineProc(thisPtr)
     {
         log_info("set first state..");
-        thisPtr.GoTo.bindenv(thisPtr)(Abe.Stand);
+        thisPtr.GoTo(Abe.Stand);
 
         log_info("inf exec..");
         thisPtr.Exec.bindenv(thisPtr)();
@@ -1091,11 +1094,20 @@ class Abe extends BaseMapObject
         oldY = mApi.mYPos;
     }
 
+    mFirst = true;
     function Update(actions)
     {
-        //log_info("+Update");
-        mThread.call(this);
-        //log_info("-Update");
+        log_info("+Update");
+        if (mFirst)
+        {
+            mThread.call(this);
+            mFirst = false;
+        }
+        else
+        {
+            mThread.wakeup(this);
+        }
+        log_info("-Update");
         
         // TODO: Fix me
         //DebugPrintPosDeltas();
