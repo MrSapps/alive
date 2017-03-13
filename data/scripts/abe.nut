@@ -96,12 +96,18 @@ class Abe extends BaseMapObject
     {
         SetXSpeed(2.777771);
         SetXVelocity(0);
+
+        log_info("this = " + this);
+        base.PlaySoundEffect("ARGH");
+
         PlayAnimation(anim,
         { 
-            onFrame = function(thisPtr)
+            onFrame = function()
             {
                 if (FrameIs(2))
                 {
+                    log_info("this = " + this);
+                    log_info("ToStandCommon play fx");
                     base.PlaySoundEffect("MOVEMENT_MUD_STEP");
                 }
             }
@@ -463,27 +469,27 @@ class Abe extends BaseMapObject
         }
     }
 
-    // TODO
     function CollisionWithFloor()
     {
-        log_info("FloorCollision about to go boom");
         return base.FloorCollision();
     }
 
     // TODO Merge with StandFalling
     function StandFalling2()
     {
+        log_info("StandFalling2");
+
         // TODO: Fix XVelocity, only correct for walking?
-        local collision, _, y, d = CollisionWithFloor();
-        if (collision == false || (collision == true && y > mBase.mYPos))
+        local ret = CollisionWithFloor();
+        if (ret.collision == false || (ret.collision == true && ret.y > mBase.mYPos))
         {
-            log_info("Not touching floor or floor is far away " + y + " VS " + mBase.mYPos + " distance " + d);
+            log_info("Not touching floor or floor is far away " + ret.y + " VS " + mBase.mYPos + " distance " + ret.distance);
             local ySpeed = CalculateYSpeed();
             local expectedYPos = mBase.mYPos + ySpeed;
-            if (collision == true && expectedYPos > y)
+            if (collision == true && expectedYPos > ret.y)
             {
                 log_info("going to pass through the floor, glue to it!");
-                mBase.mYPos = y;
+                mBase.mYPos = ret.y;
                 SetXSpeed(0);
                 SetXVelocity(0);
                 SetYSpeed(0);
@@ -510,16 +516,16 @@ class Abe extends BaseMapObject
     function StandFalling()
     {
         // TODO: Fix XVelocity, only correct for walking?
-        local collision, _, y, d = CollisionWithFloor();
-        if (collision == false || (collision == true && y > mBase.mYPos))
+        local ret = CollisionWithFloor();
+        if (ret.collision == false || (ret.collision == true && ret.y > mBase.mYPos))
         {
-            log_info("Not touching floor or floor is far away " + y + " VS " + mBase.mYPos + " distance " + d);
+            log_info("Not touching floor or floor is far away " + ret.y + " VS " + mBase.mYPos + " distance " + ret.distance);
             local ySpeed = CalculateYSpeed();
             local expectedYPos = mBase.mYPos + ySpeed;
-            if (collision == true && expectedYPos > y)
+            if (ret.collision == true && expectedYPos > ret.y)
             {
                 log_info("going to pass through the floor, glue to it!");
-                mBase.mYPos = y;
+                mBase.mYPos = ret.y;
                 SetXSpeed(0);
                 SetXVelocity(0);
                 SetYSpeed(0);
@@ -544,11 +550,10 @@ class Abe extends BaseMapObject
 
     function Walk()
     {
-        // TODO
-        local collision, _, y = CollisionWithFloor();
-        if (collision == false || (collision == true && y > mBase.mYPos))
+        local ret = CollisionWithFloor();
+        if (ret.collision == false || (ret.collision == true && ret.y > mBase.mYPos))
         {
-            log_info("Not on the floor " + y + " VS " + mBase.mYPos);
+            log_info("Not on the floor " + ret.y + " VS " + mBase.mYPos);
             return GoTo(StandFalling);
         }
 
@@ -598,7 +603,11 @@ class Abe extends BaseMapObject
         local stop = false;
         while (true)
         {
+
             local frameChanged = base.AnimUpdate();
+
+            base.FrameNumber();
+
             if (frameChanged)
             {
                 if (("endFrame" in params && base.FrameNumber() == params.endFrame+1) || (base.FrameNumber() == base.NumberOfFrames()-1))
@@ -1072,7 +1081,7 @@ class Abe extends BaseMapObject
     function CoRoutineProc(thisPtr)
     {
         log_info("set first state..");
-        thisPtr.GoTo(Abe.Stand);
+        thisPtr.GoTo.bindenv(thisPtr)(Abe.Stand);
 
         log_info("inf exec..");
         thisPtr.Exec.bindenv(thisPtr)();

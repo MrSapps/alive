@@ -47,6 +47,7 @@ class BaseMapObject
 
     function FrameNumber()
     {
+        log_info("FrameNumber");
         return mBase.FrameNumber();
     }
 
@@ -83,5 +84,15 @@ class BaseMapObject
     function FloorCollision()
     {
         return mBase.FloorCollision();
+    }
+
+    function SetAnimationFrame(frame)
+    {
+        mBase.SetAnimationFrame(frame);
+    }
+
+    function AnimationComplete()
+    {
+        return mBase.AnimationComplete();
     }
 }
