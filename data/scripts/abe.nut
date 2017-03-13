@@ -62,8 +62,10 @@ class Abe extends BaseMapObject
 
     function InputNotSameAsDirection()
     {
-        return (Actions.Left(mInput.IsHeld)  && base.FacingRight()) 
-            || (Actions.Right(mInput.IsHeld) && base.FacingLeft());
+    // TODO FIX ME
+        return true;
+        //return (Actions.Left(mInput.IsHeld)  && base.FacingRight()) 
+        //    || (Actions.Right(mInput.IsHeld) && base.FacingLeft());
     }
 
     function InputSameAsDirection()
@@ -97,11 +99,11 @@ class Abe extends BaseMapObject
         SetXVelocity(0);
         PlayAnimation(anim,
         { 
-            onFrame = function()
+            onFrame = function(thisPtr)
             {
                 if (FrameIs(2))
                 {
-                    PlaySoundEffect("MOVEMENT_MUD_STEP");
+                    base.PlaySoundEffect("MOVEMENT_MUD_STEP");
                 }
             }
         });
@@ -279,7 +281,7 @@ class Abe extends BaseMapObject
             }
             else if (InputSameAsDirection())
             {
-                PlaySoundEffect("MOVEMENT_MUD_STEP"); // TODO: Always play fx?
+                base.PlaySoundEffect("MOVEMENT_MUD_STEP"); // TODO: Always play fx?
                 if (Actions.Run(mInput.IsHeld) == false)
                 {
                     if (FrameIs(4+1))
@@ -356,8 +358,8 @@ class Abe extends BaseMapObject
             
                 local collision = WillStepIntoWall();
                 if (collision) { return collision; }
-        
-                PlaySoundEffect("MOVEMENT_MUD_STEP"); 
+
+                base.PlaySoundEffect("MOVEMENT_MUD_STEP"); 
                 if (Actions.Sneak(mInput.IsHeld) == false)
                 {
                     if (FrameIs(6+1)) { return SneakToWalk(); } else { return SneakToWalk2(); }
@@ -410,22 +412,22 @@ class Abe extends BaseMapObject
             {
                 if (mInvertX)
                 {
-                    mApi.mXPos = mApi.mXPos + mXSpeed;
+                    mBase.mXPos = mBase.mXPos + mXSpeed;
                 }
                 else
                 {
-                    mApi.mXPos = mApi.mXPos - mXSpeed;
+                    mBase.mXPos = mBase.mXPos - mXSpeed;
                 }
             }
             else
             {
                 if (mInvertX)
                 {
-                    mApi.mXPos = mApi.mXPos - mXSpeed;
+                    mBase.mXPos = mBase.mXPos - mXSpeed;
                 }
                 else
                 {
-                    mApi.mXPos = mApi.mXPos + mXSpeed;
+                    mBase.mXPos = mBase.mXPos + mXSpeed;
                 }
             }
         }
@@ -434,7 +436,7 @@ class Abe extends BaseMapObject
         //{
             //log_error("YSpeed from " + mYSpeed + " to " + mYSpeed - mYVelocity);
             mYSpeed = CalculateYSpeed();
-            mYPos += mYSpeed;
+            mBase.mYPos += mYSpeed;
         //}
     
     }
@@ -552,7 +554,7 @@ class Abe extends BaseMapObject
 
         if (FrameIs(5+1) || FrameIs(14+1))
         {
-            PlaySoundEffect("MOVEMENT_MUD_STEP");
+            base.PlaySoundEffect("MOVEMENT_MUD_STEP");
             SnapXToGrid();
 
             local collision = WillStepIntoWall();
@@ -581,6 +583,7 @@ class Abe extends BaseMapObject
  
     function PlayAnimation(name, params)
     {
+        log_info("+PlayAnimation " + name);
         base.SetAnimation(name);
         if ("startFrame" in params)
         {
@@ -593,12 +596,14 @@ class Abe extends BaseMapObject
         }
 
         local stop = false;
-        while(true)
+        while (true)
         {
             local frameChanged = base.AnimUpdate();
             if (frameChanged)
             {
-                if (params.endFrame && base.FrameNumber() == params.endFrame+1 || base.FrameNumber() == base.NumberOfFrames()-1)
+                log_info("Frame has changed");
+
+                if (("endFrame" in params && base.FrameNumber() == params.endFrame+1) || (base.FrameNumber() == base.NumberOfFrames()-1))
                 {
                     log_info("Wait for complete done at frame " + base.FrameNumber());
                     stop = true;
@@ -606,7 +611,8 @@ class Abe extends BaseMapObject
 
                 if ("onFrame" in params)
                 {
-                    if (params.onFrame())
+                    log_info("Calling frame call back");
+                    if (params.onFrame.bindenv(this)())
                     {
                         log_info("Request to stop at frame " + base.FrameNumber());
                         stop = true;
@@ -614,11 +620,20 @@ class Abe extends BaseMapObject
                 }
                 ApplyMovement();
             }
-        
+            else
+            {
+                log_info("No change frame no:" + base.FrameNumber() + " num framse: " + base.NumberOfFrames());
+            }
+
             ::suspend();
 
-            if (stop) { return; }
+            if (stop)
+            { 
+                log_info("-PlayAnimation (callback)" + name);
+                return;
+            }
         }
+        log_info("-PlayAnimation " + name);
     }
 
     function GoTo(func)
@@ -671,7 +686,9 @@ class Abe extends BaseMapObject
 
     function StandTurnAround() 
     {
-        PlaySoundEffect("GRAVEL_SMALL"); // TODO: Add to json
+        log_info("StandTurnAround");
+
+        base.PlaySoundEffect("GRAVEL_SMALL"); // TODO: Add to json
         local toRun = false;
     
         // stop at frame 3 if we want to go to running
@@ -717,7 +734,7 @@ class Abe extends BaseMapObject
     {
         if (FrameIs(0+1) || FrameIs(6+1))
         {
-            PlaySoundEffect("MOVEMENT_MUD_STEP");
+            base.PlaySoundEffect("MOVEMENT_MUD_STEP");
         }
     
         if (FrameIs(0+1) || FrameIs(4+1) || FrameIs(8+1))
@@ -778,21 +795,21 @@ class Abe extends BaseMapObject
     function GameSpeakStanding(anim, soundEffect)
     {
         PlayAnimation("AbeStandSpeak1");
-        PlaySoundEffect(soundEffect);
+        base.PlaySoundEffect(soundEffect);
         PlayAnimation(anim);
         SetAnimation("AbeStandIdle");
     }
 
     function GameSpeakFartStanding()
     {
-        PlaySoundEffect("GAMESPEAK_MUD_FART");
+        base.PlaySoundEffect("GAMESPEAK_MUD_FART");
         PlayAnimation("AbeStandSpeak5");
         SetAnimation("AbeStandIdle");
     }
 
     function GameSpeakCrouching(anim, soundEffect)
     {
-        PlaySoundEffect(soundEffect);
+        base.PlaySoundEffect(soundEffect);
         PlayAnimation(anim);
         SetAnimation("AbeCrouchIdle");
     }
@@ -1041,10 +1058,10 @@ class Abe extends BaseMapObject
                 local frameChanged = base.AnimUpdate();
 
                 //log_info("call mFunc..");
-                if (mData.mFunc.bindenv(this))
+                if (mData.mFunc.bindenv(this)())
                 {
                     //ApplyMovement();
-                    //break;
+                    break;
                 }
 
                 if (frameChanged)
@@ -1052,9 +1069,9 @@ class Abe extends BaseMapObject
                     ApplyMovement();
                 }
 
-                log_info("suspending..");
+                //log_info("suspending..");
                 ::suspend();
-                log_info("resumed");
+                //log_info("resumed");
             }
         }
     }
@@ -1097,7 +1114,10 @@ class Abe extends BaseMapObject
     mFirst = true;
     function Update(actions)
     {
-        log_info("+Update");
+        //log_info("+Update");
+        
+        mInput = actions;
+
         if (mFirst)
         {
             mThread.call(this);
@@ -1107,7 +1127,7 @@ class Abe extends BaseMapObject
         {
             mThread.wakeup(this);
         }
-        log_info("-Update");
+        //log_info("-Update");
         
         // TODO: Fix me
         //DebugPrintPosDeltas();
@@ -1121,6 +1141,7 @@ class Abe extends BaseMapObject
     mYVelocity = 0;
     mNextFunction = "";
     mThread = "";
+    mInput = 0;
 
     function constructor(mapObj)
     {

@@ -22,11 +22,46 @@ class BaseMapObject
 
     function AnimUpdate()
     {
-        mBase.AnimUpdate();
+        return mBase.AnimUpdate();
     }
 
     function LoadAnimation(name)
     {
         mBase.LoadAnimation(name);
+    }
+
+    function FacingRight()
+    {
+        mBase.FacingRight();
+    }
+
+    function FacingLeft()
+    {
+        mBase.FacingLeft();
+    }
+
+    function PlaySoundEffect(soundFx)
+    {
+        log_warning("TODO: PlaySoundEffect: " + soundFx);
+    }
+
+    function FrameNumber()
+    {
+        return mBase.FrameNumber();
+    }
+
+    function NumberOfFrames()
+    {
+        return mBase.NumberOfFrames();
+    }
+
+    function FrameCounter()
+    {
+        return mBase.FrameCounter();
+    }
+
+    function FlipXDirection()
+    {
+        mBase.FlipXDirection();
     }
 }
