@@ -1,6 +1,9 @@
 #include "mapobject.hpp"
 #include "debug.hpp"
 #include "engine.hpp"
+#include "physics.hpp"
+#include "collisionline.hpp"
+#include "gridmap.hpp"
 
 /*
 MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const ObjRect& rect)
@@ -45,6 +48,15 @@ MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, 
     c.Var("mYPos", &MapObject::mYPos);
     c.Var("mName", &MapObject::mName);
     Sqrat::RootTable().Bind("MapObject", c);
+
+    
+    Sqrat::Class<CollisionResult> cr(Sqrat::DefaultVM::Get(), "CollisionResult");
+    cr.Var("collision", &CollisionResult::collision);
+    cr.Var("x", &CollisionResult::x);
+    cr.Var("y", &CollisionResult::y);
+    cr.Var("distance", &CollisionResult::distance);
+    Sqrat::RootTable().Bind("CollisionResult", cr);
+
 
     state.new_usertype<MapObject>("MapObject",
         "SetAnimation", &MapObject::SetAnimation,
@@ -128,45 +140,38 @@ void MapObject::Activate(bool direction)
     }
 }
 
-bool MapObject::WallCollision(f32 /*dx*/, f32 /*dy*/) const
+bool MapObject::WallCollision(f32 dx, f32 dy) const
 {
     // The game checks for both kinds of walls no matter the direction
     // ddcheat into a tunnel and the "inside out" wall will still force
     // a crouch.
-    /*
     return
-    CollisionLine::RayCast<2>(mMap.Lines(),
-    glm::vec2(mXPos, mYPos + dy),
-    glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
-    { 1u, 2u }, nullptr);
-    */
-    return false;
+        CollisionLine::RayCast<2>(mMap.Lines(),
+            glm::vec2(mXPos, mYPos + dy),
+            glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
+            { 1u, 2u }, nullptr);
 }
 
-bool MapObject::CellingCollision(f32 /*dx*/, f32 /*dy*/) const
+bool MapObject::CellingCollision(f32 dx, f32 dy) const
 {
-    /*
     return CollisionLine::RayCast<1>(mMap.Lines(),
-    glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos - 2), // avoid collision if we are standing on a celling
-    glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
-    { 3u }, nullptr);
-    */
-    return false;
+        glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos - 2), // avoid collision if we are standing on a celling
+        glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
+        { 3u }, nullptr);
 }
 
-std::tuple<bool, f32, f32, f32> MapObject::FloorCollision() const
+MapObject::CollisionResult MapObject::FloorCollision() const
 {
-    /*
     Physics::raycast_collision c;
     if (CollisionLine::RayCast<1>(mMap.Lines(),
-    glm::vec2(mXPos, mYPos),
-    glm::vec2(mXPos, mYPos + 260*3), // Check up to 3 screen down
-    { 0u }, &c))
+        glm::vec2(mXPos, mYPos),
+        glm::vec2(mXPos, mYPos + 260 * 3), // Check up to 3 screen down
+        { 0u }, &c))
     {
-    const f32 distance = glm::distance(mYPos, c.intersection.y);
-    return std::make_tuple(true, c.intersection.x, c.intersection.y, distance);
-    }*/
-    return std::make_tuple(false, 0.0f, 0.0f, 0.0f);
+        const f32 distance = glm::distance(mYPos, c.intersection.y);
+        return{ true, c.intersection.x, c.intersection.y, distance };
+    }
+    return{};
 }
 
 void MapObject::LoadScript()
@@ -347,6 +352,7 @@ bool MapObject::ContainsPoint(s32 x, s32 y) const
 {
     if (!mAnim)
     {
+        LOG_ERROR("RECT NOT SET");
         // For animationless objects use the object rect
 //        return PointInRect(x, y, mRect.x, mRect.y, mRect.w, mRect.h);
     }

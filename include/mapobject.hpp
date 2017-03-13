@@ -41,13 +41,14 @@ class Renderer;
 class Animation;
 struct GuiContext;
 class ResourceLocator;
+class IMap;
 
 class MapObject
 {
 public:
     MapObject() = delete;
-    MapObject(ResourceLocator& locator)
-        : mLocator(locator)
+    MapObject(ResourceLocator& locator, IMap& map)
+        : mLocator(locator), mMap(map)
     {
         TRACE_ENTRYEXIT;
         LOG_INFO("this = " << std::hex << "0x" << static_cast<void*>(this));
@@ -89,10 +90,19 @@ public:
     void Activate(bool direction);
     bool WallCollision(f32 dx, f32 dy) const;
     bool CellingCollision(f32 dx, f32 dy) const;
-    std::tuple<bool, f32, f32, f32> FloorCollision() const;
+
+    struct CollisionResult
+    {
+        bool collision;
+        float x;
+        float y;
+        float distance;
+    };
+
+    CollisionResult FloorCollision() const;
 private:
     void ScriptLoadAnimations();
-    //IMap& mMap;
+    IMap& mMap;
 
     std::map<std::string, std::shared_ptr<Animation>> mAnims;
     Animation* mAnim = nullptr;

@@ -239,7 +239,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                     obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
                 };
                 
-                auto tmp = std::make_unique<MapObject>(locator);
+                auto tmp = std::make_unique<MapObject>(locator, *this);
 
 
                 Sqrat::Function objFactory(Sqrat::RootTable(), "object_factory");
@@ -269,7 +269,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                 auto xPos = (x * camGapSize.x) + 100.0f;
                 auto yPos = (y * camGapSize.y) + 100.0f;
 
-                auto tmp = std::make_unique<MapObject>(locator);
+                auto tmp = std::make_unique<MapObject>(locator, *this);
 
                 Sqrat::Function onInitMap(Sqrat::RootTable(), "on_init_map");
                 Sqrat::SharedPtr<bool> ret = onInitMap.Evaluate<bool>(tmp.get(), xPos, yPos);
