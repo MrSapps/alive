@@ -57,15 +57,14 @@ class Abe extends BaseMapObject
         "AbeRunning",
         "AbeSneaking",
         "AbeStandToFallingFromTrapDoor",
-        "AbeHoistDropDown"
+        "AbeHoistDropDown",
+        "AbeRolling"
     ];
 
     function InputNotSameAsDirection()
     {
-    // TODO FIX ME
-        return true;
-        //return (Actions.Left(mInput.IsHeld)  && base.FacingRight()) 
-        //    || (Actions.Right(mInput.IsHeld) && base.FacingLeft());
+        return (Actions.Left(mInput.IsHeld)  && base.FacingRight()) 
+            || (Actions.Right(mInput.IsHeld) && base.FacingLeft());
     }
 
     function InputSameAsDirection()
@@ -467,6 +466,7 @@ class Abe extends BaseMapObject
     // TODO
     function CollisionWithFloor()
     {
+        log_info("FloorCollision about to go boom");
         return base.FloorCollision();
     }
 
@@ -475,15 +475,15 @@ class Abe extends BaseMapObject
     {
         // TODO: Fix XVelocity, only correct for walking?
         local collision, _, y, d = CollisionWithFloor();
-        if (collision == false || (collision == true && y > mApi.mYPos))
+        if (collision == false || (collision == true && y > mBase.mYPos))
         {
-            log_info("Not touching floor or floor is far away " + y + " VS " + mApi.mYPos + " distance " + d);
+            log_info("Not touching floor or floor is far away " + y + " VS " + mBase.mYPos + " distance " + d);
             local ySpeed = CalculateYSpeed();
-            local expectedYPos = mApi.mYPos + ySpeed;
+            local expectedYPos = mBase.mYPos + ySpeed;
             if (collision == true && expectedYPos > y)
             {
                 log_info("going to pass through the floor, glue to it!");
-                mApi.mYPos = y;
+                mBase.mYPos = y;
                 SetXSpeed(0);
                 SetXVelocity(0);
                 SetYSpeed(0);
@@ -511,15 +511,15 @@ class Abe extends BaseMapObject
     {
         // TODO: Fix XVelocity, only correct for walking?
         local collision, _, y, d = CollisionWithFloor();
-        if (collision == false || (collision == true && y > mApi.mYPos))
+        if (collision == false || (collision == true && y > mBase.mYPos))
         {
-            log_info("Not touching floor or floor is far away " + y + " VS " + mApi.mYPos + " distance " + d);
+            log_info("Not touching floor or floor is far away " + y + " VS " + mBase.mYPos + " distance " + d);
             local ySpeed = CalculateYSpeed();
-            local expectedYPos = mApi.mYPos + ySpeed;
+            local expectedYPos = mBase.mYPos + ySpeed;
             if (collision == true && expectedYPos > y)
             {
                 log_info("going to pass through the floor, glue to it!");
-                mApi.mYPos = y;
+                mBase.mYPos = y;
                 SetXSpeed(0);
                 SetXVelocity(0);
                 SetYSpeed(0);
@@ -546,9 +546,9 @@ class Abe extends BaseMapObject
     {
         // TODO
         local collision, _, y = CollisionWithFloor();
-        if (collision == false || (collision == true && y > mApi.mYPos))
+        if (collision == false || (collision == true && y > mBase.mYPos))
         {
-            log_info("Not on the floor " + y + " VS " + mApi.mYPos);
+            log_info("Not on the floor " + y + " VS " + mBase.mYPos);
             return GoTo(StandFalling);
         }
 
@@ -581,7 +581,7 @@ class Abe extends BaseMapObject
         }
     }
  
-    function PlayAnimation(name, params)
+    function PlayAnimation(name, params = null)
     {
         log_info("+PlayAnimation " + name);
         base.SetAnimation(name);
@@ -601,8 +601,6 @@ class Abe extends BaseMapObject
             local frameChanged = base.AnimUpdate();
             if (frameChanged)
             {
-                log_info("Frame has changed");
-
                 if (("endFrame" in params && base.FrameNumber() == params.endFrame+1) || (base.FrameNumber() == base.NumberOfFrames()-1))
                 {
                     log_info("Wait for complete done at frame " + base.FrameNumber());
@@ -611,7 +609,6 @@ class Abe extends BaseMapObject
 
                 if ("onFrame" in params)
                 {
-                    log_info("Calling frame call back");
                     if (params.onFrame.bindenv(this)())
                     {
                         log_info("Request to stop at frame " + base.FrameNumber());
@@ -622,14 +619,14 @@ class Abe extends BaseMapObject
             }
             else
             {
-                log_info("No change frame no:" + base.FrameNumber() + " num framse: " + base.NumberOfFrames());
+                log_info("No change frame no:" + base.FrameNumber() + " num frames: " + base.NumberOfFrames());
             }
 
             ::suspend();
 
             if (stop)
             { 
-                log_info("-PlayAnimation (callback)" + name);
+                log_info("-PlayAnimation (callback): " + name);
                 return;
             }
         }
@@ -780,11 +777,11 @@ class Abe extends BaseMapObject
             {
                 if (standing == 1)
                 {
-                    GameSpeakStanding(item.anims[standing], item.sound);
+                    GameSpeakStanding(item.anims[0], item.sound);
                 }
                 else
                 {
-                    GameSpeakCrouching(item.anims[standing], item.sound);
+                    GameSpeakCrouching(item.anims[1], item.sound);
                 }
                 return true;
             }
@@ -848,7 +845,7 @@ class Abe extends BaseMapObject
         {
             return CrouchTurnAround();
         }
-        else if (HandleGameSpeak(2))
+        else if (HandleGameSpeak(0))
         {
             // stay in this state
         }
@@ -902,8 +899,6 @@ class Abe extends BaseMapObject
 
     function Stand()
     {
-        log_info("IN STAND this = " + this);
-
         if (InputNotSameAsDirection())
         {
             log_info("StandTurnAround");
@@ -948,8 +943,6 @@ class Abe extends BaseMapObject
         {
             return JumpUp();
         }
-
-        log_info("exit Stand");
     }
 
     function HoistHang()
@@ -975,7 +968,7 @@ class Abe extends BaseMapObject
             if (toDown)
             {
                 // TODO: Use the line ypos!
-                mApi.mYPos = mApi.mYPos + 78;
+                mBase.mYPos = mBase.mYPos + 78;
                 return GoTo(StandFalling2);
             }
 
@@ -989,7 +982,7 @@ class Abe extends BaseMapObject
 
     function JumpUp()
     {
-        local oldY = mApi.mYPos;
+        local oldY = mBase.mYPos;
     
         PlayAnimation("AbeStandToJump",
         { 
@@ -1003,7 +996,7 @@ class Abe extends BaseMapObject
         });
 
         // Look for a hoist at the head pos
-        local hoist = GetMapObject(mApi.mXPos, mApi.mYPos-50, "Hoist");
+        local hoist = GetMapObject(mBase.mXPos, mBase.mYPos-50, "Hoist");
     
         SetYVelocity(-1.8);
         PlayAnimation("AbeJumpUpFalling",
@@ -1030,14 +1023,14 @@ class Abe extends BaseMapObject
         if (hoist)
         {
             // TODO: Use the next line or hoist ypos!
-            mApi.mYPos = mApi.mYPos - 78;
+            mBase.mYPos = mBase.mYPos - 78;
             return GoTo(HoistHang);
         }
         else
         {
             log_info("TODO: Check for door, rope, well etc");
 
-            mApi.mYPos = oldY;
+            mBase.mYPos = oldY;
             PlayAnimation("AbeHitGroundToStand");
             return GoTo(Stand);
         }
@@ -1089,26 +1082,26 @@ class Abe extends BaseMapObject
     oldY = 0;
     function DebugPrintPosDeltas()
     {
-        if (oldX != mXPos || oldY != mApi.mYPos)
+        if (oldX != mXPos || oldY != mBase.mYPos)
         {
-            local deltaX = mApi.mXPos - oldX;
-            local deltaY = mApi.mYPos - oldY;
-            if (deltaX != mApi.mXPos || deltaY != mApi.mYPos)
+            local deltaX = mBase.mXPos - oldX;
+            local deltaY = mBase.mYPos - oldY;
+            if (deltaX != mBase.mXPos || deltaY != mBase.mYPos)
             {
                 log_trace(
                     "XD:"   + string.format("%.6f", deltaX) +
                     " YD:" + string.format("%.6f", deltaY) + 
                     " F:"   + base.FrameNumber() +
-                    //" X:" + string.format("%.2f", mApi.mXPos) +
-                    //" Y:" + string.format("%.2f", mApi.mYPos) +
+                    //" X:" + string.format("%.2f", mBase.mXPos) +
+                    //" Y:" + string.format("%.2f", mBase.mYPos) +
                     " XS:" + string.format("%.2f", mXSpeed) +
                     " YS:" + string.format("%.2f", mYSpeed) +
                     " XV:" + string.format("%.2f", mXVelocity) +
                     " YV:" + string.format("%.2f", mYVelocity));
             }
         }
-        oldX = mApi.mXPos;
-        oldY = mApi.mYPos;
+        oldX = mBase.mXPos;
+        oldY = mBase.mYPos;
     }
 
     mFirst = true;

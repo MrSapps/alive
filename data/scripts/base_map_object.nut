@@ -32,12 +32,12 @@ class BaseMapObject
 
     function FacingRight()
     {
-        mBase.FacingRight();
+        return mBase.FacingRight();
     }
 
     function FacingLeft()
     {
-        mBase.FacingLeft();
+        return mBase.FacingLeft();
     }
 
     function PlaySoundEffect(soundFx)
@@ -63,5 +63,25 @@ class BaseMapObject
     function FlipXDirection()
     {
         mBase.FlipXDirection();
+    }
+
+    function SnapXToGrid()
+    {
+        mBase.SnapXToGrid();
+    }
+
+    function CellingCollision(dx, dy)
+    {
+        return mBase.CellingCollision(dx, dy);
+    }
+
+    function WallCollision(dx, dy)
+    {
+        return mBase.WallCollision(dx, dy);
+    }
+
+    function FloorCollision()
+    {
+        return mBase.FloorCollision();
     }
 }
