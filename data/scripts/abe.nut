@@ -97,17 +97,12 @@ class Abe extends BaseMapObject
         SetXSpeed(2.777771);
         SetXVelocity(0);
 
-        log_info("this = " + this);
-        base.PlaySoundEffect("ARGH");
-
         PlayAnimation(anim,
         { 
             onFrame = function()
             {
                 if (FrameIs(2))
                 {
-                    log_info("this = " + this);
-                    log_info("ToStandCommon play fx");
                     base.PlaySoundEffect("MOVEMENT_MUD_STEP");
                 }
             }
@@ -618,7 +613,7 @@ class Abe extends BaseMapObject
 
                 if ("onFrame" in params)
                 {
-                    if (params.onFrame.bindenv(this)())
+                    if (params.onFrame.call(this))
                     {
                         log_info("Request to stop at frame " + base.FrameNumber());
                         stop = true;
@@ -1060,7 +1055,7 @@ class Abe extends BaseMapObject
                 local frameChanged = base.AnimUpdate();
 
                 //log_info("call mFunc..");
-                if (mData.mFunc.bindenv(this)())
+                if (mData.mFunc.call(this))
                 {
                     //ApplyMovement();
                     break;
