@@ -5,9 +5,9 @@ class Hoist extends BaseMapObject
     mId = 0;
     mScale = 0;
 
-    function constructor(mapObj, rect, stream)
+    function constructor(mapObj, map, rect, stream)
     {
-        base.constructor(mapObj, "Hoist");
+        base.constructor(mapObj, map, "Hoist");
 
         mBase.mXPos = rect.x;
         mBase.mYPos = rect.y;

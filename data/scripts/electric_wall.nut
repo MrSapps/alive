@@ -10,9 +10,9 @@ class ElectricWall extends BaseMapObject
         "ELECWALL.BAN_6000_AePc_0"
     ];
 
-    constructor(mapObj, rect, stream)
+    constructor(mapObj, map, rect, stream)
     {
-        base.constructor(mapObj, "ElectricWall");
+        base.constructor(mapObj, map, "ElectricWall");
 
         mBase.mXPos = rect.x;
         mBase.mYPos = rect.y;

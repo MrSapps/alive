@@ -1,8 +1,8 @@
 class BackgroundAnimation extends BaseMapObject
 {
-    constructor(mapObj, rect, stream)
+    constructor(mapObj, map, rect, stream)
     {
-        base.constructor(mapObj, "BackgroundAnimation");
+        base.constructor(mapObj, map, "BackgroundAnimation");
 
         local animId = IStream.ReadU32(stream);
         local animName = "";

@@ -5,6 +5,7 @@
 #pragma warning(disable: 4702)
 #pragma warning(disable: 4244)
 #pragma warning(disable: 4800)
+#pragma warning(disable: 4458)
 #endif
 
 #ifndef SCRAT_USE_CXX11_OPTIMIZATIONS

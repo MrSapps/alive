@@ -14,9 +14,9 @@ class Door extends BaseMapObject
         "SVZDOOR.BAN_2012_AePc_0"   // scrab vault door
     ];
     
-    constructor(mapObj, rect, stream)
+    constructor(mapObj, map, rect, stream)
     {
-        base.constructor(mapObj, "Door");
+        base.constructor(mapObj, map, "Door");
 
         local level = IStream.ReadU16(stream);
         local path = IStream.ReadU16(stream);

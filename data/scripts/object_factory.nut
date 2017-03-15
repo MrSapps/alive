@@ -40,7 +40,7 @@ function init_object_factory()
     };
 }
 
-function object_factory(/*MapObject*/ mapObj, isAo, typeId, /*ObjRect*/ rect, /*IStream*/ stream)
+function object_factory(/*MapObject*/ mapObj, /*GridMap*/ map, isAo, typeId, /*ObjRect*/ rect, /*IStream*/ stream)
 {
     if (isAo)
     {
@@ -52,7 +52,7 @@ function object_factory(/*MapObject*/ mapObj, isAo, typeId, /*ObjRect*/ rect, /*
     {
         local factory = objects.ae[typeId];
         log_info("Constructing object for type " + typeId);
-        local obj = factory(mapObj, rect, stream);
+        local obj = factory(mapObj, map, rect, stream);
         log_info("Setting instance");
         mapObj.SetScriptInstance(obj); // Store the squirrel object instance ref in the C++ object
         log_info("Returning");

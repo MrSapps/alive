@@ -6,9 +6,9 @@ class Mine extends BaseMapObject
         "LANDMINE.BAN_1036_AePc_0"
     ];
 
-    constructor(mapObj, rect, stream)
+    constructor(mapObj, map, rect, stream)
     {
-        base.constructor(mapObj, "Mine");
+        base.constructor(mapObj, map, "Mine");
 
         mBase.mXPos = rect.x + 10;
         mBase.mYPos = rect.y + 22;

@@ -43,12 +43,20 @@ struct GuiContext;
 class ResourceLocator;
 class IMap;
 
+struct CollisionResult
+{
+    bool collision;
+    float x;
+    float y;
+    float distance;
+};
+
 class MapObject
 {
 public:
     MapObject() = delete;
-    MapObject(ResourceLocator& locator, IMap& map)
-        : mLocator(locator), mMap(map)
+    MapObject(ResourceLocator& locator, const ObjRect& rect)
+        : mLocator(locator), mRect(rect)
     {
         TRACE_ENTRYEXIT;
         LOG_INFO("this = " << std::hex << "0x" << static_cast<void*>(this));
@@ -59,9 +67,6 @@ public:
     MapObject& operator = (const MapObject&) = delete;
     MapObject& operator = (MapObject&& other) = delete;
     ~MapObject();
-
-    //MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const ObjRect& rect);
-    //MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName);
 
     void LoadAnimation(const std::string& name);
 
@@ -88,25 +93,14 @@ public:
 
     s32 Id() const { return mId; }
     void Activate(bool direction);
-    bool WallCollision(f32 dx, f32 dy) const;
-    bool CellingCollision(f32 dx, f32 dy) const;
+    bool WallCollision(IMap& map, f32 dx, f32 dy) const;
+    bool CellingCollision(IMap& map, f32 dx, f32 dy) const;
 
-    struct CollisionResult
-    {
-        bool collision;
-        float x;
-        float y;
-        float distance;
-    };
-
-    CollisionResult FloorCollision() const;
+    CollisionResult FloorCollision(IMap& map) const;
 private:
     void ScriptLoadAnimations();
-    IMap& mMap;
-
     std::map<std::string, std::shared_ptr<Animation>> mAnims;
     Animation* mAnim = nullptr;
-    //sol::state& mLuaState;
     sol::table mStates;
 
     void LoadScript();
@@ -131,6 +125,6 @@ private:
     std::string mScriptName;
     std::string mName;
     s32 mId = 0;
-   // ObjRect mRect;
+    ObjRect mRect;
     Sqrat::Object mScriptObject; // Derived script object instance
 };

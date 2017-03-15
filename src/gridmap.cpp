@@ -180,6 +180,19 @@ void GridScreen::Render(float x, float y, float w, float h)
     }
 }
 
+/*static*/ void GridMap::RegisterScriptBindings()
+{
+    Sqrat::Class<IMap, Sqrat::NoConstructor<IMap>> im(Sqrat::DefaultVM::Get(), "IMap");
+    Sqrat::RootTable().Bind("IMap", im);
+
+    Sqrat::DerivedClass<GridMap, IMap, Sqrat::NoConstructor<GridMap>> gm(Sqrat::DefaultVM::Get(), "GridMap");
+
+    gm.Func("GetMapObject", &GridMap::GetMapObject);
+    gm.Func("ActivateObjectsWithId", &GridMap::ActivateObjectsWithId);
+
+    Sqrat::RootTable().Bind("GridMap", gm);
+}
+
 GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
 {
     mIsAo = path.IsAo();
@@ -198,6 +211,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
 
     luaState.set_function("GetMapObject", &GridMap::GetMapObject, this);
     luaState.set_function("ActivateObjectsWithId", &GridMap::ActivateObjectsWithId, this);
+
 
     mScreens.resize(path.XSize());
     for (auto& col : mScreens)
@@ -239,12 +253,12 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                     obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
                 };
                 
-                auto tmp = std::make_unique<MapObject>(locator, *this);
+                auto tmp = std::make_unique<MapObject>(locator, rect);
 
 
                 Sqrat::Function objFactory(Sqrat::RootTable(), "object_factory");
                 Oddlib::IStream* s = &ms; // Script only knows about IStream, not the derived types
-                Sqrat::SharedPtr<bool> ret = objFactory.Evaluate<bool>(tmp.get(), path.IsAo(), obj.mType, rect, s);
+                Sqrat::SharedPtr<bool> ret = objFactory.Evaluate<bool>(tmp.get(), this, path.IsAo(), obj.mType, rect, s); // TODO: Don't need to pass rect?
                 SquirrelVm::CheckError();
                 if (ret.get() && *ret)
                 {
@@ -269,10 +283,10 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                 auto xPos = (x * camGapSize.x) + 100.0f;
                 auto yPos = (y * camGapSize.y) + 100.0f;
 
-                auto tmp = std::make_unique<MapObject>(locator, *this);
+                auto tmp = std::make_unique<MapObject>(locator, ObjRect{});
 
                 Sqrat::Function onInitMap(Sqrat::RootTable(), "on_init_map");
-                Sqrat::SharedPtr<bool> ret = onInitMap.Evaluate<bool>(tmp.get(), xPos, yPos);
+                Sqrat::SharedPtr<bool> ret = onInitMap.Evaluate<bool>(tmp.get(), this, xPos, yPos);
                 SquirrelVm::CheckError();
                 if (ret.get() && *ret)
                 {

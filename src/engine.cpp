@@ -335,6 +335,7 @@ void Engine::InitSubSystems()
     Actions::RegisterScriptBindings(mLuaState);
     MapObject::RegisterScriptBindings(mLuaState);
     ObjRect::RegisterScriptBindings(mLuaState);
+    GridMap::RegisterScriptBindings();
 
     SquirrelVm::CompileAndRun(*mResourceLocator, "main.nut");
 

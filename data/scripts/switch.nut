@@ -18,9 +18,9 @@ class Switch extends BaseMapObject
         "FX_LEVER"
     ];
 
-    constructor(mapObj, rect, stream)
+    constructor(mapObj, map, rect, stream)
     {
-        base.constructor(mapObj, "Switch");
+        base.constructor(mapObj, map, "Switch");
 
         mBase.mXPos = rect.x + 37;
         mBase.mYPos = rect.y + rect.h - 5;

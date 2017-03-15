@@ -1,14 +1,16 @@
 
 class BaseMapObject
 {
-    mBase = "";
-    mLastAnim = "";
+    mBase = 0;
+    mLastAnim = 0;
+    mMap = 0;
 
-    constructor(mapObj, name)
+    constructor(mapObj, map, name)
     {
         log_info("Constructing object: " + name);
         mBase = mapObj;
         mBase.mName = name;
+        mMap = map;
     }
 
     function SetAnimation(anim)
@@ -47,7 +49,6 @@ class BaseMapObject
 
     function FrameNumber()
     {
-        log_info("FrameNumber");
         return mBase.FrameNumber();
     }
 
@@ -73,17 +74,17 @@ class BaseMapObject
 
     function CellingCollision(dx, dy)
     {
-        return mBase.CellingCollision(dx, dy);
+        return mBase.CellingCollision(mMap, dx, dy);
     }
 
     function WallCollision(dx, dy)
     {
-        return mBase.WallCollision(dx, dy);
+        return mBase.WallCollision(mMap, dx, dy);
     }
 
     function FloorCollision()
     {
-        return mBase.FloorCollision();
+        return mBase.FloorCollision(mMap);
     }
 
     function SetAnimationFrame(frame)

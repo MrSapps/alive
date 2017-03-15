@@ -384,6 +384,7 @@ public:
     }
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(Renderer& rend, GuiContext& gui) const;
+    static void RegisterScriptBindings();
 private:
 
     void UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& coords);

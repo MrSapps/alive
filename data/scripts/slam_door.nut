@@ -11,9 +11,9 @@ class SlamDoor extends BaseMapObject
         "SLAM.BAN_2020_AePc_1"
     ];
 
-    function constructor(mapObj, rect, stream)
+    function constructor(mapObj, map, rect, stream)
     {
-        base.constructor(mapObj, "SlamDoor");
+        base.constructor(mapObj, map, "SlamDoor");
 
         mBase.mXPos = rect.x + 13;
         mBase.mYPos = rect.y + 18;
@@ -34,7 +34,7 @@ class SlamDoor extends BaseMapObject
         }
         else
         {
-            base.SetAnimation(null);
+            base.SetAnimation("");
         }
     }
 }

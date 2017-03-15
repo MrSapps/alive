@@ -99,11 +99,11 @@ class Abe extends BaseMapObject
 
         PlayAnimation(anim,
         { 
-            onFrame = function()
+            onFrame = function(obj)
             {
-                if (FrameIs(2))
+                if (obj.FrameIs(2))
                 {
-                    base.PlaySoundEffect("MOVEMENT_MUD_STEP");
+                    obj.PlaySoundEffect("MOVEMENT_MUD_STEP");
                 }
             }
         });
@@ -149,13 +149,13 @@ class Abe extends BaseMapObject
         PlayAnimation("AbeRunningToSkidTurn", 
         { 
             endFrame = 15, 
-            onFrame = function()
+            onFrame = function(obj)
             {
-                if (FrameIs(14)) 
+                if (obj.FrameIs(14))
                 {
                     log_trace("Handle last frame of AbeRunningToSkidTurn");
-                    SetXVelocity(0);
-                    SnapXToGrid();
+                    obj.SetXVelocity(0);
+                    obj.SnapXToGrid();
                 }
             }
         });
@@ -196,15 +196,13 @@ class Abe extends BaseMapObject
 
     function RunToJump()
     {
-        log_error("TODO: RunToJump");
-
         PlayAnimation("AbeRuningToJump",
         { 
-            onFrame = function()
+            onFrame = function(obj)
             {
-                if (FrameIs(2))
+                if (obj.FrameIs(2))
                 {
-                    SetYVelocity(9.6);
+                    obj.SetYVelocity(9.6);
                 }
             }
         });
@@ -213,12 +211,12 @@ class Abe extends BaseMapObject
         SetXSpeed(7.6);
         PlayAnimation("AbeRunningJumpInAir", 
         { 
-            onFrame = function()
+            onFrame = function(obj)
             {
-                if (FrameIs(10))
+                if (obj.FrameIs(10))
                 {
-                    SetYVelocity(1.8);
-                    SetXSpeed(4.9);
+                    obj.SetYVelocity(1.8);
+                    obj.SetXSpeed(4.9);
                 }
             }
         });
@@ -311,18 +309,17 @@ class Abe extends BaseMapObject
 
     function RunToSkidStop()
     {
-        log_trace("RunToSkidStop");
         SetXVelocity(0.375);
         PlayAnimation("AbeRunningSkidStop",
         {
             endFrame = 15,
-            onFrame = function()
+            onFrame = function(obj)
             {
-                if (FrameIs(14))
+                if (obj.FrameIs(14))
                 {
                     log_trace("Handle last frame of AbeRunningSkidStop");
-                    SetXVelocity(0);
-                    SnapXToGrid();
+                    obj.SetXVelocity(0);
+                    obj.SnapXToGrid();
                 }
             }
         });
@@ -476,12 +473,13 @@ class Abe extends BaseMapObject
 
         // TODO: Fix XVelocity, only correct for walking?
         local ret = CollisionWithFloor();
+
         if (ret.collision == false || (ret.collision == true && ret.y > mBase.mYPos))
         {
             log_info("Not touching floor or floor is far away " + ret.y + " VS " + mBase.mYPos + " distance " + ret.distance);
             local ySpeed = CalculateYSpeed();
             local expectedYPos = mBase.mYPos + ySpeed;
-            if (collision == true && expectedYPos > ret.y)
+            if (ret.collision == true && expectedYPos > ret.y)
             {
                 log_info("going to pass through the floor, glue to it!");
                 mBase.mYPos = ret.y;
@@ -583,7 +581,6 @@ class Abe extends BaseMapObject
  
     function PlayAnimation(name, params = null)
     {
-        log_info("+PlayAnimation " + name);
         base.SetAnimation(name);
         if ("startFrame" in params)
         {
@@ -613,7 +610,7 @@ class Abe extends BaseMapObject
 
                 if ("onFrame" in params)
                 {
-                    if (params.onFrame.call(this))
+                    if (params.onFrame(this))
                     {
                         log_info("Request to stop at frame " + base.FrameNumber());
                         stop = true;
@@ -634,7 +631,6 @@ class Abe extends BaseMapObject
                 return;
             }
         }
-        log_info("-PlayAnimation " + name);
     }
 
     function GoTo(func)
@@ -695,9 +691,9 @@ class Abe extends BaseMapObject
         // stop at frame 3 if we want to go to running
         PlayAnimation("AbeStandTurnAround", 
         { 
-            onFrame = function()
+            onFrame = function(obj)
             {
-                if (FrameIs(3) && Actions.Run(mInput.IsHeld))
+                if (obj.FrameIs(3) && Actions.Run(obj.mInput.IsHeld))
                 {
                     toRun = true;
                     return true;
@@ -866,16 +862,16 @@ class Abe extends BaseMapObject
         { 
             startFrame = 9, 
             endFrame = 11, 
-            onFrame = function()
+            onFrame = function(obj)
             {
-                if (base.FrameNumber() == 9)
+                if (obj.FrameNumber() == 9)
                 {
-                    SetXSpeed(17);
+                    obj.SetXSpeed(17);
                 }
                 else
                 {
-                    SetXSpeed(13.569992);
-                    SetYSpeed(-2.7);
+                    obj.SetXSpeed(13.569992);
+                    obj.SetYSpeed(-2.7);
                 }
             }
         });
@@ -884,14 +880,14 @@ class Abe extends BaseMapObject
         PlayAnimation("AbeHopping",
         { 
             endFrame = 3, 
-            onFrame = function()
+            onFrame = function(obj)
             {
-                if (FrameIs(3))
+                if (obj.FrameIs(3))
                 {
-                    SetXSpeed(0);
-                    SetYSpeed(0);
-                    SetYVelocity(0);
-                    SnapXToGrid();
+                    obj.SetXSpeed(0);
+                    obj.SetYSpeed(0);
+                    obj.SetYVelocity(0);
+                    obj.SnapXToGrid();
                 }
             }
         });
@@ -958,10 +954,10 @@ class Abe extends BaseMapObject
             local toUp = false;
             PlayAnimation("AbeHoistDangling",
             {
-                onFrame = function()
+                onFrame = function(obj)
                 {
-                    if (Actions.Down(mInput.IsHeld)) { toDown = true; }
-                    if (Actions.Up(mInput.IsHeld)) { toUp = true; }
+                    if (Actions.Down(obj.mInput.IsHeld)) { toDown = true; }
+                    if (Actions.Up(obj.mInput.IsHeld)) { toUp = true; }
                     if (toDown || toUp)
                     {
                         return true;
@@ -990,24 +986,24 @@ class Abe extends BaseMapObject
     
         PlayAnimation("AbeStandToJump",
         { 
-            onFrame = function()
+            onFrame = function(obj)
             {
-                if (base.FrameNumber() == 9)
+                if (obj.FrameNumber() == 9)
                 {
-                    SetYSpeed(-8);
+                    obj.SetYSpeed(-8);
                 }
             }
         });
 
         // Look for a hoist at the head pos
-        local hoist = GetMapObject(mBase.mXPos, mBase.mYPos-50, "Hoist");
+        local hoist = mMap.GetMapObject(mBase.mXPos, mBase.mYPos-50, "Hoist");
     
         SetYVelocity(-1.8);
         PlayAnimation("AbeJumpUpFalling",
         { 
-            onFrame = function()
+            onFrame = function(obj)
             {
-                if (base.FrameNumber() >= 3)
+                if (obj.FrameNumber() >= 3)
                 {
                     if (hoist)
                     {
@@ -1055,7 +1051,7 @@ class Abe extends BaseMapObject
                 local frameChanged = base.AnimUpdate();
 
                 //log_info("call mFunc..");
-                if (mData.mFunc.call(this))
+                if (mData.mFunc.bindenv(this)())
                 {
                     //ApplyMovement();
                     break;
@@ -1140,9 +1136,9 @@ class Abe extends BaseMapObject
     mThread = "";
     mInput = 0;
 
-    function constructor(mapObj)
+    function constructor(mapObj, map)
     {
-        base.constructor(mapObj, "Abe");
+        base.constructor(mapObj, map, "Abe");
 
         mAnims[Abe.Stand] <-          { name = "AbeStandIdle",                xspeed = 0,               xvel = 0 };
         mAnims[Abe.Walk] <-           { name = "AbeWalking",                  xspeed = 2.777771,        xvel = 0 };
@@ -1152,7 +1148,7 @@ class Abe extends BaseMapObject
         mAnims[Abe.Roll] <-           { name = "AbeRolling",                  xspeed = 6.25,            xvel = 0 };
         mAnims[Abe.StandFalling] <-   { name = "AbeStandToFallingFromTrapDoor",                         xvel = 0.3,  yvel = -1.8 };
         mAnims[Abe.StandFalling2] <-  { name = "AbeHoistDropDown",                                      xvel = 0,    yvel = -1.8 };
-        mAnims[Abe.HoistHang] <-      {                                                                 xvel = 0.0,  yvel = 0 };
+        mAnims[Abe.HoistHang] <-      { name = "AbeHoistDangling",                                      xvel = 0.0,  yvel = 0 };
         mNextFunction = Abe.Stand;
         mThread = ::newthread(CoRoutineProc);
     }

@@ -5,58 +5,46 @@
 #include "collisionline.hpp"
 #include "gridmap.hpp"
 
-/*
-MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const ObjRect& rect)
-: mMap(map), mLuaState(luaState), mLocator(locator), mRect(rect)
-{
-
-}
-
-MapObject::MapObject(IMap& map, sol::state& luaState, ResourceLocator& locator, const std::string& scriptName)
-: mMap(map), mLuaState(luaState), mLocator(locator), mScriptName(scriptName)
-{
-
-}
-*/
-
 /*static*/ void MapObject::RegisterScriptBindings(sol::state& state)
 {
-    Sqrat::Class<MapObject, Sqrat::NoConstructor<MapObject>> c(Sqrat::DefaultVM::Get(), "MapObject");
-    c.Func("SetScriptInstance", &MapObject::SetScriptInstance);
-    c.Func("LoadAnimation", &MapObject::LoadAnimation);
-    c.Func("SetAnimation", &MapObject::SetAnimation);
-    c.Func("SetAnimationFrame", &MapObject::SetAnimationFrame);
-    c.Func("FrameNumber", &MapObject::FrameNumber);
-    c.Func("IsLastFrame", &MapObject::IsLastFrame);
-    c.Func("AnimUpdate", &MapObject::AnimUpdate);
-    c.Func("SetAnimationAtFrame", &MapObject::SetAnimationAtFrame);
-    c.Func("AnimationComplete", &MapObject::AnimationComplete);
-    c.Func("NumberOfFrames", &MapObject::NumberOfFrames);
-    c.Func("FrameCounter", &MapObject::FrameCounter);
+    {
+        Sqrat::Class<MapObject, Sqrat::NoConstructor<MapObject>> c(Sqrat::DefaultVM::Get(), "MapObject");
+        c.Func("SetScriptInstance", &MapObject::SetScriptInstance);
+        c.Func("LoadAnimation", &MapObject::LoadAnimation);
+        c.Func("SetAnimation", &MapObject::SetAnimation);
+        c.Func("SetAnimationFrame", &MapObject::SetAnimationFrame);
+        c.Func("FrameNumber", &MapObject::FrameNumber);
+        c.Func("IsLastFrame", &MapObject::IsLastFrame);
+        c.Func("AnimUpdate", &MapObject::AnimUpdate);
+        c.Func("SetAnimationAtFrame", &MapObject::SetAnimationAtFrame);
+        c.Func("AnimationComplete", &MapObject::AnimationComplete);
+        c.Func("NumberOfFrames", &MapObject::NumberOfFrames);
+        c.Func("FrameCounter", &MapObject::FrameCounter);
 
-    c.Func("WallCollision", &MapObject::WallCollision);
-    c.Func("CellingCollision", &MapObject::CellingCollision);
-    c.Func("FloorCollision", &MapObject::FloorCollision);
+        c.Func("WallCollision", &MapObject::WallCollision);
+        c.Func("CellingCollision", &MapObject::CellingCollision);
+        c.Func("FloorCollision", &MapObject::FloorCollision);
 
-    c.Func("SnapXToGrid", &MapObject::SnapXToGrid);
-    c.Func("FacingLeft", &MapObject::FacingLeft);
+        c.Func("SnapXToGrid", &MapObject::SnapXToGrid);
+        c.Func("FacingLeft", &MapObject::FacingLeft);
 
-    c.Func("FacingRight", &MapObject::FacingRight);
-    c.Func("FlipXDirection", &MapObject::FlipXDirection);
-    c.Var("states", &MapObject::mStates);
-    c.Var("mXPos", &MapObject::mXPos);
-    c.Var("mYPos", &MapObject::mYPos);
-    c.Var("mName", &MapObject::mName);
-    Sqrat::RootTable().Bind("MapObject", c);
+        c.Func("FacingRight", &MapObject::FacingRight);
+        c.Func("FlipXDirection", &MapObject::FlipXDirection);
+        c.Var("states", &MapObject::mStates);
+        c.Var("mXPos", &MapObject::mXPos);
+        c.Var("mYPos", &MapObject::mYPos);
+        c.Var("mName", &MapObject::mName);
+        Sqrat::RootTable().Bind("MapObject", c);
+    }
 
-    
-    Sqrat::Class<CollisionResult> cr(Sqrat::DefaultVM::Get(), "CollisionResult");
-    cr.Var("collision", &CollisionResult::collision);
-    cr.Var("x", &CollisionResult::x);
-    cr.Var("y", &CollisionResult::y);
-    cr.Var("distance", &CollisionResult::distance);
-    Sqrat::RootTable().Bind("CollisionResult", cr);
-
+    {
+        Sqrat::Class<CollisionResult> cr(Sqrat::DefaultVM::Get(), "CollisionResult");
+        cr.Var("collision", &CollisionResult::collision);
+        cr.Var("x", &CollisionResult::x);
+        cr.Var("y", &CollisionResult::y);
+        cr.Var("distance", &CollisionResult::distance);
+        Sqrat::RootTable().Bind("CollisionResult", cr);
+    }
 
     state.new_usertype<MapObject>("MapObject",
         "SetAnimation", &MapObject::SetAnimation,
@@ -140,30 +128,30 @@ void MapObject::Activate(bool direction)
     }
 }
 
-bool MapObject::WallCollision(f32 dx, f32 dy) const
+bool MapObject::WallCollision(IMap& map, f32 dx, f32 dy) const
 {
     // The game checks for both kinds of walls no matter the direction
     // ddcheat into a tunnel and the "inside out" wall will still force
     // a crouch.
     return
-        CollisionLine::RayCast<2>(mMap.Lines(),
+        CollisionLine::RayCast<2>(map.Lines(),
             glm::vec2(mXPos, mYPos + dy),
             glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
             { 1u, 2u }, nullptr);
 }
 
-bool MapObject::CellingCollision(f32 dx, f32 dy) const
+bool MapObject::CellingCollision(IMap& map, f32 dx, f32 dy) const
 {
-    return CollisionLine::RayCast<1>(mMap.Lines(),
+    return CollisionLine::RayCast<1>(map.Lines(),
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos - 2), // avoid collision if we are standing on a celling
         glm::vec2(mXPos + (mFlipX ? -dx : dx), mYPos + dy),
         { 3u }, nullptr);
 }
 
-MapObject::CollisionResult MapObject::FloorCollision() const
+CollisionResult MapObject::FloorCollision(IMap& map) const
 {
     Physics::raycast_collision c;
-    if (CollisionLine::RayCast<1>(mMap.Lines(),
+    if (CollisionLine::RayCast<1>(map.Lines(),
         glm::vec2(mXPos, mYPos),
         glm::vec2(mXPos, mYPos + 260 * 3), // Check up to 3 screen down
         { 0u }, &c))
@@ -352,9 +340,8 @@ bool MapObject::ContainsPoint(s32 x, s32 y) const
 {
     if (!mAnim)
     {
-        LOG_ERROR("RECT NOT SET");
         // For animationless objects use the object rect
-//        return PointInRect(x, y, mRect.x, mRect.y, mRect.w, mRect.h);
+        return PointInRect(x, y, mRect.x, mRect.y, mRect.w, mRect.h);
     }
 
     return mAnim->Collision(x, y);
