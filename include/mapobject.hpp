@@ -58,8 +58,6 @@ public:
     MapObject(ResourceLocator& locator, const ObjRect& rect)
         : mLocator(locator), mRect(rect)
     {
-        TRACE_ENTRYEXIT;
-        LOG_INFO("this = " << std::hex << "0x" << static_cast<void*>(this));
     }
     MapObject(const MapObject&) = delete;
     MapObject(MapObject&& other) = delete;

@@ -636,6 +636,7 @@ private:
     void InitResources();
     void InitGL();
 protected:
+    void BindScriptTypes();
     void InitSubSystems();
     
 

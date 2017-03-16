@@ -194,7 +194,9 @@ void GridScreen::Render(float x, float y, float w, float h)
 }
 
 GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
+    : mScriptInstance("gMap", this)
 {
+
     mIsAo = path.IsAo();
 
     // Size of the screen you see during normal game play, this is always less the the "block" the camera image fits into
@@ -211,7 +213,6 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
 
     luaState.set_function("GetMapObject", &GridMap::GetMapObject, this);
     luaState.set_function("ActivateObjectsWithId", &GridMap::ActivateObjectsWithId, this);
-
 
     mScreens.resize(path.XSize());
     for (auto& col : mScreens)
@@ -544,6 +545,7 @@ void GridMap::UpdateGame(const InputState& input, CoordinateSpace& coords)
     {
         obj->Update(input);
     }
+
 
     if (mCameraSubject)
     {

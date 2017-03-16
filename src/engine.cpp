@@ -290,9 +290,32 @@ void Engine::Include(const std::string& scriptName)
     SquirrelVm::CompileAndRun(*mResourceLocator, scriptName);
 }
 
+void Engine::BindScriptTypes()
+{
+    Sqrat::RootTable().Func("log_info", ScriptLogInfo);
+    Sqrat::RootTable().Func("log_trace", ScriptLogTrace);
+    Sqrat::RootTable().Func("log_warning", ScriptLogWarning);
+    Sqrat::RootTable().Func("log_error", ScriptLogError);
+
+    Sqrat::Class<Engine, Sqrat::NoConstructor<Engine>> engine(Sqrat::DefaultVM::Get(), "Engine");
+    engine.Func("include", &Engine::Include);
+    Sqrat::RootTable().Bind("Engine", engine);
+    // TODO: Use InstanceBinder
+    Sqrat::RootTable().SetInstance("gEngine", this);
+
+    Oddlib::IStream::RegisterScriptBindings(mLuaState);
+    Actions::RegisterScriptBindings(mLuaState);
+    MapObject::RegisterScriptBindings(mLuaState);
+    ObjRect::RegisterScriptBindings(mLuaState);
+    GridMap::RegisterScriptBindings();
+    Sound::RegisterScriptBindings();
+}
+
 void Engine::InitSubSystems()
 {
     TRACE_ENTRYEXIT;
+
+    BindScriptTypes();
 
     mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
     mFmv = std::make_unique<DebugFmv>(mAudioHandler, *mResourceLocator);
@@ -319,23 +342,6 @@ void Engine::InitSubSystems()
 
     // Get lua to look for scripts in the correction location
     mLuaState.script("package.path = '" + mFileSystem->FsPath() + "data/scripts/?.lua'");
-
-    Sqrat::RootTable().Func("log_info", ScriptLogInfo);
-    Sqrat::RootTable().Func("log_trace", ScriptLogTrace);
-    Sqrat::RootTable().Func("log_warning", ScriptLogWarning);
-    Sqrat::RootTable().Func("log_error", ScriptLogError);
-
-    Sqrat::Class<Engine, Sqrat::NoConstructor<Engine>> engine(Sqrat::DefaultVM::Get(), "Engine");
-    engine.Func("include", &Engine::Include);
-    Sqrat::RootTable().Bind("Engine", engine);
-
-    Sqrat::RootTable().SetInstance("gEngine", this);
-
-    Oddlib::IStream::RegisterScriptBindings(mLuaState);
-    Actions::RegisterScriptBindings(mLuaState);
-    MapObject::RegisterScriptBindings(mLuaState);
-    ObjRect::RegisterScriptBindings(mLuaState);
-    GridMap::RegisterScriptBindings();
 
     SquirrelVm::CompileAndRun(*mResourceLocator, "main.nut");
 

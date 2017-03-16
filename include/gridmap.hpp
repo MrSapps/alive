@@ -464,4 +464,5 @@ private:
 
     glm::vec2 mCameraPosition;
 
+    InstanceBinder<class GridMap> mScriptInstance;
 };

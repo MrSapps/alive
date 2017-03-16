@@ -91,8 +91,6 @@ static void IterateArray(Sqrat::Object& sqObj, const char* arrayName, U callBack
 
 MapObject::~MapObject()
 {
-    TRACE_ENTRYEXIT;
-    LOG_INFO("this = " << std::hex << "0x" << static_cast<void*>(this));
 }
 
 void MapObject::LoadAnimation(const std::string& name)

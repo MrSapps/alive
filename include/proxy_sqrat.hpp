@@ -17,3 +17,22 @@
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+template<class T>
+class InstanceBinder
+{
+public: 
+    InstanceBinder(const std::string& varName, T* instancePtr)
+        : mInstanceName(varName)
+    {
+        Sqrat::RootTable().SetValue(mInstanceName.c_str(), instancePtr);
+    }
+
+    ~InstanceBinder()
+    {
+        Sqrat::RootTable().SetValue(mInstanceName.c_str(), NULL);
+    }
+
+private:
+    std::string mInstanceName;
+};
