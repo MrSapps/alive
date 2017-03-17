@@ -11,6 +11,8 @@
 #include <cmath>
 #include "resourcemapper.hpp"
 #include "engine.hpp"
+#include "gamemode.hpp"
+#include "editormode.hpp"
 
 Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
     : mLocator(locator), mLuaState(luaState)
@@ -301,6 +303,11 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
     }
 }
 
+GridMap::~GridMap()
+{
+    TRACE_ENTRYEXIT;
+}
+
 void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 {
     if (mMapState.mState == GridMapState::eStates::eEditor)
@@ -338,232 +345,6 @@ void GridMap::UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& c
         }
     }
     coords.SetCameraPosition(mMapState.mCameraPosition);
-}
-
-constexpr u32 kSwitchTimeMs = 300;
-
-void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
-{
-    const glm::vec2 mousePosWorld = coords.ScreenToWorld({ input.mMousePosition.mX, input.mMousePosition.mY });
-
-    if (input.mKeys[SDL_SCANCODE_E].IsPressed())
-    {
-        mMapState.mState = GridMapState::eStates::eToGame;
-        coords.mSmoothCameraPosition = true;
-        mMapState.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
-
-        const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / mMapState.kCameraBlockSize.x);
-        const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / mMapState.kCameraBlockSize.y);
-
-        mMapState.mCameraPosition.x = (mouseCamX * mMapState.kCameraBlockSize.x) + (mMapState.kVirtualScreenSize.x / 2);
-        mMapState.mCameraPosition.y = (mouseCamY * mMapState.kCameraBlockSize.y) + (mMapState.kVirtualScreenSize.y / 2);
-
-        if (mMapState.mCameraSubject)
-        {
-            mMapState.mCameraSubject->mXPos = mMapState.mCameraPosition.x;
-            mMapState.mCameraSubject->mYPos = mMapState.mCameraPosition.y;
-        }
-    }
-
-    bool bGoFaster = false;
-    if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
-    {
-        if (input.mKeys[SDL_SCANCODE_W].IsPressed()) { mEditorCamZoom -= 0.1f; }
-        else if (input.mKeys[SDL_SCANCODE_S].IsPressed()) { mEditorCamZoom += 0.1f; }
-
-        mEditorCamZoom = glm::clamp(mEditorCamZoom, 0.1f, 3.0f);
-    }
-    else
-    {
-        if (input.mKeys[SDL_SCANCODE_LSHIFT].IsDown()) { bGoFaster = true; }
-
-        f32 editorCamSpeed = 10.0f * mEditorCamZoom;
-        if (bGoFaster)
-        {
-            editorCamSpeed *= 4.0f;
-        }
-
-        if (input.mKeys[SDL_SCANCODE_W].IsDown()) { mMapState.mCameraPosition.y -= editorCamSpeed; }
-        else if (input.mKeys[SDL_SCANCODE_S].IsDown()) { mMapState.mCameraPosition.y += editorCamSpeed; }
-
-        if (input.mKeys[SDL_SCANCODE_A].IsDown()) { mMapState.mCameraPosition.x -= editorCamSpeed; }
-        else if (input.mKeys[SDL_SCANCODE_D].IsDown()) { mMapState.mCameraPosition.x += editorCamSpeed; }
-    }
-
-    coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorCamZoom);
-    coords.SetCameraPosition(mMapState.mCameraPosition);
-
-    // Find out what line is under the mouse pos, if any
-    const s32 lineIdx = CollisionLine::Pick(mMapState.mCollisionItems, mousePosWorld, mMapState.mState == GridMapState::eStates::eInGame ? 1.0f : mEditorCamZoom);
-
-    if (lineIdx >= 0)
-    {
-        SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND)); // SDL_SYSTEM_CURSOR_CROSSHAIR
-    }
-    else
-    {
-        SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
-    }
-
-    if (input.mMouseButtons[0].IsReleased())
-    {
-        mSelectionState = eSelectionState::eNone;
-    }
-
-    if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
-    {
-        if (input.mKeys[SDL_SCANCODE_Z].IsPressed())
-        {
-            mUndoStack.Undo();
-        }
-        else if (input.mKeys[SDL_SCANCODE_Y].IsPressed())
-        {
-            mUndoStack.Redo();
-        }
-    }
-
-    if (input.mMouseButtons[0].IsPressed())
-    {
-        mMergeCommand = false; // New mouse press/selection, start a new undo command
-        if (lineIdx >= 0)
-        {
-            const bool bGroupSelection = input.mKeys[SDL_SCANCODE_LCTRL].IsDown();
-            bool updateState = true;
-            if (bGroupSelection)
-            {
-                LOG_INFO("Toggle line selected status");
-                // Only change state if we select a new line, when we de-select there is no selection area to update
-                updateState = !mMapState.mCollisionItems[lineIdx]->IsSelected();
-                mUndoStack.Push<CommandSelectOrDeselectLine>(mMapState.mCollisionItems, mSelection, lineIdx, !mMapState.mCollisionItems[lineIdx]->IsSelected());
-                if (!updateState)
-                {
-                    mSelectionState = eSelectionState::eNone;
-                }
-            }
-            else
-            {
-                // If clicking on a line that is already selected then don't clear out any other lines that are already selected
-                if (mSelection.SelectedLines().find(lineIdx) == std::end(mSelection.SelectedLines()))
-                {
-                    LOG_INFO("Select single line");
-                    if (mSelection.HasSelection())
-                    {
-                        mUndoStack.Push<CommandClearSelection>(mMapState.mCollisionItems, mSelection);
-                    }
-                    mUndoStack.Push<CommandSelectOrDeselectLine>(mMapState.mCollisionItems, mSelection, lineIdx, true);
-                }
-                else
-                {
-                    LOG_INFO("Line already selected, do nothing");
-                }
-            }
-
-            if (updateState)
-            {
-                if (mSelection.SelectedLines().size() > 1)
-                {
-                    mSelectionState = eSelectionState::eMoveSelected;
-                }
-                else if (mSelection.SelectedLines().size() == 1)
-                {
-                    const f32 lineLength = mMapState.mCollisionItems[lineIdx]->mLine.Length();
-                    const f32 distToP1 = glm::distance(mMapState.mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld) / lineLength;
-                    const f32 distToP2 = glm::distance(mMapState.mCollisionItems[lineIdx]->mLine.mP2, mousePosWorld) / lineLength;
-                    if (distToP1 < 0.2f)
-                    {
-                        mSelectionState = eSelectionState::eLineP1Selected;
-                    }
-                    else if (distToP2 < 0.2f)
-                    {
-                        mSelectionState = eSelectionState::eLineP2Selected;
-                    }
-                    else
-                    {
-                        mSelectionState = eSelectionState::eLineMiddleSelected;
-                    }
-                }
-                else
-                {
-                    mSelectionState = eSelectionState::eNone;
-                }
-            }
-            mLastMousePos = mousePosWorld;
-        }
-        else
-        {
-            if (mSelection.HasSelection())
-            {
-                LOG_INFO("Nothing clicked, clear selected");
-                mUndoStack.Push<CommandClearSelection>(mMapState.mCollisionItems, mSelection);
-            }
-        }
-    }
-    else if (input.mMouseButtons[0].IsDown() && mSelectionState != eSelectionState::eNone && mLastMousePos != mousePosWorld)
-    {
-        // TODO: Update mouse cursor to reflect action
-        switch (mSelectionState)
-        {
-        case eSelectionState::eLineP1Selected:
-        case eSelectionState::eLineP2Selected:
-            // TODO: Handle dis/connect to other lines when moving end points
-            mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mMapState.mCollisionItems, mSelection, mousePosWorld, mSelectionState == eSelectionState::eLineP1Selected);
-            break;
-
-        case eSelectionState::eMoveSelected:
-        case eSelectionState::eLineMiddleSelected:
-            // TODO: Disconnect from other lines if moved away
-            mUndoStack.PushMerge<MoveSelection>(mMergeCommand, mMapState.mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
-            break;
-
-        case eSelectionState::eNone:
-            break;
-        }
-
-        mLastMousePos = mousePosWorld;
-        mMergeCommand = true;
-    }
-}
-
-void GameMode::Update(const InputState& input, CoordinateSpace& coords)
-{
-    if (input.mKeys[SDL_SCANCODE_E].IsPressed())
-    {
-        mMapState.mState = GridMapState::eStates::eToEditor;
-        coords.mSmoothCameraPosition = true;
-
-        mMapState.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
-
-        //mCameraPosition.x = mPlayer.mXPos;
-        //mCameraPosition.y = mPlayer.mYPos;
-    }
-
-    coords.SetScreenSize(mMapState.kVirtualScreenSize);
- 
-
-    for (auto& obj : mMapState.mObjs)
-    {
-        obj->Update(input);
-    }
-
-
-    if (mMapState.mCameraSubject)
-    {
-        const s32 camX = static_cast<s32>(mMapState.mCameraSubject->mXPos / mMapState.kCameraBlockSize.x);
-        const s32 camY = static_cast<s32>(mMapState.mCameraSubject->mYPos / mMapState.kCameraBlockSize.y);
-
-        const glm::vec2 camPos = glm::vec2(
-            (camX * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
-            (camY * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y) + glm::vec2(mMapState.kVirtualScreenSize.x / 2, mMapState.kVirtualScreenSize.y / 2);
-
-        if (mMapState.mCameraPosition != camPos)
-        {
-            LOG_INFO("TODO: Screen change");
-            coords.mSmoothCameraPosition = false;
-            mMapState.mCameraPosition = camPos;
-        }
-
-        coords.SetCameraPosition(mMapState.mCameraPosition);
-    }
 }
 
 MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
@@ -667,112 +448,6 @@ void GridMap::RenderToEditorOrToGame(Renderer& rend, GuiContext& gui) const
     mEditorMode->Render(rend, gui);
 }
 
-void EditorMode::Render(Renderer& rend, GuiContext& gui) const
-{
-    // rend.beginLayer(gui_layer(&gui) + 1);
-
-    mUndoStack.DebugRenderCommandList(gui);
-
-    // Draw every cam
-    for (auto x = 0u; x < mMapState.mScreens.size(); x++)
-    {
-        for (auto y = 0u; y < mMapState.mScreens[x].size(); y++)
-        {
-            GridScreen *screen = mMapState.mScreens[x][y].get();
-            if (!screen->hasTexture())
-                continue;
-
-            screen->Render((x * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
-                           (y * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
-                            mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
-        }
-    }
-
-    mMapState.RenderDebug(rend);
-}
-
-void GameMode::Render(Renderer& rend, GuiContext& gui) const
-{
-    if (Debugging().mShowDebugUi)
-    {
-        // Debug ui
-        gui_begin_window(&gui, "Script debug");
-        if (gui_button(&gui, "Reload abe script"))
-        {
-            // TODO: Debug hack
-            //const_cast<MapObject&>(mPlayer).ReloadScript();
-        }
-        gui_end_window(&gui);
-    }
-
-    if (mMapState.mCameraSubject)
-    {
-        const s32 camX = static_cast<s32>(mMapState.mCameraSubject->mXPos / mMapState.kCameraBlockSize.x);
-        const s32 camY = static_cast<s32>(mMapState.mCameraSubject->mYPos / mMapState.kCameraBlockSize.y);
-
-
-        // Culling is disabled until proper camera position updating order is fixed
-        // ^ not sure what this means, but rendering things at negative cam index seems to go wrong
-        if (camX >= 0 && camY >= 0 &&
-            camX < static_cast<s32>(mMapState.mScreens.size()) &&
-            camY < static_cast<s32>(mMapState.mScreens[camX].size()))
-        {
-            GridScreen* screen = mMapState.mScreens[camX][camY].get();
-            if (screen->hasTexture())
-            {
-                screen->Render(
-                    (camX * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
-                    (camY * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
-                    mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
-            }
-        }
-    }
-
-    mMapState.RenderDebug(rend);
-
-    for (const auto& obj : mMapState.mObjs)
-    {
-        obj->Render(rend, gui, 0, 0, 1.0f, Renderer::eForegroundLayer0);
-    }
-
-    if (mMapState.mCameraSubject)
-    {
-        // Test raycasting for shadows
-        mMapState.DebugRayCast(rend,
-            glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos),
-            glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos + 500),
-            0,
-            glm::vec2(0, -10)); // -10 so when we are *ON* a line you can see something
-
-        mMapState.DebugRayCast(rend,
-            glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 2),
-            glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 60),
-            3,
-            glm::vec2(0, 0));
-
-        if (mMapState.mCameraSubject->mFlipX)
-        {
-            mMapState.DebugRayCast(rend,
-                glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 20),
-                glm::vec2(mMapState.mCameraSubject->mXPos - 25, mMapState.mCameraSubject->mYPos - 20), 1);
-
-            mMapState.DebugRayCast(rend,
-                glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 50),
-                glm::vec2(mMapState.mCameraSubject->mXPos - 25, mMapState.mCameraSubject->mYPos - 50), 1);
-        }
-        else
-        {
-            mMapState.DebugRayCast(rend,
-                glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 20),
-                glm::vec2(mMapState.mCameraSubject->mXPos + 25, mMapState.mCameraSubject->mYPos - 20), 2);
-
-            mMapState.DebugRayCast(rend,
-                glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 50),
-                glm::vec2(mMapState.mCameraSubject->mXPos + 25, mMapState.mCameraSubject->mYPos - 50), 2);
-        }
-    }
-}
-
 void GridMapState::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset) const
 {
     if (Debugging().mRayCasts)
@@ -792,53 +467,6 @@ void GridMapState::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm
         }
     }
 }
-
-void UndoStack::DebugRenderCommandList(GuiContext& gui) const
-{
-    if (Debugging().mShowDebugUi)
-    {
-        gui_begin_window(&gui, "Undo stack");
-        for (const auto& cmd : mUndoStack)
-        {
-            gui_label(&gui, cmd->Message().c_str());
-        }
-        gui_end_window(&gui);
-    }
-}
-
-void UndoStack::Clear()
-{
-    mUndoStack.clear();
-}
-
-void UndoStack::Undo()
-{
-    if (Count() > 0 && mCommandIndex >= 1)
-    {
-        LOG_ERROR("Undoing command: " << mUndoStack[mCommandIndex - 1]->Message());
-
-        // Undo the current command
-        mUndoStack[mCommandIndex-1]->Undo();
-
-        // Go back one command
-        mCommandIndex--;
-    }
-}
-
-void UndoStack::Redo()
-{
-    if (mCommandIndex + 1 <= Count())
-    {
-        LOG_ERROR("Redoing command: " << mUndoStack[mCommandIndex]->Message());
-
-        // Redo the current command
-        mUndoStack[mCommandIndex]->Redo();
-
-        // Go forward one command
-        mCommandIndex++;
-    }
-}
-
 
 static CollisionLine* GetCollisionIndexByIndex(CollisionLines& lines, s16 index)
 {
@@ -924,35 +552,5 @@ void GridMap::Render(Renderer& rend, GuiContext& gui) const
     else
     {
         RenderToEditorOrToGame(rend, gui);
-    }
-}
-
-static u32 gTypeIds = 0;
-u32 NextId()
-{
-    gTypeIds++;
-    return gTypeIds;
-}
-
-
-std::set<s32> Selection::Clear(CollisionLines& items)
-{
-    for (s32 idx : mSelectedLines)
-    {
-        items[idx]->SetSelected(false);
-    }
-    auto ret = std::move(mSelectedLines);
-    return ret;
-}
-
-void Selection::Select(CollisionLines& items, s32 idx, bool select)
-{
-    if (items[idx]->SetSelected(select))
-    {
-        mSelectedLines.insert(idx);
-    }
-    else
-    {
-        mSelectedLines.erase(idx);
     }
 }
