@@ -15,6 +15,16 @@ public:
     virtual bool CanMerge() const { return false; }
 };
 
+
+u32 NextId();
+
+template<class T>
+u32 GenerateTypeId()
+{
+    static u32 id = NextId();
+    return id;
+}
+
 class UndoStack
 {
 public:
@@ -80,16 +90,6 @@ private:
     u32 mCommandIndex = 0;
     s32 mStackLimit = -1;
 };
-
-
-u32 NextId();
-
-template<class T>
-u32 GenerateTypeId()
-{
-    static u32 id = NextId();
-    return id;
-}
 
 template<class T>
 class ICommandWithId : public ICommand
