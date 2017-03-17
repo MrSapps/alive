@@ -309,6 +309,7 @@ void Engine::BindScriptTypes()
     ObjRect::RegisterScriptBindings(mLuaState);
     GridMap::RegisterScriptBindings();
     Sound::RegisterScriptBindings();
+    Fmv::RegisterScriptBindings();
 }
 
 void Engine::InitSubSystems()
@@ -319,6 +320,13 @@ void Engine::InitSubSystems()
 
     mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
     mFmv = std::make_unique<DebugFmv>(mAudioHandler, *mResourceLocator);
+    mFmv->SetPlayingCallBack([]()
+    {
+        // Need to switch state here and then switch back, but what about also allowing the
+        // script to update during this time?
+        LOG_WARNING("TODO: Handle a script that started an FMV");
+    });
+
     mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, mLuaState);
     mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator, mLuaState, *mRenderer);
 

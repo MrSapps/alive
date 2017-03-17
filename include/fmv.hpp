@@ -10,6 +10,7 @@
 #include "subtitles.hpp"
 #include "stdthread.h"
 #include <GL/gl3w.h>
+#include <functional>
 
 class GameData;
 class IAudioController;
@@ -73,6 +74,7 @@ private:
 class Fmv
 {
 public:
+    static void RegisterScriptBindings();
     Fmv(const Fmv&) = delete;
     Fmv& operator = (const Fmv&) = delete;
     Fmv(IAudioController& audioController, class ResourceLocator& resourceLocator);
@@ -82,10 +84,17 @@ public:
     void Stop();
     void Update();
     virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+    void SetPlayingCallBack(std::function<void()> cb)
+    {
+        mFnOnFmvPlaying = cb;
+    }
 protected:
+    std::function<void()> mFnOnFmvPlaying;
     ResourceLocator& mResourceLocator;
     IAudioController& mAudioController;
-    std::vector<std::unique_ptr<class IMovie>> mFmvs;
+    std::unique_ptr<class IMovie> mFmv;
+    std::string mFmvName;
+    InstanceBinder<class Fmv> mScriptInstance;
 };
 
 class DebugFmv : public Fmv

@@ -586,12 +586,12 @@ private:
     char mFilterString[64];
     int mListBoxSelectedItem = -1;
     std::vector<const char*> mListBoxItems;
-    std::vector<std::unique_ptr<class IMovie>>& mFmvs;
+    std::unique_ptr<class IMovie>& mFmv;
 public:
     FmvUi(const FmvUi&) = delete;
     FmvUi& operator = (const FmvUi&) = delete;
-    FmvUi(std::vector<std::unique_ptr<class IMovie>>& fmv, IAudioController& audioController, ResourceLocator& resourceLocator)
-        : mFmvs(fmv), mAudioController(audioController), mResourceLocator(resourceLocator)
+    FmvUi(std::unique_ptr<class IMovie>& fmv, IAudioController& audioController, ResourceLocator& resourceLocator)
+        : mFmv(fmv), mAudioController(audioController), mResourceLocator(resourceLocator)
     {
         mFilterString[0] = '\0';
     }
@@ -625,11 +625,7 @@ public:
         if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
         {
             const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-            auto fmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
-            if (fmv)
-            {
-                mFmvs.emplace_back(std::move(fmv));
-            }
+            mFmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
             mListBoxSelectedItem = -1;
         }
 
@@ -640,9 +636,17 @@ private:
     ResourceLocator& mResourceLocator;
 };
 
+/*static*/ void Fmv::RegisterScriptBindings()
+{
+    Sqrat::Class<Fmv, Sqrat::NoConstructor<Fmv>> c(Sqrat::DefaultVM::Get(), "Fmv");
+    c.Func("Play", &Fmv::Play);
+    c.Func("IsPlaying", &Fmv::IsPlaying);
+    c.Func("Stop", &Fmv::Stop);
+    Sqrat::RootTable().Bind("Fmv", c);
+}
 
 Fmv::Fmv(IAudioController& audioController, ResourceLocator& resourceLocator)
-    : mResourceLocator(resourceLocator), mAudioController(audioController)
+    : mResourceLocator(resourceLocator), mAudioController(audioController), mScriptInstance("gMovie", this)
 {
 }
 
@@ -653,44 +657,41 @@ Fmv::~Fmv()
 
 void Fmv::Play(const std::string& name)
 {
-    auto fmv = mResourceLocator.LocateFmv(mAudioController, name.c_str());
-    if (fmv)
+    if (mFmvName != name)
     {
-        mFmvs.emplace_back(std::move(fmv));
+        mFmvName = name;
+        mFmv = mResourceLocator.LocateFmv(mAudioController, name.c_str());
+        if (mFmv && mFnOnFmvPlaying)
+        {
+            mFnOnFmvPlaying();
+        }
     }
 }
 
 bool Fmv::IsPlaying() const
 {
-    return mFmvs.empty() == false;
+    return mFmv && !mFmv->IsEnd();
 }
 
 void Fmv::Stop()
 {
-    mFmvs.clear();
+    mFmv = nullptr;
+    mFmvName.clear();
 }
 
 void Fmv::Update()
 {
-    auto it = mFmvs.begin();
-    while (it != mFmvs.end())
+    if (!IsPlaying())
     {
-        if ((*it)->IsEnd())
-        {
-            it = mFmvs.erase(it);
-        }
-        else
-        {
-            it++;
-        }
+        Stop();
     }
 }
 
 void Fmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
 {
-    for (auto& fmv : mFmvs)
+    if (mFmv)
     {
-        fmv->OnRenderFrame(rend, gui, screenW, screenH);
+        mFmv->OnRenderFrame(rend, gui, screenW, screenH);
     }
 }
 
@@ -716,7 +717,7 @@ void DebugFmv::RenderVideoUi(GuiContext& gui)
 {
     if (!mFmvUi)
     {
-        mFmvUi = std::make_unique<FmvUi>(mFmvs, mAudioController, mResourceLocator);
+        mFmvUi = std::make_unique<FmvUi>(mFmv, mAudioController, mResourceLocator);
     }
     mFmvUi->DrawVideoSelectionUi(gui);
 }
