@@ -3,13 +3,188 @@
 #include "debug.hpp"
 #include "gui.h"
 
+
+class CommandSelectOrDeselectLine : public ICommandWithId<CommandSelectOrDeselectLine>
+{
+public:
+    NO_MOVE_OR_MOVE_ASSIGN(CommandSelectOrDeselectLine);
+
+    CommandSelectOrDeselectLine(CollisionLines& lines, Selection& selection, s32 idx, bool select)
+        : mLines(lines), mSelection(selection), mIdx(idx), mSelect(select) { }
+
+    virtual void Redo() final
+    {
+        mSelection.Select(mLines, mIdx, mSelect);
+    }
+
+    virtual void Undo() final
+    {
+        mSelection.Select(mLines, mIdx, !mSelect);
+    }
+
+    virtual std::string Message() final
+    {
+        if (mSelect)
+        {
+            return "Select line " + std::to_string(mIdx);
+        }
+        else
+        {
+            return "De select line " + std::to_string(mIdx);
+        }
+    }
+private:
+    CollisionLines& mLines;
+    Selection& mSelection;
+    const s32 mIdx;
+    const bool mSelect;
+};
+
+class CommandClearSelection : public ICommandWithId<CommandClearSelection>
+{
+public:
+    NO_MOVE_OR_MOVE_ASSIGN(CommandClearSelection);
+
+    CommandClearSelection(CollisionLines& lines, Selection& selection)
+        : mLines(lines), mSelection(selection) { }
+
+    virtual void Redo() final
+    {
+        mOldSelection = mSelection.Clear(mLines);
+    }
+
+    virtual void Undo() final
+    {
+        for (s32 idx : mOldSelection)
+        {
+            mSelection.Select(mLines, idx, true);
+        }
+    }
+
+    virtual std::string Message() final
+    {
+        return "Clear selection";
+    }
+
+private:
+    CollisionLines& mLines;
+    Selection& mSelection;
+    std::set<s32> mOldSelection;
+};
+
+inline std::string FormatVec2(const glm::vec2& vec)
+{
+    std::ostringstream out;
+    out << "("
+        << static_cast<s32>(vec.x)
+        << ","
+        << static_cast<s32>(vec.y)
+        << ")";
+    return out.str();
+}
+
+class CommandMoveLinePoint : public ICommandWithId<CommandMoveLinePoint>
+{
+public:
+    NO_MOVE_OR_MOVE_ASSIGN(CommandMoveLinePoint);
+
+    CommandMoveLinePoint(CollisionLines& lines, Selection& selection, const glm::vec2& newPos, bool moveP1)
+        : mLines(lines), mSelection(selection), mNewPos(newPos), mApplyToP1(moveP1)
+    {
+        mOldPos = Point();
+    }
+
+    void Merge(CollisionLines& /*lines*/, Selection& /*selection*/, const glm::vec2& newPos, bool /*moveP1*/)
+    {
+        mNewPos = newPos;
+    }
+
+    virtual void Redo() final
+    {
+        Point() = mNewPos;
+    }
+
+    virtual void Undo() final
+    {
+        Point() = mOldPos;
+    }
+
+    virtual bool CanMerge() const final { return true; }
+
+    virtual std::string Message() final
+    {
+        return "Move line point " + std::to_string(mApplyToP1 ? 1 : 2) + " from " + FormatVec2(mOldPos) + " to " + FormatVec2(mNewPos);
+    }
+private:
+    glm::vec2& Point()
+    {
+        const auto& line = mLines[*mSelection.SelectedLines().begin()];
+        return mApplyToP1 ? line->mLine.mP1 : line->mLine.mP2;
+    }
+
+    CollisionLines& mLines;
+    Selection& mSelection;
+    glm::vec2 mOldPos;
+    glm::vec2 mNewPos;
+    bool mApplyToP1;
+};
+
+
+class MoveSelection : public ICommandWithId<MoveSelection>
+{
+public:
+    NO_MOVE_OR_MOVE_ASSIGN(MoveSelection);
+
+    MoveSelection(CollisionLines& lines, Selection& selection, const glm::vec2& delta)
+        : mLines(lines), mSelection(selection), mDelta(delta)
+    {
+
+    }
+
+    void Merge(CollisionLines& /*lines*/, Selection& /*selection*/, const glm::vec2& delta)
+    {
+        mDelta += delta;
+    }
+
+    virtual void Redo() final
+    {
+        for (s32 idx : mSelection.SelectedLines())
+        {
+            mLines[idx]->mLine.mP1 += mDelta;
+            mLines[idx]->mLine.mP2 += mDelta;
+        }
+    }
+
+    virtual void Undo() final
+    {
+        for (s32 idx : mSelection.SelectedLines())
+        {
+            mLines[idx]->mLine.mP1 -= mDelta;
+            mLines[idx]->mLine.mP2 -= mDelta;
+        }
+    }
+
+    virtual std::string Message() final
+    {
+        return "Move selection by " + FormatVec2(mDelta);
+    }
+
+    virtual bool CanMerge() const final
+    {
+        return true;
+    }
+private:
+    CollisionLines& mLines;
+    Selection& mSelection;
+    glm::vec2 mDelta;
+};
+
 static u32 gTypeIds = 0;
 u32 NextId()
 {
     gTypeIds++;
     return gTypeIds;
 }
-
 
 std::set<s32> Selection::Clear(CollisionLines& items)
 {
