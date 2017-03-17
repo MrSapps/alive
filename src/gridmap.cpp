@@ -114,9 +114,8 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
     gui_end_window(&gui);
 }
 
-GridScreen::GridScreen(const std::string& lvlName, const Oddlib::Path::Camera& camera, Renderer& rend, ResourceLocator& locator)
-    : mLvlName(lvlName)
-    , mFileName(camera.mName)
+GridScreen::GridScreen(const Oddlib::Path::Camera& camera, Renderer& rend, ResourceLocator& locator)
+    : mFileName(camera.mName)
     , mTexHandle(0)
     , mTexHandle2(0)
     , mCamera(camera)
@@ -196,26 +195,27 @@ void GridScreen::Render(float x, float y, float w, float h)
 GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
     : mScriptInstance("gMap", this)
 {
-
-    mIsAo = path.IsAo();
+    mEditorMode = std::make_unique<EditorMode>(mMapState);
+    mGameMode = std::make_unique<GameMode>(mMapState);
 
     // Size of the screen you see during normal game play, this is always less the the "block" the camera image fits into
-    kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
+    mMapState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
-    kCameraBlockSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+    mMapState.kCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+    mMapState.kCamGapSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 
     // Since the camera won't fill a block it can be offset so the camera image is in the middle
     // of the block or else where.
-    kCameraBlockImageOffset = (mIsAo) ? glm::vec2(257, 114) : glm::vec2(0, 0);
+    mMapState.kCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
 
     ConvertCollisionItems(path.CollisionItems());
 
     luaState.set_function("GetMapObject", &GridMap::GetMapObject, this);
     luaState.set_function("ActivateObjectsWithId", &GridMap::ActivateObjectsWithId, this);
 
-    mScreens.resize(path.XSize());
-    for (auto& col : mScreens)
+    mMapState.mScreens.resize(path.XSize());
+    for (auto& col : mMapState.mScreens)
     {
         col.resize(path.YSize());
     }
@@ -224,7 +224,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
     {
         for (u32 y = 0; y < path.YSize(); y++)
         {
-            mScreens[x][y] = std::make_unique<GridScreen>(mLvlName, path.CameraByPosition(x, y), rend, locator);
+            mMapState.mScreens[x][y] = std::make_unique<GridScreen>(path.CameraByPosition(x, y), rend, locator);
         }
     }
 
@@ -236,11 +236,11 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
     SquirrelVm::CompileAndRun(locator, "map.nut");
 
     // Load objects
-    for (auto x = 0u; x < mScreens.size(); x++)
+    for (auto x = 0u; x < mMapState.mScreens.size(); x++)
     {
-        for (auto y = 0u; y < mScreens[x].size(); y++)
+        for (auto y = 0u; y < mMapState.mScreens[x].size(); y++)
         {
-            GridScreen* screen = mScreens[x][y].get();
+            GridScreen* screen = mMapState.mScreens[x][y].get();
             const Oddlib::Path::Camera& cam = screen->getCamera();
             for (size_t i = 0; i < cam.mObjects.size(); ++i)
             {
@@ -264,7 +264,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                 if (ret.get() && *ret)
                 {
                     tmp->Init();
-                    mObjs.push_back(std::move(tmp));
+                    mMapState.mObjs.push_back(std::move(tmp));
                 }
             }
         }
@@ -272,17 +272,16 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
 
     // TODO: Need to figure out what the right way to figure out where abe goes is
     // HACK: Place the player in the first screen that isn't blank
-    for (auto x = 0u; x < mScreens.size(); x++)
+    for (auto x = 0u; x < mMapState.mScreens.size(); x++)
     {
-        for (auto y = 0u; y < mScreens[x].size(); y++)
+        for (auto y = 0u; y < mMapState.mScreens[x].size(); y++)
         {
-            GridScreen *screen = mScreens[x][y].get();
+            GridScreen *screen = mMapState.mScreens[x][y].get();
             if (screen->hasTexture())
             {
-                const glm::vec2 camGapSize = (mIsAo) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 
-                auto xPos = (x * camGapSize.x) + 100.0f;
-                auto yPos = (y * camGapSize.y) + 100.0f;
+                auto xPos = (x * mMapState.kCamGapSize.x) + 100.0f;
+                auto yPos = (y * mMapState.kCamGapSize.y) + 100.0f;
 
                 auto tmp = std::make_unique<MapObject>(locator, ObjRect{});
 
@@ -293,8 +292,8 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                 {
                     tmp->Init();
                     tmp->SnapXToGrid(); // Ensure player is locked to grid
-                    mCameraSubject = tmp.get();
-                    mObjs.push_back(std::move(tmp));
+                    mMapState.mCameraSubject = tmp.get();
+                    mMapState.mObjs.push_back(std::move(tmp));
                     return;
                 }
             }
@@ -304,13 +303,13 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
 
 void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 {
-    if (mState == eStates::eEditor)
+    if (mMapState.mState == GridMapState::eStates::eEditor)
     {
-        UpdateEditor(input, coords);
+        mEditorMode->Update(input, coords);
     }
-    else if (mState == eStates::eInGame)
+    else if (mMapState.mState == GridMapState::eStates::eInGame)
     {
-        UpdateGame(input, coords);
+        mGameMode->Update(input, coords);
     }
     else
     {
@@ -322,47 +321,47 @@ void GridMap::UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& c
 {
     std::ignore = input;
 
-    if (mState == eStates::eToEditor)
+    if (mMapState.mState == GridMapState::eStates::eToEditor)
     {
-        coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorCamZoom);
-        if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
+        coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorMode->mEditorCamZoom);
+        if (SDL_TICKS_PASSED(SDL_GetTicks(), mMapState.mModeSwitchTimeout))
         {
-            mState = eStates::eEditor;
+            mMapState.mState = GridMapState::eStates::eEditor;
         }
     }
-    else if (mState == eStates::eToGame)
+    else if (mMapState.mState == GridMapState::eStates::eToGame)
     {
-        coords.SetScreenSize(glm::vec2(368, 240));
-        if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
+        coords.SetScreenSize(mMapState.kVirtualScreenSize);
+        if (SDL_TICKS_PASSED(SDL_GetTicks(), mMapState.mModeSwitchTimeout))
         {
-            mState = eStates::eInGame;
+            mMapState.mState = GridMapState::eStates::eInGame;
         }
     }
-    coords.SetCameraPosition(mCameraPosition);
+    coords.SetCameraPosition(mMapState.mCameraPosition);
 }
 
 constexpr u32 kSwitchTimeMs = 300;
 
-void GridMap::UpdateEditor(const InputState& input, CoordinateSpace& coords)
+void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
 {
     const glm::vec2 mousePosWorld = coords.ScreenToWorld({ input.mMousePosition.mX, input.mMousePosition.mY });
 
     if (input.mKeys[SDL_SCANCODE_E].IsPressed())
     {
-        mState = eStates::eToGame;
+        mMapState.mState = GridMapState::eStates::eToGame;
         coords.mSmoothCameraPosition = true;
-        mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
+        mMapState.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
 
-        const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / kCameraBlockSize.x);
-        const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / kCameraBlockSize.y);
+        const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / mMapState.kCameraBlockSize.x);
+        const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / mMapState.kCameraBlockSize.y);
 
-        mCameraPosition.x = (mouseCamX * kCameraBlockSize.x) + (kVirtualScreenSize.x / 2);
-        mCameraPosition.y = (mouseCamY * kCameraBlockSize.y) + (kVirtualScreenSize.y / 2);
+        mMapState.mCameraPosition.x = (mouseCamX * mMapState.kCameraBlockSize.x) + (mMapState.kVirtualScreenSize.x / 2);
+        mMapState.mCameraPosition.y = (mouseCamY * mMapState.kCameraBlockSize.y) + (mMapState.kVirtualScreenSize.y / 2);
 
-        if (mCameraSubject)
+        if (mMapState.mCameraSubject)
         {
-            mCameraSubject->mXPos = mCameraPosition.x;
-            mCameraSubject->mYPos = mCameraPosition.y;
+            mMapState.mCameraSubject->mXPos = mMapState.mCameraPosition.x;
+            mMapState.mCameraSubject->mYPos = mMapState.mCameraPosition.y;
         }
     }
 
@@ -384,18 +383,18 @@ void GridMap::UpdateEditor(const InputState& input, CoordinateSpace& coords)
             editorCamSpeed *= 4.0f;
         }
 
-        if (input.mKeys[SDL_SCANCODE_W].IsDown()) { mCameraPosition.y -= editorCamSpeed; }
-        else if (input.mKeys[SDL_SCANCODE_S].IsDown()) { mCameraPosition.y += editorCamSpeed; }
+        if (input.mKeys[SDL_SCANCODE_W].IsDown()) { mMapState.mCameraPosition.y -= editorCamSpeed; }
+        else if (input.mKeys[SDL_SCANCODE_S].IsDown()) { mMapState.mCameraPosition.y += editorCamSpeed; }
 
-        if (input.mKeys[SDL_SCANCODE_A].IsDown()) { mCameraPosition.x -= editorCamSpeed; }
-        else if (input.mKeys[SDL_SCANCODE_D].IsDown()) { mCameraPosition.x += editorCamSpeed; }
+        if (input.mKeys[SDL_SCANCODE_A].IsDown()) { mMapState.mCameraPosition.x -= editorCamSpeed; }
+        else if (input.mKeys[SDL_SCANCODE_D].IsDown()) { mMapState.mCameraPosition.x += editorCamSpeed; }
     }
 
     coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorCamZoom);
-    coords.SetCameraPosition(mCameraPosition);
+    coords.SetCameraPosition(mMapState.mCameraPosition);
 
     // Find out what line is under the mouse pos, if any
-    const s32 lineIdx = CollisionLine::Pick(mCollisionItems, mousePosWorld, mState == eStates::eInGame ? 1.0f : mEditorCamZoom);
+    const s32 lineIdx = CollisionLine::Pick(mMapState.mCollisionItems, mousePosWorld, mMapState.mState == GridMapState::eStates::eInGame ? 1.0f : mEditorCamZoom);
 
     if (lineIdx >= 0)
     {
@@ -434,8 +433,8 @@ void GridMap::UpdateEditor(const InputState& input, CoordinateSpace& coords)
             {
                 LOG_INFO("Toggle line selected status");
                 // Only change state if we select a new line, when we de-select there is no selection area to update
-                updateState = !mCollisionItems[lineIdx]->IsSelected();
-                mUndoStack.Push<CommandSelectOrDeselectLine>(mCollisionItems, mSelection, lineIdx, !mCollisionItems[lineIdx]->IsSelected());
+                updateState = !mMapState.mCollisionItems[lineIdx]->IsSelected();
+                mUndoStack.Push<CommandSelectOrDeselectLine>(mMapState.mCollisionItems, mSelection, lineIdx, !mMapState.mCollisionItems[lineIdx]->IsSelected());
                 if (!updateState)
                 {
                     mSelectionState = eSelectionState::eNone;
@@ -449,9 +448,9 @@ void GridMap::UpdateEditor(const InputState& input, CoordinateSpace& coords)
                     LOG_INFO("Select single line");
                     if (mSelection.HasSelection())
                     {
-                        mUndoStack.Push<CommandClearSelection>(mCollisionItems, mSelection);
+                        mUndoStack.Push<CommandClearSelection>(mMapState.mCollisionItems, mSelection);
                     }
-                    mUndoStack.Push<CommandSelectOrDeselectLine>(mCollisionItems, mSelection, lineIdx, true);
+                    mUndoStack.Push<CommandSelectOrDeselectLine>(mMapState.mCollisionItems, mSelection, lineIdx, true);
                 }
                 else
                 {
@@ -467,9 +466,9 @@ void GridMap::UpdateEditor(const InputState& input, CoordinateSpace& coords)
                 }
                 else if (mSelection.SelectedLines().size() == 1)
                 {
-                    const f32 lineLength = mCollisionItems[lineIdx]->mLine.Length();
-                    const f32 distToP1 = glm::distance(mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld) / lineLength;
-                    const f32 distToP2 = glm::distance(mCollisionItems[lineIdx]->mLine.mP2, mousePosWorld) / lineLength;
+                    const f32 lineLength = mMapState.mCollisionItems[lineIdx]->mLine.Length();
+                    const f32 distToP1 = glm::distance(mMapState.mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld) / lineLength;
+                    const f32 distToP2 = glm::distance(mMapState.mCollisionItems[lineIdx]->mLine.mP2, mousePosWorld) / lineLength;
                     if (distToP1 < 0.2f)
                     {
                         mSelectionState = eSelectionState::eLineP1Selected;
@@ -495,7 +494,7 @@ void GridMap::UpdateEditor(const InputState& input, CoordinateSpace& coords)
             if (mSelection.HasSelection())
             {
                 LOG_INFO("Nothing clicked, clear selected");
-                mUndoStack.Push<CommandClearSelection>(mCollisionItems, mSelection);
+                mUndoStack.Push<CommandClearSelection>(mMapState.mCollisionItems, mSelection);
             }
         }
     }
@@ -507,13 +506,13 @@ void GridMap::UpdateEditor(const InputState& input, CoordinateSpace& coords)
         case eSelectionState::eLineP1Selected:
         case eSelectionState::eLineP2Selected:
             // TODO: Handle dis/connect to other lines when moving end points
-            mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mCollisionItems, mSelection, mousePosWorld, mSelectionState == eSelectionState::eLineP1Selected);
+            mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mMapState.mCollisionItems, mSelection, mousePosWorld, mSelectionState == eSelectionState::eLineP1Selected);
             break;
 
         case eSelectionState::eMoveSelected:
         case eSelectionState::eLineMiddleSelected:
             // TODO: Disconnect from other lines if moved away
-            mUndoStack.PushMerge<MoveSelection>(mMergeCommand, mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
+            mUndoStack.PushMerge<MoveSelection>(mMergeCommand, mMapState.mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
             break;
 
         case eSelectionState::eNone:
@@ -525,51 +524,51 @@ void GridMap::UpdateEditor(const InputState& input, CoordinateSpace& coords)
     }
 }
 
-void GridMap::UpdateGame(const InputState& input, CoordinateSpace& coords)
+void GameMode::Update(const InputState& input, CoordinateSpace& coords)
 {
     if (input.mKeys[SDL_SCANCODE_E].IsPressed())
     {
-        mState = eStates::eToEditor;
+        mMapState.mState = GridMapState::eStates::eToEditor;
         coords.mSmoothCameraPosition = true;
 
-        mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
+        mMapState.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
 
         //mCameraPosition.x = mPlayer.mXPos;
         //mCameraPosition.y = mPlayer.mYPos;
     }
 
-    coords.SetScreenSize(glm::vec2(368, 240));
+    coords.SetScreenSize(mMapState.kVirtualScreenSize);
  
 
-    for (auto& obj : mObjs)
+    for (auto& obj : mMapState.mObjs)
     {
         obj->Update(input);
     }
 
 
-    if (mCameraSubject)
+    if (mMapState.mCameraSubject)
     {
-        const s32 camX = static_cast<s32>(mCameraSubject->mXPos / kCameraBlockSize.x);
-        const s32 camY = static_cast<s32>(mCameraSubject->mYPos / kCameraBlockSize.y);
+        const s32 camX = static_cast<s32>(mMapState.mCameraSubject->mXPos / mMapState.kCameraBlockSize.x);
+        const s32 camY = static_cast<s32>(mMapState.mCameraSubject->mYPos / mMapState.kCameraBlockSize.y);
 
         const glm::vec2 camPos = glm::vec2(
-            (camX * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
-            (camY * kCameraBlockSize.y) + kCameraBlockImageOffset.y) + glm::vec2(kVirtualScreenSize.x / 2, kVirtualScreenSize.y / 2);
+            (camX * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
+            (camY * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y) + glm::vec2(mMapState.kVirtualScreenSize.x / 2, mMapState.kVirtualScreenSize.y / 2);
 
-        if (mCameraPosition != camPos)
+        if (mMapState.mCameraPosition != camPos)
         {
             LOG_INFO("TODO: Screen change");
             coords.mSmoothCameraPosition = false;
-            mCameraPosition = camPos;
+            mMapState.mCameraPosition = camPos;
         }
 
-        coords.SetCameraPosition(mCameraPosition);
+        coords.SetCameraPosition(mMapState.mCameraPosition);
     }
 }
 
 MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
 {
-    for (auto& obj : mObjs)
+    for (auto& obj : mMapState.mObjs)
     {
         if (obj->Name() == type)
         {
@@ -584,7 +583,7 @@ MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
 
 void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
 {
-    for (auto& obj : mObjs)
+    for (auto& obj : mMapState.mObjs)
     {
         if (obj.get() != from && obj->Id() == id)
         {
@@ -593,7 +592,7 @@ void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
     }
 }
 
-void GridMap::RenderDebug(Renderer& rend) const
+void GridMapState::RenderDebug(Renderer& rend) const
 {
     rend.SetActiveLayer(Renderer::eEditor);
 
@@ -665,34 +664,34 @@ void GridMap::RenderToEditorOrToGame(Renderer& rend, GuiContext& gui) const
 {
     // TODO: Better transition
     // Keep everything rendered for now
-    RenderEditor(rend, gui);
+    mEditorMode->Render(rend, gui);
 }
 
-void GridMap::RenderEditor(Renderer& rend, GuiContext& gui) const
+void EditorMode::Render(Renderer& rend, GuiContext& gui) const
 {
     // rend.beginLayer(gui_layer(&gui) + 1);
 
     mUndoStack.DebugRenderCommandList(gui);
 
     // Draw every cam
-    for (auto x = 0u; x < mScreens.size(); x++)
+    for (auto x = 0u; x < mMapState.mScreens.size(); x++)
     {
-        for (auto y = 0u; y < mScreens[x].size(); y++)
+        for (auto y = 0u; y < mMapState.mScreens[x].size(); y++)
         {
-            GridScreen *screen = mScreens[x][y].get();
+            GridScreen *screen = mMapState.mScreens[x][y].get();
             if (!screen->hasTexture())
                 continue;
 
-            screen->Render((x * kCameraBlockSize.x) + kCameraBlockImageOffset.x, 
-                           (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y, 
-                           kVirtualScreenSize.x, kVirtualScreenSize.y);
+            screen->Render((x * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
+                           (y * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
+                            mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
         }
     }
 
-    RenderDebug(rend);
+    mMapState.RenderDebug(rend);
 }
 
-void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
+void GameMode::Render(Renderer& rend, GuiContext& gui) const
 {
     if (Debugging().mShowDebugUi)
     {
@@ -706,82 +705,80 @@ void GridMap::RenderGame(Renderer& rend, GuiContext& gui) const
         gui_end_window(&gui);
     }
 
-    mUndoStack.DebugRenderCommandList(gui);
-
-    if (mCameraSubject)
+    if (mMapState.mCameraSubject)
     {
-        const s32 camX = static_cast<s32>(mCameraSubject->mXPos / kCameraBlockSize.x);
-        const s32 camY = static_cast<s32>(mCameraSubject->mYPos / kCameraBlockSize.y);
+        const s32 camX = static_cast<s32>(mMapState.mCameraSubject->mXPos / mMapState.kCameraBlockSize.x);
+        const s32 camY = static_cast<s32>(mMapState.mCameraSubject->mYPos / mMapState.kCameraBlockSize.y);
 
 
         // Culling is disabled until proper camera position updating order is fixed
         // ^ not sure what this means, but rendering things at negative cam index seems to go wrong
         if (camX >= 0 && camY >= 0 &&
-            camX < static_cast<s32>(mScreens.size()) &&
-            camY < static_cast<s32>(mScreens[camX].size()))
+            camX < static_cast<s32>(mMapState.mScreens.size()) &&
+            camY < static_cast<s32>(mMapState.mScreens[camX].size()))
         {
-            GridScreen* screen = mScreens[camX][camY].get();
+            GridScreen* screen = mMapState.mScreens[camX][camY].get();
             if (screen->hasTexture())
             {
                 screen->Render(
-                    (camX * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
-                    (camY * kCameraBlockSize.y) + kCameraBlockImageOffset.y,
-                    kVirtualScreenSize.x, kVirtualScreenSize.y);
+                    (camX * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
+                    (camY * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
+                    mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
             }
         }
     }
 
-    RenderDebug(rend);
+    mMapState.RenderDebug(rend);
 
-    for (const auto& obj : mObjs)
+    for (const auto& obj : mMapState.mObjs)
     {
         obj->Render(rend, gui, 0, 0, 1.0f, Renderer::eForegroundLayer0);
     }
 
-    if (mCameraSubject)
+    if (mMapState.mCameraSubject)
     {
         // Test raycasting for shadows
-        DebugRayCast(rend,
-            glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos),
-            glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos + 500),
+        mMapState.DebugRayCast(rend,
+            glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos),
+            glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos + 500),
             0,
             glm::vec2(0, -10)); // -10 so when we are *ON* a line you can see something
 
-        DebugRayCast(rend,
-            glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos - 2),
-            glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos - 60),
+        mMapState.DebugRayCast(rend,
+            glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 2),
+            glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 60),
             3,
             glm::vec2(0, 0));
 
-        if (mCameraSubject->mFlipX)
+        if (mMapState.mCameraSubject->mFlipX)
         {
-            DebugRayCast(rend,
-                glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos - 20),
-                glm::vec2(mCameraSubject->mXPos - 25, mCameraSubject->mYPos - 20), 1);
+            mMapState.DebugRayCast(rend,
+                glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 20),
+                glm::vec2(mMapState.mCameraSubject->mXPos - 25, mMapState.mCameraSubject->mYPos - 20), 1);
 
-            DebugRayCast(rend,
-                glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos - 50),
-                glm::vec2(mCameraSubject->mXPos - 25, mCameraSubject->mYPos - 50), 1);
+            mMapState.DebugRayCast(rend,
+                glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 50),
+                glm::vec2(mMapState.mCameraSubject->mXPos - 25, mMapState.mCameraSubject->mYPos - 50), 1);
         }
         else
         {
-            DebugRayCast(rend,
-                glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos - 20),
-                glm::vec2(mCameraSubject->mXPos + 25, mCameraSubject->mYPos - 20), 2);
+            mMapState.DebugRayCast(rend,
+                glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 20),
+                glm::vec2(mMapState.mCameraSubject->mXPos + 25, mMapState.mCameraSubject->mYPos - 20), 2);
 
-            DebugRayCast(rend,
-                glm::vec2(mCameraSubject->mXPos, mCameraSubject->mYPos - 50),
-                glm::vec2(mCameraSubject->mXPos + 25, mCameraSubject->mYPos - 50), 2);
+            mMapState.DebugRayCast(rend,
+                glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 50),
+                glm::vec2(mMapState.mCameraSubject->mXPos + 25, mMapState.mCameraSubject->mYPos - 50), 2);
         }
     }
 }
 
-void GridMap::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset) const
+void GridMapState::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset) const
 {
     if (Debugging().mRayCasts)
     {
         Physics::raycast_collision collision;
-        if (CollisionLine::RayCast<1>(Lines(), from, to, { collisionType }, &collision))
+        if (CollisionLine::RayCast<1>(mCollisionItems, from, to, { collisionType }, &collision))
         {
             const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
             const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);
@@ -869,19 +866,19 @@ static void ConvertLink(CollisionLines& lines, const Oddlib::Path::Links& oldLin
 void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items)
 {
     const s32 count = static_cast<s32>(items.size());
-    mCollisionItems.resize(count);
+    mMapState.mCollisionItems.resize(count);
 
     // First pass to create/convert from original/"raw" path format
     for (auto i = 0; i < count; i++)
     {
-        mCollisionItems[i] = std::make_unique<CollisionLine>();
-        mCollisionItems[i]->mLine.mP1.x = items[i].mP1.mX;
-        mCollisionItems[i]->mLine.mP1.y = items[i].mP1.mY;
+        mMapState.mCollisionItems[i] = std::make_unique<CollisionLine>();
+        mMapState.mCollisionItems[i]->mLine.mP1.x = items[i].mP1.mX;
+        mMapState.mCollisionItems[i]->mLine.mP1.y = items[i].mP1.mY;
 
-        mCollisionItems[i]->mLine.mP2.x = items[i].mP2.mX;
-        mCollisionItems[i]->mLine.mP2.y = items[i].mP2.mY;
+        mMapState.mCollisionItems[i]->mLine.mP2.x = items[i].mP2.mX;
+        mMapState.mCollisionItems[i]->mLine.mP2.y = items[i].mP2.mY;
 
-        mCollisionItems[i]->mType = CollisionLine::ToType(items[i].mType);
+        mMapState.mCollisionItems[i]->mType = CollisionLine::ToType(items[i].mType);
     }
 
     // Second pass to set up raw pointers to existing lines for connected segments of 
@@ -889,14 +886,14 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
     for (auto i = 0; i < count; i++)
     {
         // TODO: Check if optional link is ever used in conjunction with link
-        ConvertLink(mCollisionItems, items[i].mLinks[0], mCollisionItems[i]->mLink);
-        ConvertLink(mCollisionItems, items[i].mLinks[1], mCollisionItems[i]->mOptionalLink);
+        ConvertLink(mMapState.mCollisionItems, items[i].mLinks[0], mMapState.mCollisionItems[i]->mLink);
+        ConvertLink(mMapState.mCollisionItems, items[i].mLinks[1], mMapState.mCollisionItems[i]->mOptionalLink);
     }
 
     // Now we can re-order collision items without breaking prev/next links, thus we want to ensure
     // that anything that either has no links, or only a single prev/next links is placed first
     // so that we can render connected segments from the start or end.
-    std::sort(std::begin(mCollisionItems), std::end(mCollisionItems), [](std::unique_ptr<CollisionLine>& a, std::unique_ptr<CollisionLine>& b)
+    std::sort(std::begin(mMapState.mCollisionItems), std::end(mMapState.mCollisionItems), [](std::unique_ptr<CollisionLine>& a, std::unique_ptr<CollisionLine>& b)
     {
         return std::tie(a->mLink.mNext, a->mLink.mPrevious) < std::tie(b->mLink.mNext, b->mLink.mPrevious);
     });
@@ -905,9 +902,9 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
     for (auto i = 0; i < count; i++)
     {
         // Some walls have next links, overlapping the walls will break them
-        if (mCollisionItems[i]->mLink.mNext && mCollisionItems[i]->mType == CollisionLine::eTrackLine)
+        if (mMapState.mCollisionItems[i]->mLink.mNext && mMapState.mCollisionItems[i]->mType == CollisionLine::eTrackLine)
         {
-            mCollisionItems[i]->mLine.mP2 = mCollisionItems[i]->mLink.mNext->mLine.mP1;
+            mMapState.mCollisionItems[i]->mLine.mP2 = mMapState.mCollisionItems[i]->mLink.mNext->mLine.mP1;
         }
     }
 
@@ -916,13 +913,13 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
 
 void GridMap::Render(Renderer& rend, GuiContext& gui) const
 {
-    if (mState == eStates::eEditor)
+    if (mMapState.mState == GridMapState::eStates::eEditor)
     {
-        RenderEditor(rend, gui);
+        mEditorMode->Render(rend, gui);
     }
-    else if (mState == eStates::eInGame)
+    else if (mMapState.mState == GridMapState::eStates::eInGame)
     {
-        RenderGame(rend, gui);
+        mGameMode->Render(rend, gui);
     }
     else
     {

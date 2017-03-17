@@ -57,7 +57,7 @@ class GridScreen
 public:
     GridScreen(const GridScreen&) = delete;
     GridScreen& operator = (const GridScreen&) = delete;
-    GridScreen(const std::string& lvlName, const Oddlib::Path::Camera& camera, Renderer& rend, ResourceLocator& locator);
+    GridScreen(const Oddlib::Path::Camera& camera, Renderer& rend, ResourceLocator& locator);
     ~GridScreen();
     const std::string& FileName() const { return mFileName; }
     void LoadTextures();
@@ -65,7 +65,6 @@ public:
     const Oddlib::Path::Camera &getCamera() const { return mCamera; }
     void Render(float x, float y, float w, float h);
 private:
-    std::string mLvlName;
     std::string mFileName;
     int mTexHandle;
     int mTexHandle2; 
@@ -372,6 +371,45 @@ private:
     s32 mStackLimit = -1;
 };
 
+class GridMapState
+{
+public:
+    GridMapState() = default;
+    NO_MOVE_OR_MOVE_ASSIGN(GridMapState);
+
+    glm::vec2 kVirtualScreenSize;
+    glm::vec2 kCameraBlockSize;
+    glm::vec2 kCamGapSize;
+    glm::vec2 kCameraBlockImageOffset;
+
+    const int mEditorGridSizeX = 25;
+    const int mEditorGridSizeY = 20;
+
+    glm::vec2 mCameraPosition;
+    MapObject* mCameraSubject = nullptr;
+
+    std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
+
+    // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
+    // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
+    CollisionLines mCollisionItems;
+    std::vector<std::unique_ptr<MapObject>> mObjs;
+
+    enum class eStates
+    {
+        eInGame,
+        eToEditor,
+        eEditor,
+        eToGame
+    };
+
+    eStates mState = eStates::eInGame;
+    u32 mModeSwitchTimeout = 0;
+
+    void RenderDebug(Renderer& rend) const;
+    void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
+};
+
 class GridMap : public IMap
 {
 public:
@@ -386,41 +424,72 @@ public:
     void Render(Renderer& rend, GuiContext& gui) const;
     static void RegisterScriptBindings();
 private:
-
-    void UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& coords);
-    void UpdateEditor(const InputState& input, CoordinateSpace& coords);
-    void UpdateGame(const InputState& input, CoordinateSpace& coords);
-
     MapObject* GetMapObject(s32 x, s32 y, const char* type);
     void ActivateObjectsWithId(MapObject* from, s32 id, bool direction);
-    void RenderDebug(Renderer& rend) const;
     
+    void UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& coords);
     void RenderToEditorOrToGame(Renderer& rend, GuiContext& gui) const;
-    void RenderEditor(Renderer& rend, GuiContext& gui) const;
-    void RenderGame(Renderer& rend, GuiContext& gui) const;
 
-    virtual const CollisionLines& Lines() const override final { return mCollisionItems; }
+    virtual const CollisionLines& Lines() const override final { return mMapState.mCollisionItems; }
 
-    void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
+    void ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items);
 
+    GridMapState mMapState;
+    std::unique_ptr<class EditorMode> mEditorMode;
+    std::unique_ptr<class GameMode> mGameMode;
+    InstanceBinder<class GridMap> mScriptInstance;
+};
 
-    glm::vec2 kVirtualScreenSize;
-    glm::vec2 kCameraBlockSize;
-    glm::vec2 kCameraBlockImageOffset;
-    std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
-    
-    std::string mLvlName;
+class GameMode
+{
+public:
+    NO_MOVE_OR_MOVE_ASSIGN(GameMode);
 
-    // Editor stuff
+    GameMode(GridMapState& mapState)
+        : mMapState(mapState)
+    {
+
+    }
+
+    void Update(const InputState& input, CoordinateSpace& coords);
+    void Render(Renderer& rend, GuiContext& gui) const;
+private:
+    GridMapState& mMapState;
+};
+
+class EditorMode
+{
+public:
+    NO_MOVE_OR_MOVE_ASSIGN(EditorMode);
+
+    EditorMode(GridMapState& mapState)
+        : mMapState(mapState)
+    {
+
+    }
+
+    /* TODO: Set correct cursors
+    enum class eMouseCursor
+    {
+    eArrow,
+    eOpenHand,
+    eClosedHand,
+    };
+    eMouseCursor mMouseCursor = eMouseCursor::eArrow;
+    */
+
+    void Update(const InputState& input, CoordinateSpace& coords);
+    void Render(Renderer& rend, GuiContext& gui) const;
+
     f32 mEditorCamZoom = 1.0f;
-    const int mEditorGridSizeX = 25;
-    const int mEditorGridSizeY = 20;
-    u32 mModeSwitchTimeout = 0;
+
+private:
 
     Selection mSelection;
     UndoStack mUndoStack;
     bool mMergeCommand = false;
     glm::vec2 mLastMousePos;
+
     enum class eSelectionState
     {
         eNone,
@@ -430,39 +499,5 @@ private:
         eMoveSelected
     };
     eSelectionState mSelectionState = eSelectionState::eNone;
-
-    /* TODO: Set correct cursors
-    enum class eMouseCursor
-    {
-        eArrow,
-        eOpenHand,
-        eClosedHand,
-    };
-    eMouseCursor mMouseCursor = eMouseCursor::eArrow;
-    */
-
-    // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
-    // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
-    CollisionLines mCollisionItems;
-
-    bool mIsAo;
-
-    MapObject* mCameraSubject = nullptr;
-   // MapObject mPlayer;
-    std::vector<std::unique_ptr<MapObject>> mObjs;
-
-    enum class eStates
-    {
-        eInGame,
-        eToEditor,
-        eEditor,
-        eToGame
-    };
-    eStates mState = eStates::eInGame;
-
-    void ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items);
-
-    glm::vec2 mCameraPosition;
-
-    InstanceBinder<class GridMap> mScriptInstance;
+    GridMapState& mMapState;
 };
