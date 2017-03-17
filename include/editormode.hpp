@@ -2,6 +2,19 @@
 
 #include "gridmap.hpp"
 
+class ICommand
+{
+public:
+    NO_MOVE_OR_MOVE_ASSIGN(ICommand);
+    ICommand() = default;
+    virtual void Redo() = 0;
+    virtual void Undo() = 0;
+    virtual std::string Message() = 0;
+    virtual ~ICommand() = default;
+    virtual u32 Id() const = 0;
+    virtual bool CanMerge() const { return false; }
+};
+
 class UndoStack
 {
 public:
@@ -63,7 +76,7 @@ public:
     u32 Count() const { return static_cast<u32>(mUndoStack.size()); }
     void DebugRenderCommandList(GuiContext& gui) const;
 private:
-    std::vector<std::unique_ptr<class ICommand>> mUndoStack;
+    std::vector<std::unique_ptr<ICommand>> mUndoStack;
     u32 mCommandIndex = 0;
     s32 mStackLimit = -1;
 };
@@ -77,20 +90,6 @@ u32 GenerateTypeId()
     static u32 id = NextId();
     return id;
 }
-
-
-class ICommand
-{
-public:
-    NO_MOVE_OR_MOVE_ASSIGN(ICommand);
-    ICommand() = default;
-    virtual void Redo() = 0;
-    virtual void Undo() = 0;
-    virtual std::string Message() = 0;
-    virtual ~ICommand() = default;
-    virtual u32 Id() const = 0;
-    virtual bool CanMerge() const { return false; }
-};
 
 template<class T>
 class ICommandWithId : public ICommand
