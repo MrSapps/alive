@@ -56,7 +56,6 @@ protected:
         u32 mH;
         std::vector<u8> mPixels;
     };
-    Frame mLast;
     size_t mFrameCounter = 0;
     size_t mConsumedAudioBytes = 0;
     std::mutex mAudioBufferMutex;

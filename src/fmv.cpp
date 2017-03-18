@@ -133,13 +133,21 @@ void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui, int screenW, int scr
         Frame& f = mVideoBuffer.front();
         if (f.mFrameNum < videoFrameIndex)
         {
+            if (mVideoBuffer.size() == 1)
+            {
+                // Don't remove everything otherwise we won't have any frame to display at all
+                break;
+            }
+
             mVideoBuffer.pop_front();
             continue;
         }
 
         if (f.mFrameNum == videoFrameIndex)
         {
-            mLast = f;
+            // Don't pop frame after rendering for the case when the video ends and we are playing
+            // audio but there are no more frames. In the case we just keep displaying whatever the last
+            // frame was (since we didn't pop it).
             RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs, screenW, screenH);
             played = true;
             break;
@@ -147,16 +155,9 @@ void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui, int screenW, int scr
 
     }
 
-    // TODO: If lag then video frames get dropped, fix so that we at least
-    // try to update the video frame at some point!
     if (!played && !mVideoBuffer.empty())
     {
         Frame& f = mVideoBuffer.front();
-        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs, screenW, screenH);
-    }
-    else if (!played && mVideoBuffer.empty())
-    {
-        Frame& f = mLast;
         RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs, screenW, screenH);
     }
 
@@ -164,9 +165,6 @@ void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui, int screenW, int scr
     {
         FillBuffers();
     }
-
-
-
 }
 
 // Main thread context
