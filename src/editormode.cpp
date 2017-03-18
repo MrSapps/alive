@@ -466,3 +466,8 @@ void EditorMode::Render(Renderer& rend, GuiContext& gui) const
 
     mMapState.RenderDebug(rend);
 }
+
+void EditorMode::OnMapChanged()
+{
+    mUndoStack.Clear();
+}

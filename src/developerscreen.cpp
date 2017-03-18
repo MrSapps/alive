@@ -57,8 +57,6 @@ void DeveloperScreen::Update(const InputState& input, CoordinateSpace& coords)
         mSelected = nullptr;
     }
 
-    //mFmv.Play("INGRDNT.DDV");
-    mFmv.Update();
     mSound.Update();
     mLevel.Update(input, coords);
 
@@ -85,47 +83,28 @@ void DeveloperScreen::Render(int w, int h, Renderer& renderer)
     if (Debugging().mShowBrowserUi)
     {
         // When this gets bigger it can be moved to a separate class etc.
-        struct EditorUi
-        {
-            EditorUi()
-                : levelBrowserOpen(true)
-            {
 
-            }
-            bool fmvBrowserOpen;
-            bool soundBrowserOpen;
-            bool levelBrowserOpen;
-            bool animationBrowserOpen;
-            bool guiLayoutEditorOpen;
-        };
-
-        static EditorUi editor;
 
         gui_begin_window(mGui, "Browsers");
-        gui_checkbox(mGui, "fmvBrowserOpen|FMV browser", &editor.fmvBrowserOpen);
-        gui_checkbox(mGui, "soundBrowserOpen|Sound browser", &editor.soundBrowserOpen);
-        gui_checkbox(mGui, "levelBrowserOpen|Level browser", &editor.levelBrowserOpen);
-        gui_checkbox(mGui, "animationBrowserOpen|Animation browser", &editor.animationBrowserOpen);
-        gui_checkbox(mGui, "guiLayoutEditOpen|GUI layout editor", &editor.guiLayoutEditorOpen);
+        gui_checkbox(mGui, "fmvBrowserOpen|FMV browser", &Debugging().mBrowserUi.fmvBrowserOpen);
+        gui_checkbox(mGui, "soundBrowserOpen|Sound browser", &Debugging().mBrowserUi.soundBrowserOpen);
+        gui_checkbox(mGui, "levelBrowserOpen|Level browser", &Debugging().mBrowserUi.levelBrowserOpen);
+        gui_checkbox(mGui, "animationBrowserOpen|Animation browser", &Debugging().mBrowserUi.animationBrowserOpen);
+        gui_checkbox(mGui, "guiLayoutEditOpen|GUI layout editor", &Debugging().mBrowserUi.guiLayoutEditorOpen);
 
         gui_end_window(mGui);
 
-        if (editor.fmvBrowserOpen)
-        {
-            mFmv.Render(renderer, *mGui, w, h);
-        }
-
-        if (editor.soundBrowserOpen)
+        if (Debugging().mBrowserUi.soundBrowserOpen)
         {
             mSound.Render(mGui, w, h);
         }
 
-        if (editor.animationBrowserOpen)
+        if (Debugging().mBrowserUi.animationBrowserOpen)
         {
             RenderAnimationSelector(renderer);
         }
 
-        if (editor.guiLayoutEditorOpen)
+        if (Debugging().mBrowserUi.guiLayoutEditorOpen)
         {
             gui_layout_editor(mGui, "../src/generated_gui_layout.cpp");
         }

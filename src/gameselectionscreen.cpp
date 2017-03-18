@@ -62,7 +62,7 @@ void GameSelectionScreen::LoadGameDefinition()
     // Set active data sets for the resource loader to use
     mResLocator.GetDataPaths().SetActiveDataPaths(mFs, mRequiredDataSets);
 
-    mStateMachine.ToState(std::make_unique<DeveloperScreen>(mStateMachine, mGui, mFmv, mSound, mLevel, mResLocator));
+    mStateMachine.ToState(std::make_unique<DeveloperScreen>(mStateMachine, mGui, mSound, mLevel, mResLocator));
 }
 
 void GameSelectionScreen::RenderFindDataSets()

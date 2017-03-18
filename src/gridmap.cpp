@@ -13,8 +13,9 @@
 #include "engine.hpp"
 #include "gamemode.hpp"
 #include "editormode.hpp"
+#include "fmv.hpp"
 
-Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
+Level::Level(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
     : mLocator(locator), mLuaState(luaState)
 {
 
@@ -31,7 +32,12 @@ Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator, so
                 std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(pathMap.first.c_str());
                 if (path)
                 {
-                    mMap = std::make_unique<GridMap>(*path, mLocator, mLuaState, rend);
+                    if (!mMap)
+                    {
+                        mMap = std::make_unique<GridMap>(audioController, mLocator, mLuaState);
+                    }
+                    mMap->LoadMap(*path, mLocator, rend);
+
                     currentPathName = pathMap.first;
                     nextPathIndex = idx +1;
                     if (nextPathIndex > static_cast<s32>(mLocator.mResMapper.mPathMaps.size()))
@@ -56,7 +62,11 @@ Level::Level(IAudioController& /*audioController*/, ResourceLocator& locator, so
             std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(currentPathName.c_str());
             if (path)
             {
-                mMap = std::make_unique<GridMap>(*path, mLocator, mLuaState, rend);
+                if (!mMap)
+                {
+                    mMap = std::make_unique<GridMap>(audioController, mLocator, mLuaState);
+                }
+                mMap->LoadMap(*path, mLocator, rend);
             }
             else
             {
@@ -81,7 +91,7 @@ void Level::Update(const InputState& input, CoordinateSpace& coords)
 
 void Level::Render(Renderer& rend, GuiContext& gui, int , int )
 {
-    if (Debugging().mShowBrowserUi)
+    if (Debugging().mBrowserUi.levelBrowserOpen)
     {
         RenderDebugPathSelection(rend, gui);
     }
@@ -103,7 +113,7 @@ void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
             std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(pathMap.first.c_str());
             if (path)
             {
-                mMap = std::make_unique<GridMap>(*path, mLocator, mLuaState, rend);
+                mMap->LoadMap(*path, mLocator, rend);
             }
             else
             {
@@ -194,14 +204,27 @@ void GridScreen::Render(float x, float y, float w, float h)
     Sqrat::RootTable().Bind("GridMap", gm);
 }
 
-GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
+GridMap::GridMap(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState)
     : mScriptInstance("gMap", this)
 {
     mEditorMode = std::make_unique<EditorMode>(mMapState);
     mGameMode = std::make_unique<GameMode>(mMapState);
 
+    mFmv = std::make_unique<Fmv>(audioController, locator);
+
     // Size of the screen you see during normal game play, this is always less the the "block" the camera image fits into
     mMapState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
+
+    luaState.set_function("GetMapObject", &GridMap::GetMapObject, this);
+    luaState.set_function("ActivateObjectsWithId", &GridMap::ActivateObjectsWithId, this);
+}
+
+void GridMap::LoadMap(Oddlib::Path& path, ResourceLocator& locator, Renderer& rend)
+{
+    // Clear out existing objects from previous map
+    mMapState.mObjs.clear();
+    mMapState.mCollisionItems.clear();
+    mEditorMode->OnMapChanged();
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
     mMapState.kCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
@@ -212,9 +235,6 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
     mMapState.kCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
 
     ConvertCollisionItems(path.CollisionItems());
-
-    luaState.set_function("GetMapObject", &GridMap::GetMapObject, this);
-    luaState.set_function("ActivateObjectsWithId", &GridMap::ActivateObjectsWithId, this);
 
     mMapState.mScreens.resize(path.XSize());
     for (auto& col : mMapState.mScreens)
@@ -255,7 +275,7 @@ GridMap::GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaSt
                     obj.mRectBottomRight.mX - obj.mRectTopLeft.mX,
                     obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
                 };
-                
+
                 auto tmp = std::make_unique<MapObject>(locator, rect);
 
 
@@ -310,7 +330,17 @@ GridMap::~GridMap()
 
 void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 {
-    if (mMapState.mState == GridMapState::eStates::eEditor)
+    mFmv->Update();
+
+    if (mFmv->IsPlaying())
+    {
+        if (input.Mapping().GetActions().mIsPressed)
+        {
+            LOG_INFO("Stopping FMV due to key press");
+            mFmv->Stop();
+        }
+    }
+    else if (mMapState.mState == GridMapState::eStates::eEditor)
     {
         mEditorMode->Update(input, coords);
     }
@@ -541,16 +571,20 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
 
 void GridMap::Render(Renderer& rend, GuiContext& gui) const
 {
-    if (mMapState.mState == GridMapState::eStates::eEditor)
+    mFmv->Render(rend, gui);
+    if (!mFmv->IsPlaying())
     {
-        mEditorMode->Render(rend, gui);
-    }
-    else if (mMapState.mState == GridMapState::eStates::eInGame)
-    {
-        mGameMode->Render(rend, gui);
-    }
-    else
-    {
-        RenderToEditorOrToGame(rend, gui);
+        if (mMapState.mState == GridMapState::eStates::eEditor)
+        {
+            mEditorMode->Render(rend, gui);
+        }
+        else if (mMapState.mState == GridMapState::eStates::eInGame)
+        {
+            mGameMode->Render(rend, gui);
+        }
+        else
+        {
+            RenderToEditorOrToGame(rend, gui);
+        }
     }
 }

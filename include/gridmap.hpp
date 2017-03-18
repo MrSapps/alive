@@ -129,8 +129,9 @@ class GridMap : public IMap
 public:
     GridMap(const GridMap&) = delete;
     GridMap& operator = (const GridMap&) = delete;
-    GridMap(Oddlib::Path& path, ResourceLocator& locator, sol::state& luaState, Renderer& rend);
+    GridMap(class IAudioController& audioController, ResourceLocator& locator, sol::state& luaState);
     ~GridMap();
+    void LoadMap(Oddlib::Path& path, ResourceLocator& locator, Renderer& rend);
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(Renderer& rend, GuiContext& gui) const;
     static void RegisterScriptBindings();
@@ -148,5 +149,6 @@ private:
     GridMapState mMapState;
     std::unique_ptr<class EditorMode> mEditorMode;
     std::unique_ptr<class GameMode> mGameMode;
+    std::unique_ptr<class Fmv> mFmv;
     InstanceBinder<class GridMap> mScriptInstance;
 };

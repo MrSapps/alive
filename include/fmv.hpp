@@ -33,7 +33,7 @@ public:
     virtual ~IMovie();
 
     // Main thread context
-    void OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int /*screenH*/);
+    void OnRenderFrame(Renderer& rend, GuiContext &gui);
 
     // Main thread context
     bool IsEnd();
@@ -46,7 +46,7 @@ protected:
     virtual void Play(u8* stream, u32 len) override;
 
 
-    void RenderFrame(Renderer& rend, GuiContext& gui, int width, int height, const GLvoid* pixels, const char* subtitles, int screenW, int screenH);
+    void RenderFrame(Renderer& rend, GuiContext& gui, int width, int height, const GLvoid* pixels, const char* subtitles);
 
 protected:
     struct Frame
@@ -70,39 +70,25 @@ private:
 };
 
 
-class Fmv
+class Fmv final
 {
 public:
     static void RegisterScriptBindings();
     Fmv(const Fmv&) = delete;
     Fmv& operator = (const Fmv&) = delete;
     Fmv(IAudioController& audioController, class ResourceLocator& resourceLocator);
-    virtual ~Fmv();
+    ~Fmv();
     void Play(const std::string& name);
     bool IsPlaying() const;
     void Stop();
     void Update();
-    virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
-    void SetPlayingCallBack(std::function<void()> cb)
-    {
-        mFnOnFmvPlaying = cb;
-    }
+    void Render(Renderer& rend, GuiContext& gui);
 protected:
-    std::function<void()> mFnOnFmvPlaying;
+    void DebugUi(GuiContext& gui);
+
     ResourceLocator& mResourceLocator;
     IAudioController& mAudioController;
     std::unique_ptr<class IMovie> mFmv;
     std::string mFmvName;
     InstanceBinder<class Fmv> mScriptInstance;
-};
-
-class DebugFmv : public Fmv
-{
-public:
-    DebugFmv(IAudioController& audioController, ResourceLocator& resourceLocator);
-    virtual ~DebugFmv();
-    virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH) override;
-private:
-    void RenderVideoUi(GuiContext& gui);
-    std::unique_ptr<class FmvUi> mFmvUi;
 };

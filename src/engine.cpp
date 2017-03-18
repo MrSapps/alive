@@ -8,7 +8,6 @@
 #include "proxy_sqrat.hpp"
 #include "alive_version.h"
 #include "core/audiobuffer.hpp"
-#include "fmv.hpp"
 #include "sound.hpp"
 #include "gridmap.hpp"
 #include "renderer.hpp"
@@ -17,6 +16,7 @@
 #include "gameselectionscreen.hpp"
 #include "generated_gui_layout.cpp" // Has function "load_layout" to set gui layout. Only used in single .cpp file.
 #include "gamefilesystem.hpp"
+#include "fmv.hpp"
 
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -232,7 +232,6 @@ Engine::~Engine()
 
     destroy_gui(mGui);
 
-    mFmv.reset();
     mSound.reset();
     mLevel.reset();
     mRenderer.reset();
@@ -269,7 +268,7 @@ bool Engine::Init()
 
         Debugging().mInput = &mInputState;
         
-        mStateMachine.ToState(std::make_unique<GameSelectionScreen>(mStateMachine, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, *mResourceLocator, *mFileSystem));
+        mStateMachine.ToState(std::make_unique<GameSelectionScreen>(mStateMachine, mGameDefinitions, mGui, *mSound, *mLevel, *mResourceLocator, *mFileSystem));
 
         return true;
     }
@@ -319,14 +318,7 @@ void Engine::InitSubSystems()
     BindScriptTypes();
 
     mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
-    mFmv = std::make_unique<DebugFmv>(mAudioHandler, *mResourceLocator);
-    mFmv->SetPlayingCallBack([]()
-    {
-        // Need to switch state here and then switch back, but what about also allowing the
-        // script to update during this time?
-        LOG_WARNING("TODO: Handle a script that started an FMV");
-    });
-
+  
     mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, mLuaState);
     mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator, mLuaState, *mRenderer);
 
@@ -554,12 +546,6 @@ void Engine::Update()
 
 
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
-
-            // TODO: Move out of here
-            if (key == SDL_SCANCODE_ESCAPE)
-            {
-                mFmv->Stop();
-            }
 
             if (event.type == SDL_KEYDOWN && key == SDL_SCANCODE_BACKSPACE)
                 gui_write_char(mGui, '\b'); // Note that this is called in case of repeated backspace key also

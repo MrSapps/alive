@@ -137,6 +137,7 @@ public:
 
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(Renderer& rend, GuiContext& gui) const;
+    void OnMapChanged();
 
     f32 mEditorCamZoom = 1.0f;
 

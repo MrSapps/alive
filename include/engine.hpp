@@ -650,7 +650,6 @@ protected:
 
     std::unique_ptr<class ResourceLocator> mResourceLocator;
     std::unique_ptr<class Renderer> mRenderer;
-    std::unique_ptr<class Fmv> mFmv;
     std::unique_ptr<class Sound> mSound;
     std::unique_ptr<class Level> mLevel;
     struct GuiContext *mGui = nullptr;
