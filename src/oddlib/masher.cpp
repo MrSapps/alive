@@ -868,10 +868,11 @@ namespace Oddlib
         secondWord = ReadNextAudioWord(secondWord);
         gFirstAudioFrameDWORD >>= 16;
 
-        const s16 secondWordCopy = static_cast<s16>(secondWord);
         gBitCounter -= 16;
+        const s16 secondWordCopy = static_cast<s16>(secondWord);
         unsigned int thirdWord = secondWord >> 16;
-        const int bUseTbl = firstWord & 0xFFFF;
+
+       
         gFirstAudioFrameDWORD = thirdWord;
         thirdWord = ReadNextAudioWord(thirdWord);
 
@@ -932,6 +933,8 @@ namespace Oddlib
             const int secondWord_Unknown1 = (1 << secondWordCopyCopyCopy) - 1;
             int counter = numSamplesPerFrame - 3;
             int v45 = 0;
+
+            const int bUseTbl = firstWord & 0xFFFF;
             for (;;)
             {
                 //            LOWORD(v45) = gFirstAudioFrameDWORD_dword_62EFB4 & secondWord_Unknown1;
@@ -941,6 +944,7 @@ namespace Oddlib
                 gBitCounter -= secondWordCopyCopyCopyCopy;
                 gFirstAudioFrameDWORD >>= secondWordCopyCopyCopyCopy;
 
+                /*
                 if (gBitCounter <= 16)
                 {
                     const int srcVal = *(*gAudioFrameDataPtr);
@@ -949,6 +953,8 @@ namespace Oddlib
                     gBitCounter += 16;
                     fourthWordCopyCopy = fourthWordCopyCopyCopy;
                 }
+                */
+                gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
                 signed int secondWord_Unknown2 = 1 << (secondWordCopyCopyCopy - 1);
                 v45 = (s16)v45;
@@ -961,6 +967,9 @@ namespace Oddlib
                 gBitCounter -= thirdWordCopyCopyCopy;
                 v45 = gFirstAudioFrameDWORD & ((1 << thirdWordCopyCopyCopy) - 1);
                 gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> thirdWordCopyCopyCopy;
+                
+                gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
+                /*
                 if (gBitCounter <= 16)
                 {
                     const int srcVal = *(*gAudioFrameDataPtr);
@@ -969,6 +978,8 @@ namespace Oddlib
                     gBitCounter += 16;
                     fourthWordCopyCopy = fourthWordCopyCopyCopy;
                 }
+                */
+
                 secondWord_Unknown2 = thirdWordMask;
                 v45 = (s16)v45;
                 if ((s16)v45 != thirdWordMask)
@@ -979,25 +990,31 @@ namespace Oddlib
                     }
                 LABEL_33:
                     v45 = -(v45 & ~secondWord_Unknown2);
-                    goto LABEL_34;
                 }
-                gBitCounter -= fourthWordCopyCopy;
-                v45 = gFirstAudioFrameDWORD & ((1 << fourthWordCopyCopy) - 1);
-                gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> fourthWordCopyCopy;
-
-                if (gBitCounter <= 16)
+                else
                 {
-                    const int srcVal = *(*gAudioFrameDataPtr);
-                    ++(*gAudioFrameDataPtr);
-                    fourthWordCopyCopy = fourthWordCopyCopyCopy;
-                    gFirstAudioFrameDWORD = (srcVal << gBitCounter) | gFirstAudioFrameDWORD;
-                    gBitCounter += 16;
-                }
+                    gBitCounter -= fourthWordCopyCopy;
+                    v45 = gFirstAudioFrameDWORD & ((1 << fourthWordCopyCopy) - 1);
+                    gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> fourthWordCopyCopy;
 
-                v45 = (s16)v45;
-                if ((s16)v45 & forthWordMask)
-                {
-                    v45 = -(v45 & ~forthWordMask);
+                    gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
+
+                    /*
+                    if (gBitCounter <= 16)
+                    {
+                        const int srcVal = *(*gAudioFrameDataPtr);
+                        ++(*gAudioFrameDataPtr);
+                        fourthWordCopyCopy = fourthWordCopyCopyCopy;
+                        gFirstAudioFrameDWORD = (srcVal << gBitCounter) | gFirstAudioFrameDWORD;
+                        gBitCounter += 16;
+                    }
+                    */
+
+                    v45 = (s16)v45;
+                    if ((s16)v45 & forthWordMask)
+                    {
+                        v45 = -(v45 & ~forthWordMask);
+                    }
                 }
             LABEL_34:
                 const int v59 = fithWordCopyCopy;
