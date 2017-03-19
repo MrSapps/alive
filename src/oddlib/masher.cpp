@@ -925,15 +925,12 @@ namespace Oddlib
 
                 if ((s16)v45 != secondWordMask)
                 {
-                    if (!(v45 & secondWordMask))
-                    {
-                        goto LABEL_34;
-                    }
-                    else
+                    if (v45 & secondWordMask)
                     {
                         v45 = -(v45 & ~secondWord_Unknown2);
-                        goto LABEL_34;
                     }
+
+                    goto LABEL_34;
                 }
 
                 gBitCounter -= thirdWord;
@@ -945,11 +942,11 @@ namespace Oddlib
                 v45 = (s16)v45;
                 if ((s16)v45 != thirdWordMask)
                 {
-                    if (!(v45 & thirdWordMask))
+                    if (v45 & thirdWordMask)
                     {
-                        goto LABEL_34;
+                        v45 = -(v45 & ~secondWord_Unknown2);
                     }
-                    v45 = -(v45 & ~secondWord_Unknown2);
+                    
                     goto LABEL_34;
                 }
 
