@@ -888,91 +888,91 @@ namespace Oddlib
         gFirstAudioFrameDWORD >>= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
-        int fithWordCopy = (s16)fithWord;
+        int previousValue1 = (s16)fithWord;
         *outPtr = fithWord;
         outPtr += gAudioFrameSizeBytes;
 
-        int sixthWordCopy = (s16)sixthWord;
+        int previousValue2 = (s16)sixthWord;
         *outPtr = sixthWord;
         outPtr += gAudioFrameSizeBytes;
 
-        int seventhWordCopy = (s16)seventhWord;
+        int previousValue3 = (s16)seventhWord;
         *outPtr = seventhWord;
         outPtr += gAudioFrameSizeBytes;
 
         int counter = (numSamplesPerFrame - 3) - 1; // Because we just wrote 3 samples out
         while (counter-- >= 0)
         {
-            s16 v45 = 0;
+            s16 samplePart = 0;
             do
             {
                 // B1
                 gBitCounter -= secondWord;
-                v45 = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << secondWord) - 1));
+                samplePart = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << secondWord) - 1));
                 gFirstAudioFrameDWORD >>= secondWord;
                 gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
                 const signed int secondWordMask = 1 << (secondWord - 1);
-                if (v45 != secondWordMask)
+                if (samplePart != secondWordMask)
                 {
-                    if (v45 & secondWordMask)
+                    if (samplePart & secondWordMask)
                     {
-                        v45 = -(v45 & ~secondWordMask);
+                        samplePart = -(samplePart & ~secondWordMask);
                     }
                     break;
                 }
 
                 // B2
                 gBitCounter -= thirdWord;
-                v45 = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << thirdWord) - 1));
+                samplePart = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << thirdWord) - 1));
                 gFirstAudioFrameDWORD >>= thirdWord;
                 gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
                 const signed int thirdWordMask = 1 << (thirdWord - 1);
-                if (v45 != thirdWordMask)
+                if (samplePart != thirdWordMask)
                 {
-                    if (v45 & thirdWordMask)
+                    if (samplePart & thirdWordMask)
                     {
-                        v45 = -(v45 & ~thirdWordMask);
+                        samplePart = -(samplePart & ~thirdWordMask);
                     }
                     break;
                 }
 
                 // B3
                 gBitCounter -= fourthWord;
-                v45 = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << fourthWord) - 1));
+                samplePart = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << fourthWord) - 1));
                 gFirstAudioFrameDWORD >>= fourthWord;
                 gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
                 const signed int forthWordMask = 1 << (fourthWord - 1);
-                if (v45 != forthWordMask)
+                if (samplePart != forthWordMask)
                 {
-                    if (v45 & forthWordMask)
+                    if (samplePart & forthWordMask)
                     {
-                        v45 = -(v45 & ~forthWordMask);
+                        samplePart = -(samplePart & ~forthWordMask);
                     }
                     break;
                 }
             } while (false);
 
-            const int v60 = 5 * seventhWordCopy - 4 * sixthWordCopy;
-            const int v58 = (fithWordCopy + v60) >> 1;
+            const int previous = (5 * previousValue3) - (4 * previousValue2);
+            const int samplePartOrTableIndex = (previousValue1 + previous) >> 1;
         
-            fithWordCopy = sixthWordCopy;
-            sixthWordCopy = seventhWordCopy;
+            previousValue1 = previousValue2;
+            previousValue2 = previousValue3;
 
-            const int bUseTbl = firstWord & 0xFFFF;
+            const bool bUseTbl = firstWord != 0;
             if (bUseTbl)
             {
-                const auto v61 = GetSoundTableValue(static_cast<s16>(v58)); // int to short
-                seventhWordCopy = sub_408F50(static_cast<s16>(v45 + v61)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
+                const auto soundTableValue = GetSoundTableValue(static_cast<s16>(samplePartOrTableIndex)); // int to short
+                previousValue3 = sub_408F50(static_cast<s16>(samplePart + soundTableValue)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
             }
             else
             {
-                seventhWordCopy = (s16)(v58 + (u16)v45);
+                previousValue3 = (s16)(samplePartOrTableIndex + (u16)samplePart);
             }
 
-            *outPtr = static_cast<u16>(seventhWordCopy); // int to word
+            *outPtr = static_cast<u16>(previousValue3); // int to word
             outPtr += gAudioFrameSizeBytes;
         } // End loop
 
