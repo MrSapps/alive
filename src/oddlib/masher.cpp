@@ -864,55 +864,53 @@ namespace Oddlib
         gBitCounter -= 16;
         const s16 firstWord = static_cast<s16>(gFirstAudioFrameDWORD);
         unsigned int secondWord = gFirstAudioFrameDWORD >> 16;
-
         secondWord = ReadNextAudioWord(secondWord);
         gFirstAudioFrameDWORD >>= 16;
 
         gBitCounter -= 16;
         const s16 secondWordCopy = static_cast<s16>(secondWord);
         unsigned int thirdWord = secondWord >> 16;
-
-       
         gFirstAudioFrameDWORD = thirdWord;
         thirdWord = ReadNextAudioWord(thirdWord);
 
 
-        const int secondWordCopyCopy = secondWordCopy;
-        const s16 thirdWordCopy = static_cast<s16>(thirdWord);
         gBitCounter -= 16;
+        const s16 thirdWordCopy = static_cast<s16>(thirdWord);
         unsigned int fourthWord = thirdWord >> 16;
-        const int secondWordCopyCopyCopy = secondWordCopyCopy;
         gFirstAudioFrameDWORD = fourthWord;
         fourthWord = ReadNextAudioWord(fourthWord);
 
-        const int thirdWordCopyCopy = thirdWordCopy;
-        const s16 fourthWordCopy = static_cast<s16>(fourthWord);
         gBitCounter -= 16;
+        const s16 fourthWordCopy = static_cast<s16>(fourthWord);
         unsigned int fithWord = fourthWord >> 16;
-        const int thirdWordCopyCopyCopy = thirdWordCopyCopy;
+        const int thirdWordCopyCopyCopy = thirdWordCopy;
         gFirstAudioFrameDWORD = fithWord;
         fithWord = ReadNextAudioWord(fithWord);
 
 
         gBitCounter -= 16;
+        const s16 fithWordCopy = static_cast<s16>(fithWord);
+
         int fourthWordCopyCopy = fourthWordCopy;
         const int fourthWordCopyCopyCopy = fourthWordCopy;
 
-        const signed int secondWordMask = 1 << (secondWordCopyCopyCopy - 1);
-        const signed int thirdWordMask = 1 << (thirdWordCopyCopy - 1);
-        const signed int forthWordMask = 1 << (fourthWordCopy - 1);
-        const s16 fithWordCopy = static_cast<s16>(fithWord);
         unsigned int fithHiWord = fithWord >> 16;
         gFirstAudioFrameDWORD = fithHiWord;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD); // or fithHiWord
 
 
+        const signed int secondWordMask = 1 << (secondWordCopy - 1);
+        const signed int thirdWordMask = 1 << (thirdWordCopy - 1);
+        const signed int forthWordMask = 1 << (fourthWordCopy - 1);
+
+
         *outPtr = fithWordCopy;
         int fithWordCopyCopy = (s16)fithWordCopy;
         outPtr += gAudioFrameSizeBytes;
+
+        gBitCounter -= 16;
         const s16 outputTmp = static_cast<s16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
-        gBitCounter -= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
 
@@ -929,8 +927,7 @@ namespace Oddlib
         outPtr += gAudioFrameSizeBytes;
         if (numSamplesPerFrame > 3)
         {
-            int secondWordCopyCopyCopyCopy = secondWordCopyCopyCopy;
-            const int secondWord_Unknown1 = (1 << secondWordCopyCopyCopy) - 1;
+            const int secondWord_Unknown1 = (1 << secondWordCopy) - 1;
             int counter = numSamplesPerFrame - 3;
             int v45 = 0;
 
@@ -941,8 +938,8 @@ namespace Oddlib
                 SetLoInt(v45, static_cast<u16>(gFirstAudioFrameDWORD & secondWord_Unknown1)); // dword to word
 
 
-                gBitCounter -= secondWordCopyCopyCopyCopy;
-                gFirstAudioFrameDWORD >>= secondWordCopyCopyCopyCopy;
+                gBitCounter -= secondWordCopy;
+                gFirstAudioFrameDWORD >>= secondWordCopy;
 
                 /*
                 if (gBitCounter <= 16)
@@ -956,7 +953,7 @@ namespace Oddlib
                 */
                 gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
-                signed int secondWord_Unknown2 = 1 << (secondWordCopyCopyCopy - 1);
+                signed int secondWord_Unknown2 = 1 << (secondWordCopy - 1);
                 v45 = (s16)v45;
 
                 if ((s16)v45 != secondWordMask)
@@ -1039,7 +1036,7 @@ namespace Oddlib
                 {
                     return SndRelated_sub_409650();
                 }
-                secondWordCopyCopyCopyCopy = secondWordCopyCopyCopy;
+
             } // End loop
 
             if (!(v45 & secondWordMask))
