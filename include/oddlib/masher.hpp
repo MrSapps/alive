@@ -4,8 +4,12 @@
 #include "stream.hpp"
 #include "oddlib/exceptions.hpp"
 
+
 namespace Oddlib
 {
+    int SetAudioFrameSizeBytesAndBits(int audioFrameSizeBytes); // TODO: Temp for testing
+    void init_Snd_tbl(); // TODO: Temp for testing
+
     class InvalidDdv : public Exception
     {
     public:
@@ -18,6 +22,7 @@ namespace Oddlib
     class Masher
     {
     public:
+        Masher() = default;
         Masher(const Masher&) = delete;
         Masher& operator = (const Masher&) = delete;
 
@@ -37,12 +42,14 @@ namespace Oddlib
         u32 FrameNumber() const { return mCurrentFrame; }
         u32 FrameRate() const { return mFileHeader.mFrameRate; }
         u32 NumberOfFrames() const { return mFileHeader.mNumberOfFrames; }
+    protected:
+        int decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame);
     private:
         void Read();
         void ParseVideoFrame(u32* pixelBuffer);
 
         void ParseAudioFrame(u8* audioBuffer);
-        int decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame);
+       
         void do_decode_audio_frame(u8* audioBuffer);
 
         struct DDVHeader
