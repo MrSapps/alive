@@ -107,12 +107,6 @@ namespace Oddlib
         v = MAKELONG(lo, hiWord);
     }
 
-    static void SetLoInt(int& v, u16 lo)
-    {
-        u16 hiWord = GetHiWord(v);
-        v = MAKELONG(lo, hiWord);
-    }
-
     static void SetHiWord(u32& v, u16 hi)
     {
         u16 loWord = v & 0xFFFF;
@@ -859,7 +853,7 @@ namespace Oddlib
         return gBitCounter;
     }
 
-    int decode_16bit_audio_frame(u16 *outPtr, int numSamplesPerFrame)
+    int decode_16bit_audio_frame(u16* outPtr, int numSamplesPerFrame)
     {
         gBitCounter -= 16;
         const s16 firstWord = static_cast<s16>(gFirstAudioFrameDWORD);
@@ -867,50 +861,50 @@ namespace Oddlib
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
         gBitCounter -= 16;
-        const s16 secondWordCopy = static_cast<s16>(gFirstAudioFrameDWORD);
+        const s16 secondWord = static_cast<s16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
         gBitCounter -= 16;
-        const s16 thirdWordCopy = static_cast<s16>(gFirstAudioFrameDWORD);
+        const s16 thirdWord = static_cast<s16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
         gBitCounter -= 16;
-        const s16 fourthWordCopy = static_cast<s16>(gFirstAudioFrameDWORD);
+        const s16 fourthWord = static_cast<s16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
         gBitCounter -= 16;
-        const s16 fithWordCopy = static_cast<s16>(gFirstAudioFrameDWORD);
+        const s16 fithWord = static_cast<s16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
         gBitCounter -= 16;
-        const s16 outputTmp = static_cast<s16>(gFirstAudioFrameDWORD);
+        const s16 sixthWord = static_cast<s16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
         gBitCounter -= 16;
-        const s16 outputTmp1 = static_cast<s16>(gFirstAudioFrameDWORD);
+        const s16 seventhWord = static_cast<s16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
-        int fithWordCopyCopy = (s16)fithWordCopy;
-        *outPtr = fithWordCopy;
+        int fithWordCopy = (s16)fithWord;
+        *outPtr = fithWord;
         outPtr += gAudioFrameSizeBytes;
 
-        int outputTmpCopy = (s16)outputTmp;
-        *outPtr = outputTmp;
+        int sixthWordCopy = (s16)sixthWord;
+        *outPtr = sixthWord;
         outPtr += gAudioFrameSizeBytes;
 
-        int loopOutput = (s16)outputTmp1;
-        *outPtr = outputTmp1;
+        int seventhWordCopy = (s16)seventhWord;
+        *outPtr = seventhWord;
         outPtr += gAudioFrameSizeBytes;
 
-        const signed int secondWordMask = 1 << (secondWordCopy - 1);
-        const signed int thirdWordMask = 1 << (thirdWordCopy - 1);
-        const signed int forthWordMask = 1 << (fourthWordCopy - 1);
+        const signed int secondWordMask = 1 << (secondWord - 1);
+        const signed int thirdWordMask = 1 << (thirdWord - 1);
+        const signed int forthWordMask = 1 << (fourthWord - 1);
 
         if (numSamplesPerFrame > 3)
         {
@@ -920,24 +914,30 @@ namespace Oddlib
             const int bUseTbl = firstWord & 0xFFFF;
             for (;;)
             {
-                const int secondWord_Unknown1 = (1 << secondWordCopy) - 1; // Same as secondWordMask but signed
-                SetLoInt(v45, static_cast<u16>(gFirstAudioFrameDWORD & secondWord_Unknown1));
+                v45 = gFirstAudioFrameDWORD & ((1 << secondWord) - 1);
 
-                gBitCounter -= secondWordCopy;
-                gFirstAudioFrameDWORD >>= secondWordCopy;
+                gBitCounter -= secondWord;
+                gFirstAudioFrameDWORD >>= secondWord;
                 gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
-                signed int secondWord_Unknown2 = 1 << (secondWordCopy - 1);
+                signed int secondWord_Unknown2 = 1 << (secondWord - 1);
                 v45 = (s16)v45;
 
                 if ((s16)v45 != secondWordMask)
                 {
-                    break;
+                    if (!(v45 & secondWordMask))
+                    {
+                        goto LABEL_34;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
 
-                gBitCounter -= thirdWordCopy;
-                v45 = gFirstAudioFrameDWORD & ((1 << thirdWordCopy) - 1);
-                gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> thirdWordCopy;
+                gBitCounter -= thirdWord;
+                v45 = gFirstAudioFrameDWORD & ((1 << thirdWord) - 1);
+                gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> thirdWord;
                 gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
  
                 secondWord_Unknown2 = thirdWordMask;
@@ -948,37 +948,39 @@ namespace Oddlib
                     {
                         goto LABEL_34;
                     }
-                LABEL_33:
+                inner_loop:
                     v45 = -(v45 & ~secondWord_Unknown2);
+                    goto LABEL_34;
                 }
-                else
+
+                gBitCounter -= fourthWord;
+                v45 = gFirstAudioFrameDWORD & ((1 << fourthWord) - 1);
+                gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> fourthWord;
+                gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
+
+                v45 = (s16)v45;
+                if ((s16)v45 & forthWordMask)
                 {
-                    gBitCounter -= fourthWordCopy;
-                    v45 = gFirstAudioFrameDWORD & ((1 << fourthWordCopy) - 1);
-                    gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> fourthWordCopy;
-                    gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-                    v45 = (s16)v45;
-                    if ((s16)v45 & forthWordMask)
-                    {
-                        v45 = -(v45 & ~forthWordMask);
-                    }
+                    v45 = -(v45 & ~forthWordMask);
                 }
+                
+
             LABEL_34:
-                const int v59 = fithWordCopyCopy;
-                fithWordCopyCopy = outputTmpCopy; // outputTmpCopy and fithWordCopyCopy is constant within the loop
-                const int v60 = 5 * loopOutput - 4 * outputTmpCopy;
-                outputTmpCopy = loopOutput;
+                const int v59 = fithWordCopy;
+                fithWordCopy = sixthWordCopy; // outputTmpCopy and fithWordCopyCopy is constant within the loop
+                const int v60 = 5 * seventhWordCopy - 4 * sixthWordCopy;
+                sixthWordCopy = seventhWordCopy;
                 const int v58 = (v59 + v60) >> 1;
                 if (bUseTbl)
                 {
                     const auto v61 = GetSoundTableValue(static_cast<s16>(v58)); // int to short
-                    loopOutput = (s16)sub_408F50(static_cast<s16>(v45 + v61)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
+                    seventhWordCopy = (s16)sub_408F50(static_cast<s16>(v45 + v61)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
                 }
                 else
                 {
-                    loopOutput = (s16)(v58 + (u16)v45);
+                    seventhWordCopy = (s16)(v58 + (u16)v45);
                 }
-                *outPtr = static_cast<u16>(loopOutput); // int to word
+                *outPtr = static_cast<u16>(seventhWordCopy); // int to word
                 outPtr += gAudioFrameSizeBytes;
                 --counter;
                 if (counter == 0)
@@ -988,12 +990,7 @@ namespace Oddlib
 
             } // End loop
 
-            if (!(v45 & secondWordMask))
-            {
-                goto LABEL_34;
-            }
-
-            goto LABEL_33;
+            goto inner_loop;
         }
         return SndRelated_sub_409650();
     }
