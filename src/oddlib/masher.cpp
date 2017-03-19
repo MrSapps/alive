@@ -818,10 +818,10 @@ namespace Oddlib
     }
 
 
-    static int sub_408F50(s16 a1)
+    static s16 sub_408F50(s16 a1)
     {
         s16 v2 = static_cast<s16>(abs(a1));
-        int result = (u16)((v2 & 0x7F) << (v2 >> 7)) | (u16)(1 << ((v2 >> 7) - 2));
+        s16 result = (u16)((v2 & 0x7F) << (v2 >> 7)) | (u16)(1 << ((v2 >> 7) - 2));
         if (a1 < 0)
         {
             result = -result;
@@ -903,18 +903,17 @@ namespace Oddlib
         int counter = (numSamplesPerFrame - 3) - 1; // Because we just wrote 3 samples out
         while (counter-- >= 0)
         {
-            int v45 = 0;
-            for (;;)
+            s16 v45 = 0;
+            do
             {
                 // B1
                 gBitCounter -= secondWord;
-                v45 = gFirstAudioFrameDWORD & ((1 << secondWord) - 1);
+                v45 = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << secondWord) - 1));
                 gFirstAudioFrameDWORD >>= secondWord;
                 gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
-                v45 = (s16)v45;
                 const signed int secondWordMask = 1 << (secondWord - 1);
-                if ((s16)v45 != secondWordMask)
+                if (v45 != secondWordMask)
                 {
                     if (v45 & secondWordMask)
                     {
@@ -925,13 +924,12 @@ namespace Oddlib
 
                 // B2
                 gBitCounter -= thirdWord;
-                v45 = gFirstAudioFrameDWORD & ((1 << thirdWord) - 1);
+                v45 = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << thirdWord) - 1));
                 gFirstAudioFrameDWORD >>= thirdWord;
                 gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
-                v45 = (s16)v45;
                 const signed int thirdWordMask = 1 << (thirdWord - 1);
-                if ((s16)v45 != thirdWordMask)
+                if (v45 != thirdWordMask)
                 {
                     if (v45 & thirdWordMask)
                     {
@@ -942,34 +940,34 @@ namespace Oddlib
 
                 // B3
                 gBitCounter -= fourthWord;
-                v45 = gFirstAudioFrameDWORD & ((1 << fourthWord) - 1);
+                v45 = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << fourthWord) - 1));
                 gFirstAudioFrameDWORD >>= fourthWord;
                 gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
-                v45 = (s16)v45;
                 const signed int forthWordMask = 1 << (fourthWord - 1);
-                if ((s16)v45 != forthWordMask)
+                if (v45 != forthWordMask)
                 {
-                    if ((s16)v45 & forthWordMask)
+                    if (v45 & forthWordMask)
                     {
                         v45 = -(v45 & ~forthWordMask);
                     }
                     break;
                 }
-
-                break;
-            }
+            } while (false);
 
             const int v59 = fithWordCopy;
-            fithWordCopy = sixthWordCopy;
             const int v60 = 5 * seventhWordCopy - 4 * sixthWordCopy;
-            sixthWordCopy = seventhWordCopy;
+           
             const int v58 = (v59 + v60) >> 1;
+        
+            fithWordCopy = sixthWordCopy;
+            sixthWordCopy = seventhWordCopy;
+
             const int bUseTbl = firstWord & 0xFFFF;
             if (bUseTbl)
             {
                 const auto v61 = GetSoundTableValue(static_cast<s16>(v58)); // int to short
-                seventhWordCopy = (s16)sub_408F50(static_cast<s16>(v45 + v61)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
+                seventhWordCopy = sub_408F50(static_cast<s16>(v45 + v61)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
             }
             else
             {
