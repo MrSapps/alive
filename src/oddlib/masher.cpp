@@ -908,59 +908,62 @@ namespace Oddlib
 
         if (numSamplesPerFrame > 3)
         {
-            int counter = numSamplesPerFrame - 3;
+            int counter = (numSamplesPerFrame - 3);
             const int bUseTbl = firstWord & 0xFFFF;
-            for (;;)
+            while (counter--)
             {
-                // B1
-                int v45 = gFirstAudioFrameDWORD & ((1 << secondWord) - 1);
-                gBitCounter -= secondWord;
-                gFirstAudioFrameDWORD >>= secondWord;
-                gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-              
-                v45 = (s16)v45;
-                if ((s16)v45 != secondWordMask)
+                int v45 = 0;
+                for (;;)
                 {
-                    if (v45 & secondWordMask)
+                    // B1
+                    v45 = gFirstAudioFrameDWORD & ((1 << secondWord) - 1);
+                    gBitCounter -= secondWord;
+                    gFirstAudioFrameDWORD >>= secondWord;
+                    gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
+
+                    v45 = (s16)v45;
+                    if ((s16)v45 != secondWordMask)
                     {
-                        v45 = -(v45 & ~secondWordMask);
+                        if (v45 & secondWordMask)
+                        {
+                            v45 = -(v45 & ~secondWordMask);
+                        }
+                        break;
                     }
-                    goto LABEL_34;
+
+                    // B2
+                    v45 = gFirstAudioFrameDWORD & ((1 << thirdWord) - 1);
+                    gBitCounter -= thirdWord;
+                    gFirstAudioFrameDWORD >>= thirdWord;
+                    gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
+
+                    v45 = (s16)v45;
+                    if ((s16)v45 != thirdWordMask)
+                    {
+                        if (v45 & thirdWordMask)
+                        {
+                            v45 = -(v45 & ~thirdWordMask);
+                        }
+                        break;
+                    }
+
+                    // B3
+                    v45 = gFirstAudioFrameDWORD & ((1 << fourthWord) - 1);
+                    gBitCounter -= fourthWord;
+                    gFirstAudioFrameDWORD >>= fourthWord;
+                    gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
+
+                    v45 = (s16)v45;
+                    if ((s16)v45 != forthWordMask)
+                    {
+                        if ((s16)v45 & forthWordMask)
+                        {
+                            v45 = -(v45 & ~forthWordMask);
+                        }
+                        break;
+                    }
                 }
 
-                // B2
-                v45 = gFirstAudioFrameDWORD & ((1 << thirdWord) - 1);
-                gBitCounter -= thirdWord;
-                gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> thirdWord;
-                gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-                v45 = (s16)v45;
-                if ((s16)v45 != thirdWordMask)
-                {
-                    if (v45 & thirdWordMask)
-                    {
-                        v45 = -(v45 & ~thirdWordMask);
-                    }
-                    goto LABEL_34;
-                }
-
-                // B3
-                v45 = gFirstAudioFrameDWORD & ((1 << fourthWord) - 1);
-                gBitCounter -= fourthWord;
-                gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> fourthWord;
-                gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-                v45 = (s16)v45;
-                if ((s16)v45 != forthWordMask)
-                {
-                    if ((s16)v45 & forthWordMask)
-                    {
-                        v45 = -(v45 & ~forthWordMask);
-                    }
-                    goto LABEL_34;
-                }
-
-            LABEL_34:
                 const int v59 = fithWordCopy;
                 fithWordCopy = sixthWordCopy; // outputTmpCopy and fithWordCopyCopy is constant within the loop
                 const int v60 = 5 * seventhWordCopy - 4 * sixthWordCopy;
@@ -978,13 +981,6 @@ namespace Oddlib
 
                 *outPtr = static_cast<u16>(seventhWordCopy); // int to word
                 outPtr += gAudioFrameSizeBytes;
-
-                --counter;
-                if (counter == 0)
-                {
-                    return SndRelated_sub_409650();
-                }
-
             } // End loop
         }
         return SndRelated_sub_409650();
