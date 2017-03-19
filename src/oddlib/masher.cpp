@@ -863,33 +863,28 @@ namespace Oddlib
     {
         gBitCounter -= 16;
         const s16 firstWord = static_cast<s16>(gFirstAudioFrameDWORD);
-        unsigned int secondWord = gFirstAudioFrameDWORD >> 16;
-        secondWord = ReadNextAudioWord(secondWord);
         gFirstAudioFrameDWORD >>= 16;
+        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
         gBitCounter -= 16;
-        const s16 secondWordCopy = static_cast<s16>(secondWord);
-        unsigned int thirdWord = secondWord >> 16;
-        gFirstAudioFrameDWORD = thirdWord;
-        thirdWord = ReadNextAudioWord(thirdWord);
+        const s16 secondWordCopy = static_cast<s16>(gFirstAudioFrameDWORD);
+        gFirstAudioFrameDWORD >>= 16;
+        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
         gBitCounter -= 16;
-        const s16 thirdWordCopy = static_cast<s16>(thirdWord);
-        unsigned int fourthWord = thirdWord >> 16;
-        gFirstAudioFrameDWORD = fourthWord;
-        fourthWord = ReadNextAudioWord(fourthWord);
+        const s16 thirdWordCopy = static_cast<s16>(gFirstAudioFrameDWORD);
+        gFirstAudioFrameDWORD >>= 16;
+        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
         gBitCounter -= 16;
-        const s16 fourthWordCopy = static_cast<s16>(fourthWord);
-        unsigned int fithWord = fourthWord >> 16;
-        gFirstAudioFrameDWORD = fithWord;
-        fithWord = ReadNextAudioWord(fithWord);
+        const s16 fourthWordCopy = static_cast<s16>(gFirstAudioFrameDWORD);
+        gFirstAudioFrameDWORD >>= 16;
+        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
         gBitCounter -= 16;
-        const s16 fithWordCopy = static_cast<s16>(fithWord);
-        unsigned int fithHiWord = fithWord >> 16;
-        gFirstAudioFrameDWORD = fithHiWord;
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD); // or fithHiWord
+        const s16 fithWordCopy = static_cast<s16>(gFirstAudioFrameDWORD);
+        gFirstAudioFrameDWORD >>= 16;
+        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
         gBitCounter -= 16;
         const s16 outputTmp = static_cast<s16>(gFirstAudioFrameDWORD);
