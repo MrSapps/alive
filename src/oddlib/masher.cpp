@@ -873,7 +873,6 @@ namespace Oddlib
         gFirstAudioFrameDWORD = thirdWord;
         thirdWord = ReadNextAudioWord(thirdWord);
 
-
         gBitCounter -= 16;
         const s16 thirdWordCopy = static_cast<s16>(thirdWord);
         unsigned int fourthWord = thirdWord >> 16;
@@ -888,13 +887,11 @@ namespace Oddlib
 
 
         gBitCounter -= 16;
-        const s16 fithWordCopy = static_cast<s16>(fithWord);
-
-        int fourthWordCopyCopy = fourthWordCopy;
-     
+        const s16 fithWordCopy = static_cast<s16>(fithWord);     
         unsigned int fithHiWord = fithWord >> 16;
         gFirstAudioFrameDWORD = fithHiWord;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD); // or fithHiWord
+
 
         const signed int secondWordMask = 1 << (secondWordCopy - 1);
         const signed int thirdWordMask = 1 << (thirdWordCopy - 1);
@@ -985,9 +982,9 @@ namespace Oddlib
                 }
                 else
                 {
-                    gBitCounter -= fourthWordCopyCopy;
-                    v45 = gFirstAudioFrameDWORD & ((1 << fourthWordCopyCopy) - 1);
-                    gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> fourthWordCopyCopy;
+                    gBitCounter -= fourthWordCopy;
+                    v45 = gFirstAudioFrameDWORD & ((1 << fourthWordCopy) - 1);
+                    gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> fourthWordCopy;
 
                     gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
