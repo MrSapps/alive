@@ -860,27 +860,41 @@ namespace Oddlib
         return ret;
     }
 
+    bool SampleMatches(s16& sample, s16 bits)
+    {
+        const signed int mask = 1 << (bits - 1);
+        if (sample != mask)
+        {
+            if (sample & mask)
+            {
+                sample = -(sample & ~mask);
+            }
+            return true;
+        }
+        return false;
+    }
 
     int decode_16bit_audio_frame(u16* outPtr, int numSamplesPerFrame)
     {
+        const s16 useTableFlag = NextBits(16);
+
         const s16 firstWord = NextBits(16);
         const s16 secondWord = NextBits(16);
         const s16 thirdWord = NextBits(16);
-        const s16 fourthWord = NextBits(16);
-        const s16 fithWord = NextBits(16);
-        const s16 sixthWord = NextBits(16);
-        const s16 seventhWord = NextBits(16);
 
-        int previousValue1 = (s16)fithWord;
-        *outPtr = fithWord;
+        const s16 previous1 = NextBits(16);
+        int previousValue1 = (s16)previous1;
+        *outPtr = previous1;
         outPtr += gAudioFrameSizeBytes;
 
-        int previousValue2 = (s16)sixthWord;
-        *outPtr = sixthWord;
+        const s16 previous2 = NextBits(16);
+        int previousValue2 = (s16)previous2;
+        *outPtr = previous2;
         outPtr += gAudioFrameSizeBytes;
 
-        int previousValue3 = (s16)seventhWord;
-        *outPtr = seventhWord;
+        const s16 previous3 = NextBits(16);
+        int previousValue3 = (s16)previous3;
+        *outPtr = previous3;
         outPtr += gAudioFrameSizeBytes;
 
         int counter = (numSamplesPerFrame - 3) - 1; // Because we just wrote 3 samples out
@@ -889,39 +903,21 @@ namespace Oddlib
             s16 samplePart = 0;
             do
             {
-                // B1
+                samplePart = NextBits(firstWord);
+                if (SampleMatches(samplePart, firstWord))
+                {
+                    break;
+                }
+
                 samplePart = NextBits(secondWord);
-                const signed int secondWordMask = 1 << (secondWord - 1);
-                if (samplePart != secondWordMask)
+                if (SampleMatches(samplePart, secondWord))
                 {
-                    if (samplePart & secondWordMask)
-                    {
-                        samplePart = -(samplePart & ~secondWordMask);
-                    }
                     break;
                 }
 
-                // B2
                 samplePart = NextBits(thirdWord);
-                const signed int thirdWordMask = 1 << (thirdWord - 1);
-                if (samplePart != thirdWordMask)
+                if (SampleMatches(samplePart, thirdWord))
                 {
-                    if (samplePart & thirdWordMask)
-                    {
-                        samplePart = -(samplePart & ~thirdWordMask);
-                    }
-                    break;
-                }
-
-                // B3
-                samplePart = NextBits(fourthWord);
-                const signed int forthWordMask = 1 << (fourthWord - 1);
-                if (samplePart != forthWordMask)
-                {
-                    if (samplePart & forthWordMask)
-                    {
-                        samplePart = -(samplePart & ~forthWordMask);
-                    }
                     break;
                 }
             } while (false);
@@ -932,7 +928,7 @@ namespace Oddlib
             previousValue1 = previousValue2;
             previousValue2 = previousValue3;
 
-            const bool bUseTbl = firstWord != 0;
+            const bool bUseTbl = useTableFlag != 0;
             if (bUseTbl)
             {
                 const auto soundTableValue = GetSoundTableValue(static_cast<s16>(samplePartOrTableIndex)); // int to short
@@ -949,8 +945,6 @@ namespace Oddlib
 
         return SndRelated_sub_409650();
     }
-
-
 
     static u16* SetupAudioDecodePtrs(u16 *rawFrameBuffer)
     {
