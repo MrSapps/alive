@@ -892,12 +892,10 @@ namespace Oddlib
         const s16 fithWordCopy = static_cast<s16>(fithWord);
 
         int fourthWordCopyCopy = fourthWordCopy;
-        const int fourthWordCopyCopyCopy = fourthWordCopy;
-
+     
         unsigned int fithHiWord = fithWord >> 16;
         gFirstAudioFrameDWORD = fithHiWord;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD); // or fithHiWord
-
 
         const signed int secondWordMask = 1 << (secondWordCopy - 1);
         const signed int thirdWordMask = 1 << (thirdWordCopy - 1);
@@ -927,16 +925,14 @@ namespace Oddlib
         outPtr += gAudioFrameSizeBytes;
         if (numSamplesPerFrame > 3)
         {
-            const int secondWord_Unknown1 = (1 << secondWordCopy) - 1;
             int counter = numSamplesPerFrame - 3;
             int v45 = 0;
 
             const int bUseTbl = firstWord & 0xFFFF;
             for (;;)
             {
-                //            LOWORD(v45) = gFirstAudioFrameDWORD_dword_62EFB4 & secondWord_Unknown1;
-                SetLoInt(v45, static_cast<u16>(gFirstAudioFrameDWORD & secondWord_Unknown1)); // dword to word
-
+                const int secondWord_Unknown1 = (1 << secondWordCopy) - 1; // Same as secondWordMask but signed
+                SetLoInt(v45, static_cast<u16>(gFirstAudioFrameDWORD & secondWord_Unknown1));
 
                 gBitCounter -= secondWordCopy;
                 gFirstAudioFrameDWORD >>= secondWordCopy;
@@ -1029,10 +1025,9 @@ namespace Oddlib
                     loopOutput = (s16)(v58 + (u16)v45);
                 }
                 *outPtr = static_cast<u16>(loopOutput); // int to word
-                const char bCountIsOne = counter == 1;
                 outPtr += gAudioFrameSizeBytes;
                 --counter;
-                if (bCountIsOne)
+                if (counter == 0)
                 {
                     return SndRelated_sub_409650();
                 }
