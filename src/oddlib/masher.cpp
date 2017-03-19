@@ -900,88 +900,86 @@ namespace Oddlib
         *outPtr = seventhWord;
         outPtr += gAudioFrameSizeBytes;
 
-        if (numSamplesPerFrame > 3)
+        int counter = (numSamplesPerFrame - 3) - 1; // Because we just wrote 3 samples out
+        while (counter-- >= 0)
         {
-            int counter = (numSamplesPerFrame - 3);
-            while (counter--)
+            int v45 = 0;
+            for (;;)
             {
-                int v45 = 0;
-                for (;;)
+                // B1
+                gBitCounter -= secondWord;
+                v45 = gFirstAudioFrameDWORD & ((1 << secondWord) - 1);
+                gFirstAudioFrameDWORD >>= secondWord;
+                gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
+
+                v45 = (s16)v45;
+                const signed int secondWordMask = 1 << (secondWord - 1);
+                if ((s16)v45 != secondWordMask)
                 {
-                    // B1
-                    gBitCounter -= secondWord;
-                    v45 = gFirstAudioFrameDWORD & ((1 << secondWord) - 1);
-                    gFirstAudioFrameDWORD >>= secondWord;
-                    gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-                    v45 = (s16)v45;
-                    const signed int secondWordMask = 1 << (secondWord - 1);
-                    if ((s16)v45 != secondWordMask)
+                    if (v45 & secondWordMask)
                     {
-                        if (v45 & secondWordMask)
-                        {
-                            v45 = -(v45 & ~secondWordMask);
-                        }
-                        break;
+                        v45 = -(v45 & ~secondWordMask);
                     }
-
-                    // B2
-                    gBitCounter -= thirdWord;
-                    v45 = gFirstAudioFrameDWORD & ((1 << thirdWord) - 1);
-                    gFirstAudioFrameDWORD >>= thirdWord;
-                    gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-                    v45 = (s16)v45;
-                    const signed int thirdWordMask = 1 << (thirdWord - 1);
-                    if ((s16)v45 != thirdWordMask)
-                    {
-                        if (v45 & thirdWordMask)
-                        {
-                            v45 = -(v45 & ~thirdWordMask);
-                        }
-                        break;
-                    }
-
-                    // B3
-                    gBitCounter -= fourthWord;
-                    v45 = gFirstAudioFrameDWORD & ((1 << fourthWord) - 1);
-                    gFirstAudioFrameDWORD >>= fourthWord;
-                    gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-                    v45 = (s16)v45;
-                    const signed int forthWordMask = 1 << (fourthWord - 1);
-                    if ((s16)v45 != forthWordMask)
-                    {
-                        if ((s16)v45 & forthWordMask)
-                        {
-                            v45 = -(v45 & ~forthWordMask);
-                        }
-                        break;
-                    }
-
                     break;
                 }
 
-                const int v59 = fithWordCopy;
-                fithWordCopy = sixthWordCopy;
-                const int v60 = 5 * seventhWordCopy - 4 * sixthWordCopy;
-                sixthWordCopy = seventhWordCopy;
-                const int v58 = (v59 + v60) >> 1;
-                const int bUseTbl = firstWord & 0xFFFF;
-                if (bUseTbl)
+                // B2
+                gBitCounter -= thirdWord;
+                v45 = gFirstAudioFrameDWORD & ((1 << thirdWord) - 1);
+                gFirstAudioFrameDWORD >>= thirdWord;
+                gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
+
+                v45 = (s16)v45;
+                const signed int thirdWordMask = 1 << (thirdWord - 1);
+                if ((s16)v45 != thirdWordMask)
                 {
-                    const auto v61 = GetSoundTableValue(static_cast<s16>(v58)); // int to short
-                    seventhWordCopy = (s16)sub_408F50(static_cast<s16>(v45 + v61)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
-                }
-                else
-                {
-                    seventhWordCopy = (s16)(v58 + (u16)v45);
+                    if (v45 & thirdWordMask)
+                    {
+                        v45 = -(v45 & ~thirdWordMask);
+                    }
+                    break;
                 }
 
-                *outPtr = static_cast<u16>(seventhWordCopy); // int to word
-                outPtr += gAudioFrameSizeBytes;
-            } // End loop
-        }
+                // B3
+                gBitCounter -= fourthWord;
+                v45 = gFirstAudioFrameDWORD & ((1 << fourthWord) - 1);
+                gFirstAudioFrameDWORD >>= fourthWord;
+                gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
+
+                v45 = (s16)v45;
+                const signed int forthWordMask = 1 << (fourthWord - 1);
+                if ((s16)v45 != forthWordMask)
+                {
+                    if ((s16)v45 & forthWordMask)
+                    {
+                        v45 = -(v45 & ~forthWordMask);
+                    }
+                    break;
+                }
+
+                break;
+            }
+
+            const int v59 = fithWordCopy;
+            fithWordCopy = sixthWordCopy;
+            const int v60 = 5 * seventhWordCopy - 4 * sixthWordCopy;
+            sixthWordCopy = seventhWordCopy;
+            const int v58 = (v59 + v60) >> 1;
+            const int bUseTbl = firstWord & 0xFFFF;
+            if (bUseTbl)
+            {
+                const auto v61 = GetSoundTableValue(static_cast<s16>(v58)); // int to short
+                seventhWordCopy = (s16)sub_408F50(static_cast<s16>(v45 + v61)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
+            }
+            else
+            {
+                seventhWordCopy = (s16)(v58 + (u16)v45);
+            }
+
+            *outPtr = static_cast<u16>(seventhWordCopy); // int to word
+            outPtr += gAudioFrameSizeBytes;
+        } // End loop
+
         return SndRelated_sub_409650();
     }
 
