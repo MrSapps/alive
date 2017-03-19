@@ -914,15 +914,14 @@ namespace Oddlib
             const int bUseTbl = firstWord & 0xFFFF;
             for (;;)
             {
+                // B1
                 v45 = gFirstAudioFrameDWORD & ((1 << secondWord) - 1);
-
                 gBitCounter -= secondWord;
                 gFirstAudioFrameDWORD >>= secondWord;
                 gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
                 signed int secondWord_Unknown2 = 1 << (secondWord - 1);
-                v45 = (s16)v45;
 
+                v45 = (s16)v45;
                 if ((s16)v45 != secondWordMask)
                 {
                     if (v45 & secondWordMask)
@@ -933,12 +932,13 @@ namespace Oddlib
                     goto LABEL_34;
                 }
 
-                gBitCounter -= thirdWord;
+                // B2
                 v45 = gFirstAudioFrameDWORD & ((1 << thirdWord) - 1);
+                gBitCounter -= thirdWord;
                 gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> thirdWord;
                 gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
- 
                 secondWord_Unknown2 = thirdWordMask;
+
                 v45 = (s16)v45;
                 if ((s16)v45 != thirdWordMask)
                 {
@@ -950,17 +950,23 @@ namespace Oddlib
                     goto LABEL_34;
                 }
 
+                // B3
                 gBitCounter -= fourthWord;
                 v45 = gFirstAudioFrameDWORD & ((1 << fourthWord) - 1);
                 gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> fourthWord;
                 gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
                 v45 = (s16)v45;
-                if ((s16)v45 & forthWordMask)
+                if ((s16)v45 != forthWordMask)
                 {
-                    v45 = -(v45 & ~forthWordMask);
+                    if ((s16)v45 & forthWordMask)
+                    {
+                        v45 = -(v45 & ~forthWordMask);
+
+                        goto LABEL_34;
+                    }
                 }
-                
+
             LABEL_34:
                 const int v59 = fithWordCopy;
                 fithWordCopy = sixthWordCopy; // outputTmpCopy and fithWordCopyCopy is constant within the loop
