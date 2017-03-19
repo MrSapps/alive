@@ -861,123 +861,77 @@ namespace Oddlib
 
     int decode_16bit_audio_frame(u16 *outPtr, int numSamplesPerFrame)
     {
-
-        unsigned int secondWord; // edx@1
-        s16 firstWord; // di@1
-
-        unsigned int thirdWord; // edx@4
-
-        s16 secondWordCopy; // di@4
-
-        unsigned int fourthWord; // edx@6
-        int secondWordCopyCopy; // ecx@6
-        s16 thirdWordCopy; // di@6
-
-
-        unsigned int fithWord; // edx@8
-        int thirdWordCopyCopy; // ebx@8
-        s16 fourthWordCopy; // di@8
-
-        unsigned int fithHiWord; // edx@10
-        int fourthWordCopyCopy; // ebp@10
-        u16 fithWordCopy; // di@10
-
-        u16 outputTmp; // dx@12
-
-        u16 outputTmp1; // dx@14
-
-        int loopOutput; // ebx@16
-        int secondWordCopyCopyCopyCopy; // ecx@17
-
-        int v45 = 0; // esi@19
-
-        signed int secondWord_Unknown2; // ecx@22
-
-
-
-        char bCountIsOne; // zf@37
-        int secondWordCopyCopyCopy; // [sp+10h] [bp-28h]@6
-        int thirdWordCopyCopyCopy; // [sp+14h] [bp-24h]@8
-        int fourthWordCopyCopyCopy; // [sp+18h] [bp-20h]@10
-        int fithWordCopyCopy; // [sp+1Ch] [bp-1Ch]@12
-        int outputTmpCopy; // [sp+20h] [bp-18h]@14
-        int secondWord_Unknown1; // [sp+24h] [bp-14h]@17
-        signed int secondWordMask; // [sp+28h] [bp-10h]@10
-        signed int thirdWordMask; // [sp+2Ch] [bp-Ch]@10
-        signed int forthWordMask; // [sp+30h] [bp-8h]@10
-
-        int counter; // [sp+40h] [bp+8h]@17
-
         gBitCounter -= 16;
-        firstWord = static_cast<s16>(gFirstAudioFrameDWORD);
-        secondWord = gFirstAudioFrameDWORD >> 16;
+        const s16 firstWord = static_cast<s16>(gFirstAudioFrameDWORD);
+        unsigned int secondWord = gFirstAudioFrameDWORD >> 16;
 
         secondWord = ReadNextAudioWord(secondWord);
         gFirstAudioFrameDWORD >>= 16;
 
-        secondWordCopy = static_cast<s16>(secondWord);
+        const s16 secondWordCopy = static_cast<s16>(secondWord);
         gBitCounter -= 16;
-        thirdWord = secondWord >> 16;
+        unsigned int thirdWord = secondWord >> 16;
         const int bUseTbl = firstWord & 0xFFFF;
         gFirstAudioFrameDWORD = thirdWord;
         thirdWord = ReadNextAudioWord(thirdWord);
 
 
-        secondWordCopyCopy = secondWordCopy;
-        thirdWordCopy = static_cast<s16>(thirdWord);
+        const int secondWordCopyCopy = secondWordCopy;
+        const s16 thirdWordCopy = static_cast<s16>(thirdWord);
         gBitCounter -= 16;
-        fourthWord = thirdWord >> 16;
-        secondWordCopyCopyCopy = secondWordCopyCopy;
+        unsigned int fourthWord = thirdWord >> 16;
+        const int secondWordCopyCopyCopy = secondWordCopyCopy;
         gFirstAudioFrameDWORD = fourthWord;
         fourthWord = ReadNextAudioWord(fourthWord);
 
-        thirdWordCopyCopy = thirdWordCopy;
-        fourthWordCopy = static_cast<s16>(fourthWord);
+        const int thirdWordCopyCopy = thirdWordCopy;
+        const s16 fourthWordCopy = static_cast<s16>(fourthWord);
         gBitCounter -= 16;
-        fithWord = fourthWord >> 16;
-        thirdWordCopyCopyCopy = thirdWordCopyCopy;
+        unsigned int fithWord = fourthWord >> 16;
+        const int thirdWordCopyCopyCopy = thirdWordCopyCopy;
         gFirstAudioFrameDWORD = fithWord;
         fithWord = ReadNextAudioWord(fithWord);
 
 
         gBitCounter -= 16;
-        fourthWordCopyCopy = fourthWordCopy;
-        fourthWordCopyCopyCopy = fourthWordCopy;
+        int fourthWordCopyCopy = fourthWordCopy;
+        const int fourthWordCopyCopyCopy = fourthWordCopy;
 
-        secondWordMask = 1 << (secondWordCopyCopyCopy - 1);
-        thirdWordMask = 1 << (thirdWordCopyCopy - 1);
-        forthWordMask = 1 << (fourthWordCopy - 1);
-        fithWordCopy = static_cast<s16>(fithWord);
-        fithHiWord = fithWord >> 16;
+        const signed int secondWordMask = 1 << (secondWordCopyCopyCopy - 1);
+        const signed int thirdWordMask = 1 << (thirdWordCopyCopy - 1);
+        const signed int forthWordMask = 1 << (fourthWordCopy - 1);
+        const s16 fithWordCopy = static_cast<s16>(fithWord);
+        unsigned int fithHiWord = fithWord >> 16;
         gFirstAudioFrameDWORD = fithHiWord;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD); // or fithHiWord
 
 
         *outPtr = fithWordCopy;
-        fithWordCopyCopy = (s16)fithWordCopy;
+        int fithWordCopyCopy = (s16)fithWordCopy;
         outPtr += gAudioFrameSizeBytes;
-        outputTmp = static_cast<s16>(gFirstAudioFrameDWORD);
+        const s16 outputTmp = static_cast<s16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
         gBitCounter -= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
 
-        outputTmpCopy = (s16)outputTmp;
+        int outputTmpCopy = (s16)outputTmp;
         *outPtr = outputTmp;
         outPtr += gAudioFrameSizeBytes;
-        outputTmp1 = static_cast<s16>(gFirstAudioFrameDWORD);
+        const s16 outputTmp1 = static_cast<s16>(gFirstAudioFrameDWORD);
         gFirstAudioFrameDWORD >>= 16;
         gBitCounter -= 16;
         gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
-        loopOutput = (s16)outputTmp1;
+        int loopOutput = (s16)outputTmp1;
         *outPtr = outputTmp1;
         outPtr += gAudioFrameSizeBytes;
         if (numSamplesPerFrame > 3)
         {
-            secondWordCopyCopyCopyCopy = secondWordCopyCopyCopy;
-            secondWord_Unknown1 = (1 << secondWordCopyCopyCopy) - 1;
-            counter = numSamplesPerFrame - 3;
+            int secondWordCopyCopyCopyCopy = secondWordCopyCopyCopy;
+            const int secondWord_Unknown1 = (1 << secondWordCopyCopyCopy) - 1;
+            int counter = numSamplesPerFrame - 3;
+            int v45 = 0;
             for (;;)
             {
                 //            LOWORD(v45) = gFirstAudioFrameDWORD_dword_62EFB4 & secondWord_Unknown1;
@@ -996,7 +950,7 @@ namespace Oddlib
                     fourthWordCopyCopy = fourthWordCopyCopyCopy;
                 }
 
-                secondWord_Unknown2 = 1 << (secondWordCopyCopyCopy - 1);
+                signed int secondWord_Unknown2 = 1 << (secondWordCopyCopyCopy - 1);
                 v45 = (s16)v45;
 
                 if ((s16)v45 != secondWordMask)
@@ -1061,7 +1015,7 @@ namespace Oddlib
                     loopOutput = (s16)(v58 + (u16)v45);
                 }
                 *outPtr = static_cast<u16>(loopOutput); // int to word
-                bCountIsOne = counter == 1;
+                const char bCountIsOne = counter == 1;
                 outPtr += gAudioFrameSizeBytes;
                 --counter;
                 if (bCountIsOne)
