@@ -931,7 +931,8 @@ namespace Oddlib
                     }
                     else
                     {
-                        break;
+                        v45 = -(v45 & ~secondWord_Unknown2);
+                        goto LABEL_34;
                     }
                 }
 
@@ -948,7 +949,6 @@ namespace Oddlib
                     {
                         goto LABEL_34;
                     }
-                inner_loop:
                     v45 = -(v45 & ~secondWord_Unknown2);
                     goto LABEL_34;
                 }
@@ -964,7 +964,6 @@ namespace Oddlib
                     v45 = -(v45 & ~forthWordMask);
                 }
                 
-
             LABEL_34:
                 const int v59 = fithWordCopy;
                 fithWordCopy = sixthWordCopy; // outputTmpCopy and fithWordCopyCopy is constant within the loop
@@ -980,8 +979,10 @@ namespace Oddlib
                 {
                     seventhWordCopy = (s16)(v58 + (u16)v45);
                 }
+
                 *outPtr = static_cast<u16>(seventhWordCopy); // int to word
                 outPtr += gAudioFrameSizeBytes;
+
                 --counter;
                 if (counter == 0)
                 {
@@ -989,8 +990,6 @@ namespace Oddlib
                 }
 
             } // End loop
-
-            goto inner_loop;
         }
         return SndRelated_sub_409650();
     }
