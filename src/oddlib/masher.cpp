@@ -796,20 +796,7 @@ namespace Oddlib
     u16** gAudioFrameDataPtr = &gTemp;
     unsigned char gSndTbl_byte_62EEB0[256] = {};
 
-    static int ReadNextAudioWord(int value)
-    {
-        if (gBitCounter <= 16)
-        {
-            const int srcVal = *(*gAudioFrameDataPtr);
-            ++(*gAudioFrameDataPtr);
-            value |= srcVal << gBitCounter;
-            gBitCounter += 16;
-        }
-        return value;
-    }
-
-
-    int GetSoundTableValue(s16 tblIndex)
+    static int GetSoundTableValue(s16 tblIndex)
     {
         //s16 oldIdx = tblIndex;
 
@@ -831,7 +818,7 @@ namespace Oddlib
     }
 
 
-    int sub_408F50(s16 a1)
+    static int sub_408F50(s16 a1)
     {
         s16 v2 = static_cast<s16>(abs(a1));
         int result = (u16)((v2 & 0x7F) << (v2 >> 7)) | (u16)(1 << ((v2 >> 7) - 2));
@@ -842,6 +829,17 @@ namespace Oddlib
         return result;
     }
 
+    static int ReadNextAudioWord(int value)
+    {
+        if (gBitCounter <= 16)
+        {
+            const int srcVal = *(*gAudioFrameDataPtr);
+            ++(*gAudioFrameDataPtr);
+            value |= srcVal << gBitCounter;
+            gBitCounter += 16;
+        }
+        return value;
+    }
 
     static int SndRelated_sub_409650()
     {
@@ -902,26 +900,22 @@ namespace Oddlib
         *outPtr = seventhWord;
         outPtr += gAudioFrameSizeBytes;
 
-        const signed int secondWordMask = 1 << (secondWord - 1);
-        const signed int thirdWordMask = 1 << (thirdWord - 1);
-        const signed int forthWordMask = 1 << (fourthWord - 1);
-
         if (numSamplesPerFrame > 3)
         {
             int counter = (numSamplesPerFrame - 3);
-            const int bUseTbl = firstWord & 0xFFFF;
             while (counter--)
             {
                 int v45 = 0;
                 for (;;)
                 {
                     // B1
-                    v45 = gFirstAudioFrameDWORD & ((1 << secondWord) - 1);
                     gBitCounter -= secondWord;
+                    v45 = gFirstAudioFrameDWORD & ((1 << secondWord) - 1);
                     gFirstAudioFrameDWORD >>= secondWord;
                     gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
                     v45 = (s16)v45;
+                    const signed int secondWordMask = 1 << (secondWord - 1);
                     if ((s16)v45 != secondWordMask)
                     {
                         if (v45 & secondWordMask)
@@ -932,12 +926,13 @@ namespace Oddlib
                     }
 
                     // B2
-                    v45 = gFirstAudioFrameDWORD & ((1 << thirdWord) - 1);
                     gBitCounter -= thirdWord;
+                    v45 = gFirstAudioFrameDWORD & ((1 << thirdWord) - 1);
                     gFirstAudioFrameDWORD >>= thirdWord;
                     gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
                     v45 = (s16)v45;
+                    const signed int thirdWordMask = 1 << (thirdWord - 1);
                     if ((s16)v45 != thirdWordMask)
                     {
                         if (v45 & thirdWordMask)
@@ -948,12 +943,13 @@ namespace Oddlib
                     }
 
                     // B3
-                    v45 = gFirstAudioFrameDWORD & ((1 << fourthWord) - 1);
                     gBitCounter -= fourthWord;
+                    v45 = gFirstAudioFrameDWORD & ((1 << fourthWord) - 1);
                     gFirstAudioFrameDWORD >>= fourthWord;
                     gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
 
                     v45 = (s16)v45;
+                    const signed int forthWordMask = 1 << (fourthWord - 1);
                     if ((s16)v45 != forthWordMask)
                     {
                         if ((s16)v45 & forthWordMask)
@@ -962,13 +958,16 @@ namespace Oddlib
                         }
                         break;
                     }
+
+                    break;
                 }
 
                 const int v59 = fithWordCopy;
-                fithWordCopy = sixthWordCopy; // outputTmpCopy and fithWordCopyCopy is constant within the loop
+                fithWordCopy = sixthWordCopy;
                 const int v60 = 5 * seventhWordCopy - 4 * sixthWordCopy;
                 sixthWordCopy = seventhWordCopy;
                 const int v58 = (v59 + v60) >> 1;
+                const int bUseTbl = firstWord & 0xFFFF;
                 if (bUseTbl)
                 {
                     const auto v61 = GetSoundTableValue(static_cast<s16>(v58)); // int to short
@@ -988,7 +987,7 @@ namespace Oddlib
 
 
 
-    u16* SetupAudioDecodePtrs(u16 *rawFrameBuffer)
+    static u16* SetupAudioDecodePtrs(u16 *rawFrameBuffer)
     {
         u16 *result; // eax@1
 
