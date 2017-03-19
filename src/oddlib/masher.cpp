@@ -851,42 +851,25 @@ namespace Oddlib
         return gBitCounter;
     }
 
+    static s16 NextBits(u16 numBits)
+    {
+        gBitCounter -= numBits;
+        const s16 ret = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << numBits) - 1));
+        gFirstAudioFrameDWORD >>= numBits;
+        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
+        return ret;
+    }
+
+
     int decode_16bit_audio_frame(u16* outPtr, int numSamplesPerFrame)
     {
-        gBitCounter -= 16;
-        const s16 firstWord = static_cast<s16>(gFirstAudioFrameDWORD);
-        gFirstAudioFrameDWORD >>= 16;
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-        gBitCounter -= 16;
-        const s16 secondWord = static_cast<s16>(gFirstAudioFrameDWORD);
-        gFirstAudioFrameDWORD >>= 16;
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-        gBitCounter -= 16;
-        const s16 thirdWord = static_cast<s16>(gFirstAudioFrameDWORD);
-        gFirstAudioFrameDWORD >>= 16;
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-        gBitCounter -= 16;
-        const s16 fourthWord = static_cast<s16>(gFirstAudioFrameDWORD);
-        gFirstAudioFrameDWORD >>= 16;
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-        gBitCounter -= 16;
-        const s16 fithWord = static_cast<s16>(gFirstAudioFrameDWORD);
-        gFirstAudioFrameDWORD >>= 16;
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-        gBitCounter -= 16;
-        const s16 sixthWord = static_cast<s16>(gFirstAudioFrameDWORD);
-        gFirstAudioFrameDWORD >>= 16;
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-        gBitCounter -= 16;
-        const s16 seventhWord = static_cast<s16>(gFirstAudioFrameDWORD);
-        gFirstAudioFrameDWORD >>= 16;
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
+        const s16 firstWord = NextBits(16);
+        const s16 secondWord = NextBits(16);
+        const s16 thirdWord = NextBits(16);
+        const s16 fourthWord = NextBits(16);
+        const s16 fithWord = NextBits(16);
+        const s16 sixthWord = NextBits(16);
+        const s16 seventhWord = NextBits(16);
 
         int previousValue1 = (s16)fithWord;
         *outPtr = fithWord;
@@ -907,11 +890,7 @@ namespace Oddlib
             do
             {
                 // B1
-                gBitCounter -= secondWord;
-                samplePart = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << secondWord) - 1));
-                gFirstAudioFrameDWORD >>= secondWord;
-                gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
+                samplePart = NextBits(secondWord);
                 const signed int secondWordMask = 1 << (secondWord - 1);
                 if (samplePart != secondWordMask)
                 {
@@ -923,11 +902,7 @@ namespace Oddlib
                 }
 
                 // B2
-                gBitCounter -= thirdWord;
-                samplePart = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << thirdWord) - 1));
-                gFirstAudioFrameDWORD >>= thirdWord;
-                gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
+                samplePart = NextBits(thirdWord);
                 const signed int thirdWordMask = 1 << (thirdWord - 1);
                 if (samplePart != thirdWordMask)
                 {
@@ -939,11 +914,7 @@ namespace Oddlib
                 }
 
                 // B3
-                gBitCounter -= fourthWord;
-                samplePart = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << fourthWord) - 1));
-                gFirstAudioFrameDWORD >>= fourthWord;
-                gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
+                samplePart = NextBits(fourthWord);
                 const signed int forthWordMask = 1 << (fourthWord - 1);
                 if (samplePart != forthWordMask)
                 {
