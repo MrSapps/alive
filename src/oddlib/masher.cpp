@@ -851,7 +851,7 @@ namespace Oddlib
         return gBitCounter;
     }
 
-    static s16 NextBits(u16 numBits)
+    static s16 NextSoundBits(u16 numBits)
     {
         gBitCounter -= numBits;
         const s16 ret = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << numBits) - 1));
@@ -876,23 +876,23 @@ namespace Oddlib
 
     int decode_16bit_audio_frame(u16* outPtr, int numSamplesPerFrame)
     {
-        const s16 useTableFlag = NextBits(16);
+        const s16 useTableFlag = NextSoundBits(16);
 
-        const s16 firstWord = NextBits(16);
-        const s16 secondWord = NextBits(16);
-        const s16 thirdWord = NextBits(16);
+        const s16 firstWord = NextSoundBits(16);
+        const s16 secondWord = NextSoundBits(16);
+        const s16 thirdWord = NextSoundBits(16);
 
-        const s16 previous1 = NextBits(16);
+        const s16 previous1 = NextSoundBits(16);
         int previousValue1 = (s16)previous1;
         *outPtr = previous1;
         outPtr += gAudioFrameSizeBytes;
 
-        const s16 previous2 = NextBits(16);
+        const s16 previous2 = NextSoundBits(16);
         int previousValue2 = (s16)previous2;
         *outPtr = previous2;
         outPtr += gAudioFrameSizeBytes;
 
-        const s16 previous3 = NextBits(16);
+        const s16 previous3 = NextSoundBits(16);
         int previousValue3 = (s16)previous3;
         *outPtr = previous3;
         outPtr += gAudioFrameSizeBytes;
@@ -903,19 +903,19 @@ namespace Oddlib
             s16 samplePart = 0;
             do
             {
-                samplePart = NextBits(firstWord);
+                samplePart = NextSoundBits(firstWord);
                 if (SampleMatches(samplePart, firstWord))
                 {
                     break;
                 }
 
-                samplePart = NextBits(secondWord);
+                samplePart = NextSoundBits(secondWord);
                 if (SampleMatches(samplePart, secondWord))
                 {
                     break;
                 }
 
-                samplePart = NextBits(thirdWord);
+                samplePart = NextSoundBits(thirdWord);
                 if (SampleMatches(samplePart, thirdWord))
                 {
                     break;
