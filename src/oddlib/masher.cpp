@@ -955,10 +955,8 @@ namespace Oddlib
                 }
             } while (false);
 
-            const int v59 = fithWordCopy;
             const int v60 = 5 * seventhWordCopy - 4 * sixthWordCopy;
-           
-            const int v58 = (v59 + v60) >> 1;
+            const int v58 = (fithWordCopy + v60) >> 1;
         
             fithWordCopy = sixthWordCopy;
             sixthWordCopy = seventhWordCopy;
