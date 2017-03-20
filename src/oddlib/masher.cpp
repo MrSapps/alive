@@ -789,14 +789,12 @@ namespace Oddlib
 
     }
 
-    int gBitCounter = 0;
-    u32 gFirstAudioFrameDWORD = 0;
-    int gAudioFrameSizeBytes = 0;
-    u16* gTemp = nullptr;
-    u16** gAudioFrameDataPtr = &gTemp;
-    unsigned char gSndTbl_byte_62EEB0[256] = {};
+    AudioDecompressor::AudioDecompressor()
+    {
+        init_Snd_tbl();
+    }
 
-    static int GetSoundTableValue(s16 tblIndex)
+    /*static*/ int AudioDecompressor::GetSoundTableValue(s16 tblIndex)
     {
         //s16 oldIdx = tblIndex;
 
@@ -818,7 +816,7 @@ namespace Oddlib
     }
 
 
-    static s16 sub_408F50(s16 a1)
+    s16 AudioDecompressor::sub_408F50(s16 a1)
     {
         s16 v2 = static_cast<s16>(abs(a1));
         s16 result = (u16)((v2 & 0x7F) << (v2 >> 7)) | (u16)(1 << ((v2 >> 7) - 2));
@@ -829,7 +827,7 @@ namespace Oddlib
         return result;
     }
 
-    static int ReadNextAudioWord(int value)
+    int AudioDecompressor::ReadNextAudioWord(int value)
     {
         if (gBitCounter <= 16)
         {
@@ -841,7 +839,7 @@ namespace Oddlib
         return value;
     }
 
-    static int SndRelated_sub_409650()
+    int AudioDecompressor::SndRelated_sub_409650()
     {
         const int v1 = gBitCounter & 7;
         gBitCounter -= v1;
@@ -851,7 +849,7 @@ namespace Oddlib
         return gBitCounter;
     }
 
-    static s16 NextSoundBits(u16 numBits)
+    s16 AudioDecompressor::NextSoundBits(u16 numBits)
     {
         gBitCounter -= numBits;
         const s16 ret = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << numBits) - 1));
@@ -860,7 +858,7 @@ namespace Oddlib
         return ret;
     }
 
-    bool SampleMatches(s16& sample, s16 bits)
+    bool AudioDecompressor::SampleMatches(s16& sample, s16 bits)
     {
         const signed int mask = 1 << (bits - 1);
         if (sample != mask)
@@ -874,7 +872,7 @@ namespace Oddlib
         return false;
     }
 
-    int decode_16bit_audio_frame(u16* outPtr, int numSamplesPerFrame)
+    int AudioDecompressor::decode_16bit_audio_frame(u16* outPtr, int numSamplesPerFrame)
     {
         const s16 useTableFlag = NextSoundBits(16);
 
@@ -924,7 +922,7 @@ namespace Oddlib
 
             const int previous = (5 * previousValue3) - (4 * previousValue2);
             const int samplePartOrTableIndex = (previousValue1 + previous) >> 1;
-        
+
             previousValue1 = previousValue2;
             previousValue2 = previousValue3;
 
@@ -946,7 +944,7 @@ namespace Oddlib
         return SndRelated_sub_409650();
     }
 
-    static u16* SetupAudioDecodePtrs(u16 *rawFrameBuffer)
+    u16* AudioDecompressor::SetupAudioDecodePtrs(u16 *rawFrameBuffer)
     {
         u16 *result; // eax@1
 
@@ -958,11 +956,46 @@ namespace Oddlib
         return result;
     }
 
+    int AudioDecompressor::SetAudioFrameSizeBytesAndBits(int audioFrameSizeBytes)
+    {
+        int result; // eax@1
+
+        result = audioFrameSizeBytes;
+        gAudioFrameSizeBytes = audioFrameSizeBytes;
+        // gAudioFrameSizeBits = audioFrameSizeBits;
+        return result;
+    }
+
+    /*static*/ void AudioDecompressor::init_Snd_tbl()
+    {
+        static bool done = false;
+        if (!done)
+        {
+            done = true;
+            int index = 0;
+            do
+            {
+                int tableValue = 0;
+                for (int i = index; i > 0; ++tableValue)
+                {
+                    i >>= 1;
+                }
+                gSndTbl_byte_62EEB0[index++] = static_cast<unsigned char>(tableValue);
+            } while (index < 256);
+        }
+    }
+
+
+    unsigned char AudioDecompressor::gSndTbl_byte_62EEB0[256];
+
     int Masher::decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame)
     {
         int result; // eax@2
 
-        SetupAudioDecodePtrs(rawFrameBuffer);
+        AudioDecompressor decompressor;
+
+        decompressor.SetAudioFrameSizeBytesAndBits(2);
+        decompressor.SetupAudioDecodePtrs(rawFrameBuffer);
         if (false /*gAudioFrameSizeBits == 8*/)               // if 8 bit
         {
             abort();
@@ -978,30 +1011,19 @@ namespace Oddlib
         else
         {
 
-            SetupAudioDecodePtrs(rawFrameBuffer);
+            decompressor.SetupAudioDecodePtrs(rawFrameBuffer);
             memset(outPtr, 0, numSamplesPerFrame * 4);
-            decode_16bit_audio_frame(outPtr, numSamplesPerFrame);
+            decompressor.decode_16bit_audio_frame(outPtr, numSamplesPerFrame);
 
-            result = gAudioFrameSizeBytes;
-            if (gAudioFrameSizeBytes == 2)
+            result = decompressor.gAudioFrameSizeBytes;
+            if (decompressor.gAudioFrameSizeBytes == 2)
             {
-                result = decode_16bit_audio_frame(outPtr + 1, numSamplesPerFrame);
+                result = decompressor.decode_16bit_audio_frame(outPtr + 1, numSamplesPerFrame);
                 //  result = sound16bitRelated_sub_4096B0_ptr(outPtr + 1, numSamplesPerFrame);
             }
         }
         return result;
     }
-
-    int SetAudioFrameSizeBytesAndBits(int audioFrameSizeBytes)
-    {
-        int result; // eax@1
-
-        result = audioFrameSizeBytes;
-        gAudioFrameSizeBytes = audioFrameSizeBytes;
-        // gAudioFrameSizeBits = audioFrameSizeBits;
-        return result;
-    }
-
 
     // 0040DBB0
     void Masher::do_decode_audio_frame(u8* audioBuffer)
@@ -1009,8 +1031,7 @@ namespace Oddlib
         if (mbHasAudio)
         {
             //            SetAudioFrameSizeBytesAndBits(mAudioFrameSizeBytes, mAudioFrameSizeBits);
-            SetAudioFrameSizeBytesAndBits(2);
-
+            
             decode_audio_frame((u16 *)mAudioFrameData.data(), (u16 *)audioBuffer, mAudioHeader.mSingleAudioFrameSize);
             //++thisPtr->mAudioFrameNumber;
         }
@@ -1020,21 +1041,6 @@ namespace Oddlib
             // result = 0;
         }
     }
-
-    void init_Snd_tbl()
-    {
-        int index = 0;
-        do
-        {
-            int tableValue = 0;
-            for (int i = index; i > 0; ++tableValue)
-            {
-                i >>= 1;
-            }
-            gSndTbl_byte_62EEB0[index++] = static_cast<unsigned char>(tableValue);
-        } while (index < 256);
-    }
-
 
     void Masher::ParseAudioFrame(u8* audioBuffer)
     {
@@ -1046,12 +1052,6 @@ namespace Oddlib
 
     bool Masher::Update(u32* pixelBuffer, u8* audioBuffer)
     {
-        if (mCurrentFrame == 0)
-        {
-            // TODO: Make this a one shot thing
-            init_Snd_tbl();
-        }
-
         if (mCurrentFrame < mFileHeader.mNumberOfFrames)
         {
             if (mbHasVideo && mbHasAudio)

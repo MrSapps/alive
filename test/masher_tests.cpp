@@ -1774,12 +1774,9 @@ TEST(Masher, stereo_16_low_compression_all_samples)
 }
 
 // TODO: Has a bug in release
-#ifdef _DEBUG
 TEST(Masher, Decode16BitStereoAudio)
 {
     TestMasher masher;
-    Oddlib::SetAudioFrameSizeBytesAndBits(2);
-    Oddlib::init_Snd_tbl();
 
     std::vector<u16> rawFrameBuffer;
     const std::vector<u8> kCompressed = get_compressed_audio();
@@ -1800,4 +1797,3 @@ TEST(Masher, Decode16BitStereoAudio)
     memcpy(expected16.data(), kExpected.data(), kExpected.size());
     ASSERT_TRUE(memcmp(expected16.data(), outPtr.data(), outPtr.size()*sizeof(u16)) == 0);
 }
-#endif
