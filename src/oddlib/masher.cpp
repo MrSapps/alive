@@ -794,27 +794,16 @@ namespace Oddlib
         init_Snd_tbl();
     }
 
-    /*static*/ int AudioDecompressor::GetSoundTableValue(s16 tblIndex)
+    /*static*/ s32 AudioDecompressor::GetSoundTableValue(s16 tblIndex)
     {
-        //s16 oldIdx = tblIndex;
-
-        int result; // eax@1
-        s16 positiveTblIdx; // ax@1
-
-        positiveTblIdx = static_cast<s16>(abs(tblIndex));
-        result = (u16)((s16)gSndTbl_byte_62EEB0[positiveTblIdx >> 7] << 7) | (u16)(positiveTblIdx >> gSndTbl_byte_62EEB0[positiveTblIdx >> 7]);
+        s16 positiveTblIdx = static_cast<s16>(abs(tblIndex));
+        s32 result = (u16)((s16)gSndTbl_byte_62EEB0[positiveTblIdx >> 7] << 7) | (u16)(positiveTblIdx >> gSndTbl_byte_62EEB0[positiveTblIdx >> 7]);
         if (tblIndex < 0)
         {
             result = -result;
         }
-
-        // char buf[512] = {};
-        // sprintf(buf, "%d %d\n", oldIdx, result);
-        // OutputDebugStringA(buf);
-
         return result;
     }
-
 
     s16 AudioDecompressor::sub_408F50(s16 a1)
     {
@@ -827,52 +816,51 @@ namespace Oddlib
         return result;
     }
 
-    int AudioDecompressor::ReadNextAudioWord(int value)
+    s32 AudioDecompressor::ReadNextAudioWord(s32 value)
     {
-        if (gBitCounter <= 16)
+        if (mUsedBits <= 16)
         {
-            const int srcVal = *(*gAudioFrameDataPtr);
-            ++(*gAudioFrameDataPtr);
-            value |= srcVal << gBitCounter;
-            gBitCounter += 16;
+            const int srcVal = *mAudioFrameDataPtr;
+            ++mAudioFrameDataPtr;
+            value |= srcVal << mUsedBits;
+            mUsedBits += 16;
         }
         return value;
     }
 
-    int AudioDecompressor::SndRelated_sub_409650()
+    s32 AudioDecompressor::SndRelated_sub_409650()
     {
-        const int v1 = gBitCounter & 7;
-        gBitCounter -= v1;
-        gFirstAudioFrameDWORD >>= v1;
-
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-        return gBitCounter;
+        const s32 numBits = mUsedBits & 7;
+        mUsedBits -= numBits;
+        mWorkBits >>= numBits;
+        mWorkBits = ReadNextAudioWord(mWorkBits);
+        return mUsedBits;
     }
 
     s16 AudioDecompressor::NextSoundBits(u16 numBits)
     {
-        gBitCounter -= numBits;
-        const s16 ret = static_cast<s16>(gFirstAudioFrameDWORD & ((1 << numBits) - 1));
-        gFirstAudioFrameDWORD >>= numBits;
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
+        mUsedBits -= numBits;
+        const s16 ret = static_cast<s16>(mWorkBits & ((1 << numBits) - 1));
+        mWorkBits >>= numBits;
+        mWorkBits = ReadNextAudioWord(mWorkBits);
         return ret;
     }
 
-    bool AudioDecompressor::SampleMatches(s16& sample, s16 bits)
+    bool AudioDecompressor::SampleMatches(s16& sample, s16 bitNum)
     {
-        const signed int mask = 1 << (bits - 1);
-        if (sample != mask)
+        const s32 bitMask = 1 << (bitNum - 1);
+        if (sample != bitMask)
         {
-            if (sample & mask)
+            if (sample & bitMask)
             {
-                sample = -(sample & ~mask);
+                sample = -(sample & ~bitMask);
             }
             return true;
         }
         return false;
     }
 
-    int AudioDecompressor::decode_16bit_audio_frame(u16* outPtr, int numSamplesPerFrame)
+    int AudioDecompressor::decode_16bit_audio_frame(u16* outPtr, s32 numSamplesPerFrame)
     {
         const s16 useTableFlag = NextSoundBits(16);
 
@@ -881,21 +869,21 @@ namespace Oddlib
         const s16 thirdWord = NextSoundBits(16);
 
         const s16 previous1 = NextSoundBits(16);
-        int previousValue1 = (s16)previous1;
+        s32 previousValue1 = static_cast<s16>(previous1);
         *outPtr = previous1;
-        outPtr += gAudioFrameSizeBytes;
+        outPtr += mAudioFrameSizeBytes;
 
         const s16 previous2 = NextSoundBits(16);
-        int previousValue2 = (s16)previous2;
+        s32 previousValue2 = static_cast<s16>(previous2);
         *outPtr = previous2;
-        outPtr += gAudioFrameSizeBytes;
+        outPtr += mAudioFrameSizeBytes;
 
         const s16 previous3 = NextSoundBits(16);
-        int previousValue3 = (s16)previous3;
+        s32 previousValue3 = static_cast<s16>(previous3);
         *outPtr = previous3;
-        outPtr += gAudioFrameSizeBytes;
+        outPtr += mAudioFrameSizeBytes;
 
-        int counter = (numSamplesPerFrame - 3) - 1; // Because we just wrote 3 samples out
+        s32 counter = (numSamplesPerFrame - 3) - 1; // Because we just wrote 3 samples out
         while (counter-- >= 0)
         {
             s16 samplePart = 0;
@@ -920,8 +908,8 @@ namespace Oddlib
                 }
             } while (false);
 
-            const int previous = (5 * previousValue3) - (4 * previousValue2);
-            const int samplePartOrTableIndex = (previousValue1 + previous) >> 1;
+            const s32 previous = (5 * previousValue3) - (4 * previousValue2);
+            const s32 samplePartOrTableIndex = (previousValue1 + previous) >> 1;
 
             previousValue1 = previousValue2;
             previousValue2 = previousValue3;
@@ -929,41 +917,33 @@ namespace Oddlib
             const bool bUseTbl = useTableFlag != 0;
             if (bUseTbl)
             {
-                const auto soundTableValue = GetSoundTableValue(static_cast<s16>(samplePartOrTableIndex)); // int to short
-                previousValue3 = sub_408F50(static_cast<s16>(samplePart + soundTableValue)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
+                const s32 soundTableValue = GetSoundTableValue(static_cast<s16>(samplePartOrTableIndex));
+                previousValue3 = sub_408F50(static_cast<s16>(samplePart + soundTableValue));
             }
             else
             {
-                previousValue3 = (s16)(samplePartOrTableIndex + (u16)samplePart);
+                previousValue3 = static_cast<s16>(samplePartOrTableIndex + samplePart);
             }
 
             *outPtr = static_cast<u16>(previousValue3); // int to word
-            outPtr += gAudioFrameSizeBytes;
-        } // End loop
-
+            outPtr += mAudioFrameSizeBytes;
+        }
         return SndRelated_sub_409650();
     }
 
     u16* AudioDecompressor::SetupAudioDecodePtrs(u16 *rawFrameBuffer)
     {
-        u16 *result; // eax@1
-
-        *gAudioFrameDataPtr = rawFrameBuffer;
-        result = rawFrameBuffer + 2;
-        gFirstAudioFrameDWORD = *(u32 *)rawFrameBuffer;
-        *gAudioFrameDataPtr = rawFrameBuffer + 2;
-        gBitCounter = 32;
-        return result;
+        mAudioFrameDataPtr = rawFrameBuffer;
+        mWorkBits = *(u32 *)mAudioFrameDataPtr;
+        mAudioFrameDataPtr = mAudioFrameDataPtr + 2;
+        mUsedBits = 32;
+        return mAudioFrameDataPtr;
     }
 
-    int AudioDecompressor::SetAudioFrameSizeBytesAndBits(int audioFrameSizeBytes)
+    s32 AudioDecompressor::SetAudioFrameSizeBytesAndBits(s32 audioFrameSizeBytes)
     {
-        int result; // eax@1
-
-        result = audioFrameSizeBytes;
-        gAudioFrameSizeBytes = audioFrameSizeBytes;
-        // gAudioFrameSizeBits = audioFrameSizeBits;
-        return result;
+        mAudioFrameSizeBytes = audioFrameSizeBytes;
+        return mAudioFrameSizeBytes;
     }
 
     /*static*/ void AudioDecompressor::init_Snd_tbl()
@@ -980,13 +960,13 @@ namespace Oddlib
                 {
                     i >>= 1;
                 }
-                gSndTbl_byte_62EEB0[index++] = static_cast<unsigned char>(tableValue);
+                gSndTbl_byte_62EEB0[index++] = static_cast<u8>(tableValue);
             } while (index < 256);
         }
     }
 
 
-    unsigned char AudioDecompressor::gSndTbl_byte_62EEB0[256];
+    /*static*/ u8 AudioDecompressor::gSndTbl_byte_62EEB0[256];
 
     int Masher::decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame)
     {
@@ -1015,8 +995,8 @@ namespace Oddlib
             memset(outPtr, 0, numSamplesPerFrame * 4);
             decompressor.decode_16bit_audio_frame(outPtr, numSamplesPerFrame);
 
-            result = decompressor.gAudioFrameSizeBytes;
-            if (decompressor.gAudioFrameSizeBytes == 2)
+            result = decompressor.mAudioFrameSizeBytes;
+            if (decompressor.mAudioFrameSizeBytes == 2)
             {
                 result = decompressor.decode_16bit_audio_frame(outPtr + 1, numSamplesPerFrame);
                 //  result = sound16bitRelated_sub_4096B0_ptr(outPtr + 1, numSamplesPerFrame);

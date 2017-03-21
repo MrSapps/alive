@@ -10,24 +10,23 @@ namespace Oddlib
     class AudioDecompressor
     {
     public:
-        int gBitCounter = 0;
-        u32 gFirstAudioFrameDWORD = 0;
-        int gAudioFrameSizeBytes = 0;
-        u16* gTemp = nullptr;
-        u16** gAudioFrameDataPtr = &gTemp;
+        s32 mUsedBits = 0;
+        u32 mWorkBits = 0;
+        s32 mAudioFrameSizeBytes = 0;
+        u16* mAudioFrameDataPtr = nullptr;
 
-        static unsigned char gSndTbl_byte_62EEB0[256];
+        static u8 gSndTbl_byte_62EEB0[256];
 
         AudioDecompressor();
-        static int GetSoundTableValue(s16 tblIndex);
+        static s32 GetSoundTableValue(s16 tblIndex);
         s16 sub_408F50(s16 a1);
-        int ReadNextAudioWord(int value);
-        int SndRelated_sub_409650();
+        s32 ReadNextAudioWord(s32 value);
+        s32 SndRelated_sub_409650();
         s16 NextSoundBits(u16 numBits);
         bool SampleMatches(s16& sample, s16 bits);
-        int decode_16bit_audio_frame(u16* outPtr, int numSamplesPerFrame);
+        s32 decode_16bit_audio_frame(u16* outPtr, s32 numSamplesPerFrame);
         u16* SetupAudioDecodePtrs(u16 *rawFrameBuffer);
-        int SetAudioFrameSizeBytesAndBits(int audioFrameSizeBytes);
+        s32 SetAudioFrameSizeBytesAndBits(s32 audioFrameSizeBytes);
         static void init_Snd_tbl();
     };
 
