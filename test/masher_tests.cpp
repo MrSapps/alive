@@ -16,6 +16,8 @@
 #include "stereo_8_low_compression_all_samples.ddv.g.h"
 #include "expected_audio.dat.g.h"
 #include "compressed_audio.dat.g.h"
+#include "F470_out.g.h"
+#include "F470_in.g.h"
 
 const static u16 kLowCompression16BitExpected[0x3281] =
 {
@@ -1776,13 +1778,14 @@ TEST(Masher, stereo_16_low_compression_all_samples)
 // TODO: Has a bug in release
 TEST(Masher, Decode16BitStereoAudio)
 {
+    
     TestMasher masher;
 
     std::vector<u16> rawFrameBuffer;
-    const std::vector<u8> kCompressed = get_compressed_audio();
+    const std::vector<u8> kCompressed = get_F470_in();
     rawFrameBuffer.resize(kCompressed.size() / sizeof(u16));
     memcpy(rawFrameBuffer.data(), kCompressed.data(), kCompressed.size());
-
+    
 
     const signed int numSamplesPerFrame = 2940; //  sampleRate / fps, i.e 44100/15=2940
     const int numChannels = 2;
@@ -1790,10 +1793,20 @@ TEST(Masher, Decode16BitStereoAudio)
 
     masher.decode_audio_frame(rawFrameBuffer.data(), outPtr.data(), numSamplesPerFrame);
 
-    const std::vector<u8> kExpected = get_expected_audio();
+    const std::vector<u8> kExpected = get_F470_out();
     ASSERT_EQ(kExpected.size()/sizeof(u16), outPtr.size());
 
     std::vector<u16> expected16(outPtr.size());
     memcpy(expected16.data(), kExpected.data(), kExpected.size());
     ASSERT_TRUE(memcmp(expected16.data(), outPtr.data(), outPtr.size()*sizeof(u16)) == 0);
+    
+
+    /*
+    auto sPtr = std::make_unique<Oddlib::FileStream>("F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\train2.ddv", Oddlib::IStream::ReadMode::ReadOnly);
+    Oddlib::Masher m(std::move(sPtr));
+
+    std::vector<u8> audioBuffer((m.SingleAudioFrameSizeSamples() * 4));
+
+    while (m.Update(nullptr, audioBuffer.data())) {}
+    */
 }
