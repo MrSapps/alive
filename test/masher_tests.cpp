@@ -1781,10 +1781,16 @@ TEST(Masher, Decode16BitStereoAudio)
     Oddlib::Tracer t;
     Oddlib::AudioDecompressor d(t);
 
+    // Debug x64 MSVC test case
     s32 idx = 32768;
     ASSERT_EQ(-32768, d.GetSoundTableValue(static_cast<s16>(idx)));
 
-    
+    // Release x86/x64 MSVC test case
+    s16 samplePart = -770;
+    s32 soundTableValue = 707;
+    ASSERT_EQ(-63, d.sub_408F50(static_cast<s16>(samplePart + soundTableValue)));
+
+
     TestMasher masher;
 
     std::vector<u16> rawFrameBuffer;
@@ -1805,7 +1811,7 @@ TEST(Masher, Decode16BitStereoAudio)
     std::vector<u16> expected16(outPtr.size());
     memcpy(expected16.data(), kExpected.data(), kExpected.size());
     ASSERT_TRUE(memcmp(expected16.data(), outPtr.data(), outPtr.size()*sizeof(u16)) == 0);
-    
+
 
     /*
     auto sPtr = std::make_unique<Oddlib::FileStream>("F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\train2.ddv", Oddlib::IStream::ReadMode::ReadOnly);
