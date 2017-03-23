@@ -883,50 +883,52 @@ namespace Oddlib
         *outPtr = previous3;
         outPtr += mAudioFrameSizeBytes;
 
-        s32 counter = (numSamplesPerFrame - 3) - 1; // Because we just wrote 3 samples out
-        while (counter-- >= 0)
+        if (numSamplesPerFrame > 3)
         {
-            s16 samplePart = 0;
-            do
+            for (s32 counter = 0; counter < numSamplesPerFrame - 3; counter++)
             {
-                samplePart = NextSoundBits(firstWord);
-                if (SampleMatches(samplePart, firstWord))
+                s16 samplePart = 0;
+                do
                 {
-                    break;
+                    samplePart = NextSoundBits(firstWord);
+                    if (SampleMatches(samplePart, firstWord))
+                    {
+                        break;
+                    }
+
+                    samplePart = NextSoundBits(secondWord);
+                    if (SampleMatches(samplePart, secondWord))
+                    {
+                        break;
+                    }
+
+                    samplePart = NextSoundBits(thirdWord);
+                    if (SampleMatches(samplePart, thirdWord))
+                    {
+                        break;
+                    }
+                } while (false);
+
+                const s32 previous = (5 * previousValue3) - (4 * previousValue2);
+                const s32 samplePartOrTableIndex = (previousValue1 + previous) >> 1;
+
+                previousValue1 = previousValue2;
+                previousValue2 = previousValue3;
+
+                const bool bUseTbl = useTableFlag != 0;
+                if (bUseTbl)
+                {
+                    const s32 soundTableValue = GetSoundTableValue(static_cast<s16>(samplePartOrTableIndex));
+                    previousValue3 = sub_408F50(static_cast<s16>(samplePart + soundTableValue));
+                }
+                else
+                {
+                    previousValue3 = static_cast<s16>(samplePartOrTableIndex + samplePart);
                 }
 
-                samplePart = NextSoundBits(secondWord);
-                if (SampleMatches(samplePart, secondWord))
-                {
-                    break;
-                }
-
-                samplePart = NextSoundBits(thirdWord);
-                if (SampleMatches(samplePart, thirdWord))
-                {
-                    break;
-                }
-            } while (false);
-
-            const s32 previous = (5 * previousValue3) - (4 * previousValue2);
-            const s32 samplePartOrTableIndex = (previousValue1 + previous) >> 1;
-
-            previousValue1 = previousValue2;
-            previousValue2 = previousValue3;
-
-            const bool bUseTbl = useTableFlag != 0;
-            if (bUseTbl)
-            {
-                const s32 soundTableValue = GetSoundTableValue(static_cast<s16>(samplePartOrTableIndex));
-                previousValue3 = sub_408F50(static_cast<s16>(samplePart + soundTableValue));
+                *outPtr = static_cast<u16>(previousValue3); // int to word
+                outPtr += mAudioFrameSizeBytes;
             }
-            else
-            {
-                previousValue3 = static_cast<s16>(samplePartOrTableIndex + samplePart);
-            }
-
-            *outPtr = static_cast<u16>(previousValue3); // int to word
-            outPtr += mAudioFrameSizeBytes;
         }
         return SndRelated_sub_409650();
     }

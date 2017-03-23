@@ -495,7 +495,8 @@ public:
     {
         while (NeedBuffer())
         {
-            std::vector<u8> decodedAudioFrame(mMasher->SingleAudioFrameSizeSamples() * 2 * 2); // *2 if stereo
+            const s32 kNumChannels = 2;
+            std::vector<u8> decodedAudioFrame(mMasher->SingleAudioFrameSizeSamples() * kNumChannels * sizeof(s16));
             mAtEndOfStream = !mMasher->Update((u32*)mFramePixels.data(), decodedAudioFrame.data());
             if (!mAtEndOfStream)
             {
