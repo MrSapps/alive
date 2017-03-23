@@ -817,11 +817,19 @@ namespace Oddlib
         return result;
     }
 
-    s16 AudioDecompressor::sub_408F50(s16 a1)
+    s16 AudioDecompressor::sub_408F50(s16 sample)
     {
-        s16 v2 = static_cast<s16>(abs(a1));
-        s16 result = (u16)((v2 & 0x7F) << (v2 >> 7)) | (u16)(1 << ((v2 >> 7) - 2));
-        if (a1 < 0)
+        s32 absSample = static_cast<s32>(abs(sample));
+        s32 sampleBits = absSample >> 7;
+        s32 sampleMasked = absSample & 0x7F;
+
+        s16 result = (u16)(sampleMasked << sampleBits);
+        if (sampleBits >= 2)
+        {
+            result |= (u16)(1 << (sampleBits - 2));
+        }
+
+        if (sample < 0)
         {
             result = -result;
         }
@@ -949,6 +957,7 @@ namespace Oddlib
                     const s32 soundTableValue = GetSoundTableValue(static_cast<s16>(samplePartOrTableIndex));
                     mTracer.AddLog("(" + std::to_string(counter) + ") soundTableValue = " + std::to_string(soundTableValue));
 
+                    // samplePartOrTableIndex = 2160, soundTableValue = 707, expected -63, got -16447
                     previousValue3 = sub_408F50(static_cast<s16>(samplePart + soundTableValue));
                     mTracer.AddLog("(" + std::to_string(counter) + ") previousValue3 = " + std::to_string(previousValue3));
                 }
