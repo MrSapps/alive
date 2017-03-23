@@ -1778,6 +1778,12 @@ TEST(Masher, stereo_16_low_compression_all_samples)
 // TODO: Has a bug in release
 TEST(Masher, Decode16BitStereoAudio)
 {
+    Oddlib::Tracer t;
+    Oddlib::AudioDecompressor d(t);
+
+    s32 idx = 32768;
+    ASSERT_EQ(-32768, d.GetSoundTableValue(static_cast<s16>(idx)));
+
     
     TestMasher masher;
 

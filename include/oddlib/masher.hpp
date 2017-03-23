@@ -7,9 +7,19 @@
 
 namespace Oddlib
 {
+    class Tracer
+    {
+    public:
+        void AddLog(std::string msg);
+        void Save(uint32_t mCurrentFrame);
+    private:
+        std::string mLog;
+    };
+
     class AudioDecompressor
     {
     public:
+
         s32 mUsedBits = 0;
         u32 mWorkBits = 0;
         s32 mAudioFrameSizeBytes = 0;
@@ -17,7 +27,7 @@ namespace Oddlib
 
         static u8 gSndTbl_byte_62EEB0[256];
 
-        AudioDecompressor();
+        AudioDecompressor(Tracer& tracer);
         static s32 GetSoundTableValue(s16 tblIndex);
         s16 sub_408F50(s16 a1);
         s32 ReadNextAudioWord(s32 value);
@@ -28,6 +38,8 @@ namespace Oddlib
         u16* SetupAudioDecodePtrs(u16 *rawFrameBuffer);
         s32 SetAudioFrameSizeBytesAndBits(s32 audioFrameSizeBytes);
         static void init_Snd_tbl();
+    private:
+        Tracer& mTracer;
     };
 
     class InvalidDdv : public Exception
