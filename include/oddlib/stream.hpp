@@ -16,7 +16,7 @@ namespace Oddlib
     class IStream
     {
     public:
-        static inline void RegisterScriptBindings(sol::state& state);
+        static inline void RegisterScriptBindings();
 
         enum class ReadMode
         {
@@ -138,17 +138,12 @@ namespace Oddlib
         return ret;
     }
 
-    /*static*/ inline void IStream::RegisterScriptBindings(sol::state& state)
+    /*static*/ inline void IStream::RegisterScriptBindings()
     {
         Sqrat::Class<IStream, Sqrat::NoConstructor<IStream>> c(Sqrat::DefaultVM::Get(), "IStream");
         c.StaticFunc("ReadU32", &ReadU32);
         c.StaticFunc("ReadU16", &ReadU16);
         Sqrat::RootTable().Bind("IStream", c);
-
-        state.new_usertype<IStream>("IStream",
-            "ReadU32", &ReadU32,
-            "ReadU16", &ReadU16
-            );
     }
 
 

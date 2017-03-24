@@ -13,7 +13,7 @@ struct ObjRect
     s32 w;
     s32 h;
 
-    static void RegisterScriptBindings(sol::state& state)
+    static void RegisterScriptBindings()
     {
         Sqrat::Class<ObjRect> c(Sqrat::DefaultVM::Get(), "ObjRect");
         c.Var("x", &ObjRect::x)
@@ -22,12 +22,6 @@ struct ObjRect
             .Var("h", &ObjRect::h)
             .Ctor();
         Sqrat::RootTable().Bind("ObjRect", c);
-
-        state.new_usertype<ObjRect>("ObjRect",
-            "x", &ObjRect::x,
-            "y", &ObjRect::y,
-            "w", &ObjRect::h,
-            "h", &ObjRect::h);
     }
 };
 
@@ -78,7 +72,7 @@ public:
     void Update(const InputState& input);
     void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale, int layer) const;
     void ReloadScript();
-    static void RegisterScriptBindings(sol::state& state);
+    static void RegisterScriptBindings();
 
     bool ContainsPoint(s32 x, s32 y) const;
     const std::string& Name() const { return mName; }

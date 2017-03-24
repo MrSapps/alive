@@ -5,7 +5,7 @@
 #include "collisionline.hpp"
 #include "gridmap.hpp"
 
-/*static*/ void MapObject::RegisterScriptBindings(sol::state& state)
+/*static*/ void MapObject::RegisterScriptBindings()
 {
     {
         Sqrat::Class<MapObject, Sqrat::NoConstructor<MapObject>> c(Sqrat::DefaultVM::Get(), "MapObject");
@@ -45,30 +45,6 @@
         cr.Var("distance", &CollisionResult::distance);
         Sqrat::RootTable().Bind("CollisionResult", cr);
     }
-
-    state.new_usertype<MapObject>("MapObject",
-        "SetAnimation", &MapObject::SetAnimation,
-        "SetAnimationFrame", &MapObject::SetAnimationFrame,
-        "FrameNumber", &MapObject::FrameNumber,
-        "IsLastFrame", &MapObject::IsLastFrame,
-        "AnimUpdate", &MapObject::AnimUpdate,
-        "SetAnimationAtFrame", &MapObject::SetAnimationAtFrame,
-        "AnimationComplete", &MapObject::AnimationComplete,
-        "NumberOfFrames", &MapObject::NumberOfFrames,
-        "FrameCounter", &MapObject::FrameCounter,
-
-        "WallCollision", &MapObject::WallCollision,
-        "CellingCollision", &MapObject::CellingCollision,
-        "FloorCollision", &MapObject::FloorCollision,
-
-        "SnapXToGrid", &MapObject::SnapXToGrid,
-        "FacingLeft", &MapObject::FacingLeft,
-
-        "FacingRight", &MapObject::FacingRight,
-        "FlipXDirection", &MapObject::FlipXDirection,
-        "states", &MapObject::mStates,
-        "mXPos", &MapObject::mXPos,
-        "mYPos", &MapObject::mYPos);
 }
 
 template<class T, class U>

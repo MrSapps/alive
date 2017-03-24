@@ -19,7 +19,7 @@ public:
     static void RegisterScriptBindings();
     Sound(const Sound&) = delete;
     Sound& operator = (const Sound&) = delete;
-    Sound(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState);
+    Sound(IAudioController& audioController, ResourceLocator& locator);
     ~Sound();
     void Update();
     void Render(GuiContext *gui, int w, int h);

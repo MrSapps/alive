@@ -163,7 +163,7 @@ void InputMapping::Update(const InputState& input)
     mActions.UpdateStates();
 }
 
-/*static*/ void Actions::RegisterScriptBindings(sol::state& state)
+/*static*/ void Actions::RegisterScriptBindings()
 {
     Sqrat::Class<Actions> c(Sqrat::DefaultVM::Get(), "Actions");
     c
@@ -193,32 +193,6 @@ void InputMapping::Update(const InputState& input)
         .Ctor();
 
     Sqrat::RootTable().Bind("Actions", c);
-
-    state.new_usertype<Actions>("Actions",
-        "Left", &Actions::Left,
-        "Right", &Actions::Right,
-        "Up", &Actions::Up,
-        "Down", &Actions::Down,
-        "Chant", &Actions::Chant,
-        "Run", &Actions::Run,
-        "Sneak", &Actions::Sneak,
-        "Jump", &Actions::Jump,
-        "Throw", &Actions::Throw,
-        "Action", &Actions::Action,
-        "RollOrFart", &Actions::RollOrFart,
-        "GameSpeak1", &Actions::GameSpeak1,
-        "GameSpeak2", &Actions::GameSpeak2,
-        "GameSpeak3", &Actions::GameSpeak3,
-        "GameSpeak4", &Actions::GameSpeak4,
-        "GameSpeak5", &Actions::GameSpeak5,
-        "GameSpeak6", &Actions::GameSpeak6,
-        "GameSpeak7", &Actions::GameSpeak7,
-        "GameSpeak8", &Actions::GameSpeak8,
-        "Back", &Actions::Back,
-        "IsPressed", sol::readonly(&Actions::mIsPressed),
-        "IsReleased", sol::readonly(&Actions::mIsReleased),
-        "IsHeld", sol::readonly(&Actions::mIsDown)
-        );
 }
 
 Engine::Engine()
@@ -302,10 +276,10 @@ void Engine::BindScriptTypes()
     // TODO: Use InstanceBinder
     Sqrat::RootTable().SetInstance("gEngine", this);
 
-    Oddlib::IStream::RegisterScriptBindings(mLuaState);
-    Actions::RegisterScriptBindings(mLuaState);
-    MapObject::RegisterScriptBindings(mLuaState);
-    ObjRect::RegisterScriptBindings(mLuaState);
+    Oddlib::IStream::RegisterScriptBindings();
+    Actions::RegisterScriptBindings();
+    MapObject::RegisterScriptBindings();
+    ObjRect::RegisterScriptBindings();
     GridMap::RegisterScriptBindings();
     Sound::RegisterScriptBindings();
     Fmv::RegisterScriptBindings();
@@ -319,8 +293,8 @@ void Engine::InitSubSystems()
 
     mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
   
-    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, mLuaState);
-    mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator, mLuaState, *mRenderer);
+    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator);
+    mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator, *mRenderer);
 
     { // Init gui system
         mGui = create_gui(&calcTextSize, mRenderer.get());
@@ -328,20 +302,6 @@ void Engine::InitSubSystems()
     }
 
     mInputState.AddControllers();
-
-    mLuaState.open_libraries(sol::lib::base, sol::lib::string, sol::lib::jit, sol::lib::table, sol::lib::debug, sol::lib::math, sol::lib::bit32, sol::lib::package);
-    
-    // Redirect lua print()
-    mLuaState.set_function("print", ScriptLogTrace);
-
-    // Add other logging globals
-    mLuaState.set_function("log_info", ScriptLogInfo);
-    mLuaState.set_function("log_trace", ScriptLogTrace);
-    mLuaState.set_function("log_warning", ScriptLogWarning);
-    mLuaState.set_function("log_error", ScriptLogError);
-
-    // Get lua to look for scripts in the correction location
-    mLuaState.script("package.path = '" + mFileSystem->FsPath() + "data/scripts/?.lua'");
 
     SquirrelVm::CompileAndRun(*mResourceLocator, "main.nut");
 

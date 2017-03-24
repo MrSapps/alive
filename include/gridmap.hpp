@@ -41,7 +41,7 @@ public:
     {
         TRACE_ENTRYEXIT;
     }
-    Level(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState, Renderer& render);
+    Level(IAudioController& audioController, ResourceLocator& locator, Renderer& render);
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
     void EnterState();
@@ -49,7 +49,6 @@ private:
     void RenderDebugPathSelection(Renderer& rend, GuiContext& gui);
     std::unique_ptr<class GridMap> mMap;
     ResourceLocator& mLocator;
-    sol::state& mLuaState;
 };
 
 class GridScreen
@@ -129,7 +128,7 @@ class GridMap : public IMap
 public:
     GridMap(const GridMap&) = delete;
     GridMap& operator = (const GridMap&) = delete;
-    GridMap(class IAudioController& audioController, ResourceLocator& locator, sol::state& luaState);
+    GridMap(class IAudioController& audioController, ResourceLocator& locator);
     ~GridMap();
     void LoadMap(Oddlib::Path& path, ResourceLocator& locator, Renderer& rend);
     void Update(const InputState& input, CoordinateSpace& coords);

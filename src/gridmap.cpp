@@ -15,8 +15,8 @@
 #include "editormode.hpp"
 #include "fmv.hpp"
 
-Level::Level(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState, Renderer& rend)
-    : mLocator(locator), mLuaState(luaState)
+Level::Level(IAudioController& audioController, ResourceLocator& locator, Renderer& rend)
+    : mLocator(locator)
 {
 
     // Debugging - reload path and load next path
@@ -34,7 +34,7 @@ Level::Level(IAudioController& audioController, ResourceLocator& locator, sol::s
                 {
                     if (!mMap)
                     {
-                        mMap = std::make_unique<GridMap>(audioController, mLocator, mLuaState);
+                        mMap = std::make_unique<GridMap>(audioController, mLocator);
                     }
                     mMap->LoadMap(*path, mLocator, rend);
 
@@ -64,7 +64,7 @@ Level::Level(IAudioController& audioController, ResourceLocator& locator, sol::s
             {
                 if (!mMap)
                 {
-                    mMap = std::make_unique<GridMap>(audioController, mLocator, mLuaState);
+                    mMap = std::make_unique<GridMap>(audioController, mLocator);
                 }
                 mMap->LoadMap(*path, mLocator, rend);
             }
@@ -204,7 +204,7 @@ void GridScreen::Render(float x, float y, float w, float h)
     Sqrat::RootTable().Bind("GridMap", gm);
 }
 
-GridMap::GridMap(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState)
+GridMap::GridMap(IAudioController& audioController, ResourceLocator& locator)
     : mScriptInstance("gMap", this)
 {
     mEditorMode = std::make_unique<EditorMode>(mMapState);
@@ -214,9 +214,6 @@ GridMap::GridMap(IAudioController& audioController, ResourceLocator& locator, so
 
     // Size of the screen you see during normal game play, this is always less the the "block" the camera image fits into
     mMapState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
-
-    luaState.set_function("GetMapObject", &GridMap::GetMapObject, this);
-    luaState.set_function("ActivateObjectsWithId", &GridMap::ActivateObjectsWithId, this);
 }
 
 void GridMap::LoadMap(Oddlib::Path& path, ResourceLocator& locator, Renderer& rend)

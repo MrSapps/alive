@@ -176,7 +176,7 @@ public:
     static bool GameSpeak8(u32 state) { return IsBitOn(state, eGameSpeak8); }
     static bool Back(u32 state) { return IsBitOn(state, eBack); }
 
-    static void RegisterScriptBindings(sol::state& state);
+    static void RegisterScriptBindings();
 
     enum EInputActions : u32
     {
@@ -286,6 +286,14 @@ private:
 class InputState final
 {
 public:
+    ~InputState()
+    {
+        for (auto& c : mControllers)
+        {
+            c.second.release();
+        }
+    }
+
     void Update()
     {
         // Update set set outside of polling loop
@@ -659,8 +667,6 @@ protected:
     InputState mInputState;
 
     StateMachine mStateMachine;
-
-    sol::state mLuaState;
 
     SquirrelVm mSquirrelVm;
 
