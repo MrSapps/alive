@@ -4,8 +4,44 @@
 #include "stream.hpp"
 #include "oddlib/exceptions.hpp"
 
+
 namespace Oddlib
 {
+    class Tracer
+    {
+    public:
+        void AddLog(std::string msg);
+        void Save(uint32_t mCurrentFrame);
+    private:
+        std::string mLog;
+    };
+
+    class AudioDecompressor
+    {
+    public:
+
+        s32 mUsedBits = 0;
+        u32 mWorkBits = 0;
+        s32 mAudioFrameSizeBytes = 0;
+        u16* mAudioFrameDataPtr = nullptr;
+
+        static u8 gSndTbl_byte_62EEB0[256];
+
+        AudioDecompressor(Tracer& tracer);
+        static s32 GetSoundTableValue(s16 tblIndex);
+        s16 sub_408F50(s16 a1);
+        s32 ReadNextAudioWord(s32 value);
+        s32 SndRelated_sub_409650();
+        s16 NextSoundBits(u16 numBits);
+        bool SampleMatches(s16& sample, s16 bits);
+        s32 decode_16bit_audio_frame(u16* outPtr, s32 numSamplesPerFrame);
+        u16* SetupAudioDecodePtrs(u16 *rawFrameBuffer);
+        s32 SetAudioFrameSizeBytesAndBits(s32 audioFrameSizeBytes);
+        static void init_Snd_tbl();
+    private:
+        Tracer& mTracer;
+    };
+
     class InvalidDdv : public Exception
     {
     public:
@@ -18,6 +54,7 @@ namespace Oddlib
     class Masher
     {
     public:
+        Masher() = default;
         Masher(const Masher&) = delete;
         Masher& operator = (const Masher&) = delete;
 
@@ -37,12 +74,14 @@ namespace Oddlib
         u32 FrameNumber() const { return mCurrentFrame; }
         u32 FrameRate() const { return mFileHeader.mFrameRate; }
         u32 NumberOfFrames() const { return mFileHeader.mNumberOfFrames; }
+    protected:
+        int decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame);
     private:
         void Read();
         void ParseVideoFrame(u32* pixelBuffer);
 
         void ParseAudioFrame(u8* audioBuffer);
-        int decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame);
+       
         void do_decode_audio_frame(u8* audioBuffer);
 
         struct DDVHeader

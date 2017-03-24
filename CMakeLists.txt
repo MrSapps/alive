@@ -511,6 +511,10 @@ to_vec(${samples_dir}/ae_ddv/video_only/all_colours_low_compression_30_fps.ddv a
 to_vec(${samples_dir}/ae_ddv/video_only/all_colours_max_compression_30_fps.ddv all_colours_max_compression_30_fps.ddv)
 to_vec(${samples_dir}/ae_ddv/video_only/all_colours_medium_compression_30_fps.ddv all_colours_medium_compression_30_fps.ddv)
 to_vec(${samples_dir}/ae_ddv/video_only/all_colours_min_compression_30_fps.ddv all_colours_min_compression_30_fps.ddv)
+to_vec(${samples_dir}/expected_audio.dat expected_audio.dat)
+to_vec(${samples_dir}/compressed_audio.dat compressed_audio.dat)
+to_vec(${samples_dir}/audio/F470_in F470_in)
+to_vec(${samples_dir}/audio/F470_out F470_out)
 
 SET(generated_headers
     ${generated_headers_dir}/MaxECDRComment.zip.g.h
@@ -532,10 +536,15 @@ SET(generated_headers
     ${generated_headers_dir}/all_colours_max_compression_30_fps.ddv.g.h
     ${generated_headers_dir}/all_colours_medium_compression_30_fps.ddv.g.h
     ${generated_headers_dir}/all_colours_min_compression_30_fps.ddv.g.h
+    ${generated_headers_dir}/expected_audio.dat.g.h
+    ${generated_headers_dir}/compressed_audio.dat.g.h
+    ${generated_headers_dir}/F470_in.g.h
+    ${generated_headers_dir}/F470_out.g.h
 )
 
 SET(test_src
     test/main.cpp
+    test/masher_tests.cpp
     test/resource_locator_test.cpp
     test/zip_fs_tests.cpp
     test/string_util_tests.cpp
