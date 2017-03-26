@@ -791,19 +791,7 @@ namespace Oddlib
 
     }
 
-    void Tracer::AddLog(std::string msg)
-    {
-        mLog += msg + "\n";
-    }
-
-    void Tracer::Save(uint32_t frameNo)
-    {
-        Oddlib::FileStream f("Trace_" + std::to_string(frameNo) + ".dat", Oddlib::IStream::ReadMode::ReadWrite);
-        f.WriteBytes((u8*)mLog.data(), mLog.size());
-    }
-
-    AudioDecompressor::AudioDecompressor(Tracer& tracer)
-        : mTracer(tracer)
+    AudioDecompressor::AudioDecompressor()
     {
         init_Snd_tbl();
     }
@@ -886,29 +874,24 @@ namespace Oddlib
     void AudioDecompressor::decode_16bit_audio_frame(u16* outPtr, s32 numSamplesPerFrame, bool isLast)
     {
         const s16 useTableFlag = NextSoundBits(16);
-        mTracer.AddLog("useTableFlag = " + std::to_string(useTableFlag));
-
         const s16 firstWord = NextSoundBits(16);
         const s16 secondWord = NextSoundBits(16);
         const s16 thirdWord = NextSoundBits(16);
 
         const s16 previous1 = NextSoundBits(16);
         s32 previousValue1 = static_cast<s16>(previous1);
-        mTracer.AddLog("previousValue1 = " + std::to_string(previousValue1));
 
         *outPtr = previous1;
         outPtr += mAudioFrameSizeBytes;
 
         const s16 previous2 = NextSoundBits(16);
         s32 previousValue2 = static_cast<s16>(previous2);
-        mTracer.AddLog("previousValue2 = " + std::to_string(previousValue2));
 
         *outPtr = previous2;
         outPtr += mAudioFrameSizeBytes;
 
         const s16 previous3 = NextSoundBits(16);
         s32 previousValue3 = static_cast<s16>(previous3);
-        mTracer.AddLog("previousValue3 = " + std::to_string(previousValue3));
 
         *outPtr = previous3;
         outPtr += mAudioFrameSizeBytes;
@@ -923,33 +906,25 @@ namespace Oddlib
                     samplePart = NextSoundBits(firstWord);
                     if (SampleMatches(samplePart, firstWord))
                     {
-                        mTracer.AddLog("(" + std::to_string(counter) + ") samplePart (first) = " + std::to_string(samplePart) + " : " + std::to_string(firstWord));
                         break;
                     }
 
                     samplePart = NextSoundBits(secondWord);
                     if (SampleMatches(samplePart, secondWord))
                     {
-                        mTracer.AddLog("(" + std::to_string(counter) + ") samplePart (second) = " + std::to_string(samplePart) + " : " + std::to_string(secondWord));
                         break;
                     }
 
                     samplePart = NextSoundBits(thirdWord);
                     if (SampleMatches(samplePart, thirdWord))
                     {
-                        mTracer.AddLog("(" + std::to_string(counter) + ") samplePart (third) = " + std::to_string(samplePart) + " : " + std::to_string(thirdWord));
                         break;
                     }
-
-                    mTracer.AddLog("(" + std::to_string(counter) + ") samplePart (no match) = " + std::to_string(samplePart));
 
                 } while (false);
 
                 const s32 previous = (5 * previousValue3) - (4 * previousValue2);
-                mTracer.AddLog("(" + std::to_string(counter) + ") previous = " + std::to_string(previous) + " previousValue3= " + std::to_string(previousValue3) + " previousValue2= " + std::to_string(previousValue2));
-
                 const s32 samplePartOrTableIndex = (previousValue1 + previous) >> 1;
-                mTracer.AddLog("(" + std::to_string(counter) + ") samplePartOrTableIndex = " + std::to_string(samplePartOrTableIndex) + " previousValue1= " + std::to_string(previousValue1));
 
                 previousValue1 = previousValue2;
                 previousValue2 = previousValue3;
@@ -958,11 +933,7 @@ namespace Oddlib
                 if (bUseTbl)
                 {
                     const s32 soundTableValue = GetSoundTableValue(static_cast<s16>(samplePartOrTableIndex));
-                    mTracer.AddLog("(" + std::to_string(counter) + ") soundTableValue = " + std::to_string(soundTableValue));
-
-                    // samplePartOrTableIndex = 2160, soundTableValue = 707, expected -63, got -16447
                     previousValue3 = sub_408F50(static_cast<s16>(samplePart + soundTableValue));
-                    mTracer.AddLog("(" + std::to_string(counter) + ") previousValue3 = " + std::to_string(previousValue3));
                 }
                 else
                 {
@@ -1020,11 +991,8 @@ namespace Oddlib
 
     void Masher::decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame)
     {
-        Tracer t;
-        AudioDecompressor decompressor(t);
-
+        AudioDecompressor decompressor;
         decompressor.SetAudioFrameSizeBytesAndBits(2);
-
         decompressor.SetupAudioDecodePtrs(rawFrameBuffer);
         memset(outPtr, 0, numSamplesPerFrame * 4);
         decompressor.decode_16bit_audio_frame(outPtr, numSamplesPerFrame, false);
@@ -1033,8 +1001,6 @@ namespace Oddlib
         {
             decompressor.decode_16bit_audio_frame(outPtr + 1, numSamplesPerFrame, true);
         }
-        
-        //t.Save(mCurrentFrame);
     }
 
     // 0040DBB0
@@ -1042,15 +1008,7 @@ namespace Oddlib
     {
         if (mbHasAudio)
         {
-            //            SetAudioFrameSizeBytesAndBits(mAudioFrameSizeBytes, mAudioFrameSizeBits);
-            
             decode_audio_frame((u16 *)mAudioFrameData.data(), (u16 *)audioBuffer, mAudioHeader.mSingleAudioFrameSize);
-            //++thisPtr->mAudioFrameNumber;
-        }
-        else
-        {
-            //++thisPtr->mAudioFrameNumber;
-            // result = 0;
         }
     }
 

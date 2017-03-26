@@ -1778,9 +1778,7 @@ TEST(Masher, stereo_16_low_compression_all_samples)
 // TODO: Has a bug in release
 TEST(Masher, Decode16BitStereoAudio)
 {
-    
-    Oddlib::Tracer t;
-    Oddlib::AudioDecompressor d(t);
+    Oddlib::AudioDecompressor d;
 
     // Debug x64 MSVC test case
     s32 idx = 32768;
