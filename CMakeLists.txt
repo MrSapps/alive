@@ -247,6 +247,10 @@ set(VORBISENC_SOURCES
 add_library(libvorbis STATIC ${VORBISFILE_SOURCES} ${VORBISENC_SOURCES} ${VORBIS_SOURCES} ${VORBIS_HEADERS})
 SET_PROPERTY(TARGET libvorbis PROPERTY FOLDER "3rdparty")
 
+add_library(gl3w_lib STATIC ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c)
+SET_PROPERTY(TARGET gl3w_lib PROPERTY FOLDER "3rdparty")
+
+
 SET(oddlib_src
     src/gpuselect.cpp
     include/reverse_for.hpp
@@ -378,6 +382,8 @@ SET(alivelib_src
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
+
+
 if (WIN32 AND MSVC)
     set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
     cotire(AliveLib)
@@ -393,14 +399,13 @@ endif()
 add_executable(Alive MACOSX_BUNDLE
     ${WIN32_RESOURCES_SRC}
     src/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 
 if(LINUX)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
+    SET(Alive_Libs AliveLib gl3w_lib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
 ELSE()
-    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
+    SET(Alive_Libs AliveLib gl3w_lib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
 ENDIF()
 
 #cotire(Alive)
@@ -410,7 +415,6 @@ add_executable(DataTool
   ${WIN32_RESOURCES_SRC}
   test/data_test_main.cpp
   test/phash.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
 
@@ -442,7 +446,6 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         tools/engine_hook/sound_hooks.hpp
         tools/engine_hook/ddraw7proxy.hpp
         tools/engine_hook/dsurface7proxy.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
         )
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_RELEASE  "/SUBSYSTEM:WINDOWS")
@@ -546,7 +549,6 @@ SET(test_src
 add_executable(Tests 
     ${test_src}
     ${generated_headers}
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 
 #cotire(Tests)
