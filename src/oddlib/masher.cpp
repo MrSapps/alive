@@ -883,7 +883,7 @@ namespace Oddlib
         return false;
     }
 
-    int AudioDecompressor::decode_16bit_audio_frame(u16* outPtr, s32 numSamplesPerFrame)
+    void AudioDecompressor::decode_16bit_audio_frame(u16* outPtr, s32 numSamplesPerFrame, bool isLast)
     {
         const s16 useTableFlag = NextSoundBits(16);
         mTracer.AddLog("useTableFlag = " + std::to_string(useTableFlag));
@@ -975,8 +975,10 @@ namespace Oddlib
             }
         }
 
-        // TODO: Nothing happens with the data from this call, what is the point of it?
-        return SndRelated_sub_409650();
+        if (!isLast)
+        {
+            SndRelated_sub_409650();
+        }
     }
 
     u16* AudioDecompressor::SetupAudioDecodePtrs(u16 *rawFrameBuffer)
@@ -1016,45 +1018,23 @@ namespace Oddlib
 
     /*static*/ u8 AudioDecompressor::gSndTbl_byte_62EEB0[256];
 
-    int Masher::decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame)
+    void Masher::decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame)
     {
-        int result; // eax@2
-
         Tracer t;
         AudioDecompressor decompressor(t);
 
         decompressor.SetAudioFrameSizeBytesAndBits(2);
+
         decompressor.SetupAudioDecodePtrs(rawFrameBuffer);
-        if (false /*gAudioFrameSizeBits == 8*/)               // if 8 bit
-        {
-            abort();
-            /*
-            Sound8BitRelated_sub_409200(outPtr, numSamplesPerFrame);
-            result = gAudioFrameSizeBytes;
-            if (gAudioFrameSizeBytes == 2)
-            {
-            result = Sound8BitRelated_sub_409200((_BYTE *)outPtr + 1, numSamplesPerFrame);
-            }
-            */
-        }
-        else
-        {
+        memset(outPtr, 0, numSamplesPerFrame * 4);
+        decompressor.decode_16bit_audio_frame(outPtr, numSamplesPerFrame, false);
 
-            decompressor.SetupAudioDecodePtrs(rawFrameBuffer);
-            memset(outPtr, 0, numSamplesPerFrame * 4);
-            decompressor.decode_16bit_audio_frame(outPtr, numSamplesPerFrame);
-
-            result = decompressor.mAudioFrameSizeBytes;
-            if (decompressor.mAudioFrameSizeBytes == 2)
-            {
-                result = decompressor.decode_16bit_audio_frame(outPtr + 1, numSamplesPerFrame);
-                //  result = sound16bitRelated_sub_4096B0_ptr(outPtr + 1, numSamplesPerFrame);
-            }
+        if (decompressor.mAudioFrameSizeBytes == 2)
+        {
+            decompressor.decode_16bit_audio_frame(outPtr + 1, numSamplesPerFrame, true);
         }
         
         //t.Save(mCurrentFrame);
-
-        return result;
     }
 
     // 0040DBB0
@@ -1103,10 +1083,8 @@ namespace Oddlib
                 const uint32_t audioDataSize = totalSize - videoDataSize;
 
                 // Audio data
-                mAudioFrameData.reserve(audioDataSize + sizeof(u16)); // Final iteration will try to read one more u16
                 mAudioFrameData.resize(audioDataSize);
                 mStream->Read(mAudioFrameData);
-                mAudioFrameData.resize(audioDataSize + sizeof(u16)); 
                 ParseVideoFrame(pixelBuffer);
                 ParseAudioFrame(audioBuffer);
             }

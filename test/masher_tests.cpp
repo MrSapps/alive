@@ -1799,7 +1799,7 @@ TEST(Masher, Decode16BitStereoAudio)
 
     std::vector<u16> rawFrameBuffer;
     const std::vector<u8> kCompressed = get_F470_in();
-    rawFrameBuffer.resize(kCompressed.size() / sizeof(u16));
+    rawFrameBuffer.resize((kCompressed.size() / sizeof(u16))+sizeof(u16));
     memcpy(rawFrameBuffer.data(), kCompressed.data(), kCompressed.size());
     
 

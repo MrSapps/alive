@@ -34,7 +34,7 @@ namespace Oddlib
         s32 SndRelated_sub_409650();
         s16 NextSoundBits(u16 numBits);
         bool SampleMatches(s16& sample, s16 bits);
-        s32 decode_16bit_audio_frame(u16* outPtr, s32 numSamplesPerFrame);
+        void decode_16bit_audio_frame(u16* outPtr, s32 numSamplesPerFrame, bool isLast);
         u16* SetupAudioDecodePtrs(u16 *rawFrameBuffer);
         s32 SetAudioFrameSizeBytesAndBits(s32 audioFrameSizeBytes);
         static void init_Snd_tbl();
@@ -75,7 +75,7 @@ namespace Oddlib
         u32 FrameRate() const { return mFileHeader.mFrameRate; }
         u32 NumberOfFrames() const { return mFileHeader.mNumberOfFrames; }
     protected:
-        int decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame);
+        void decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame);
     private:
         void Read();
         void ParseVideoFrame(u32* pixelBuffer);
