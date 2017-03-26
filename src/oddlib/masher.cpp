@@ -157,7 +157,9 @@ namespace Oddlib
 
         unsigned int table_index_2 = 0;
         int ret = *pFrameData;
-        u32 v8 = *(u32*)(pFrameData + 1);
+
+        u32 v8 = ((pFrameData[2]<<16) | (pFrameData[1]));
+
         u16* rawBitStreamPtr = (pFrameData + 3);
 
         v8 = (v8 << 16) | (v8 >> 16); // Swap words
@@ -808,8 +810,9 @@ namespace Oddlib
 
     /*static*/ s32 AudioDecompressor::GetSoundTableValue(s16 tblIndex)
     {
-        s32 positiveTblIdx = static_cast<s32>(abs(tblIndex));
-        s32 result = (u16)((s16)gSndTbl_byte_62EEB0[positiveTblIdx >> 7] << 7) | (u16)(positiveTblIdx >> gSndTbl_byte_62EEB0[positiveTblIdx >> 7]);
+        const s32 positiveTblIdx = static_cast<s32>(abs(tblIndex));
+        const u32 shiftedIdx = (positiveTblIdx >> 7) & 0xFF;
+        s32 result = (u16)((s16)gSndTbl_byte_62EEB0[shiftedIdx] << 7) | (u16)(positiveTblIdx >> gSndTbl_byte_62EEB0[shiftedIdx]);
         if (tblIndex < 0)
         {
             result = -result;
