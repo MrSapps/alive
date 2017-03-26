@@ -1103,7 +1103,7 @@ namespace Oddlib
                 const uint32_t audioDataSize = totalSize - videoDataSize;
 
                 // Audio data
-                mAudioFrameData.resize(audioDataSize);
+                mAudioFrameData.resize(audioDataSize + sizeof(u16)); // Final iteration will try to read one more u16
                 mStream->Read(mAudioFrameData);
                 ParseVideoFrame(pixelBuffer);
                 ParseAudioFrame(audioBuffer);
