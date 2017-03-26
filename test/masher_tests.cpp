@@ -1813,14 +1813,4 @@ TEST(Masher, Decode16BitStereoAudio)
     std::vector<u16> expected16(outPtr.size());
     memcpy(expected16.data(), kExpected.data(), kExpected.size());
     ASSERT_TRUE(memcmp(expected16.data(), outPtr.data(), outPtr.size()*sizeof(u16)) == 0);
-    
-
-    /*
-    auto sPtr = std::make_unique<Oddlib::FileStream>("F:\\Data\\alive\\all_data\\Oddworld Abes Exoddus\\train2.ddv", Oddlib::IStream::ReadMode::ReadOnly);
-    Oddlib::Masher m(std::move(sPtr));
-
-    std::vector<u8> audioBuffer((m.SingleAudioFrameSizeSamples() * 4));
-
-    while (m.Update(nullptr, audioBuffer.data())) {}
-    */
 }
