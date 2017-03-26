@@ -6,7 +6,9 @@ cmake_minimum_required(VERSION 2.8)
 endif()
 
 project(ALIVE)
+
 find_package(OpenGL REQUIRED)
+find_package(SDL2 REQUIRED)
 
 option(UseValgrind "UseValgrind" OFF)
 
@@ -35,8 +37,6 @@ endif()
 
 add_definitions(-DGLM_FORCE_SWIZZLE=1)
 
-find_package(SDL2 REQUIRED)
-find_package(OpenGL REQUIRED)
 
 enable_testing()
 
@@ -49,11 +49,6 @@ set(ALIVE_VERSION_PATCH 0)
 
 # Enable Visual Studio solution "folders"
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON) 
-
-if (APPLE)
-# Required to prevent runtime crash on 64bit OSX - however this breaks 32bit compile
-  set ( CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000 -image_base 7fff04c4a000" )
-endif()
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
   # CMake defaults to leaving CMAKE_BUILD_TYPE empty. This screws up
@@ -75,7 +70,6 @@ if (LINUX)
   find_package (PkgConfig REQUIRED)
   pkg_check_modules (GTK3 REQUIRED gtk+-3.0)
 endif()
-
 
 include_directories(
     include
@@ -404,9 +398,9 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(LINUX)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib gl3w_lib ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES} libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
+    SET(Alive_Libs AliveLib ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES} libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static gl3w_lib)
 ELSE()
-    SET(Alive_Libs AliveLib gl3w_lib ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES} libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
+    SET(Alive_Libs AliveLib ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES} libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static gl3w_lib)
 ENDIF()
 
 #cotire(Alive)
