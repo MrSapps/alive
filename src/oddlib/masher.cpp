@@ -1052,7 +1052,7 @@ namespace Oddlib
             }
         }
         
-        t.Save(mCurrentFrame);
+        //t.Save(mCurrentFrame);
 
         return result;
     }
@@ -1103,8 +1103,10 @@ namespace Oddlib
                 const uint32_t audioDataSize = totalSize - videoDataSize;
 
                 // Audio data
-                mAudioFrameData.resize(audioDataSize + sizeof(u16)); // Final iteration will try to read one more u16
+                mAudioFrameData.reserve(audioDataSize + sizeof(u16)); // Final iteration will try to read one more u16
+                mAudioFrameData.resize(audioDataSize);
                 mStream->Read(mAudioFrameData);
+                mAudioFrameData.resize(audioDataSize + sizeof(u16)); 
                 ParseVideoFrame(pixelBuffer);
                 ParseAudioFrame(audioBuffer);
             }
