@@ -7,9 +7,6 @@ endif()
 
 project(ALIVE)
 
-find_package(OpenGL REQUIRED)
-find_package(SDL2 REQUIRED)
-
 option(UseValgrind "UseValgrind" OFF)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}")
@@ -19,6 +16,9 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake")
 
 include(cotire)
 include(Solar)
+
+find_package(OpenGL REQUIRED)
+find_package(SDL2 REQUIRED)
 
 # the RPATH to be used when installing
 SET(CMAKE_INSTALL_RPATH "")
