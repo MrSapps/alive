@@ -30,7 +30,6 @@
 
         c.Func("FacingRight", &MapObject::FacingRight);
         c.Func("FlipXDirection", &MapObject::FlipXDirection);
-        c.Var("states", &MapObject::mStates);
         c.Var("mXPos", &MapObject::mXPos);
         c.Var("mYPos", &MapObject::mYPos);
         c.Var("mName", &MapObject::mName);
@@ -88,18 +87,6 @@ void MapObject::Init()
     });
 
 
-}
-
-void MapObject::Activate(bool direction)
-{
-    sol::protected_function f = mStates["Activate"];
-    auto ret = f(direction);
-    if (!ret.valid())
-    {
-        sol::error err = ret;
-        std::string what = err.what();
-        LOG_ERROR(what);
-    }
 }
 
 bool MapObject::WallCollision(IMap& map, f32 dx, f32 dy) const

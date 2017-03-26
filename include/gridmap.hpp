@@ -10,7 +10,6 @@
 #include "proxy_nanovg.h"
 #include "oddlib/path.hpp"
 #include "fsm.hpp"
-#include "proxy_sol.hpp"
 #include "renderer.hpp"
 #include "collisionline.hpp"
 #include "proxy_sqrat.hpp"
@@ -136,7 +135,6 @@ public:
     static void RegisterScriptBindings();
 private:
     MapObject* GetMapObject(s32 x, s32 y, const char* type);
-    void ActivateObjectsWithId(MapObject* from, s32 id, bool direction);
     
     void UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& coords);
     void RenderToEditorOrToGame(Renderer& rend, GuiContext& gui) const;

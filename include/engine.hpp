@@ -6,7 +6,6 @@
 #include <GL/gl3w.h>
 #include "core/audiobuffer.hpp"
 #include "resourcemapper.hpp"
-#include "proxy_sol.hpp"
 #include "bitutils.hpp"
 
 class StateMachine;

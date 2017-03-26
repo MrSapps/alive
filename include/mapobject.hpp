@@ -2,7 +2,6 @@
 
 #include <string>
 #include "types.hpp"
-#include "proxy_sol.hpp"
 #include "proxy_sqrat.hpp"
 #include "logger.hpp"
 
@@ -84,7 +83,6 @@ public:
     float mYPos = 100.0f;
 
     s32 Id() const { return mId; }
-    void Activate(bool direction);
     bool WallCollision(IMap& map, f32 dx, f32 dy) const;
     bool CellingCollision(IMap& map, f32 dx, f32 dy) const;
 
@@ -93,7 +91,6 @@ private:
     void ScriptLoadAnimations();
     std::map<std::string, std::shared_ptr<Animation>> mAnims;
     Animation* mAnim = nullptr;
-    sol::table mStates;
 
     void LoadScript();
 private: // Actions

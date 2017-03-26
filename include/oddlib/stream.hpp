@@ -7,7 +7,6 @@
 #include <fstream>
 #include <sstream>
 #include "SDL.h"
-#include "proxy_sol.hpp"
 #include "proxy_sqrat.hpp"
 #include "types.hpp"
 

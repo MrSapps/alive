@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include "oddlib/audio/AliveAudio.h"
-#include "proxy_sol.hpp"
 
 class GameData;
 class IAudioController;

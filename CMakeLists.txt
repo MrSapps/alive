@@ -96,15 +96,12 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/internal
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/internal/custom
-    ${CMAKE_BINARY_DIR}/3rdParty/luajit
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/luajit/src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate/common
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/rapidjson/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/Detours/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/sol2/single
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glm
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/vorbis/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/vorbis/lib
@@ -192,12 +189,6 @@ SET(jsonxx_src
 add_library(jsonxx STATIC ${jsonxx_src})
 SET_PROPERTY(TARGET jsonxx PROPERTY FOLDER "3rdparty")
 
-add_subdirectory(3rdParty/luajit)
-SET_PROPERTY(TARGET buildvm PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET liblua PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET luajit PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET minilua PROPERTY FOLDER "3rdparty")
-
 set(VORBIS_HEADERS
     3rdParty/vorbis/lib/envelope.h
     3rdParty/vorbis/lib/lpc.h
@@ -263,7 +254,6 @@ SET(oddlib_src
     include/bitutils.hpp
     include/proxy_rapidjson.hpp
     include/proxy_nanovg.h
-    include/proxy_sol.hpp
     include/proxy_sqrat.hpp
     include/msvc_sdl_link.hpp
     include/stdthread.h
@@ -408,9 +398,9 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(LINUX)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
+    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
 ELSE()
-    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
+    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
 ENDIF()
 
 #cotire(Alive)

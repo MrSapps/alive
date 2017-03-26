@@ -199,7 +199,6 @@ void GridScreen::Render(float x, float y, float w, float h)
     Sqrat::DerivedClass<GridMap, IMap, Sqrat::NoConstructor<GridMap>> gm(Sqrat::DefaultVM::Get(), "GridMap");
 
     gm.Func("GetMapObject", &GridMap::GetMapObject);
-    gm.Func("ActivateObjectsWithId", &GridMap::ActivateObjectsWithId);
 
     Sqrat::RootTable().Bind("GridMap", gm);
 }
@@ -387,17 +386,6 @@ MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
         }
     }
     return nullptr;
-}
-
-void GridMap::ActivateObjectsWithId(MapObject* from, s32 id, bool direction)
-{
-    for (auto& obj : mMapState.mObjs)
-    {
-        if (obj.get() != from && obj->Id() == id)
-        {
-            obj->Activate(direction);
-        }
-    }
 }
 
 void GridMapState::RenderDebug(Renderer& rend) const
