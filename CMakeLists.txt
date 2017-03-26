@@ -615,7 +615,9 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resources.json" DESTINATION "${D
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT_DDV_AePc.SRT" DESTINATION "${DATA_DIR}/subtitles")
 
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/map.nut" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.nut" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/base_map_object.nut" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/abe.nut" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/background_animation.nut" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/door.nut" DESTINATION "${DATA_DIR}/scripts")
