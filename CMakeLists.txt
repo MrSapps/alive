@@ -403,9 +403,9 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(LINUX)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib gl3w_lib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
+    SET(Alive_Libs AliveLib gl3w_lib ${CMAKE_DL_LIBS} libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
 ELSE()
-    SET(Alive_Libs AliveLib gl3w_lib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
+    SET(Alive_Libs AliveLib gl3w_lib ${CMAKE_DL_LIBS} libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
 ENDIF()
 
 #cotire(Alive)
