@@ -404,14 +404,14 @@ ELSE()
 ENDIF()
 
 #cotire(Alive)
-TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
+TARGET_LINK_LIBRARIES(Alive ${Alive_Libs} ${Alive_Libs})
 
 add_executable(DataTool
   ${WIN32_RESOURCES_SRC}
   test/data_test_main.cpp
   test/phash.hpp
 )
-TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
+TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs} ${Alive_Libs})
 
 #cotire(oddlib)
 
@@ -444,7 +444,7 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         )
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_RELEASE  "/SUBSYSTEM:WINDOWS")
-    TARGET_LINK_LIBRARIES(ddraw detours ${Alive_Libs})
+    TARGET_LINK_LIBRARIES(ddraw detours ${Alive_Libs} ${Alive_Libs})
 endif()
 
 
