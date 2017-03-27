@@ -6,7 +6,7 @@
 #include "oddlib/bits_factory.hpp"
 #include "logger.hpp"
 #include <cassert>
-#include "sdl_raii.hpp"
+#include "oddlib/sdl_raii.hpp"
 #include <algorithm> // min/max
 #include <cmath>
 #include "resourcemapper.hpp"

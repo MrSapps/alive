@@ -130,6 +130,9 @@ endif()
 
 add_library(nativefiledialog STATIC ${nativefiledialog_src})
 SET_PROPERTY(TARGET nativefiledialog PROPERTY FOLDER "3rdparty")
+if (LINUX)
+    TARGET_LINK_LIBRARIES(nativefiledialog ${GTK3_LIBRARIES})
+endif()
 
 SET(lodepng_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/lodepng/lodepng.cpp
@@ -176,7 +179,6 @@ SET(libdeflate_src
 
 add_library(libdeflate STATIC ${libdeflate_src})
 SET_PROPERTY(TARGET libdeflate PROPERTY FOLDER "3rdparty")
-
 
 SET(jsonxx_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/jsonxx/jsonxx.cc
@@ -308,11 +310,14 @@ SET(oddlib_src
     src/oddlib/compressiontype2.cpp
     include/oddlib/compressiontype6or7aepsx.hpp
     src/oddlib/compressiontype6or7aepsx.cpp
+    include/oddlib/sdl_raii.hpp
+    src/oddlib/sdl_raii.cpp
 )
 
 add_library(oddlib STATIC
     src/oddlib/oddlib_pch.cpp ${oddlib_src}
 )
+TARGET_LINK_LIBRARIES(oddlib ${SDL2_LIBRARY} lodepng)
 
 if (WIN32 AND MSVC)
     set_target_properties(oddlib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/oddlib/oddlib_pch.h")
@@ -352,8 +357,6 @@ SET(alivelib_src
     include/gridobject.hpp
     src/gridobject.cpp
     include/subtitles.hpp
-    include/sdl_raii.hpp
-    src/sdl_raii.cpp
     include/resourcemapper.hpp
     src/resourcemapper.cpp
     include/zipfilesystem.hpp
@@ -377,7 +380,7 @@ SET(alivelib_src
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
-TARGET_LINK_LIBRARIES(AliveLib oddlib NanoVg gl3w_lib)
+TARGET_LINK_LIBRARIES(AliveLib oddlib NanoVg jsonxx gl3w_lib sqstdlib_static squirrel_static stk nativefiledialog libdeflate)
 
 if (WIN32 AND MSVC)
     set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
@@ -396,11 +399,12 @@ add_executable(Alive MACOSX_BUNDLE
     src/main.cpp
 )
 
+
 if(LINUX)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib libvorbis jsonxx stk pthread ${SDL2_LIBRARY} rt lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
+    SET(Alive_Libs AliveLib libvorbis pthread rt)
 ELSE()
-    SET(Alive_Libs AliveLib libvorbis jsonxx stk ${SDL2_LIBRARY} lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
+    SET(Alive_Libs AliveLib libvorbis)
 ENDIF()
 
 #cotire(Alive)
