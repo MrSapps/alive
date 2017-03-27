@@ -377,7 +377,7 @@ SET(alivelib_src
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
-TARGET_LINK_LIBRARIES(AliveLib gl3w_lib)
+TARGET_LINK_LIBRARIES(AliveLib oddlib NanoVg gl3w_lib)
 
 if (WIN32 AND MSVC)
     set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
@@ -398,9 +398,9 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(LINUX)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk pthread ${SDL2_LIBRARY} rt lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
+    SET(Alive_Libs AliveLib libvorbis jsonxx stk pthread ${SDL2_LIBRARY} rt lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
 ELSE()
-    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${SDL2_LIBRARY} lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
+    SET(Alive_Libs AliveLib libvorbis jsonxx stk ${SDL2_LIBRARY} lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
 ENDIF()
 
 #cotire(Alive)
