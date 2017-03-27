@@ -415,7 +415,7 @@ add_executable(DataTool
   test/data_test_main.cpp
   test/phash.hpp
 )
-TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
+TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs} gl3w_lib)
 
 #cotire(oddlib)
 
@@ -551,7 +551,7 @@ add_executable(Tests
 )
 
 #cotire(Tests)
-target_link_libraries(Tests oddlib gmock ${Alive_Libs} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Tests ${Alive_Libs} gmock ${CMAKE_THREAD_LIBS_INIT} gl3w_lib)
 
 if (UseValgrind)
     add_test(NAME Tests COMMAND valgrind -v --leak-check=full --track-origins=yes --show-reachable=yes --tool=memcheck --error-exitcode=1 $<TARGET_FILE:Tests> WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
