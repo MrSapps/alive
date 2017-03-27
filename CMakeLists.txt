@@ -380,7 +380,7 @@ SET(alivelib_src
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
-TARGET_LINK_LIBRARIES(AliveLib oddlib NanoVg jsonxx gl3w_lib sqstdlib_static squirrel_static stk nativefiledialog libdeflate)
+TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib NanoVg jsonxx sqstdlib_static squirrel_static stk nativefiledialog libdeflate)
 
 if (WIN32 AND MSVC)
     set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
