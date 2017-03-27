@@ -104,6 +104,8 @@ include_directories(
     ${GTK3_INCLUDE_DIRS}
 )
 
+SET(SQ_DISABLE_INSTALLER 1)
+SET(DISABLE_DYNAMIC 1)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squirrel)
 SET_PROPERTY(TARGET sq_static PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET sqstdlib_static PROPERTY FOLDER "3rdparty")
