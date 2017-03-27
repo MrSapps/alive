@@ -414,7 +414,7 @@ SET(datatool_src
 
 if (APPLE)
     SET(datatool_src
-       $(datatool_src)
+       ${datatool_src}
        ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c)
 endif()
 
@@ -551,7 +551,7 @@ SET(test_src
 
 if (APPLE)
     SET(test_src
-       $(test_src)
+       ${test_src}
        ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c)
 endif()
 
