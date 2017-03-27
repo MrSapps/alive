@@ -407,11 +407,18 @@ add_executable(Alive MACOSX_BUNDLE
 #cotire(Alive)
 TARGET_LINK_LIBRARIES(Alive AliveLib libvorbis)
 
-add_executable(DataTool
+SET(datatool_src
   ${WIN32_RESOURCES_SRC}
   test/data_test_main.cpp
-  test/phash.hpp
-)
+  test/phash.hpp)
+
+if (APPLE)
+    SET(datatool_src
+       $(datatool_src)
+       ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c)
+endif()
+
+add_executable(DataTool ${datatool_src})
 TARGET_LINK_LIBRARIES(DataTool AliveLib libvorbis)
 
 #cotire(oddlib)
@@ -541,6 +548,12 @@ SET(test_src
     test/coordinatespace_test.cpp
     test/undoredo_test.cpp
     include/subtitles.hpp)
+
+if (APPLE)
+    SET(test_src
+       $(test_src)
+       ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c)
+endif()
 
 add_executable(Tests 
     ${test_src}
