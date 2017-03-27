@@ -244,7 +244,7 @@ SET_PROPERTY(TARGET libvorbis PROPERTY FOLDER "3rdparty")
 
 add_library(gl3w_lib STATIC ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c)
 SET_PROPERTY(TARGET gl3w_lib PROPERTY FOLDER "3rdparty")
-
+TARGET_LINK_LIBRARIES(gl3w_lib ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES})
 
 SET(oddlib_src
     src/gpuselect.cpp
@@ -377,7 +377,7 @@ SET(alivelib_src
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
-
+TARGET_LINK_LIBRARIES(AliveLib gl3w_lib)
 
 if (WIN32 AND MSVC)
     set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
@@ -398,20 +398,20 @@ add_executable(Alive MACOSX_BUNDLE
 
 if(LINUX)
     # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES} libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static gl3w_lib)
+    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk pthread ${SDL2_LIBRARY} rt lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
 ELSE()
-    SET(Alive_Libs AliveLib ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES} libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static gl3w_lib)
+    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${SDL2_LIBRARY} lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
 ENDIF()
 
 #cotire(Alive)
-TARGET_LINK_LIBRARIES(Alive ${Alive_Libs} ${Alive_Libs})
+TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
 
 add_executable(DataTool
   ${WIN32_RESOURCES_SRC}
   test/data_test_main.cpp
   test/phash.hpp
 )
-TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs} ${Alive_Libs})
+TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
 
 #cotire(oddlib)
 
@@ -444,7 +444,7 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         )
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_RELEASE  "/SUBSYSTEM:WINDOWS")
-    TARGET_LINK_LIBRARIES(ddraw detours ${Alive_Libs} ${Alive_Libs})
+    TARGET_LINK_LIBRARIES(ddraw detours ${Alive_Libs})
 endif()
 
 
