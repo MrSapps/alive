@@ -317,7 +317,12 @@ SET(oddlib_src
 add_library(oddlib STATIC
     src/oddlib/oddlib_pch.cpp ${oddlib_src}
 )
-TARGET_LINK_LIBRARIES(oddlib ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} rt lodepng)
+
+if (LINUX)
+    TARGET_LINK_LIBRARIES(oddlib ${SDL2_LIBRARY} rt ${CMAKE_THREAD_LIBS_INIT} lodepng)
+else()
+    TARGET_LINK_LIBRARIES(oddlib ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} lodepng)
+endif()
 
 if (WIN32 AND MSVC)
     set_target_properties(oddlib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/oddlib/oddlib_pch.h")
