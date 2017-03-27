@@ -317,7 +317,7 @@ SET(oddlib_src
 add_library(oddlib STATIC
     src/oddlib/oddlib_pch.cpp ${oddlib_src}
 )
-TARGET_LINK_LIBRARIES(oddlib ${SDL2_LIBRARY} lodepng)
+TARGET_LINK_LIBRARIES(oddlib ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} rt lodepng)
 
 if (WIN32 AND MSVC)
     set_target_properties(oddlib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/oddlib/oddlib_pch.h")
@@ -399,23 +399,15 @@ add_executable(Alive MACOSX_BUNDLE
     src/main.cpp
 )
 
-
-if(LINUX)
-    # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib libvorbis pthread rt)
-ELSE()
-    SET(Alive_Libs AliveLib libvorbis)
-ENDIF()
-
 #cotire(Alive)
-TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
+TARGET_LINK_LIBRARIES(Alive AliveLib libvorbis)
 
 add_executable(DataTool
   ${WIN32_RESOURCES_SRC}
   test/data_test_main.cpp
   test/phash.hpp
 )
-TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs} gl3w_lib)
+TARGET_LINK_LIBRARIES(DataTool AliveLib libvorbis)
 
 #cotire(oddlib)
 
@@ -448,7 +440,7 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         )
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_RELEASE  "/SUBSYSTEM:WINDOWS")
-    TARGET_LINK_LIBRARIES(ddraw detours ${Alive_Libs})
+    TARGET_LINK_LIBRARIES(ddraw detours AliveLib libvorbis)
 endif()
 
 
@@ -551,7 +543,7 @@ add_executable(Tests
 )
 
 #cotire(Tests)
-target_link_libraries(Tests ${Alive_Libs} gmock ${CMAKE_THREAD_LIBS_INIT} gl3w_lib)
+target_link_libraries(Tests gmock AliveLib libvorbis ${CMAKE_THREAD_LIBS_INIT})
 
 if (UseValgrind)
     add_test(NAME Tests COMMAND valgrind -v --leak-check=full --track-origins=yes --show-reachable=yes --tool=memcheck --error-exitcode=1 $<TARGET_FILE:Tests> WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
