@@ -34,7 +34,7 @@ static GLuint       g_FontTexture = 0;
 // TODO: Error message
 #define ALIVE_FATAL_ERROR() abort()
 
-struct TriMeshVertex
+struct Vertex2D
 {
     glm::vec2 pos;
     glm::vec2 uv;
@@ -54,9 +54,9 @@ typedef struct VertexAttrib
 void vertex_attributes(const VertexAttrib **attribs, int *count)
 {
     static VertexAttrib tri_attribs[] = {
-        { "a_pos", 3, GL_FLOAT, true, false, offsetof(TriMeshVertex, pos) },
-        { "a_uv", 3, GL_FLOAT, true, false, offsetof(TriMeshVertex, uv) },
-        { "a_color", 4, GL_FLOAT, true, false, offsetof(TriMeshVertex, color) },
+        { "a_pos", 3, GL_FLOAT, true, false, offsetof(Vertex2D, pos) },
+        { "a_uv", 3, GL_FLOAT, true, false, offsetof(Vertex2D, uv) },
+        { "a_color", 4, GL_FLOAT, true, false, offsetof(Vertex2D, color) },
     };
     if (attribs)
         *attribs = tri_attribs;
@@ -72,7 +72,7 @@ Vao create_vao(int max_v_count, int max_i_count)
         &attrib_count);
 
     Vao vao = {};
-    vao.v_size = sizeof(TriMeshVertex);
+    vao.v_size = sizeof(Vertex2D);
     vao.v_capacity = max_v_count;
     vao.i_capacity = max_i_count;
 
@@ -494,7 +494,7 @@ void Renderer::endFrame()
             color.b *= blend.colorMul;
             color.a *= blend.colorMul;
 
-            TriMeshVertex vert[4] = {};
+            Vertex2D vert[4] = {};
             static MeshIndexType ind[6] = { 0, 1, 2, 0, 2, 3 };
 
             vert[0] = { glm::vec2(0, 0),glm::vec2(0, 0) };

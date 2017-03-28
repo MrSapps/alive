@@ -14,6 +14,21 @@ struct Debug
     bool mShowDebugUi = true;
     bool mShowBrowserUi = false;
 
+    struct BrowserUi
+    {
+        BrowserUi()
+        {
+
+        }
+        bool fmvBrowserOpen;
+        bool soundBrowserOpen;
+        bool levelBrowserOpen;
+        bool animationBrowserOpen;
+        bool guiLayoutEditorOpen;
+    };
+
+    BrowserUi mBrowserUi;
+
     bool mSingleStepObject = false;
     bool mDoSingleStepObject = false;
     class MapObject* mDebugObj = nullptr;

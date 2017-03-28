@@ -10,7 +10,6 @@ public:
     GameSelectionScreen(StateMachine& stateMachine,
             const std::vector<GameDefinition>& gameDefinitions,
             GuiContext* gui,
-            class Fmv& fmv,
             class Sound& sound, 
             class Level& level,
             ResourceLocator& resLocator,
@@ -18,7 +17,6 @@ public:
       : IState(stateMachine),
         mGameDefinitions(gameDefinitions),
         mGui(gui),
-        mFmv(fmv),
         mSound(sound),
         mLevel(level),
         mResLocator(resLocator),
@@ -39,7 +37,6 @@ private:
     const std::vector<GameDefinition>& mGameDefinitions;
     std::vector<const GameDefinition*> mVisibleGameDefinitions;
     struct GuiContext *mGui = nullptr;
-    Fmv& mFmv;
     Sound& mSound;
     Level& mLevel;
     ResourceLocator& mResLocator;

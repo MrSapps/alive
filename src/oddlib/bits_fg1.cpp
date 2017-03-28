@@ -39,10 +39,10 @@ namespace Oddlib
         }
     };
 
-    static void set_pixel_alpha(SDL_Surface *surface, int x, int y, Uint8 alpha)
+    static void set_pixel_alpha(SDL_Surface *surface, int x, int y, u8 alpha)
     {
-        Uint32 *target_pixel = (Uint32 *)((Uint8 *)surface->pixels + y * surface->pitch + x * sizeof *target_pixel);
-        *target_pixel |= ((((Uint32)alpha) << 24));
+        u32 *target_pixel = (u32 *)((u8 *)surface->pixels + y * surface->pitch + x * sizeof *target_pixel);
+        *target_pixel |= ((((u32)alpha) << 24));
     }
 
     static void ProcessFG1(SDL_Surface* fg1, IStream& stream, u32 numberOfPartialChunks, u32& chunksRead, bool bBitMaskedPartialBlocks)

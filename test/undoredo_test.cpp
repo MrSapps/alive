@@ -1,6 +1,7 @@
 #include <gmock/gmock.h>
 #include <algorithm>
 #include "gridmap.hpp"
+#include "editormode.hpp"
 
 class TestCommand : public ICommandWithId<TestCommand>
 {

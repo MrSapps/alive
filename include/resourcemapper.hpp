@@ -353,6 +353,7 @@ private:
 
     friend class Level; // TODO: Temp debug ui
     friend class Sound; // TODO: Temp debug ui
+    friend class Fmv; // TODO: Temp debug ui
 
     void Parse(const std::string& json)
     {
@@ -618,8 +619,6 @@ private:
             mapping.mLocations.push_back(fmvFileLocation);
         }
     }
-
-    friend class FmvUi;
 };
 
 // TODO: Move to physics
@@ -1040,7 +1039,7 @@ private:
     ResourceMapper mResMapper;
     DataPaths mDataPaths;
 
-    friend class FmvUi; // TODO: Temp debug ui
+    friend class Fmv; // TODO: Temp debug ui
     friend class Level; // TODO: Temp debug ui
     friend class Sound; // TODO: Temp debug ui
 };

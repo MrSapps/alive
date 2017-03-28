@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include "oddlib/audio/AliveAudio.h"
-#include "proxy_sol.hpp"
 
 class GameData;
 class IAudioController;
@@ -16,9 +15,10 @@ class ResourceLocator;
 class Sound
 {
 public:
+    static void RegisterScriptBindings();
     Sound(const Sound&) = delete;
     Sound& operator = (const Sound&) = delete;
-    Sound(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState);
+    Sound(IAudioController& audioController, ResourceLocator& locator);
     ~Sound();
     void Update();
     void Render(GuiContext *gui, int w, int h);
@@ -40,4 +40,6 @@ private:
 
     // TODO: Should be removed and pre-load all sfx instead, also this pays no attention to the required sound bank
     std::map<std::string, std::unique_ptr<class ISoundEffect>> mSfxCache;
+
+    InstanceBinder<class Sound> mScriptInstance;
 };

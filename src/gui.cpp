@@ -957,7 +957,9 @@ void gui_slider_ex(GuiContext *ctx, const char *label, float *value, float min, 
 		}
 
 		{ // Handle
-			float rel_scroll = (*value - min) / (max - min);
+            float factor = (max - min);
+            if (factor == 0.0f) { factor = 1.0f; }
+            float rel_scroll = (*value - min) / factor;
 			int handle_pos[2];
 			GUI_ASSIGN_V2(handle_pos, pos);
 			handle_pos[v] += (int)(rel_scroll*(bar_size[v] - scroll_handle_height));

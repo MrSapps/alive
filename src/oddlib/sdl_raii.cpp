@@ -1,4 +1,4 @@
-#include "sdl_raii.hpp"
+#include "oddlib/sdl_raii.hpp"
 #include "lodepng/lodepng.h"
 
 /*static*/ void SDLHelpers::SaveSurfaceAsPng(const char* fileName, SDL_Surface* surface)

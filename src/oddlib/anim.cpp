@@ -8,7 +8,7 @@
 #include "oddlib/compressiontype6ae.hpp"
 #include "oddlib/compressiontype6or7aepsx.hpp"
 #include "logger.hpp"
-#include "sdl_raii.hpp"
+#include "oddlib/sdl_raii.hpp"
 #include <assert.h>
 #include <array>
 
