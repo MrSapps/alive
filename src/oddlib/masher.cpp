@@ -107,12 +107,6 @@ namespace Oddlib
         v = MAKELONG(lo, hiWord);
     }
 
-    static void SetLoInt(int& v, u16 lo)
-    {
-        u16 hiWord = GetHiWord(v);
-        v = MAKELONG(lo, hiWord);
-    }
-
     static void SetHiWord(u32& v, u16 hi)
     {
         u16 loWord = v & 0xFFFF;
@@ -163,7 +157,9 @@ namespace Oddlib
 
         unsigned int table_index_2 = 0;
         int ret = *pFrameData;
-        u32 v8 = *(u32*)(pFrameData + 1);
+
+        u32 v8 = ((pFrameData[2]<<16) | (pFrameData[1]));
+
         u16* rawBitStreamPtr = (pFrameData + 3);
 
         v8 = (v8 << 16) | (v8 >> 16); // Swap words
@@ -795,383 +791,226 @@ namespace Oddlib
 
     }
 
-    int gBitCounter = 0;
-    u32 gFirstAudioFrameDWORD = 0;
-    int gAudioFrameSizeBytes = 0;
-    u16* gTemp = nullptr;
-    u16** gAudioFrameDataPtr = &gTemp;
-    unsigned char gSndTbl_byte_62EEB0[256] = {};
-
-    static int ReadNextAudioWord(int value)
+    AudioDecompressor::AudioDecompressor()
     {
-        if (gBitCounter <= 16)
-        {
-            const int srcVal = *(*gAudioFrameDataPtr);
-            ++(*gAudioFrameDataPtr);
-            value |= srcVal << gBitCounter;
-            gBitCounter += 16;
-        }
-        return value;
+        init_Snd_tbl();
     }
 
-
-    int GetSoundTableValue(s16 tblIndex)
+    /*static*/ s32 AudioDecompressor::GetSoundTableValue(s16 tblIndex)
     {
-        //s16 oldIdx = tblIndex;
-
-        int result; // eax@1
-        s16 positiveTblIdx; // ax@1
-
-        positiveTblIdx = static_cast<s16>(abs(tblIndex));
-        result = (u16)((s16)gSndTbl_byte_62EEB0[positiveTblIdx >> 7] << 7) | (u16)(positiveTblIdx >> gSndTbl_byte_62EEB0[positiveTblIdx >> 7]);
+        const s32 positiveTblIdx = static_cast<s32>(abs(tblIndex));
+        const u32 shiftedIdx = (positiveTblIdx >> 7) & 0xFF;
+        s32 result = (u16)((s16)gSndTbl_byte_62EEB0[shiftedIdx] << 7) | (u16)(positiveTblIdx >> gSndTbl_byte_62EEB0[shiftedIdx]);
         if (tblIndex < 0)
         {
             result = -result;
         }
-
-        // char buf[512] = {};
-        // sprintf(buf, "%d %d\n", oldIdx, result);
-        // OutputDebugStringA(buf);
-
         return result;
     }
 
-
-    int sub_408F50(s16 a1)
+    s16 AudioDecompressor::sub_408F50(s16 sample)
     {
-        s16 v2 = static_cast<s16>(abs(a1));
-        int result = (u16)((v2 & 0x7F) << (v2 >> 7)) | (u16)(1 << ((v2 >> 7) - 2));
-        if (a1 < 0)
+        s32 absSample = static_cast<s32>(abs(sample));
+        s32 sampleBits = absSample >> 7;
+        s32 sampleMasked = absSample & 0x7F;
+
+        s16 result = (u16)(sampleMasked << sampleBits);
+        if (sampleBits >= 2)
+        {
+            result |= (u16)(1 << (sampleBits - 2));
+        }
+
+        if (sample < 0)
         {
             result = -result;
         }
         return result;
     }
 
-
-    static int SndRelated_sub_409650()
+    s32 AudioDecompressor::ReadNextAudioWord(s32 value)
     {
-        const int v1 = gBitCounter & 7;
-        gBitCounter -= v1;
-        gFirstAudioFrameDWORD >>= v1;
-
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-        return gBitCounter;
+        if (mUsedBits <= 16)
+        {
+            const int srcVal = *mAudioFrameDataPtr;
+            ++mAudioFrameDataPtr;
+            value |= srcVal << mUsedBits;
+            mUsedBits += 16;
+        }
+        return value;
     }
 
-    int decode_16bit_audio_frame(u16 *outPtr, int numSamplesPerFrame)
+    s32 AudioDecompressor::SndRelated_sub_409650()
     {
+        const s32 numBits = mUsedBits & 7;
+        mUsedBits -= numBits;
+        mWorkBits >>= numBits;
+        mWorkBits = ReadNextAudioWord(mWorkBits);
+        return mUsedBits;
+    }
 
-        unsigned int secondWord; // edx@1
-        s16 firstWord; // di@1
+    s16 AudioDecompressor::NextSoundBits(u16 numBits)
+    {
+        mUsedBits -= numBits;
+        const s16 ret = static_cast<s16>(mWorkBits & ((1 << numBits) - 1));
+        mWorkBits >>= numBits;
+        mWorkBits = ReadNextAudioWord(mWorkBits);
+        return ret;
+    }
 
-        unsigned int thirdWord; // edx@4
+    bool AudioDecompressor::SampleMatches(s16& sample, s16 bitNum)
+    {
+        const s32 bitMask = 1 << (bitNum - 1);
+        if (sample != bitMask)
+        {
+            if (sample & bitMask)
+            {
+                sample = -(sample & ~bitMask);
+            }
+            return true;
+        }
+        return false;
+    }
 
-        s16 secondWordCopy; // di@4
+    void AudioDecompressor::decode_16bit_audio_frame(u16* outPtr, s32 numSamplesPerFrame, bool isLast)
+    {
+        const s16 useTableFlag = NextSoundBits(16);
+        const s16 firstWord = NextSoundBits(16);
+        const s16 secondWord = NextSoundBits(16);
+        const s16 thirdWord = NextSoundBits(16);
 
-        unsigned int fourthWord; // edx@6
-        int secondWordCopyCopy; // ecx@6
-        s16 thirdWordCopy; // di@6
+        const s16 previous1 = NextSoundBits(16);
+        s32 previousValue1 = static_cast<s16>(previous1);
 
+        *outPtr = previous1;
+        outPtr += mAudioFrameSizeBytes;
 
-        unsigned int fithWord; // edx@8
-        int thirdWordCopyCopy; // ebx@8
-        s16 fourthWordCopy; // di@8
+        const s16 previous2 = NextSoundBits(16);
+        s32 previousValue2 = static_cast<s16>(previous2);
 
-        unsigned int fithHiWord; // edx@10
-        int fourthWordCopyCopy; // ebp@10
-        u16 fithWordCopy; // di@10
+        *outPtr = previous2;
+        outPtr += mAudioFrameSizeBytes;
 
-        u16 outputTmp; // dx@12
+        const s16 previous3 = NextSoundBits(16);
+        s32 previousValue3 = static_cast<s16>(previous3);
 
-        u16 outputTmp1; // dx@14
+        *outPtr = previous3;
+        outPtr += mAudioFrameSizeBytes;
 
-        int loopOutput; // ebx@16
-        int secondWordCopyCopyCopyCopy; // ecx@17
-
-        int v45 = 0; // esi@19
-
-        signed int secondWord_Unknown2; // ecx@22
-
-
-
-        char bCountIsOne; // zf@37
-        int secondWordCopyCopyCopy; // [sp+10h] [bp-28h]@6
-        int thirdWordCopyCopyCopy; // [sp+14h] [bp-24h]@8
-        int fourthWordCopyCopyCopy; // [sp+18h] [bp-20h]@10
-        int fithWordCopyCopy; // [sp+1Ch] [bp-1Ch]@12
-        int outputTmpCopy; // [sp+20h] [bp-18h]@14
-        int secondWord_Unknown1; // [sp+24h] [bp-14h]@17
-        signed int secondWordMask; // [sp+28h] [bp-10h]@10
-        signed int thirdWordMask; // [sp+2Ch] [bp-Ch]@10
-        signed int forthWordMask; // [sp+30h] [bp-8h]@10
-
-        int counter; // [sp+40h] [bp+8h]@17
-
-        gBitCounter -= 16;
-        firstWord = static_cast<s16>(gFirstAudioFrameDWORD);
-        secondWord = gFirstAudioFrameDWORD >> 16;
-
-        secondWord = ReadNextAudioWord(secondWord);
-        gFirstAudioFrameDWORD >>= 16;
-
-        secondWordCopy = static_cast<s16>(secondWord);
-        gBitCounter -= 16;
-        thirdWord = secondWord >> 16;
-        const int bUseTbl = firstWord & 0xFFFF;
-        gFirstAudioFrameDWORD = thirdWord;
-        thirdWord = ReadNextAudioWord(thirdWord);
-
-
-        secondWordCopyCopy = secondWordCopy;
-        thirdWordCopy = static_cast<s16>(thirdWord);
-        gBitCounter -= 16;
-        fourthWord = thirdWord >> 16;
-        secondWordCopyCopyCopy = secondWordCopyCopy;
-        gFirstAudioFrameDWORD = fourthWord;
-        fourthWord = ReadNextAudioWord(fourthWord);
-
-        thirdWordCopyCopy = thirdWordCopy;
-        fourthWordCopy = static_cast<s16>(fourthWord);
-        gBitCounter -= 16;
-        fithWord = fourthWord >> 16;
-        thirdWordCopyCopyCopy = thirdWordCopyCopy;
-        gFirstAudioFrameDWORD = fithWord;
-        fithWord = ReadNextAudioWord(fithWord);
-
-
-        gBitCounter -= 16;
-        fourthWordCopyCopy = fourthWordCopy;
-        fourthWordCopyCopyCopy = fourthWordCopy;
-
-        secondWordMask = 1 << (secondWordCopyCopyCopy - 1);
-        thirdWordMask = 1 << (thirdWordCopyCopy - 1);
-        forthWordMask = 1 << (fourthWordCopy - 1);
-        fithWordCopy = static_cast<s16>(fithWord);
-        fithHiWord = fithWord >> 16;
-        gFirstAudioFrameDWORD = fithHiWord;
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD); // or fithHiWord
-
-
-        *outPtr = fithWordCopy;
-        fithWordCopyCopy = (s16)fithWordCopy;
-        outPtr += gAudioFrameSizeBytes;
-        outputTmp = static_cast<s16>(gFirstAudioFrameDWORD);
-        gFirstAudioFrameDWORD >>= 16;
-        gBitCounter -= 16;
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-
-        outputTmpCopy = (s16)outputTmp;
-        *outPtr = outputTmp;
-        outPtr += gAudioFrameSizeBytes;
-        outputTmp1 = static_cast<s16>(gFirstAudioFrameDWORD);
-        gFirstAudioFrameDWORD >>= 16;
-        gBitCounter -= 16;
-        gFirstAudioFrameDWORD = ReadNextAudioWord(gFirstAudioFrameDWORD);
-
-        loopOutput = (s16)outputTmp1;
-        *outPtr = outputTmp1;
-        outPtr += gAudioFrameSizeBytes;
         if (numSamplesPerFrame > 3)
         {
-            secondWordCopyCopyCopyCopy = secondWordCopyCopyCopy;
-            secondWord_Unknown1 = (1 << secondWordCopyCopyCopy) - 1;
-            counter = numSamplesPerFrame - 3;
-            for (;;)
+            for (s32 counter = 0; counter < numSamplesPerFrame - 3; counter++)
             {
-                //            LOWORD(v45) = gFirstAudioFrameDWORD_dword_62EFB4 & secondWord_Unknown1;
-                SetLoInt(v45, static_cast<u16>(gFirstAudioFrameDWORD & secondWord_Unknown1)); // dword to word
-
-
-                gBitCounter -= secondWordCopyCopyCopyCopy;
-                gFirstAudioFrameDWORD >>= secondWordCopyCopyCopyCopy;
-
-                if (gBitCounter <= 16)
+                s16 samplePart = 0;
+                do
                 {
-                    const int srcVal = *(*gAudioFrameDataPtr);
-                    ++(*gAudioFrameDataPtr);
-                    gFirstAudioFrameDWORD |= srcVal << gBitCounter;
-                    gBitCounter += 16;
-                    fourthWordCopyCopy = fourthWordCopyCopyCopy;
-                }
-
-                secondWord_Unknown2 = 1 << (secondWordCopyCopyCopy - 1);
-                v45 = (s16)v45;
-
-                if ((s16)v45 != secondWordMask)
-                {
-                    break;
-                }
-
-                gBitCounter -= thirdWordCopyCopyCopy;
-                v45 = gFirstAudioFrameDWORD & ((1 << thirdWordCopyCopyCopy) - 1);
-                gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> thirdWordCopyCopyCopy;
-                if (gBitCounter <= 16)
-                {
-                    const int srcVal = *(*gAudioFrameDataPtr);
-                    ++(*gAudioFrameDataPtr);
-                    gFirstAudioFrameDWORD |= srcVal << gBitCounter;
-                    gBitCounter += 16;
-                    fourthWordCopyCopy = fourthWordCopyCopyCopy;
-                }
-                secondWord_Unknown2 = thirdWordMask;
-                v45 = (s16)v45;
-                if ((s16)v45 != thirdWordMask)
-                {
-                    if (!(v45 & thirdWordMask))
+                    samplePart = NextSoundBits(firstWord);
+                    if (SampleMatches(samplePart, firstWord))
                     {
-                        goto LABEL_34;
+                        break;
                     }
-                LABEL_33:
-                    v45 = -(v45 & ~secondWord_Unknown2);
-                    goto LABEL_34;
-                }
-                gBitCounter -= fourthWordCopyCopy;
-                v45 = gFirstAudioFrameDWORD & ((1 << fourthWordCopyCopy) - 1);
-                gFirstAudioFrameDWORD = gFirstAudioFrameDWORD >> fourthWordCopyCopy;
 
-                if (gBitCounter <= 16)
-                {
-                    const int srcVal = *(*gAudioFrameDataPtr);
-                    ++(*gAudioFrameDataPtr);
-                    fourthWordCopyCopy = fourthWordCopyCopyCopy;
-                    gFirstAudioFrameDWORD = (srcVal << gBitCounter) | gFirstAudioFrameDWORD;
-                    gBitCounter += 16;
-                }
+                    samplePart = NextSoundBits(secondWord);
+                    if (SampleMatches(samplePart, secondWord))
+                    {
+                        break;
+                    }
 
-                v45 = (s16)v45;
-                if ((s16)v45 & forthWordMask)
-                {
-                    v45 = -(v45 & ~forthWordMask);
-                }
-            LABEL_34:
-                const int v59 = fithWordCopyCopy;
-                fithWordCopyCopy = outputTmpCopy; // outputTmpCopy and fithWordCopyCopy is constant within the loop
-                const int v60 = 5 * loopOutput - 4 * outputTmpCopy;
-                outputTmpCopy = loopOutput;
-                const int v58 = (v59 + v60) >> 1;
+                    samplePart = NextSoundBits(thirdWord);
+                    if (SampleMatches(samplePart, thirdWord))
+                    {
+                        break;
+                    }
+
+                } while (false);
+
+                const s32 previous = (5 * previousValue3) - (4 * previousValue2);
+                const s32 samplePartOrTableIndex = (previousValue1 + previous) >> 1;
+
+                previousValue1 = previousValue2;
+                previousValue2 = previousValue3;
+
+                const bool bUseTbl = useTableFlag != 0;
                 if (bUseTbl)
                 {
-                    const auto v61 = GetSoundTableValue(static_cast<s16>(v58)); // int to short
-                    loopOutput = (s16)sub_408F50(static_cast<s16>(v45 + v61)); // get positive bit7 mask? 2 bit mask or 1 bit RLE flag?
+                    const s32 soundTableValue = GetSoundTableValue(static_cast<s16>(samplePartOrTableIndex));
+                    previousValue3 = sub_408F50(static_cast<s16>(samplePart + soundTableValue));
                 }
                 else
                 {
-                    loopOutput = (s16)(v58 + (u16)v45);
+                    // TODO: Case never hit for any known data?
+                    previousValue3 = static_cast<s16>(samplePartOrTableIndex + samplePart);
                 }
-                *outPtr = static_cast<u16>(loopOutput); // int to word
-                bCountIsOne = counter == 1;
-                outPtr += gAudioFrameSizeBytes;
-                --counter;
-                if (bCountIsOne)
+
+                *outPtr = static_cast<u16>(previousValue3); // int to word
+                outPtr += mAudioFrameSizeBytes;
+            }
+        }
+
+        if (!isLast)
+        {
+            SndRelated_sub_409650();
+        }
+    }
+
+    u16* AudioDecompressor::SetupAudioDecodePtrs(u16 *rawFrameBuffer)
+    {
+        mAudioFrameDataPtr = rawFrameBuffer;
+        mWorkBits = *(u32 *)mAudioFrameDataPtr;
+        mAudioFrameDataPtr = mAudioFrameDataPtr + 2;
+        mUsedBits = 32;
+        return mAudioFrameDataPtr;
+    }
+
+    s32 AudioDecompressor::SetAudioFrameSizeBytesAndBits(s32 audioFrameSizeBytes)
+    {
+        mAudioFrameSizeBytes = audioFrameSizeBytes;
+        return mAudioFrameSizeBytes;
+    }
+
+    /*static*/ void AudioDecompressor::init_Snd_tbl()
+    {
+        static bool done = false;
+        if (!done)
+        {
+            done = true;
+            int index = 0;
+            do
+            {
+                int tableValue = 0;
+                for (int i = index; i > 0; ++tableValue)
                 {
-                    return SndRelated_sub_409650();
+                    i >>= 1;
                 }
-                secondWordCopyCopyCopyCopy = secondWordCopyCopyCopy;
-            } // End loop
-
-            if (!(v45 & secondWordMask))
-            {
-                goto LABEL_34;
-            }
-
-            goto LABEL_33;
+                gSndTbl_byte_62EEB0[index++] = static_cast<u8>(tableValue);
+            } while (index < 256);
         }
-        return SndRelated_sub_409650();
     }
 
 
+    /*static*/ u8 AudioDecompressor::gSndTbl_byte_62EEB0[256];
 
-    u16* SetupAudioDecodePtrs(u16 *rawFrameBuffer)
+    void Masher::decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame)
     {
-        u16 *result; // eax@1
+        AudioDecompressor decompressor;
+        decompressor.SetAudioFrameSizeBytesAndBits(2);
+        decompressor.SetupAudioDecodePtrs(rawFrameBuffer);
+        memset(outPtr, 0, numSamplesPerFrame * 4);
+        decompressor.decode_16bit_audio_frame(outPtr, numSamplesPerFrame, false);
 
-        *gAudioFrameDataPtr = rawFrameBuffer;
-        result = rawFrameBuffer + 2;
-        gFirstAudioFrameDWORD = *(u32 *)rawFrameBuffer;
-        *gAudioFrameDataPtr = rawFrameBuffer + 2;
-        gBitCounter = 32;
-        return result;
-    }
-
-    int Masher::decode_audio_frame(u16 *rawFrameBuffer, u16 *outPtr, signed int numSamplesPerFrame)
-    {
-        int result; // eax@2
-
-        SetupAudioDecodePtrs(rawFrameBuffer);
-        if (false /*gAudioFrameSizeBits == 8*/)               // if 8 bit
+        if (decompressor.mAudioFrameSizeBytes == 2)
         {
-            abort();
-            /*
-            Sound8BitRelated_sub_409200(outPtr, numSamplesPerFrame);
-            result = gAudioFrameSizeBytes;
-            if (gAudioFrameSizeBytes == 2)
-            {
-            result = Sound8BitRelated_sub_409200((_BYTE *)outPtr + 1, numSamplesPerFrame);
-            }
-            */
+            decompressor.decode_16bit_audio_frame(outPtr + 1, numSamplesPerFrame, true);
         }
-        else
-        {
-
-            SetupAudioDecodePtrs(rawFrameBuffer);
-            memset(outPtr, 0, numSamplesPerFrame * 4);
-            decode_16bit_audio_frame(outPtr, numSamplesPerFrame);
-
-            result = gAudioFrameSizeBytes;
-            if (gAudioFrameSizeBytes == 2)
-            {
-                result = decode_16bit_audio_frame(outPtr + 1, numSamplesPerFrame);
-                //  result = sound16bitRelated_sub_4096B0_ptr(outPtr + 1, numSamplesPerFrame);
-            }
-        }
-        return result;
     }
-
-    int SetAudioFrameSizeBytesAndBits(int audioFrameSizeBytes)
-    {
-        int result; // eax@1
-
-        result = audioFrameSizeBytes;
-        gAudioFrameSizeBytes = audioFrameSizeBytes;
-        // gAudioFrameSizeBits = audioFrameSizeBits;
-        return result;
-    }
-
 
     // 0040DBB0
     void Masher::do_decode_audio_frame(u8* audioBuffer)
     {
         if (mbHasAudio)
         {
-            //            SetAudioFrameSizeBytesAndBits(mAudioFrameSizeBytes, mAudioFrameSizeBits);
-            SetAudioFrameSizeBytesAndBits(2);
-
             decode_audio_frame((u16 *)mAudioFrameData.data(), (u16 *)audioBuffer, mAudioHeader.mSingleAudioFrameSize);
-            //++thisPtr->mAudioFrameNumber;
-        }
-        else
-        {
-            //++thisPtr->mAudioFrameNumber;
-            // result = 0;
         }
     }
-
-    void init_Snd_tbl()
-    {
-        int index = 0;
-        do
-        {
-            int tableValue = 0;
-            for (int i = index; i > 0; ++tableValue)
-            {
-                i >>= 1;
-            }
-            gSndTbl_byte_62EEB0[index++] = static_cast<unsigned char>(tableValue);
-        } while (index < 256);
-    }
-
 
     void Masher::ParseAudioFrame(u8* audioBuffer)
     {
@@ -1183,12 +1022,6 @@ namespace Oddlib
 
     bool Masher::Update(u32* pixelBuffer, u8* audioBuffer)
     {
-        if (mCurrentFrame == 0)
-        {
-            // TODO: Make this a one shot thing
-            init_Snd_tbl();
-        }
-
         if (mCurrentFrame < mFileHeader.mNumberOfFrames)
         {
             if (mbHasVideo && mbHasAudio)

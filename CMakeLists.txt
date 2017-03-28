@@ -49,11 +49,6 @@ set(ALIVE_VERSION_PATCH 0)
 # Enable Visual Studio solution "folders"
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON) 
 
-if (APPLE)
-# Required to prevent runtime crash on 64bit OSX - however this breaks 32bit compile
-  set ( CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000 -image_base 7fff04c4a000" )
-endif()
-
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
   # CMake defaults to leaving CMAKE_BUILD_TYPE empty. This screws up
   # differentiation between debug and release builds.
@@ -75,7 +70,6 @@ if (LINUX)
   pkg_check_modules (GTK3 REQUIRED gtk+-3.0)
 endif()
 
-
 include_directories(
     include
     ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers
@@ -96,15 +90,12 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/internal
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googletest/internal/custom
-    ${CMAKE_BINARY_DIR}/3rdParty/luajit
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/luajit/src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/stk/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/libdeflate/common
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/rapidjson/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/Detours/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/sol2/single
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glm
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/vorbis/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/vorbis/lib
@@ -112,6 +103,8 @@ include_directories(
     ${GTK3_INCLUDE_DIRS}
 )
 
+SET(SQ_DISABLE_INSTALLER 1)
+SET(DISABLE_DYNAMIC 1)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squirrel)
 SET_PROPERTY(TARGET sq_static PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET sqstdlib_static PROPERTY FOLDER "3rdparty")
@@ -138,6 +131,9 @@ endif()
 
 add_library(nativefiledialog STATIC ${nativefiledialog_src})
 SET_PROPERTY(TARGET nativefiledialog PROPERTY FOLDER "3rdparty")
+if (LINUX)
+    TARGET_LINK_LIBRARIES(nativefiledialog ${GTK3_LIBRARIES})
+endif()
 
 SET(lodepng_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/lodepng/lodepng.cpp
@@ -185,18 +181,11 @@ SET(libdeflate_src
 add_library(libdeflate STATIC ${libdeflate_src})
 SET_PROPERTY(TARGET libdeflate PROPERTY FOLDER "3rdparty")
 
-
 SET(jsonxx_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/jsonxx/jsonxx.cc
 )
 add_library(jsonxx STATIC ${jsonxx_src})
 SET_PROPERTY(TARGET jsonxx PROPERTY FOLDER "3rdparty")
-
-add_subdirectory(3rdParty/luajit)
-SET_PROPERTY(TARGET buildvm PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET liblua PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET luajit PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET minilua PROPERTY FOLDER "3rdparty")
 
 set(VORBIS_HEADERS
     3rdParty/vorbis/lib/envelope.h
@@ -256,6 +245,10 @@ set(VORBISENC_SOURCES
 add_library(libvorbis STATIC ${VORBISFILE_SOURCES} ${VORBISENC_SOURCES} ${VORBIS_SOURCES} ${VORBIS_HEADERS})
 SET_PROPERTY(TARGET libvorbis PROPERTY FOLDER "3rdparty")
 
+add_library(gl3w_lib STATIC ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c)
+SET_PROPERTY(TARGET gl3w_lib PROPERTY FOLDER "3rdparty")
+TARGET_LINK_LIBRARIES(gl3w_lib ${CMAKE_DL_LIBS} ${OPENGL_LIBRARIES})
+
 SET(oddlib_src
     src/gpuselect.cpp
     include/reverse_for.hpp
@@ -263,7 +256,6 @@ SET(oddlib_src
     include/bitutils.hpp
     include/proxy_rapidjson.hpp
     include/proxy_nanovg.h
-    include/proxy_sol.hpp
     include/proxy_sqrat.hpp
     include/msvc_sdl_link.hpp
     include/stdthread.h
@@ -319,11 +311,19 @@ SET(oddlib_src
     src/oddlib/compressiontype2.cpp
     include/oddlib/compressiontype6or7aepsx.hpp
     src/oddlib/compressiontype6or7aepsx.cpp
+    include/oddlib/sdl_raii.hpp
+    src/oddlib/sdl_raii.cpp
 )
 
 add_library(oddlib STATIC
     src/oddlib/oddlib_pch.cpp ${oddlib_src}
 )
+
+if (LINUX)
+    TARGET_LINK_LIBRARIES(oddlib ${SDL2_LIBRARY} rt ${CMAKE_THREAD_LIBS_INIT} lodepng)
+else()
+    TARGET_LINK_LIBRARIES(oddlib ${SDL2_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} lodepng)
+endif()
 
 if (WIN32 AND MSVC)
     set_target_properties(oddlib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/oddlib/oddlib_pch.h")
@@ -352,13 +352,17 @@ SET(alivelib_src
     include/gameselectionscreen.hpp
     include/gridmap.hpp
     src/gridmap.cpp
+    include/gamemode.hpp
+    src/gamemode.cpp
+    include/editormode.hpp
+    src/editormode.cpp
+    include/mapobject.hpp
+    src/mapobject.cpp
     include/fsm.hpp
     src/fsm.cpp
     include/gridobject.hpp
     src/gridobject.cpp
     include/subtitles.hpp
-    include/sdl_raii.hpp
-    src/sdl_raii.cpp
     include/resourcemapper.hpp
     src/resourcemapper.cpp
     include/zipfilesystem.hpp
@@ -382,6 +386,8 @@ SET(alivelib_src
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
+TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib NanoVg jsonxx sqstdlib_static squirrel_static stk nativefiledialog libdeflate)
+
 if (WIN32 AND MSVC)
     set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
     cotire(AliveLib)
@@ -397,26 +403,24 @@ endif()
 add_executable(Alive MACOSX_BUNDLE
     ${WIN32_RESOURCES_SRC}
     src/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
-
-if(LINUX)
-    # Sometimes on Linux pthreads and rt need explicitly linking for SDL2
-    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} pthread ${SDL2_LIBRARY} rt liblua lodepng libdeflate nativefiledialog ${GTK3_LIBRARIES} sqstdlib_static squirrel_static)
-ELSE()
-    SET(Alive_Libs AliveLib libvorbis jsonxx oddlib NanoVg stk ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} liblua lodepng libdeflate nativefiledialog sqstdlib_static squirrel_static)
-ENDIF()
 
 #cotire(Alive)
-TARGET_LINK_LIBRARIES(Alive ${Alive_Libs})
+TARGET_LINK_LIBRARIES(Alive AliveLib libvorbis)
 
-add_executable(DataTool
+SET(datatool_src
   ${WIN32_RESOURCES_SRC}
   test/data_test_main.cpp
-  test/phash.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
-)
-TARGET_LINK_LIBRARIES(DataTool ${Alive_Libs})
+  test/phash.hpp)
+
+if (APPLE)
+    SET(datatool_src
+       ${datatool_src}
+       ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c)
+endif()
+
+add_executable(DataTool ${datatool_src})
+TARGET_LINK_LIBRARIES(DataTool AliveLib libvorbis)
 
 #cotire(oddlib)
 
@@ -446,11 +450,10 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         tools/engine_hook/sound_hooks.hpp
         tools/engine_hook/ddraw7proxy.hpp
         tools/engine_hook/dsurface7proxy.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
         )
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_RELEASE  "/SUBSYSTEM:WINDOWS")
-    TARGET_LINK_LIBRARIES(ddraw detours ${Alive_Libs})
+    TARGET_LINK_LIBRARIES(ddraw detours AliveLib libvorbis)
 endif()
 
 
@@ -505,6 +508,10 @@ to_vec(${samples_dir}/ae_ddv/video_only/all_colours_low_compression_30_fps.ddv a
 to_vec(${samples_dir}/ae_ddv/video_only/all_colours_max_compression_30_fps.ddv all_colours_max_compression_30_fps.ddv)
 to_vec(${samples_dir}/ae_ddv/video_only/all_colours_medium_compression_30_fps.ddv all_colours_medium_compression_30_fps.ddv)
 to_vec(${samples_dir}/ae_ddv/video_only/all_colours_min_compression_30_fps.ddv all_colours_min_compression_30_fps.ddv)
+to_vec(${samples_dir}/expected_audio.dat expected_audio.dat)
+to_vec(${samples_dir}/compressed_audio.dat compressed_audio.dat)
+to_vec(${samples_dir}/audio/F470_in F470_in)
+to_vec(${samples_dir}/audio/F470_out F470_out)
 
 SET(generated_headers
     ${generated_headers_dir}/MaxECDRComment.zip.g.h
@@ -526,10 +533,15 @@ SET(generated_headers
     ${generated_headers_dir}/all_colours_max_compression_30_fps.ddv.g.h
     ${generated_headers_dir}/all_colours_medium_compression_30_fps.ddv.g.h
     ${generated_headers_dir}/all_colours_min_compression_30_fps.ddv.g.h
+    ${generated_headers_dir}/expected_audio.dat.g.h
+    ${generated_headers_dir}/compressed_audio.dat.g.h
+    ${generated_headers_dir}/F470_in.g.h
+    ${generated_headers_dir}/F470_out.g.h
 )
 
 SET(test_src
     test/main.cpp
+    test/masher_tests.cpp
     test/resource_locator_test.cpp
     test/zip_fs_tests.cpp
     test/string_util_tests.cpp
@@ -538,14 +550,19 @@ SET(test_src
     test/undoredo_test.cpp
     include/subtitles.hpp)
 
+if (APPLE)
+    SET(test_src
+       ${test_src}
+       ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c)
+endif()
+
 add_executable(Tests 
     ${test_src}
     ${generated_headers}
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/src/gl3w.c
 )
 
 #cotire(Tests)
-target_link_libraries(Tests oddlib gmock ${Alive_Libs} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Tests gmock AliveLib libvorbis ${CMAKE_THREAD_LIBS_INIT})
 
 if (UseValgrind)
     add_test(NAME Tests COMMAND valgrind -v --leak-check=full --track-origins=yes --show-reachable=yes --tool=memcheck --error-exitcode=1 $<TARGET_FILE:Tests> WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
@@ -600,16 +617,18 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resources.json" DESTINATION "${D
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT_DDV_AePc.SRT" DESTINATION "${DATA_DIR}/subtitles")
 
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/map.nut" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.nut" DESTINATION "${DATA_DIR}/scripts")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/abe.lua" DESTINATION "${DATA_DIR}/scripts")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/background_animation.lua" DESTINATION "${DATA_DIR}/scripts")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/door.lua" DESTINATION "${DATA_DIR}/scripts")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/electric_wall.lua" DESTINATION "${DATA_DIR}/scripts")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/hoist.lua" DESTINATION "${DATA_DIR}/scripts")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/mine.lua" DESTINATION "${DATA_DIR}/scripts")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/object_factory.lua" DESTINATION "${DATA_DIR}/scripts")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/slam_door.lua" DESTINATION "${DATA_DIR}/scripts")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/switch.lua" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/base_map_object.nut" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/abe.nut" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/background_animation.nut" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/door.nut" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/electric_wall.nut" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/hoist.nut" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/mine.nut" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/object_factory.nut" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/slam_door.nut" DESTINATION "${DATA_DIR}/scripts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/switch.nut" DESTINATION "${DATA_DIR}/scripts")
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPc.json" DESTINATION "${DATA_DIR}/GameDefinitions")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/GameDefinitions/AbesExoddusPcDemo.json" DESTINATION "${DATA_DIR}/GameDefinitions")

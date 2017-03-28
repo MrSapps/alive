@@ -1,5 +1,6 @@
 #include <SDL_stdinc.h>
 #include <memory>
+#include <limits>
 #include "zipfilesystem.hpp"
 #include "libdeflate.h"
 #include "oddlib/stream.hpp"

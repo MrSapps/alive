@@ -59,12 +59,17 @@ void Sound::PlaySoundEffect(const char* effectName)
     }
 }
 
-Sound::Sound(IAudioController& audioController, ResourceLocator& locator, sol::state& luaState)
-    : mAudioController(audioController), mLocator(locator)
+/*static*/ void Sound::RegisterScriptBindings()
+{
+    Sqrat::Class<Sound, Sqrat::NoConstructor<Sound>> c(Sqrat::DefaultVM::Get(), "Sound");
+    c.Func("PlaySoundEffect", &Sound::PlaySoundEffect);
+    Sqrat::RootTable().Bind("Sound", c);
+}
+
+Sound::Sound(IAudioController& audioController, ResourceLocator& locator)
+    : mAudioController(audioController), mLocator(locator), mScriptInstance("gSound", this)
 {
     mAudioController.AddPlayer(&mAliveAudio);
-
-    luaState.set_function("PlaySoundEffect", &Sound::PlaySoundEffect, this);
 }
 
 Sound::~Sound()

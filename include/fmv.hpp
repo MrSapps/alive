@@ -10,6 +10,7 @@
 #include "subtitles.hpp"
 #include "stdthread.h"
 #include <GL/gl3w.h>
+#include <functional>
 
 class GameData;
 class IAudioController;
@@ -32,7 +33,7 @@ public:
     virtual ~IMovie();
 
     // Main thread context
-    void OnRenderFrame(Renderer& rend, GuiContext &gui, int /*screenW*/, int /*screenH*/);
+    void OnRenderFrame(Renderer& rend, GuiContext &gui);
 
     // Main thread context
     bool IsEnd();
@@ -45,7 +46,7 @@ protected:
     virtual void Play(u8* stream, u32 len) override;
 
 
-    void RenderFrame(Renderer& rend, GuiContext& gui, int width, int height, const GLvoid* pixels, const char* subtitles, int screenW, int screenH);
+    void RenderFrame(Renderer& rend, GuiContext& gui, int width, int height, const GLvoid* pixels, const char* subtitles);
 
 protected:
     struct Frame
@@ -55,7 +56,6 @@ protected:
         u32 mH;
         std::vector<u8> mPixels;
     };
-    Frame mLast;
     size_t mFrameCounter = 0;
     size_t mConsumedAudioBytes = 0;
     std::mutex mAudioBufferMutex;
@@ -70,31 +70,25 @@ private:
 };
 
 
-class Fmv
+class Fmv final
 {
 public:
+    static void RegisterScriptBindings();
     Fmv(const Fmv&) = delete;
     Fmv& operator = (const Fmv&) = delete;
     Fmv(IAudioController& audioController, class ResourceLocator& resourceLocator);
-    virtual ~Fmv();
+    ~Fmv();
     void Play(const std::string& name);
     bool IsPlaying() const;
     void Stop();
     void Update();
-    virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+    void Render(Renderer& rend, GuiContext& gui);
 protected:
+    void DebugUi(GuiContext& gui);
+
     ResourceLocator& mResourceLocator;
     IAudioController& mAudioController;
-    std::vector<std::unique_ptr<class IMovie>> mFmvs;
-};
-
-class DebugFmv : public Fmv
-{
-public:
-    DebugFmv(IAudioController& audioController, ResourceLocator& resourceLocator);
-    virtual ~DebugFmv();
-    virtual void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH) override;
-private:
-    void RenderVideoUi(GuiContext& gui);
-    std::unique_ptr<class FmvUi> mFmvUi;
+    std::unique_ptr<class IMovie> mFmv;
+    std::string mFmvName;
+    InstanceBinder<class Fmv> mScriptInstance;
 };

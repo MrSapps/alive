@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sdl_raii.hpp"
+#include "oddlib/sdl_raii.hpp"
 #include <cmath>
 
 namespace

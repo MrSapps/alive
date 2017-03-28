@@ -1,9 +1,13 @@
-local test = 7;
+// Syntatic helper for all other scripts to include more scripts
+function include(scriptName)
+{
+    // Engine::Include
+    gEngine.include(scriptName);
+}
 
 function init()
 {
-    log_info("This is a test " + test);
-    test = test + 1;
+    log_info("Main script init");
 }
 
 function update()

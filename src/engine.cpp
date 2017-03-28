@@ -8,7 +8,6 @@
 #include "proxy_sqrat.hpp"
 #include "alive_version.h"
 #include "core/audiobuffer.hpp"
-#include "fmv.hpp"
 #include "sound.hpp"
 #include "gridmap.hpp"
 #include "renderer.hpp"
@@ -17,6 +16,7 @@
 #include "gameselectionscreen.hpp"
 #include "generated_gui_layout.cpp" // Has function "load_layout" to set gui layout. Only used in single .cpp file.
 #include "gamefilesystem.hpp"
+#include "fmv.hpp"
 
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -163,7 +163,7 @@ void InputMapping::Update(const InputState& input)
     mActions.UpdateStates();
 }
 
-/*static*/ void Actions::RegisterScriptBindings(sol::state& state)
+/*static*/ void Actions::RegisterScriptBindings()
 {
     Sqrat::Class<Actions> c(Sqrat::DefaultVM::Get(), "Actions");
     c
@@ -193,32 +193,6 @@ void InputMapping::Update(const InputState& input)
         .Ctor();
 
     Sqrat::RootTable().Bind("Actions", c);
-
-    state.new_usertype<Actions>("Actions",
-        "Left", &Actions::Left,
-        "Right", &Actions::Right,
-        "Up", &Actions::Up,
-        "Down", &Actions::Down,
-        "Chant", &Actions::Chant,
-        "Run", &Actions::Run,
-        "Sneak", &Actions::Sneak,
-        "Jump", &Actions::Jump,
-        "Throw", &Actions::Throw,
-        "Action", &Actions::Action,
-        "RollOrFart", &Actions::RollOrFart,
-        "GameSpeak1", &Actions::GameSpeak1,
-        "GameSpeak2", &Actions::GameSpeak2,
-        "GameSpeak3", &Actions::GameSpeak3,
-        "GameSpeak4", &Actions::GameSpeak4,
-        "GameSpeak5", &Actions::GameSpeak5,
-        "GameSpeak6", &Actions::GameSpeak6,
-        "GameSpeak7", &Actions::GameSpeak7,
-        "GameSpeak8", &Actions::GameSpeak8,
-        "Back", &Actions::Back,
-        "IsPressed", sol::readonly(&Actions::mIsPressed),
-        "IsReleased", sol::readonly(&Actions::mIsReleased),
-        "IsHeld", sol::readonly(&Actions::mIsDown)
-        );
 }
 
 Engine::Engine()
@@ -228,9 +202,10 @@ Engine::Engine()
 
 Engine::~Engine()
 {
+    TRACE_ENTRYEXIT;
+
     destroy_gui(mGui);
 
-    mFmv.reset();
     mSound.reset();
     mLevel.reset();
     mRenderer.reset();
@@ -267,7 +242,7 @@ bool Engine::Init()
 
         Debugging().mInput = &mInputState;
         
-        mStateMachine.ToState(std::make_unique<GameSelectionScreen>(mStateMachine, mGameDefinitions, mGui, *mFmv, *mSound, *mLevel, *mResourceLocator, *mFileSystem));
+        mStateMachine.ToState(std::make_unique<GameSelectionScreen>(mStateMachine, mGameDefinitions, mGui, *mSound, *mLevel, *mResourceLocator, *mFileSystem));
 
         return true;
     }
@@ -278,19 +253,48 @@ bool Engine::Init()
     }
 }
 
-void LuaLogTrace(const char* msg) { if (msg) { LOG_NOFUNC_TRACE(msg); } else  { LOG_NOFUNC_TRACE("nil"); } }
-void LuaLogInfo(const char* msg) { if (msg) { LOG_NOFUNC_INFO(msg); } else { LOG_NOFUNC_INFO("nil"); } }
-void LuaLogWarning(const char* msg) { if (msg) { LOG_NOFUNC_WARNING(msg); } else { LOG_NOFUNC_WARNING("nil"); } }
-void LuaLogError(const char* msg) { if (msg) { LOG_NOFUNC_ERROR(msg); } else { LOG_NOFUNC_ERROR("nil"); } }
+void ScriptLogTrace(const char* msg) { if (msg) { LOG_NOFUNC_TRACE(msg); } else  { LOG_NOFUNC_TRACE("nil"); } }
+void ScriptLogInfo(const char* msg) { if (msg) { LOG_NOFUNC_INFO(msg); } else { LOG_NOFUNC_INFO("nil"); } }
+void ScriptLogWarning(const char* msg) { if (msg) { LOG_NOFUNC_WARNING(msg); } else { LOG_NOFUNC_WARNING("nil"); } }
+void ScriptLogError(const char* msg) { if (msg) { LOG_NOFUNC_ERROR(msg); } else { LOG_NOFUNC_ERROR("nil"); } }
+
+void Engine::Include(const std::string& scriptName)
+{
+    SquirrelVm::CompileAndRun(*mResourceLocator, scriptName);
+}
+
+void Engine::BindScriptTypes()
+{
+    Sqrat::RootTable().Func("log_info", ScriptLogInfo);
+    Sqrat::RootTable().Func("log_trace", ScriptLogTrace);
+    Sqrat::RootTable().Func("log_warning", ScriptLogWarning);
+    Sqrat::RootTable().Func("log_error", ScriptLogError);
+
+    Sqrat::Class<Engine, Sqrat::NoConstructor<Engine>> engine(Sqrat::DefaultVM::Get(), "Engine");
+    engine.Func("include", &Engine::Include);
+    Sqrat::RootTable().Bind("Engine", engine);
+    // TODO: Use InstanceBinder
+    Sqrat::RootTable().SetInstance("gEngine", this);
+
+    Oddlib::IStream::RegisterScriptBindings();
+    Actions::RegisterScriptBindings();
+    MapObject::RegisterScriptBindings();
+    ObjRect::RegisterScriptBindings();
+    GridMap::RegisterScriptBindings();
+    Sound::RegisterScriptBindings();
+    Fmv::RegisterScriptBindings();
+}
 
 void Engine::InitSubSystems()
 {
     TRACE_ENTRYEXIT;
 
+    BindScriptTypes();
+
     mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
-    mFmv = std::make_unique<DebugFmv>(mAudioHandler, *mResourceLocator);
-    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, mLuaState);
-    mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator, mLuaState, *mRenderer);
+  
+    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator);
+    mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator, *mRenderer);
 
     { // Init gui system
         mGui = create_gui(&calcTextSize, mRenderer.get());
@@ -299,40 +303,12 @@ void Engine::InitSubSystems()
 
     mInputState.AddControllers();
 
-    mLuaState.open_libraries(sol::lib::base, sol::lib::string, sol::lib::jit, sol::lib::table, sol::lib::debug, sol::lib::math, sol::lib::bit32, sol::lib::package);
-    
-    // Redirect lua print()
-    mLuaState.set_function("print", LuaLogTrace);
-
-    // Add other logging globals
-    mLuaState.set_function("log_info", LuaLogInfo);
-    mLuaState.set_function("log_trace", LuaLogTrace);
-    mLuaState.set_function("log_warning", LuaLogWarning);
-    mLuaState.set_function("log_error", LuaLogError);
-
-    // Get lua to look for scripts in the correction location
-    mLuaState.script("package.path = '" + mFileSystem->FsPath() + "data/scripts/?.lua'");
-
-    Sqrat::DefaultVM::Set(mSquirrelVm.Handle());
-
-    Sqrat::RootTable().Func("log_info", LuaLogInfo);
-    Sqrat::RootTable().Func("log_trace", LuaLogTrace);
-    Sqrat::RootTable().Func("log_warning", LuaLogWarning);
-    Sqrat::RootTable().Func("log_error", LuaLogError);
-
-    Oddlib::IStream::RegisterScriptBindings(mLuaState);
-    Actions::RegisterScriptBindings(mLuaState);
-    MapObject::RegisterScriptBindings(mLuaState);
-    ObjRect::RegisterScriptBindings(mLuaState);
-
-    // TODO: Override the stdout/stderr/compile error functions to LOG's
-    Sqrat::Script script;
-    script.CompileString(mResourceLocator->LocateScript("main.nut"));
-    script.Run();
+    SquirrelVm::CompileAndRun(*mResourceLocator, "main.nut");
 
     LOG_INFO("Calling script init()");
     Sqrat::Function initFunc(Sqrat::RootTable(), "init");
     initFunc.Execute();
+    SquirrelVm::CheckError();
 }
 
 // TODO: Using averaging value or anything that is more accurate than this
@@ -531,12 +507,6 @@ void Engine::Update()
 
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
 
-            // TODO: Move out of here
-            if (key == SDL_SCANCODE_ESCAPE)
-            {
-                mFmv->Stop();
-            }
-
             if (event.type == SDL_KEYDOWN && key == SDL_SCANCODE_BACKSPACE)
                 gui_write_char(mGui, '\b'); // Note that this is called in case of repeated backspace key also
 
@@ -582,6 +552,7 @@ void Engine::Update()
     // HACK: Should be called from within the "init/starting" state
     Sqrat::Function initFunc(Sqrat::RootTable(), "update");
     initFunc.Execute();
+    SquirrelVm::CheckError();
 
     mStateMachine.Update(mInputState, *mRenderer);
 }

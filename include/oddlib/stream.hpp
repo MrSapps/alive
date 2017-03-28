@@ -7,7 +7,6 @@
 #include <fstream>
 #include <sstream>
 #include "SDL.h"
-#include "proxy_sol.hpp"
 #include "proxy_sqrat.hpp"
 #include "types.hpp"
 
@@ -16,7 +15,7 @@ namespace Oddlib
     class IStream
     {
     public:
-        static inline void RegisterScriptBindings(sol::state& state);
+        static inline void RegisterScriptBindings();
 
         enum class ReadMode
         {
@@ -82,6 +81,14 @@ namespace Oddlib
             WriteBytes(reinterpret_cast<u8*>(&type), sizeof(type));
         }
 
+        // Write vector of any fundamental type
+        template<class T>
+        void Write(std::vector<T>& type)
+        {
+            static_assert(std::is_fundamental<T>::value, "Can only write vectors of fundamental types");
+            WriteBytes(reinterpret_cast<u8*>(type.data()), sizeof(T)*type.size());
+        }
+
         // Write a string
         void Write(const std::string& type)
         {
@@ -138,17 +145,12 @@ namespace Oddlib
         return ret;
     }
 
-    /*static*/ inline void IStream::RegisterScriptBindings(sol::state& state)
+    /*static*/ inline void IStream::RegisterScriptBindings()
     {
         Sqrat::Class<IStream, Sqrat::NoConstructor<IStream>> c(Sqrat::DefaultVM::Get(), "IStream");
         c.StaticFunc("ReadU32", &ReadU32);
         c.StaticFunc("ReadU16", &ReadU16);
         Sqrat::RootTable().Bind("IStream", c);
-
-        state.new_usertype<IStream>("IStream",
-            "ReadU32", &ReadU32,
-            "ReadU16", &ReadU16
-            );
     }
 
 

@@ -55,11 +55,9 @@ static void RenderSubtitles(Renderer& rend, const char* msg, float x, float y, f
     rend.text(xpos - adjust, ypos - adjust, msg, Renderer::eDebugUi+1);
 }
 
-// Make FMV window title unique, duplicates will cause a crash
-static int gId = 0;
 
 IMovie::IMovie(const std::string& resourceName, IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles)
-    : mAudioController(controller), mSubTitles(std::move(subtitles)), mName("FMV: " + resourceName + std::to_string(gId++))
+    : mAudioController(controller), mSubTitles(std::move(subtitles)), mName(resourceName)
 {
     // TODO: Add to interface - must be added/removed outside of ctor/dtor due
     // to data race issues
@@ -76,7 +74,7 @@ IMovie:: ~IMovie()
 
 
 // Main thread context
-void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui, int screenW, int screenH)
+void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui)
 {
     // TODO: Populate mAudioBuffer and mVideoBuffer
     // for up to N buffered frames
@@ -133,40 +131,38 @@ void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui, int screenW, int scr
         Frame& f = mVideoBuffer.front();
         if (f.mFrameNum < videoFrameIndex)
         {
+            if (mVideoBuffer.size() == 1)
+            {
+                // Don't remove everything otherwise we won't have any frame to display at all
+                break;
+            }
+
             mVideoBuffer.pop_front();
             continue;
         }
 
         if (f.mFrameNum == videoFrameIndex)
         {
-            mLast = f;
-            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs, screenW, screenH);
+            // Don't pop frame after rendering for the case when the video ends and we are playing
+            // audio but there are no more frames. In the case we just keep displaying whatever the last
+            // frame was (since we didn't pop it).
+            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
             played = true;
             break;
         }
 
     }
 
-    // TODO: If lag then video frames get dropped, fix so that we at least
-    // try to update the video frame at some point!
     if (!played && !mVideoBuffer.empty())
     {
         Frame& f = mVideoBuffer.front();
-        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs, screenW, screenH);
-    }
-    else if (!played && mVideoBuffer.empty())
-    {
-        Frame& f = mLast;
-        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs, screenW, screenH);
+        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
     }
 
     while (NeedBuffer())
     {
         FillBuffers();
     }
-
-
-
 }
 
 // Main thread context
@@ -174,7 +170,7 @@ bool IMovie::IsEnd()
 {
     std::lock_guard<std::mutex> lock(mAudioBufferMutex);
     const auto ret = EndOfStream() && mAudioBuffer.empty();
-    if (ret && !mVideoBuffer.empty())
+    if (ret && mVideoBuffer.size() > 1)
     {
         LOG_ERROR("Still " << mVideoBuffer.size() << " frames left after audio finished");
     }
@@ -212,7 +208,7 @@ void IMovie::Play(u8* stream, u32 len)
     mConsumedAudioBytes += take*sizeof(int16_t);
 }
 
-void IMovie::RenderFrame(Renderer &rend, GuiContext& /*gui*/, int width, int height, const GLvoid *pixels, const char* subtitles, int screenW, int screenH)
+void IMovie::RenderFrame(Renderer &rend, GuiContext& /*gui*/, int width, int height, const GLvoid *pixels, const char* subtitles)
 {
     // TODO: Optimize - should update 1 texture rather than creating per frame
     int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
@@ -231,8 +227,8 @@ void IMovie::RenderFrame(Renderer &rend, GuiContext& /*gui*/, int width, int hei
         RenderSubtitles(rend, subtitles,
             0,
             0,
-            static_cast<f32>(screenW),
-            static_cast<f32>(screenH));
+            static_cast<f32>(rend.Width()),
+            static_cast<f32>(rend.Height()));
     }
 
     rend.destroyTexture(texhandle);
@@ -499,7 +495,8 @@ public:
     {
         while (NeedBuffer())
         {
-            std::vector<u8> decodedAudioFrame(mMasher->SingleAudioFrameSizeSamples() * 2 * 2); // *2 if stereo
+            const s32 kNumChannels = 2;
+            std::vector<u8> decodedAudioFrame(mMasher->SingleAudioFrameSizeSamples() * kNumChannels * sizeof(s16));
             mAtEndOfStream = !mMasher->Update((u32*)mFramePixels.data(), decodedAudioFrame.data());
             if (!mAtEndOfStream)
             {
@@ -580,69 +577,17 @@ static bool guiStringFilter(const char *haystack, const char *needle)
     return matched;
 }
 
-class FmvUi
+/*static*/ void Fmv::RegisterScriptBindings()
 {
-private:
-    char mFilterString[64];
-    int mListBoxSelectedItem = -1;
-    std::vector<const char*> mListBoxItems;
-    std::vector<std::unique_ptr<class IMovie>>& mFmvs;
-public:
-    FmvUi(const FmvUi&) = delete;
-    FmvUi& operator = (const FmvUi&) = delete;
-    FmvUi(std::vector<std::unique_ptr<class IMovie>>& fmv, IAudioController& audioController, ResourceLocator& resourceLocator)
-        : mFmvs(fmv), mAudioController(audioController), mResourceLocator(resourceLocator)
-    {
-        mFilterString[0] = '\0';
-    }
-
-    void DrawVideoSelectionUi(GuiContext& gui)
-    {
-        std::string name = "Video player";
-        gui_begin_window(&gui, name.c_str());
-
-        gui_textfield(&gui, "Filter", mFilterString, sizeof(mFilterString));
-
-        mListBoxItems.clear();
-        mListBoxItems.reserve(mResourceLocator.mResMapper.mFmvMaps.size());
-
-        for (const auto& fmv : mResourceLocator.mResMapper.mFmvMaps)
-        {
-            if (guiStringFilter(fmv.first.c_str(), mFilterString))
-            {
-                mListBoxItems.emplace_back(fmv.first.c_str());
-            }
-        }
-
-        for (size_t i = 0; i < mListBoxItems.size(); i++)
-        {
-            if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
-            {
-                mListBoxSelectedItem = static_cast<int>(i);
-            }
-        }
-
-        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
-        {
-            const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-            auto fmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
-            if (fmv)
-            {
-                mFmvs.emplace_back(std::move(fmv));
-            }
-            mListBoxSelectedItem = -1;
-        }
-
-        gui_end_window(&gui);
-    }
-private:
-    IAudioController& mAudioController;
-    ResourceLocator& mResourceLocator;
-};
-
+    Sqrat::Class<Fmv, Sqrat::NoConstructor<Fmv>> c(Sqrat::DefaultVM::Get(), "Fmv");
+    c.Func("Play", &Fmv::Play);
+    c.Func("IsPlaying", &Fmv::IsPlaying);
+    c.Func("Stop", &Fmv::Stop);
+    Sqrat::RootTable().Bind("Fmv", c);
+}
 
 Fmv::Fmv(IAudioController& audioController, ResourceLocator& resourceLocator)
-    : mResourceLocator(resourceLocator), mAudioController(audioController)
+    : mResourceLocator(resourceLocator), mAudioController(audioController), mScriptInstance("gMovie", this)
 {
 }
 
@@ -653,70 +598,92 @@ Fmv::~Fmv()
 
 void Fmv::Play(const std::string& name)
 {
-    auto fmv = mResourceLocator.LocateFmv(mAudioController, name.c_str());
-    if (fmv)
+    if (mFmvName != name)
     {
-        mFmvs.emplace_back(std::move(fmv));
+        mFmvName = name;
+        mFmv = mResourceLocator.LocateFmv(mAudioController, name.c_str());
+        if (!mFmv)
+        {
+            LOG_WARNING("Video: " + name + " was not found");
+        }
     }
 }
 
 bool Fmv::IsPlaying() const
 {
-    return mFmvs.empty() == false;
+    return mFmv && !mFmv->IsEnd();
 }
 
 void Fmv::Stop()
 {
-    mFmvs.clear();
+    mFmv = nullptr;
+    mFmvName.clear();
 }
 
 void Fmv::Update()
 {
-    auto it = mFmvs.begin();
-    while (it != mFmvs.end())
+    if (!IsPlaying())
     {
-        if ((*it)->IsEnd())
+        Stop();
+    }
+}
+
+void Fmv::Render(Renderer& rend, GuiContext& gui)
+{
+    if (mFmv)
+    {
+        mFmv->OnRenderFrame(rend, gui);
+    }
+
+    if (Debugging().mBrowserUi.fmvBrowserOpen)
+    {
+        DebugUi(gui);
+    }
+}
+
+void Fmv::DebugUi(GuiContext& gui)
+{
+    static char mFilterString[64] = {};
+    static int mListBoxSelectedItem = -1;
+    static std::vector<const char*> mListBoxItems;
+
+    gui_begin_window(&gui, "Video player");
+
+    bool rebuild = false;
+    if (gui_textfield(&gui, "Filter", mFilterString, sizeof(mFilterString)))
+    {
+        rebuild = true;
+    }
+
+
+    if (rebuild || mListBoxItems.empty())
+    {
+        mListBoxItems.clear();
+        mListBoxItems.reserve(mResourceLocator.mResMapper.mFmvMaps.size());
+
+        for (const auto& fmv : mResourceLocator.mResMapper.mFmvMaps)
         {
-            it = mFmvs.erase(it);
+            if (guiStringFilter(fmv.first.c_str(), mFilterString))
+            {
+                mListBoxItems.emplace_back(fmv.first.c_str());
+            }
         }
-        else
+    }
+
+    for (size_t i = 0; i < mListBoxItems.size(); i++)
+    {
+        if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
         {
-            it++;
+            mListBoxSelectedItem = static_cast<int>(i);
         }
     }
-}
 
-void Fmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
-{
-    for (auto& fmv : mFmvs)
+    if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
     {
-        fmv->OnRenderFrame(rend, gui, screenW, screenH);
+        const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
+        mFmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
+        mListBoxSelectedItem = -1;
     }
-}
 
-DebugFmv::DebugFmv(IAudioController& audioController, ResourceLocator& resourceLocator)
-    : Fmv(audioController, resourceLocator)
-{
-
-}
-
-DebugFmv::~DebugFmv()
-{
-
-}
-
-void DebugFmv::Render(Renderer& rend, GuiContext& gui, int screenW, int screenH)
-{
-    Fmv::Render(rend, gui, screenW, screenH);
-
-    RenderVideoUi(gui);
-}
-
-void DebugFmv::RenderVideoUi(GuiContext& gui)
-{
-    if (!mFmvUi)
-    {
-        mFmvUi = std::make_unique<FmvUi>(mFmvs, mAudioController, mResourceLocator);
-    }
-    mFmvUi->DrawVideoSelectionUi(gui);
+    gui_end_window(&gui);
 }
