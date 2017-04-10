@@ -651,7 +651,11 @@ if (MSVC)
     if(MSVC_VERSION GREATER 1800)
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027")
     endif()
-    
+
+    # Warnings added in VS2017 and later or existing warnings that have started to appear in SDK headers
+    if(MSVC_VERSION GREATER 1800)
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027 /wd4774 /wd4623 /wd4987")
+    endif()
     set_source_files_properties(${test_src} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027")
 
     # Use default flags on 3rd party things that generate warnings on max levels
