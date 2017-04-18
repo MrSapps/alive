@@ -85,30 +85,7 @@ void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui)
         FillBuffers();
     }
 
-    /*
-    int num = -1;
-    if (!mVideoBuffer.empty())
-    {
-        num = mVideoBuffer.begin()->mFrameNum;
-    }*/
-
-    //        std::cout << "Playing frame num " << mVideoFrameIndex << " first buffered frame is " << num << " samples played " << (size_t)mConsumedAudioBytes << std::endl;
-
-    // 10063 is audio freq of 37800/15fps = 2520 * num frames(6420) = 16178400
-
-    // 37800/15
-    //  37800/15fps = 2520 samples per frame, 5040 bytes
-    //  6420 * 5040 = 32356800*2=64713600
-    // 10063 is 64608768(total audio bytes) / 6420(num frames) = 10063 bytes per frame
-    // Total audio bytes is 64607760
-    // Total audio bytes is 64607760
-    // IMovie::Play[E] Audio buffer underflow want 5040 bytes  have 1008 bytes
-    // Total audio bytes is 64608768
-
-    // 2016 samples every 4 sectors, num sectors = file size / 2048?
-    
-    const auto videoFrameIndex = mConsumedAudioBytes / mAudioBytesPerFrame;// 10063;
-    //std::cout << "Total audio bytes is " << mConsumedAudioBytes << std::endl;
+    const auto videoFrameIndex = mConsumedAudioBytes / mAudioBytesPerFrame;
     const char *current_subs = nullptr;
     if (mSubTitles)
     {
@@ -265,12 +242,10 @@ public:
 
         const int kSampleRate = 37800;
         const int kFps = 15;
+        const u32 kNumChannels = 2;
+        mAudioBytesPerFrame = (kSampleRate / kFps) * kNumChannels * sizeof(u16);
 
         mAudioController.SetAudioSpec(kSampleRate / kFps, kSampleRate);
-
-        // TODO: Check the correctness of this
-        int numFrames = static_cast<int>((mFmvStream->Size()/10) / 2048);
-        mAudioBytesPerFrame = (4 * kSampleRate)*(numFrames / kFps) / numFrames;
 
         mPsx = true;
     }
@@ -322,8 +297,7 @@ public:
 
     virtual bool NeedBuffer() override
     {
-        // TODO Calculate constant
-        return (mVideoBuffer.size() == 0 || mAudioBuffer.size() < (10080 * 2)) && !mFmvStream->AtEnd();
+        return (mVideoBuffer.size() == 0 || mAudioBuffer.size() < (mAudioBytesPerFrame)) && !mFmvStream->AtEnd();
     }
 
     virtual void FillBuffers() override
@@ -444,8 +418,11 @@ public:
         : MovMovie(resourceName, audioController, std::move(subtitles))
     {
         mPsx = false;
-        mAudioBytesPerFrame = 10063; // TODO: Calculate
-        mAudioController.SetAudioSpec(37800/15, 37800);
+        const u32 kAudioFreq = 37800;
+        const u32 kNumChannels = 2;
+        const u32 kFps = 15;
+        mAudioBytesPerFrame = (kAudioFreq / kFps) * kNumChannels * sizeof(u16);
+        mAudioController.SetAudioSpec(kAudioFreq / kFps, kAudioFreq);
         mFmvStream = std::move(stream);
     }
 };
@@ -467,13 +444,11 @@ public:
 
         if (mMasher->HasVideo())
         {
-            mFramePixels.resize(mMasher->Width() * mMasher->Height() * 4);
+            mFramePixels.resize(mMasher->Width() * mMasher->Height() * sizeof(u32));
         }
 
-        // 18827760 - 18821880 = 5880/4 = 1470 extra samples (half the SingleAudioFrameSizeSamples).
-
-        mAudioBytesPerFrame = (4 * mMasher->AudioSampleRate())*(mMasher->NumberOfFrames() / mMasher->FrameRate()) / mMasher->NumberOfFrames();
-
+        const u32 kNumChannels = 2;
+        mAudioBytesPerFrame = sizeof(u16) * kNumChannels * mMasher->SingleAudioFrameSizeSamples();
     }
 
     ~MasherMovie()

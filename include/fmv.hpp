@@ -62,7 +62,7 @@ protected:
     std::deque<u8> mAudioBuffer;
     std::deque<Frame> mVideoBuffer;
     IAudioController& mAudioController;
-    int mAudioBytesPerFrame = 1;
+    u32 mAudioBytesPerFrame = 1;
     std::unique_ptr<SubTitleParser> mSubTitles;
     std::string mName;
 private:
