@@ -13,6 +13,8 @@
 #include "msvc_sdl_link.hpp"
 #include <setjmp.h>
 
+// Don't use SDL main
+#undef main
 int main(int argc, char** argv)
 {
     ::testing::GTEST_FLAG(catch_exceptions) = false;
