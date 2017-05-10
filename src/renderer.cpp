@@ -494,7 +494,7 @@ void Renderer::endFrame()
             color.b *= blend.colorMul;
             color.a *= blend.colorMul;
 
-            Vertex2D vert[4] = {};
+            Vertex2D vert[4];
             static MeshIndexType ind[6] = { 0, 1, 2, 0, 2, 3 };
 
             vert[0] = { glm::vec2(0, 0),glm::vec2(0, 0) };
