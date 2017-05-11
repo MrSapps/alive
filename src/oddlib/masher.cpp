@@ -70,7 +70,7 @@ namespace Oddlib
             mStream->Read(mAudioHeader.mSingleAudioFrameSize);
             mStream->Read(mAudioHeader.mNumberOfFramesInterleave);
 
-			mAudioFrameSizes.resize(mAudioHeader.mNumberOfFramesInterleave);
+            mAudioFrameSizes.resize(mAudioHeader.mNumberOfFramesInterleave);
             for (uint32_t i = 0; i < mAudioHeader.mNumberOfFramesInterleave; i++)
             {
                 uint32_t tmp = 0;
@@ -79,7 +79,7 @@ namespace Oddlib
             }
         }
 
-		mFrameSizes.resize(mFileHeader.mNumberOfFrames);
+        mFrameSizes.resize(mFileHeader.mNumberOfFrames);
         for (uint32_t i = 0; i < mFileHeader.mNumberOfFrames; i++)
         {
             uint32_t tmp = 0;
@@ -122,16 +122,16 @@ namespace Oddlib
         v = MAKELONG(loWord, hi);
     }
 
-	static u32 ExtractBits(u32 value, u32 numBits)
-	{
-		return value >> (32 - numBits);
-	}
+    static u32 ExtractBits(u32 value, u32 numBits)
+    {
+        return value >> (32 - numBits);
+    }
 
-	static void SkipBits(u32& value, char numBits, char& usedBitCount)
-	{
-		value = value << numBits;
-		usedBitCount += numBits;
-	}
+    static void SkipBits(u32& value, char numBits, char& usedBitCount)
+    {
+        value = value << numBits;
+        usedBitCount += numBits;
+    }
 
     static inline void GetBits(char& usedBitCount, u16*& rawBitStreamPtr, u32& rawWord4, u32& workBits)
     {
@@ -165,9 +165,9 @@ namespace Oddlib
         unsigned int table_index_2 = 0;
         int ret = *pFrameData;
 
-		
+        
         u32 workBits = ((pFrameData[2]<<16) | (pFrameData[1]));
-		workBits = (workBits << 16) | (workBits >> 16); // Swap words 0xff9a005f
+        workBits = (workBits << 16) | (workBits >> 16); // Swap words 0xff9a005f
 
         u32 rawWord4 = ExtractBits(workBits, 11);
 
@@ -176,7 +176,7 @@ namespace Oddlib
 
         *pOutput++ = static_cast<unsigned short>(rawWord4); // store in output 0x000007fc
 
-		u16* rawBitStreamPtr = (pFrameData + 3); // 0x7f40
+        u16* rawBitStreamPtr = (pFrameData + 3); // 0x7f40
         while (1)
         {
             do
@@ -300,7 +300,7 @@ namespace Oddlib
 
             } while ((u16)rawWord4 != MDEC_END);
 
-			rawWord4 = ExtractBits(workBits, 11);
+            rawWord4 = ExtractBits(workBits, 11);
             SkipBits(workBits, 11, usedBitCount);
 
             if (rawWord4 == MASK_10_BITS)
@@ -395,50 +395,50 @@ namespace Oddlib
 
     // Return val becomes param 1
 
-	// for Cr, Cb, Y1, Y2, Y3, Y4
+    // for Cr, Cb, Y1, Y2, Y3, Y4
     int16_t* ddv_func7_DecodeMacroBlock_impl(int16_t* inPtr, int16_t* outputBlockPtr, bool isYBlock)
     {
-		const int v1 = isYBlock;
-		const u32* pTable = isYBlock ? &g_252_buffer_unk_63580C[1] : &g_252_buffer_unk_635A0C[1];
+        const int v1 = isYBlock;
+        const u32* pTable = isYBlock ? &g_252_buffer_unk_63580C[1] : &g_252_buffer_unk_635A0C[1];
         unsigned int counter = 0;
-		u16* pInput = (u16*)inPtr;
-		u32* pOutput = (u32*)outputBlockPtr;              // off 10 quantised coefficients
-	
-		// 0xFE00 == END_OF_BLOCK, hence this loop moves past the EOB
-		while (*pInput == 0xFE00u)
-		{
-			pInput++;
+        u16* pInput = (u16*)inPtr;
+        u32* pOutput = (u32*)outputBlockPtr;              // off 10 quantised coefficients
+    
+        // 0xFE00 == END_OF_BLOCK, hence this loop moves past the EOB
+        while (*pInput == 0xFE00u)
+        {
+            pInput++;
         }
 
         *pOutput = (v1 << 10) + 2 * (*pInput << 21 >> 22);
-		pInput++;
+        pInput++;
 
         if ((*(pInput - 1)) & 1)
-		{
+        {
             do
             {
-				const unsigned int macroBlockWord = *pInput++;// bail if end
+                const unsigned int macroBlockWord = *pInput++;// bail if end
                 if (macroBlockWord == 0xFE00)
                 {
                     break;
                 }
                 
-				const u32 q_scale = (macroBlockWord >> 10);
-				
-				counter += q_scale;
+                const u32 q_scale = (macroBlockWord >> 10);
+                
+                counter += q_scale;
 
                 const int lookedUpIndex = g_index_look_up_table[counter];
                 signed int v24 = pOutput[lookedUpIndex] + (macroBlockWord << 22);
-				
-				u32 v25 = 0;
+                
+                u32 v25 = 0;
                 SetHiWord(v25, GetHiWord(v24));
                 SetLoWord(v25, static_cast<u16>((pTable[q_scale] * (v24 >> 22) + 4) >> 3));
-				pTable += q_scale + 1;
+                pTable += q_scale + 1;
 
-				pOutput[lookedUpIndex] = v25;
+                pOutput[lookedUpIndex] = v25;
             
               
-				counter++;
+                counter++;
             } while (counter < 63);                     // 63 AC values?
 
         }
@@ -447,20 +447,20 @@ namespace Oddlib
 
             while (1)
             {
-				const unsigned int macroBlockWord = *pInput++;// bail if end
+                const unsigned int macroBlockWord = *pInput++;// bail if end
                 if (macroBlockWord == 0xFE00)
                 {
                     break;
                 }
-				const u32 q_scale = (macroBlockWord >> 10);
+                const u32 q_scale = (macroBlockWord >> 10);
 
                 const signed int v24 = macroBlockWord << 22;
-				int k = q_scale + 1;
-				int idx = 0;
+                int k = q_scale + 1;
+                int idx = 0;
                 while (1)
                 {
                     --k;
-					idx = g_index_look_up_table[counter];
+                    idx = g_index_look_up_table[counter];
                     if (!k)
                     {
                         break;
@@ -469,15 +469,15 @@ namespace Oddlib
                     ++counter;
                 }
 
-				u32 outVal = 0;
+                u32 outVal = 0;
                 SetHiWord(outVal, GetHiWord(v24));
                 SetLoWord(outVal, static_cast<u16>((pTable[q_scale] * (v24 >> 22) + 4) >> 3));
                 
-				pTable += q_scale + 1;
+                pTable += q_scale + 1;
                 pOutput[idx] = outVal;
 
-				++counter;
-				if (counter >= 63)                      // 63 AC values?
+                ++counter;
+                if (counter >= 63)                      // 63 AC values?
                 {
                     return (int16_t*)pInput;
                 }
@@ -674,8 +674,6 @@ namespace Oddlib
 
     static void after_block_decode_no_effect_q_impl(int quantScale)
     {
-		PSXMDECDecoder m;
-
         g_252_buffer_unk_63580C[0] = 16;
         g_252_buffer_unk_635A0C[0] = 16;
         if (quantScale > 0)
