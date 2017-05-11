@@ -737,6 +737,7 @@ void LoopFlagTest()
     fclose(f);
 }
 
+#undef main
 int main(int /*argc*/, char** /*argv*/)
 {
     const std::vector<std::string> aoPcLvls =

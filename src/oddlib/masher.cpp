@@ -4,6 +4,15 @@
 #include "logger.hpp"
 #include <assert.h>
 #include <array>
+#include "oddlib/PSXMDECDecoder.h"
+
+constexpr u32 kVideoFlag = 1;
+constexpr u32 kAudioFlag = 2;
+constexpr u32 kMacroBlockWidth = 16;
+constexpr u32 kMacroBlockHeight = 16;
+
+// Which are Red(Cr), Blue(Cb), Luma(Y1), Luma(Y2), Luma(Y3), Luma(Y4)   
+constexpr u32 kNumberOfBlocks = 6;
 
 namespace Oddlib
 {
@@ -28,8 +37,8 @@ namespace Oddlib
         mStream->Read(mFileHeader.mFrameRate);
         mStream->Read(mFileHeader.mNumberOfFrames);
 
-        mbHasVideo = (mFileHeader.mContains & 0x1) == 0x1;
-        mbHasAudio = (mFileHeader.mContains & 0x2) == 0x2;
+        mbHasVideo = (mFileHeader.mContains & kVideoFlag) == kVideoFlag;
+        mbHasAudio = (mFileHeader.mContains & kAudioFlag) == kAudioFlag;
 
         if (mbHasVideo)
         {
@@ -40,14 +49,14 @@ namespace Oddlib
             mStream->Read(mVideoHeader.mMaxVideoFrameSize);
             mStream->Read(mVideoHeader.mKeyFrameRate);
 
-            mNumMacroblocksX = (mVideoHeader.mWidth / 16);
-            if (mVideoHeader.mWidth % 16 != 0)
+            mNumMacroblocksX = (mVideoHeader.mWidth / kMacroBlockWidth);
+            if (mVideoHeader.mWidth % kMacroBlockWidth != 0)
             {
                 mNumMacroblocksX++;
             }
 
-            mNumMacroblocksY = (mVideoHeader.mHeight / 16);
-            if (mVideoHeader.mHeight % 16 != 0)
+            mNumMacroblocksY = (mVideoHeader.mHeight / kMacroBlockHeight);
+            if (mVideoHeader.mHeight % kMacroBlockHeight != 0)
             {
                 mNumMacroblocksY++;
             }
@@ -61,34 +70,34 @@ namespace Oddlib
             mStream->Read(mAudioHeader.mSingleAudioFrameSize);
             mStream->Read(mAudioHeader.mNumberOfFramesInterleave);
 
-
+			mAudioFrameSizes.resize(mAudioHeader.mNumberOfFramesInterleave);
             for (uint32_t i = 0; i < mAudioHeader.mNumberOfFramesInterleave; i++)
             {
                 uint32_t tmp = 0;
                 mStream->Read(tmp);
-                mAudioFrameSizes.emplace_back(tmp);
+                mAudioFrameSizes[i] = tmp;
             }
         }
 
+		mFrameSizes.resize(mFileHeader.mNumberOfFrames);
         for (uint32_t i = 0; i < mFileHeader.mNumberOfFrames; i++)
         {
             uint32_t tmp = 0;
             mStream->Read(tmp);
-            mFrameSizes.emplace_back(tmp);
+            mFrameSizes[i] = tmp;
         }
 
-        // TODO: Read/skip mAudioHeader.mNumberOfFramesInterleave frame datas
+        // Read/skip mAudioHeader.mNumberOfFramesInterleave frame datas
         for (auto i = 0u; i < mAudioHeader.mNumberOfFramesInterleave; i++)
         {
             const uint32_t totalSize = mAudioFrameSizes[i];
             mStream->Seek(mStream->Pos() + totalSize);
         }
 
-        mMacroBlockBuffer.resize(mNumMacroblocksX * mNumMacroblocksY * 16 * 16 * 6);
+        mMacroBlockBuffer.resize((mNumMacroblocksX * kMacroBlockWidth) * (mNumMacroblocksY * kMacroBlockHeight) * kNumberOfBlocks);
 
         mDecodedVideoFrameData.resize(mVideoHeader.mMaxVideoFrameSize);
 
-        // TODO: Need work buffer for audio
         mAudioFrameData.resize(mVideoHeader.mMaxAudioFrameSize);
     }
 
@@ -113,27 +122,34 @@ namespace Oddlib
         v = MAKELONG(loWord, hi);
     }
 
+	static u32 ExtractBits(u32 value, u32 numBits)
+	{
+		return value >> (32 - numBits);
+	}
 
-    static inline void CheckForEscapeCode(char& bitsToShiftBy, int& rawWord1, u16*& rawBitStreamPtr, u32& rawWord4, u32& v25)
+	static void SkipBits(u32& value, char numBits, char& usedBitCount)
+	{
+		value = value << numBits;
+		usedBitCount += numBits;
+	}
+
+    static inline void GetBits(char& usedBitCount, u16*& rawBitStreamPtr, u32& rawWord4, u32& workBits)
     {
         // I think this is used as an escape code?
-        if (bitsToShiftBy & 16)   // 0b10000 if bit 5 set
+        if (usedBitCount & 16)   // 0b10000 if bit 5 set
         {
-            rawWord1 = *rawBitStreamPtr;
-            ++rawBitStreamPtr;
-
-            bitsToShiftBy &= 15;
-            rawWord4 = rawWord1 << bitsToShiftBy;
-            v25 |= rawWord4;
+            usedBitCount &= 15;
+            rawWord4 = *rawBitStreamPtr++ << usedBitCount;
+            workBits |= rawWord4;
         }
     }
 
-    static inline void OutputWordAndAdvance(u16*& rawBitStreamPtr, u32& rawWord4, unsigned short int*& pOut, char& numBitsToShiftBy, u32& v3)
+    static inline void OutputWordAndAdvance(u16*& rawBitStreamPtr, u32& rawWord4, unsigned short int*& pOut, char& usedBitCount, u32& workBits)
     {
-        *pOut++ = v3 >> (32 - 16);
+        *pOut++ = workBits >> (32 - 16);
 
-        rawWord4 = *rawBitStreamPtr++ << numBitsToShiftBy;
-        v3 = rawWord4 | (v3 << 16);
+        rawWord4 = *rawBitStreamPtr++ << usedBitCount;
+        workBits = rawWord4 | (workBits << 16);
     }
 
 #define MASK_11_BITS 0x7FF
@@ -141,16 +157,7 @@ namespace Oddlib
 #define MASK_13_BITS 0x1FFF
 #define MDEC_END 0xFE00u
 
-    static u32 GetBits(u32 value, u32 numBits)
-    {
-        return value >> (32 - numBits);
-    }
 
-    static void SkipBits(u32& value, char numBits, char& bitPosCounter)
-    {
-        value = value << numBits;
-        bitPosCounter += numBits;
-    }
 
     int decode_bitstream(u16 *pFrameData, unsigned short int *pOutput)
     {
@@ -158,20 +165,18 @@ namespace Oddlib
         unsigned int table_index_2 = 0;
         int ret = *pFrameData;
 
-        u32 v8 = ((pFrameData[2]<<16) | (pFrameData[1]));
+		
+        u32 workBits = ((pFrameData[2]<<16) | (pFrameData[1]));
+		workBits = (workBits << 16) | (workBits >> 16); // Swap words 0xff9a005f
 
-        u16* rawBitStreamPtr = (pFrameData + 3);
+        u32 rawWord4 = ExtractBits(workBits, 11);
 
-        v8 = (v8 << 16) | (v8 >> 16); // Swap words
+        char usedBitCount = 0;
+        SkipBits(workBits, 11, usedBitCount);
 
-        u32 rawWord4 = GetBits(v8, 11);
+        *pOutput++ = static_cast<unsigned short>(rawWord4); // store in output 0x000007fc
 
-        char bitsShiftedCounter = 0;
-        SkipBits(v8, 11, bitsShiftedCounter);
-        u32 v3 = v8;
-
-        *pOutput++ = static_cast<unsigned short>(rawWord4); // store in output
-
+		u16* rawBitStreamPtr = (pFrameData + 3); // 0x7f40
         while (1)
         {
             do
@@ -188,25 +193,23 @@ namespace Oddlib
                                 {
                                     while (1)
                                     {
-                                        table_index_2 = GetBits(v3, 13); // 0x1FFF / 8191 table size? 8192/8=1024 entries?
+                                        table_index_2 = ExtractBits(workBits, 13); // 0x1FFF / 8191 table size? 8192/8=1024 entries?
                                         if (table_index_2 >= 32)
                                         {
                                             break;
                                         }
-                                        const int table_index_1 = GetBits(v3, 17); // 0x1FFFF / 131072, 131072/4=32768 entries?
+                                        const int table_index_1 = ExtractBits(workBits, 17); // 0x1FFFF / 131072, 131072/4=32768 entries?
 
-                                        SkipBits(v3, 8, bitsShiftedCounter);
+                                        SkipBits(workBits, 8, usedBitCount);
 
-                                        int rawWord1;
-                                        CheckForEscapeCode(bitsShiftedCounter, rawWord1, rawBitStreamPtr, rawWord4, v3);
+                                        GetBits(usedBitCount, rawBitStreamPtr, rawWord4, workBits);
 
 
                                         const char bitsToShiftFromTbl = gTbl1[table_index_1].mBitsToShift;
 
-                                        SkipBits(v3, bitsToShiftFromTbl, bitsShiftedCounter);
+                                        SkipBits(workBits, bitsToShiftFromTbl, usedBitCount);
 
-                                        int rawWord2;
-                                        CheckForEscapeCode(bitsShiftedCounter, rawWord2, rawBitStreamPtr, rawWord4, v3);
+                                        GetBits(usedBitCount, rawBitStreamPtr, rawWord4, workBits);
 
                                         // Everything in the table is 0's after 4266 bytes 4266/2=2133 to perhaps 2048/4096 is max?
                                         *pOutput++ = gTbl1[table_index_1].mOutputWord;
@@ -216,10 +219,9 @@ namespace Oddlib
 
                                     const char tblValueBits = gTbl2[table_index_2].mBitsToShift;
 
-                                    SkipBits(v3, tblValueBits, bitsShiftedCounter);
+                                    SkipBits(workBits, tblValueBits, usedBitCount);
 
-                                    int rawWord3;
-                                    CheckForEscapeCode(bitsShiftedCounter, rawWord3, rawBitStreamPtr, rawWord4, v3);
+                                    GetBits(usedBitCount, rawBitStreamPtr, rawWord4, workBits);
 
                                     SetLoWord(rawWord4, gTbl2[table_index_2].mOutputWord1);
 
@@ -228,15 +230,15 @@ namespace Oddlib
                                         break;
                                     }
 
-                                    OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, bitsShiftedCounter, v3);
+                                    OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, usedBitCount, workBits);
                                 } // End while
 
                                 *pOutput++ = static_cast<unsigned short>(rawWord4);
 
                                 if ((u16)rawWord4 == MDEC_END)
                                 {
-                                    const int v15 = GetBits(v3, 11);
-                                    SkipBits(v3, 11, bitsShiftedCounter);
+                                    const int v15 = ExtractBits(workBits, 11);
+                                    SkipBits(workBits, 11, usedBitCount);
 
                                     if (v15 == MASK_10_BITS)
                                     {
@@ -246,8 +248,7 @@ namespace Oddlib
                                     rawWord4 = v15 & MASK_11_BITS;
                                     *pOutput++ = static_cast<unsigned short>(rawWord4);
 
-                                    int rawWord5;
-                                    CheckForEscapeCode(bitsShiftedCounter, rawWord5, rawBitStreamPtr, rawWord4, v3);
+                                    GetBits(usedBitCount, rawBitStreamPtr, rawWord4, workBits);
 
                                 }
 
@@ -260,15 +261,15 @@ namespace Oddlib
                                 break;
                             }
 
-                            OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, bitsShiftedCounter, v3);
+                            OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, usedBitCount, workBits);
                         } // End while
 
                         *pOutput++ = static_cast<unsigned short>(rawWord4);
 
                         if ((u16)rawWord4 == MDEC_END)
                         {
-                            const int t11Bits = GetBits(v3, 11);
-                            SkipBits(v3, 11, bitsShiftedCounter);
+                            const int t11Bits = ExtractBits(workBits, 11);
+                            SkipBits(workBits, 11, usedBitCount);
 
                             if (t11Bits == MASK_10_BITS)
                             {
@@ -278,8 +279,7 @@ namespace Oddlib
                             rawWord4 = t11Bits & MASK_11_BITS;
                             *pOutput++ = static_cast<unsigned short>(rawWord4);
 
-                            int rawWord7;
-                            CheckForEscapeCode(bitsShiftedCounter, rawWord7, rawBitStreamPtr, rawWord4, v3);
+                            GetBits(usedBitCount, rawBitStreamPtr, rawWord4, workBits);
                         }
 
                         SetLoWord(rawWord4, gTbl2[table_index_2].mOutputWord3);
@@ -293,26 +293,24 @@ namespace Oddlib
                     }
 
 
-                    OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, bitsShiftedCounter, v3);
+                    OutputWordAndAdvance(rawBitStreamPtr, rawWord4, pOutput, usedBitCount, workBits);
                 } // End while
 
                 *pOutput++ = static_cast<unsigned short>(rawWord4);
 
             } while ((u16)rawWord4 != MDEC_END);
 
-            const int tmp11Bits2 = GetBits(v3, 11);
-            SkipBits(v3, 11, bitsShiftedCounter);
+			rawWord4 = ExtractBits(workBits, 11);
+            SkipBits(workBits, 11, usedBitCount);
 
-            if (tmp11Bits2 == MASK_10_BITS)
+            if (rawWord4 == MASK_10_BITS)
             {
                 return ret;
             }
 
-            rawWord4 = tmp11Bits2;
             *pOutput++ = static_cast<unsigned short>(rawWord4);
 
-            int rawWord9;
-            CheckForEscapeCode(bitsShiftedCounter, rawWord9, rawBitStreamPtr, rawWord4, v3);
+            GetBits(usedBitCount, rawBitStreamPtr, rawWord4, workBits);
 
         }
 
@@ -343,7 +341,7 @@ namespace Oddlib
         0x00000063, 0x00000063, 0x00000063, 0x00000063, 0x00000063, 0x00000063, 0x00000063, 0x00000063
     };
 
-    const u32 g_block_related_1_dword_42B0C8[64] =
+    const u32 g_index_look_up_table[64] =
     {
         0x00000001, 0x00000008, 0x00000010, 0x00000009, 0x00000002, 0x00000003, 0x0000000A, 0x00000011,
         0x00000018, 0x00000020, 0x00000019, 0x00000012, 0x0000000B, 0x00000004, 0x00000005, 0x0000000C,
@@ -356,7 +354,7 @@ namespace Oddlib
     };
 
     // Same as PSXMDECDecoder::RL_ZSCAN_MATRIX
-    const u32 g_block_related_unknown_dword_42B0C4[64] =
+    const u32 RL_ZSCAN_MATRIX_2[64] =
     {
         0x00000000, 0x00000001, 0x00000008, 0x00000010, 0x00000009, 0x00000002, 0x00000003, 0x0000000A,
         0x00000011, 0x00000018, 0x00000020, 0x00000019, 0x00000012, 0x0000000B, 0x00000004, 0x00000005,
@@ -396,78 +394,51 @@ namespace Oddlib
     u32 g_252_buffer_unk_63580C[64] = {};
 
     // Return val becomes param 1
-    int16_t* ddv_func7_DecodeMacroBlock_impl(int16_t* bitstreamPtr, int16_t* outputBlockPtr, bool isYBlock)
+
+	// for Cr, Cb, Y1, Y2, Y3, Y4
+    int16_t* ddv_func7_DecodeMacroBlock_impl(int16_t* inPtr, int16_t* outputBlockPtr, bool isYBlock)
     {
-        int v1; // ebx@1
-        u32 *v2; // esi@1
-        u16* endPtr; // edx@3
-        u32 *output_q; // ebp@3
-        unsigned int counter; // edi@3
-        u32* v6; // esi@3
-        u16* outptr; // edx@3
-        u16* dataPtr; // edx@5
-        unsigned int macroBlockWord; // eax@6
-        unsigned int blockNumberQ; // edi@9
-        int index1; // eax@14
-        int index2; // esi@14
-        int index3; // ecx@14
-        signed int v14; // eax@15
-        int cnt; // ecx@15
-        unsigned int v16; // ecx@15
-        // int v17; // esi@15
-        int idx; // ebx@16
-        u32 outVal = 0; // ecx@18
-        unsigned int macroBlockWord1; // eax@20
-        //  int v21; // esi@21
-        unsigned int v22; // edi@21
-        int v23; // ebx@21
-        //   signed int v24; // eax@21
-        u32 v25 = 0; // ecx@21
-        // DecodeMacroBlock_Struct *thisPtr; // [sp-4h] [bp-10h]@3
-
-        v1 = isYBlock /*this->ZeroOrOneConstant*/;                 // off 14
-        v2 = &g_252_buffer_unk_63580C[1];
-
-        if (!isYBlock /*this->ZeroOrOneConstant*/)
-        {
-            v2 = &g_252_buffer_unk_635A0C[1];
+		const int v1 = isYBlock;
+		const u32* pTable = isYBlock ? &g_252_buffer_unk_63580C[1] : &g_252_buffer_unk_635A0C[1];
+        unsigned int counter = 0;
+		u16* pInput = (u16*)inPtr;
+		u32* pOutput = (u32*)outputBlockPtr;              // off 10 quantised coefficients
+	
+		// 0xFE00 == END_OF_BLOCK, hence this loop moves past the EOB
+		while (*pInput == 0xFE00u)
+		{
+			pInput++;
         }
 
-        v6 = v2;
-        counter = 0;
-        outptr = (u16*)bitstreamPtr /*this->mOutput >> 1*/;
-        //thisPtr = this;
-        output_q = (u32*)outputBlockPtr /*this->mCoEffsBuffer*/;               // off 10 quantised coefficients
-        endPtr = outptr - 1;
+        *pOutput = (v1 << 10) + 2 * (*pInput << 21 >> 22);
+		pInput++;
 
-        do
-        {
-            ++endPtr;
-        } while (*endPtr == 0xFE00u);  // 0xFE00 == END_OF_BLOCK, hence this loop moves past the EOB
-
-        *output_q = (v1 << 10) + 2 * (*endPtr << 21 >> 22);
-        dataPtr = endPtr + 1; // last use of endPtr
-
-
-        if (*(u8 *)(dataPtr - 1) & 1)        // has video flag?
-        {
-
+        if ((*(pInput - 1)) & 1)
+		{
             do
             {
-                macroBlockWord1 = *dataPtr++;// bail if end
-                if (macroBlockWord1 == 0xFE00)
+				const unsigned int macroBlockWord = *pInput++;// bail if end
+                if (macroBlockWord == 0xFE00)
                 {
                     break;
                 }
-                u32* v21 = (macroBlockWord1 >> 10) + v6;
-                v22 = (macroBlockWord1 >> 10) + counter;
-                v23 = g_block_related_1_dword_42B0C8[v22];
-                signed int v24 = output_q[v23] + (macroBlockWord1 << 22);
+                
+				const u32 q_scale = (macroBlockWord >> 10);
+				
+				counter += q_scale;
+
+                const int lookedUpIndex = g_index_look_up_table[counter];
+                signed int v24 = pOutput[lookedUpIndex] + (macroBlockWord << 22);
+				
+				u32 v25 = 0;
                 SetHiWord(v25, GetHiWord(v24));
-                counter = v22 + 1;
-                SetLoWord(v25, static_cast<u16>((*(v21)* (v24 >> 22) + 4) >> 3));
-                v6 = v21 + 1;
-                output_q[v23] = v25;
+                SetLoWord(v25, static_cast<u16>((pTable[q_scale] * (v24 >> 22) + 4) >> 3));
+				pTable += q_scale + 1;
+
+				pOutput[lookedUpIndex] = v25;
+            
+              
+				counter++;
             } while (counter < 63);                     // 63 AC values?
 
         }
@@ -476,78 +447,75 @@ namespace Oddlib
 
             while (1)
             {
-                macroBlockWord = *dataPtr++;// bail if end
+				const unsigned int macroBlockWord = *pInput++;// bail if end
                 if (macroBlockWord == 0xFE00)
                 {
                     break;
                 }
-                v16 = macroBlockWord;
-                v14 = macroBlockWord << 22;
-                v16 >>= 10;
-                u32* v17 = v16 + v6;
-                cnt = v16 + 1;
+				const u32 q_scale = (macroBlockWord >> 10);
+
+                const signed int v24 = macroBlockWord << 22;
+				int k = q_scale + 1;
+				int idx = 0;
                 while (1)
                 {
-                    --cnt;
-                    idx = g_block_related_1_dword_42B0C8[counter];
-                    if (!cnt)
+                    --k;
+					idx = g_index_look_up_table[counter];
+                    if (!k)
                     {
                         break;
                     }
-                    output_q[idx] = 0;
+                    pOutput[idx] = 0;
                     ++counter;
                 }
-                SetHiWord(outVal, GetHiWord(v14));
-                ++counter;
-                SetLoWord(outVal, static_cast<u16>((*(v17)* (v14 >> 22) + 4) >> 3));
-                v6 = v17 + 1;
-                output_q[idx] = outVal;
-                if (counter >= 63)                      // 63 AC values?
+
+				u32 outVal = 0;
+                SetHiWord(outVal, GetHiWord(v24));
+                SetLoWord(outVal, static_cast<u16>((pTable[q_scale] * (v24 >> 22) + 4) >> 3));
+                
+				pTable += q_scale + 1;
+                pOutput[idx] = outVal;
+
+				++counter;
+				if (counter >= 63)                      // 63 AC values?
                 {
-                    return (int16_t*)dataPtr;
+                    return (int16_t*)pInput;
                 }
             }
+
             if (counter)
             {
-                blockNumberQ = counter + 1;
+                int counter3 = counter + 1;
                 
-                if (blockNumberQ & 3)
+                if (counter3 & 3)
                 {
-                    //blockNumberQ++;
-                    output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ++]] = 0;
-                    if (blockNumberQ & 3)
+                    pOutput[RL_ZSCAN_MATRIX_2[counter3++]] = 0;
+                    if (counter3 & 3)
                     {
-                       // blockNumberQ++;
-                        output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ++]] = 0;
-                        if (blockNumberQ & 3)
+                        pOutput[RL_ZSCAN_MATRIX_2[counter3++]] = 0;
+                        if (counter3 & 3)
                         {
-                           // blockNumberQ++;
-                            output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ++]] = 0;
+                            pOutput[RL_ZSCAN_MATRIX_2[counter3++]] = 0;
                         }
                     }
                 }
                 
-
-                while (blockNumberQ != 64)              // 63 AC values?
+                while (counter3 != 64)              // 63 AC values?
                 {
-                    index1 = g_block_related_1_dword_42B0C8[blockNumberQ];
-                    index2 = g_block_related_2_dword_42B0CC[blockNumberQ];
-                    index3 = g_block_related_3_dword_42B0D0[blockNumberQ];
-                    output_q[g_block_related_unknown_dword_42B0C4[blockNumberQ]] = 0;
-                    output_q[index1] = 0;
-                    output_q[index2] = 0;
-                    output_q[index3] = 0;
-                    blockNumberQ += 4;
-                    //blockNumberQ++;
+                    pOutput[RL_ZSCAN_MATRIX_2[counter3]] = 0;
+                    pOutput[g_index_look_up_table[counter3]] = 0;
+                    pOutput[g_block_related_2_dword_42B0CC[counter3]] = 0;
+                    pOutput[g_block_related_3_dword_42B0D0[counter3]] = 0;
+                    counter3 += 4;
                 }
             }
             else
             {
-                memset(output_q + 1, 0, 252u);            // 63 dwords buffer
+                memset(pOutput + 1, 0, 0xFCu);            // 63 dwords buffer
             }
 
         }
-        return (int16_t*)dataPtr;
+        return (int16_t*)pInput;
     }
 
     // TODO: Should probably just be 64? Making this bigger fixes a sound glitch which is probably caused
@@ -674,9 +642,9 @@ namespace Oddlib
 
         std::array< std::array<Macroblock_RGB_Struct, 16>, 16> Macroblock_RGB = {};
 
-        for (int x = 0; x < 16; x++)
+        for (u32 x = 0; x < kMacroBlockWidth; x++)
         {
-            for (int y = 0; y < 16; y++)
+            for (u32 y = 0; y < kMacroBlockHeight; y++)
             {
                 const f32 r = (Macroblock_YCbCr[x][y].Y) + 1.402f *  Macroblock_YCbCr[x][y].Cb;
                 const f32 g = (Macroblock_YCbCr[x][y].Y) - 0.3437f * Macroblock_YCbCr[x][y].Cr - 0.7143f * Macroblock_YCbCr[x][y].Cb;
@@ -706,6 +674,8 @@ namespace Oddlib
 
     static void after_block_decode_no_effect_q_impl(int quantScale)
     {
+		PSXMDECDecoder m;
+
         g_252_buffer_unk_63580C[0] = 16;
         g_252_buffer_unk_635A0C[0] = 16;
         if (quantScale > 0)
@@ -784,9 +754,9 @@ namespace Oddlib
 
                 ConvertYuvToRgbAndBlit(pixelBuffer, xoff, yoff, mVideoHeader.mWidth, mVideoHeader.mHeight);
 
-                yoff += 16;
+                yoff += kMacroBlockHeight;
             }
-            xoff += 16;
+            xoff += kMacroBlockWidth;
         }
 
     }
