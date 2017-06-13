@@ -716,7 +716,7 @@ public:
         abort();
     }
 
-    virtual bool FileExists(const std::string& fileName) override
+    virtual bool FileExists(std::string& fileName) override
     {
         return mRawCdImage.FileExists(fileName) != -1;
     }

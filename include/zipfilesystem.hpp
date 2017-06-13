@@ -17,7 +17,7 @@ public:
     virtual std::unique_ptr<Oddlib::IStream> Create(const std::string& fileName) override;
     virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override;
     virtual std::vector<std::string> EnumerateFolders(const std::string& directory) override;
-    virtual bool FileExists(const std::string& fileName) override;
+    virtual bool FileExists(std::string& fileName) override;
     virtual std::string FsPath() const override;
 
 private:

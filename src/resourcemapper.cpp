@@ -87,7 +87,7 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
 std::string ResourceLocator::LocateScript(const char* scriptName)
 {
     // Look for the engine built-in script first
-    const std::string fileName = std::string("{GameDir}\\data\\scripts\\") + scriptName;
+    std::string fileName = std::string("{GameDir}\\data\\scripts\\") + scriptName;
     if (mDataPaths.GameFs().FileExists(fileName))
     {
         return mDataPaths.GameFs().Open(fileName)->LoadAllToString();
@@ -193,11 +193,12 @@ std::unique_ptr<Vab> ResourceLocator::LocateSoundBank(const char* resourceName)
                             vab->ReadVh(*vhStream, attributes->mIsPsx);
 
                             // Get sounds.dat for VB if required
-                            const bool useSoundsDat = fs.mFileSystem->FileExists("sounds.dat");
+                            std::string soundsDatName = "sounds.dat";
+                            const bool useSoundsDat = fs.mFileSystem->FileExists(soundsDatName);
                             std::unique_ptr<Oddlib::IStream> soundsDatStream;
                             if (useSoundsDat)
                             {
-                                soundsDatStream = fs.mFileSystem->Open("sounds.dat");
+                                soundsDatStream = fs.mFileSystem->Open(soundsDatName);
                             }
 
                             // Read VB
@@ -463,13 +464,14 @@ std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(IAudioController& audioCont
         // Check if the mapping applies to the data set that fs is
         if (location.mDataSetName == fs.mDataSetName)
         {
-            if (fs.mFileSystem->FileExists(location.mFileName))
+            std::string locationFileName = location.mFileName;
+            if (fs.mFileSystem->FileExists(locationFileName))
             {
-                auto stream = fs.mFileSystem->Open(location.mFileName);
+                auto stream = fs.mFileSystem->Open(locationFileName);
                 if (stream)
                 {
                     std::unique_ptr<SubTitleParser> subTitles;
-                    const std::string subTitleFileName = "{GameDir}/data/subtitles/" + std::string(resourceName) + ".SRT";
+                    std::string subTitleFileName = "{GameDir}/data/subtitles/" + std::string(resourceName) + ".SRT";
                     if (mDataPaths.GameFs().FileExists(subTitleFileName))
                     {
                         auto subsStream = mDataPaths.GameFs().Open(subTitleFileName);

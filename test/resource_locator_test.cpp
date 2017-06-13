@@ -90,20 +90,30 @@ TEST(InMemoryFileSystem, EnumerateFiles)
 TEST(InMemoryFileSystem, FileExists)
 {
     InMemoryFileSystem fs;
-    ASSERT_FALSE(fs.FileExists("Rubbish"));
-    ASSERT_FALSE(fs.FileExists("/"));
-    ASSERT_FALSE(fs.FileExists("/Home"));
-    ASSERT_FALSE(fs.FileExists("/Home/Test.txt"));
-    ASSERT_FALSE(fs.FileExists("/Root.txt"));
+    std::string name = "Rubbish";
+    ASSERT_FALSE(fs.FileExists(name));
+    name = "/";
+    ASSERT_FALSE(fs.FileExists(name));
+    name = "/Home";
+    ASSERT_FALSE(fs.FileExists(name));
+    name = "/Home/Test.txt";
+    ASSERT_FALSE(fs.FileExists(name));
+    name = "/Root.txt";
+    ASSERT_FALSE(fs.FileExists(name));
 
     fs.AddFile("/Home/Test.txt", "File content");
     fs.AddFile("/Root.txt", "Blah");
 
-    ASSERT_FALSE(fs.FileExists("Rubbish"));
-    ASSERT_FALSE(fs.FileExists("/"));
-    ASSERT_FALSE(fs.FileExists("/Home"));
-    ASSERT_TRUE(fs.FileExists("/Home/Test.txt"));
-    ASSERT_TRUE(fs.FileExists("/Root.txt"));
+    name = "Rubbish";
+    ASSERT_FALSE(fs.FileExists(name));
+    name = "/";
+    ASSERT_FALSE(fs.FileExists(name));
+    name = "/Home";
+    ASSERT_FALSE(fs.FileExists(name));
+    name = "/Home/Test.txt";
+    ASSERT_TRUE(fs.FileExists(name));
+    name = "/Root.txt";
+    ASSERT_TRUE(fs.FileExists(name));
 }
 
 /*

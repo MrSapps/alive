@@ -18,9 +18,12 @@ TEST(ZipFileSystem, SimpleZip)
     ASSERT_EQ(std::vector<std::string>{ "Example.txt" }, z.EnumerateFiles("", "*.*"));
     ASSERT_EQ(std::vector<std::string>{ "Sub.txt" }, z.EnumerateFiles("TestDir", "*.*"));
 
-    ASSERT_FALSE(z.FileExists("NotHere.Txt"));
-    ASSERT_TRUE(z.FileExists("Example.txt"));
-    ASSERT_TRUE(z.FileExists("TestDir/Sub.txt"));
+    std::string name1 = "NotHere.Txt";
+    ASSERT_FALSE(z.FileExists(name1));
+    std::string name2 = "Example.txt";
+    ASSERT_TRUE(z.FileExists(name2));
+    std::string name3 = "TestDir/Sub.txt";
+    ASSERT_TRUE(z.FileExists(name3));
 
     auto s1 = z.Open("Example.txt");
     ASSERT_NE(nullptr, s1);

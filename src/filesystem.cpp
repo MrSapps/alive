@@ -32,30 +32,31 @@
         return nullptr;
     }
 
-    const bool isFile = fs.FileExists(path.c_str());
+    std::string pathCopy = path;
+    const bool isFile = fs.FileExists(pathCopy);
     std::unique_ptr<IFileSystem> ret;
     if (isFile)
     {
-        if (string_util::ends_with(path, ".bin", true))
+        if (string_util::ends_with(pathCopy, ".bin", true))
         {
-            LOG_INFO("Creating ISO FS for " << path);
-            ret = std::make_unique<CdIsoFileSystem>(path.c_str());
+            LOG_INFO("Creating ISO FS for " << pathCopy);
+            ret = std::make_unique<CdIsoFileSystem>(pathCopy.c_str());
         }
-        else if (string_util::ends_with(path, ".zip", true) || string_util::ends_with(path, ".exe", true))
+        else if (string_util::ends_with(pathCopy, ".zip", true) || string_util::ends_with(pathCopy, ".exe", true))
         {
-            LOG_INFO("Creating ZIP FS for " << path);
-            ret = std::make_unique<ZipFileSystem>(path.c_str(), fs);
+            LOG_INFO("Creating ZIP FS for " << pathCopy);
+            ret = std::make_unique<ZipFileSystem>(pathCopy.c_str(), fs);
         }
         else
         {
-            LOG_ERROR("Unknown archive type for: " << path);
+            LOG_ERROR("Unknown archive type for: " << pathCopy);
             return nullptr;
         }
     }
     else
     {
-        LOG_INFO("Creating dir view FS for " << path);
-        ret = std::make_unique<DirectoryLimitedFileSystem>(fs, path);
+        LOG_INFO("Creating dir view FS for " << pathCopy);
+        ret = std::make_unique<DirectoryLimitedFileSystem>(fs, pathCopy);
     }
 
     if (ret)
@@ -240,16 +241,32 @@ std::vector<std::string> OSBaseFileSystem::DoEnumerate(const std::string& direct
 #endif
 
 #ifdef _WIN32
-bool OSBaseFileSystem::FileExists(const std::string& fileName)
+bool OSBaseFileSystem::FileExists(std::string& fileName)
 {
     const auto name = ExpandPath(fileName);
     const DWORD dwAttrib = GetFileAttributes(name.c_str());
     return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 #else
-bool OSBaseFileSystem::FileExists(const std::string& fileName)
+bool OSBaseFileSystem::FileExists(std::string& fileName)
 {
-    struct stat statbuf = {};
-    return stat(ExpandPath(fileName).c_str(), &statbuf) == 0 && !S_ISDIR(statbuf.st_mode);
+    const std::string dirPart = Parent(fileName);
+    std::vector<std::string> files = DoEnumerate(dirPart, true, nullptr);
+
+    std::string filePart;
+    if (dirPart != fileName)
+    {
+        filePart = fileName.substr(dirPart.length() + 1);
+    }
+
+    for (const auto& file : files)
+    {
+        if (string_util::iequals(file, filePart))
+        {
+            fileName = dirPart + "/" + file;
+            return true;
+        }
+    }
+    return false;
 }
 #endif

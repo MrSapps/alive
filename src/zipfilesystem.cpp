@@ -342,7 +342,7 @@ std::vector<std::string> ZipFileSystem::EnumerateFolders(const std::string& /*di
     abort();
 }
 
-bool ZipFileSystem::FileExists(const std::string& fileName)
+bool ZipFileSystem::FileExists(std::string& fileName)
 {
     for (size_t i = 0; i < mRecords.size(); i++)
     {

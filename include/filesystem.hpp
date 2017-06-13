@@ -28,7 +28,7 @@ public:
     virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) = 0;
     virtual std::vector<std::string> EnumerateFolders(const std::string& directory) = 0;
 
-    virtual bool FileExists(const std::string& fileName) = 0;
+    virtual bool FileExists(std::string& fileName) = 0;
     virtual std::string FsPath() const = 0;
 
     enum EMatchType
@@ -99,7 +99,7 @@ public:
         return DoEnumerate(directory, false, nullptr);
     }
 
-    bool FileExists(const std::string& fileName) override;
+    bool FileExists(std::string& fileName) override;
 
     virtual std::string ExpandPath(const std::string& path) = 0;
 

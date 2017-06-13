@@ -116,7 +116,7 @@ public:
         return ret;
     }
 
-    virtual bool FileExists(const std::string& fileName) override
+    virtual bool FileExists(std::string& fileName) override
     {
         DirectoryAndFileName path(fileName);
         Directory* dir = FindPath(path.mDir, true);

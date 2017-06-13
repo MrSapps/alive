@@ -32,7 +32,8 @@ bool DataSetIdentifiers::DoMatchFileSystemPathWithDataSetIdentifier(IFileSystem&
     // Check all of the "must exist files" do exist
     for (const auto& f : dataPathId.second.mContainAllOf)
     {
-        if (!fs.FileExists(f.c_str()))
+        std::string fCopy = f;
+        if (!fs.FileExists(fCopy))
         {
             // Skip this dataPathId, the path doesn't match all of the "must contain"
             return false;
@@ -42,7 +43,8 @@ bool DataSetIdentifiers::DoMatchFileSystemPathWithDataSetIdentifier(IFileSystem&
     // Check that all of the "must not exist" files don't exist
     for (const auto& f : dataPathId.second.mMustNotContain)
     {
-        if (fs.FileExists(f.c_str()))
+        std::string fCopy = f;
+        if (fs.FileExists(fCopy))
         {
             // Found a file that shouldn't exist, skip to the next dataPathId
             return false;
@@ -53,7 +55,8 @@ bool DataSetIdentifiers::DoMatchFileSystemPathWithDataSetIdentifier(IFileSystem&
     bool foundAnyOf = false;
     for (const auto& f : dataPathId.second.mContainAnyOf)
     {
-        if (fs.FileExists(f.c_str()))
+        std::string fCopy = f;
+        if (fs.FileExists(fCopy))
         {
             foundAnyOf = true;
             break;

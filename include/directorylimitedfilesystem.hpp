@@ -45,9 +45,17 @@ public:
         return mFs.EnumerateFolders(LimitPath(directory));
     }
 
-    virtual bool FileExists(const std::string& fileName) override final
+    virtual bool FileExists(std::string& fileName) override final
     {
-        return mFs.FileExists(LimitPath(fileName));
+        std::string limitedName = LimitPath(fileName);
+        if (mFs.FileExists(limitedName))
+        {
+            fileName = limitedName;
+            // Remove the base path
+            fileName = fileName.substr(mBasePath.length() + 1);
+            return true;
+        }
+        return false;
     }
 
 private:
