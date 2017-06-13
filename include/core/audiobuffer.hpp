@@ -37,6 +37,8 @@ private:
     static void StaticAudioCallback(void *udata, u8 *stream, int len);
     void AudioCallback(u8 *stream, int len);
 private:
+    void OpenImpl(const char* deviceName, u16 frameSize, int freq);
+
     std::set<IAudioPlayer*> mAudioPlayers;
     int mDevice = 0;
     u16 mFrameSize = 0;
