@@ -38,29 +38,46 @@ void SdlAudioWrapper::Open(u16 frameSize, int freq)
 {
     TRACE_ENTRYEXIT;
 
-    const s32 count = SDL_GetNumAudioDevices(0);
-    for (s32 i = 0; i < count; ++i)
+    // Try default device first as the first working enumerated device might
+    // not be what the user expects.
+    bool defaultDeviceWorked = false;
+    try
     {
-        try
+        LOG_INFO("Trying default audio device");
+        OpenImpl(nullptr, frameSize, freq);
+        defaultDeviceWorked = true;
+    }
+    catch (const std::exception& e)
+    {
+        LOG_ERROR(e.what());
+    }
+
+    if (!defaultDeviceWorked)
+    {
+        const s32 count = SDL_GetNumAudioDevices(0);
+        for (s32 i = 0; i < count; ++i)
         {
-            const char* deviceName = SDL_GetAudioDeviceName(i, 0);
-            LOG_INFO("Trying audio device " << i << " " << deviceName);
-            OpenImpl(deviceName, frameSize, freq);
-
-            stk::Stk::setSampleRate(freq);
-
-            // Start the call back
-            SDL_PauseAudioDevice(mDevice, 0);
-
-            break;
-        }
-        catch (const std::exception& e)
-        {
-            // If all devices fail and we drop out of the loop then the game should still work
-            // TODO FIX ME ^ this almost certainly won't be the case right now, FMV uses audio call back for time sync
-            LOG_ERROR(e.what());
+            try
+            {
+                const char* deviceName = SDL_GetAudioDeviceName(i, 0);
+                LOG_INFO("Trying audio device " << i << " " << deviceName);
+                OpenImpl(deviceName, frameSize, freq);
+                break;
+            }
+            catch (const std::exception& e)
+            {
+                // If all devices fail and we drop out of the loop then the game should still work
+                // TODO FIX ME ^ this almost certainly won't be the case right now, FMV uses audio call back for time sync
+                LOG_ERROR(e.what());
+            }
         }
     }
+
+    stk::Stk::setSampleRate(freq);
+
+    // Start the call back
+    SDL_PauseAudioDevice(mDevice, 0);
+
 }
 
 void SdlAudioWrapper::OpenImpl(const char* deviceName, u16 frameSize, int freq)
