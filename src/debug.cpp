@@ -1,7 +1,6 @@
 #include "debug.hpp"
 #include "engine.hpp"
-#include "renderer.hpp"
-#include "gui.h"
+#include "abstractrenderer.hpp"
 
 struct Key
 {
@@ -33,74 +32,107 @@ void Debug::Update(class InputState& input)
     {
         mFnNextPath();
     }
-}
 
-void Debug::Render(Renderer& /*renderer*/, GuiContext& gui)
-{
-    if (!mShowDebugUi)
+    if (mShowDebugUi)
     {
-        return;
-    }
-
-    gui_begin_window(&gui, "Debugging");
-
-    gui_label(&gui, "Press F1 to toggle debugging window");
-
-    gui_checkbox(&gui, "Anim bounding boxes", &mAnimBoundingBoxes);
-    gui_checkbox(&gui, "Anim debug strings", &mAnimDebugStrings);
-    gui_checkbox(&gui, "Collision lines", &mCollisionLines);
-    gui_checkbox(&gui, "Grid", &mGrid);
-    gui_checkbox(&gui, "Object bounding boxes", &mObjectBoundingBoxes);
-    gui_checkbox(&gui, "Ray casts", &mRayCasts);
-    gui_checkbox(&gui, "Browser UI", &mShowBrowserUi);
-    
-    if (gui_button(&gui, "Load next path"))
-    {
-        mFnNextPath();
-    }
-
-    if (gui_button(&gui, "Reload path"))
-    {
-        mFnReloadPath();
-    }
-
-    // Map object debugging
-    if (gui_checkbox(&gui, "Single step object", &mSingleStepObject))
-    {
-        if (!mSingleStepObject)
+        if (ImGui::Begin("Debugging"))
         {
-            mDoSingleStepObject = false;
-        }
-    }
+            ImGui::TextUnformatted("Press F1 to toggle debugging window");
 
-    if (gui_button(&gui, "Do step"))
-    {
-        if (mSingleStepObject)
-        {
-            mDoSingleStepObject = true;
-        }
-    }
-
-    if (mDebugObj)
-    {
-        gui_label(&gui, ("mXPos: " + std::to_string(mInfo.mXPos)).c_str());
-        gui_label(&gui, ("mYPos: " + std::to_string(mInfo.mYPos)).c_str());
-        gui_label(&gui, ("Frame: " + std::to_string(mInfo.mFrameToRender)).c_str());
-    }
-
-    if (mInput)
-    {
-        for (Key& key : gkeys)
-        {
-            if (gui_checkbox(&gui, key.mName, &key.mFakeDown))
+            if (ImGui::CollapsingHeader("Debug draws"))
             {
-                SDL_KeyboardEvent e = {};
-                e.keysym.scancode = key.mScanCode;
-                e.type = key.mFakeDown ? SDL_KEYDOWN : SDL_KEYUP;
-                mInput->OnKeyEvent(e);
+                ImGui::Checkbox("Cameras", &mDrawCameras);
+                ImGui::Checkbox("Objects", &mDrawObjects);
+                ImGui::Checkbox("Anim bounding boxes", &mAnimBoundingBoxes);
+                ImGui::Checkbox("Anim debug strings", &mAnimDebugStrings);
+                ImGui::Checkbox("Collision lines", &mCollisionLines);
+                ImGui::Checkbox("Grid", &mGrid);
+                ImGui::Checkbox("Object bounding boxes", &mObjectBoundingBoxes);
+                ImGui::Checkbox("Ray casts", &mRayCasts);
+                ImGui::Checkbox("Display font atlas", &mDrawFontAtlas);
+                if (ImGui::Checkbox("VSync", &mVsync))
+                {
+                    mChangeVSync = true;
+                }
+            }
+
+            if (ImGui::CollapsingHeader("Subtitle test"))
+            {
+                ImGui::Checkbox("Regular", &mSubtitleTestRegular);
+                ImGui::Checkbox("Italic", &mSubtitleTestItalic);
+                ImGui::Checkbox("Bold", &mSubtitleTestBold);
+            }
+
+            if (ImGui::CollapsingHeader("Browsers"))
+            {
+                ImGui::Checkbox("FMV browser", &Debugging().mBrowserUi.fmvBrowserOpen);
+                ImGui::Checkbox("Sound browser", &Debugging().mBrowserUi.soundBrowserOpen);
+                ImGui::Checkbox("Level browser", &Debugging().mBrowserUi.levelBrowserOpen);
+                ImGui::Checkbox("Animation browser", &Debugging().mBrowserUi.animationBrowserOpen);
+            }
+
+            if (ImGui::CollapsingHeader("Paths"))
+            {
+                if (ImGui::Button("Load next path"))
+                {
+                    mFnNextPath();
+                }
+
+                if (ImGui::Button("Reload path"))
+                {
+                    mFnReloadPath();
+                }
+            }
+
+            if (ImGui::CollapsingHeader("Object debug"))
+            {
+                if (ImGui::Checkbox("Single step object", &mSingleStepObject))
+                {
+                    if (!mSingleStepObject)
+                    {
+                        mDoSingleStepObject = false;
+                    }
+                }
+
+                if (ImGui::Button("Do step"))
+                {
+                    if (mSingleStepObject)
+                    {
+                        mDoSingleStepObject = true;
+                    }
+                }
+
+                if (mDebugObj)
+                {
+                    ImGui::TextUnformatted(("mXPos: " + std::to_string(mInfo.mXPos)).c_str());
+                    ImGui::TextUnformatted(("mYPos: " + std::to_string(mInfo.mYPos)).c_str());
+                    ImGui::TextUnformatted(("Frame: " + std::to_string(mInfo.mFrameToRender)).c_str());
+                }
+
+                if (mInput)
+                {
+                    for (Key& key : gkeys)
+                    {
+                        if (ImGui::Checkbox(key.mName, &key.mFakeDown))
+                        {
+                            SDL_KeyboardEvent e = {};
+                            e.keysym.scancode = key.mScanCode;
+                            e.type = key.mFakeDown ? SDL_KEYDOWN : SDL_KEYUP;
+                            mInput->OnKeyEvent(e);
+                        }
+                    }
+                }
             }
         }
+        ImGui::End();
     }
+}
 
-    gui_end_window(&gui);
+void Debug::Render(AbstractRenderer& rend)
+{
+    if (mChangeVSync)
+    {
+        mChangeVSync = false;
+        rend.SetVSync(mVsync);
+    }
 }

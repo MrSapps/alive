@@ -1,7 +1,6 @@
 #include "gridmap.hpp"
-#include "gui.h"
 #include "oddlib/lvlarchive.hpp"
-#include "renderer.hpp"
+#include "abstractrenderer.hpp"
 #include "oddlib/path.hpp"
 #include "oddlib/bits_factory.hpp"
 #include "logger.hpp"
@@ -15,7 +14,7 @@
 #include "editormode.hpp"
 #include "fmv.hpp"
 
-Level::Level(IAudioController& audioController, ResourceLocator& locator, Renderer& rend)
+Level::Level(IAudioController& audioController, ResourceLocator& locator, AbstractRenderer& rend)
     : mLocator(locator)
 {
 
@@ -83,53 +82,52 @@ void Level::EnterState()
 
 void Level::Update(const InputState& input, CoordinateSpace& coords)
 {
+    if (Debugging().mBrowserUi.levelBrowserOpen)
+    {
+        RenderDebugPathSelection();
+    }
+
     if (mMap)
     {
         mMap->Update(input, coords);
     }
 }
 
-void Level::Render(Renderer& rend, GuiContext& gui, int , int )
+void Level::Render(AbstractRenderer& rend)
 {
-    if (Debugging().mBrowserUi.levelBrowserOpen)
-    {
-        RenderDebugPathSelection(rend, gui);
-    }
-
     if (mMap)
     {
-        mMap->Render(rend, gui);
+        mMap->Render(rend);
     }
 }
 
-void Level::RenderDebugPathSelection(Renderer& rend, GuiContext& gui)
+void Level::RenderDebugPathSelection()
 {
-    gui_begin_window(&gui, "Paths");
-
-    for (const auto& pathMap : mLocator.mResMapper.mPathMaps)
+    if (ImGui::Begin("Paths"))
     {
-        if (gui_button(&gui, pathMap.first.c_str()))
+        for (const auto& pathMap : mLocator.mResMapper.mPathMaps)
         {
-            std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(pathMap.first.c_str());
-            if (path)
+            if (ImGui::Button(pathMap.first.c_str()))
             {
-                mMap->LoadMap(*path, mLocator, rend);
+                std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(pathMap.first.c_str());
+                if (path)
+                {
+                    //Debugging().mFnNextPath
+                    //mMap->LoadMap(*path, mLocator, rend);
+                }
+                else
+                {
+                    LOG_ERROR("LVL or file in LVL not found");
+                }
+
             }
-            else
-            {
-                LOG_ERROR("LVL or file in LVL not found");
-            }
-            
         }
     }
-
-    gui_end_window(&gui);
+    ImGui::End();
 }
 
-GridScreen::GridScreen(const Oddlib::Path::Camera& camera, Renderer& rend, ResourceLocator& locator)
+GridScreen::GridScreen(const Oddlib::Path::Camera& camera, AbstractRenderer& rend, ResourceLocator& locator)
     : mFileName(camera.mName)
-    , mTexHandle(0)
-    , mTexHandle2(0)
     , mCamera(camera)
     , mLocator(locator)
     , mRend(rend)
@@ -139,27 +137,34 @@ GridScreen::GridScreen(const Oddlib::Path::Camera& camera, Renderer& rend, Resou
 
 GridScreen::~GridScreen()
 {
-
+    if (mTexHandle.IsValid())
+    {
+        mRend.DestroyTexture(mTexHandle);
+    }
+    if (mTexHandle2.IsValid())
+    {
+        mRend.DestroyTexture(mTexHandle2);
+    }
 }
 
 void GridScreen::LoadTextures()
 {
-    if (!mTexHandle)
+    if (!mTexHandle.IsValid())
     {
         mCam = mLocator.LocateCamera(mFileName.c_str());
         if (mCam) // One path trys to load BRP08C10.CAM which exists in no data sets anywhere!
         {
             SDL_Surface* surf = mCam->GetSurface();
-            mTexHandle = mRend.createTexture(GL_RGB, surf->w, surf->h, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels, true);
+            mTexHandle = mRend.CreateTexture(AbstractRenderer::eTextureFormats::eRGB, surf->w, surf->h, AbstractRenderer::eTextureFormats::eRGB, surf->pixels, true);
 
-            if (!mTexHandle2)
+            if (!mTexHandle2.IsValid())
             {
                 if (mCam->GetFg1())
                 {
                     SDL_Surface* fg1Surf = mCam->GetFg1()->GetSurface();
                     if (fg1Surf)
                     {
-                        mTexHandle2 = mRend.createTexture(GL_RGBA, fg1Surf->w, fg1Surf->h, GL_RGBA, GL_UNSIGNED_BYTE, fg1Surf->pixels, true);
+                        mTexHandle2 = mRend.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->w, fg1Surf->h, AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->pixels, true);
                     }
                 }
             }
@@ -184,10 +189,14 @@ bool GridScreen::hasTexture() const
 void GridScreen::Render(float x, float y, float w, float h)
 {
     LoadTextures();
-    mRend.drawQuad(mTexHandle, x, y, w, h, Renderer::eForegroundLayer0);
-    if (mTexHandle2)
+    if (mTexHandle.IsValid())
     {
-        mRend.drawQuad(mTexHandle2, x, y, w, h, Renderer::eForegroundLayer1);
+        mRend.TexturedQuad(mTexHandle, x, y, w, h, AbstractRenderer::eForegroundLayer0, ColourU8{ 255, 255, 255, 255 });
+    }
+
+    if (mTexHandle2.IsValid())
+    {
+        mRend.TexturedQuad(mTexHandle2, x, y, w, h, AbstractRenderer::eForegroundLayer1, ColourU8{ 255, 255, 255, 255 });
     }
 }
 
@@ -215,7 +224,7 @@ GridMap::GridMap(IAudioController& audioController, ResourceLocator& locator)
     mMapState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
 }
 
-void GridMap::LoadMap(Oddlib::Path& path, ResourceLocator& locator, Renderer& rend)
+void GridMap::LoadMap(Oddlib::Path& path, ResourceLocator& locator, AbstractRenderer& rend)
 {
     // Clear out existing objects from previous map
     mMapState.mObjs.clear();
@@ -388,9 +397,27 @@ MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
     return nullptr;
 }
 
-void GridMapState::RenderDebug(Renderer& rend) const
+void GridMapState::RenderGrid(AbstractRenderer& rend) const
 {
-    rend.SetActiveLayer(Renderer::eEditor);
+    const int gridLineCountX = static_cast<int>((rend.ScreenSize().x / mEditorGridSizeX));
+    for (int x = -gridLineCountX; x < gridLineCountX; x++)
+    {
+        const glm::vec2 worldPos(rend.CameraPosition().x + (x * mEditorGridSizeX) - (static_cast<int>(rend.CameraPosition().x) % mEditorGridSizeX), 0);
+        const glm::vec2 screenPos = rend.WorldToScreen(worldPos);
+        rend.Line(ColourU8{ 255, 255, 255, 30 }, screenPos.x, 0, screenPos.x, static_cast<f32>(rend.Height()), 2.0f, AbstractRenderer::eLayers::eEditor, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
+    }
+
+    const int gridLineCountY = static_cast<int>((rend.ScreenSize().y / mEditorGridSizeY));
+    for (int y = -gridLineCountY; y < gridLineCountY; y++)
+    {
+        const glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(0, rend.CameraPosition().y + (y * mEditorGridSizeY) - (static_cast<int>(rend.CameraPosition().y) % mEditorGridSizeY)));
+        rend.Line(ColourU8{ 255, 255, 255, 30 }, 0, screenPos.y, static_cast<f32>(rend.Width()), screenPos.y, 2.0f, AbstractRenderer::eLayers::eEditor, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
+    }
+}
+
+void GridMapState::RenderDebug(AbstractRenderer& rend) const
+{
+    //rend.SetActiveLayer(AbstractRenderer::eEditor);
 
     // Draw collisions
     if (Debugging().mCollisionLines)
@@ -401,42 +428,17 @@ void GridMapState::RenderDebug(Renderer& rend) const
     // Draw grid
     if (Debugging().mGrid)
     {
-        rend.strokeColor(ColourF32{ 1, 1, 1, 0.1f });
-        rend.strokeWidth(2.f);
-
-        int gridLineCountX = static_cast<int>((rend.ScreenSize().x / mEditorGridSizeX));
-        for (int x = -gridLineCountX; x < gridLineCountX; x++)
-        {
-            rend.beginPath();
-            glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(rend.CameraPosition().x + (x * mEditorGridSizeX) - (static_cast<int>(rend.CameraPosition().x) % mEditorGridSizeX), 0));
-            rend.moveTo(screenPos.x, 0);
-            rend.lineTo(screenPos.x, static_cast<f32>(rend.Height()));
-            rend.stroke();
-        }
-
-        int gridLineCountY = static_cast<int>((rend.ScreenSize().y / mEditorGridSizeY));
-        for (int y = -gridLineCountY; y < gridLineCountY; y++)
-        {
-            rend.beginPath();
-            glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(0, rend.CameraPosition().y + (y * mEditorGridSizeY) - (static_cast<int>(rend.CameraPosition().y) % mEditorGridSizeY)));
-            rend.moveTo(0, screenPos.y);
-            rend.lineTo(static_cast<f32>(rend.Width()), screenPos.y);
-            rend.stroke();
-        }
+        RenderGrid(rend);
     }
 
     // Draw objects
     if (Debugging().mObjectBoundingBoxes)
     {
-        rend.strokeColor(ColourF32{ 1, 1, 1, 1 });
-        rend.strokeWidth(1.f);
         for (auto x = 0u; x < mScreens.size(); x++)
         {
             for (auto y = 0u; y < mScreens[x].size(); y++)
             {
-                GridScreen *screen = mScreens[x][y].get();
-                if (!screen->hasTexture())
-                    continue;
+                GridScreen* screen = mScreens[x][y].get();
                 const Oddlib::Path::Camera& cam = screen->getCamera();
                 for (size_t i = 0; i < cam.mObjects.size(); ++i)
                 {
@@ -447,23 +449,26 @@ void GridMapState::RenderDebug(Renderer& rend) const
 
                     glm::vec2 objPos = rend.WorldToScreen(glm::vec2(topLeft.x, topLeft.y));
                     glm::vec2 objSize = rend.WorldToScreen(glm::vec2(bottomRight.x, bottomRight.y)) - objPos;
-                    rend.beginPath();
-                    rend.rect(objPos.x, objPos.y, objSize.x, objSize.y);
-                    rend.stroke();
+                   
+                    rend.Rect(
+                        objPos.x, objPos.y,
+                        objSize.x, objSize.y,
+                        AbstractRenderer::eLayers::eEditor, ColourU8{ 255, 255, 255, 255 }, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
+                   
                 }
             }
         }
     }
 }
 
-void GridMap::RenderToEditorOrToGame(Renderer& rend, GuiContext& gui) const
+void GridMap::RenderToEditorOrToGame(AbstractRenderer& rend) const
 {
     // TODO: Better transition
     // Keep everything rendered for now
-    mEditorMode->Render(rend, gui);
+    mEditorMode->Render(rend);
 }
 
-void GridMapState::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset) const
+void GridMapState::DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset) const
 {
     if (Debugging().mRayCasts)
     {
@@ -473,12 +478,13 @@ void GridMapState::DebugRayCast(Renderer& rend, const glm::vec2& from, const glm
             const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
             const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);
 
-            rend.strokeColor(ColourF32{ 1, 0, 1, 1 });
-            rend.strokeWidth(2.f);
-            rend.beginPath();
-            rend.moveTo(fromDrawPos.x, fromDrawPos.y);
-            rend.lineTo(hitPos.x, hitPos.y);
-            rend.stroke();
+            rend.Line(ColourU8{ 255, 0, 255, 255 },
+                fromDrawPos.x, fromDrawPos.y,
+                hitPos.x, hitPos.y,
+                2.0f,
+                AbstractRenderer::eLayers::eEditor,
+                AbstractRenderer::eBlendModes::eNormal,
+                AbstractRenderer::eCoordinateSystem::eScreen);
         }
     }
 }
@@ -554,22 +560,22 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
     // TODO: Render connected segments as one with control points
 }
 
-void GridMap::Render(Renderer& rend, GuiContext& gui) const
+void GridMap::Render(AbstractRenderer& rend) const
 {
-    mFmv->Render(rend, gui);
+    mFmv->Render(rend);
     if (!mFmv->IsPlaying())
     {
         if (mMapState.mState == GridMapState::eStates::eEditor)
         {
-            mEditorMode->Render(rend, gui);
+            mEditorMode->Render(rend);
         }
         else if (mMapState.mState == GridMapState::eStates::eInGame)
         {
-            mGameMode->Render(rend, gui);
+            mGameMode->Render(rend);
         }
         else
         {
-            RenderToEditorOrToGame(rend, gui);
+            RenderToEditorOrToGame(rend);
         }
     }
 }

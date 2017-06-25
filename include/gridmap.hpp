@@ -7,16 +7,15 @@
 #include <iomanip>
 #include <sstream>
 #include "core/audiobuffer.hpp"
-#include "proxy_nanovg.h"
 #include "oddlib/path.hpp"
 #include "fsm.hpp"
-#include "renderer.hpp"
+#include "abstractrenderer.hpp"
 #include "collisionline.hpp"
 #include "proxy_sqrat.hpp"
 #include "mapobject.hpp"
+#include "imgui/imgui.h"
 
-struct GuiContext;
-class Renderer;
+class AbstractRenderer;
 class ResourceLocator;
 class InputState;
 
@@ -40,12 +39,12 @@ public:
     {
         TRACE_ENTRYEXIT;
     }
-    Level(IAudioController& audioController, ResourceLocator& locator, Renderer& render);
+    Level(IAudioController& audioController, ResourceLocator& locator, AbstractRenderer& render);
     void Update(const InputState& input, CoordinateSpace& coords);
-    void Render(Renderer& rend, GuiContext& gui, int screenW, int screenH);
+    void Render(AbstractRenderer& rend);
     void EnterState();
 private:
-    void RenderDebugPathSelection(Renderer& rend, GuiContext& gui);
+    void RenderDebugPathSelection();
     std::unique_ptr<class GridMap> mMap;
     ResourceLocator& mLocator;
 };
@@ -55,7 +54,7 @@ class GridScreen
 public:
     GridScreen(const GridScreen&) = delete;
     GridScreen& operator = (const GridScreen&) = delete;
-    GridScreen(const Oddlib::Path::Camera& camera, Renderer& rend, ResourceLocator& locator);
+    GridScreen(const Oddlib::Path::Camera& camera, AbstractRenderer& rend, ResourceLocator& locator);
     ~GridScreen();
     const std::string& FileName() const { return mFileName; }
     void LoadTextures();
@@ -64,8 +63,8 @@ public:
     void Render(float x, float y, float w, float h);
 private:
     std::string mFileName;
-    int mTexHandle;
-    int mTexHandle2; 
+    TextureHandle mTexHandle;
+    TextureHandle mTexHandle2;
 
     // TODO: This is not the in-game format
     Oddlib::Path::Camera mCamera;
@@ -74,7 +73,7 @@ private:
     std::unique_ptr<Oddlib::IBits> mCam;
 
     ResourceLocator& mLocator;
-    Renderer& mRend;
+    AbstractRenderer& mRend;
 };
 
 
@@ -116,8 +115,10 @@ public:
     eStates mState = eStates::eInGame;
     u32 mModeSwitchTimeout = 0;
 
-    void RenderDebug(Renderer& rend) const;
-    void DebugRayCast(Renderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
+    void RenderDebug(AbstractRenderer& rend) const;
+    void DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
+private:
+    void RenderGrid(AbstractRenderer& rend) const;
 };
 
 constexpr u32 kSwitchTimeMs = 300;
@@ -129,15 +130,15 @@ public:
     GridMap& operator = (const GridMap&) = delete;
     GridMap(class IAudioController& audioController, ResourceLocator& locator);
     ~GridMap();
-    void LoadMap(Oddlib::Path& path, ResourceLocator& locator, Renderer& rend);
+    void LoadMap(Oddlib::Path& path, ResourceLocator& locator, AbstractRenderer& rend);
     void Update(const InputState& input, CoordinateSpace& coords);
-    void Render(Renderer& rend, GuiContext& gui) const;
+    void Render(AbstractRenderer& rend) const;
     static void RegisterScriptBindings();
 private:
     MapObject* GetMapObject(s32 x, s32 y, const char* type);
     
     void UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& coords);
-    void RenderToEditorOrToGame(Renderer& rend, GuiContext& gui) const;
+    void RenderToEditorOrToGame(AbstractRenderer& rend) const;
 
     virtual const CollisionLines& Lines() const override final { return mMapState.mCollisionItems; }
 

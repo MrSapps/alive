@@ -9,14 +9,12 @@ public:
     GameSelectionScreen& operator = (GameSelectionScreen&&) = delete;
     GameSelectionScreen(StateMachine& stateMachine,
             const std::vector<GameDefinition>& gameDefinitions,
-            GuiContext* gui,
             class Sound& sound, 
             class Level& level,
             ResourceLocator& resLocator,
             IFileSystem& newFs)
       : IState(stateMachine),
         mGameDefinitions(gameDefinitions),
-        mGui(gui),
         mSound(sound),
         mLevel(level),
         mResLocator(resLocator),
@@ -24,7 +22,7 @@ public:
     {
         mVisibleGameDefinitions = GameDefinition::GetVisibleGameDefinitions(mGameDefinitions);
     }
-    virtual void Render(int w, int h, Renderer& renderer) override;
+    virtual void Render(int w, int h, AbstractRenderer& renderer) override;
     virtual void Update(const InputState& input, CoordinateSpace& coords) override;
     virtual void EnterState() override;
     virtual void ExitState() override;
@@ -36,7 +34,6 @@ private:
 
     const std::vector<GameDefinition>& mGameDefinitions;
     std::vector<const GameDefinition*> mVisibleGameDefinitions;
-    struct GuiContext *mGui = nullptr;
     Sound& mSound;
     Level& mLevel;
     ResourceLocator& mResLocator;

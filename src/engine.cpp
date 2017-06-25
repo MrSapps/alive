@@ -10,13 +10,10 @@
 #include "core/audiobuffer.hpp"
 #include "sound.hpp"
 #include "gridmap.hpp"
-#include "renderer.hpp"
-#include "gui.h"
-#include "guiwidgets.hpp"
 #include "gameselectionscreen.hpp"
-#include "generated_gui_layout.cpp" // Has function "load_layout" to set gui layout. Only used in single .cpp file.
 #include "gamefilesystem.hpp"
 #include "fmv.hpp"
+#include "rendererfactory.hpp"
 
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -26,6 +23,7 @@
 #include "rsc\resource.h"
 #include "SDL_syswm.h"
 #include "stdthread.h"
+#include "imgui/imgui.h"
 
 void setWindowsIcon(SDL_Window *sdlWindow)
 {
@@ -195,22 +193,39 @@ void InputMapping::Update(const InputState& input)
     Sqrat::RootTable().Bind("Actions", c);
 }
 
-Engine::Engine()
+Engine::Engine(const std::vector<std::string>& commandLineArguments)
 {
-
+    for (const std::string& argument : commandLineArguments)
+    {
+        if (string_util::iequals("-opengl", argument))
+        {
+            mTryDirectX9 = false;
+        }
+        else if (string_util::iequals("-directx9", argument))
+        {
+#ifndef _WIN32
+            LOG_WARNING("DirectX9 is not supported on this platform");
+#else
+            mTryDirectX9 = true;
+#endif
+        }
+    }
 }
 
 Engine::~Engine()
 {
     TRACE_ENTRYEXIT;
 
-    destroy_gui(mGui);
+    ImGui::Shutdown();
 
     mSound.reset();
     mLevel.reset();
+    if (mRenderer)
+    {
+        mRenderer->ShutDown();
+    }
     mRenderer.reset();
 
-    SDL_GL_DeleteContext(mContext);
     SDL_DestroyWindow(mWindow);
     SDL_Quit();
 }
@@ -226,7 +241,7 @@ bool Engine::Init()
             LOG_ERROR("File system init failure");
             return false;
         }
-
+        
         InitResources();
 
         if (!InitSDL())
@@ -235,14 +250,12 @@ bool Engine::Init()
             return false;
         }
 
-        InitGL();
 
         InitSubSystems();
 
-
         Debugging().mInput = &mInputState;
         
-        mStateMachine.ToState(std::make_unique<GameSelectionScreen>(mStateMachine, mGameDefinitions, mGui, *mSound, *mLevel, *mResourceLocator, *mFileSystem));
+        mStateMachine.ToState(std::make_unique<GameSelectionScreen>(mStateMachine, mGameDefinitions, *mSound, *mLevel, *mResourceLocator, *mFileSystem));
 
         return true;
     }
@@ -291,15 +304,19 @@ void Engine::InitSubSystems()
 
     BindScriptTypes();
 
-    mRenderer = std::make_unique<Renderer>((mFileSystem->FsPath() + "data/Roboto-Regular.ttf").c_str());
-  
+    mRenderer = RendererFactory::Create(mWindow, mTryDirectX9);
+
+    mRenderer->Init
+    (
+        (mFileSystem->FsPath() + "data/fonts/Roboto-Regular.ttf").c_str(),
+        (mFileSystem->FsPath() + "data/fonts/Roboto-Italic.ttf").c_str(),
+        (mFileSystem->FsPath() + "data/fonts/Roboto-Bold.ttf").c_str()
+    );
+
     mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator);
     mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator, *mRenderer);
 
-    { // Init gui system
-        mGui = create_gui(&calcTextSize, mRenderer.get());
-        load_layout(mGui);
-    }
+    InitImGui();
 
     mInputState.AddControllers();
 
@@ -342,10 +359,10 @@ private:
     THighResClock::duration mFrameStartTime = {};
 };
 
-static char* WindowTitle(f32 fps)
+static char* WindowTitle(const char* rendererName, f32 fps)
 {
     static char buffer[128] = {};
-    sprintf(buffer, ALIVE_VERSION_NAME_STR, fps);
+    sprintf(buffer, ALIVE_VERSION_NAME_STR, rendererName, fps);
     return buffer;
 }
 
@@ -359,29 +376,168 @@ int Engine::Run()
         // Limit update to 60fps
         const THighResClock::duration totalRunTime = THighResClock::now() - startTime;
         const Sint64 timePassed = std::chrono::duration_cast<std::chrono::nanoseconds>(totalRunTime).count();
+
+
         if (timePassed >= 16666666)
         {
             Update();
+            ImGui::Render();
             startTime = THighResClock::now();
         }
 
         Render();
         fpsCounter.Update([&](f32 fps)
         {
-            SDL_SetWindowTitle(mWindow, WindowTitle(fps));
+            SDL_SetWindowTitle(mWindow, WindowTitle(mRenderer->Name(), fps));
         });
     }
+
+    mRenderer->DestroyTexture(mGuiFontHandle);
+
     return 0;
+}
+
+static bool mousePressed[4] = { false, false };
+static ImVec2 mousePosScale(1.0f, 1.0f);
+
+static void UpdateImGui()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    SDL_PumpEvents();
+
+    // Setup inputs
+    int mouse_x, mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+
+    io.MousePos = ImVec2((float)mouse_x * mousePosScale.x, (float)mouse_y * mousePosScale.y);      // Mouse position, in pixels (set to -1,-1 if no mouse / on another screen, etc.)
+
+    io.MouseDown[0] = mousePressed[0] || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT));
+    io.MouseDown[1] = mousePressed[1] || (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_RIGHT));
+}
+
+void Engine::InitImGui()
+{
+    ImGui::GetStyle().AntiAliasedLines = true;
+    ImGui::GetStyle().AntiAliasedShapes = true;
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImFontConfig config;
+    config.OversampleH = 3;
+    config.OversampleV = 3;
+    std::string fontPath = mFileSystem->FsPath() + "data/fonts/Roboto-Regular.ttf";
+    if (!io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 18.0f, &config))
+    {
+        throw Oddlib::Exception(("Failed to load font " + fontPath).c_str());
+    }
+
+    ImGui_WindowResize();
+
+    // Build texture
+    unsigned char* pixels = nullptr;
+    int width = 0;
+    int height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+    // Create texture
+    mGuiFontHandle = mRenderer->CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, width, height, AbstractRenderer::eTextureFormats::eRGBA, pixels, true);
+
+    // Store our identifier
+    io.Fonts->TexID = mGuiFontHandle.mData;
+
+    // Cleanup (don't clear the input data if you want to append new fonts later)
+    io.Fonts->ClearInputData();
+    io.Fonts->ClearTexData();
+
+    // setup SDL2 keymapping
+    io.KeyMap[ImGuiKey_Tab] = SDL_GetScancodeFromKey(SDLK_TAB);
+    io.KeyMap[ImGuiKey_LeftArrow] = SDL_GetScancodeFromKey(SDLK_LEFT);
+    io.KeyMap[ImGuiKey_RightArrow] = SDL_GetScancodeFromKey(SDLK_RIGHT);
+    io.KeyMap[ImGuiKey_UpArrow] = SDL_GetScancodeFromKey(SDLK_UP);
+    io.KeyMap[ImGuiKey_DownArrow] = SDL_GetScancodeFromKey(SDLK_DOWN);
+    io.KeyMap[ImGuiKey_Home] = SDL_GetScancodeFromKey(SDLK_HOME);
+    io.KeyMap[ImGuiKey_End] = SDL_GetScancodeFromKey(SDLK_END);
+    io.KeyMap[ImGuiKey_Delete] = SDL_GetScancodeFromKey(SDLK_DELETE);
+    io.KeyMap[ImGuiKey_Backspace] = SDL_GetScancodeFromKey(SDLK_BACKSPACE);
+    io.KeyMap[ImGuiKey_Enter] = SDL_GetScancodeFromKey(SDLK_RETURN);
+    io.KeyMap[ImGuiKey_Escape] = SDL_GetScancodeFromKey(SDLK_ESCAPE);
+    io.KeyMap[ImGuiKey_A] = SDLK_a;
+    io.KeyMap[ImGuiKey_C] = SDLK_c;
+    io.KeyMap[ImGuiKey_V] = SDLK_v;
+    io.KeyMap[ImGuiKey_X] = SDLK_x;
+    io.KeyMap[ImGuiKey_Y] = SDLK_y;
+    io.KeyMap[ImGuiKey_Z] = SDLK_z;
+
+
+    ImGui::GetStyle().WindowTitleAlign = ImVec2(0.5f, 0.5f);
+    ImGui::GetStyle().WindowRounding = 3.0f;
+
+    auto& style = ImGui::GetStyle();
+
+    style.Colors[ImGuiCol_Text] = ImVec4(1, 1, 1, 1);
+    style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.86f, 0.93f, 0.89f, 0.28f);
+    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.14f, 0.17f, 1.00f);
+    style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.20f, 0.22f, 0.27f, 0.58f);
+    style.Colors[ImGuiCol_Border] = ImVec4(0.31f, 0.31f, 1.00f, 0.00f);
+    style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    style.Colors[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
+    style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.92f, 0.18f, 0.29f, 0.78f);
+    style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+    style.Colors[ImGuiCol_TitleBg] = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
+    style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.20f, 0.22f, 0.27f, 0.75f);
+    style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+    style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.20f, 0.22f, 0.27f, 0.47f);
+    style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
+    style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.47f, 0.77f, 0.83f, 0.21f);
+    style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.92f, 0.18f, 0.29f, 0.78f);
+    style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+    style.Colors[ImGuiCol_ComboBg] = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
+    style.Colors[ImGuiCol_CheckMark] = ImVec4(0.71f, 0.22f, 0.27f, 1.00f);
+    style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.47f, 0.77f, 0.83f, 0.14f);
+    style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+    style.Colors[ImGuiCol_Button] = ImVec4(0.47f, 0.77f, 0.83f, 0.14f);
+    style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.92f, 0.18f, 0.29f, 0.86f);
+    style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+    style.Colors[ImGuiCol_Header] = ImVec4(0.92f, 0.18f, 0.29f, 0.76f);
+    style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.92f, 0.18f, 0.29f, 0.86f);
+    style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+    style.Colors[ImGuiCol_Column] = ImVec4(0.47f, 0.77f, 0.83f, 0.32f);
+    style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.92f, 0.18f, 0.29f, 0.78f);
+    style.Colors[ImGuiCol_ColumnActive] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+    style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.47f, 0.77f, 0.83f, 0.04f);
+    style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.92f, 0.18f, 0.29f, 0.78f);
+    style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+    style.Colors[ImGuiCol_CloseButton] = ImVec4(0.86f, 0.93f, 0.89f, 0.16f);
+    style.Colors[ImGuiCol_CloseButtonHovered] = ImVec4(0.86f, 0.93f, 0.89f, 0.39f);
+    style.Colors[ImGuiCol_CloseButtonActive] = ImVec4(0.86f, 0.93f, 0.89f, 1.00f);
+    style.Colors[ImGuiCol_PlotLines] = ImVec4(0.86f, 0.93f, 0.89f, 0.63f);
+    style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+    style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.86f, 0.93f, 0.89f, 0.63f);
+    style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
+    style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.92f, 0.18f, 0.29f, 0.43f);
+    //style.Colors[ImGuiCol_TooltipBg] = ImVec4(0.47f, 0.77f, 0.83f, 0.72f);
+    style.Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(0.20f, 0.22f, 0.27f, 0.73f);
+}
+
+//TODO: ImGui shutdown/clean up
+void Engine::ImGui_WindowResize()
+{
+    int w, h;
+    int fb_w, fb_h;
+    SDL_GetWindowSize(mWindow, &w, &h);
+    SDL_GetWindowSize(mWindow, &fb_w, &fb_h); // Needs to be corrected for SDL Framebuffer
+    mousePosScale.x = (float)fb_w / w;
+    mousePosScale.y = (float)fb_h / h;
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);  // Display size, in pixels. For clamping windows positions.
+    //    io.PixelCenterOffset = 0.0f;                        // Align OpenGL texels
 }
 
 void Engine::Update()
 {
-    { // Reset gui input
-        for (int i = 0; i < GUI_KEY_COUNT; ++i)
-            mGui->key_state[i] = 0;
-        mGui->cursor_pos[0] = -1;
-        mGui->cursor_pos[0] = -1;
-    }
+    ImGuiIO& io = ImGui::GetIO();
+    io.MouseWheel = 0;
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -391,11 +547,11 @@ void Engine::Update()
         case SDL_MOUSEWHEEL:
             if (event.wheel.y < 0)
             {
-                mGui->mouse_scroll = -1;
+                ImGui::GetIO().MouseWheel = -1.0f;
             }
             else
             {
-                mGui->mouse_scroll = 1;
+                ImGui::GetIO().MouseWheel = 1.0f;
             }
             break;
 
@@ -411,8 +567,7 @@ void Engine::Update()
                 uint32_t keycode = event.text.text[i];
                 if (keycode >= 10 && keycode <= 255)
                 {
-                    //printable ASCII characters
-                    gui_write_char(mGui, (char)keycode);
+                    ImGui::GetIO().AddInputCharacter((char)keycode);
                 }
             }
         }
@@ -425,6 +580,7 @@ void Engine::Update()
             case SDL_WINDOWEVENT_MAXIMIZED:
             case SDL_WINDOWEVENT_RESTORED:
                 mRenderer->mSmoothCameraPosition = false;
+                ImGui_WindowResize();
                 break;
             }
             break;
@@ -432,46 +588,6 @@ void Engine::Update()
         case SDL_MOUSEBUTTONDOWN:
         {
             mInputState.OnMouseButtonEvent(event.button);
-
-            int guiKey = -1;
-
-            if (event.button.button == SDL_BUTTON_LEFT)
-            {
-                guiKey = GUI_KEY_LMB;
-            }
-            else if (event.button.button == SDL_BUTTON_MIDDLE)
-            {
-                guiKey = GUI_KEY_MMB;
-            }
-            else if (event.button.button == SDL_BUTTON_RIGHT)
-            {
-                guiKey = GUI_KEY_RMB;
-            }
-
-            if (guiKey >= 0)
-            {
-                uint8_t state = mGui->key_state[guiKey];
-                if (event.type == SDL_MOUSEBUTTONUP)
-                {
-                    state = GUI_KEYSTATE_RELEASED_BIT;
-                }
-                else
-                {
-                    state = GUI_KEYSTATE_DOWN_BIT | GUI_KEYSTATE_PRESSED_BIT;
-                }
-                mGui->key_state[guiKey] = state;
-            }
-
-            // TODO: Enable SDL_CaptureMouse when sdl supports it.
-            if (event.type == SDL_MOUSEBUTTONDOWN)
-            {
-                //SDL_CaptureMouse(SDL_TRUE);
-            }
-            else
-            {
-                //SDL_CaptureMouse(SDL_FALSE);
-            }
-
         } break;
 
         case SDL_CONTROLLERDEVICEADDED:
@@ -504,21 +620,15 @@ void Engine::Update()
                 //OnWindowResize();
             }
 
-
             const SDL_Scancode key = SDL_GetScancodeFromKey(event.key.keysym.sym);
-
-            if (event.type == SDL_KEYDOWN && key == SDL_SCANCODE_BACKSPACE)
-                gui_write_char(mGui, '\b'); // Note that this is called in case of repeated backspace key also
-
-            if (key == SDL_SCANCODE_LCTRL)
+            if (key >= 0 && key < 512)
             {
-                if (event.type == SDL_KEYDOWN)
-                    mGui->key_state[GUI_KEY_LCTRL] |= GUI_KEYSTATE_PRESSED_BIT;
-                else
-                    mGui->key_state[GUI_KEY_LCTRL] |= GUI_KEYSTATE_RELEASED_BIT;
-            }
+                SDL_Keymod modstate = SDL_GetModState();
 
-            //SDL_Keymod modstate = SDL_GetModState();
+                io.KeysDown[key] = event.type == SDL_KEYDOWN;
+                io.KeyCtrl = (modstate & KMOD_CTRL) != 0;
+                io.KeyShift = (modstate & KMOD_SHIFT) != 0;
+            }
 
             break;
         }
@@ -530,21 +640,11 @@ void Engine::Update()
 
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
-    mGui->cursor_pos[0] = mouse_x;
-    mGui->cursor_pos[1] = mouse_y;
 
     mInputState.mMousePosition.mX = mouse_x;
     mInputState.mMousePosition.mY = mouse_y;
 
-    if (SDL_GetMouseState(NULL, NULL) & SDL_BUTTON(SDL_BUTTON_LEFT))
-    {
-        mGui->key_state[GUI_KEY_LMB] |= GUI_KEYSTATE_DOWN_BIT;
-    }
-
-    if (SDL_GetKeyboardState(NULL)[SDL_SCANCODE_LCTRL])
-    {
-        mGui->key_state[GUI_KEY_LCTRL] |= GUI_KEYSTATE_DOWN_BIT;
-    }
+    ImGui::NewFrame();
 
     mInputState.Update();
     Debugging().Update(mInputState);
@@ -554,6 +654,7 @@ void Engine::Update()
     initFunc.Execute();
     SquirrelVm::CheckError();
 
+    UpdateImGui();
     mStateMachine.Update(mInputState, *mRenderer);
 }
 
@@ -562,26 +663,18 @@ void Engine::Render()
     int w = 0;
     int h = 0;
     SDL_GetWindowSize(mWindow, &w, &h);
-    mGui->host_win_size[0] = w;
-    mGui->host_win_size[1] = h;
 
-    mRenderer->beginFrame(w, h);
-    mRenderer->SetActiveLayer(Renderer::eDefaultLayer);
 
-    gui_pre_frame(mGui); 
+    mRenderer->UpdateCamera();
+    mRenderer->BeginFrame(w, h);
 
     mStateMachine.Render(w, h, *mRenderer);
 
-    Debugging().Render(*mRenderer, *mGui);
+    Debugging().Render(*mRenderer);
 
-    gui_post_frame(mGui);
+    mRenderer->EndFrame();
 
-    drawWidgets(*mGui, *mRenderer);
-    mRenderer->endFrame();
 
-    SDL_GL_SwapWindow(mWindow);
-
-    mRenderer->UpdateCamera();
 }
 
 bool Engine::InitSDL()
@@ -597,7 +690,10 @@ bool Engine::InitSDL()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-    mWindow = SDL_CreateWindow(WindowTitle(0.0f),
+    std::string title = WindowTitle("", 0.0f);
+    title = title.substr(0, title.find(")")+1);
+
+    mWindow = SDL_CreateWindow(title.c_str(),
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (!mWindow)
@@ -606,7 +702,7 @@ bool Engine::InitSDL()
         return false;
     }
 
-    SDL_SetWindowMinimumSize(mWindow, 320, 240);
+    SDL_SetWindowMinimumSize(mWindow, 640, 480);
 
 #if defined(_WIN32)
     // I'd like my icon back thanks
@@ -686,53 +782,4 @@ void Engine::InitResources()
 
     // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
     // also add in any extra maps for resources defined by the mod @ game selection screen
-}
-
-
-void Engine::InitGL()
-{
-    // SDL Defaults
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 3);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 3);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 2);
-    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
-    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 0);
-
-    // Overrides
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-
-    mContext = SDL_GL_CreateContext(mWindow);
-    if (!mContext)
-    {
-        throw Oddlib::Exception((std::string("Failed to create GL context: ") + SDL_GetError()).c_str());
-    }
-
-    int r = 0;
-    int g = 0;
-    int b = 0;
-    int a = 0;
-    int bufferSize = 0;
-    int doubleBuffer = 0;
-    SDL_GL_GetAttribute(SDL_GL_RED_SIZE, &r);
-    SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &g);
-    SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &b);
-    SDL_GL_GetAttribute(SDL_GL_ALPHA_SIZE, &a);
-    SDL_GL_GetAttribute(SDL_GL_BUFFER_SIZE, &bufferSize);
-    SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &doubleBuffer);
-    LOG_INFO("GL settings r " << r << " g " << g << " b " << b << " bufferSize " << bufferSize << " double buffer " << doubleBuffer);
-
-    SDL_GL_SetSwapInterval(1);
-    //SDL_GL_SetSwapInterval(0); // No vsync for gui, for responsiveness
-
-    if (gl3wInit()) 
-    {
-        throw Oddlib::Exception("failed to initialize OpenGL");
-    }
-
-    if (!gl3wIsSupported(3, 1)) 
-    {
-        throw Oddlib::Exception("OpenGL 3.1 not supported");
-    }
 }

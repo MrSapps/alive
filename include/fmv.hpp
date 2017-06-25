@@ -9,14 +9,11 @@
 #include "core/audiobuffer.hpp"
 #include "subtitles.hpp"
 #include "stdthread.h"
-#include <GL/gl3w.h>
 #include <functional>
 
 class GameData;
 class IAudioController;
-class Renderer;
-struct GuiContext;
-
+class AbstractRenderer;
 
 class IMovie : public IAudioPlayer
 {
@@ -33,7 +30,7 @@ public:
     virtual ~IMovie();
 
     // Main thread context
-    void OnRenderFrame(Renderer& rend, GuiContext &gui);
+    void OnRenderFrame(AbstractRenderer& rend);
 
     // Main thread context
     bool IsEnd();
@@ -46,7 +43,7 @@ protected:
     virtual void Play(u8* stream, u32 len) override;
 
 
-    void RenderFrame(Renderer& rend, GuiContext& gui, int width, int height, const GLvoid* pixels, const char* subtitles);
+    void RenderFrame(AbstractRenderer& rend, int width, int height, const void* pixels, const char* subtitles);
 
 protected:
     struct Frame
@@ -82,9 +79,9 @@ public:
     bool IsPlaying() const;
     void Stop();
     void Update();
-    void Render(Renderer& rend, GuiContext& gui);
+    void Render(AbstractRenderer& rend);
 protected:
-    void DebugUi(GuiContext& gui);
+    void DebugUi();
 
     ResourceLocator& mResourceLocator;
     IAudioController& mAudioController;

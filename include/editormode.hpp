@@ -98,7 +98,7 @@ public:
     void Redo();
     void Clear();
     u32 Count() const { return static_cast<u32>(mUndoStack.size()); }
-    void DebugRenderCommandList(GuiContext& gui) const;
+    void DebugRenderCommandList() const;
 private:
     std::vector<std::unique_ptr<ICommand>> mUndoStack;
     u32 mCommandIndex = 0;
@@ -136,7 +136,7 @@ public:
     */
 
     void Update(const InputState& input, CoordinateSpace& coords);
-    void Render(Renderer& rend, GuiContext& gui) const;
+    void Render(AbstractRenderer& rend) const;
     void OnMapChanged();
 
     f32 mEditorCamZoom = 1.0f;

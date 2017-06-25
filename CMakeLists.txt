@@ -80,7 +80,6 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/sqrat/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/boost_1_63_mini
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock/include
@@ -105,11 +104,25 @@ include_directories(
 
 SET(SQ_DISABLE_INSTALLER 1)
 SET(DISABLE_DYNAMIC 1)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squirrel)
 SET_PROPERTY(TARGET sq_static PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET sqstdlib_static PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET squirrel_static PROPERTY FOLDER "3rdparty")
 
+
+SET(imgui_src 
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_rect_pack.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_textedit.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_truetype.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imconfig.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imgui.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imgui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imgui_draw.cpp
+)
+
+add_library(imgui STATIC ${imgui_src})
+SET_PROPERTY(TARGET imgui PROPERTY FOLDER "3rdparty")
 
 SET(nativefiledialog_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nativefiledialog/src/include/nfd.h
@@ -151,19 +164,6 @@ SET(stk_src
 
 add_library(stk STATIC ${stk_src})
 SET_PROPERTY(TARGET stk PROPERTY FOLDER "3rdparty")
-
-
-SET(nanovg_src 
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/fontstash.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/nanovg.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/nanovg.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/nanovg_gl.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/nanovg_gl_utils.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/stb_image.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/nanovg/src/stb_truetype.h
-)
-add_library(NanoVg STATIC ${nanovg_src})
-SET_PROPERTY(TARGET NanoVg PROPERTY FOLDER "3rdparty")
 
 SET(gmock_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/googletest/googlemock/src/gmock-all.cc
@@ -255,7 +255,6 @@ SET(oddlib_src
     include/types.hpp
     include/bitutils.hpp
     include/proxy_rapidjson.hpp
-    include/proxy_nanovg.h
     include/proxy_sqrat.hpp
     include/msvc_sdl_link.hpp
     include/stdthread.h
@@ -337,12 +336,10 @@ SET(alivelib_src
     src/fmv.cpp
     include/sound.hpp
     src/sound.cpp
-    include/renderer.hpp
-    src/renderer.cpp
-    include/gui.h
-    src/gui.cpp
-    include/guiwidgets.hpp
-    src/guiwidgets.cpp
+    include/abstractrenderer.hpp
+    src/abstractrenderer.cpp
+    include/openglrenderer.hpp
+    src/openglrenderer.cpp
     include/engine.hpp
     src/engine.cpp
     include/engine.hpp
@@ -352,6 +349,8 @@ SET(alivelib_src
     include/gameselectionscreen.hpp
     include/gridmap.hpp
     src/gridmap.cpp
+    include/rendererfactory.hpp
+    src/rendererfactory.cpp
     include/gamemode.hpp
     src/gamemode.cpp
     include/editormode.hpp
@@ -383,10 +382,17 @@ SET(alivelib_src
     include/directorylimitedfilesystem.hpp
 )
 
+if(WIN32)
+    SET(alivelib_src
+        ${alivelib_src}
+        include/directx9renderer.hpp
+        src/directx9renderer.cpp)
+endif()
+
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
-TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib NanoVg jsonxx sqstdlib_static squirrel_static stk nativefiledialog libdeflate)
+TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib jsonxx sqstdlib_static squirrel_static stk nativefiledialog libdeflate imgui)
 
 if (WIN32 AND MSVC)
     set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
@@ -612,7 +618,9 @@ ELSE()
 ENDIF()
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/DataSetIds.json" DESTINATION "${DATA_DIR}")
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/Roboto-Regular.ttf" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fonts/Roboto-Regular.ttf" DESTINATION "${DATA_DIR}/fonts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fonts/Roboto-Italic.ttf" DESTINATION "${DATA_DIR}/fonts")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fonts/Roboto-Bold.ttf" DESTINATION "${DATA_DIR}/fonts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resources.json" DESTINATION "${DATA_DIR}")
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT_DDV_AePc.SRT" DESTINATION "${DATA_DIR}/subtitles")
@@ -668,17 +676,15 @@ if (MSVC)
     set_source_files_properties(${gmock_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS}")
     set_source_files_properties(${oddlib_src} PROPERTIES COMPILE_FLAGSS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
     set_source_files_properties(${alivelib_src} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
-    set_source_files_properties(${nanovg_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4456 /wd4457 /wd4459")
 
     set_source_files_properties(${VORBISFILE_SOURCES} ${VORBISENC_SOURCES} ${VORBIS_SOURCES} ${VORBIS_HEADERS} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS /wd4244 /wd4305")
 
 else()
     set_source_files_properties(${stk_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-sign-compare")
-    set_source_files_properties(${nanovg_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-unused-result")
 
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # C++14 by default
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -fPIC -Wall -Werror")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y -fPIC -Wall -Werror -Wno-unknown-pragmas")
     else()
         # Enable C++14, you may need to use -std=c++0x if using an older gcc compiler
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -fPIC -Wall -pedantic -Werror")

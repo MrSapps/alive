@@ -2,7 +2,7 @@
 #include "string_util.hpp"
 #include "resourcemapper.hpp"
 #include "gridmap.hpp"
-#include "renderer.hpp"
+#include "abstractrenderer.hpp"
 #include <array>
 
 TEST(CollisionLines, IsPointInCircle)

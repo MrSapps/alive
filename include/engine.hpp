@@ -3,7 +3,6 @@
 #include <memory>
 #include "oddlib/masher.hpp"
 #include "SDL.h"
-#include <GL/gl3w.h>
 #include "core/audiobuffer.hpp"
 #include "resourcemapper.hpp"
 #include "bitutils.hpp"
@@ -20,7 +19,7 @@ public:
     virtual ~IState() = default;
 
     virtual void Update(const InputState& input, CoordinateSpace& coords) = 0;
-    virtual void Render(int w, int h, class Renderer& renderer) = 0;
+    virtual void Render(int w, int h, class AbstractRenderer& renderer) = 0;
     virtual void ExitState() = 0;
     virtual void EnterState() = 0;
 protected:
@@ -64,7 +63,7 @@ public:
         }
     }
 
-    void Render(int w, int h, class Renderer& renderer)
+    void Render(int w, int h, class AbstractRenderer& renderer)
     {
         if (mState)
         {
@@ -626,7 +625,7 @@ private:
 class Engine final
 {
 public:
-    Engine();
+    Engine(const std::vector<std::string>& commandLineArguments);
     ~Engine();
     bool Init();
     int Run();
@@ -635,13 +634,13 @@ private:
     void Update();
     void Render();
     bool InitSDL();
-    int LoadNanoVgFonts(struct NVGcontext* vg);
     void AddGameDefinitionsFrom(const char* path);
     void AddModDefinitionsFrom(const char* path);
     void AddDirectoryBasedModDefinitionsFrom(std::string path);
     void AddZipedModDefinitionsFrom(std::string path);
     void InitResources();
-    void InitGL();
+    void InitImGui();
+    void ImGui_WindowResize();
 protected:
     void BindScriptTypes();
     void InitSubSystems();
@@ -653,13 +652,11 @@ protected:
     std::unique_ptr<class IFileSystem> mFileSystem;
  
     SDL_Window* mWindow = nullptr;
-    SDL_GLContext mContext = nullptr;
 
     std::unique_ptr<class ResourceLocator> mResourceLocator;
-    std::unique_ptr<class Renderer> mRenderer;
+    std::unique_ptr<class AbstractRenderer> mRenderer;
     std::unique_ptr<class Sound> mSound;
     std::unique_ptr<class Level> mLevel;
-    struct GuiContext *mGui = nullptr;
 
     std::vector<GameDefinition> mGameDefinitions;
 
@@ -668,5 +665,6 @@ protected:
     StateMachine mStateMachine;
 
     SquirrelVm mSquirrelVm;
-
+    TextureHandle mGuiFontHandle = {};
+    bool mTryDirectX9 = false;
 };

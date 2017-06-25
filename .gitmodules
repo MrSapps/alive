@@ -10,9 +10,6 @@
 [submodule "3rdParty/cotire"]
 	path = 3rdParty/cotire
 	url = https://github.com/sakra/cotire
-[submodule "3rdParty/nanovg"]
-	path = 3rdParty/nanovg
-	url = https://github.com/memononen/nanovg.git
 [submodule "3rdParty/stk"]
 	path = 3rdParty/stk
 	url = https://github.com/thestk/stk.git
@@ -53,3 +50,9 @@
 [submodule "3rdParty/sqrat"]
 	path = 3rdParty/sqrat
 	url = https://github.com/paulsapps/sqrat
+[submodule "3rdParty/imgui"]
+	path = 3rdParty/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "3rdParty/fontstash"]
+	path = 3rdParty/fontstash
+	url = https://github.com/memononen/fontstash.git

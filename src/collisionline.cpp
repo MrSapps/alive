@@ -1,12 +1,11 @@
 #include "collisionline.hpp"
-#include "proxy_nanovg.h"
 #include <glm/glm.hpp>
 #include <glm/gtx/vector_angle.hpp>
 #include "reverse_for.hpp"
 
 /*static*/ const std::map<CollisionLine::eLineTypes, CollisionLine::LineData> CollisionLine::mData =
 {
-    { eFloor,               { "Floor",                  { 255, 0, 0, 255 } } },
+    { eFloor,               { "Floor",                  { 222, 237, 211, 255 } } },
     { eWallLeft,            { "Wall left",              { 0, 0, 255, 255 } } },
     { eWallRight,           { "Wall right",             { 0, 100, 255, 255 } } },
     { eCeiling,             { "Ceiling",                { 255, 100, 0, 255 } } },
@@ -54,6 +53,7 @@ bool CollisionLine::SetSelected(bool selected)
     return eUnknown;
 }
 
+/*
 static glm::vec2 ArrowHeadP1(const Line& line, const glm::vec2& unitVec)
 {
     return Line::PointOnLine(unitVec, 10.0f, 20.0f) + line.mP1;
@@ -63,6 +63,7 @@ static glm::vec2 ArrowHeadP2(const Line& line, const glm::vec2& unitVec)
 {
     return Line::PointOnLine(unitVec, 10.0f, -20.0f) + line.mP1;
 }
+*/
 
 /*static*/ s32 CollisionLine::Pick(const CollisionLines& lines, const glm::vec2& pos, float lineScale)
 {
@@ -125,16 +126,12 @@ static glm::vec2 ArrowHeadP2(const Line& line, const glm::vec2& unitVec)
     return -1;
 }
 
-static void RenderCircle(Renderer& rend, const glm::vec2& pos, const ColourF32& colour, f32 radius)
+static void RenderCircle(AbstractRenderer& rend, const glm::vec2& pos, const ColourU8& colour, f32 radius)
 {
-    rend.strokeWidth(4.0f);
-    rend.strokeColor(colour);
-    rend.beginPath();
-    rend.circle(pos.x, pos.y, radius);
-    rend.stroke();
+    rend.CircleFilled(colour, pos.x, pos.y, radius, 12, AbstractRenderer::eLayers::eEditor + 1, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
 }
 
-/*static*/ void CollisionLine::Render(Renderer& rend, const CollisionLines& lines)
+/*static*/ void CollisionLine::Render(AbstractRenderer& rend, const CollisionLines& lines)
 {
     for (const std::unique_ptr<CollisionLine>& item : lines)
     {
@@ -147,59 +144,81 @@ static void RenderCircle(Renderer& rend, const glm::vec2& pos, const ColourF32& 
         if (item->mLink.mNext)
         {
             const glm::vec2 p1 = rend.WorldToScreen(item->mLine.mP1);
-            RenderCircle(rend, p1, ColourF32{ 0, 0, 0, 1 }, 5.0f);
-            RenderCircle(rend, p1, ColourF32{ 1, 0, 1, 1 }, 2.0f);
+            RenderCircle(rend, p1, ColourU8{ 0, 0, 0, 255 }, 5.0f);
+            RenderCircle(rend, p1, ColourU8{ 255, 0, 255, 255 }, 2.0f);
         }
     }
 }
 
-static void RenderLineAndOptionalArrowHead(Renderer& rend, const Line& line, f32 width, const ColourF32& colour, bool arrowHead)
+static void RenderLineAndOptionalArrowHead(AbstractRenderer& rend, const Line& line, f32 width, const ColourU8& fillColour, const ColourU8& outlineColour, bool /*arrowHead*/)
 {
-    rend.lineCap(NVG_ROUND);
-    rend.LineJoin(NVG_ROUND);
+    static float thickness = 4.0f;
+    static float arrowWidth = 12.0f;
+    static float arrowHeight = 18.0f;
+    float lineWidth = width;// 4.0f;
 
-    rend.strokeColor(colour);
-    rend.strokeWidth(width);
-    rend.beginPath();
+    ImVec2 lineP1 = { line.mP1.x, line.mP1.y };
+    ImVec2 lineP2 = { line.mP2.x, line.mP2.y };
 
-    rend.moveTo(line.mP1.x, line.mP1.y);
-    rend.lineTo(line.mP2.x, line.mP2.y);
-
-    if (arrowHead)
+    glm::vec2 points[7] =
     {
-        const Line unitVec = line.UnitVector();
-        const glm::vec2 arrowP1 = ArrowHeadP1(line, unitVec.mP2);
-        const glm::vec2 arrowP2 = ArrowHeadP2(line, unitVec.mP2);
+        { lineP1.x - thickness, lineP1.y + arrowHeight },
+        { lineP1.x - arrowWidth, lineP1.y + arrowHeight },
+        { lineP1.x, lineP1.y },
+        { lineP1.x + arrowWidth, lineP1.y + arrowHeight },
+        { lineP1.x + thickness, lineP1.y + arrowHeight },
+        { lineP2.x + thickness, lineP2.y },
+        { lineP2.x - thickness, lineP2.y }
+    };
 
-        rend.moveTo(line.mP1.x, line.mP1.y);
-        rend.lineTo(arrowP1.x, arrowP1.y);
-        rend.moveTo(line.mP1.x, line.mP1.y);
-        rend.lineTo(arrowP2.x, arrowP2.y);
+    const f32 angleRads = line.Angle() + glm::radians(90.0f);
+
+    for (u32 i = 0; i < 7 - 2; i++)
+    {
+        glm::vec2 tmp = points[i];
+        tmp.x -= lineP1.x;
+        tmp.y -= lineP1.y;
+        points[i] = glm::rotate(tmp, angleRads);
+        points[i].x += lineP1.x;
+        points[i].y += lineP1.y;
     }
 
-    rend.stroke();
+    for (int i = 5; i < 7; i++)
+    {
+        glm::vec2 tmp = points[i];
+        tmp.x -= lineP2.x;
+        tmp.y -= lineP2.y;
+        points[i] = glm::rotate(tmp, angleRads);
+        points[i].x += lineP2.x;
+        points[i].y += lineP2.y;
+    }
+
+    rend.PathBegin();
+    for (u32 i = 0; i < 7; i++)
+    {
+        rend.PathLineTo(points[i].x, points[i].y);
+    }
+    rend.PathFill(fillColour, AbstractRenderer::eLayers::eEditor, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
+    
+    rend.PathBegin();
+    for (u32 i = 0; i < 7; i++)
+    {
+        rend.PathLineTo(points[i].x, points[i].y);
+    }
+    rend.PathStroke(outlineColour, lineWidth, AbstractRenderer::eLayers::eEditor, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
 }
 
-/*static*/ void CollisionLine::RenderLine(Renderer& rend, const CollisionLine& item)
+/*static*/ void CollisionLine::RenderLine(AbstractRenderer& rend, const CollisionLine& item)
 {
     const Line line(rend.WorldToScreen(item.mLine.mP1), rend.WorldToScreen(item.mLine.mP2));
-
-    // Draw the big outline
-    RenderLineAndOptionalArrowHead(
-        rend, 
-        line, 
-        10.0f, 
-        (item.mSelected ? ColourF32{ 1, 0, 0, 1 } : ColourF32{ 0, 0, 0, 1 }), 
-        !item.mLink.mNext);
-
-    // Over draw the middle with the "fill" colour
     const auto it = mData.find(item.mType);
     assert(it != std::end(mData));
     RenderLineAndOptionalArrowHead(
         rend,
         line,
         4.0f,
-        it->second.mColour.ToColourF32(),
+        it->second.mColour,
+        (item.mSelected ? ColourU8{ 255, 0, 0, 255 } : ColourU8{ 0, 0, 0, 255 }),
         !item.mLink.mNext);
 }
 

@@ -2,14 +2,21 @@
 #include "engine.hpp"
 #include "logger.hpp"
 #include "msvc_sdl_link.hpp"
+#include <vector>
 
 // Don't use SDL main
 #undef main
-int main(int /*argc*/, char** /*argv*/)
+int main(int argc, char** argv)
 {
     TRACE_ENTRYEXIT;
 
-    Engine e;
+    std::vector<std::string> args;
+    for (int i = 0; i < argc; i++)
+    {
+        args.push_back(argv[i]);
+    }
+
+    Engine e(args);
 
     if (!e.Init())
     {

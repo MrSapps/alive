@@ -2,7 +2,7 @@
 
 #include "types.hpp"
 #include "physics.hpp"
-#include "renderer.hpp"
+#include "abstractrenderer.hpp"
 #include <vector>
 #include <memory>
 #include <map>
@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 #include <glm/vec2.hpp>
 #include <glm/gtx/vector_angle.hpp>
+#include "imgui/imgui.h"
 
 using CollisionLines = std::vector<std::unique_ptr<class CollisionLine>>;
 
@@ -56,10 +57,7 @@ struct Line
 
     f32 Angle() const
     {
-        f32 xd = mP2.x - mP1.x;
-        if (xd == 0.0f) { xd = 1.0f; }
-        const f32 tanx = (mP2.y - mP1.y) / (xd);
-        return glm::atan(tanx);
+        return atan2(mP1.y - mP2.y, mP1.x - mP2.x);
     }
 
     glm::vec2 mP1;
@@ -110,7 +108,7 @@ public:
     }
 
     static eLineTypes ToType(u16 type);
-    static void Render(Renderer& rend, const CollisionLines& lines);
+    static void Render(AbstractRenderer& rend, const CollisionLines& lines);
     static s32 Pick(const CollisionLines& lines, const glm::vec2& pos, float lineScale = 1.0f);
     bool IsSelected() const { return mSelected; }
     bool SetSelected(bool selected);
@@ -200,7 +198,7 @@ public:
     };
     static const std::map<eLineTypes, LineData> mData;
 private:
-    static void RenderLine(Renderer& rend, const CollisionLine& line);
+    static void RenderLine(AbstractRenderer& rend, const CollisionLine& line);
 
     bool mSelected = false;
 };
