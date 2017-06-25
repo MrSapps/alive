@@ -286,7 +286,7 @@ void MapObject::ReloadScript()
     SnapXToGrid();
 }
 
-void MapObject::Render(Renderer& rend, GuiContext& /*gui*/, int x, int y, float scale, int layer) const
+void MapObject::Render(AbstractRenderer& rend, int x, int y, float scale, int layer) const
 {
     if (mAnim)
     {

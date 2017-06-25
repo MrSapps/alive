@@ -30,9 +30,8 @@ namespace Oddlib
 }
 
 class InputState;
-class Renderer;
+class AbstractRenderer;
 class Animation;
-struct GuiContext;
 class ResourceLocator;
 class IMap;
 
@@ -69,7 +68,7 @@ public:
 
     void Init();
     void Update(const InputState& input);
-    void Render(Renderer& rend, GuiContext& gui, int x, int y, float scale, int layer) const;
+    void Render(AbstractRenderer& rend, int x, int y, float scale, int layer) const;
     void ReloadScript();
     static void RegisterScriptBindings();
 

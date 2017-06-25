@@ -4,6 +4,7 @@ build/*
 build
 
 lib/*
+.vs/
 
 # Ignore any executables
 bin/*
@@ -53,6 +54,7 @@ bin/*
 *.VH
 *.JOY
 *.BSQ
+*log
 
 # Generated headers
 test/sample_files/generated_headers/*.h

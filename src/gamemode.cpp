@@ -1,6 +1,5 @@
 #include "gamemode.hpp"
 #include "engine.hpp"
-#include "gui.h"
 
 GameMode::GameMode(GridMapState& mapState)
     : mMapState(mapState)
@@ -10,6 +9,21 @@ GameMode::GameMode(GridMapState& mapState)
 
 void GameMode::Update(const InputState& input, CoordinateSpace& coords)
 {
+    /*
+    if (Debugging().mShowDebugUi)
+    {
+        // Debug ui
+        if (ImGui::Begin("Script debug"))
+        {
+            if (ImGui::Button("Reload abe script"))
+            {
+                // TODO: Debug hack
+                //const_cast<MapObject&>(mPlayer).ReloadScript();
+            }
+        }
+        ImGui::End();
+    }*/
+
     if (input.mKeys[SDL_SCANCODE_E].IsPressed())
     {
         mMapState.mState = GridMapState::eStates::eToEditor;
@@ -51,21 +65,9 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
 }
 
 
-void GameMode::Render(Renderer& rend, GuiContext& gui) const
+void GameMode::Render(AbstractRenderer& rend) const
 {
-    if (Debugging().mShowDebugUi)
-    {
-        // Debug ui
-        gui_begin_window(&gui, "Script debug");
-        if (gui_button(&gui, "Reload abe script"))
-        {
-            // TODO: Debug hack
-            //const_cast<MapObject&>(mPlayer).ReloadScript();
-        }
-        gui_end_window(&gui);
-    }
-
-    if (mMapState.mCameraSubject)
+    if (mMapState.mCameraSubject && Debugging().mDrawCameras)
     {
         const s32 camX = static_cast<s32>(mMapState.mCameraSubject->mXPos / mMapState.kCameraBlockSize.x);
         const s32 camY = static_cast<s32>(mMapState.mCameraSubject->mYPos / mMapState.kCameraBlockSize.y);
@@ -90,9 +92,12 @@ void GameMode::Render(Renderer& rend, GuiContext& gui) const
 
     mMapState.RenderDebug(rend);
 
-    for (const auto& obj : mMapState.mObjs)
+    if (Debugging().mDrawObjects)
     {
-        obj->Render(rend, gui, 0, 0, 1.0f, Renderer::eForegroundLayer0);
+        for (const auto& obj : mMapState.mObjs)
+        {
+            obj->Render(rend, 0, 0, 1.0f, AbstractRenderer::eForegroundLayer0);
+        }
     }
 
     if (mMapState.mCameraSubject)

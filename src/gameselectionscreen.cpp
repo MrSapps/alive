@@ -1,6 +1,5 @@
 #include "gameselectionscreen.hpp"
 #include "developerscreen.hpp"
-#include "gui.h"
 #include "nfd.h"
 
 namespace
@@ -27,7 +26,16 @@ namespace
 
 void GameSelectionScreen::Update(const InputState& /*input*/, CoordinateSpace& /*coords*/)
 {
+    switch (mState)
+    {
+    case eState::eFindDataSets:
+        RenderFindDataSets();
+        break;
 
+    case eState::eSelectGame:
+        RenderSelectGame();
+        break;
+    }
 }
 
 void GameSelectionScreen::EnterState()
@@ -62,43 +70,43 @@ void GameSelectionScreen::LoadGameDefinition()
     // Set active data sets for the resource loader to use
     mResLocator.GetDataPaths().SetActiveDataPaths(mFs, mRequiredDataSets);
 
-    mStateMachine.ToState(std::make_unique<DeveloperScreen>(mStateMachine, mGui, mSound, mLevel, mResLocator));
+    mStateMachine.ToState(std::make_unique<DeveloperScreen>(mStateMachine, mSound, mLevel, mResLocator));
 }
 
 void GameSelectionScreen::RenderFindDataSets()
 {
-    gui_begin_window(mGui, "Select missing paths");
-
     bool regenerate = false;
-    for (const std::string& dp : mMissingDataPaths)
-    {
-        if (gui_button(mGui, dp.c_str()))
+    if (ImGui::Begin("Select missing paths"))
+    {      
+        for (const std::string& dp : mMissingDataPaths)
         {
-            std::string dir;
-            for (;;)
+            if (ImGui::Button(dp.c_str()))
             {
-                if (AskUserForFile(dir) == SelectResult::eCancelled)
+                std::string dir;
+                for (;;)
                 {
-                    break;
-                }
-                else if (mResLocator.GetDataPaths().Add(dir, dp))
-                {
-                    regenerate = true;
-                    break;
+                    if (AskUserForFile(dir) == SelectResult::eCancelled)
+                    {
+                        break;
+                    }
+                    else if (mResLocator.GetDataPaths().Add(dir, dp))
+                    {
+                        regenerate = true;
+                        break;
+                    }
                 }
             }
         }
-    }
 
-    if (gui_button(mGui, "Back"))
-    {
-        mMissingDataPaths.clear();
-        mRequiredDataSetNames.clear();
-        mRequiredDataSets.clear();
-        mState = eState::eSelectGame;
+        if (ImGui::Button("Back"))
+        {
+            mMissingDataPaths.clear();
+            mRequiredDataSetNames.clear();
+            mRequiredDataSets.clear();
+            mState = eState::eSelectGame;
+        }
     }
-
-    gui_end_window(mGui);
+    ImGui::End();
 
     if (regenerate)
     {
@@ -112,92 +120,83 @@ void GameSelectionScreen::RenderFindDataSets()
 
 void GameSelectionScreen::RenderSelectGame()
 {
-    gui_begin_window(mGui, "Select game");
-
-    for (size_t idx = 0; idx < mVisibleGameDefinitions.size(); idx++)
+    if (ImGui::Begin("Select game"))
     {
-        const GameDefinition& gd = *mVisibleGameDefinitions[idx];
-        if (gui_radiobutton(mGui, gd.Name().c_str(), mSelectedGameDefintionIndex == idx))
+        for (size_t idx = 0; idx < mVisibleGameDefinitions.size(); idx++)
         {
-            mSelectedGameDefintionIndex = idx;
-        }
-    }
-
-    // Select developer mode by default
-    static bool setFirstIndex = false;
-    if (!setFirstIndex)
-    {
-        if (!mVisibleGameDefinitions.empty())
-        {
-            for (size_t idx = 0; idx < mVisibleGameDefinitions.size(); idx++)
+            const GameDefinition& gd = *mVisibleGameDefinitions[idx];
+            if (ImGui::RadioButton(gd.Name().c_str(), mSelectedGameDefintionIndex == idx))
             {
-                const GameDefinition& gd = *mVisibleGameDefinitions[idx];
-                if (gd.Name() == "Developer mode")
-                {
-                    mSelectedGameDefintionIndex = idx;
-                    break;
-                }
+                mSelectedGameDefintionIndex = idx;
             }
         }
-        setFirstIndex = true;
-    }
 
-    if (gui_button(mGui, "Start game"))
-    {
-        const GameDefinition& userSelectedGameDef = *mVisibleGameDefinitions[mSelectedGameDefintionIndex];
-
-        std::set<std::string> missingDataSets;
-
-        std::vector<const GameDefinition*> allGameDefs;
-        for (const GameDefinition& t : mGameDefinitions)
+        // Select developer mode by default
+        static bool setFirstIndex = false;
+        if (!setFirstIndex)
         {
-            allGameDefs.push_back(&t);
-        }
-
-        // Check we have the required data sets
-        GameDefinition::GetDependencies(mRequiredDataSets, missingDataSets, &userSelectedGameDef, allGameDefs);
-        if (missingDataSets.empty())
-        {
-            // Check we have a valid path to the "builtin" (i.e original) game files
-            mRequiredDataSetNames.clear();
-            for (const DataPaths::Path& dataSet : mRequiredDataSets)
+            if (!mVisibleGameDefinitions.empty())
             {
-                if (!dataSet.mSourceGameDefinition->IsMod())
+                for (size_t idx = 0; idx < mVisibleGameDefinitions.size(); idx++)
                 {
-                    mRequiredDataSetNames.push_back(dataSet.mDataSetName);
+                    const GameDefinition& gd = *mVisibleGameDefinitions[idx];
+                    if (gd.Name() == "Developer mode")
+                    {
+                        mSelectedGameDefintionIndex = idx;
+                        break;
+                    }
                 }
             }
+            setFirstIndex = true;
+        }
 
-            mMissingDataPaths = mResLocator.GetDataPaths().MissingDataSetPaths(mRequiredDataSetNames);
-            if (!mMissingDataPaths.empty())
+        if (ImGui::Button("Start game"))
+        {
+            const GameDefinition& userSelectedGameDef = *mVisibleGameDefinitions[mSelectedGameDefintionIndex];
+
+            std::set<std::string> missingDataSets;
+
+            std::vector<const GameDefinition*> allGameDefs;
+            for (const GameDefinition& t : mGameDefinitions)
             {
-                mState = eState::eFindDataSets;
+                allGameDefs.push_back(&t);
+            }
+
+            // Check we have the required data sets
+            GameDefinition::GetDependencies(mRequiredDataSets, missingDataSets, &userSelectedGameDef, allGameDefs);
+            if (missingDataSets.empty())
+            {
+                // Check we have a valid path to the "builtin" (i.e original) game files
+                mRequiredDataSetNames.clear();
+                for (const DataPaths::Path& dataSet : mRequiredDataSets)
+                {
+                    if (!dataSet.mSourceGameDefinition->IsMod())
+                    {
+                        mRequiredDataSetNames.push_back(dataSet.mDataSetName);
+                    }
+                }
+
+                mMissingDataPaths = mResLocator.GetDataPaths().MissingDataSetPaths(mRequiredDataSetNames);
+                if (!mMissingDataPaths.empty())
+                {
+                    mState = eState::eFindDataSets;
+                }
+                else
+                {
+                    LoadGameDefinition();
+                }
             }
             else
             {
-                LoadGameDefinition();
+                // Need user to download missing game defs, no in game way to recover from this
+                LOG_ERROR(missingDataSets.size() << " data sets are missing");
             }
         }
-        else
-        {
-            // Need user to download missing game defs, no in game way to recover from this
-            LOG_ERROR(missingDataSets.size() << " data sets are missing");
-        }
     }
-
-    gui_end_window(mGui);
+    ImGui::End();
 }
 
-void GameSelectionScreen::Render(int /*w*/, int /*h*/, Renderer& /*renderer*/)
+void GameSelectionScreen::Render(int /*w*/, int /*h*/, AbstractRenderer& /*renderer*/)
 {
-    switch (mState)
-    {
-    case eState::eFindDataSets:
-        RenderFindDataSets();
-        break;
 
-    case eState::eSelectGame:
-        RenderSelectGame();
-        break;
-    }
 }

@@ -10,7 +10,7 @@ public:
     GameMode(GridMapState& mapState);
 
     void Update(const InputState& input, CoordinateSpace& coords);
-    void Render(Renderer& rend, GuiContext& gui) const;
+    void Render(AbstractRenderer& rend) const;
 private:
     GridMapState& mMapState;
 };

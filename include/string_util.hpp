@@ -4,6 +4,7 @@
 #include <deque>
 #include <algorithm>
 #include <ctype.h>
+#include <assert.h>
 #ifdef _MSC_VER
 // This header only appears with GCC 5.0+, since we only 
 // need utf16->utf8 conv on windows its compiled out on everything
@@ -14,6 +15,34 @@
 
 namespace string_util
 {
+    inline bool StringFilter(const char *haystack, const char *needle)
+    {
+        if (needle[0] == '\0')
+            return true;
+
+        // Case-insensitive substring search
+        size_t haystack_len = strlen(haystack);
+        size_t needle_len = strlen(needle);
+        bool matched = false;
+        for (size_t i = 0; i + needle_len < haystack_len + 1; ++i)
+        {
+            matched = true;
+            for (size_t k = 0; k < needle_len; ++k)
+            {
+                assert(k < needle_len);
+                assert(i + k < haystack_len);
+                if (tolower(needle[k]) != tolower(haystack[i + k]))
+                {
+                    matched = false;
+                    break;
+                }
+            }
+            if (matched)
+                break;
+        }
+        return matched;
+    }
+
     inline void replace_all(std::string& input, char find, const char replace)
     {
         size_t pos = 0;

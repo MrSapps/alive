@@ -1,7 +1,6 @@
 #include "editormode.hpp"
 #include "engine.hpp"
 #include "debug.hpp"
-#include "gui.h"
 
 
 class CommandSelectOrDeselectLine : public ICommandWithId<CommandSelectOrDeselectLine>
@@ -208,16 +207,18 @@ void Selection::Select(CollisionLines& items, s32 idx, bool select)
     }
 }
 
-void UndoStack::DebugRenderCommandList(GuiContext& gui) const
+void UndoStack::DebugRenderCommandList() const
 {
     if (Debugging().mShowDebugUi)
     {
-        gui_begin_window(&gui, "Undo stack");
-        for (const auto& cmd : mUndoStack)
+        if (ImGui::Begin("Undo stack"))
         {
-            gui_label(&gui, cmd->Message().c_str());
+            for (const auto& cmd : mUndoStack)
+            {
+                ImGui::TextUnformatted(cmd->Message().c_str());
+            }
         }
-        gui_end_window(&gui);
+        ImGui::End();
     }
 }
 
@@ -262,6 +263,8 @@ EditorMode::EditorMode(GridMapState& mapState)
 
 void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
 {
+    mUndoStack.DebugRenderCommandList();
+
     const glm::vec2 mousePosWorld = coords.ScreenToWorld({ input.mMousePosition.mX, input.mMousePosition.mY });
 
     if (input.mKeys[SDL_SCANCODE_E].IsPressed())
@@ -443,27 +446,25 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
 }
 
 
-void EditorMode::Render(Renderer& rend, GuiContext& gui) const
+void EditorMode::Render(AbstractRenderer& rend) const
 {
-    // rend.beginLayer(gui_layer(&gui) + 1);
-
-    mUndoStack.DebugRenderCommandList(gui);
-
-    // Draw every cam
-    for (auto x = 0u; x < mMapState.mScreens.size(); x++)
+    if (Debugging().mDrawCameras)
     {
-        for (auto y = 0u; y < mMapState.mScreens[x].size(); y++)
+        // Draw every cam
+        for (auto x = 0u; x < mMapState.mScreens.size(); x++)
         {
-            GridScreen *screen = mMapState.mScreens[x][y].get();
-            if (!screen->hasTexture())
-                continue;
+            for (auto y = 0u; y < mMapState.mScreens[x].size(); y++)
+            {
+                GridScreen *screen = mMapState.mScreens[x][y].get();
+                if (!screen->hasTexture())
+                    continue;
 
-            screen->Render((x * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
-                (y * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
-                mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
+                screen->Render((x * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
+                    (y * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
+                    mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
+            }
         }
     }
-
     mMapState.RenderDebug(rend);
 }
 

@@ -1,5 +1,5 @@
 #include <gmock/gmock.h>
-#include "renderer.hpp"
+#include "abstractrenderer.hpp"
 
 class TestCoordinateSpace : public CoordinateSpace
 {

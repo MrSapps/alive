@@ -9,7 +9,6 @@ class GameData;
 class IAudioController;
 class FileSystem;
 class IFileSystem;
-struct GuiContext;
 class ResourceLocator;
 
 class Sound
@@ -21,14 +20,15 @@ public:
     Sound(IAudioController& audioController, ResourceLocator& locator);
     ~Sound();
     void Update();
-    void Render(GuiContext *gui, int w, int h);
+    void Render();
+    void DebugUi();
 private:
     void BarLoop();
     void PlaySoundEffect(const char* effectName);
 private:
-    void AudioSettingsUi(GuiContext* gui);
-    void MusicBrowserUi(GuiContext* gui);
-    void SoundEffectBrowserUi(GuiContext* gui);
+    void AudioSettingsUi();
+    void MusicBrowserUi();
+    void SoundEffectBrowserUi();
     bool mMusicBrowser = false;
     bool mSoundEffectBrowser = false;
 private:

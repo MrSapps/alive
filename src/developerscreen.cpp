@@ -1,6 +1,5 @@
 #include "developerscreen.hpp"
-#include "gui.h"
-#include "renderer.hpp"
+#include "abstractrenderer.hpp"
 #include "oddlib/anim.hpp"
 #include "oddlib/lvlarchive.hpp"
 #include "fmv.hpp"
@@ -14,17 +13,37 @@ void DeveloperScreen::Init()
 
 void DeveloperScreen::Update(const InputState& input, CoordinateSpace& coords)
 {
+    // When this gets bigger it can be moved to a separate class etc.
+
+    if (Debugging().mBrowserUi.soundBrowserOpen)
+    {
+        mSound.DebugUi();
+    }
+    
+    if (Debugging().mBrowserUi.animationBrowserOpen)
+    {
+        RenderAnimationSelector(coords);
+    }
+
+    for (auto& anim : mLoadedAnims)
+    {
+        anim->Update();
+    }
+
+    const glm::vec2 mouseWorldPos = coords.ScreenToWorld(glm::vec2(input.mMousePosition.mX, input.mMousePosition.mY));
+
+
     // Set the "selected" animation
     if (!mSelected && input.mMouseButtons[0].IsPressed())
     {
         for (auto& anim : mLoadedAnims)
         {
-            if (anim->Collision(input.mMousePosition.mX, input.mMousePosition.mY))
+
+            if (anim->Collision(static_cast<s32>(mouseWorldPos.x), static_cast<s32>(mouseWorldPos.y)))
             {
                 mSelected = anim.get();
-
-                mXDelta = std::abs(mSelected->XPos() - input.mMousePosition.mX);
-                mYDelta = std::abs(mSelected->YPos() - input.mMousePosition.mY);
+                mXDelta = (static_cast<s32>(anim->XPos()-mouseWorldPos.x));
+                mYDelta = (static_cast<s32>(anim->YPos()-mouseWorldPos.y));
                 return;
             }
         }
@@ -33,9 +52,9 @@ void DeveloperScreen::Update(const InputState& input, CoordinateSpace& coords)
     // Move the "selected" animation
     if (mSelected && input.mMouseButtons[0].IsDown())
     {
-        LOG_INFO("Move selected to " << input.mMousePosition.mX << "," << input.mMousePosition.mY);
-        mSelected->SetXPos(mXDelta + input.mMousePosition.mX);
-        mSelected->SetYPos(mYDelta + input.mMousePosition.mY);
+        LOG_INFO("Move selected to " << mouseWorldPos.x+ mXDelta << "," << mouseWorldPos.y+ mYDelta);
+        mSelected->SetXPos(static_cast<s32>(mouseWorldPos.x+ mXDelta));
+        mSelected->SetYPos(static_cast<s32>(mouseWorldPos.y+ mYDelta));
     }
 
     if (input.mMouseButtons[0].IsReleased())
@@ -48,7 +67,7 @@ void DeveloperScreen::Update(const InputState& input, CoordinateSpace& coords)
     {
         for (auto it = mLoadedAnims.begin(); it != mLoadedAnims.end(); it++)
         {
-            if ((*it)->Collision(input.mMousePosition.mX, input.mMousePosition.mY))
+            if ((*it)->Collision(static_cast<s32>(mouseWorldPos.x), static_cast<s32>(mouseWorldPos.y)))
             {
                 mLoadedAnims.erase(it);
                 break;
@@ -59,11 +78,6 @@ void DeveloperScreen::Update(const InputState& input, CoordinateSpace& coords)
 
     mSound.Update();
     mLevel.Update(input, coords);
-
-    for (auto& anim : mLoadedAnims)
-    {
-        anim->Update();
-    }
 }
 
 void DeveloperScreen::EnterState()
@@ -77,89 +91,61 @@ void DeveloperScreen::ExitState()
 
 }
 
-void DeveloperScreen::Render(int w, int h, Renderer& renderer)
+void DeveloperScreen::Render(int, int, AbstractRenderer& renderer)
 {
-    //DebugRender();
-    if (Debugging().mShowBrowserUi)
-    {
-        // When this gets bigger it can be moved to a separate class etc.
+    mLevel.Render(renderer);
 
-
-        gui_begin_window(mGui, "Browsers");
-        gui_checkbox(mGui, "fmvBrowserOpen|FMV browser", &Debugging().mBrowserUi.fmvBrowserOpen);
-        gui_checkbox(mGui, "soundBrowserOpen|Sound browser", &Debugging().mBrowserUi.soundBrowserOpen);
-        gui_checkbox(mGui, "levelBrowserOpen|Level browser", &Debugging().mBrowserUi.levelBrowserOpen);
-        gui_checkbox(mGui, "animationBrowserOpen|Animation browser", &Debugging().mBrowserUi.animationBrowserOpen);
-        gui_checkbox(mGui, "guiLayoutEditOpen|GUI layout editor", &Debugging().mBrowserUi.guiLayoutEditorOpen);
-
-        gui_end_window(mGui);
-
-        if (Debugging().mBrowserUi.soundBrowserOpen)
-        {
-            mSound.Render(mGui, w, h);
-        }
-
-        if (Debugging().mBrowserUi.animationBrowserOpen)
-        {
-            RenderAnimationSelector(renderer);
-        }
-
-        if (Debugging().mBrowserUi.guiLayoutEditorOpen)
-        {
-            gui_layout_editor(mGui, "../src/generated_gui_layout.cpp");
-        }
-    }
-    mLevel.Render(renderer, *mGui, w, h);
-}
-
-void DeveloperScreen::RenderAnimationSelector(Renderer& renderer)
-{
-    gui_begin_window(mGui, "Animations");
-
-    bool resetStates = false;
-    if (gui_button(mGui, "Reset states"))
-    {
-        resetStates = true;
-    }
-
-    if (gui_button(mGui, "Clear all"))
-    {
-        mLoadedAnims.clear();
-    }
-
-    static char filterString[64] = {};
-    gui_textfield(mGui, "Filter", filterString, sizeof(filterString));
-
-
-    s32 spacer = 0;
     for (auto& anim : mLoadedAnims)
     {
-        if (resetStates)
+        if (mDebugResetAnimStates)
         {
             anim->Restart();
         }
-        //anim->SetXPos(70 + spacer);
-        anim->Render(renderer, false, Renderer::eForegroundLayer0);
-        spacer += (anim->MaxW() + (anim->MaxW()/3));
+        anim->Render(renderer, false, AbstractRenderer::eForegroundLayer0, AbstractRenderer::eWorld);
     }
+}
 
-    auto animsToLoad = mResourceLocator.DebugUi(renderer, mGui, filterString);
-    for (const auto& res : animsToLoad)
+void DeveloperScreen::RenderAnimationSelector(CoordinateSpace& coords)
+{
+    mDebugResetAnimStates = false;
+    if (ImGui::Begin("Animations"))
     {
-        if (std::get<0>(res))
+        if (ImGui::Button("Reset states"))
         {
-            const char* dataSetName = std::get<0>(res);
-            const char* resourceName = std::get<1>(res);
-            bool load = std::get<2>(res);
-            if (load)
+            mDebugResetAnimStates = true;
+        }
+
+        if (ImGui::Button("Clear all"))
+        {
+            mLoadedAnims.clear();
+        }
+
+        static char datasetFilterString[64] = {};
+        ImGui::InputText("Data set filter", datasetFilterString, sizeof(datasetFilterString));
+        
+        static char nameFilterString[64] = {};
+        ImGui::InputText("Name filter", nameFilterString, sizeof(nameFilterString));
+
+        auto animsToLoad = mResourceLocator.DebugUi(datasetFilterString, nameFilterString);
+        for (const auto& res : animsToLoad)
+        {
+            if (std::get<0>(res))
             {
-                auto anim = mResourceLocator.LocateAnimation(resourceName, dataSetName);
-                if (anim)
+                const char* dataSetName = std::get<0>(res);
+                const char* resourceName = std::get<1>(res);
+                bool load = std::get<2>(res);
+                if (load)
                 {
-                    mLoadedAnims.push_back(std::move(anim));
+                    auto anim = mResourceLocator.LocateAnimation(resourceName, dataSetName);
+                    if (anim)
+                    {
+                        anim->SetXPos(static_cast<s32>(coords.CameraPosition().x));
+                        anim->SetYPos(static_cast<s32>(coords.CameraPosition().y));
+                        mLoadedAnims.push_back(std::move(anim));
+                    }
                 }
             }
         }
     }
-    gui_end_window(mGui);
+    ImGui::End();
 }

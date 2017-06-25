@@ -8,9 +8,8 @@ class DeveloperScreen : public IState
 public:
     DeveloperScreen(DeveloperScreen&&) = delete;
     DeveloperScreen& operator = (DeveloperScreen&&) = delete;
-    DeveloperScreen(StateMachine& stateMachine, GuiContext* gui, class Sound& sound, class Level& level, ResourceLocator& resMapper)
+    DeveloperScreen(StateMachine& stateMachine, class Sound& sound, class Level& level, ResourceLocator& resMapper)
         : IState(stateMachine),
-          mGui(gui),
           mSound(sound),
           mLevel(level),
           mResourceLocator(resMapper)
@@ -18,15 +17,14 @@ public:
         Init();
     }
 
-    virtual void Render(int w, int h, Renderer& renderer) override;
+    virtual void Render(int, int, AbstractRenderer& renderer) override;
     virtual void Update(const InputState& input, CoordinateSpace& coords) override;
     virtual void EnterState() override;
     virtual void ExitState() override;
 private:
     void Init();
-    void RenderAnimationSelector(Renderer& renderer);
+    void RenderAnimationSelector(CoordinateSpace& coords);
 
-    struct GuiContext *mGui = nullptr;
     Sound& mSound;
     Level& mLevel;
 
@@ -38,4 +36,6 @@ private:
 
     s32 mXDelta = 0;
     s32 mYDelta = 0;
+
+    bool mDebugResetAnimStates = false;
 };

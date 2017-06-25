@@ -1,6 +1,5 @@
 #include "sound.hpp"
 #include "oddlib/audio/SequencePlayer.h"
-#include "gui.h"
 #include "core/audiobuffer.hpp"
 #include "logger.hpp"
 #include "resourcemapper.hpp"
@@ -89,91 +88,100 @@ void Sound::Update()
     }
 }
 
-void Sound::AudioSettingsUi(GuiContext* gui)
+void Sound::AudioSettingsUi()
 {
-    gui_begin_window(gui, "Audio output settings");
-    gui_checkbox(gui, "Use antialiasing (not implemented)", &mAliveAudio.mAntiAliasFilteringEnabled);
-
-    if (gui_radiobutton(gui, "No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
+    if (ImGui::Begin("Audio output settings"))
     {
-        mAliveAudio.Interpolation = AudioInterpolation_none;
+        ImGui::Checkbox("Use antialiasing (not implemented)", &mAliveAudio.mAntiAliasFilteringEnabled);
+
+        if (ImGui::RadioButton("No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
+        {
+            mAliveAudio.Interpolation = AudioInterpolation_none;
+        }
+
+        if (ImGui::RadioButton("Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
+        {
+            mAliveAudio.Interpolation = AudioInterpolation_linear;
+        }
+
+        if (ImGui::RadioButton("Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
+        {
+            mAliveAudio.Interpolation = AudioInterpolation_cubic;
+        }
+
+        if (ImGui::RadioButton("Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
+        {
+            mAliveAudio.Interpolation = AudioInterpolation_hermite;
+        }
+
+        ImGui::Checkbox("Music browser", &mMusicBrowser);
+        ImGui::Checkbox("Sound effect browser", &mSoundEffectBrowser);
+
+        ImGui::Checkbox("Force reverb", &mAliveAudio.ForceReverb);
+        ImGui::SliderFloat("Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
+
+        ImGui::Checkbox("Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
     }
-
-    if (gui_radiobutton(gui, "Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
-    {
-        mAliveAudio.Interpolation = AudioInterpolation_linear;
-    }
-
-    if (gui_radiobutton(gui, "Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
-    {
-        mAliveAudio.Interpolation = AudioInterpolation_cubic;
-    }
-
-    if (gui_radiobutton(gui, "Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
-    {
-        mAliveAudio.Interpolation = AudioInterpolation_hermite;
-    }
-
-    gui_checkbox(gui, "Music browser", &mMusicBrowser);
-    gui_checkbox(gui, "Sound effect browser", &mSoundEffectBrowser);
-
-    gui_checkbox(gui, "Force reverb", &mAliveAudio.ForceReverb);
-    gui_slider(gui, "Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
-
-    gui_checkbox(gui, "Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
-    gui_end_window(gui);
+    ImGui::End();
 }
 
-void Sound::MusicBrowserUi(GuiContext* gui)
+void Sound::MusicBrowserUi()
 {
-    gui_begin_window(gui, "Music");
-
-    for (const auto& musicInfo : mLocator.mResMapper.mMusicMaps)
+    if (ImGui::Begin("Music"))
     {
-        if (gui_button(gui, musicInfo.first.c_str()))
+        for (const auto& musicInfo : mLocator.mResMapper.mMusicMaps)
         {
-            std::unique_ptr<IMusic> music = mLocator.LocateMusic(musicInfo.first.c_str());
-            if (music)
+            if (ImGui::Button(musicInfo.first.c_str()))
             {
-                mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
-                if (!mSeqPlayer)
+                std::unique_ptr<IMusic> music = mLocator.LocateMusic(musicInfo.first.c_str());
+                if (music)
                 {
-                    mSeqPlayer = std::make_unique<SequencePlayer>(mAliveAudio);
-                }
+                    mAudioController.SetAudioSpec(1024, AliveAudioSampleRate);
+                    if (!mSeqPlayer)
+                    {
+                        mSeqPlayer = std::make_unique<SequencePlayer>(mAliveAudio);
+                    }
 
-                auto soundBank = std::make_unique<AliveAudioSoundbank>(*music->mVab, mAliveAudio);
-                mAliveAudio.SetSoundbank(std::move(soundBank));
-                mSeqPlayer->LoadSequenceStream(*music->mSeqData);
-                mSeqPlayer->PlaySequence();
+                    auto soundBank = std::make_unique<AliveAudioSoundbank>(*music->mVab, mAliveAudio);
+                    mAliveAudio.SetSoundbank(std::move(soundBank));
+                    mSeqPlayer->LoadSequenceStream(*music->mSeqData);
+                    mSeqPlayer->PlaySequence();
+                }
             }
         }
     }
-    gui_end_window(gui);
+    ImGui::End();
 }
 
-void Sound::SoundEffectBrowserUi(GuiContext* gui)
+void Sound::SoundEffectBrowserUi()
 {
-    gui_begin_window(gui, "Sound effects");
-
-    for (const auto& soundEffectResourceName : mLocator.mResMapper.mSoundEffectMaps)
+    if (ImGui::Begin("Sound effects"))
     {
-        if (gui_button(gui, soundEffectResourceName.first.c_str()))
+        for (const auto& soundEffectResourceName : mLocator.mResMapper.mSoundEffectMaps)
         {
-            PlaySoundEffect(soundEffectResourceName.first.c_str());
+            if (ImGui::Button(soundEffectResourceName.first.c_str()))
+            {
+                PlaySoundEffect(soundEffectResourceName.first.c_str());
+            }
         }
-    }
-    gui_end_window(gui);
+    } 
+    ImGui::End();
 }
 
-void Sound::Render(GuiContext *gui, int /*w*/, int /*h*/)
+void Sound::DebugUi()
 {
-    AudioSettingsUi(gui);
+    AudioSettingsUi();
     if (mMusicBrowser)
     {
-        MusicBrowserUi(gui);
+        MusicBrowserUi();
     }
     if (mSoundEffectBrowser)
     {
-        SoundEffectBrowserUi(gui);
+        SoundEffectBrowserUi();
     }
+}
+
+void Sound::Render()
+{
+
 }

@@ -1,9 +1,7 @@
 #include "fmv.hpp"
-#include "gui.h"
 #include "logger.hpp"
-#include "proxy_nanovg.h"
 #include "stdthread.h"
-#include "renderer.hpp"
+#include "abstractrenderer.hpp"
 #include "resourcemapper.hpp"
 #include "cdromfilesystem.hpp"
 
@@ -21,40 +19,32 @@ public:
     }
 };
 
+
 static f32 Percent(f32 max, f32 percent)
 {
     return (max / 100.0f) * percent;
 }
 
-static void RenderSubtitles(Renderer& rend, const char* msg, float x, float y, float w, float h)
+static void RenderSubtitles(AbstractRenderer& rend, const char* msg, float x, float y, float w, float h)
 {
-    f32 xpos = 0.0f;
-    f32 ypos = y + h;
-
-    rend.fillColor(ColourF32{ 0, 0, 0, 1 });
-    rend.fontSize(Percent(h, 6.7f));
-    rend.textAlign(TEXT_ALIGN_TOP);
-    
+    const f32 fontSize = Percent(h, 6.7f);
     f32 bounds[4];
-    rend.textBounds(static_cast<int>(xpos), static_cast<int>(ypos), msg, bounds);
+    rend.TextBounds(x, y, fontSize, msg, bounds);
 
-    //f32 fontX = bounds[0];
-    //f32 fontY = bounds[1];
-    f32 fontW = bounds[2] - bounds[0];
-    f32 fontH = bounds[3] - bounds[1];
+    const f32 fontW = bounds[2] - bounds[0];
+    const f32 ypos = Percent(h, 90.0f);
+    const f32 xpos = x + (w / 2) - (fontW / 2);
 
-    // Move off the bottom of the screen by half the font height
-    ypos -= fontH + (fontH/2);
-
-    // Center XPos in the screenW
-    xpos = x + (w / 2) - (fontW / 2);
-
-    rend.text(xpos, ypos, msg, Renderer::eDebugUi+1);
-    rend.fillColor(ColourF32{ 1, 1, 1, 1 });
-    f32 adjust = Percent(h, 0.3f);
-    rend.text(xpos - adjust, ypos - adjust, msg, Renderer::eDebugUi+1);
+    rend.Text(
+        xpos,
+        ypos,
+        fontSize,
+        msg,
+        { 255, 255, 255, 255 },
+        AbstractRenderer::eLayers::eFmv + 2,
+        AbstractRenderer::eBlendModes::eNormal,
+        AbstractRenderer::eCoordinateSystem::eScreen);
 }
-
 
 IMovie::IMovie(const std::string& resourceName, IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles)
     : mAudioController(controller), mSubTitles(std::move(subtitles)), mName(resourceName)
@@ -74,7 +64,7 @@ IMovie:: ~IMovie()
 
 
 // Main thread context
-void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui)
+void IMovie::OnRenderFrame(AbstractRenderer& rend)
 {
     // TODO: Populate mAudioBuffer and mVideoBuffer
     // for up to N buffered frames
@@ -123,7 +113,7 @@ void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui)
             // Don't pop frame after rendering for the case when the video ends and we are playing
             // audio but there are no more frames. In the case we just keep displaying whatever the last
             // frame was (since we didn't pop it).
-            RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
+            RenderFrame(rend, f.mW, f.mH, f.mPixels.data(), current_subs);
             played = true;
             break;
         }
@@ -133,7 +123,7 @@ void IMovie::OnRenderFrame(Renderer& rend, GuiContext &gui)
     if (!played && !mVideoBuffer.empty())
     {
         Frame& f = mVideoBuffer.front();
-        RenderFrame(rend, gui, f.mW, f.mH, f.mPixels.data(), current_subs);
+        RenderFrame(rend, f.mW, f.mH, f.mPixels.data(), current_subs);
     }
 
     while (NeedBuffer())
@@ -185,22 +175,25 @@ void IMovie::Play(u8* stream, u32 len)
     mConsumedAudioBytes += take*sizeof(int16_t);
 }
 
-void IMovie::RenderFrame(Renderer &rend, GuiContext& /*gui*/, int width, int height, const GLvoid *pixels, const char* subtitles)
+void IMovie::RenderFrame(AbstractRenderer &rend, int width, int height, const void *pixels, const char* subtitles)
 {
     // TODO: Optimize - should update 1 texture rather than creating per frame
-    int texhandle = rend.createTexture(GL_RGB, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels, true);
+    TextureHandle texhandle = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGB, width, height, AbstractRenderer::eTextureFormats::eRGBA, pixels, true);
     
-    rend.drawQuad(texhandle, 
-        rend.CameraPosition().x - (rend.ScreenSize().x / 2), 
-        rend.CameraPosition().y - (rend.ScreenSize().y / 2), 
-        rend.ScreenSize().x, 
-        rend.ScreenSize().y,
-        Renderer::eDebugUi);
+    rend.TexturedQuad(texhandle, 
+        0,
+        0,
+        static_cast<f32>(rend.Width()),
+        static_cast<f32>(rend.Height()),
+        AbstractRenderer::eFmv,
+        ColourU8{ 255, 255, 255, 255 },
+        AbstractRenderer::eNormal,
+        AbstractRenderer::eScreen);
     
-    rend.SetActiveLayer(Renderer::eDebugUi + 1);
 
     if (subtitles)
     {
+        
         RenderSubtitles(rend, subtitles,
             0,
             0,
@@ -208,7 +201,7 @@ void IMovie::RenderFrame(Renderer &rend, GuiContext& /*gui*/, int width, int hei
             static_cast<f32>(rend.Height()));
     }
 
-    rend.destroyTexture(texhandle);
+    rend.DestroyTexture(texhandle);
 }
 
 
@@ -524,34 +517,6 @@ private:
     }
 }
 
-static bool guiStringFilter(const char *haystack, const char *needle)
-{
-    if (needle[0] == '\0')
-        return true;
-
-    // Case-insensitive substring search
-    size_t haystack_len = strlen(haystack);
-    size_t needle_len = strlen(needle);
-    bool matched = false;
-    for (size_t i = 0; i + needle_len < haystack_len + 1; ++i)
-    {
-        matched = true;
-        for (size_t k = 0; k < needle_len; ++k)
-        {
-            assert(k < needle_len);
-            assert(i + k < haystack_len);
-            if (tolower(needle[k]) != tolower(haystack[i + k]))
-            {
-                matched = false;
-                break;
-            }
-        }
-        if (matched)
-            break;
-    }
-    return matched;
-}
-
 /*static*/ void Fmv::RegisterScriptBindings()
 {
     Sqrat::Class<Fmv, Sqrat::NoConstructor<Fmv>> c(Sqrat::DefaultVM::Get(), "Fmv");
@@ -601,64 +566,83 @@ void Fmv::Update()
     {
         Stop();
     }
-}
-
-void Fmv::Render(Renderer& rend, GuiContext& gui)
-{
-    if (mFmv)
-    {
-        mFmv->OnRenderFrame(rend, gui);
-    }
 
     if (Debugging().mBrowserUi.fmvBrowserOpen)
     {
-        DebugUi(gui);
+        DebugUi();
     }
 }
 
-void Fmv::DebugUi(GuiContext& gui)
+void Fmv::Render(AbstractRenderer& rend)
+{
+    if (Debugging().mSubtitleTestRegular)
+    {
+        RenderSubtitles(rend, "Regular subtitle test", 0.0f, 0.0f, static_cast<f32>(rend.Width()), static_cast<f32>(rend.Height()));
+    }
+
+    if (Debugging().mSubtitleTestItalic)
+    {
+        RenderSubtitles(rend, "<i>Italic subtitle test</i>", 0.0f, 0.0f, static_cast<f32>(rend.Width()), static_cast<f32>(rend.Height()));
+    }
+
+    if (Debugging().mSubtitleTestBold)
+    {
+        RenderSubtitles(rend, "<b>Bold subtitle test</b>", 0.0f, 0.0f, static_cast<f32>(rend.Width()), static_cast<f32>(rend.Height()));
+    }
+
+    if (Debugging().mDrawFontAtlas)
+    {
+        rend.FontStashTextureDebug(10.0f, 10.0f);
+    }
+
+    if (mFmv)
+    {
+        mFmv->OnRenderFrame(rend);
+    }
+}
+
+void Fmv::DebugUi()
 {
     static char mFilterString[64] = {};
     static int mListBoxSelectedItem = -1;
     static std::vector<const char*> mListBoxItems;
 
-    gui_begin_window(&gui, "Video player");
-
-    bool rebuild = false;
-    if (gui_textfield(&gui, "Filter", mFilterString, sizeof(mFilterString)))
+    if (ImGui::Begin("Video player"))
     {
-        rebuild = true;
-    }
-
-
-    if (rebuild || mListBoxItems.empty())
-    {
-        mListBoxItems.clear();
-        mListBoxItems.reserve(mResourceLocator.mResMapper.mFmvMaps.size());
-
-        for (const auto& fmv : mResourceLocator.mResMapper.mFmvMaps)
+        bool rebuild = false;
+        if (ImGui::InputText("Filter", mFilterString, sizeof(mFilterString)))
         {
-            if (guiStringFilter(fmv.first.c_str(), mFilterString))
+            rebuild = true;
+        }
+
+        if (rebuild || mListBoxItems.empty())
+        {
+            mListBoxItems.clear();
+            mListBoxItems.reserve(mResourceLocator.mResMapper.mFmvMaps.size());
+
+            for (const auto& fmv : mResourceLocator.mResMapper.mFmvMaps)
             {
-                mListBoxItems.emplace_back(fmv.first.c_str());
+                if (string_util::StringFilter(fmv.first.c_str(), mFilterString))
+                {
+                    mListBoxItems.emplace_back(fmv.first.c_str());
+                }
             }
         }
-    }
 
-    for (size_t i = 0; i < mListBoxItems.size(); i++)
-    {
-        if (gui_selectable(&gui, mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
+        for (size_t i = 0; i < mListBoxItems.size(); i++)
         {
-            mListBoxSelectedItem = static_cast<int>(i);
+            if (ImGui::Selectable(mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
+            {
+                mListBoxSelectedItem = static_cast<int>(i);
+            }
+        }
+
+        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
+        {
+            const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
+            mFmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
+            mListBoxSelectedItem = -1;
         }
     }
-
-    if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
-    {
-        const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-        mFmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
-        mListBoxSelectedItem = -1;
-    }
-
-    gui_end_window(&gui);
+    ImGui::End();
 }

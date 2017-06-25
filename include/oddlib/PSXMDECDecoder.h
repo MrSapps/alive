@@ -46,7 +46,7 @@ public:
         uint16_t arg_width,
         uint16_t arg_height);
 
-
+    static void IDCT(int16_t *, uint8_t);
 private:
     static const uint8_t  VLC_SBIT = 17;
     static const uint16_t VLC_EOB = 0xfe00;
@@ -85,7 +85,7 @@ private:
 
     void BSRoundTableInit();
     void IQTableInit();
-    void IDCT(int16_t *, uint8_t);
+   
     void YUVfunction1(uint8_t arg_image[][4], int index, int r0, int g0, int b0, int y);
     void YUV2BGRA32(int16_t *arg_blk,
         uint8_t arg_image[][4]);

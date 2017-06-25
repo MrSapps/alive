@@ -10,7 +10,7 @@
 #include <initializer_list>
 #include "oddlib/lvlarchive.hpp"
 #include "oddlib/anim.hpp"
-#include "renderer.hpp"
+#include "abstractrenderer.hpp"
 #include "oddlib/path.hpp"
 #include "oddlib/audio/vab.hpp"
 #include "debug.hpp"
@@ -18,6 +18,7 @@
 #include "filesystem.hpp"
 
 #include "gamedefinition.hpp" // DataPaths
+#include "imgui/imgui.h"
 
 namespace Oddlib
 {
@@ -327,7 +328,7 @@ public:
     }
 
     // Debug UI
-    std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui, const char* filter);
+    std::vector<std::tuple<const char*, const char*, bool>> DebugUi(const char* dataSetFilter, const char* nameFilter);
 
     struct UiItem
     {
@@ -629,6 +630,7 @@ inline bool PointInRect(T px, T py, T x, T y, T w, T h)
     if (py < y) return false;
     if (px >= x + w) return false;
     if (py >= y + h) return false;
+
     return true;
 }
 
@@ -641,231 +643,48 @@ public:
     struct AnimationSetHolder
     {
     public:
-        AnimationSetHolder(std::shared_ptr<Oddlib::LvlArchive> sLvlPtr, std::shared_ptr<Oddlib::AnimationSet> sAnimSetPtr, u32 animIdx)
-            : mLvlPtr(sLvlPtr), mAnimSetPtr(sAnimSetPtr)
-        {
-            mAnim = mAnimSetPtr->AnimationAt(animIdx);
-        }
-
-        const Oddlib::Animation& Animation() const
-        {
-            return *mAnim;
-        }
-
-        u32 MaxW() const 
-        {
-            return mAnimSetPtr->MaxW();
-        }
-
-        u32 MaxH() const
-        {
-            return mAnimSetPtr->MaxH();
-        }
+        AnimationSetHolder(std::shared_ptr<Oddlib::LvlArchive> sLvlPtr, std::shared_ptr<Oddlib::AnimationSet> sAnimSetPtr, u32 animIdx);
+        const Oddlib::Animation& Animation() const;
+        u32 MaxW() const;
+        u32 MaxH() const;
     private:
         std::shared_ptr<Oddlib::LvlArchive> mLvlPtr;
         std::shared_ptr<Oddlib::AnimationSet> mAnimSetPtr;
         const Oddlib::Animation* mAnim;
     };
-
     Animation(const Animation&) = delete;
     Animation& operator = (const Animation&) = delete;
     Animation() = delete;
-
-    Animation(AnimationSetHolder anim, bool isPsx, bool scaleFrameOffsets, u32 defaultBlendingMode, const std::string& sourceDataSet)
-        : mAnim(anim), mIsPsx(isPsx), mScaleFrameOffsets(scaleFrameOffsets), mSourceDataSet(sourceDataSet)
-    {
-        switch (defaultBlendingMode)
-        {
-        case 0:
-            mBlendingMode = BlendMode::normal();
-            break;
-        case 1:
-            mBlendingMode = BlendMode::B100F100();
-            break;
-        default:
-            // TODO: Other required blending modes
-            mBlendingMode = BlendMode::normal();
-            LOG_WARNING("Unknown blending mode: " << defaultBlendingMode);
-        }
-    }
-
-    s32 FrameCounter() const
-    {
-        return mCounter;
-    }
-
-    bool Update()
-    {
-        bool ret = false;
-        mCounter++;
-        if (mCounter >= mFrameDelay)
-        {
-            ret = true;
-            mFrameDelay = mAnim.Animation().Fps(); // Because mFrameDelay is 1 initially and Fps() can be > 1
-            mCounter = 0;
-            mFrameNum++;
-            if (mFrameNum >= mAnim.Animation().NumFrames())
-            {
-                if (mAnim.Animation().Loop())
-                {
-                    mFrameNum = mAnim.Animation().LoopStartFrame();
-                }
-                else
-                {
-                    mFrameNum = mAnim.Animation().NumFrames() - 1;
-                }
-
-                // Reached the final frame, animation has completed 1 cycle
-                mCompleted = true;
-            }
-
-            // Are we *on* the last frame?
-            mIsLastFrame = (mFrameNum == mAnim.Animation().NumFrames() - 1);
-        }
-        return ret;
-    }
-
-    bool IsLastFrame() const { return mIsLastFrame; }
-    bool IsComplete() const { return mCompleted; }
-
-    // TODO: Position calculation should be refactored
-    void Render(Renderer& rend, bool flipX, int layer) const
-    {
-        /*
-        static std::string msg;
-        std::stringstream s;
-        s << "Render frame number: " << mFrameNum;
-        if (s.str() != msg)
-        {
-            LOG_INFO(s.str());
-        }
-        msg = s.str();
-        */
-
-        const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum == -1 ? 0 : mFrameNum);
-
-        f32 xFrameOffset = (mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX)) * mScale;
-        const f32 yFrameOffset = static_cast<f32>(frame.mOffY) * mScale;
-
-        const f32 xpos = static_cast<f32>(mXPos);
-        const f32 ypos = static_cast<f32>(mYPos);
-
-        if (flipX)
-        {
-            xFrameOffset = -xFrameOffset;
-        }
-        // Render sprite as textured quad
-        const ColourF32 color = ColourF32::white();
-        const int textureId = rend.createTexture(GL_RGBA, frame.mFrame->w, frame.mFrame->h, GL_RGBA, GL_UNSIGNED_BYTE, frame.mFrame->pixels, true);
-        rend.drawQuad(
-            textureId, 
-            xpos + xFrameOffset, 
-            ypos + yFrameOffset, 
-            static_cast<f32>(frame.mFrame->w) * (flipX ? -ScaleX() : ScaleX()), 
-            static_cast<f32>(frame.mFrame->h) * mScale, 
-            layer,
-            color, 
-            mBlendingMode);
-        rend.destroyTexture(textureId);
-
-        if (Debugging().mAnimBoundingBoxes)
-        {
-            // Render bounding box
-            rend.beginPath();
-            const ::ColourF32 c{ 1.0f, 0.0f, 1.0f, 1.0f };
-            rend.strokeColor(c);
-            rend.resetTransform();
-            const f32 width = static_cast<f32>(std::abs(frame.mTopLeft.x - frame.mBottomRight.x)) * mScale;
-
-            const glm::vec4 rectScreen(rend.WorldToScreenRect(xpos + (static_cast<f32>(flipX ? -frame.mTopLeft.x : frame.mTopLeft.x) * mScale),
-                ypos + (static_cast<f32>(frame.mTopLeft.y) * mScale),
-                flipX ? -width : width,
-                static_cast<f32>(std::abs(frame.mTopLeft.y - frame.mBottomRight.y)) * mScale));
-
-            rend.rect(
-                rectScreen.x,
-                rectScreen.y,
-                rectScreen.z,
-                rectScreen.w);
-            rend.stroke();
-            rend.closePath();
-        }
-
-        if (Debugging().mAnimDebugStrings)
-        {
-            // Render frame pos and frame number
-            const glm::vec2 xyposScreen(rend.WorldToScreen(glm::vec2(xpos, ypos)));
-            rend.text(xyposScreen.x, xyposScreen.y,
-                (mSourceDataSet
-                    + " x: " + std::to_string(xpos)
-                    + " y: " + std::to_string(ypos)
-                    + " f: " + std::to_string(FrameNumber())
-                    ).c_str());
-        }
-    }
-
-    void SetFrame(u32 frame)
-    {
-        mCounter = 0;
-        mFrameDelay = 1; // Force change frame on first Update()
-        mFrameNum = frame;
-        mIsLastFrame = false;
-        mCompleted = false;
-    }
-
-    void Restart()
-    {
-        mCounter = 0;
-        mFrameDelay = 1; // Force change frame on first Update()
-        mFrameNum = -1;
-        mIsLastFrame = false;
-        mCompleted = false;
-    }
-
-    bool Collision(s32 x, s32 y) const
-    {
-        const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(FrameNumber());
-
-        // TODO: Refactor rect calcs
-        f32 xpos = mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX);
-        f32 ypos = static_cast<f32>(frame.mOffY);
-
-        ypos = mYPos + (ypos * mScale);
-        xpos = mXPos + (xpos * mScale);
-
-        f32 w = static_cast<f32>(frame.mFrame->w) * ScaleX();
-        f32 h = static_cast<f32>(frame.mFrame->h) * mScale;
-
-
-        return PointInRect(static_cast<f32>(x), static_cast<f32>(y), xpos, ypos, w, h);
-    }
-
-    void SetXPos(s32 xpos) { mXPos = xpos; }
-    void SetYPos(s32 ypos) { mYPos = ypos; }
-    s32 XPos() const { return mXPos; }
-    s32 YPos() const { return mYPos; }
-    u32 MaxW() const { return static_cast<u32>(mAnim.MaxW()*ScaleX()); }
-    u32 MaxH() const { return static_cast<u32>(mAnim.MaxH()*mScale); }
-    s32 FrameNumber() const { return mFrameNum; }
-    u32 NumberOfFrames() const { return mAnim.Animation().NumFrames(); }
-    void SetScale(f32 scale) { mScale = scale; }
+    Animation(AnimationSetHolder anim, bool isPsx, bool scaleFrameOffsets, u32 defaultBlendingMode, const std::string& sourceDataSet);
+    s32 FrameCounter() const;
+    bool Update();
+    bool IsLastFrame() const;
+    bool IsComplete() const;
+    void Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRenderer::eCoordinateSystem coordinateSystem = AbstractRenderer::eWorld) const;
+    void SetFrame(u32 frame);
+    void Restart();
+    bool Collision(s32 x, s32 y) const;
+    void SetXPos(s32 xpos);
+    void SetYPos(s32 ypos);
+    s32 XPos() const;
+    s32 YPos() const;
+    u32 MaxW() const;
+    u32 MaxH() const;
+    s32 FrameNumber() const;
+    u32 NumberOfFrames() const;
+    void SetScale(f32 scale);
 private:
 
     // 640 (pc xres) / 368 (psx xres) = 1.73913043478 scale factor
     const static f32 kPcToPsxScaleFactor;
 
-    f32 ScaleX() const
-    {
-        // PC sprites have a bigger width as they are higher resolution
-        return mIsPsx ? (mScale) : (mScale / kPcToPsxScaleFactor);
-    }
-
+    f32 ScaleX() const;
 
     AnimationSetHolder mAnim;
     bool mIsPsx = false;
     bool mScaleFrameOffsets = false;
     std::string mSourceDataSet;
-    BlendMode mBlendingMode = BlendMode::normal();
+    AbstractRenderer::eBlendModes mBlendingMode = AbstractRenderer::eBlendModes::eNormal;
 
     // The "FPS" of the animation, set to 1 first so that the first Update() brings us from frame -1 to 0
     u32 mFrameDelay = 1;
@@ -876,7 +695,7 @@ private:
     
     s32 mXPos = 100;
     s32 mYPos = 100;
-    f32 mScale = 3;
+    f32 mScale = 1.0f;
 
     bool mIsLastFrame = false;
     bool mCompleted = false;
@@ -1023,7 +842,7 @@ public:
     // in dataset A and B.
     std::unique_ptr<Animation> LocateAnimation(const char* resourceName, const char* dataSetName);
 
-    std::vector<std::tuple<const char*, const char*, bool>> DebugUi(class Renderer& renderer, struct GuiContext* gui, const char* filter);
+    std::vector<std::tuple<const char*, const char*, bool>> DebugUi(const char* dataSetFilter, const char* nameFilter);
 private:
     std::unique_ptr<Vab> LocateSoundBank(const char* resourceName);
 

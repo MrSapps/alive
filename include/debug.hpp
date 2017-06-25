@@ -5,14 +5,21 @@
 
 struct Debug
 {
+    bool mDrawCameras = true;
+    bool mDrawObjects = true;
     bool mAnimBoundingBoxes = false;
     bool mAnimDebugStrings = false;
     bool mCollisionLines = true;
     bool mGrid = true;
     bool mObjectBoundingBoxes = false;
     bool mRayCasts = true;
+    bool mSubtitleTestRegular = false;
+    bool mSubtitleTestItalic = false;
+    bool mSubtitleTestBold = false;
+    bool mDrawFontAtlas = false;
+    bool mVsync = true;
     bool mShowDebugUi = true;
-    bool mShowBrowserUi = false;
+    bool mChangeVSync = false;
 
     struct BrowserUi
     {
@@ -24,7 +31,6 @@ struct Debug
         bool soundBrowserOpen;
         bool levelBrowserOpen;
         bool animationBrowserOpen;
-        bool guiLayoutEditorOpen;
     };
 
     BrowserUi mBrowserUi;
@@ -46,7 +52,7 @@ struct Debug
     std::function<void()> mFnNextPath;
 
     void Update(class InputState& input);
-    void Render(class Renderer& renderer, struct GuiContext& gui);
+    void Render(class AbstractRenderer& renderer);
 };
 
 Debug& Debugging();
