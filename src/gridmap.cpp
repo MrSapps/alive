@@ -21,6 +21,25 @@ Level::Level(IAudioController& audioController, ResourceLocator& locator, Abstra
     // Debugging - reload path and load next path
     static std::string currentPathName;
     static s32 nextPathIndex;
+
+    Debugging().fnLoadPath = [&](const char* name)
+    {
+        std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(name);
+        if (path)
+        {
+            if (!mMap)
+            {
+                mMap = std::make_unique<GridMap>(audioController, mLocator);
+            }
+            mMap->LoadMap(*path, mLocator, rend);
+            currentPathName = name;
+        }
+        else
+        {
+            LOG_ERROR("LVL or file in LVL not found");
+        }
+    };
+
     Debugging().mFnNextPath = [&]() 
     {
         s32 idx = 0;
@@ -109,17 +128,7 @@ void Level::RenderDebugPathSelection()
         {
             if (ImGui::Button(pathMap.first.c_str()))
             {
-                std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(pathMap.first.c_str());
-                if (path)
-                {
-                    //Debugging().mFnNextPath
-                    //mMap->LoadMap(*path, mLocator, rend);
-                }
-                else
-                {
-                    LOG_ERROR("LVL or file in LVL not found");
-                }
-
+                Debugging().fnLoadPath(pathMap.first.c_str());
             }
         }
     }
