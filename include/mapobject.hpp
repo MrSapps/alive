@@ -68,7 +68,7 @@ public:
 
     void Init();
     void Update(const InputState& input);
-    void Render(AbstractRenderer& rend, int x, int y, float scale, int layer) const;
+    void Render(AbstractRenderer& rend, int x, int y, float scale, int layer, bool bDrawBoundingBox) const;
     void ReloadScript();
     static void RegisterScriptBindings();
 
@@ -87,7 +87,6 @@ public:
 
     CollisionResult FloorCollision(IMap& map) const;
 private:
-    void ScriptLoadAnimations();
     std::map<std::string, std::shared_ptr<Animation>> mAnims;
     Animation* mAnim = nullptr;
 

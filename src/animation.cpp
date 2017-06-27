@@ -86,7 +86,7 @@ bool Animation::IsComplete() const
     return mCompleted;
 }
 
-void Animation::Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRenderer::eCoordinateSystem coordinateSystem /*= AbstractRenderer::eWorld*/) const
+void Animation::Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRenderer::eCoordinateSystem coordinateSystem /*= AbstractRenderer::eWorld*/, bool bDrawBoundingBox /*= false*/) const
 {
     // TODO: Position calculation should be refactored
 
@@ -128,7 +128,7 @@ void Animation::Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRe
     );
     rend.DestroyTexture(textureId);
 
-    if (Debugging().mAnimBoundingBoxes)
+    if (Debugging().mAnimBoundingBoxes || bDrawBoundingBox)
     {
         // Render bounding box
         const ColourU8 boundingBoxColour{ 255, 0, 255, 255 };

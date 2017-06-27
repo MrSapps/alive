@@ -287,14 +287,21 @@ void MapObject::ReloadScript()
     SnapXToGrid();
 }
 
-void MapObject::Render(AbstractRenderer& rend, int x, int y, float scale, int layer) const
+void MapObject::Render(AbstractRenderer& rend, int x, int y, float scale, int layer, bool bDrawBoundingBox) const
 {
     if (mAnim)
     {
         mAnim->SetXPos(static_cast<s32>(mXPos) + x);
         mAnim->SetYPos(static_cast<s32>(mYPos) + y);
         mAnim->SetScale(scale);
-        mAnim->Render(rend, mFlipX, layer);
+        mAnim->Render(rend, mFlipX, layer, AbstractRenderer::eWorld, bDrawBoundingBox);
+    }
+    else
+    {
+        if (bDrawBoundingBox)
+        {
+
+        }
     }
 }
 

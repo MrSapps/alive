@@ -96,7 +96,7 @@ void GameMode::Render(AbstractRenderer& rend) const
     {
         for (const auto& obj : mMapState.mObjs)
         {
-            obj->Render(rend, 0, 0, 1.0f, AbstractRenderer::eForegroundLayer0);
+            obj->Render(rend, 0, 0, 1.0f, AbstractRenderer::eForegroundLayer0, false);
         }
     }
 

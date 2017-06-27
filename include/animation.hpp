@@ -36,7 +36,7 @@ public:
     bool Update();
     bool IsLastFrame() const;
     bool IsComplete() const;
-    void Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRenderer::eCoordinateSystem coordinateSystem = AbstractRenderer::eWorld) const;
+    void Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRenderer::eCoordinateSystem coordinateSystem = AbstractRenderer::eWorld, bool bDrawBoundingBox = false) const;
     void SetFrame(u32 frame);
     void Restart();
     bool Collision(s32 x, s32 y) const;

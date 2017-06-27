@@ -444,6 +444,7 @@ void GridMapState::RenderDebug(AbstractRenderer& rend) const
                 {
                     const Oddlib::Path::MapObject& obj = cam.mObjects[i];
 
+
                     glm::vec2 topLeft = glm::vec2(obj.mRectTopLeft.mX, obj.mRectTopLeft.mY);
                     glm::vec2 bottomRight = glm::vec2(obj.mRectBottomRight.mX, obj.mRectBottomRight.mY);
 
