@@ -30,6 +30,8 @@ public:
     virtual const CollisionLines& Lines() const = 0;
 };
 
+class Sound;
+
 class Level
 {
 public:
@@ -39,7 +41,7 @@ public:
     {
         TRACE_ENTRYEXIT;
     }
-    Level(IAudioController& audioController, ResourceLocator& locator, AbstractRenderer& render);
+    Level(Sound& sound, IAudioController& audioController, ResourceLocator& locator, AbstractRenderer& render);
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend);
     void EnterState();

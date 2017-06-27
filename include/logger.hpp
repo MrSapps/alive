@@ -34,6 +34,7 @@ enum colour
 
 #include <windows.h>
 #undef GetObject
+#undef PlaySound
 
 static void* gConsoleHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
 

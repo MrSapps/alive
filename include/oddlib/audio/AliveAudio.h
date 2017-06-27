@@ -28,11 +28,11 @@
 #pragma warning(pop)
 #endif
 
-const int AliveAudioSampleRate = 44100;
+const int kAliveAudioSampleRate = 44100;
 
 class FileSystem;
 
-class AliveAudio : public IAudioPlayer
+class AliveAudio
 {
 public:
     AliveAudio() = default;
@@ -49,19 +49,20 @@ public:
 
     void SetSoundbank(std::unique_ptr<AliveAudioSoundbank> soundbank);
 
-
-    std::recursive_mutex mVoiceListMutex;
     u64 mCurrentSampleIndex = 0;
 
-    virtual void Play(u8* stream, u32 len) override;
+    void Play(f32* stream, u32 len);
+
+    u32 NumberOfActiveVoices() const { return static_cast<u32>(m_Voices.size()); }
 
     // Can be changed from outside class
     AudioInterpolation Interpolation = AudioInterpolation_hermite;
-    bool mAntiAliasFilteringEnabled = false;
     bool ForceReverb = false;
     f32 ReverbMix = 0.5f;
     bool DebugDisableVoiceResampling = false;
 
+    // TODO: Temp for sound effect debugging
+    void VabBrowserUi();
 private:
     std::unique_ptr<AliveAudioSoundbank> m_Soundbank;
 

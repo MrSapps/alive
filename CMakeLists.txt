@@ -362,6 +362,8 @@ SET(alivelib_src
     include/gridobject.hpp
     src/gridobject.cpp
     include/subtitles.hpp
+    include/sound_resources.hpp
+    src/sound_resources.cpp
     include/resourcemapper.hpp
     src/resourcemapper.cpp
     include/zipfilesystem.hpp
@@ -416,8 +418,13 @@ TARGET_LINK_LIBRARIES(Alive AliveLib libvorbis)
 
 SET(datatool_src
   ${WIN32_RESOURCES_SRC}
-  test/data_test_main.cpp
-  test/phash.hpp)
+  tools/data_tool/data_inspector.hpp
+  tools/engine_hook/seq_name_algorithm.hpp
+  tools/data_tool/data_set_type.hpp
+  tools/data_tool/data_test_main.cpp
+  tools/data_tool/sound_resources_dumper.cpp
+  tools/data_tool/sound_resources_dumper.hpp
+  )
 
 if (APPLE)
     SET(datatool_src
@@ -451,9 +458,13 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
 
     add_library(ddraw SHARED
         tools/engine_hook/exports.def
+        tools/engine_hook/seq_name_algorithm.hpp
         tools/engine_hook/dllmain.cpp
+        tools/engine_hook/hook.hpp
         tools/engine_hook/sound_hooks.cpp
         tools/engine_hook/sound_hooks.hpp
+        tools/engine_hook/game_functions.cpp
+        tools/engine_hook/game_functions.hpp
         tools/engine_hook/ddraw7proxy.hpp
         tools/engine_hook/dsurface7proxy.hpp
         )
@@ -622,6 +633,9 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fonts/Roboto-Regular.ttf" DESTIN
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fonts/Roboto-Italic.ttf" DESTINATION "${DATA_DIR}/fonts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fonts/Roboto-Bold.ttf" DESTINATION "${DATA_DIR}/fonts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resources.json" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/sounds.json" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/paths.json" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fmvs.json" DESTINATION "${DATA_DIR}")
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT_DDV_AePc.SRT" DESTINATION "${DATA_DIR}/subtitles")
 

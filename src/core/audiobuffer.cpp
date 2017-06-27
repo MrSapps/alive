@@ -185,6 +185,6 @@ void SdlAudioWrapper::AudioCallback(u8 *stream, int len)
     memset(stream, 0, len);
     for (auto& player : mAudioPlayers)
     {
-        player->Play(stream, len);
+        player->Play(reinterpret_cast<f32*>(stream), len / sizeof(f32));
     }
 }

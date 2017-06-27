@@ -145,13 +145,13 @@ bool IMovie::IsEnd()
 }
 
 // Audio thread context, from IAudioPlayer
-void IMovie::Play(u8* stream, u32 len)
+bool IMovie::Play(f32* stream, u32 len)
 {
     std::lock_guard<std::mutex> lock(mAudioBufferMutex);
 
     // Consume mAudioBuffer and update the amount of consumed bytes
     size_t have = mAudioBuffer.size()/sizeof(int16_t);
-    size_t take = len/sizeof(f32);
+    size_t take = len;
     if (take > have)
     {
         // Buffer underflow - we don't have enough data to fill the requested buffer
@@ -160,7 +160,6 @@ void IMovie::Play(u8* stream, u32 len)
         take = have;
     }
 
-    f32 *floatOutStream = reinterpret_cast<f32*>(stream);
     for (auto i = 0u; i < take; i++)
     {
         uint8_t low = mAudioBuffer[i*sizeof(int16_t)];
@@ -169,10 +168,11 @@ void IMovie::Play(u8* stream, u32 len)
 
         // TODO: Add a proper audio mixing alogrithm/API, this will clip/overflow and cause weridnes when
         // 2 streams of diff sample rates are mixed
-        floatOutStream[i] += fixed / 32768.0f;
+        stream[i] += fixed / 32768.0f;
     }
     mAudioBuffer.erase(mAudioBuffer.begin(), mAudioBuffer.begin() + take*sizeof(int16_t));
     mConsumedAudioBytes += take*sizeof(int16_t);
+    return false;
 }
 
 void IMovie::RenderFrame(AbstractRenderer &rend, int width, int height, const void *pixels, const char* subtitles)

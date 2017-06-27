@@ -192,6 +192,17 @@ public:
     void ReadVb(Oddlib::IStream& aStream, bool isPsx, bool useSoundsDat, Oddlib::IStream* soundsDatStream = nullptr);
     void ReadVh(Oddlib::IStream& stream, bool isPsx);
 
+    const VagAtr* VagAt(u32 programNumber, u32 note) const 
+    {
+        for (const VagAtr* vag : mProgs[programNumber].iTones)
+        {
+            if (vag->iMin == note && vag->iMax == note) // For a sound effect its usually exactly one note
+            {
+                return vag;
+            }
+        }
+        return nullptr;
+    }
 public:
     VabHeader mHeader;
 
@@ -202,10 +213,7 @@ public:
     // and a sample along with how to play that sample
     std::vector< std::unique_ptr<VagAtr> > mTones;
 
-    struct SampleData
-    {
-        std::vector<u8> mData;
-    };
+    using SampleData = std::vector<u8>;
     std::vector<SampleData> mSamples;
 
 //private:

@@ -40,7 +40,7 @@ protected:
     virtual void FillBuffers() = 0;
 
     // Audio thread context, from IAudioPlayer
-    virtual void Play(u8* stream, u32 len) override;
+    virtual bool Play(f32* stream, u32 len) override;
 
 
     void RenderFrame(AbstractRenderer& rend, int width, int height, const void* pixels, const char* subtitles);

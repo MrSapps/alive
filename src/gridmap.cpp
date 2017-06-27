@@ -13,8 +13,9 @@
 #include "gamemode.hpp"
 #include "editormode.hpp"
 #include "fmv.hpp"
+#include "sound.hpp"
 
-Level::Level(IAudioController& audioController, ResourceLocator& locator, AbstractRenderer& rend)
+Level::Level(Sound& sound, IAudioController& audioController, ResourceLocator& locator, AbstractRenderer& rend)
     : mLocator(locator)
 {
 
@@ -62,6 +63,11 @@ Level::Level(IAudioController& audioController, ResourceLocator& locator, Abstra
                     {
                         nextPathIndex = 0;
                     }
+
+                    // TODO: Add to the records
+                    //pathMap.second.mMusicTheme
+                    sound.SetTheme("Feeco");
+                    sound.HandleEvent("BASE_LINE");
                 }
                 else
                 {

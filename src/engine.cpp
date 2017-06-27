@@ -314,7 +314,7 @@ void Engine::InitSubSystems()
     );
 
     mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator);
-    mLevel = std::make_unique<Level>(mAudioHandler, *mResourceLocator, *mRenderer);
+    mLevel = std::make_unique<Level>(*mSound, mAudioHandler, *mResourceLocator, *mRenderer);
 
     InitImGui();
 
@@ -777,7 +777,7 @@ void Engine::InitResources()
 
     // create the resource mapper loading the resource maps from the json db
     DataPaths dataPaths(*mFileSystem, "{GameDir}/data/DataSetIds.json", "{UserDir}/DataSets.json");
-    ResourceMapper mapper(*mFileSystem, "{GameDir}/data/resources.json");
+    ResourceMapper mapper(*mFileSystem, "{GameDir}/data/resources.json", "{GameDir}/data/sounds.json", "{GameDir}/data/paths.json", "{GameDir}/data/fmvs.json");
     mResourceLocator = std::make_unique<ResourceLocator>(std::move(mapper), std::move(dataPaths));
 
     // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper

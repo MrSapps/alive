@@ -23,8 +23,8 @@ public:
     // panning -1 - 1
     f32 f_Pan;
 
-    // Root Key
-    unsigned char c_Center;
+    // Root Key - when played at this "key" it is playing the "raw" sample
+    unsigned char mMidiRootKey;
     unsigned char c_Shift;
 
     // Key range
@@ -55,8 +55,8 @@ public:
     ~AliveAudioSoundbank() = default;
     AliveAudioSoundbank(const AliveAudioSoundbank&) = delete;
     AliveAudioSoundbank& operator = (const AliveAudioSoundbank&) = delete;
-    explicit AliveAudioSoundbank(Vab& vab, AliveAudio& aliveAudio);
-    void InitFromVab(Vab& vab, AliveAudio& aliveAudio);
+    AliveAudioSoundbank(Vab& vab);
+    void InitFromVab(Vab& vab);
 
     std::vector<std::unique_ptr<AliveAudioSample>> m_Samples;
     std::vector<std::unique_ptr<AliveAudioProgram>> m_Programs;

@@ -15,11 +15,6 @@ void DeveloperScreen::Update(const InputState& input, CoordinateSpace& coords)
 {
     // When this gets bigger it can be moved to a separate class etc.
 
-    if (Debugging().mBrowserUi.soundBrowserOpen)
-    {
-        mSound.DebugUi();
-    }
-    
     if (Debugging().mBrowserUi.animationBrowserOpen)
     {
         RenderAnimationSelector(coords);

@@ -1,16 +1,8 @@
 #include "oddlib/audio/AliveAudio.h"
-
-/*
-static f32 RandFloat(f32 a, f32 b)
-{
-    return ((b - a)*((f32)rand() / RAND_MAX)) + a;
-}
-*/
+#include "imgui/imgui.h"
 
 void AliveAudio::CleanVoices()
 {
-    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
-
     std::vector<AliveAudioVoice *> deadVoices;
 
     for (auto& voice : m_Voices)
@@ -27,14 +19,10 @@ void AliveAudio::CleanVoices()
 
         m_Voices.erase(std::remove(m_Voices.begin(), m_Voices.end(), obj), m_Voices.end());
     }
-
 }
 
 void AliveAudio::AliveRenderAudio(f32 * AudioStream, int StreamLength)
 {
-
-    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
-
     // Reset buffers
     for (int i = 0; i < StreamLength; ++i)
     {
@@ -85,7 +73,7 @@ void AliveAudio::AliveRenderAudio(f32 * AudioStream, int StreamLength)
             }
 
             // TODO FIX ME
-            f32  s = voice->GetSample(Interpolation, mAntiAliasFilteringEnabled);
+            f32  s = voice->GetSample(Interpolation, false);
             f32 leftSample = (s * leftPan);
             f32 rightSample = (s * rightPan);
 
@@ -127,7 +115,7 @@ void AliveAudio::AliveRenderAudio(f32 * AudioStream, int StreamLength)
 }
 
 
-void AliveAudio::Play(u8* stream, u32 len)
+void AliveAudio::Play(f32* stream, u32 len)
 {
     if (m_DryChannelBuffer.size() != len)
     {
@@ -138,7 +126,41 @@ void AliveAudio::Play(u8* stream, u32 len)
     }
 
 
-    AliveRenderAudio(reinterpret_cast<f32*>(stream), len / sizeof(f32));
+    AliveRenderAudio(stream, len);
+}
+
+void AliveAudio::VabBrowserUi()
+{
+    if (m_Soundbank)
+    {
+        ImGui::Begin("VAB content");
+
+        int i = 0;
+        for (std::unique_ptr<AliveAudioProgram>& prog : m_Soundbank->m_Programs)
+        {
+            if (!prog->m_Tones.empty())
+            {
+                ImGui::TextUnformatted(("Program number: " + std::to_string(i)).c_str());
+                int j = 0;
+                for (std::unique_ptr<AliveAudioTone>& tone : prog->m_Tones)
+                {
+                    if (ImGui::Button(("     Tone number: " +
+                        std::to_string(i) + "_"
+                        + std::to_string(j++)
+                        + " min key: " + std::to_string(tone->Min)
+                        + " max key: " + std::to_string(tone->Max)
+                        ).c_str()))
+                    {
+                        ClearAllTrackVoices(true);
+                        NoteOn(i, tone->Min, 127, 0.0, 0.0);
+                    }
+                }
+            }
+            i++;
+        }
+
+        ImGui::End();
+    }
 }
 
 /*
@@ -188,7 +210,6 @@ void AliveAudio::PlayOneShot(std::string soundID)
 
 void AliveAudio::NoteOn(int program, int note, char velocity, f64 trackDelay, f64 pitch)
 {
-    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
     for (auto& tone : m_Soundbank->m_Programs[program]->m_Tones)
     {
         if (note >= tone->Min && note <= tone->Max)
@@ -208,7 +229,6 @@ void AliveAudio::NoteOn(int program, int note, char velocity, f64 trackDelay, f6
 
 void AliveAudio::NoteOff(int program, int note)
 {
-    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
     for (auto& voice : m_Voices)
     {
         if (voice->i_Note == note && voice->i_Program == program)
@@ -220,7 +240,6 @@ void AliveAudio::NoteOff(int program, int note)
 
 void AliveAudio::NoteOffDelay(int program, int note, f32 trackDelay)
 {
-    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
     for (auto& voice : m_Voices)
     {
         if (voice->i_Note == note && voice->i_Program == program && voice->f_TrackDelay < trackDelay && voice->f_NoteOffDelay <= 0)
@@ -234,8 +253,6 @@ void AliveAudio::NoteOffDelay(int program, int note, f32 trackDelay)
 
 void AliveAudio::ClearAllVoices(bool forceKill)
 {
-    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
-
     std::vector<AliveAudioVoice *> deadVoices;
 
     for (auto& voice : m_Voices)
@@ -265,7 +282,6 @@ void AliveAudio::ClearAllVoices(bool forceKill)
 
 void AliveAudio::ClearAllTrackVoices(bool forceKill)
 {
-    std::lock_guard<std::recursive_mutex> lock(mVoiceListMutex);
     std::vector<AliveAudioVoice *> deadVoices;
 
     for (auto& voice : m_Voices)

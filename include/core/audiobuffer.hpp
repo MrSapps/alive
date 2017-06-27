@@ -20,7 +20,7 @@ class IAudioPlayer
 {
 public:
     virtual ~IAudioPlayer() = default;
-    virtual void Play(u8* stream, u32 len) = 0;
+    virtual bool Play(f32* stream, u32 len) = 0;
 };
 
 class SdlAudioWrapper : public IAudioController

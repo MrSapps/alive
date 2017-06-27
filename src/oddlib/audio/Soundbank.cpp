@@ -2,9 +2,9 @@
 
 #include <algorithm>
 
-AliveAudioSoundbank::AliveAudioSoundbank(Vab& vab, AliveAudio& aliveAudio)
+AliveAudioSoundbank::AliveAudioSoundbank(Vab& vab)
 {
-    InitFromVab(vab, aliveAudio);
+    InitFromVab(vab);
 }
 
 // Convert PSX volume envelope info to conventional ADSR. Not exact, because PSX format is richer.
@@ -112,21 +112,21 @@ static VolumeEnvelope PSXEnvelopeToADSR(uint16_t low, uint16_t high)
     return env;
 }
 
-void AliveAudioSoundbank::InitFromVab(Vab& vab, AliveAudio& /*aliveAudio*/)
+void AliveAudioSoundbank::InitFromVab(Vab& vab)
 {
     for (const Vab::SampleData& sampleData : vab.mSamples)
     {
         auto sample = std::make_unique<AliveAudioSample>();
 
         // Get number of shorts required
-        const u32 size = static_cast<u32>(sampleData.mData.size() / sizeof(u16));
+        const u32 size = static_cast<u32>(sampleData.size() / sizeof(u16));
         sample->m_SampleBuffer.resize(size);
 
         // TODO: Remove me and just use m_SampleBuffer.size()
         sample->mSampleSize = size;
 
         // Copy/convert from bytes to shorts
-        memcpy(sample->m_SampleBuffer.data(), sampleData.mData.data(), sampleData.mData.size());
+        memcpy(sample->m_SampleBuffer.data(), sampleData.data(), sampleData.size());
 
         m_Samples.emplace_back(std::move(sample));
     }
@@ -144,7 +144,7 @@ void AliveAudioSoundbank::InitFromVab(Vab& vab, AliveAudio& /*aliveAudio*/)
             }
 
             tone->f_Volume = vab.mProgs[i].iTones[t]->iVol / 127.0f;
-            tone->c_Center = vab.mProgs[i].iTones[t]->iCenter;
+            tone->mMidiRootKey = vab.mProgs[i].iTones[t]->iCenter;
             tone->c_Shift = vab.mProgs[i].iTones[t]->iShift;
             tone->f_Pan = (vab.mProgs[i].iTones[t]->iPan / 64.0f) - 1.0f;
             tone->Min = vab.mProgs[i].iTones[t]->iMin;

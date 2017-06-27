@@ -1,5 +1,26 @@
 #pragma once
 
+#include <dsound.h>
+#include "hook.hpp"
+
+struct AliveSoundBuffer
+{
+    DWORD mIndex;
+    IDirectSoundBuffer* mDirectSoundBuffer;
+    void* mAllocatedBuffer;
+    DWORD mBufferBytes1;
+    DWORD mIsFree;
+    DWORD mBufferBytes2;
+    DWORD mSampleRate;
+    BYTE mBitsPerSample;
+    BYTE mBlockAlign;
+    BYTE field_1E;
+    BYTE field_1F;
+    DWORD mNumChannels;
+};
+static_assert(sizeof(AliveSoundBuffer) == 0x24, "Wrong size AliveSoundBuffer");
+void InstallSoundHooks();
+
 // 0x004EEEC0
 char __cdecl SND_CreatePrimaryBuffer(int a1, int a2, int a3);
 
@@ -16,13 +37,13 @@ signed int __cdecl SND_Load(unsigned int a1, const void *aDst, int a3);
 signed int __cdecl SND_New(int a1, int a2, int aBitRate, unsigned __int8 a4, int a5);
 
 // 0x004EF740
-signed int __cdecl SND_PlayEx(unsigned int pSample, unsigned int a2, unsigned int a3, float a4, int a5, signed int a6, int a7);
+signed int __cdecl SND_PlayEx(AliveSoundBuffer *pSound, unsigned int volL, unsigned int volR, float unknown1, IDirectSoundBuffer* pDuplicated, DWORD playFlags, int unknown2);
 
 // 0x004EFA30
 signed int __cdecl SND_ReleaseSample_q(int aSound);
 
 // 0x004EF1C0
-signed int __cdecl SND_Reload(unsigned int a1, void *a2, const void *a3, unsigned int a4);
+signed int __cdecl SND_Reload(AliveSoundBuffer* a1, void *a2, const void *a3, unsigned int a4);
 
 // 0x004EF490
 signed int __cdecl SND_ReloadFromWriteCursor(unsigned int a1, const void *a2, void *a3);
