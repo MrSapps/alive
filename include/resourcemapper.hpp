@@ -20,54 +20,11 @@
 #include "gamedefinition.hpp" // DataPaths
 #include "imgui/imgui.h"
 
+class Animation;
+
 namespace Oddlib
 {
     class IBits;
-}
-
-namespace Detail
-{
-    const auto kFnvOffsetBais = 14695981039346656037U;
-    const auto kFnvPrime = 1099511628211U;
-
-    inline void HashInternal(Uint64& result, const char* s)
-    {
-        if (s)
-        {
-            while (*s)
-            {
-                result = (kFnvPrime * result) ^ static_cast<unsigned char>(*s);
-                s++;
-            }
-        }
-    }
-
-    inline void HashInternal(Uint64& result, const std::string& s)
-    {
-        HashInternal(result, s.c_str());
-    }
-
-    // Treat each byte of u32 as unsigned char in FNV hashing
-    inline void HashInternal(Uint64 result, u32 value)
-    {
-        result = (kFnvPrime * result) ^ static_cast<unsigned char>(value >> 24);
-        result = (kFnvPrime * result) ^ static_cast<unsigned char>(value >> 16);
-        result = (kFnvPrime * result) ^ static_cast<unsigned char>(value >> 8);
-        result = (kFnvPrime * result) ^ static_cast<unsigned char>(value);
-    }
-}
-
-template<typename... Args>
-inline Uint64 StringHash(Args... args)
-{
-    Uint64 result = Detail::kFnvOffsetBais;
-    // Cast to void since initializer_list isn't actually used, its just here so that we 
-    // can call HashInternal for each parameter
-    (void)std::initializer_list<int>
-    {
-        (Detail::HashInternal(result, std::forward<Args>(args)), 0)...
-    };
-    return result;
 }
 
 inline std::vector<u8> StringToVector(const std::string& str)
@@ -620,85 +577,6 @@ private:
             mapping.mLocations.push_back(fmvFileLocation);
         }
     }
-};
-
-// TODO: Move to physics
-template<class T>
-inline bool PointInRect(T px, T py, T x, T y, T w, T h)
-{
-    if (px < x) return false;
-    if (py < y) return false;
-    if (px >= x + w) return false;
-    if (py >= y + h) return false;
-
-    return true;
-}
-
-class Animation
-{
-public:
-    // Keeps the LVL and AnimSet shared pointers in scope for as long as the Animation lives.
-    // On destruction if its the last instance of the lvl/animset the lvl will be closed and removed
-    // from the cache, and the animset will be deleted/freed.
-    struct AnimationSetHolder
-    {
-    public:
-        AnimationSetHolder(std::shared_ptr<Oddlib::LvlArchive> sLvlPtr, std::shared_ptr<Oddlib::AnimationSet> sAnimSetPtr, u32 animIdx);
-        const Oddlib::Animation& Animation() const;
-        u32 MaxW() const;
-        u32 MaxH() const;
-    private:
-        std::shared_ptr<Oddlib::LvlArchive> mLvlPtr;
-        std::shared_ptr<Oddlib::AnimationSet> mAnimSetPtr;
-        const Oddlib::Animation* mAnim;
-    };
-    Animation(const Animation&) = delete;
-    Animation& operator = (const Animation&) = delete;
-    Animation() = delete;
-    Animation(AnimationSetHolder anim, bool isPsx, bool scaleFrameOffsets, u32 defaultBlendingMode, const std::string& sourceDataSet);
-    s32 FrameCounter() const;
-    bool Update();
-    bool IsLastFrame() const;
-    bool IsComplete() const;
-    void Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRenderer::eCoordinateSystem coordinateSystem = AbstractRenderer::eWorld) const;
-    void SetFrame(u32 frame);
-    void Restart();
-    bool Collision(s32 x, s32 y) const;
-    void SetXPos(s32 xpos);
-    void SetYPos(s32 ypos);
-    s32 XPos() const;
-    s32 YPos() const;
-    u32 MaxW() const;
-    u32 MaxH() const;
-    s32 FrameNumber() const;
-    u32 NumberOfFrames() const;
-    void SetScale(f32 scale);
-private:
-
-    // 640 (pc xres) / 368 (psx xres) = 1.73913043478 scale factor
-    const static f32 kPcToPsxScaleFactor;
-
-    f32 ScaleX() const;
-
-    AnimationSetHolder mAnim;
-    bool mIsPsx = false;
-    bool mScaleFrameOffsets = false;
-    std::string mSourceDataSet;
-    AbstractRenderer::eBlendModes mBlendingMode = AbstractRenderer::eBlendModes::eNormal;
-
-    // The "FPS" of the animation, set to 1 first so that the first Update() brings us from frame -1 to 0
-    u32 mFrameDelay = 1;
-
-    // When >= mFrameDelay, mFrameNum is incremented
-    u32 mCounter = 0;
-    s32 mFrameNum = -1;
-    
-    s32 mXPos = 100;
-    s32 mYPos = 100;
-    f32 mScale = 1.0f;
-
-    bool mIsLastFrame = false;
-    bool mCompleted = false;
 };
 
 template<typename KeyType, typename ValueType>

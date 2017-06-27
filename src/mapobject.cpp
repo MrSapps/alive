@@ -4,6 +4,7 @@
 #include "physics.hpp"
 #include "collisionline.hpp"
 #include "gridmap.hpp"
+#include "animation.hpp"
 
 /*static*/ void MapObject::RegisterScriptBindings()
 {
@@ -111,14 +112,14 @@ bool MapObject::CellingCollision(IMap& map, f32 dx, f32 dy) const
 
 CollisionResult MapObject::FloorCollision(IMap& map) const
 {
-    Physics::raycast_collision c;
+    Physics::RaycastCollision c;
     if (CollisionLine::RayCast<1>(map.Lines(),
         glm::vec2(mXPos, mYPos),
         glm::vec2(mXPos, mYPos + 260 * 3), // Check up to 3 screen down
         { 0u }, &c))
     {
-        const f32 distance = glm::distance(mYPos, c.intersection.y);
-        return{ true, c.intersection.x, c.intersection.y, distance };
+        const f32 distance = glm::distance(mYPos, c.mIntersection.y);
+        return{ true, c.mIntersection.x, c.mIntersection.y, distance };
     }
     return{};
 }
@@ -302,7 +303,7 @@ bool MapObject::ContainsPoint(s32 x, s32 y) const
     if (!mAnim)
     {
         // For animationless objects use the object rect
-        return PointInRect(x, y, mRect.x, mRect.y, mRect.w, mRect.h);
+        return Physics::PointInRect(x, y, mRect.x, mRect.y, mRect.w, mRect.h);
     }
 
     return mAnim->Collision(x, y);

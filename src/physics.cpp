@@ -3,7 +3,7 @@
 
 namespace Physics
 {
-    bool IsLineSegmentsIntersecting(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, raycast_collision* const collision)
+    bool IsLineSegmentsIntersecting(const glm::vec2& line1p1, const glm::vec2& line1p2, const glm::vec2& line2p1, const glm::vec2& line2p2, RaycastCollision* const collision)
     {
         // Get the segments' parameters.
         const float dx12 = line1p2.x - line1p1.x;
@@ -28,7 +28,7 @@ namespace Physics
         // Find the point of intersection.
         if (collision && intersecting)
         {
-            collision->intersection = glm::vec2(line1p1.x + dx12 * t1, line1p1.y + dy12 * t1);
+            collision->mIntersection = glm::vec2(line1p1.x + dx12 * t1, line1p1.y + dy12 * t1);
         }
 
         return intersecting;

@@ -472,11 +472,11 @@ void GridMapState::DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, c
 {
     if (Debugging().mRayCasts)
     {
-        Physics::raycast_collision collision;
+        Physics::RaycastCollision collision;
         if (CollisionLine::RayCast<1>(mCollisionItems, from, to, { collisionType }, &collision))
         {
             const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
-            const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);
+            const glm::vec2 hitPos = rend.WorldToScreen(collision.mIntersection);
 
             rend.Line(ColourU8{ 255, 0, 255, 255 },
                 fromDrawPos.x, fromDrawPos.y,

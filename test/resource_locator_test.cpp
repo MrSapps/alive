@@ -5,6 +5,7 @@
 #include "logger.hpp"
 #include "resourcemapper.hpp"
 #include "inmemoryfs.hpp"
+#include "animation.hpp"
 
 using namespace ::testing;
 

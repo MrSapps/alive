@@ -3,27 +3,6 @@
 #include "resourcemapper.hpp"
 #include <boost/utility/string_view.hpp>
 
-
-TEST(StringHash, hash)
-{
-    ASSERT_EQ(18029688879280032679U, StringHash("Hello"));
-    ASSERT_EQ(6660822392957675945U, StringHash(" world"));
-    ASSERT_EQ(13583674344491166159U, StringHash("Hello world"));
-    ASSERT_EQ(13583674344491166159U, StringHash("Hello", " world"));
-
-    const std::string hello = "Hello";
-    const std::string world = " world";
-    ASSERT_EQ(13583674344491166159U, StringHash(hello, world));
-    ASSERT_EQ(13583674344491166159U, StringHash(hello, " world"));
-    ASSERT_EQ(13583674344491166159U, StringHash("Hello", world));
-
-    ASSERT_EQ(14904296279238663669U, StringHash("1234"));
-
-    // Note, not the same hash as "1234" as the raw bytes are hashed
-    ASSERT_EQ(14695981039346656037U, StringHash(1234));
-
-}
-
 TEST(string_util, replace_all_char)
 {
     std::string input = "121212121";

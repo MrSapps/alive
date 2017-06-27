@@ -5,6 +5,7 @@
 #include "fmv.hpp"
 #include "sound.hpp"
 #include "gridmap.hpp"
+#include "animation.hpp"
 
 void DeveloperScreen::Init()
 {

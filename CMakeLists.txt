@@ -336,6 +336,8 @@ SET(alivelib_src
     src/fmv.cpp
     include/sound.hpp
     src/sound.cpp
+    include/animation.hpp
+    src/animation.cpp
     include/abstractrenderer.hpp
     src/abstractrenderer.cpp
     include/openglrenderer.hpp

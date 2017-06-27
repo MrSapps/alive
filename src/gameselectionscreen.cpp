@@ -1,6 +1,7 @@
 #include "gameselectionscreen.hpp"
 #include "developerscreen.hpp"
 #include "nfd.h"
+#include "animation.hpp"
 
 namespace
 {

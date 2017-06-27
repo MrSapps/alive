@@ -114,7 +114,7 @@ public:
     bool SetSelected(bool selected);
 
     template<u32 N>
-    static bool RayCast(const CollisionLines& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::raycast_collision* const collision)
+    static bool RayCast(const CollisionLines& lines, const glm::vec2& line1p1, const glm::vec2& line1p2, u32 const (&collisionTypes)[N], Physics::RaycastCollision* const collision)
     {
         const CollisionLine* nearestLine = nullptr;
         float nearestCollisionX = 0;
@@ -182,8 +182,8 @@ public:
         {
             if (collision)
             {
-                collision->intersection.x = nearestCollisionX;
-                collision->intersection.y = nearestCollisionY;
+                collision->mIntersection.x = nearestCollisionX;
+                collision->mIntersection.y = nearestCollisionY;
             }
             return true;
         }

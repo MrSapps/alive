@@ -465,6 +465,15 @@ void EditorMode::Render(AbstractRenderer& rend) const
             }
         }
     }
+
+    if (Debugging().mDrawObjects)
+    {
+        for (const auto& obj : mMapState.mObjs)
+        {
+            obj->Render(rend, 0, 0, 1.0f, AbstractRenderer::eForegroundLayer0);
+        }
+    }
+
     mMapState.RenderDebug(rend);
 }
 
