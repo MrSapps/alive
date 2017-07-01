@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include "stk/include/Stk.h"
+#include "soxr.h"
 
 #define AUDIO_BUFFER_CHANNELS 2
 //#define AUDIO_BUFFER_FORMAT AUDIO_S16

@@ -98,9 +98,20 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glm
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/vorbis/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/vorbis/lib
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/soxr-0.1.2/src
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${GTK3_INCLUDE_DIRS}
 )
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/soxr-0.1.2)
+SET_PROPERTY(TARGET 1a-lsr PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET 1-delay-clear PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET 3-options-input-fn PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET deinstall PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET soxr PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET soxr-lsr PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET test-vectors PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET vector-cmp PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET vector-gen PROPERTY FOLDER "3rdparty")
 
 SET(SQ_DISABLE_INSTALLER 1)
 SET(DISABLE_DYNAMIC 1)
@@ -394,7 +405,7 @@ endif()
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
-TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib jsonxx sqstdlib_static squirrel_static stk nativefiledialog libdeflate imgui)
+TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib jsonxx sqstdlib_static squirrel_static stk nativefiledialog libdeflate imgui soxr)
 
 if (WIN32 AND MSVC)
     set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
