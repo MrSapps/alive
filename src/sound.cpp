@@ -169,14 +169,26 @@ void Sound::Update()
                 mSeqPlayers[0]->DebugUi();
             }
 
-            ImGui::Begin("Active SEQs");
-            int i = 0;
-            for (auto& player : mSeqPlayers)
+            if (ImGui::Begin("Active SEQs"))
             {
-                i++;
-                if (ImGui::Button((std::to_string(i) + player->Name()).c_str()))
+                if (mAmbiance)
                 {
-                    // TODO: Kill whatever this SEQ is
+                   ImGui::Text("Ambiance: %s", mAmbiance->Name().c_str());
+                }
+
+                if (mMusicTrack)
+                {
+                    ImGui::Text("Music: %s", mMusicTrack->Name().c_str());
+                }
+
+                int i = 0;
+                for (auto& player : mSeqPlayers)
+                {
+                    i++;
+                    if (ImGui::Button((std::to_string(i) + player->Name()).c_str()))
+                    {
+                        // TODO: Kill whatever this SEQ is
+                    }
                 }
             }
             ImGui::End();

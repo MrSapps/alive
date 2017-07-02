@@ -90,9 +90,5 @@ private:
 
     std::vector<std::unique_ptr<SequencePlayer>> mSeqPlayers;
 
-
-    // TODO: Should be removed and pre-load all sfx instead, also this pays no attention to the required sound bank
-    std::map<std::string, std::unique_ptr<class ISound>> mSfxCache;
-
     InstanceBinder<class Sound> mScriptInstance;
 };
