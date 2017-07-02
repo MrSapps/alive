@@ -63,6 +63,7 @@ protected:
     std::unique_ptr<SubTitleParser> mSubTitles;
     std::string mName;
 private:
+
     //AutoMouseCursorHide mHideMouseCursor;
 };
 

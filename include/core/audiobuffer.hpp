@@ -15,6 +15,7 @@ public:
     virtual void RemovePlayer(IAudioPlayer* player) = 0;
     virtual u16 AudioFrameSize() const = 0;
     virtual u32 SampleRate() const = 0;
+    virtual void SetExclusiveAudioPlayer(IAudioPlayer* player) = 0;
 };
 
 class IAudioPlayer
@@ -32,6 +33,7 @@ public:
     virtual void RemovePlayer(IAudioPlayer* player) override;
     virtual u16 AudioFrameSize() const override;
     virtual u32 SampleRate() const override;
+    virtual void SetExclusiveAudioPlayer(IAudioPlayer* player) override;
     ~SdlAudioWrapper();
 private:
     void SetAudioSpec(u16 frameSize, s32 freq);
@@ -41,7 +43,7 @@ private:
     void AudioCallback(u8 *stream, int len);
 private:
     void OpenImpl(const char* deviceName, u16 frameSize, u32 freq);
-
+    IAudioPlayer* mExclusiveAudio = nullptr;
     std::set<IAudioPlayer*> mAudioPlayers;
     int mDevice = 0;
     u16 mFrameSize = 0;

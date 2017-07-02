@@ -52,14 +52,14 @@ IMovie::IMovie(const std::string& resourceName, IAudioController& controller, st
     // TODO: Add to interface - must be added/removed outside of ctor/dtor due
     // to data race issues
     std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-    mAudioController.AddPlayer(this);
+    mAudioController.SetExclusiveAudioPlayer(this);
 }
 
-IMovie:: ~IMovie()
+IMovie::~IMovie()
 {
     // TODO: Data race fix
     std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-    mAudioController.RemovePlayer(this);
+    mAudioController.SetExclusiveAudioPlayer(nullptr);
 }
 
 
@@ -312,7 +312,7 @@ public:
             const int kXaFrameDataSize = 2016;
             const int kNumAudioChannels = 2;
             const int kBytesPerSample = 2;
-            std::vector<s16> outPtr((kXaFrameDataSize * kNumAudioChannels * kBytesPerSample) / 2);
+            std::array<s16, (kXaFrameDataSize * kNumAudioChannels * kBytesPerSample) / 2> outPtr;
 
             if (mDemuxBuffer.empty())
             {
@@ -365,22 +365,11 @@ public:
                         mAdpcm.DecodeFrameToPCM(outPtr, (uint8_t *)&w.mAkikMagic);
                     }
 
-                    /*
-                    std::vector<u16> tmp(outPtr.size());
-                    for (auto i = 0u; i < outPtr.size(); i++)
-                    {
-                        // mAudioBuffer
-                        tmp.push_back(outPtr[i] & 0xFF);
-                        tmp.push_back(static_cast<unsigned char>(outPtr[i] >> 8));
-                    }
-                    */
-
-                
                     size_t consumedSrc = 0;
                     size_t wroteSamples = 0;
                     size_t inLenSampsPerChan = kXaFrameDataSize;
                     size_t outLenSampsPerChan = inLenSampsPerChan*2;
-                    std::vector<u8> tmp2(outLenSampsPerChan*4);
+                    std::vector<u8> tmp2(2352 *4);
 
                     soxr_io_spec_t ioSpec = soxr_io_spec(
                         SOXR_INT16_I,   // In type
@@ -400,15 +389,6 @@ public:
                         nullptr,    // Quality spec
                         nullptr     // Runtime spec
                     );
-/*
-                    soxr_error_t err = soxr_process(mResampler,
-                        tmp.data(),
-                        inLenSampsPerChan,
-                        &consumedSrc,
-                        tmp2.data(),
-                        outLenSampsPerChan,
-                        &wroteSamples);
-                        */
 
                     for (auto i = 0u; i < wroteSamples*4; i++)
                     {
@@ -468,10 +448,11 @@ public:
         : MovMovie(resourceName, audioController, std::move(subtitles))
     {
         mPsx = false;
-        const u32 kAudioFreq = 37800;
+        const int kSampleRate = 44100;// 37800;
+       // const u32 kAudioFreq = 37800;
         const u32 kNumChannels = 2;
         const u32 kFps = 15;
-        mAudioBytesPerFrame = (kAudioFreq / kFps) * kNumChannels * sizeof(u16);
+        mAudioBytesPerFrame = (kSampleRate / kFps) * kNumChannels * sizeof(u16);
         //mAudioController.SetAudioSpec(kAudioFreq / kFps, kAudioFreq);
         mFmvStream = std::move(stream);
     }

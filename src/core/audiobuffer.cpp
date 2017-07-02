@@ -146,6 +146,13 @@ u32 SdlAudioWrapper::SampleRate() const
     return mFreq;
 }
 
+void SdlAudioWrapper::SetExclusiveAudioPlayer(IAudioPlayer* player)
+{
+    // Protect from concurrent access in the audio call back
+    SdlAudioLocker audioLocker;
+    mExclusiveAudio = player;
+}
+
 void SdlAudioWrapper::SetAudioSpec(u16 frameSize, s32 freq)
 {
     if (mFrameSize != frameSize || mFreq != freq)
@@ -194,8 +201,15 @@ void SdlAudioWrapper::StaticAudioCallback(void *udata, u8 *stream, s32 len)
 void SdlAudioWrapper::AudioCallback(u8 *stream, int len)
 {
     memset(stream, 0, len);
-    for (auto& player : mAudioPlayers)
+    if (mExclusiveAudio)
     {
-        player->Play(reinterpret_cast<f32*>(stream), len / sizeof(f32));
+        mExclusiveAudio->Play(reinterpret_cast<f32*>(stream), len / sizeof(f32));
+    }
+    else
+    {
+        for (auto& player : mAudioPlayers)
+        {
+            player->Play(reinterpret_cast<f32*>(stream), len / sizeof(f32));
+        }
     }
 }
