@@ -375,13 +375,13 @@ public:
                     }
                     */
 
-                    std::vector<u8> tmp2(outPtr.size() * 4);
-
+                
                     size_t consumedSrc = 0;
                     size_t wroteSamples = 0;
-                    size_t inLenSampsPerChan = (37800 / 15) / 2;
-                    size_t outLenSampsPerChan = (44100 / 15) / 2;
-                   
+                    size_t inLenSampsPerChan = kXaFrameDataSize;
+                    size_t outLenSampsPerChan = inLenSampsPerChan*2;
+                    std::vector<u8> tmp2(outLenSampsPerChan*4);
+
                     soxr_io_spec_t ioSpec = soxr_io_spec(
                         SOXR_INT16_I,   // In type
                         SOXR_INT16_I);  // Out type
@@ -410,7 +410,7 @@ public:
                         &wroteSamples);
                         */
 
-                    for (auto i = 0u; i < wroteSamples; i++)
+                    for (auto i = 0u; i < wroteSamples*4; i++)
                     {
                         mAudioBuffer.push_back(tmp2[i]);
                     }
