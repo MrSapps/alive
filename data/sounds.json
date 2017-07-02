@@ -5958,6 +5958,124 @@
 					"AE_FE_5_1" 
 				],
 				"name": "Feeco" 
+			},
+			{
+				"AMBIANCE": [
+					"MINESAMB" 
+				],
+				"BASE_LINE": [
+					"MI_3_1",
+					"MI_2_1",
+					"MI_1_1" 
+				],
+				"CRITTER_ATTACK": [
+					"MI_9_1" 
+				],
+				"CRITTER_PATROL": [
+					"MI_8_1" 
+				],
+				"SLIG_ATTACK": [
+					"MI_6_1" 
+				],
+				"SLIG_PATROL": [
+					"MI_4_1" 
+				],
+				"SLIG_POSSESSED": [
+					"MI_5_1" 
+				],
+				"name": "Mines" 
+			},
+			{
+				"AMBIANCE": [
+					"NECRAMB" 
+				],
+				"BASE_LINE": [
+					"NE_3_1",
+					"NE_2_1",
+					"NE_1_1" 
+				],
+				"CRITTER_ATTACK": [
+					"NE_9_1" 
+				],
+				"CRITTER_PATROL": [
+					"NE_8_1" 
+				],
+				"SLIG_ATTACK": [
+					"NE_6_1" 
+				],
+				"SLIG_PATROL": [
+					"NE_4_1" 
+				],
+				"SLIG_POSSESSED": [
+					"NE_5_1" 
+				],
+				"name": "Necrum" 
+			},
+			{
+				"AMBIANCE": [
+					"BREWAMB" 
+				],
+				"BASE_LINE": [
+					"BR_3_1",
+					"BR_2_1",
+					"BR_1_1" 
+				],
+				"CRITTER_ATTACK": [
+					"BR_9_1" 
+				],
+				"CRITTER_PATROL": [
+					"BR_8_1" 
+				],
+				"SLIG_ATTACK": [
+					"BR_6_1" 
+				],
+				"SLIG_PATROL": [
+					"BR_4_1" 
+				],
+				"SLIG_POSSESSED": [
+					"BR_5_1" 
+				],
+				"name": "Brewery" 
+			},
+			{
+				"AMBIANCE": [
+					"BREWAMB" 
+				],
+				"BASE_LINE": [
+					"BREND_3",
+					"BREND_2",
+					"BREND_1" 
+				],
+				"SLIG_ATTACK": [
+					"BREND_6" 
+				],
+				"SLIG_PATROL": [
+					"BREND_4" 
+				],
+				"SLIG_POSSESSED": [
+					"BREND_5" 
+				],
+				"name": "Brewery ender" 
+			},
+			{
+				"AMBIANCE": [
+					"BARRAMB" 
+				],
+				"BASE_LINE": [
+					"BA_3_1",
+					"BA_2_1",
+					"BA_1_1" 
+				],
+				"SLIG_ATTACK": [
+					"BA_6_1" 
+				],
+				"SLIG_PATROL": [
+					"BA_4_1" 
+				],
+				"SLIG_POSSESSED": [
+					"BA_5_1" 
+				],
+				"name": "Barracks" 
 			} 
 		] 
 	} 
