@@ -659,14 +659,11 @@ void Sound::SoundBrowserUi()
 
     for (const MusicTheme& theme : mLocator.mResMapper.mSoundResources.mThemes)
     {
-        static bool value = 0;
-        if (ImGui::RadioButton(theme.mName.c_str(), value))
+        if (ImGui::RadioButton(theme.mName.c_str(), mActiveTheme && theme.mName == mActiveTheme->mName))
         {
-            value = 1;
             SetTheme(theme.mName.c_str());
             Preload();
         }
-
     }
 
     for (const char* eventName : kMusicEvents)
