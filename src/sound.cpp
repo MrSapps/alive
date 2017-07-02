@@ -32,7 +32,7 @@ std::unique_ptr<SequencePlayer> Sound::PlaySound(const char* soundName, const ch
 
 
         // TODO: Only do this once and resample PSX FMV audio to match it
-        mAudioController.SetAudioSpec(1024, kAliveAudioSampleRate);
+        //mAudioController.SetAudioSpec(1024*8, kAliveAudioSampleRate);
 
         // TODO: Allow more than one so things can play in parallel
         std::lock_guard<std::recursive_mutex> lock(mSeqPlayersMutex);

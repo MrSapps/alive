@@ -194,6 +194,7 @@ void InputMapping::Update(const InputState& input)
 }
 
 Engine::Engine(const std::vector<std::string>& commandLineArguments)
+    : mAudioHandler(1024, 44100)
 {
     for (const std::string& argument : commandLineArguments)
     {

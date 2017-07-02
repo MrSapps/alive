@@ -4,7 +4,6 @@
 #include <string>
 #include <sstream>
 #include "stk/include/Stk.h"
-#include "soxr.h"
 
 #define AUDIO_BUFFER_CHANNELS 2
 //#define AUDIO_BUFFER_FORMAT AUDIO_S16
@@ -27,12 +26,13 @@ public:
     }
 };
 
-SdlAudioWrapper::SdlAudioWrapper()
+SdlAudioWrapper::SdlAudioWrapper(u16 frameSize, u32 freq)
 {
     if (SDL_Init(SDL_INIT_AUDIO) != 0)
     {
         throw Oddlib::Exception((std::string("SDL_Init for SDL_INIT_AUDIO failed: ") + SDL_GetError()).c_str());
     }
+    SetAudioSpec(frameSize, freq);
 }
 
 void SdlAudioWrapper::Open(u16 frameSize, int freq)
@@ -81,7 +81,7 @@ void SdlAudioWrapper::Open(u16 frameSize, int freq)
 
 }
 
-void SdlAudioWrapper::OpenImpl(const char* deviceName, u16 frameSize, int freq)
+void SdlAudioWrapper::OpenImpl(const char* deviceName, u16 frameSize, u32 freq)
 {
     SDL_AudioSpec audioSpec = {};
     audioSpec.userdata = this;
@@ -136,6 +136,16 @@ void SdlAudioWrapper::RemovePlayer(IAudioPlayer* player)
     mAudioPlayers.erase(player);
 }
 
+u16 SdlAudioWrapper::AudioFrameSize() const
+{
+    return mFrameSize;
+}
+
+u32 SdlAudioWrapper::SampleRate() const
+{
+    return mFreq;
+}
+
 void SdlAudioWrapper::SetAudioSpec(u16 frameSize, s32 freq)
 {
     if (mFrameSize != frameSize || mFreq != freq)
@@ -172,7 +182,7 @@ void SdlAudioWrapper::Close()
 }
 
 // Called in the context of the audio thread
-void SdlAudioWrapper::StaticAudioCallback(void *udata, u8 *stream, int len)
+void SdlAudioWrapper::StaticAudioCallback(void *udata, u8 *stream, s32 len)
 {
     if (udata)
     {

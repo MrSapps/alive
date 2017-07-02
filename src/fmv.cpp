@@ -75,6 +75,9 @@ void IMovie::OnRenderFrame(AbstractRenderer& rend)
         FillBuffers();
     }
 
+    // TODO: If the buffer call back for audio is large, then this might only get called every N frames meaning
+    // we can drop video frames even if not running too slowly. We should take this into account and interpolate between
+    // now and the expected next call time.
     const auto videoFrameIndex = mConsumedAudioBytes / mAudioBytesPerFrame;
     const char *current_subs = nullptr;
     if (mSubTitles)
@@ -204,6 +207,7 @@ void IMovie::RenderFrame(AbstractRenderer &rend, int width, int height, const vo
     rend.DestroyTexture(texhandle);
 }
 
+#include "soxr.h"
 
 // PSX MOV/STR format, all PSX game versions use this.
 class MovMovie : public IMovie
@@ -220,6 +224,11 @@ public:
     MovMovie(MovMovie&&) = delete;
     MovMovie& operator = (MovMovie&&) = delete;
 
+    ~MovMovie()
+    {
+
+    }
+
     MovMovie(const std::string& resourceName, IAudioController& audioController, std::unique_ptr<Oddlib::IStream> stream, std::unique_ptr<SubTitleParser> subtitles, u32 startSector, u32 numberOfSectors)
         : IMovie(resourceName, audioController, std::move(subtitles))
     {
@@ -233,12 +242,12 @@ public:
             mFmvStream.reset(stream->Clone(startSector, numberOfSectors));
         }
 
-        const int kSampleRate = 37800;
+        const int kSampleRate = 44100;// 37800;
         const int kFps = 15;
         const u32 kNumChannels = 2;
         mAudioBytesPerFrame = (kSampleRate / kFps) * kNumChannels * sizeof(u16);
 
-        mAudioController.SetAudioSpec(kSampleRate / kFps, kSampleRate);
+        //mAudioController.SetAudioSpec(kSampleRate / kFps, kSampleRate);
 
         mPsx = true;
     }
@@ -290,108 +299,156 @@ public:
 
     virtual bool NeedBuffer() override
     {
-        return (mVideoBuffer.size() == 0 || mAudioBuffer.size() < (mAudioBytesPerFrame)) && !mFmvStream->AtEnd();
+        const u32 kNumChans = 2;
+        const u32 requiredSize = mAudioController.SampleRate() * sizeof(u16) * kNumChans;
+
+        return (mVideoBuffer.size() == 0 || mAudioBuffer.size() < (requiredSize*2)) && !mFmvStream->AtEnd();
     }
 
     virtual void FillBuffers() override
     {
-
-        const int kXaFrameDataSize = 2016;
-        const int kNumAudioChannels = 2;
-        const int kBytesPerSample = 2;
-        std::vector<s16> outPtr((kXaFrameDataSize * kNumAudioChannels * kBytesPerSample) / 2);
-        
-        if (mDemuxBuffer.empty())
+        while (NeedBuffer())
         {
-            mDemuxBuffer.resize(1024 * 1024);
-        }
+            const int kXaFrameDataSize = 2016;
+            const int kNumAudioChannels = 2;
+            const int kBytesPerSample = 2;
+            std::vector<s16> outPtr((kXaFrameDataSize * kNumAudioChannels * kBytesPerSample) / 2);
 
-        std::vector<u8> pixelBuffer;
-        for (;;)
-        {
-
-            PsxStrHeader w;
-            if (mFmvStream->AtEnd())
+            if (mDemuxBuffer.empty())
             {
-                return;
-            }
-            mFmvStream->ReadBytes(reinterpret_cast<u8*>(&w), sizeof(w));
-
-            // PC sector must start with "MOIR" if video, else starts with "VALE"
-            if (!mPsx && w.mSectorType != 0x52494f4d)
-            {
-                // abort();
+                mDemuxBuffer.resize(1024 * 1024);
             }
 
-            // AKIK is 0x80010160 in PSX
-            const auto kMagic = mPsx ? 0x80010160 : 0x4b494b41;
-            if (w.mAkikMagic != kMagic)
+            std::vector<u8> pixelBuffer;
+            for (;;)
             {
-                if (mPsx)
+
+                PsxStrHeader w;
+                if (mFmvStream->AtEnd())
                 {
-                    /*
-                    std::cout <<
-                    (CHECK_BIT(xa->subheader.coding_info, 0) ? "Mono " : "Stereo ") <<
-                    (CHECK_BIT(xa->subheader.coding_info, 2) ? "37800Hz " : "18900Hz ") <<
-                    (CHECK_BIT(xa->subheader.coding_info, 4) ? "4bit " : "8bit ")
-                    */
+                    return;
+                }
+                mFmvStream->ReadBytes(reinterpret_cast<u8*>(&w), sizeof(w));
 
-                    RawCdImage::CDXASector* rawXa = (RawCdImage::CDXASector*)&w;
-                    if (rawXa->subheader.coding_info != 0)
+                // PC sector must start with "MOIR" if video, else starts with "VALE"
+                if (!mPsx && w.mSectorType != 0x52494f4d)
+                {
+                    // abort();
+                }
+
+                // AKIK is 0x80010160 in PSX
+                const auto kMagic = mPsx ? 0x80010160 : 0x4b494b41;
+                if (w.mAkikMagic != kMagic)
+                {
+                    if (mPsx)
                     {
-                        mAdpcm.DecodeFrameToPCM(outPtr, &rawXa->data[0]);
+                        /*
+                        std::cout <<
+                        (CHECK_BIT(xa->subheader.coding_info, 0) ? "Mono " : "Stereo ") <<
+                        (CHECK_BIT(xa->subheader.coding_info, 2) ? "37800Hz " : "18900Hz ") <<
+                        (CHECK_BIT(xa->subheader.coding_info, 4) ? "4bit " : "8bit ")
+                        */
+
+                        RawCdImage::CDXASector* rawXa = (RawCdImage::CDXASector*)&w;
+                        if (rawXa->subheader.coding_info != 0)
+                        {
+                            mAdpcm.DecodeFrameToPCM(outPtr, &rawXa->data[0]);
+                        }
+                        else
+                        {
+                            // Blank/empty audio frame, play silence so video stays in sync
+                            //numBytes = 2016 * 2 * 2;
+                        }
                     }
                     else
                     {
-                        // Blank/empty audio frame, play silence so video stays in sync
-                        //numBytes = 2016 * 2 * 2;
+                        mAdpcm.DecodeFrameToPCM(outPtr, (uint8_t *)&w.mAkikMagic);
                     }
+
+                    /*
+                    std::vector<u16> tmp(outPtr.size());
+                    for (auto i = 0u; i < outPtr.size(); i++)
+                    {
+                        // mAudioBuffer
+                        tmp.push_back(outPtr[i] & 0xFF);
+                        tmp.push_back(static_cast<unsigned char>(outPtr[i] >> 8));
+                    }
+                    */
+
+                    std::vector<u8> tmp2(outPtr.size() * 4);
+
+                    size_t consumedSrc = 0;
+                    size_t wroteSamples = 0;
+                    size_t inLenSampsPerChan = (37800 / 15) / 2;
+                    size_t outLenSampsPerChan = (44100 / 15) / 2;
+                   
+                    soxr_io_spec_t ioSpec = soxr_io_spec(
+                        SOXR_INT16_I,   // In type
+                        SOXR_INT16_I);  // Out type
+
+                    soxr_oneshot(
+                        37800,       // Input rate
+                        44100,      // Output rate
+                        2,          // Num channels
+                        outPtr.data(),
+                        inLenSampsPerChan,
+                        &consumedSrc,
+                        tmp2.data(),
+                        outLenSampsPerChan,
+                        &wroteSamples,
+                        &ioSpec,    // IO spec
+                        nullptr,    // Quality spec
+                        nullptr     // Runtime spec
+                    );
+/*
+                    soxr_error_t err = soxr_process(mResampler,
+                        tmp.data(),
+                        inLenSampsPerChan,
+                        &consumedSrc,
+                        tmp2.data(),
+                        outLenSampsPerChan,
+                        &wroteSamples);
+                        */
+
+                    for (auto i = 0u; i < wroteSamples; i++)
+                    {
+                        mAudioBuffer.push_back(tmp2[i]);
+                    }
+
+
+                    // Must be VALE
+                    continue;
                 }
                 else
                 {
-                     mAdpcm.DecodeFrameToPCM(outPtr, (uint8_t *)&w.mAkikMagic);
-                }
-              
-                for (auto i = 0u; i < outPtr.size(); i++)
-                {
-                    mAudioBuffer.push_back(outPtr[i] & 0xFF);
-                    mAudioBuffer.push_back(static_cast<unsigned char>(outPtr[i] >> 8));
-                }
+                    const u16 frameW = w.mWidth;
+                    const u16 frameH = w.mHeight;
 
-                // Must be VALE
-                continue;
-            }
-            else
-            {
-                const u16 frameW = w.mWidth;
-                const u16 frameH = w.mHeight;
-
-                uint32_t bytes_to_copy = w.mFrameDataLen - w.mSectorNumberInFrame *kXaFrameDataSize;
-                if (bytes_to_copy > 0)
-                {
-                    if (bytes_to_copy > kXaFrameDataSize)
+                    uint32_t bytes_to_copy = w.mFrameDataLen - w.mSectorNumberInFrame *kXaFrameDataSize;
+                    if (bytes_to_copy > 0)
                     {
-                        bytes_to_copy = kXaFrameDataSize;
+                        if (bytes_to_copy > kXaFrameDataSize)
+                        {
+                            bytes_to_copy = kXaFrameDataSize;
+                        }
+
+                        memcpy(mDemuxBuffer.data() + w.mSectorNumberInFrame * kXaFrameDataSize, w.frame, bytes_to_copy);
                     }
 
-                    memcpy(mDemuxBuffer.data() + w.mSectorNumberInFrame * kXaFrameDataSize, w.frame, bytes_to_copy);
-                }
+                    if (w.mSectorNumberInFrame == w.mNumSectorsInFrame - 1)
+                    {
+                        // Always resize as its possible for a stream to change its frame size to be smaller or larger
+                        // this happens in the AE PSX MI.MOV streams
+                        pixelBuffer.resize(frameW * frameH * 4); // 4 bytes per pixel
 
-                if (w.mSectorNumberInFrame == w.mNumSectorsInFrame - 1)
-                {
-                    // Always resize as its possible for a stream to change its frame size to be smaller or larger
-                    // this happens in the AE PSX MI.MOV streams
-                    pixelBuffer.resize(frameW * frameH* 4); // 4 bytes per pixel
+                        mMdec.DecodeFrameToABGR32((uint16_t*)pixelBuffer.data(), (uint16_t*)mDemuxBuffer.data(), frameW, frameH);
+                        mVideoBuffer.push_back(Frame{ mFrameCounter++, frameW, frameH, pixelBuffer });
 
-                    mMdec.DecodeFrameToABGR32((uint16_t*)pixelBuffer.data(), (uint16_t*)mDemuxBuffer.data(), frameW, frameH);
-                    mVideoBuffer.push_back(Frame{ mFrameCounter++, frameW, frameH, pixelBuffer });
-
-                    return;
+                        return;
+                    }
                 }
             }
         }
-
-       
     }
 
 private:
@@ -415,7 +472,7 @@ public:
         const u32 kNumChannels = 2;
         const u32 kFps = 15;
         mAudioBytesPerFrame = (kAudioFreq / kFps) * kNumChannels * sizeof(u16);
-        mAudioController.SetAudioSpec(kAudioFreq / kFps, kAudioFreq);
+        //mAudioController.SetAudioSpec(kAudioFreq / kFps, kAudioFreq);
         mFmvStream = std::move(stream);
     }
 };
@@ -432,7 +489,7 @@ public:
 
         if (mMasher->HasAudio())
         {
-            mAudioController.SetAudioSpec(static_cast<u16>(mMasher->SingleAudioFrameSizeSamples()), mMasher->AudioSampleRate());
+            //mAudioController.SetAudioSpec(static_cast<u16>(mMasher->SingleAudioFrameSizeSamples()), mMasher->AudioSampleRate());
         }
 
         if (mMasher->HasVideo())
