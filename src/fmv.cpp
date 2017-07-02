@@ -4,6 +4,7 @@
 #include "abstractrenderer.hpp"
 #include "resourcemapper.hpp"
 #include "cdromfilesystem.hpp"
+#include "soxr.h"
 
 class AutoMouseCursorHide
 {
@@ -49,17 +50,12 @@ static void RenderSubtitles(AbstractRenderer& rend, const char* msg, float x, fl
 IMovie::IMovie(const std::string& resourceName, IAudioController& controller, std::unique_ptr<SubTitleParser> subtitles)
     : mAudioController(controller), mSubTitles(std::move(subtitles)), mName(resourceName)
 {
-    // TODO: Add to interface - must be added/removed outside of ctor/dtor due
-    // to data race issues
-    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-    mAudioController.SetExclusiveAudioPlayer(this);
+
 }
 
 IMovie::~IMovie()
 {
-    // TODO: Data race fix
-    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
-    mAudioController.SetExclusiveAudioPlayer(nullptr);
+
 }
 
 
@@ -69,6 +65,11 @@ void IMovie::OnRenderFrame(AbstractRenderer& rend)
     // TODO: Populate mAudioBuffer and mVideoBuffer
     // for up to N buffered frames
     std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+
+    if (!mPlaying)
+    {
+        return;
+    }
 
     while (NeedBuffer())
     {
@@ -147,6 +148,22 @@ bool IMovie::IsEnd()
     return ret;
 }
 
+// Main thread context
+void IMovie::Start()
+{
+    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+    mAudioController.SetExclusiveAudioPlayer(this);
+    mPlaying = true;
+}
+
+// Main thread context
+void IMovie::Stop()
+{
+    std::lock_guard<std::mutex> lock(mAudioBufferMutex);
+    mAudioController.SetExclusiveAudioPlayer(nullptr);
+    mPlaying = false;
+}
+
 // Audio thread context, from IAudioPlayer
 bool IMovie::Play(f32* stream, u32 len)
 {
@@ -169,7 +186,7 @@ bool IMovie::Play(f32* stream, u32 len)
         uint8_t high = mAudioBuffer[i*sizeof(int16_t) + 1];
         int16_t fixed = (int16_t)(low | (high << 8));
 
-        // TODO: Add a proper audio mixing alogrithm/API, this will clip/overflow and cause weridnes when
+        // TODO: Add a proper audio mixing algorithm/API, this will clip/overflow and cause weridnes when
         // 2 streams of diff sample rates are mixed
         stream[i] += fixed / 32768.0f;
     }
@@ -206,8 +223,6 @@ void IMovie::RenderFrame(AbstractRenderer &rend, int width, int height, const vo
 
     rend.DestroyTexture(texhandle);
 }
-
-#include "soxr.h"
 
 // PSX MOV/STR format, all PSX game versions use this.
 class MovMovie : public IMovie
@@ -338,6 +353,7 @@ public:
 
                 // AKIK is 0x80010160 in PSX
                 const auto kMagic = mPsx ? 0x80010160 : 0x4b494b41;
+                bool noAudio = false;
                 if (w.mAkikMagic != kMagic)
                 {
                     if (mPsx)
@@ -358,6 +374,8 @@ public:
                         {
                             // Blank/empty audio frame, play silence so video stays in sync
                             //numBytes = 2016 * 2 * 2;
+                            mAudioBuffer.resize(mAudioBuffer.size() + (2352*4));
+                            noAudio = true;
                         }
                     }
                     else
@@ -365,36 +383,39 @@ public:
                         mAdpcm.DecodeFrameToPCM(outPtr, (uint8_t *)&w.mAkikMagic);
                     }
 
-                    size_t consumedSrc = 0;
-                    size_t wroteSamples = 0;
-                    size_t inLenSampsPerChan = kXaFrameDataSize;
-                    size_t outLenSampsPerChan = inLenSampsPerChan*2;
-                    std::vector<u8> tmp2(2352 *4);
-
-                    soxr_io_spec_t ioSpec = soxr_io_spec(
-                        SOXR_INT16_I,   // In type
-                        SOXR_INT16_I);  // Out type
-
-                    soxr_oneshot(
-                        37800,       // Input rate
-                        44100,      // Output rate
-                        2,          // Num channels
-                        outPtr.data(),
-                        inLenSampsPerChan,
-                        &consumedSrc,
-                        tmp2.data(),
-                        outLenSampsPerChan,
-                        &wroteSamples,
-                        &ioSpec,    // IO spec
-                        nullptr,    // Quality spec
-                        nullptr     // Runtime spec
-                    );
-
-                    for (auto i = 0u; i < wroteSamples*4; i++)
+                    if (!noAudio)
                     {
-                        mAudioBuffer.push_back(tmp2[i]);
-                    }
+                        size_t consumedSrc = 0;
+                        size_t wroteSamples = 0;
+                        size_t inLenSampsPerChan = kXaFrameDataSize;
+                        size_t outLenSampsPerChan = inLenSampsPerChan * 2;
+                        std::vector<u8> tmp2(2352 * 4);
 
+                        soxr_io_spec_t ioSpec = soxr_io_spec(
+                            SOXR_INT16_I,   // In type
+                            SOXR_INT16_I);  // Out type
+
+                        soxr_oneshot(
+                            37800,       // Input rate
+                            44100,      // Output rate
+                            2,          // Num channels
+                            outPtr.data(),
+                            inLenSampsPerChan,
+                            &consumedSrc,
+                            tmp2.data(),
+                            outLenSampsPerChan,
+                            &wroteSamples,
+                            &ioSpec,    // IO spec
+                            nullptr,    // Quality spec
+                            nullptr     // Runtime spec
+                        );
+
+
+                        for (auto i = 0u; i < wroteSamples * 4; i++)
+                        {
+                            mAudioBuffer.push_back(tmp2[i]);
+                        }
+                    }
 
                     // Must be VALE
                     continue;
@@ -571,7 +592,7 @@ Fmv::Fmv(IAudioController& audioController, ResourceLocator& resourceLocator)
 
 Fmv::~Fmv()
 {
-
+    Stop();
 }
 
 void Fmv::Play(const std::string& name)
@@ -579,11 +600,22 @@ void Fmv::Play(const std::string& name)
     if (mFmvName != name)
     {
         mFmvName = name;
+        if (mFmv)
+        {
+            mFmv->Stop();
+        }
+
         mFmv = mResourceLocator.LocateFmv(mAudioController, name.c_str());
-        if (!mFmv)
+        
+        if (mFmv)
+        {
+            mFmv->Start();
+        }
+        else
         {
             LOG_WARNING("Video: " + name + " was not found");
         }
+        
     }
 }
 
@@ -594,6 +626,10 @@ bool Fmv::IsPlaying() const
 
 void Fmv::Stop()
 {
+    if (mFmv)
+    {
+        mFmv->Stop();
+    }
     mFmv = nullptr;
     mFmvName.clear();
 }
@@ -678,7 +714,7 @@ void Fmv::DebugUi()
         if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
         {
             const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-            mFmv = mResourceLocator.LocateFmv(mAudioController, fmvName.c_str());
+            Play(fmvName);
             mListBoxSelectedItem = -1;
         }
     }

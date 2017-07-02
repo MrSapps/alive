@@ -34,6 +34,9 @@ public:
 
     // Main thread context
     bool IsEnd();
+
+    void Start();
+    void Stop();
 protected:
     virtual bool EndOfStream() = 0;
     virtual bool NeedBuffer() = 0;
@@ -62,8 +65,9 @@ protected:
     u32 mAudioBytesPerFrame = 1;
     std::unique_ptr<SubTitleParser> mSubTitles;
     std::string mName;
-private:
 
+private:
+    bool mPlaying = false;
     //AutoMouseCursorHide mHideMouseCursor;
 };
 
