@@ -102,6 +102,9 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${GTK3_INCLUDE_DIRS}
 )
+
+SET(BUILD_SHARED_LIBS 0)
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/soxr-0.1.2)
 SET_PROPERTY(TARGET 1a-lsr PROPERTY FOLDER "3rdparty")
 SET_PROPERTY(TARGET 1-delay-clear PROPERTY FOLDER "3rdparty")
