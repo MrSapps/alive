@@ -663,6 +663,7 @@ void Sound::SoundBrowserUi()
         {
             SetTheme(theme.mName.c_str());
             Preload();
+            HandleEvent("BASE_LINE");
         }
     }
 
