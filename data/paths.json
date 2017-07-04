@@ -18,7 +18,8 @@
         "number_of_screens_y": 8,
         "object_indextable_offset": 7628,
         "object_offset": 2460,
-        "resource_name": "BAPATH_1"
+        "resource_name": "BAPATH_1",
+        "music_theme" :  "Barracks"
       },
       {
         "collision_offset": 112,

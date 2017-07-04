@@ -130,6 +130,7 @@ public:
         u32 mObjectOffset;
         u32 mNumberOfScreensX;
         u32 mNumberOfScreensY;
+        std::string mMusicTheme;
         std::vector<PathLocation> mLocations;
 
         const PathLocation* Find(const std::string& dataSetName) const
@@ -422,6 +423,11 @@ private:
         mapping.mObjectOffset = obj["object_offset"].GetInt();
         mapping.mNumberOfScreensX = obj["number_of_screens_x"].GetInt();
         mapping.mNumberOfScreensY = obj["number_of_screens_y"].GetInt();
+
+        if (obj.HasMember("music_theme"))
+        {
+            mapping.mMusicTheme = obj["music_theme"].GetString();
+        }
 
         const auto& locations = obj["locations"].GetArray();
         for (auto& locationRecord : locations)

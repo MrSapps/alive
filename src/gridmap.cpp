@@ -64,9 +64,7 @@ Level::Level(Sound& sound, IAudioController& audioController, ResourceLocator& l
                         nextPathIndex = 0;
                     }
 
-                    // TODO: Add to the records
-                    //pathMap.second.mMusicTheme
-                    sound.SetTheme("Feeco");
+                    sound.SetTheme(pathMap.second.mMusicTheme.c_str());
                     sound.HandleEvent("BASE_LINE");
                 }
                 else
