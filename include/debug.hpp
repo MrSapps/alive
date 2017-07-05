@@ -28,7 +28,7 @@ struct Debug
 
         }
         bool fmvBrowserOpen;
-        bool soundBrowserOpen;
+        bool soundBrowserOpen = true;
         bool levelBrowserOpen;
         bool animationBrowserOpen;
     };

@@ -16,6 +16,7 @@
 #include "debug.hpp"
 #include "proxy_rapidjson.hpp"
 #include "filesystem.hpp"
+#include "sound_resources.hpp"
 
 #include "gamedefinition.hpp" // DataPaths
 #include "imgui/imgui.h"
@@ -23,51 +24,6 @@
 namespace Oddlib
 {
     class IBits;
-}
-
-namespace Detail
-{
-    const auto kFnvOffsetBais = 14695981039346656037U;
-    const auto kFnvPrime = 1099511628211U;
-
-    inline void HashInternal(Uint64& result, const char* s)
-    {
-        if (s)
-        {
-            while (*s)
-            {
-                result = (kFnvPrime * result) ^ static_cast<unsigned char>(*s);
-                s++;
-            }
-        }
-    }
-
-    inline void HashInternal(Uint64& result, const std::string& s)
-    {
-        HashInternal(result, s.c_str());
-    }
-
-    // Treat each byte of u32 as unsigned char in FNV hashing
-    inline void HashInternal(Uint64 result, u32 value)
-    {
-        result = (kFnvPrime * result) ^ static_cast<unsigned char>(value >> 24);
-        result = (kFnvPrime * result) ^ static_cast<unsigned char>(value >> 16);
-        result = (kFnvPrime * result) ^ static_cast<unsigned char>(value >> 8);
-        result = (kFnvPrime * result) ^ static_cast<unsigned char>(value);
-    }
-}
-
-template<typename... Args>
-inline Uint64 StringHash(Args... args)
-{
-    Uint64 result = Detail::kFnvOffsetBais;
-    // Cast to void since initializer_list isn't actually used, its just here so that we 
-    // can call HashInternal for each parameter
-    (void)std::initializer_list<int>
-    {
-        (Detail::HashInternal(result, std::forward<Args>(args)), 0)...
-    };
-    return result;
 }
 
 inline std::vector<u8> StringToVector(const std::string& str)
@@ -93,19 +49,29 @@ public:
             mFmvMaps = std::move(rhs.mFmvMaps);
             mFileLocations = std::move(rhs.mFileLocations);
             mPathMaps = std::move(rhs.mPathMaps);
-            mMusicMaps = std::move(rhs.mMusicMaps);
-            mSoundBankMaps = std::move(rhs.mSoundBankMaps);
-            mSoundEffectMaps = std::move(rhs.mSoundEffectMaps);
+            mSoundResources = rhs.mSoundResources;
         }
         return *this;
     }
 
-    ResourceMapper(IFileSystem& fileSystem, const char* resourceMapFile)
+    ResourceMapper(IFileSystem& fileSystem, const char* resourceMapFile, const char* soundResourceMapFile, const char* pathsResourceMapFile, const char* fmvsResourceMapFile)
     {
-        auto stream = fileSystem.Open(resourceMapFile);
-        assert(stream != nullptr);
-        const auto jsonData = stream->LoadAllToString();
+        auto resourcesStream = fileSystem.Open(resourceMapFile);
+        assert(resourcesStream != nullptr);
+        const auto jsonData = resourcesStream->LoadAllToString();
         Parse(jsonData);
+
+        auto soundResourcesStream = fileSystem.Open(soundResourceMapFile);
+        const auto soundJsonData = soundResourcesStream->LoadAllToString();
+        mSoundResources.Parse(soundJsonData);
+
+        auto pathResourcesStream = fileSystem.Open(pathsResourceMapFile);
+        const auto pathJsonData = pathResourcesStream->LoadAllToString();
+        ParsePathResourceJson(pathJsonData);
+
+        auto fmvResourcesStream = fileSystem.Open(fmvsResourceMapFile);
+        const auto fmvJsonData = fmvResourcesStream->LoadAllToString();
+        ParseFmvResourceJson(fmvJsonData);
     }
 
     struct AnimFile
@@ -164,6 +130,7 @@ public:
         u32 mObjectOffset;
         u32 mNumberOfScreensX;
         u32 mNumberOfScreensY;
+        std::string mMusicTheme;
         std::vector<PathLocation> mLocations;
 
         const PathLocation* Find(const std::string& dataSetName) const
@@ -179,61 +146,9 @@ public:
         }
     };
 
-    struct MusicMapping
+    const SoundResource* FindSound(const char* resourceName)
     {
-        std::string mDataSetName;
-        std::string mFileName;
-        std::string mLvl;
-        std::string mSoundBankName;
-        u32 mIndex;
-    };
-
-    struct SoundBankMapping
-    {
-        std::string mDataSetName;
-        std::string mLvl;
-        std::string mVabBody;
-        std::string mVabHeader;
-    };
-
-    struct SoundEffectMapping
-    {
-        std::string mDataSetName;
-        u32 mNote = 0;
-        u32 mProgram = 0;
-        std::string mSoundBankName;
-        f32 mMinPitch = 1.0f;
-        f32 mMaxPitch = 1.0f;
-    };
-
-    const MusicMapping* FindMusic(const char* resourceName)
-    {
-        const auto it = mMusicMaps.find(resourceName);
-        if (it != std::end(mMusicMaps))
-        {
-            return &it->second;
-        }
-        return nullptr;
-    }
-
-    const SoundBankMapping* FindSoundBank(const char* resourceName)
-    {
-        const auto it = mSoundBankMaps.find(resourceName);
-        if (it != std::end(mSoundBankMaps))
-        {
-            return &it->second;
-        }
-        return nullptr;
-    }
-
-    const SoundEffectMapping* FindSoundEffect(const char* resourceName)
-    {
-        const auto it = mSoundEffectMaps.find(resourceName);
-        if (it != std::end(mSoundEffectMaps))
-        {
-            return &it->second;
-        }
-        return nullptr;
+        return mSoundResources.FindSound(resourceName);
     }
 
     const PathMapping* FindPath(const char* resourceName)
@@ -348,9 +263,7 @@ private:
     std::map<std::string, AnimMapping> mAnimMaps;
     std::map<std::string, FmvMapping> mFmvMaps;
     std::map<std::string, PathMapping> mPathMaps;
-    std::map<std::string, MusicMapping> mMusicMaps;
-    std::map<std::string, SoundBankMapping> mSoundBankMaps;
-    std::map<std::string, SoundEffectMapping> mSoundEffectMaps;
+    SoundResources mSoundResources;
 
     friend class Level; // TODO: Temp debug ui
     friend class Sound; // TODO: Temp debug ui
@@ -376,15 +289,24 @@ private:
                 }
             }
             
-            if (it.HasMember("fmvs"))
+            if (it.HasMember("lvls"))
             {
-                const auto& fmvsArray = it["fmvs"].GetArray();
-                for (auto& obj : fmvsArray)
-                {
-                    ParseFmvResourceJson(obj);
-                }
+                ParseFileLocations(it);
             }
-            
+        }
+    }
+
+    void ParsePathResourceJson(const std::string& json)
+    {
+        TRACE_ENTRYEXIT;
+
+        rapidjson::Document document;
+        document.Parse(json.c_str());
+
+        const auto& docRootArray = document.GetArray();
+
+        for (auto& it : docRootArray)
+        {
             if (it.HasMember("paths"))
             {
                 const auto& pathsArray = it["paths"].GetArray();
@@ -393,95 +315,32 @@ private:
                     ParsePathResourceJson(obj);
                 }
             }
+        }
+    }
 
-            if (it.HasMember("lvls"))
-            {
-                ParseFileLocations(it);
-            }
+    void ParseFmvResourceJson(const std::string& json)
+    {
+        TRACE_ENTRYEXIT;
 
-            if (it.HasMember("musics"))
-            {
-                ParseMusics(it);
-            }
+        rapidjson::Document document;
+        document.Parse(json.c_str());
 
-            if (it.HasMember("sound_banks"))
-            {
-                ParseSoundBanks(it);
-            }
+        const auto& docRootArray = document.GetArray();
 
-            if (it.HasMember("sound_effects"))
+        for (auto& it : docRootArray)
+        {
+            if (it.HasMember("fmvs"))
             {
-                ParseSoundEffects(it);
+                const auto& fmvsArray = it["fmvs"].GetArray();
+                for (auto& obj : fmvsArray)
+                {
+                    ParseFmvResourceJson(obj);
+                }
             }
         }
     }
 
     std::map<std::string, std::map<std::string, std::vector<DataSetFileAttributes>>> mFileLocations;
-
-    template<typename JsonObject>
-    void ParseSoundBanks(const JsonObject& obj)
-    {
-        const auto& soundBanks = obj["sound_banks"].GetArray();
-        for (const auto& soundBank : soundBanks)
-        {
-            const std::string& name = soundBank["resource_name"].GetString();
-            SoundBankMapping mapping;
-            mapping.mDataSetName = soundBank["data_set"].GetString();
-            mapping.mLvl = soundBank["lvl"].GetString();
-            mapping.mVabBody = soundBank["vab_body"].GetString();
-            mapping.mVabHeader = soundBank["vab_header"].GetString();
-
-            mSoundBankMaps[name] = mapping;
-        }
-    }
-
-    template<typename JsonObject>
-    void ParseSoundEffects(const JsonObject& obj)
-    {
-        const auto& soundEffects = obj["sound_effects"].GetArray();
-        for (const auto& soundEffect : soundEffects)
-        {
-            const std::string& name = soundEffect["resource_name"].GetString();
-            SoundEffectMapping mapping;
-            mapping.mDataSetName = soundEffect["data_set"].GetString();
-            mapping.mNote = soundEffect["note"].GetInt();
-            mapping.mProgram = soundEffect["program"].GetInt();
-            mapping.mSoundBankName = soundEffect["sound_bank"].GetString();
-            if (soundEffect.HasMember("pitch_range"))
-            {
-                const auto& pitchRange = soundEffect["pitch_range"].GetArray();
-                if (pitchRange.Size() != 2)
-                {
-                    LOG_ERROR("pitch_range must contain 2 entries min and max, but contains " << pitchRange.Size() << " entries");
-                }
-                else
-                {
-                    mapping.mMinPitch = pitchRange[0].GetFloat();
-                    mapping.mMaxPitch = pitchRange[1].GetFloat();
-                }
-            }
-
-            mSoundEffectMaps[name] = mapping;
-        }
-    }
-
-    template<typename JsonObject>
-    void ParseMusics(const JsonObject& obj)
-    {
-        const auto& musics = obj["musics"].GetArray();
-        for (const auto& musicRecord : musics)
-        {
-            const std::string& name = musicRecord["resource_name"].GetString();
-            MusicMapping mapping;
-            mapping.mSoundBankName = musicRecord["sound_bank"].GetString();
-            mapping.mDataSetName = musicRecord["data_set"].GetString();
-            mapping.mFileName = musicRecord["file_name"].GetString();
-            mapping.mIndex = musicRecord["index"].GetInt();
-            mapping.mLvl = musicRecord["lvl"].GetString();
-
-            mMusicMaps[name] = mapping;
-        }
-    }
 
     template<typename JsonObject>
     void ParseFileLocations(const JsonObject& obj)
@@ -565,6 +424,11 @@ private:
         mapping.mNumberOfScreensX = obj["number_of_screens_x"].GetInt();
         mapping.mNumberOfScreensY = obj["number_of_screens_y"].GetInt();
 
+        if (obj.HasMember("music_theme"))
+        {
+            mapping.mMusicTheme = obj["music_theme"].GetString();
+        }
+
         const auto& locations = obj["locations"].GetArray();
         for (auto& locationRecord : locations)
         {
@@ -620,6 +484,9 @@ private:
             mapping.mLocations.push_back(fmvFileLocation);
         }
     }
+public:
+    const SoundBankLocation* FindSoundBank(const std::string& soundBank);
+    const MusicTheme* FindSoundTheme(const char* themeName);
 };
 
 // TODO: Move to physics
@@ -777,39 +644,30 @@ private:
     std::map<std::string, std::weak_ptr<Oddlib::AnimationSet>> mAnimationSets;
 };
 
-// TODO: Provide higher level abstraction so this can be a vab/seq or ogg stream
-class IMusic
+// TODO: Provide higher level abstraction
+class ISound
 {
 public:
-    IMusic(std::unique_ptr<Vab> vab, std::unique_ptr<Oddlib::IStream> seq)
+    ISound(std::unique_ptr<Vab> vab, std::unique_ptr<Oddlib::IStream> seq)
         : mVab(std::move(vab)), mSeqData(std::move(seq))
     {
 
     }
 
-    virtual ~IMusic() = default;
-
-    std::unique_ptr<Vab> mVab;
-    std::unique_ptr<Oddlib::IStream> mSeqData;
-};
-
-
-// TODO: Provide higher level abstraction
-class ISoundEffect
-{
-public:
-    ISoundEffect(std::unique_ptr<Vab> vab, u32 program, u32 note, f32 minPitch, f32 maxPitch)
+    ISound(std::unique_ptr<Vab> vab, u32 program, u32 note, u32 minPitch, u32 maxPitch, u32 /*vol*/)
         : mVab(std::move(vab)), mProgram(program), mNote(note), mMinPitch(minPitch), mMaxPitch(maxPitch)
     {
 
     }
-    virtual ~ISoundEffect() = default;
+
+    virtual ~ISound() = default;
 
     std::unique_ptr<Vab> mVab;
     u32 mProgram = 0;
     u32 mNote = 0;
-    f32 mMinPitch = 0.0f;
-    f32 mMaxPitch = 0.0f;
+    u32 mMinPitch = 0;
+    u32 mMaxPitch = 0;
+    std::unique_ptr<Oddlib::IStream> mSeqData;
 };
 
 class ResourceLocator
@@ -828,8 +686,8 @@ public:
 
     std::string LocateScript(const char* scriptName);
 
-    std::unique_ptr<ISoundEffect> LocateSoundEffect(const char* resourceName);
-    std::unique_ptr<IMusic> LocateMusic(const char* resourceName);
+    std::unique_ptr<ISound> LocateSound(const char* resourceName, const char* explicitSoundBankName = nullptr, bool useMusicRec = true, bool useSfxRec = true);
+    const MusicTheme* LocateSoundTheme(const char* themeName);
 
     // TODO: Should be returning higher level abstraction
     std::unique_ptr<Oddlib::Path> LocatePath(const char* resourceName);
@@ -844,7 +702,8 @@ public:
 
     std::vector<std::tuple<const char*, const char*, bool>> DebugUi(const char* dataSetFilter, const char* nameFilter);
 private:
-    std::unique_ptr<Vab> LocateSoundBank(const char* resourceName);
+    std::unique_ptr<ISound> DoLoadSoundEffect(const DataPaths::FileSystemInfo& fs, const std::string& strSb, const SoundEffectResource& sfxRes, const SoundEffectResourceLocation& sfxResLoc);
+    std::unique_ptr<ISound> DoLoadSoundMusic(const DataPaths::FileSystemInfo& fs, const std::string& strSb, const MusicResource& sfxRes);
 
     std::unique_ptr<Animation> DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
 

@@ -1,13 +1,16 @@
 #include "oddlib/audio/SequencePlayer.h"
+#include "imgui/imgui.h"
 
-SequencePlayer::SequencePlayer(AliveAudio& aliveAudio)
-    : mAliveAudio(aliveAudio)
+SequencePlayer::SequencePlayer(const std::string& name, Vab& soundBank)
+    : mName(name)
 {
-
+    auto convertedSoundBank = std::make_unique<AliveAudioSoundbank>(soundBank);
+    mAliveAudio.SetSoundbank(std::move(convertedSoundBank));
 }
 
 SequencePlayer::~SequencePlayer()
 {
+    StopSequence();
 }
 
 // Midi stuff
@@ -36,19 +39,26 @@ static u32 MidiReadVarLen(Oddlib::IStream& stream)
 f64 SequencePlayer::MidiTimeToSample(int time)
 {
     // This may, or may not be correct. // TODO: Revise
-    return ((60 * time) / m_SongTempo) * (AliveAudioSampleRate / 500.0);
+    return ((60 * time) / m_SongTempo) * (kAliveAudioSampleRate / 500.0);
+}
+
+void SequencePlayer::Restart()
+{
+    std::lock_guard<std::mutex> lock(mMutex);
+    m_PlayerState = ALIVE_SEQUENCER_PLAYING;
+    mAliveAudio.mCurrentSampleIndex = 0;
 }
 
 // TODO: This thread spin locks
-void SequencePlayer::PlayerThreadFunction()
+void SequencePlayer::Update()
 {
     int channels[16] = {};
 
-    m_PlayerStateMutex.lock();
+    std::lock_guard<std::mutex> lock(mMutex);
+
     if (m_PlayerState == ALIVE_SEQUENCER_INIT_VOICES)
     {
         bool firstNote = true;
-        std::lock_guard<std::recursive_mutex> notesLock(mAliveAudio.mVoiceListMutex);
 
         for (size_t i = 0; i < m_MessageList.size(); i++)
         {
@@ -77,10 +87,10 @@ void SequencePlayer::PlayerThreadFunction()
 
         }
     }
-    m_PlayerStateMutex.unlock();
-
+ 
     if (m_PlayerState == ALIVE_SEQUENCER_PLAYING && mAliveAudio.mCurrentSampleIndex > m_SongFinishSample)
     {
+
         m_PlayerState = ALIVE_SEQUENCER_FINISHED;
 
         // Give a quarter beat anyway
@@ -100,29 +110,56 @@ void SequencePlayer::PlayerThreadFunction()
     }
 }
 
+bool SequencePlayer::AtEnd() const
+{
+    std::lock_guard<std::mutex> lock(mMutex);
+
+    return m_PlayerState == ALIVE_SEQUENCER_FINISHED && mAliveAudio.NumberOfActiveVoices() == 0;
+}
+
+void SequencePlayer::Play(f32* stream, u32 len)
+{
+    std::lock_guard<std::mutex> lock(mMutex);
+
+    mAliveAudio.Play(stream, len);
+}
+
 u64 SequencePlayer::GetPlaybackPositionSample()
 {
+
     return mAliveAudio.mCurrentSampleIndex - m_SongBeginSample;
 }
 
 void SequencePlayer::StopSequence()
 {
+    // Ensure the audio thread isn't in Play()
+    std::lock_guard<std::mutex> lock(mMutex);
+
+    SDL_LockAudio();
+
     mAliveAudio.ClearAllTrackVoices();
-    m_PlayerStateMutex.lock();
+
     m_PlayerState = ALIVE_SEQUENCER_STOPPED;
     m_PrevBar = 0;
-    m_PlayerStateMutex.unlock();
+
+    SDL_UnlockAudio();
+}
+
+void SequencePlayer::NoteOnSingleShot(int program, int note, char velocity, f64 trackDelay, f64 pitch)
+{
+    std::lock_guard<std::mutex> lock(mMutex);
+    m_PlayerState = ALIVE_SEQUENCER_FINISHED;
+    mAliveAudio.NoteOn(program, note, velocity, trackDelay, pitch);
 }
 
 void SequencePlayer::PlaySequence()
 {
-    m_PlayerStateMutex.lock();
+    std::lock_guard<std::mutex> lock(mMutex);
     if (m_PlayerState == ALIVE_SEQUENCER_STOPPED || m_PlayerState == ALIVE_SEQUENCER_FINISHED)
     {
         m_PrevBar = 0;
         m_PlayerState = ALIVE_SEQUENCER_INIT_VOICES;
     }
-    m_PlayerStateMutex.unlock();
 }
 
 int SequencePlayer::LoadSequenceStream(Oddlib::IStream& stream)
@@ -335,5 +372,49 @@ int SequencePlayer::LoadSequenceStream(Oddlib::IStream& stream)
             }
 
         }
+    }
+}
+
+void SequencePlayer::AudioSettingsUi()
+{
+    // NOTE: Read only debug UI - no locks
+
+    ImGui::Begin("Audio output settings");
+
+    if (ImGui::RadioButton("No interpolation", mAliveAudio.Interpolation == AudioInterpolation_none))
+    {
+        mAliveAudio.Interpolation = AudioInterpolation_none;
+    }
+
+    if (ImGui::RadioButton("Linear interpolation", mAliveAudio.Interpolation == AudioInterpolation_linear))
+    {
+        mAliveAudio.Interpolation = AudioInterpolation_linear;
+    }
+
+    if (ImGui::RadioButton("Cubic interpolation", mAliveAudio.Interpolation == AudioInterpolation_cubic))
+    {
+        mAliveAudio.Interpolation = AudioInterpolation_cubic;
+    }
+
+    if (ImGui::RadioButton("Hermite interpolation", mAliveAudio.Interpolation == AudioInterpolation_hermite))
+    {
+        mAliveAudio.Interpolation = AudioInterpolation_hermite;
+    }
+
+    ImGui::Checkbox("Force reverb", &mAliveAudio.ForceReverb);
+    ImGui::DragFloat("Reverb mix", &mAliveAudio.ReverbMix, 0.0f, 1.0f);
+
+    ImGui::Checkbox("Disable resampling (= no freq changes)", &mAliveAudio.DebugDisableVoiceResampling);
+
+    ImGui::End();
+}
+
+void SequencePlayer::DebugUi()
+{
+    // NOTE: Read only debug UI - no locks
+
+    if (mVabBrowser)
+    {
+        mAliveAudio.VabBrowserUi();
     }
 }

@@ -317,6 +317,16 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceMapper::DebugUi(
     return ret;
 }
 
+const MusicTheme* ResourceMapper::FindSoundTheme(const char* themeName)
+{
+    return mSoundResources.FindMusicTheme(themeName);
+}
+
+const SoundBankLocation* ResourceMapper::FindSoundBank(const std::string& soundBank)
+{
+    return mSoundResources.FindSoundBank(soundBank);
+}
+
 ResourceLocator::ResourceLocator(ResourceMapper&& resourceMapper, DataPaths&& dataPaths)
     : mResMapper(std::move(resourceMapper)), mDataPaths(std::move(dataPaths))
 {
@@ -348,26 +358,62 @@ std::string ResourceLocator::LocateScript(const char* scriptName)
     return "";
 }
 
-std::unique_ptr<ISoundEffect> ResourceLocator::LocateSoundEffect(const char* resourceName)
+std::unique_ptr<ISound> ResourceLocator::DoLoadSoundMusic(const DataPaths::FileSystemInfo& fs, const std::string& strSb, const MusicResource& musicRes)
 {
-    const ResourceMapper::SoundEffectMapping* mapping = mResMapper.FindSoundEffect(resourceName);
-    if (mapping)
+    const SoundBankLocation* sbl = mResMapper.FindSoundBank(strSb);
+
+    // Only look in this file system if its mapped to the same dataset as what the sound bank lives in
+    if (fs.mDataSetName != sbl->mDataSetName)
     {
-        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+        return nullptr;
+    }
+
+    const std::vector<ResourceMapper::DataSetFileAttributes>* bsqFileLocationsInThisDataSet = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), sbl->mSeqFileName.c_str());
+    if (!bsqFileLocationsInThisDataSet)
+    {
+        return nullptr;
+    }
+
+    for (const ResourceMapper::DataSetFileAttributes& bsqFileAttributes : *bsqFileLocationsInThisDataSet)
+    {
+        std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, bsqFileAttributes.mLvlName);
+        if (lvl)
         {
-            if (fs.mIsMod)
-            {
-                // TODO: Mod sound effects
-            }
-            else
-            {
-                if (fs.mDataSetName == mapping->mDataSetName)
+            std::string vh = sbl->mSoundBankName + ".VH";
+            std::string vb = sbl->mSoundBankName + ".VB";
+            auto seqFile = lvl->FileByName(sbl->mSeqFileName);
+            auto vhFile = lvl->FileByName(vh);
+            auto vbFile = lvl->FileByName(vb);
+            if (seqFile && vhFile && vbFile)
+            { 
+                // Get SEQ block
+                auto seqChunk = seqFile->ChunkById(musicRes.mResourceId);
+                if (seqChunk)
                 {
-                    std::unique_ptr<Vab> vab = LocateSoundBank(mapping->mSoundBankName.c_str());
-                    if (vab)
+                    auto vab = std::make_unique<Vab>();
+
+                    auto seqStream = seqChunk->Stream();
+
+                    // Read VH
+                    auto vhStream = vhFile->ChunkByIndex(0)->Stream();
+                    vab->ReadVh(*vhStream, bsqFileAttributes.mIsPsx);
+
+                    // Get sounds.dat for VB if required
+                    std::string soundsDatFileName = "sounds.dat";
+                    const bool useSoundsDat = bsqFileAttributes.mIsAo == false && bsqFileAttributes.mIsPsx == false && fs.mFileSystem->FileExists(soundsDatFileName);
+                    std::unique_ptr<Oddlib::IStream> soundsDatStream;
+                    if (useSoundsDat)
                     {
-                        return std::make_unique<ISoundEffect>(std::move(vab), mapping->mProgram, mapping->mNote, mapping->mMinPitch, mapping->mMaxPitch);
+                        soundsDatStream = fs.mFileSystem->Open(soundsDatFileName);
                     }
+
+                    // Read VB
+                    auto vbStream = vbFile->ChunkByIndex(0)->Stream();
+                    vab->ReadVb(*vbStream, bsqFileAttributes.mIsPsx, useSoundsDat, soundsDatStream.get());
+
+                    LOG_INFO("Using sound bank: " << sbl->mName);
+
+                    return std::make_unique<ISound>(std::move(vab), std::move(seqStream));
                 }
             }
         }
@@ -375,91 +421,112 @@ std::unique_ptr<ISoundEffect> ResourceLocator::LocateSoundEffect(const char* res
     return nullptr;
 }
 
-std::unique_ptr<IMusic> ResourceLocator::LocateMusic(const char* resourceName)
+std::unique_ptr<ISound> ResourceLocator::DoLoadSoundEffect(const DataPaths::FileSystemInfo& fs, const std::string& strSb, const SoundEffectResource& sfxRes, const SoundEffectResourceLocation& sfxResLoc)
 {
-    const ResourceMapper::MusicMapping* mapping = mResMapper.FindMusic(resourceName);
-    if (mapping)
+    const SoundBankLocation* sbl = mResMapper.FindSoundBank(strSb);
+
+    // Only look in this file system if its mapped to the same dataset as what the sound bank lives in
+    if (fs.mDataSetName != sbl->mDataSetName)
     {
-        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+        return nullptr;
+    }
+
+    const std::vector<ResourceMapper::DataSetFileAttributes>* bsqFileLocationsInThisDataSet = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), sbl->mSeqFileName.c_str());
+    if (!bsqFileLocationsInThisDataSet)
+    {
+        return nullptr;
+    }
+
+    for (const ResourceMapper::DataSetFileAttributes& bsqFileAttributes : *bsqFileLocationsInThisDataSet)
+    {
+        std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, bsqFileAttributes.mLvlName);
+        if (lvl)
         {
-            if (fs.mIsMod)
+            std::string vh = sbl->mSoundBankName + ".VH";
+            std::string vb = sbl->mSoundBankName + ".VB";
+            auto vhFile = lvl->FileByName(vh);
+            auto vbFile = lvl->FileByName(vb);
+            if (vhFile && vbFile)
             {
-                // TODO: Mod music
-            }
-            else
-            {
-                if (fs.mDataSetName == mapping->mDataSetName)
+                auto vab = std::make_unique<Vab>();
+
+                // Read VH
+                auto vhStream = vhFile->ChunkByIndex(0)->Stream();
+                vab->ReadVh(*vhStream, bsqFileAttributes.mIsPsx);
+
+                // Get sounds.dat for VB if required
+                std::string soundsDatFileName = "sounds.dat";
+                const bool useSoundsDat = bsqFileAttributes.mIsAo == false && bsqFileAttributes.mIsPsx == false && fs.mFileSystem->FileExists(soundsDatFileName);
+                std::unique_ptr<Oddlib::IStream> soundsDatStream;
+                if (useSoundsDat)
                 {
-                    std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, mapping->mLvl);
-                    if (lvl)
-                    {
-                        auto lvlFile = lvl->FileByName(mapping->mFileName);
-                        if (lvlFile)
-                        {
-                            std::unique_ptr<Vab> vab = LocateSoundBank(mapping->mSoundBankName.c_str());
-                            if (vab)
-                            {
-                                auto chunk = lvlFile->ChunkByIndex(mapping->mIndex);
-                                auto stream = chunk->Stream();
-                                return std::make_unique<IMusic>(std::move(vab), std::move(stream));
-                            }
-                        }
-                    }
+                    soundsDatStream = fs.mFileSystem->Open(soundsDatFileName);
                 }
+
+                // Read VB
+                auto vbStream = vbFile->ChunkByIndex(0)->Stream();
+                vab->ReadVb(*vbStream, bsqFileAttributes.mIsPsx, useSoundsDat, soundsDatStream.get());
+
+                LOG_INFO("Using sound bank: " << sbl->mName);
+
+                return std::make_unique<ISound>(std::move(vab), sfxResLoc.mProgram, sfxResLoc.mTone, sfxRes.mMinPitch, sfxRes.mMaxPitch, sfxRes.mVolume);
             }
         }
     }
     return nullptr;
 }
 
-std::unique_ptr<Vab> ResourceLocator::LocateSoundBank(const char* resourceName)
+std::unique_ptr<ISound> ResourceLocator::LocateSound(const char* resourceName, const char* explicitSoundBankName /*= nullptr*/, bool useMusicRec /*= true*/, bool useSfxRec /*= true*/)
 {
-    const ResourceMapper::SoundBankMapping* mapping = mResMapper.FindSoundBank(resourceName);
-    if (mapping)
+    const SoundResource* sr = mResMapper.FindSound(resourceName);
+    for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
     {
-        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+        if (fs.mIsMod)
         {
-            // Note: Its not possible to load a modded sound bank, instead sounds are replaced at
-            // the music/sound effect level
-            if (!fs.mIsMod && fs.mDataSetName == mapping->mDataSetName)
+            // TODO: Mod path
+        }
+        else
+        {
+            if (sr)
             {
-                std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, mapping->mLvl);
-                if (lvl)
+                if (useMusicRec && !sr->mMusic.mSoundBanks.empty())
                 {
-                    // The attributes for the VB/VH should be the same, so just look up the VH attributes
-                    const ResourceMapper::DataSetFileAttributes* attributes = mResMapper.FindFileAttributes(mapping->mVabHeader, mapping->mDataSetName, mapping->mLvl);
-                    if (attributes)
+                    const std::set<std::string>& soundBanks = explicitSoundBankName ? std::set<std::string> { explicitSoundBankName } : sr->mMusic.mSoundBanks;
+                    for (const std::string& sb : soundBanks)
                     {
-                        auto vhFile = lvl->FileByName(mapping->mVabHeader);
-                        auto vbFile = lvl->FileByName(mapping->mVabBody);
-
-                        if (vhFile && vbFile)
+                        auto ret = DoLoadSoundMusic(fs, sb, sr->mMusic);
+                        if (ret)
                         {
-                            auto vab = std::make_unique<Vab>();
+                            return ret;
+                        }
+                    }
+                }
 
-                            // Read VH
-                            auto vhStream = vhFile->ChunkByIndex(0)->Stream();
-                            vab->ReadVh(*vhStream, attributes->mIsPsx);
+                if (useSfxRec && !sr->mSoundEffect.mSoundBanks.empty())
+                {
+                    for (const SoundEffectResourceLocation& loc : sr->mSoundEffect.mSoundBanks)
+                    {
+                        const bool explicitSoundBankNameExists = explicitSoundBankName && loc.mSoundBanks.find(explicitSoundBankName) != std::end(loc.mSoundBanks);
+                        if (explicitSoundBankName && !explicitSoundBankNameExists)
+                        {
+                            break;
+                        }
 
-                            // Get sounds.dat for VB if required
-                            std::string soundsDatName = "sounds.dat";
-                            const bool useSoundsDat = fs.mFileSystem->FileExists(soundsDatName);
-                            std::unique_ptr<Oddlib::IStream> soundsDatStream;
-                            if (useSoundsDat)
+                        const std::set<std::string>& soundBanks = explicitSoundBankName ? std::set<std::string> { explicitSoundBankName } : loc.mSoundBanks;
+                        for (const std::string& sb : soundBanks)
+                        {
+                            auto ret = DoLoadSoundEffect(fs, sb, sr->mSoundEffect, loc);
+                            if (ret)
                             {
-                                soundsDatStream = fs.mFileSystem->Open(soundsDatName);
+                                return ret;
                             }
-
-                            // Read VB
-                            auto vbStream = vbFile->ChunkByIndex(0)->Stream();
-                            vab->ReadVb(*vbStream, attributes->mIsPsx, useSoundsDat, soundsDatStream.get());
-                            return vab;
                         }
                     }
                 }
             }
         }
     }
+
     return nullptr;
 }
 
@@ -807,6 +874,11 @@ std::shared_ptr<Oddlib::LvlArchive> ResourceLocator::OpenLvl(IFileSystem& fs, co
         }
     }
     return lvlPtr;
+}
+
+const MusicTheme* ResourceLocator::LocateSoundTheme(const char* themeName)
+{
+    return mResMapper.FindSoundTheme(themeName);
 }
 
 std::unique_ptr<Animation> ResourceLocator::DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping)

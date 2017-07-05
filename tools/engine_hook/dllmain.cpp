@@ -10,6 +10,8 @@
 #include "oddlib/stream.hpp"
 #include "sound_hooks.hpp"
 #include "gamefilesystem.hpp"
+#include "hook.hpp"
+#include "types.hpp"
 
 // Hack to access private parts of ResourceMapper
 #define private public
@@ -30,12 +32,6 @@ bool gGridEnabled = false;
 HINSTANCE gDllInstance = NULL;
 HRESULT WINAPI NewDirectDrawCreate(GUID* lpGUID, IDirectDraw** lplpDD, IUnknown* pUnkOuter);
 using TDirectDrawCreate = decltype(&NewDirectDrawCreate);
-
-inline void FatalExit(const char* msg)
-{
-    ::MessageBox(NULL, msg, "Error", MB_OK | MB_ICONEXCLAMATION);
-    exit(-1);
-}
 
 static HMODULE LoadRealDDrawDll()
 {
@@ -198,44 +194,6 @@ static void PatchWindowTitle()
     }
 }
 
-template<class FunctionType, class RealFunctionType = FunctionType>
-class Hook
-{
-public:
-    Hook(const Hook&) = delete;
-    Hook& operator = (const Hook&) = delete;
-    explicit Hook(FunctionType oldFunc)
-        : mOldPtr(oldFunc)
-    {
-
-    }
-
-    explicit Hook(DWORD oldFunc)
-        : mOldPtr(reinterpret_cast<FunctionType>(oldFunc))
-    {
-
-    }
-
-    void Install(FunctionType newFunc)
-    {
-        DetourTransactionBegin();
-        DetourUpdateThread(GetCurrentThread());
-        DetourAttach(&(PVOID&)mOldPtr, newFunc);
-        if (DetourTransactionCommit() != NO_ERROR)
-        {
-            FatalExit("detouring failed");
-        }
-    }
-
-    RealFunctionType Real() const
-    {
-        #pragma warning(suppress: 4191)
-        return reinterpret_cast<RealFunctionType>(mOldPtr);
-    }
-
-private:
-    FunctionType mOldPtr;
-};
 
 typedef int(__cdecl* gdi_draw_hook_type)(DWORD * hdc);
 static int __cdecl gdi_draw_hook(DWORD * hdc);
@@ -335,7 +293,7 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
     //levelNumber = 5;
 
     // Abe "hello" screen when levelNumber is left as the intro level
-    cameraNumber = 1;
+    //cameraNumber = 1;
 
     //pathNumber = 1;
 
@@ -415,7 +373,7 @@ struct AnimLogger
         {
             LOG_ERROR("File system init failure");
         }
-        mResources = std::make_unique<ResourceMapper>(*mFileSystem, "../../data/resources.json");
+        mResources = std::make_unique<ResourceMapper>(*mFileSystem, "../../data/resources.json", "../../data/sounds.json", "../../data/paths.json", "../../data/fmvs.json");
     }
 
     std::string mLastResName;
@@ -760,6 +718,7 @@ static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* p
     return Hooks::sub_418930.Real()(thisPtr, pCollisionInfo, pPathBlock);
 }
 
+
 void GetPathArray()
 {
     gPathData = reinterpret_cast<PathRootData*>(0x00559660);
@@ -960,6 +919,7 @@ void HookMain()
     Hooks::sub_418930.Install(sub_418930_hook);
     Hooks::sub_418930.Install(sub_418930_hook);
     Hooks::AbeSnap_sub_449930.Install(AbeSnap_sub_449930_hook);
+    InstallSoundHooks();
 
     SubClassWindow();
     PatchWindowTitle();

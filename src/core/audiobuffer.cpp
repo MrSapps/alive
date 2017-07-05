@@ -26,12 +26,13 @@ public:
     }
 };
 
-SdlAudioWrapper::SdlAudioWrapper()
+SdlAudioWrapper::SdlAudioWrapper(u16 frameSize, u32 freq)
 {
     if (SDL_Init(SDL_INIT_AUDIO) != 0)
     {
         throw Oddlib::Exception((std::string("SDL_Init for SDL_INIT_AUDIO failed: ") + SDL_GetError()).c_str());
     }
+    SetAudioSpec(frameSize, freq);
 }
 
 void SdlAudioWrapper::Open(u16 frameSize, int freq)
@@ -80,7 +81,7 @@ void SdlAudioWrapper::Open(u16 frameSize, int freq)
 
 }
 
-void SdlAudioWrapper::OpenImpl(const char* deviceName, u16 frameSize, int freq)
+void SdlAudioWrapper::OpenImpl(const char* deviceName, u16 frameSize, u32 freq)
 {
     SDL_AudioSpec audioSpec = {};
     audioSpec.userdata = this;
@@ -135,6 +136,23 @@ void SdlAudioWrapper::RemovePlayer(IAudioPlayer* player)
     mAudioPlayers.erase(player);
 }
 
+u16 SdlAudioWrapper::AudioFrameSize() const
+{
+    return mFrameSize;
+}
+
+u32 SdlAudioWrapper::SampleRate() const
+{
+    return mFreq;
+}
+
+void SdlAudioWrapper::SetExclusiveAudioPlayer(IAudioPlayer* player)
+{
+    // Protect from concurrent access in the audio call back
+    SdlAudioLocker audioLocker;
+    mExclusiveAudio = player;
+}
+
 void SdlAudioWrapper::SetAudioSpec(u16 frameSize, s32 freq)
 {
     if (mFrameSize != frameSize || mFreq != freq)
@@ -171,7 +189,7 @@ void SdlAudioWrapper::Close()
 }
 
 // Called in the context of the audio thread
-void SdlAudioWrapper::StaticAudioCallback(void *udata, u8 *stream, int len)
+void SdlAudioWrapper::StaticAudioCallback(void *udata, u8 *stream, s32 len)
 {
     if (udata)
     {
@@ -183,8 +201,15 @@ void SdlAudioWrapper::StaticAudioCallback(void *udata, u8 *stream, int len)
 void SdlAudioWrapper::AudioCallback(u8 *stream, int len)
 {
     memset(stream, 0, len);
-    for (auto& player : mAudioPlayers)
+    if (mExclusiveAudio)
     {
-        player->Play(stream, len);
+        mExclusiveAudio->Play(reinterpret_cast<f32*>(stream), len / sizeof(f32));
+    }
+    else
+    {
+        for (auto& player : mAudioPlayers)
+        {
+            player->Play(reinterpret_cast<f32*>(stream), len / sizeof(f32));
+        }
     }
 }

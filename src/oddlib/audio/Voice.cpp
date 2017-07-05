@@ -46,7 +46,7 @@ f32 AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antialia
     {
         if (b_NoteOn)
         {
-            m_ADSR_Level += ((1.0 / AliveAudioSampleRate) / m_Tone->Env.AttackTime);
+            m_ADSR_Level += ((1.0 / kAliveAudioSampleRate) / m_Tone->Env.AttackTime);
             if (m_ADSR_Level > 1.0)
             {
                 m_ADSR_Level = 1.0;
@@ -63,7 +63,7 @@ f32 AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antialia
         if (b_NoteOn)
         {
             if (m_Tone->Env.DecayTime > 0.0)
-                m_ADSR_Level -= ((1.0 / AliveAudioSampleRate) / m_Tone->Env.DecayTime);
+                m_ADSR_Level -= ((1.0 / kAliveAudioSampleRate) / m_Tone->Env.DecayTime);
 
             if (m_Tone->Env.DecayTime <= 0.0 || m_ADSR_Level < m_Tone->Env.SustainLevel)
             {
@@ -85,14 +85,14 @@ f32 AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antialia
     {
         if (m_Tone->Env.ExpRelease)
         {
-            f64 delta = m_ADSR_Level*((1.0 / AliveAudioSampleRate) / m_Tone->Env.LinearReleaseTime); // Exp starts as fast as linear
+            f64 delta = m_ADSR_Level*((1.0 / kAliveAudioSampleRate) / m_Tone->Env.LinearReleaseTime); // Exp starts as fast as linear
             if (delta < 0.000001)
                 delta = 0.000001; // Avoid denormals, and make sure that the voice ends some day
             m_ADSR_Level -= delta;
         }
         else
         {
-            m_ADSR_Level -= ((1.0 / AliveAudioSampleRate) / m_Tone->Env.LinearReleaseTime);
+            m_ADSR_Level -= ((1.0 / kAliveAudioSampleRate) / m_Tone->Env.LinearReleaseTime);
         }
     }
 
@@ -103,7 +103,7 @@ f32 AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antialia
     }
 
     // That constant is 2^(1/12)
-    f64 sampleFrameRateMul = pow(1.05946309436, i_Note - m_Tone->c_Center + m_Tone->Pitch + f_Pitch) * (44100.0 / AliveAudioSampleRate);
+    f64 sampleFrameRateMul = pow(1.05946309436, i_Note - m_Tone->mMidiRootKey + m_Tone->Pitch + f_Pitch) * (44100.0 / kAliveAudioSampleRate);
     if (m_DebugDisableResampling)
         sampleFrameRateMul = 1.0f;
     f_SampleOffset += (sampleFrameRateMul);

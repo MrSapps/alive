@@ -1,0 +1,6083 @@
+[
+	{
+		"sound_resources": [
+			{
+				"resource_name": "BARRAMB",
+				"seq": {
+					"resource_id": 6522576,
+					"sound_banks": [
+						"AePc_B2SEQ_BAENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_BASEQ_BARRACKS" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "GUN",
+				"seq": {
+					"resource_id": 158,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPsxDemo_E1SEQ_E1SNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MUDOHM",
+				"seq": {
+					"resource_id": 758927,
+					"sound_banks": [
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "OHM",
+				"seq": {
+					"resource_id": 927,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePcDemo_STSEQ_OPTION",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_STSEQ_OPTION",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_STSEQ_OPTION",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_STSEQ_OPTION",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AePsxDemo_STSEQ_OPTION",
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPcDemo_S1SEQ_OPTSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPc_S1SEQ_OPTSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "STOPIT",
+				"seq": {
+					"resource_id": 349034,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePcDemo_STSEQ_OPTION",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_STSEQ_OPTION",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_STSEQ_OPTION",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_STSEQ_OPTION",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AePsxDemo_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SSCRATCH",
+				"seq": {
+					"resource_id": 33725472,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_SESEQ_SVENDER",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_E1SEQ_E1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SLIGBOMB",
+				"seq": {
+					"resource_id": 36316976,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPsxDemo_E1SEQ_E1SNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SLIGBOM2",
+				"seq": {
+					"resource_id": 36316972,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "OOPS",
+				"seq": {
+					"resource_id": 9903,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PATROL",
+				"seq": {
+					"resource_id": 54296,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_SESEQ_SVENDER",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SLEEPING",
+				"seq": {
+					"resource_id": 36990381,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_SESEQ_SVENDER",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPsxDemo_E1SEQ_E1SNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "WHEEL",
+				"seq": {
+					"resource_id": 72996,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BA_1_1",
+				"seq": {
+					"resource_id": 655151,
+					"sound_banks": [
+						"AePc_BASEQ_BARRACKS",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd2_BASEQ_BARRACKS" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BA_2_1",
+				"seq": {
+					"resource_id": 655251,
+					"sound_banks": [
+						"AePc_BASEQ_BARRACKS",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd2_BASEQ_BARRACKS" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BA_3_1",
+				"seq": {
+					"resource_id": 655351,
+					"sound_banks": [
+						"AePc_BASEQ_BARRACKS",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd2_BASEQ_BARRACKS" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BA_4_1",
+				"seq": {
+					"resource_id": 655451,
+					"sound_banks": [
+						"AePc_BASEQ_BARRACKS",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd2_BASEQ_BARRACKS" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BA_5_1",
+				"seq": {
+					"resource_id": 655551,
+					"sound_banks": [
+						"AePc_BASEQ_BARRACKS",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd2_BASEQ_BARRACKS" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BA_6_1",
+				"seq": {
+					"resource_id": 655651,
+					"sound_banks": [
+						"AePc_BASEQ_BARRACKS",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd2_BASEQ_BARRACKS" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MYSTERY1",
+				"seq": {
+					"resource_id": 79349291,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MYSTERY2",
+				"seq": {
+					"resource_id": 79349292,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "NEGATIV1",
+				"seq": {
+					"resource_id": 89154361,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "NEGATIV3",
+				"seq": {
+					"resource_id": 89154363,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "POSITIV1",
+				"seq": {
+					"resource_id": 9334361,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "POSITIV9",
+				"seq": {
+					"resource_id": 9334369,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_B2SEQ_BAENDER",
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BASEQ_BARRACKS",
+						"AePc_BWSEQ_BONEWERK",
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePc_MISEQ_MINES",
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BASEQ_BARRACKS",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_B2SEQ_BAENDER",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BASEQ_BARRACKS",
+						"AePsxCd2_BWSEQ_BONEWERK",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT",
+						"AePsxDemo_MISEQ_MINES",
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BAEND_3",
+				"seq": {
+					"resource_id": 6598853,
+					"sound_banks": [
+						"AePc_B2SEQ_BAENDER",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd2_B2SEQ_BAENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BAEND_4",
+				"seq": {
+					"resource_id": 6598854,
+					"sound_banks": [
+						"AePc_B2SEQ_BAENDER",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd2_B2SEQ_BAENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BAEND_5",
+				"seq": {
+					"resource_id": 6598855,
+					"sound_banks": [
+						"AePc_B2SEQ_BAENDER",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd2_B2SEQ_BAENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BAEND_6",
+				"seq": {
+					"resource_id": 6598856,
+					"sound_banks": [
+						"AePc_B2SEQ_BAENDER",
+						"AePsxCd1_B2SEQ_BAENDER",
+						"AePsxCd2_B2SEQ_BAENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BREWAMB",
+				"seq": {
+					"resource_id": 6297576,
+					"sound_banks": [
+						"AePc_BMSEQ_BRENDER",
+						"AePc_BRSEQ_BREWERY",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd2_BMSEQ_BRENDER",
+						"AePsxCd2_BRSEQ_BREWERY" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BREND_1",
+				"seq": {
+					"resource_id": 6298851,
+					"sound_banks": [
+						"AePc_BMSEQ_BRENDER",
+						"AePsxCd2_BMSEQ_BRENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BREND_2",
+				"seq": {
+					"resource_id": 6298852,
+					"sound_banks": [
+						"AePc_BMSEQ_BRENDER",
+						"AePsxCd2_BMSEQ_BRENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BREND_3",
+				"seq": {
+					"resource_id": 6298853,
+					"sound_banks": [
+						"AePc_BMSEQ_BRENDER",
+						"AePsxCd2_BMSEQ_BRENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BREND_4",
+				"seq": {
+					"resource_id": 6298854,
+					"sound_banks": [
+						"AePc_BMSEQ_BRENDER",
+						"AePsxCd2_BMSEQ_BRENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BREND_5",
+				"seq": {
+					"resource_id": 6298855,
+					"sound_banks": [
+						"AePc_BMSEQ_BRENDER",
+						"AePsxCd2_BMSEQ_BRENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BREND_6",
+				"seq": {
+					"resource_id": 6298856,
+					"sound_banks": [
+						"AePc_BMSEQ_BRENDER",
+						"AePsxCd2_BMSEQ_BRENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BR_1_1",
+				"seq": {
+					"resource_id": 625151,
+					"sound_banks": [
+						"AePc_BRSEQ_BREWERY",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd2_BRSEQ_BREWERY" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BR_2_1",
+				"seq": {
+					"resource_id": 625251,
+					"sound_banks": [
+						"AePc_BRSEQ_BREWERY",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd2_BRSEQ_BREWERY" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BR_3_1",
+				"seq": {
+					"resource_id": 625351,
+					"sound_banks": [
+						"AePc_BRSEQ_BREWERY",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd2_BRSEQ_BREWERY" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BR_4_1",
+				"seq": {
+					"resource_id": 625451,
+					"sound_banks": [
+						"AePc_BRSEQ_BREWERY",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd2_BRSEQ_BREWERY" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BR_5_1",
+				"seq": {
+					"resource_id": 625551,
+					"sound_banks": [
+						"AePc_BRSEQ_BREWERY",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd2_BRSEQ_BREWERY" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BR_6_1",
+				"seq": {
+					"resource_id": 625651,
+					"sound_banks": [
+						"AePc_BRSEQ_BREWERY",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd2_BRSEQ_BREWERY" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BR_8_1",
+				"seq": {
+					"resource_id": 625851,
+					"sound_banks": [
+						"AePc_BRSEQ_BREWERY",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd2_BRSEQ_BREWERY" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BR_9_1",
+				"seq": {
+					"resource_id": 625951,
+					"sound_banks": [
+						"AePc_BRSEQ_BREWERY",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd2_BRSEQ_BREWERY" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BR_10_1",
+				"seq": {
+					"resource_id": 6251051,
+					"sound_banks": [
+						"AePc_BRSEQ_BREWERY",
+						"AePsxCd1_BRSEQ_BREWERY",
+						"AePsxCd2_BRSEQ_BREWERY" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BONEAMB",
+				"seq": {
+					"resource_id": 6989576,
+					"sound_banks": [
+						"AePc_B3SEQ_BWENDER",
+						"AePc_BWSEQ_BONEWERK",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd2_B3SEQ_BWENDER",
+						"AePsxCd2_BWSEQ_BONEWERK" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BW_1_1",
+				"seq": {
+					"resource_id": 675151,
+					"sound_banks": [
+						"AePc_BWSEQ_BONEWERK",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd2_BWSEQ_BONEWERK" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BW_2_1",
+				"seq": {
+					"resource_id": 675251,
+					"sound_banks": [
+						"AePc_BWSEQ_BONEWERK",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd2_BWSEQ_BONEWERK" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BW_3_1",
+				"seq": {
+					"resource_id": 675351,
+					"sound_banks": [
+						"AePc_BWSEQ_BONEWERK",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd2_BWSEQ_BONEWERK" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BW_4_1",
+				"seq": {
+					"resource_id": 675451,
+					"sound_banks": [
+						"AePc_BWSEQ_BONEWERK",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd2_BWSEQ_BONEWERK" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BW_5_1",
+				"seq": {
+					"resource_id": 675551,
+					"sound_banks": [
+						"AePc_BWSEQ_BONEWERK",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd2_BWSEQ_BONEWERK" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BW_6_1",
+				"seq": {
+					"resource_id": 675651,
+					"sound_banks": [
+						"AePc_BWSEQ_BONEWERK",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd2_BWSEQ_BONEWERK" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BW_8_1",
+				"seq": {
+					"resource_id": 675851,
+					"sound_banks": [
+						"AePc_BWSEQ_BONEWERK",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd2_BWSEQ_BONEWERK" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BW_9_1",
+				"seq": {
+					"resource_id": 675951,
+					"sound_banks": [
+						"AePc_BWSEQ_BONEWERK",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd2_BWSEQ_BONEWERK" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BW_10_1",
+				"seq": {
+					"resource_id": 6751051,
+					"sound_banks": [
+						"AePc_BWSEQ_BONEWERK",
+						"AePsxCd1_BWSEQ_BONEWERK",
+						"AePsxCd2_BWSEQ_BONEWERK" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BWEND_3",
+				"seq": {
+					"resource_id": 6798853,
+					"sound_banks": [
+						"AePc_B3SEQ_BWENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd2_B3SEQ_BWENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BWEND_4",
+				"seq": {
+					"resource_id": 6798854,
+					"sound_banks": [
+						"AePc_B3SEQ_BWENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd2_B3SEQ_BWENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BWEND_5",
+				"seq": {
+					"resource_id": 6798855,
+					"sound_banks": [
+						"AePc_B3SEQ_BWENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd2_B3SEQ_BWENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BWEND_6",
+				"seq": {
+					"resource_id": 6798856,
+					"sound_banks": [
+						"AePc_B3SEQ_BWENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd2_B3SEQ_BWENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BWEND_8",
+				"seq": {
+					"resource_id": 6798858,
+					"sound_banks": [
+						"AePc_B3SEQ_BWENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd2_B3SEQ_BWENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BWEND_9",
+				"seq": {
+					"resource_id": 6798859,
+					"sound_banks": [
+						"AePc_B3SEQ_BWENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd2_B3SEQ_BWENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BWEND_10",
+				"seq": {
+					"resource_id": 67988510,
+					"sound_banks": [
+						"AePc_B3SEQ_BWENDER",
+						"AePsxCd1_B3SEQ_BWENDER",
+						"AePsxCd2_B3SEQ_BWENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_OPTAMB",
+				"seq": {
+					"resource_id": 904576,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTION",
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPcDemo_C1SEQ_OPTSNDFX",
+						"AoPcDemo_S1SEQ_OPTSNDFX",
+						"AoPc_C1SEQ_OPTSNDFX",
+						"AoPc_S1SEQ_OPTSNDFX",
+						"AoPsxDemo_C1SEQ_OPTSNDFX",
+						"AoPsxDemo_S1SEQ_OPTSNDFX",
+						"AoPsx_C1SEQ_OPTSNDFX",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_OP_2_1",
+				"seq": {
+					"resource_id": 905251,
+					"sound_banks": [
+						"AePc_STSEQ_OPTION",
+						"AePsxCd1_STSEQ_OPTION",
+						"AePsxCd2_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_OP_2_2",
+				"seq": {
+					"resource_id": 905252,
+					"sound_banks": [
+						"AePc_STSEQ_OPTION",
+						"AePsxCd1_STSEQ_OPTION",
+						"AePsxCd2_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_OP_2_3",
+				"seq": {
+					"resource_id": 905253,
+					"sound_banks": [
+						"AePc_STSEQ_OPTION",
+						"AePsxCd1_STSEQ_OPTION",
+						"AePsxCd2_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_OP_3_1",
+				"seq": {
+					"resource_id": 905351,
+					"sound_banks": [
+						"AePc_STSEQ_OPTION",
+						"AePsxCd1_STSEQ_OPTION",
+						"AePsxCd2_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_OP_3_2",
+				"seq": {
+					"resource_id": 905352,
+					"sound_banks": [
+						"AePc_STSEQ_OPTION",
+						"AePsxCd1_STSEQ_OPTION",
+						"AePsxCd2_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_OP_4_1",
+				"seq": {
+					"resource_id": 905451,
+					"sound_banks": [
+						"AePc_STSEQ_OPTION",
+						"AePsxCd1_STSEQ_OPTION",
+						"AePsxCd2_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PARALLYA",
+				"seq": {
+					"resource_id": 5256695,
+					"sound_banks": [
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_STSEQ_OPTION",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_STSEQ_OPTION",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "FEECOAMB",
+				"seq": {
+					"resource_id": 9979576,
+					"sound_banks": [
+						"AePc_FDSEQ_FEECO",
+						"AePc_FESEQ_FEENDER",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd2_FDSEQ_FEECO",
+						"AePsxCd2_FESEQ_FEENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_FE_1_1",
+				"seq": {
+					"resource_id": 95151,
+					"sound_banks": [
+						"AePc_FDSEQ_FEECO",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd2_FDSEQ_FEECO" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_FE_2_1",
+				"seq": {
+					"resource_id": 95251,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2ENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_FE_3_1",
+				"seq": {
+					"resource_id": 95351,
+					"sound_banks": [
+						"AePc_FDSEQ_FEECO",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd2_FDSEQ_FEECO" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_FE_4_1",
+				"seq": {
+					"resource_id": 95451,
+					"sound_banks": [
+						"AePc_FDSEQ_FEECO",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd2_FDSEQ_FEECO" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_FE_5_1",
+				"seq": {
+					"resource_id": 95551,
+					"sound_banks": [
+						"AePc_FDSEQ_FEECO",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd2_FDSEQ_FEECO" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_FE_6_1",
+				"seq": {
+					"resource_id": 95651,
+					"sound_banks": [
+						"AePc_FDSEQ_FEECO",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd2_FDSEQ_FEECO" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_FE_8_1",
+				"seq": {
+					"resource_id": 95851,
+					"sound_banks": [
+						"AePc_FDSEQ_FEECO",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd2_FDSEQ_FEECO" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_FE_9_1",
+				"seq": {
+					"resource_id": 95951,
+					"sound_banks": [
+						"AePc_FDSEQ_FEECO",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd2_FDSEQ_FEECO" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_FE_10_1",
+				"seq": {
+					"resource_id": 951051,
+					"sound_banks": [
+						"AePc_FDSEQ_FEECO",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd2_FDSEQ_FEECO" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "FEEND_3",
+				"seq": {
+					"resource_id": 998853,
+					"sound_banks": [
+						"AePc_FESEQ_FEENDER",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd2_FESEQ_FEENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "FEEND_4",
+				"seq": {
+					"resource_id": 998854,
+					"sound_banks": [
+						"AePc_FESEQ_FEENDER",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd2_FESEQ_FEENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "FEEND_5",
+				"seq": {
+					"resource_id": 998855,
+					"sound_banks": [
+						"AePc_FESEQ_FEENDER",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd2_FESEQ_FEENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "FEEND_6",
+				"seq": {
+					"resource_id": 998856,
+					"sound_banks": [
+						"AePc_FESEQ_FEENDER",
+						"AePsxCd1_FESEQ_FEENDER",
+						"AePsxCd2_FESEQ_FEENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MINESAMB",
+				"seq": {
+					"resource_id": 73893576,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_MISEQ_MINES",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxDemo_MISEQ_MINES" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MI_1_1",
+				"seq": {
+					"resource_id": 735151,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_MISEQ_MINES",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxDemo_MISEQ_MINES" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MI_2_1",
+				"seq": {
+					"resource_id": 735251,
+					"sound_banks": [
+						"AePc_MISEQ_MINES",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd2_MISEQ_MINES" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MI_3_1",
+				"seq": {
+					"resource_id": 735351,
+					"sound_banks": [
+						"AePc_MISEQ_MINES",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd2_MISEQ_MINES" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MI_4_1",
+				"seq": {
+					"resource_id": 735451,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_MISEQ_MINES",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxDemo_MISEQ_MINES" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MI_5_1",
+				"seq": {
+					"resource_id": 735551,
+					"sound_banks": [
+						"AePc_MISEQ_MINES",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd2_MISEQ_MINES" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MI_6_1",
+				"seq": {
+					"resource_id": 735651,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_MISEQ_MINES",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxDemo_MISEQ_MINES" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MI_8_1",
+				"seq": {
+					"resource_id": 735851,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_MISEQ_MINES",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxDemo_MISEQ_MINES" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MI_9_1",
+				"seq": {
+					"resource_id": 735951,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_MISEQ_MINES",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxDemo_MISEQ_MINES" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MI_10_1",
+				"seq": {
+					"resource_id": 7351051,
+					"sound_banks": [
+						"AePcDemo_MISEQ_MINES",
+						"AePc_MISEQ_MINES",
+						"AePsxCd1_MISEQ_MINES",
+						"AePsxCd2_MISEQ_MINES",
+						"AePsxDemo_MISEQ_MINES" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "NECRAMB",
+				"seq": {
+					"resource_id": 8972576,
+					"sound_banks": [
+						"AePc_NESEQ_NECRUM",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd2_NESEQ_NECRUM" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PIGEONS",
+				"seq": {
+					"resource_id": 319983,
+					"sound_banks": [
+						"AePc_NESEQ_NECRUM",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "FLEECHES",
+				"seq": {
+					"resource_id": 6997293,
+					"sound_banks": [
+						"AePc_NESEQ_NECRUM",
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_NESEQ_NECRUM",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "NE_1_1",
+				"seq": {
+					"resource_id": 895151,
+					"sound_banks": [
+						"AePc_NESEQ_NECRUM",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd2_NESEQ_NECRUM" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "NE_2_1",
+				"seq": {
+					"resource_id": 895251,
+					"sound_banks": [
+						"AePc_NESEQ_NECRUM",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd2_NESEQ_NECRUM" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "NE_3_1",
+				"seq": {
+					"resource_id": 895351,
+					"sound_banks": [
+						"AePc_NESEQ_NECRUM",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd2_NESEQ_NECRUM" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "NE_4_1",
+				"seq": {
+					"resource_id": 895451,
+					"sound_banks": [
+						"AePc_NESEQ_NECRUM",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd2_NESEQ_NECRUM" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "NE_5_1",
+				"seq": {
+					"resource_id": 895551,
+					"sound_banks": [
+						"AePc_NESEQ_NECRUM",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd2_NESEQ_NECRUM" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "NE_6_1",
+				"seq": {
+					"resource_id": 895651,
+					"sound_banks": [
+						"AePc_NESEQ_NECRUM",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd2_NESEQ_NECRUM" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "NE_7_1",
+				"seq": {
+					"resource_id": 895751,
+					"sound_banks": [
+						"AePc_NESEQ_NECRUM",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd2_NESEQ_NECRUM" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "NE_8_1",
+				"seq": {
+					"resource_id": 895851,
+					"sound_banks": [
+						"AePc_NESEQ_NECRUM",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd2_NESEQ_NECRUM" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "NE_9_1",
+				"seq": {
+					"resource_id": 895951,
+					"sound_banks": [
+						"AePc_NESEQ_NECRUM",
+						"AePsxCd1_NESEQ_NECRUM",
+						"AePsxCd2_NESEQ_NECRUM" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PARAMB",
+				"seq": {
+					"resource_id": 52576,
+					"sound_banks": [
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PARAPANT",
+				"seq": {
+					"resource_id": 5250584,
+					"sound_banks": [
+						"AePc_PESEQ_PVENDER",
+						"AePc_PVSEQ_PARVAULT",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd2_PESEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PV_1_1",
+				"seq": {
+					"resource_id": 65151,
+					"sound_banks": [
+						"AePc_PVSEQ_PARVAULT",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PV_2_1",
+				"seq": {
+					"resource_id": 65251,
+					"sound_banks": [
+						"AePc_PVSEQ_PARVAULT",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PV_3_1",
+				"seq": {
+					"resource_id": 65351,
+					"sound_banks": [
+						"AePc_PVSEQ_PARVAULT",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PV_4_1",
+				"seq": {
+					"resource_id": 65451,
+					"sound_banks": [
+						"AePc_PVSEQ_PARVAULT",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PV_5_1",
+				"seq": {
+					"resource_id": 65551,
+					"sound_banks": [
+						"AePc_PVSEQ_PARVAULT",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PV_6_1",
+				"seq": {
+					"resource_id": 65651,
+					"sound_banks": [
+						"AePc_PVSEQ_PARVAULT",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PV_7_1",
+				"seq": {
+					"resource_id": 65751,
+					"sound_banks": [
+						"AePc_PVSEQ_PARVAULT",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PV_8_1",
+				"seq": {
+					"resource_id": 65851,
+					"sound_banks": [
+						"AePc_PVSEQ_PARVAULT",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PV_9_1",
+				"seq": {
+					"resource_id": 65951,
+					"sound_banks": [
+						"AePc_PVSEQ_PARVAULT",
+						"AePsxCd1_PVSEQ_PARVAULT",
+						"AePsxCd2_PVSEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PVEND_3",
+				"seq": {
+					"resource_id": 698853,
+					"sound_banks": [
+						"AePc_PESEQ_PVENDER",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd2_PESEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PVEND_4",
+				"seq": {
+					"resource_id": 698854,
+					"sound_banks": [
+						"AePc_PESEQ_PVENDER",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd2_PESEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PVEND_5",
+				"seq": {
+					"resource_id": 698855,
+					"sound_banks": [
+						"AePc_PESEQ_PVENDER",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd2_PESEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PVEND_6",
+				"seq": {
+					"resource_id": 698856,
+					"sound_banks": [
+						"AePc_PESEQ_PVENDER",
+						"AePsxCd1_PESEQ_PVENDER",
+						"AePsxCd2_PESEQ_PARVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PVEND_7",
+				"seq": {
+					"resource_id": 698857,
+					"sound_banks": [
+						"AePc_PESEQ_PVENDER",
+						"AePsxCd1_PESEQ_PVENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PVEND_8",
+				"seq": {
+					"resource_id": 698858,
+					"sound_banks": [
+						"AePc_PESEQ_PVENDER",
+						"AePsxCd1_PESEQ_PVENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PVEND_9",
+				"seq": {
+					"resource_id": 698859,
+					"sound_banks": [
+						"AePc_PESEQ_PVENDER",
+						"AePsxCd1_PESEQ_PVENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SCRAMB",
+				"seq": {
+					"resource_id": 372576,
+					"sound_banks": [
+						"AePc_SESEQ_SVENDER",
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_SESEQ_SVENDER",
+						"AePsxCd2_SVSEQ_SCRVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SV_1_1",
+				"seq": {
+					"resource_id": 365151,
+					"sound_banks": [
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_SVSEQ_SCRVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SV_2_1",
+				"seq": {
+					"resource_id": 365251,
+					"sound_banks": [
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_SVSEQ_SCRVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SV_3_1",
+				"seq": {
+					"resource_id": 365351,
+					"sound_banks": [
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_SVSEQ_SCRVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SV_4_1",
+				"seq": {
+					"resource_id": 365451,
+					"sound_banks": [
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_SVSEQ_SCRVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SV_5_1",
+				"seq": {
+					"resource_id": 365551,
+					"sound_banks": [
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_SVSEQ_SCRVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SV_6_1",
+				"seq": {
+					"resource_id": 365651,
+					"sound_banks": [
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_SVSEQ_SCRVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SV_7_1",
+				"seq": {
+					"resource_id": 365751,
+					"sound_banks": [
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_SVSEQ_SCRVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SV_8_1",
+				"seq": {
+					"resource_id": 365851,
+					"sound_banks": [
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_SVSEQ_SCRVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SV_9_1",
+				"seq": {
+					"resource_id": 365951,
+					"sound_banks": [
+						"AePc_SVSEQ_SCRVAULT",
+						"AePsxCd1_SVSEQ_SCRVAULT",
+						"AePsxCd2_SVSEQ_SCRVAULT" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SVEND_3",
+				"seq": {
+					"resource_id": 3698853,
+					"sound_banks": [
+						"AePc_SESEQ_SVENDER",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd2_SESEQ_SVENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SVEND_4",
+				"seq": {
+					"resource_id": 3698854,
+					"sound_banks": [
+						"AePc_SESEQ_SVENDER",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd2_SESEQ_SVENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SVEND_5",
+				"seq": {
+					"resource_id": 3698855,
+					"sound_banks": [
+						"AePc_SESEQ_SVENDER",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd2_SESEQ_SVENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SVEND_6",
+				"seq": {
+					"resource_id": 3698856,
+					"sound_banks": [
+						"AePc_SESEQ_SVENDER",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd2_SESEQ_SVENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SVEND_7",
+				"seq": {
+					"resource_id": 3698857,
+					"sound_banks": [
+						"AePc_SESEQ_SVENDER",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd2_SESEQ_SVENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SVEND_8",
+				"seq": {
+					"resource_id": 3698858,
+					"sound_banks": [
+						"AePc_SESEQ_SVENDER",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd2_SESEQ_SVENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SVEND_9",
+				"seq": {
+					"resource_id": 3698859,
+					"sound_banks": [
+						"AePc_SESEQ_SVENDER",
+						"AePsxCd1_SESEQ_SVENDER",
+						"AePsxCd2_SESEQ_SVENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_PC_DEMO_OP_2_4",
+				"seq": {
+					"resource_id": 905254,
+					"sound_banks": [
+						"AePcDemo_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_PC_DEMO_OP_2_5",
+				"seq": {
+					"resource_id": 905255,
+					"sound_banks": [
+						"AePcDemo_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_PC_DEMO_OP_3_3",
+				"seq": {
+					"resource_id": 905353,
+					"sound_banks": [
+						"AePcDemo_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_PC_DEMO_OP_3_4",
+				"seq": {
+					"resource_id": 905354,
+					"sound_banks": [
+						"AePcDemo_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_PC_DEMO_OP_3_5",
+				"seq": {
+					"resource_id": 905355,
+					"sound_banks": [
+						"AePcDemo_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "OPT_0_1",
+				"seq": {
+					"resource_id": 9045051,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTION",
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPcDemo_C1SEQ_OPTSNDFX",
+						"AoPcDemo_S1SEQ_OPTSNDFX",
+						"AoPc_C1SEQ_OPTSNDFX",
+						"AoPc_S1SEQ_OPTSNDFX",
+						"AoPsxDemo_C1SEQ_OPTSNDFX",
+						"AoPsxDemo_S1SEQ_OPTSNDFX",
+						"AoPsx_C1SEQ_OPTSNDFX",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "OPT_0_2",
+				"seq": {
+					"resource_id": 9045052,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTION",
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPcDemo_C1SEQ_OPTSNDFX",
+						"AoPcDemo_S1SEQ_OPTSNDFX",
+						"AoPc_C1SEQ_OPTSNDFX",
+						"AoPc_S1SEQ_OPTSNDFX",
+						"AoPsxDemo_C1SEQ_OPTSNDFX",
+						"AoPsxDemo_S1SEQ_OPTSNDFX",
+						"AoPsx_C1SEQ_OPTSNDFX",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "OPT_0_3",
+				"seq": {
+					"resource_id": 9045053,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTION",
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPcDemo_C1SEQ_OPTSNDFX",
+						"AoPcDemo_S1SEQ_OPTSNDFX",
+						"AoPc_C1SEQ_OPTSNDFX",
+						"AoPc_S1SEQ_OPTSNDFX",
+						"AoPsxDemo_C1SEQ_OPTSNDFX",
+						"AoPsxDemo_S1SEQ_OPTSNDFX",
+						"AoPsx_C1SEQ_OPTSNDFX",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "OPT_0_4",
+				"seq": {
+					"resource_id": 9045054,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTION",
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPcDemo_C1SEQ_OPTSNDFX",
+						"AoPcDemo_S1SEQ_OPTSNDFX",
+						"AoPc_C1SEQ_OPTSNDFX",
+						"AoPc_S1SEQ_OPTSNDFX",
+						"AoPsxDemo_C1SEQ_OPTSNDFX",
+						"AoPsxDemo_S1SEQ_OPTSNDFX",
+						"AoPsx_C1SEQ_OPTSNDFX",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "OPT_0_5",
+				"seq": {
+					"resource_id": 9045055,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTION",
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPcDemo_C1SEQ_OPTSNDFX",
+						"AoPcDemo_S1SEQ_OPTSNDFX",
+						"AoPc_C1SEQ_OPTSNDFX",
+						"AoPc_S1SEQ_OPTSNDFX",
+						"AoPsxDemo_C1SEQ_OPTSNDFX",
+						"AoPsxDemo_S1SEQ_OPTSNDFX",
+						"AoPsx_C1SEQ_OPTSNDFX",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "OPT_1_1",
+				"seq": {
+					"resource_id": 9045151,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTION",
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPcDemo_C1SEQ_OPTSNDFX",
+						"AoPcDemo_S1SEQ_OPTSNDFX",
+						"AoPc_C1SEQ_OPTSNDFX",
+						"AoPc_S1SEQ_OPTSNDFX",
+						"AoPsxDemo_C1SEQ_OPTSNDFX",
+						"AoPsxDemo_S1SEQ_OPTSNDFX",
+						"AoPsx_C1SEQ_OPTSNDFX",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "OPT_1_2",
+				"seq": {
+					"resource_id": 9045152,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTION",
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPcDemo_C1SEQ_OPTSNDFX",
+						"AoPcDemo_S1SEQ_OPTSNDFX",
+						"AoPc_C1SEQ_OPTSNDFX",
+						"AoPc_S1SEQ_OPTSNDFX",
+						"AoPsxDemo_C1SEQ_OPTSNDFX",
+						"AoPsxDemo_S1SEQ_OPTSNDFX",
+						"AoPsx_C1SEQ_OPTSNDFX",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "OPT_1_3",
+				"seq": {
+					"resource_id": 9045153,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTION",
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPcDemo_C1SEQ_OPTSNDFX",
+						"AoPcDemo_S1SEQ_OPTSNDFX",
+						"AoPc_C1SEQ_OPTSNDFX",
+						"AoPc_S1SEQ_OPTSNDFX",
+						"AoPsxDemo_C1SEQ_OPTSNDFX",
+						"AoPsxDemo_S1SEQ_OPTSNDFX",
+						"AoPsx_C1SEQ_OPTSNDFX",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "OPT_1_4",
+				"seq": {
+					"resource_id": 9045154,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTION",
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPcDemo_C1SEQ_OPTSNDFX",
+						"AoPcDemo_S1SEQ_OPTSNDFX",
+						"AoPc_C1SEQ_OPTSNDFX",
+						"AoPc_S1SEQ_OPTSNDFX",
+						"AoPsxDemo_C1SEQ_OPTSNDFX",
+						"AoPsxDemo_S1SEQ_OPTSNDFX",
+						"AoPsx_C1SEQ_OPTSNDFX",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "OPT_1_5",
+				"seq": {
+					"resource_id": 9045155,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTION",
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPcDemo_C1SEQ_OPTSNDFX",
+						"AoPcDemo_S1SEQ_OPTSNDFX",
+						"AoPc_C1SEQ_OPTSNDFX",
+						"AoPc_S1SEQ_OPTSNDFX",
+						"AoPsxDemo_C1SEQ_OPTSNDFX",
+						"AoPsxDemo_S1SEQ_OPTSNDFX",
+						"AoPsx_C1SEQ_OPTSNDFX",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "WHISTLE1",
+				"sample": {
+					"locations": [
+						{
+							"program": 58,
+							"sound_banks": [
+								"AoPcDemo_C1SEQ_OPTSNDFX",
+								"AoPcDemo_R1SEQ_RFSNDFX",
+								"AoPcDemo_S1SEQ_OPTSNDFX",
+								"AoPc_C1SEQ_OPTSNDFX",
+								"AoPc_D1SEQ_D1SNDFX",
+								"AoPc_D2SEQ_D2ENDER",
+								"AoPc_D2SEQ_D2SNDFX",
+								"AoPc_E1SEQ_E1SNDFX",
+								"AoPc_E2SEQ_E2SNDFX",
+								"AoPc_F1SEQ_F1SNDFX",
+								"AoPc_F2SEQ_F2ENDER",
+								"AoPc_F2SEQ_F2SNDFX",
+								"AoPc_L1SEQ_MLSNDFX",
+								"AoPc_R1SEQ_RFSNDFX",
+								"AoPc_R2SEQ_RFSNDFX",
+								"AoPc_R6SEQ_RFENDER",
+								"AoPc_S1SEQ_OPTSNDFX" 
+							],
+							"tone": 60 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				},
+				"seq": {
+					"resource_id": 72334691,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "WHISTLE2",
+				"sample": {
+					"locations": [
+						{
+							"program": 58,
+							"sound_banks": [
+								"AoPcDemo_C1SEQ_OPTSNDFX",
+								"AoPcDemo_R1SEQ_RFSNDFX",
+								"AoPcDemo_S1SEQ_OPTSNDFX",
+								"AoPc_C1SEQ_OPTSNDFX",
+								"AoPc_D1SEQ_D1SNDFX",
+								"AoPc_D2SEQ_D2ENDER",
+								"AoPc_D2SEQ_D2SNDFX",
+								"AoPc_E1SEQ_E1SNDFX",
+								"AoPc_E2SEQ_E2SNDFX",
+								"AoPc_F1SEQ_F1SNDFX",
+								"AoPc_F2SEQ_F2ENDER",
+								"AoPc_F2SEQ_F2SNDFX",
+								"AoPc_L1SEQ_MLSNDFX",
+								"AoPc_R1SEQ_RFSNDFX",
+								"AoPc_R2SEQ_RFSNDFX",
+								"AoPc_R6SEQ_RFENDER",
+								"AoPc_S1SEQ_OPTSNDFX" 
+							],
+							"tone": 61 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				},
+				"seq": {
+					"resource_id": 72334692,
+					"sound_banks": [
+						"AePsxDemo_STSEQ_OPTSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER",
+						"AoPsx_S1SEQ_OPTSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1AMB",
+				"seq": {
+					"resource_id": 1576,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BATSQUEK",
+				"seq": {
+					"resource_id": 65431595,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsxDemo_E1SEQ_E1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1AMB",
+				"seq": {
+					"resource_id": 81576,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "EBELL2",
+				"seq": {
+					"resource_id": 969662,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ESCRATCH",
+				"seq": {
+					"resource_id": 93725472,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ONCHAIN",
+				"seq": {
+					"resource_id": 9872538,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "SLOSLEEP",
+				"seq": {
+					"resource_id": 36936990,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "PANTING",
+				"seq": {
+					"resource_id": 584381,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_0_1",
+				"seq": {
+					"resource_id": 815051,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_0_2",
+				"seq": {
+					"resource_id": 815052,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_0_3",
+				"seq": {
+					"resource_id": 815053,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_1_1",
+				"seq": {
+					"resource_id": 815151,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_1_2",
+				"seq": {
+					"resource_id": 815152,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_1_3",
+				"seq": {
+					"resource_id": 815153,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_1_4",
+				"seq": {
+					"resource_id": 815154,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_1_5",
+				"seq": {
+					"resource_id": 815155,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_2_1",
+				"seq": {
+					"resource_id": 815251,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_2_2",
+				"seq": {
+					"resource_id": 815252,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_2_3",
+				"seq": {
+					"resource_id": 815253,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_2_4",
+				"seq": {
+					"resource_id": 815254,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_2_5",
+				"seq": {
+					"resource_id": 815255,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_3_1",
+				"seq": {
+					"resource_id": 815351,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_4_1",
+				"seq": {
+					"resource_id": 815451,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_5_1",
+				"seq": {
+					"resource_id": 815551,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D1_6_1",
+				"seq": {
+					"resource_id": 815651,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPsx_D1SEQ_D1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ALL_4_1",
+				"seq": {
+					"resource_id": 5665451,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ALL_5_1",
+				"seq": {
+					"resource_id": 5665551,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ALL_5_2",
+				"seq": {
+					"resource_id": 5665552,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ALL_5_3",
+				"seq": {
+					"resource_id": 5665553,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ALL_7_1",
+				"seq": {
+					"resource_id": 5665751,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ALL_8_1",
+				"seq": {
+					"resource_id": 5665851,
+					"sound_banks": [
+						"AoPc_D1SEQ_D1SNDFX",
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_D1SEQ_D1SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX",
+						"AoPsx_L1SEQ_MLSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D2AMB",
+				"seq": {
+					"resource_id": 82576,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D2_0_1",
+				"seq": {
+					"resource_id": 825051,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D2_0_2",
+				"seq": {
+					"resource_id": 825052,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D2_1_1",
+				"seq": {
+					"resource_id": 825151,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D2_1_2",
+				"seq": {
+					"resource_id": 825152,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D2_2_1",
+				"seq": {
+					"resource_id": 825251,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2ENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D2_2_2",
+				"seq": {
+					"resource_id": 825252,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2ENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D2_4_1",
+				"seq": {
+					"resource_id": 825451,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D2_5_1",
+				"seq": {
+					"resource_id": 825551,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "D2_6_1",
+				"seq": {
+					"resource_id": 825651,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPc_D2SEQ_D2SNDFX",
+						"AoPsx_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "DE_2_1",
+				"seq": {
+					"resource_id": 895251,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2ENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "DE_4_1",
+				"seq": {
+					"resource_id": 895451,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2ENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "DE_5_1",
+				"seq": {
+					"resource_id": 895551,
+					"sound_banks": [
+						"AoPc_D2SEQ_D2ENDER",
+						"AoPsx_D2SEQ_D2ENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1AMB",
+				"seq": {
+					"resource_id": 91576,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_0_1",
+				"seq": {
+					"resource_id": 915051,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_0_2",
+				"seq": {
+					"resource_id": 915052,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_0_3",
+				"seq": {
+					"resource_id": 915053,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_0_4",
+				"seq": {
+					"resource_id": 915054,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_0_5",
+				"seq": {
+					"resource_id": 915055,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_1_1",
+				"seq": {
+					"resource_id": 915151,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_1_2",
+				"seq": {
+					"resource_id": 915152,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_1_3",
+				"seq": {
+					"resource_id": 915153,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_1_4",
+				"seq": {
+					"resource_id": 915154,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_1_5",
+				"seq": {
+					"resource_id": 915155,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_4_1",
+				"seq": {
+					"resource_id": 915451,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_5_1",
+				"seq": {
+					"resource_id": 915551,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E1_6_1",
+				"seq": {
+					"resource_id": 915651,
+					"sound_banks": [
+						"AoPc_E1SEQ_E1SNDFX",
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E1SEQ_E1SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "E2AMB",
+				"seq": {
+					"resource_id": 92576,
+					"sound_banks": [
+						"AoPc_E2SEQ_E2SNDFX",
+						"AoPsx_E2SEQ_E2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_0_1",
+				"seq": {
+					"resource_id": 15051,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_0_2",
+				"seq": {
+					"resource_id": 15052,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_0_3",
+				"seq": {
+					"resource_id": 15053,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_1_1",
+				"seq": {
+					"resource_id": 15151,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_1_2",
+				"seq": {
+					"resource_id": 15152,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_1_3",
+				"seq": {
+					"resource_id": 15153,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_2_1",
+				"seq": {
+					"resource_id": 15251,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_2_2",
+				"seq": {
+					"resource_id": 15252,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_2_3",
+				"seq": {
+					"resource_id": 15253,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_2_4",
+				"seq": {
+					"resource_id": 15254,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_3_1",
+				"seq": {
+					"resource_id": 15351,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_4_1",
+				"seq": {
+					"resource_id": 15451,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_5_1",
+				"seq": {
+					"resource_id": 15551,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F1_6_1",
+				"seq": {
+					"resource_id": 15651,
+					"sound_banks": [
+						"AoPc_F1SEQ_F1SNDFX",
+						"AoPsx_F1SEQ_F1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F2AMB",
+				"seq": {
+					"resource_id": 2576,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "BASICTRK",
+				"seq": {
+					"resource_id": 65337425,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "LE_LO_1",
+				"seq": {
+					"resource_id": 6956951,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "LE_LO_2",
+				"seq": {
+					"resource_id": 6956952,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "LE_LO_3",
+				"seq": {
+					"resource_id": 6956953,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "LE_LO_4",
+				"seq": {
+					"resource_id": 6956954,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "LE_SH_1",
+				"seq": {
+					"resource_id": 6953251,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "LE_SH_2",
+				"seq": {
+					"resource_id": 6953252,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "LE_SH_3",
+				"seq": {
+					"resource_id": 6953253,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "LE_SH_4",
+				"seq": {
+					"resource_id": 6953254,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F2_0_1",
+				"seq": {
+					"resource_id": 25051,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F2_1_1",
+				"seq": {
+					"resource_id": 25151,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F2_2_1",
+				"seq": {
+					"resource_id": 25251,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F2_4_1",
+				"seq": {
+					"resource_id": 25451,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F2_5_1",
+				"seq": {
+					"resource_id": 25551,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "F2_6_1",
+				"seq": {
+					"resource_id": 25651,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2SNDFX",
+						"AoPsx_F2SEQ_F2SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "MLAMB",
+				"seq": {
+					"resource_id": 76576,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_0_1",
+				"seq": {
+					"resource_id": 765051,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_0_2",
+				"seq": {
+					"resource_id": 765052,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_0_3",
+				"seq": {
+					"resource_id": 765053,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_0_4",
+				"seq": {
+					"resource_id": 765054,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_0_5",
+				"seq": {
+					"resource_id": 765055,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_1_1",
+				"seq": {
+					"resource_id": 765151,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_1_2",
+				"seq": {
+					"resource_id": 765152,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_1_3",
+				"seq": {
+					"resource_id": 765153,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_1_4",
+				"seq": {
+					"resource_id": 765154,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_1_5",
+				"seq": {
+					"resource_id": 765155,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_2_1",
+				"seq": {
+					"resource_id": 765251,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_2_2",
+				"seq": {
+					"resource_id": 765252,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_2_3",
+				"seq": {
+					"resource_id": 765253,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_2_4",
+				"seq": {
+					"resource_id": 765254,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_2_5",
+				"seq": {
+					"resource_id": 765255,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_3_1",
+				"seq": {
+					"resource_id": 765351,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_4_1",
+				"seq": {
+					"resource_id": 765451,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_5_1",
+				"seq": {
+					"resource_id": 765551,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "ML_6_1",
+				"seq": {
+					"resource_id": 765651,
+					"sound_banks": [
+						"AoPc_L1SEQ_MLSNDFX",
+						"AoPsx_L1SEQ_MLSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RFAMB",
+				"seq": {
+					"resource_id": 20576,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPc_R6SEQ_RFENDER",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "GRINDER",
+				"seq": {
+					"resource_id": 1238892,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "CHIPPER",
+				"seq": {
+					"resource_id": 7230092,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_0_1",
+				"seq": {
+					"resource_id": 205051,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_0_2",
+				"seq": {
+					"resource_id": 205052,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_0_3",
+				"seq": {
+					"resource_id": 205053,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_0_4",
+				"seq": {
+					"resource_id": 205054,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_1_1",
+				"seq": {
+					"resource_id": 205151,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_1_2",
+				"seq": {
+					"resource_id": 205152,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_1_3",
+				"seq": {
+					"resource_id": 205153,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_2_1",
+				"seq": {
+					"resource_id": 205251,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_2_2",
+				"seq": {
+					"resource_id": 205252,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_2_3",
+				"seq": {
+					"resource_id": 205253,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_2_4",
+				"seq": {
+					"resource_id": 205254,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_4_1",
+				"seq": {
+					"resource_id": 205451,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_5_1",
+				"seq": {
+					"resource_id": 205551,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "RF_6_1",
+				"seq": {
+					"resource_id": 205651,
+					"sound_banks": [
+						"AoPcDemo_R1SEQ_RFSNDFX",
+						"AoPc_R1SEQ_RFSNDFX",
+						"AoPc_R2SEQ_RFSNDFX",
+						"AoPsx_R1SEQ_RFSNDFX",
+						"AoPsx_R2SEQ_RFSNDFX",
+						"AoPsx_R6SEQ_RFENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_ALL_2_1",
+				"seq": {
+					"resource_id": 5665251,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_ALL_3_1",
+				"seq": {
+					"resource_id": 5665351,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_ALL_6_1",
+				"seq": {
+					"resource_id": 5665651,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_ALL_6_2",
+				"seq": {
+					"resource_id": 5665652,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_ABEMOUNT",
+				"seq": {
+					"resource_id": 56979584,
+					"sound_banks": [
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_ALL_4_1",
+				"seq": {
+					"resource_id": 5665451,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_ALL_5_1",
+				"seq": {
+					"resource_id": 5665551,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_ALL_5_2",
+				"seq": {
+					"resource_id": 5665552,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_ALL_5_3",
+				"seq": {
+					"resource_id": 5665553,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_ALL_7_1",
+				"seq": {
+					"resource_id": 5665751,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_ALL_8_1",
+				"seq": {
+					"resource_id": 5665851,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_E1AMB",
+				"seq": {
+					"resource_id": 91576,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_E1_0_1",
+				"seq": {
+					"resource_id": 915051,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_E1_0_2",
+				"seq": {
+					"resource_id": 915052,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_E1_0_3",
+				"seq": {
+					"resource_id": 915053,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_E1_0_4",
+				"seq": {
+					"resource_id": 915054,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_E1_0_5",
+				"seq": {
+					"resource_id": 915055,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_E1_1_1",
+				"seq": {
+					"resource_id": 915151,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_E1_1_2",
+				"seq": {
+					"resource_id": 915152,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_E1_1_3",
+				"seq": {
+					"resource_id": 915153,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_E1_1_4",
+				"seq": {
+					"resource_id": 915154,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_E1_1_5",
+				"seq": {
+					"resource_id": 915155,
+					"sound_banks": [
+						"AoPsxDemo_E1SEQ_E1SNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_FE_2_1",
+				"seq": {
+					"resource_id": 95251,
+					"sound_banks": [
+						"AePc_FDSEQ_FEECO",
+						"AePsxCd1_FDSEQ_FEECO",
+						"AePsxCd2_FDSEQ_FEECO" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_FE_4_1",
+				"seq": {
+					"resource_id": 95451,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2ENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_FE_5_1",
+				"seq": {
+					"resource_id": 95551,
+					"sound_banks": [
+						"AoPc_F2SEQ_F2ENDER",
+						"AoPsx_F2SEQ_F2ENDER" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_OPTAMB",
+				"seq": {
+					"resource_id": 904576,
+					"sound_banks": [
+						"AePcDemo_STSEQ_OPTION",
+						"AePc_STSEQ_OPTION",
+						"AePsxCd1_STSEQ_OPTION",
+						"AePsxCd2_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_PC_DEMO_OP_2_2",
+				"seq": {
+					"resource_id": 905252,
+					"sound_banks": [
+						"AePcDemo_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_PC_DEMO_OP_2_3",
+				"seq": {
+					"resource_id": 905253,
+					"sound_banks": [
+						"AePcDemo_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_PC_DEMO_OP_3_1",
+				"seq": {
+					"resource_id": 905351,
+					"sound_banks": [
+						"AePcDemo_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AE_PC_DEMO_OP_3_2",
+				"seq": {
+					"resource_id": 905352,
+					"sound_banks": [
+						"AePcDemo_STSEQ_OPTION" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_RF_5_1",
+				"seq": {
+					"resource_id": 205551,
+					"sound_banks": [
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "AO_PSX_DEMO_RF_6_1",
+				"seq": {
+					"resource_id": 205651,
+					"sound_banks": [
+						"AoPsxDemo_R1SEQ_RFSNDFX",
+						"AoPsxDemo_R2SEQ_RFSNDFX" 
+					] 
+				} 
+			},
+			{
+				"resource_name": "Slig_Hi",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 60 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_HereBoy",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 62 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_GetEm",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 61 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_Stay",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 63 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_Bs",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 66 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_LookOut",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 37 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_SmoBs",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 67 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_Laugh",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 38 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_Freeze",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 57 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_What",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER" 
+							],
+							"tone": 58 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_Help",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER" 
+							],
+							"tone": 59 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_Buhlur",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER" 
+							],
+							"tone": 39 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_Gotcha",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM",
+								"AePc_SESEQ_SVENDER" 
+							],
+							"tone": 64 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_Ow",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM" 
+							],
+							"tone": 65 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Slig_Urgh",
+				"sample": {
+					"locations": [
+						{
+							"program": 25,
+							"sound_banks": [
+								"AePcDemo_MISEQ_MINES",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES",
+								"AePc_NESEQ_NECRUM" 
+							],
+							"tone": 68 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Glukkon_Commere",
+				"sample": {
+					"locations": [
+						{
+							"program": 8,
+							"sound_banks": [
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FESEQ_FEENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 61 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Glukkon_AllYa",
+				"sample": {
+					"locations": [
+						{
+							"program": 8,
+							"sound_banks": [
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FESEQ_FEENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 63 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Glukkon_DoIt",
+				"sample": {
+					"locations": [
+						{
+							"program": 8,
+							"sound_banks": [
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FESEQ_FEENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 64 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Glukkon_Help",
+				"sample": {
+					"locations": [
+						{
+							"program": 8,
+							"sound_banks": [
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FESEQ_FEENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 65 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Glukkon_Hey",
+				"sample": {
+					"locations": [
+						{
+							"program": 8,
+							"sound_banks": [
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FESEQ_FEENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 66 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Glukkon_StayHere",
+				"sample": {
+					"locations": [
+						{
+							"program": 8,
+							"sound_banks": [
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FESEQ_FEENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 67 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Glukkon_Laugh",
+				"sample": {
+					"locations": [
+						{
+							"program": 8,
+							"sound_banks": [
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FESEQ_FEENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 69 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Glukkon_Hurg",
+				"sample": {
+					"locations": [
+						{
+							"program": 8,
+							"sound_banks": [
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FESEQ_FEENDER" 
+							],
+							"tone": 70 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Glukkon_KillEm",
+				"sample": {
+					"locations": [
+						{
+							"program": 8,
+							"sound_banks": [
+								"AePcDemo_STSEQ_OPTION",
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FESEQ_FEENDER",
+								"AePc_STSEQ_OPTION" 
+							],
+							"tone": 71 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Glukkon_Step",
+				"sample": {
+					"locations": [
+						{
+							"program": 8,
+							"sound_banks": [
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FESEQ_FEENDER" 
+							],
+							"tone": 36 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"resource_name": "Glukkon_What",
+				"sample": {
+					"locations": [
+						{
+							"program": 8,
+							"sound_banks": [
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B3SEQ_BWENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FESEQ_FEENDER" 
+							],
+							"tone": 62 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			} 
+		] 
+	},
+	{
+		"sound_banks": [
+			{
+				"bsq_name": "BASEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_BASEQ_BARRACKS",
+				"vab_name": "BARRACKS" 
+			},
+			{
+				"bsq_name": "B2SEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_B2SEQ_BAENDER",
+				"vab_name": "BAENDER" 
+			},
+			{
+				"bsq_name": "BMSEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_BMSEQ_BRENDER",
+				"vab_name": "BRENDER" 
+			},
+			{
+				"bsq_name": "BRSEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_BRSEQ_BREWERY",
+				"vab_name": "BREWERY" 
+			},
+			{
+				"bsq_name": "BWSEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_BWSEQ_BONEWERK",
+				"vab_name": "BONEWERK" 
+			},
+			{
+				"bsq_name": "B3SEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_B3SEQ_BWENDER",
+				"vab_name": "BWENDER" 
+			},
+			{
+				"bsq_name": "STSEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_STSEQ_OPTION",
+				"vab_name": "OPTION" 
+			},
+			{
+				"bsq_name": "FDSEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_FDSEQ_FEECO",
+				"vab_name": "FEECO" 
+			},
+			{
+				"bsq_name": "FESEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_FESEQ_FEENDER",
+				"vab_name": "FEENDER" 
+			},
+			{
+				"bsq_name": "MISEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_MISEQ_MINES",
+				"vab_name": "MINES" 
+			},
+			{
+				"bsq_name": "NESEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_NESEQ_NECRUM",
+				"vab_name": "NECRUM" 
+			},
+			{
+				"bsq_name": "PVSEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_PVSEQ_PARVAULT",
+				"vab_name": "PARVAULT" 
+			},
+			{
+				"bsq_name": "PESEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_PESEQ_PVENDER",
+				"vab_name": "PVENDER" 
+			},
+			{
+				"bsq_name": "SVSEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_SVSEQ_SCRVAULT",
+				"vab_name": "SCRVAULT" 
+			},
+			{
+				"bsq_name": "SESEQ.BSQ",
+				"data_set": "AePc",
+				"name": "AePc_SESEQ_SVENDER",
+				"vab_name": "SVENDER" 
+			},
+			{
+				"bsq_name": "STSEQ.BSQ",
+				"data_set": "AePcDemo",
+				"name": "AePcDemo_STSEQ_OPTION",
+				"vab_name": "OPTION" 
+			},
+			{
+				"bsq_name": "MISEQ.BSQ",
+				"data_set": "AePcDemo",
+				"name": "AePcDemo_MISEQ_MINES",
+				"vab_name": "MINES" 
+			},
+			{
+				"bsq_name": "STSEQ.BSQ",
+				"data_set": "AePsxDemo",
+				"name": "AePsxDemo_STSEQ_OPTSNDFX",
+				"vab_name": "OPTSNDFX" 
+			},
+			{
+				"bsq_name": "STSEQ.BSQ",
+				"data_set": "AePsxDemo",
+				"name": "AePsxDemo_STSEQ_OPTION",
+				"vab_name": "OPTION" 
+			},
+			{
+				"bsq_name": "MISEQ.BSQ",
+				"data_set": "AePsxDemo",
+				"name": "AePsxDemo_MISEQ_MINES",
+				"vab_name": "MINES" 
+			},
+			{
+				"bsq_name": "BASEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_BASEQ_BARRACKS",
+				"vab_name": "BARRACKS" 
+			},
+			{
+				"bsq_name": "B2SEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_B2SEQ_BAENDER",
+				"vab_name": "BAENDER" 
+			},
+			{
+				"bsq_name": "BRSEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_BRSEQ_BREWERY",
+				"vab_name": "BREWERY" 
+			},
+			{
+				"bsq_name": "BWSEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_BWSEQ_BONEWERK",
+				"vab_name": "BONEWERK" 
+			},
+			{
+				"bsq_name": "B3SEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_B3SEQ_BWENDER",
+				"vab_name": "BWENDER" 
+			},
+			{
+				"bsq_name": "STSEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_STSEQ_OPTION",
+				"vab_name": "OPTION" 
+			},
+			{
+				"bsq_name": "FDSEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_FDSEQ_FEECO",
+				"vab_name": "FEECO" 
+			},
+			{
+				"bsq_name": "FESEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_FESEQ_FEENDER",
+				"vab_name": "FEENDER" 
+			},
+			{
+				"bsq_name": "MISEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_MISEQ_MINES",
+				"vab_name": "MINES" 
+			},
+			{
+				"bsq_name": "NESEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_NESEQ_NECRUM",
+				"vab_name": "NECRUM" 
+			},
+			{
+				"bsq_name": "PVSEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_PVSEQ_PARVAULT",
+				"vab_name": "PARVAULT" 
+			},
+			{
+				"bsq_name": "PESEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_PESEQ_PVENDER",
+				"vab_name": "PVENDER" 
+			},
+			{
+				"bsq_name": "SVSEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_SVSEQ_SCRVAULT",
+				"vab_name": "SCRVAULT" 
+			},
+			{
+				"bsq_name": "SESEQ.BSQ",
+				"data_set": "AePsxCd1",
+				"name": "AePsxCd1_SESEQ_SVENDER",
+				"vab_name": "SVENDER" 
+			},
+			{
+				"bsq_name": "BASEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_BASEQ_BARRACKS",
+				"vab_name": "BARRACKS" 
+			},
+			{
+				"bsq_name": "B2SEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_B2SEQ_BAENDER",
+				"vab_name": "BAENDER" 
+			},
+			{
+				"bsq_name": "BMSEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_BMSEQ_BRENDER",
+				"vab_name": "BRENDER" 
+			},
+			{
+				"bsq_name": "BRSEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_BRSEQ_BREWERY",
+				"vab_name": "BREWERY" 
+			},
+			{
+				"bsq_name": "BWSEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_BWSEQ_BONEWERK",
+				"vab_name": "BONEWERK" 
+			},
+			{
+				"bsq_name": "B3SEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_B3SEQ_BWENDER",
+				"vab_name": "BWENDER" 
+			},
+			{
+				"bsq_name": "STSEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_STSEQ_OPTION",
+				"vab_name": "OPTION" 
+			},
+			{
+				"bsq_name": "FDSEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_FDSEQ_FEECO",
+				"vab_name": "FEECO" 
+			},
+			{
+				"bsq_name": "FESEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_FESEQ_FEENDER",
+				"vab_name": "FEENDER" 
+			},
+			{
+				"bsq_name": "MISEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_MISEQ_MINES",
+				"vab_name": "MINES" 
+			},
+			{
+				"bsq_name": "NESEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_NESEQ_NECRUM",
+				"vab_name": "NECRUM" 
+			},
+			{
+				"bsq_name": "PVSEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_PVSEQ_PARVAULT",
+				"vab_name": "PARVAULT" 
+			},
+			{
+				"bsq_name": "PESEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_PESEQ_PARVAULT",
+				"vab_name": "PARVAULT" 
+			},
+			{
+				"bsq_name": "SVSEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_SVSEQ_SCRVAULT",
+				"vab_name": "SCRVAULT" 
+			},
+			{
+				"bsq_name": "SESEQ.BSQ",
+				"data_set": "AePsxCd2",
+				"name": "AePsxCd2_SESEQ_SVENDER",
+				"vab_name": "SVENDER" 
+			},
+			{
+				"bsq_name": "C1SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_C1SEQ_OPTSNDFX",
+				"vab_name": "OPTSNDFX" 
+			},
+			{
+				"bsq_name": "D1SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_D1SEQ_D1SNDFX",
+				"vab_name": "D1SNDFX" 
+			},
+			{
+				"bsq_name": "D2SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_D2SEQ_D2SNDFX",
+				"vab_name": "D2SNDFX" 
+			},
+			{
+				"bsq_name": "D2SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_D2SEQ_D2ENDER",
+				"vab_name": "D2ENDER" 
+			},
+			{
+				"bsq_name": "E1SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_E1SEQ_E1SNDFX",
+				"vab_name": "E1SNDFX" 
+			},
+			{
+				"bsq_name": "E2SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_E2SEQ_E2SNDFX",
+				"vab_name": "E2SNDFX" 
+			},
+			{
+				"bsq_name": "F1SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_F1SEQ_F1SNDFX",
+				"vab_name": "F1SNDFX" 
+			},
+			{
+				"bsq_name": "F2SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_F2SEQ_F2SNDFX",
+				"vab_name": "F2SNDFX" 
+			},
+			{
+				"bsq_name": "F2SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_F2SEQ_F2ENDER",
+				"vab_name": "F2ENDER" 
+			},
+			{
+				"bsq_name": "L1SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_L1SEQ_MLSNDFX",
+				"vab_name": "MLSNDFX" 
+			},
+			{
+				"bsq_name": "R1SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_R1SEQ_RFSNDFX",
+				"vab_name": "RFSNDFX" 
+			},
+			{
+				"bsq_name": "R2SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_R2SEQ_RFSNDFX",
+				"vab_name": "RFSNDFX" 
+			},
+			{
+				"bsq_name": "R6SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_R6SEQ_RFENDER",
+				"vab_name": "RFENDER" 
+			},
+			{
+				"bsq_name": "S1SEQ.BSQ",
+				"data_set": "AoPc",
+				"name": "AoPc_S1SEQ_OPTSNDFX",
+				"vab_name": "OPTSNDFX" 
+			},
+			{
+				"bsq_name": "C1SEQ.BSQ",
+				"data_set": "AoPcDemo",
+				"name": "AoPcDemo_C1SEQ_OPTSNDFX",
+				"vab_name": "OPTSNDFX" 
+			},
+			{
+				"bsq_name": "R1SEQ.BSQ",
+				"data_set": "AoPcDemo",
+				"name": "AoPcDemo_R1SEQ_RFSNDFX",
+				"vab_name": "RFSNDFX" 
+			},
+			{
+				"bsq_name": "S1SEQ.BSQ",
+				"data_set": "AoPcDemo",
+				"name": "AoPcDemo_S1SEQ_OPTSNDFX",
+				"vab_name": "OPTSNDFX" 
+			},
+			{
+				"bsq_name": "C1SEQ.BSQ",
+				"data_set": "AoPsxDemo",
+				"name": "AoPsxDemo_C1SEQ_OPTSNDFX",
+				"vab_name": "OPTSNDFX" 
+			},
+			{
+				"bsq_name": "E1SEQ.BSQ",
+				"data_set": "AoPsxDemo",
+				"name": "AoPsxDemo_E1SEQ_E1SNDFX",
+				"vab_name": "E1SNDFX" 
+			},
+			{
+				"bsq_name": "R1SEQ.BSQ",
+				"data_set": "AoPsxDemo",
+				"name": "AoPsxDemo_R1SEQ_RFSNDFX",
+				"vab_name": "RFSNDFX" 
+			},
+			{
+				"bsq_name": "R2SEQ.BSQ",
+				"data_set": "AoPsxDemo",
+				"name": "AoPsxDemo_R2SEQ_RFSNDFX",
+				"vab_name": "RFSNDFX" 
+			},
+			{
+				"bsq_name": "S1SEQ.BSQ",
+				"data_set": "AoPsxDemo",
+				"name": "AoPsxDemo_S1SEQ_OPTSNDFX",
+				"vab_name": "OPTSNDFX" 
+			},
+			{
+				"bsq_name": "E1SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_E1SEQ_E1SNDFX",
+				"vab_name": "E1SNDFX" 
+			},
+			{
+				"bsq_name": "F1SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_F1SEQ_F1SNDFX",
+				"vab_name": "F1SNDFX" 
+			},
+			{
+				"bsq_name": "F2SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_F2SEQ_F2SNDFX",
+				"vab_name": "F2SNDFX" 
+			},
+			{
+				"bsq_name": "F2SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_F2SEQ_F2ENDER",
+				"vab_name": "F2ENDER" 
+			},
+			{
+				"bsq_name": "L1SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_L1SEQ_MLSNDFX",
+				"vab_name": "MLSNDFX" 
+			},
+			{
+				"bsq_name": "R1SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_R1SEQ_RFSNDFX",
+				"vab_name": "RFSNDFX" 
+			},
+			{
+				"bsq_name": "S1SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_S1SEQ_OPTSNDFX",
+				"vab_name": "OPTSNDFX" 
+			},
+			{
+				"bsq_name": "C1SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_C1SEQ_OPTSNDFX",
+				"vab_name": "OPTSNDFX" 
+			},
+			{
+				"bsq_name": "D1SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_D1SEQ_D1SNDFX",
+				"vab_name": "D1SNDFX" 
+			},
+			{
+				"bsq_name": "D2SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_D2SEQ_D2SNDFX",
+				"vab_name": "D2SNDFX" 
+			},
+			{
+				"bsq_name": "D2SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_D2SEQ_D2ENDER",
+				"vab_name": "D2ENDER" 
+			},
+			{
+				"bsq_name": "E2SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_E2SEQ_E2SNDFX",
+				"vab_name": "E2SNDFX" 
+			},
+			{
+				"bsq_name": "R2SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_R2SEQ_RFSNDFX",
+				"vab_name": "RFSNDFX" 
+			},
+			{
+				"bsq_name": "R6SEQ.BSQ",
+				"data_set": "AoPsx",
+				"name": "AoPsx_R6SEQ_RFENDER",
+				"vab_name": "RFENDER" 
+			} 
+		] 
+	},
+	{
+		"themes": [
+			{
+				"AMBIANCE": [
+					"FEECOAMB" 
+				],
+				"BASE_LINE": [
+					"AE_FE_3_1",
+					"AE_FE_2_1",
+					"AE_FE_1_1" 
+				],
+				"CRITTER_ATTACK": [
+					"AE_FE_9_1" 
+				],
+				"CRITTER_PATROL": [
+					"AE_FE_8_1" 
+				],
+				"SLIG_ATTACK": [
+					"AE_FE_6_1" 
+				],
+				"SLIG_PATROL": [
+					"AE_FE_4_1" 
+				],
+				"SLIG_POSSESSED": [
+					"AE_FE_5_1" 
+				],
+				"name": "Feeco" 
+			},
+			{
+				"AMBIANCE": [
+					"MINESAMB" 
+				],
+				"BASE_LINE": [
+					"MI_3_1",
+					"MI_2_1",
+					"MI_1_1" 
+				],
+				"CRITTER_ATTACK": [
+					"MI_9_1" 
+				],
+				"CRITTER_PATROL": [
+					"MI_8_1" 
+				],
+				"SLIG_ATTACK": [
+					"MI_6_1" 
+				],
+				"SLIG_PATROL": [
+					"MI_4_1" 
+				],
+				"SLIG_POSSESSED": [
+					"MI_5_1" 
+				],
+				"name": "Mines" 
+			},
+			{
+				"AMBIANCE": [
+					"NECRAMB" 
+				],
+				"BASE_LINE": [
+					"NE_3_1",
+					"NE_2_1",
+					"NE_1_1" 
+				],
+				"CRITTER_ATTACK": [
+					"NE_9_1" 
+				],
+				"CRITTER_PATROL": [
+					"NE_8_1" 
+				],
+				"SLIG_ATTACK": [
+					"NE_6_1" 
+				],
+				"SLIG_PATROL": [
+					"NE_4_1" 
+				],
+				"SLIG_POSSESSED": [
+					"NE_5_1" 
+				],
+				"name": "Necrum" 
+			},
+			{
+				"AMBIANCE": [
+					"BREWAMB" 
+				],
+				"BASE_LINE": [
+					"BR_3_1",
+					"BR_2_1",
+					"BR_1_1" 
+				],
+				"CRITTER_ATTACK": [
+					"BR_9_1" 
+				],
+				"CRITTER_PATROL": [
+					"BR_8_1" 
+				],
+				"SLIG_ATTACK": [
+					"BR_6_1" 
+				],
+				"SLIG_PATROL": [
+					"BR_4_1" 
+				],
+				"SLIG_POSSESSED": [
+					"BR_5_1" 
+				],
+				"name": "Brewery" 
+			},
+			{
+				"AMBIANCE": [
+					"BREWAMB" 
+				],
+				"BASE_LINE": [
+					"BREND_3",
+					"BREND_2",
+					"BREND_1" 
+				],
+				"SLIG_ATTACK": [
+					"BREND_6" 
+				],
+				"SLIG_PATROL": [
+					"BREND_4" 
+				],
+				"SLIG_POSSESSED": [
+					"BREND_5" 
+				],
+				"name": "Brewery ender" 
+			},
+			{
+				"AMBIANCE": [
+					"BARRAMB" 
+				],
+				"BASE_LINE": [
+					"BA_3_1",
+					"BA_2_1",
+					"BA_1_1" 
+				],
+				"SLIG_ATTACK": [
+					"BA_6_1" 
+				],
+				"SLIG_PATROL": [
+					"BA_4_1" 
+				],
+				"SLIG_POSSESSED": [
+					"BA_5_1" 
+				],
+				"name": "Barracks" 
+			} 
+		] 
+	} 
+] 
+

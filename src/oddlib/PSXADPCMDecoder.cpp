@@ -111,8 +111,9 @@ void PSXADPCMDecoder::DecodeVagStream(Oddlib::IStream& s, std::vector<u8>& out)
 
 }
 
+template<class T>
 static void DecodeBlock(
-    std::vector<s16>& out,
+    T& out,
     const u8(&samples)[112],
     const u8(&parameters)[16],
     u8 block,
@@ -144,7 +145,8 @@ static void DecodeBlock(
     }
 }
 
-static void Decode(const PSXADPCMDecoder::SoundFrame& sf, std::vector<s16>& out)
+template<class T>
+static void Decode(const PSXADPCMDecoder::SoundFrame& sf, T& out)
 {
     short dstLeft = 0;
     static f64 oldLeft = 0;
@@ -166,6 +168,12 @@ static void Decode(const PSXADPCMDecoder::SoundFrame& sf, std::vector<s16>& out)
 }
 
 void PSXADPCMDecoder::DecodeFrameToPCM(std::vector<s16>& out, uint8_t* arg_adpcm_frame)
+{
+    const PSXADPCMDecoder::SoundFrame* sf = reinterpret_cast<const PSXADPCMDecoder::SoundFrame*>(arg_adpcm_frame);
+    Decode(*sf, out);
+}
+
+void PSXADPCMDecoder::DecodeFrameToPCM(std::array<s16, 4032>& out, uint8_t *arg_adpcm_frame)
 {
     const PSXADPCMDecoder::SoundFrame* sf = reinterpret_cast<const PSXADPCMDecoder::SoundFrame*>(arg_adpcm_frame);
     Decode(*sf, out);

@@ -34,13 +34,16 @@ public:
 
     // Main thread context
     bool IsEnd();
+
+    void Start();
+    void Stop();
 protected:
     virtual bool EndOfStream() = 0;
     virtual bool NeedBuffer() = 0;
     virtual void FillBuffers() = 0;
 
     // Audio thread context, from IAudioPlayer
-    virtual void Play(u8* stream, u32 len) override;
+    virtual bool Play(f32* stream, u32 len) override;
 
 
     void RenderFrame(AbstractRenderer& rend, int width, int height, const void* pixels, const char* subtitles);
@@ -62,7 +65,9 @@ protected:
     u32 mAudioBytesPerFrame = 1;
     std::unique_ptr<SubTitleParser> mSubTitles;
     std::string mName;
+
 private:
+    bool mPlaying = false;
     //AutoMouseCursorHide mHideMouseCursor;
 };
 

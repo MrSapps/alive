@@ -66,13 +66,26 @@ struct AliveAudioMidiMessage
 class SequencePlayer
 {
 public:
-    SequencePlayer(AliveAudio& aliveAudio);
+    SequencePlayer(const std::string& name, Vab& soundBank);
     ~SequencePlayer();
 
 
     int LoadSequenceStream(Oddlib::IStream& stream);
     void PlaySequence();
     void StopSequence();
+
+    void NoteOnSingleShot(int program, int note, char velocity, f64 trackDelay = 0, f64 pitch = 0.0f);
+    void Update();
+
+    bool AtEnd() const;
+    void Restart();
+    void Play(f32* stream, u32 len);
+
+    const std::string& Name() const { return mName; }
+
+    void AudioSettingsUi();
+    void DebugUi();
+private:
 
     f64 MidiTimeToSample(int time);
     u64 GetPlaybackPositionSample();
@@ -89,14 +102,13 @@ public:
     int m_PrevBar = 0;
     int m_TimeSignatureBars = 0;
     f64 m_SongTempo = 1.0f;
-    void PlayerThreadFunction();
 
 private:
+    std::string mName;
+
     std::vector<AliveAudioMidiMessage> m_MessageList;
-    //std::thread * m_SequenceThread = nullptr;
-    std::mutex m_MessageListMutex;
-    std::mutex m_PlayerStateMutex;
-    AliveAudio& mAliveAudio;
+    mutable std::mutex mMutex;
+    AliveAudio mAliveAudio;
 
 
     void DoQuaterCallback()
@@ -106,4 +118,7 @@ private:
             m_QuarterCallback();
         }
     }
+
+    // debug ui
+    bool mVabBrowser = true;
 };

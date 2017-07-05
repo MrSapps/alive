@@ -98,9 +98,28 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/glm
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/vorbis/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/vorbis/lib
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/soxr-0.1.2/src
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${GTK3_INCLUDE_DIRS}
 )
+
+SET(BUILD_SHARED_LIBS 0)
+SET(BUILD_TESTS 0)
+SET(BUILD_LSR_TESTS 0)
+SET(BUILD_EXAMPLES 0)
+SET(WITH_LSR_BINDINGS 0)
+
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/soxr-0.1.2)
+#SET_PROPERTY(TARGET 1a-lsr PROPERTY FOLDER "3rdparty")
+#SET_PROPERTY(TARGET 1-delay-clear PROPERTY FOLDER "3rdparty")
+#SET_PROPERTY(TARGET 3-options-input-fn PROPERTY FOLDER "3rdparty")
+#SET_PROPERTY(TARGET deinstall PROPERTY FOLDER "3rdparty")
+SET_PROPERTY(TARGET soxr PROPERTY FOLDER "3rdparty")
+#SET_PROPERTY(TARGET soxr-lsr PROPERTY FOLDER "3rdparty")
+#SET_PROPERTY(TARGET test-vectors PROPERTY FOLDER "3rdparty")
+#SET_PROPERTY(TARGET vector-cmp PROPERTY FOLDER "3rdparty")
+#SET_PROPERTY(TARGET vector-gen PROPERTY FOLDER "3rdparty")
 
 SET(SQ_DISABLE_INSTALLER 1)
 SET(DISABLE_DYNAMIC 1)
@@ -362,6 +381,8 @@ SET(alivelib_src
     include/gridobject.hpp
     src/gridobject.cpp
     include/subtitles.hpp
+    include/sound_resources.hpp
+    src/sound_resources.cpp
     include/resourcemapper.hpp
     src/resourcemapper.cpp
     include/zipfilesystem.hpp
@@ -392,7 +413,7 @@ endif()
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
-TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib jsonxx sqstdlib_static squirrel_static stk nativefiledialog libdeflate imgui)
+TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib jsonxx sqstdlib_static squirrel_static stk nativefiledialog libdeflate imgui soxr)
 
 if (WIN32 AND MSVC)
     set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
@@ -416,8 +437,13 @@ TARGET_LINK_LIBRARIES(Alive AliveLib libvorbis)
 
 SET(datatool_src
   ${WIN32_RESOURCES_SRC}
-  test/data_test_main.cpp
-  test/phash.hpp)
+  tools/data_tool/data_inspector.hpp
+  tools/engine_hook/seq_name_algorithm.hpp
+  tools/data_tool/data_set_type.hpp
+  tools/data_tool/data_test_main.cpp
+  tools/data_tool/sound_resources_dumper.cpp
+  tools/data_tool/sound_resources_dumper.hpp
+  )
 
 if (APPLE)
     SET(datatool_src
@@ -451,9 +477,13 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
 
     add_library(ddraw SHARED
         tools/engine_hook/exports.def
+        tools/engine_hook/seq_name_algorithm.hpp
         tools/engine_hook/dllmain.cpp
+        tools/engine_hook/hook.hpp
         tools/engine_hook/sound_hooks.cpp
         tools/engine_hook/sound_hooks.hpp
+        tools/engine_hook/game_functions.cpp
+        tools/engine_hook/game_functions.hpp
         tools/engine_hook/ddraw7proxy.hpp
         tools/engine_hook/dsurface7proxy.hpp
         )
@@ -622,6 +652,9 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fonts/Roboto-Regular.ttf" DESTIN
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fonts/Roboto-Italic.ttf" DESTINATION "${DATA_DIR}/fonts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fonts/Roboto-Bold.ttf" DESTINATION "${DATA_DIR}/fonts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/resources.json" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/sounds.json" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/paths.json" DESTINATION "${DATA_DIR}")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fmvs.json" DESTINATION "${DATA_DIR}")
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT_DDV_AePc.SRT" DESTINATION "${DATA_DIR}/subtitles")
 

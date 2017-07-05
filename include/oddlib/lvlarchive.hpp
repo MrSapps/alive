@@ -62,6 +62,7 @@ namespace Oddlib
             const std::string& FileName() const;
             FileChunk* ChunkById(u32 id);
             FileChunk* ChunkByIndex(u32 index) { return mChunks[index].get(); }
+            const FileChunk* ChunkByIndex(u32 index) const { return mChunks[index].get(); }
             FileChunk* ChunkByType(u32 type);
             size_t ChunkCount() const { return mChunks.size(); }
             // Debugging feature
@@ -79,6 +80,7 @@ namespace Oddlib
 
         File* FileByName(const std::string& fileName);
         File* FileByIndex(u32 index) { return mFiles[index].get(); }
+        const File* FileByIndex(u32 index) const { return mFiles[index].get(); }
         u32 FileCount() const { return static_cast<u32>(mFiles.size()); }
         struct FileRecord
         {

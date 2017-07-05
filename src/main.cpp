@@ -16,15 +16,14 @@ int main(int argc, char** argv)
         args.push_back(argv[i]);
     }
 
-    Engine e(args);
-
-    if (!e.Init())
-    {
-        return 1;
-    }
-
     try
     {
+        Engine e(args);
+
+        if (!e.Init())
+        {
+            return 1;
+        }
         return e.Run();
     }
     catch (const std::exception& e)

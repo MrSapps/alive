@@ -13,32 +13,37 @@ public:
     virtual ~IAudioController() = default;
     virtual void AddPlayer(IAudioPlayer* player) = 0;
     virtual void RemovePlayer(IAudioPlayer* player) = 0;
-    virtual void SetAudioSpec(u16 frameSize, int freq) = 0;
+    virtual u16 AudioFrameSize() const = 0;
+    virtual u32 SampleRate() const = 0;
+    virtual void SetExclusiveAudioPlayer(IAudioPlayer* player) = 0;
 };
 
 class IAudioPlayer
 {
 public:
     virtual ~IAudioPlayer() = default;
-    virtual void Play(u8* stream, u32 len) = 0;
+    virtual bool Play(f32* stream, u32 len) = 0;
 };
 
 class SdlAudioWrapper : public IAudioController
 {
 public:
-    SdlAudioWrapper();
+    SdlAudioWrapper(u16 frameSize, u32 freq);
     virtual void AddPlayer(IAudioPlayer* player) override;
     virtual void RemovePlayer(IAudioPlayer* player) override;
-    virtual void SetAudioSpec(u16 frameSize, s32 freq) override;
+    virtual u16 AudioFrameSize() const override;
+    virtual u32 SampleRate() const override;
+    virtual void SetExclusiveAudioPlayer(IAudioPlayer* player) override;
     ~SdlAudioWrapper();
 private:
+    void SetAudioSpec(u16 frameSize, s32 freq);
     void Open(u16 frameSize, int freq);
     void Close();
-    static void StaticAudioCallback(void *udata, u8 *stream, int len);
+    static void StaticAudioCallback(void *udata, u8 *stream, s32 len);
     void AudioCallback(u8 *stream, int len);
 private:
-    void OpenImpl(const char* deviceName, u16 frameSize, int freq);
-
+    void OpenImpl(const char* deviceName, u16 frameSize, u32 freq);
+    IAudioPlayer* mExclusiveAudio = nullptr;
     std::set<IAudioPlayer*> mAudioPlayers;
     int mDevice = 0;
     u16 mFrameSize = 0;

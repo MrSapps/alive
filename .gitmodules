@@ -56,3 +56,6 @@
 [submodule "3rdParty/fontstash"]
 	path = 3rdParty/fontstash
 	url = https://github.com/memononen/fontstash.git
+[submodule "3rdParty/soxr-0.1.2"]
+	path = 3rdParty/soxr-0.1.2
+	url = https://github.com/paulsapps/soxr-0.1.2.git
