@@ -487,7 +487,7 @@ private:
 public:
     const SoundBankLocation* FindSoundBank(const std::string& soundBank);
     const MusicTheme* FindSoundTheme(const char* themeName);
-    const std::vector<SoundResource>& SoundResources() const;
+    const std::vector<SoundResource>& GetSoundResources() const;
 };
 
 // TODO: Move to physics

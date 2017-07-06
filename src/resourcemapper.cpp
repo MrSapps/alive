@@ -323,7 +323,7 @@ const MusicTheme* ResourceMapper::FindSoundTheme(const char* themeName)
     return mSoundResources.FindMusicTheme(themeName);
 }
 
-const std::vector<SoundResource>& ResourceMapper::SoundResources() const
+const std::vector<SoundResource>& ResourceMapper::GetSoundResources() const
 {
     return mSoundResources.mSounds;
 }
@@ -890,7 +890,7 @@ std::shared_ptr<Oddlib::LvlArchive> ResourceLocator::OpenLvl(IFileSystem& fs, co
 
 const std::vector<SoundResource>& ResourceLocator::GetSoundResources() const
 {
-    return mResMapper.SoundResources();
+    return mResMapper.GetSoundResources();
 }
 
 const MusicTheme* ResourceLocator::LocateSoundTheme(const char* themeName)
