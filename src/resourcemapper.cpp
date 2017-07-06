@@ -3,6 +3,7 @@
 #include "oddlib/bits_factory.hpp"
 #include "oddlib/audio/vab.hpp"
 #include <cmath>
+#include "oddlib/audio/SequencePlayer.h"
 
 Animation::AnimationSetHolder::AnimationSetHolder(std::shared_ptr<Oddlib::LvlArchive> sLvlPtr, std::shared_ptr<Oddlib::AnimationSet> sAnimSetPtr, u32 animIdx) : mLvlPtr(sLvlPtr), mAnimSetPtr(sAnimSetPtr)
 {
@@ -322,6 +323,11 @@ const MusicTheme* ResourceMapper::FindSoundTheme(const char* themeName)
     return mSoundResources.FindMusicTheme(themeName);
 }
 
+const std::vector<SoundResource>& ResourceMapper::SoundResources() const
+{
+    return mSoundResources.mSounds;
+}
+
 const SoundBankLocation* ResourceMapper::FindSoundBank(const std::string& soundBank)
 {
     return mSoundResources.FindSoundBank(soundBank);
@@ -358,7 +364,7 @@ std::string ResourceLocator::LocateScript(const char* scriptName)
     return "";
 }
 
-std::unique_ptr<ISound> ResourceLocator::DoLoadSoundMusic(const DataPaths::FileSystemInfo& fs, const std::string& strSb, const MusicResource& musicRes)
+std::unique_ptr<ISound> ResourceLocator::DoLoadSoundMusic(const char* resourceName, const DataPaths::FileSystemInfo& fs, const std::string& strSb, const MusicResource& musicRes)
 {
     const SoundBankLocation* sbl = mResMapper.FindSoundBank(strSb);
 
@@ -413,7 +419,7 @@ std::unique_ptr<ISound> ResourceLocator::DoLoadSoundMusic(const DataPaths::FileS
 
                     LOG_INFO("Using sound bank: " << sbl->mName);
 
-                    return std::make_unique<ISound>(std::move(vab), std::move(seqStream));
+                    return std::make_unique<SeqSound>(resourceName, std::move(vab), std::move(seqStream));
                 }
             }
         }
@@ -421,7 +427,7 @@ std::unique_ptr<ISound> ResourceLocator::DoLoadSoundMusic(const DataPaths::FileS
     return nullptr;
 }
 
-std::unique_ptr<ISound> ResourceLocator::DoLoadSoundEffect(const DataPaths::FileSystemInfo& fs, const std::string& strSb, const SoundEffectResource& sfxRes, const SoundEffectResourceLocation& sfxResLoc)
+std::unique_ptr<ISound> ResourceLocator::DoLoadSoundEffect(const char* resourceName, const DataPaths::FileSystemInfo& fs, const std::string& strSb, const SoundEffectResource& sfxRes, const SoundEffectResourceLocation& sfxResLoc)
 {
     const SoundBankLocation* sbl = mResMapper.FindSoundBank(strSb);
 
@@ -469,7 +475,7 @@ std::unique_ptr<ISound> ResourceLocator::DoLoadSoundEffect(const DataPaths::File
 
                 LOG_INFO("Using sound bank: " << sbl->mName);
 
-                return std::make_unique<ISound>(std::move(vab), sfxResLoc.mProgram, sfxResLoc.mTone, sfxRes.mMinPitch, sfxRes.mMaxPitch, sfxRes.mVolume);
+                return std::make_unique<SingleSeqSampleSound>(resourceName, std::move(vab), sfxResLoc.mProgram, sfxResLoc.mTone, sfxRes.mMinPitch, sfxRes.mMaxPitch, sfxRes.mVolume);
             }
         }
     }
@@ -494,7 +500,7 @@ std::unique_ptr<ISound> ResourceLocator::LocateSound(const char* resourceName, c
                     const std::set<std::string>& soundBanks = explicitSoundBankName ? std::set<std::string> { explicitSoundBankName } : sr->mMusic.mSoundBanks;
                     for (const std::string& sb : soundBanks)
                     {
-                        auto ret = DoLoadSoundMusic(fs, sb, sr->mMusic);
+                        auto ret = DoLoadSoundMusic(resourceName, fs, sb, sr->mMusic);
                         if (ret)
                         {
                             return ret;
@@ -515,7 +521,7 @@ std::unique_ptr<ISound> ResourceLocator::LocateSound(const char* resourceName, c
                         const std::set<std::string>& soundBanks = explicitSoundBankName ? std::set<std::string> { explicitSoundBankName } : loc.mSoundBanks;
                         for (const std::string& sb : soundBanks)
                         {
-                            auto ret = DoLoadSoundEffect(fs, sb, sr->mSoundEffect, loc);
+                            auto ret = DoLoadSoundEffect(resourceName, fs, sb, sr->mSoundEffect, loc);
                             if (ret)
                             {
                                 return ret;
@@ -876,6 +882,11 @@ std::shared_ptr<Oddlib::LvlArchive> ResourceLocator::OpenLvl(IFileSystem& fs, co
     return lvlPtr;
 }
 
+const std::vector<SoundResource>& ResourceLocator::SoundResources() const
+{
+    return mResMapper.SoundResources();
+}
+
 const MusicTheme* ResourceLocator::LocateSoundTheme(const char* themeName)
 {
     return mResMapper.FindSoundTheme(themeName);
@@ -945,4 +956,70 @@ std::unique_ptr<Animation> ResourceLocator::DoLocateAnimation(const DataPaths::F
         }
     }
     return nullptr;
+}
+
+BaseSeqSound::BaseSeqSound(const char* soundName, std::unique_ptr<Vab> vab)
+    : mVab(std::move(vab)), mSoundName(soundName)
+{
+
+}
+
+void BaseSeqSound::DebugUi()
+{
+    mSeqPlayer->DebugUi();
+}
+
+void BaseSeqSound::Play(f32* stream, u32 len)
+{
+    mSeqPlayer->Play(stream, len);
+}
+
+bool BaseSeqSound::AtEnd() const
+{
+    return mSeqPlayer->AtEnd();
+}
+
+void BaseSeqSound::Restart()
+{
+    mSeqPlayer->Restart();
+}
+
+void BaseSeqSound::Update()
+{
+    mSeqPlayer->Update();
+}
+
+const std::string& BaseSeqSound::Name() const
+{
+    return mSoundName;
+}
+
+SingleSeqSampleSound::SingleSeqSampleSound(const char* soundName, std::unique_ptr<Vab> vab, u32 program, u32 note, u32 minPitch, u32 maxPitch, u32 /*vol*/)
+    : BaseSeqSound(soundName, std::move(vab)), mProgram(program), mNote(note), mMinPitch(minPitch), mMaxPitch(maxPitch)
+{
+
+}
+
+static float RandFloat(float a, float b)
+{
+    return ((b - a)*((float)rand() / RAND_MAX)) + a;
+}
+
+void SingleSeqSampleSound::Load()
+{
+    mSeqPlayer = std::make_unique<SequencePlayer>(mSoundName.c_str(), *mVab);
+    mSeqPlayer->NoteOnSingleShot(mProgram, mNote, 127, 0.0f, RandFloat(static_cast<f32>(mMinPitch), static_cast<f32>(mMaxPitch)));
+}
+
+SeqSound::SeqSound(const char* soundName, std::unique_ptr<Vab> vab, std::unique_ptr<Oddlib::IStream> seq)
+    : BaseSeqSound(soundName, std::move(vab)), mSeqData(std::move(seq))
+{
+
+}
+
+void SeqSound::Load()
+{
+    mSeqPlayer = std::make_unique<SequencePlayer>(mSoundName.c_str(), *mVab);
+    mSeqPlayer->LoadSequenceStream(*mSeqData);
+    mSeqPlayer->PlaySequence();
 }

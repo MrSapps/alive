@@ -56,6 +56,15 @@ private:
     const std::vector<MusicThemeEntry>* mActiveTheme = nullptr;
 };
 
+class ISound;
+
+class SoundCache
+{
+public:
+    bool Expired() const;
+    void Delete();
+};
+
 class Sound : public IAudioPlayer
 {
 public:
@@ -68,27 +77,29 @@ public:
     void Render(int w, int h);
     void HandleEvent(const char* eventName);
     void SetTheme(const char* themeName);
+    void CacheSoundEffects();
 private:
     void PlaySoundScript(const char* soundName);
-    std::unique_ptr<SequencePlayer> PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRecord, bool useSfxRecord);
+    std::unique_ptr<ISound> PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRecord, bool useSfxRecord);
     void Preload();
     void SoundBrowserUi();
-    std::unique_ptr<SequencePlayer> PlayThemeEntry(const char* entryName);
+    std::unique_ptr<ISound> PlayThemeEntry(const char* entryName);
     void EnsureAmbiance();
 private: // IAudioPlayer
     virtual bool Play(f32* stream, u32 len) override;
 private:
     IAudioController& mAudioController;
     ResourceLocator& mLocator;
+    SoundCache mCache;
 
     const MusicTheme* mActiveTheme = nullptr;
     ActiveMusicThemeEntry mActiveThemeEntry;
 
-    std::recursive_mutex mSeqPlayersMutex;
-    std::unique_ptr<SequencePlayer> mAmbiance;
-    std::unique_ptr<SequencePlayer> mMusicTrack;
+    std::mutex mSoundPlayersMutex;
+    std::unique_ptr<ISound> mAmbiance;
+    std::unique_ptr<ISound> mMusicTrack;
 
-    std::vector<std::unique_ptr<SequencePlayer>> mSeqPlayers;
+    std::vector<std::unique_ptr<ISound>> mSoundPlayers;
 
     InstanceBinder<class Sound> mScriptInstance;
 };

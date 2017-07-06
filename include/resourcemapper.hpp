@@ -487,6 +487,7 @@ private:
 public:
     const SoundBankLocation* FindSoundBank(const std::string& soundBank);
     const MusicTheme* FindSoundTheme(const char* themeName);
+    const std::vector<SoundResource>& SoundResources() const;
 };
 
 // TODO: Move to physics
@@ -648,25 +649,49 @@ private:
 class ISound
 {
 public:
-    ISound(std::unique_ptr<Vab> vab, std::unique_ptr<Oddlib::IStream> seq)
-        : mVab(std::move(vab)), mSeqData(std::move(seq))
-    {
-
-    }
-
-    ISound(std::unique_ptr<Vab> vab, u32 program, u32 note, u32 minPitch, u32 maxPitch, u32 /*vol*/)
-        : mVab(std::move(vab)), mProgram(program), mNote(note), mMinPitch(minPitch), mMaxPitch(maxPitch)
-    {
-
-    }
-
+    virtual void Load() = 0;
     virtual ~ISound() = default;
+    virtual void DebugUi() = 0;
+    virtual void Play(f32* stream, u32 len) = 0;
+    virtual bool AtEnd() const = 0;
+    virtual void Restart() = 0;
+    virtual void Update() = 0;
+    virtual const std::string& Name() const = 0;
+};
+
+class BaseSeqSound : public ISound
+{
+public:
+    BaseSeqSound(const char* soundName, std::unique_ptr<Vab> vab);
+    virtual void DebugUi() override;
+    virtual void Play(f32* stream, u32 len) override;
+    virtual bool AtEnd() const override;
+    virtual void Restart() override;
+    virtual void Update() override;
+    virtual const std::string& Name() const override;
 
     std::unique_ptr<Vab> mVab;
+    std::unique_ptr<class SequencePlayer> mSeqPlayer;
+    std::string mSoundName;
+};
+
+class SingleSeqSampleSound : public BaseSeqSound
+{
+public:
+    SingleSeqSampleSound(const char* soundName, std::unique_ptr<Vab> vab, u32 program, u32 note, u32 minPitch, u32 maxPitch, u32 /*vol*/);
+    virtual void Load() override;
     u32 mProgram = 0;
     u32 mNote = 0;
     u32 mMinPitch = 0;
     u32 mMaxPitch = 0;
+};
+
+class SeqSound : public BaseSeqSound
+{
+public:
+    SeqSound(const char* soundName, std::unique_ptr<Vab> vab, std::unique_ptr<Oddlib::IStream> seq);
+    virtual void Load() override;
+
     std::unique_ptr<Oddlib::IStream> mSeqData;
 };
 
@@ -702,8 +727,8 @@ public:
 
     std::vector<std::tuple<const char*, const char*, bool>> DebugUi(const char* dataSetFilter, const char* nameFilter);
 private:
-    std::unique_ptr<ISound> DoLoadSoundEffect(const DataPaths::FileSystemInfo& fs, const std::string& strSb, const SoundEffectResource& sfxRes, const SoundEffectResourceLocation& sfxResLoc);
-    std::unique_ptr<ISound> DoLoadSoundMusic(const DataPaths::FileSystemInfo& fs, const std::string& strSb, const MusicResource& sfxRes);
+    std::unique_ptr<ISound> DoLoadSoundEffect(const char* resourceName, const DataPaths::FileSystemInfo& fs, const std::string& strSb, const SoundEffectResource& sfxRes, const SoundEffectResourceLocation& sfxResLoc);
+    std::unique_ptr<ISound> DoLoadSoundMusic(const char* resourceName, const DataPaths::FileSystemInfo& fs, const std::string& strSb, const MusicResource& sfxRes);
 
     std::unique_ptr<Animation> DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
 
@@ -720,4 +745,6 @@ private:
     friend class Fmv; // TODO: Temp debug ui
     friend class Level; // TODO: Temp debug ui
     friend class Sound; // TODO: Temp debug ui
+public:
+    const std::vector<SoundResource>& SoundResources() const;
 };

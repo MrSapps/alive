@@ -4,21 +4,27 @@
 #include "logger.hpp"
 #include "resourcemapper.hpp"
 
-static float RandFloat(float a, float b)
-{
-    return ((b - a)*((float)rand() / RAND_MAX)) + a;
-}
-
 void Sound::PlaySoundScript(const char* soundName)
 {
     auto ret = PlaySound(soundName, nullptr, true, true);
     if (ret)
     {
-        mSeqPlayers.push_back(std::move(ret));
+        std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
+        mSoundPlayers.push_back(std::move(ret));
     }
 }
 
-std::unique_ptr<SequencePlayer> Sound::PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRec, bool useSfxRec)
+bool SoundCache::Expired() const
+{
+    return false;
+}
+
+void SoundCache::Delete()
+{
+
+}
+
+std::unique_ptr<ISound> Sound::PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRec, bool useSfxRec)
 {
     // TODO: Cache all sfx up front
 
@@ -30,25 +36,9 @@ std::unique_ptr<SequencePlayer> Sound::PlaySound(const char* soundName, const ch
         // TODO: Might want another player instance or a better way of dividing sound fx/vs seq music - also needs higher
         // abstraction since music/fx could be wave/ogg/mp3 etc
 
+        pSound->Load();
 
-        // TODO: Only do this once and resample PSX FMV audio to match it
-        //mAudioController.SetAudioSpec(1024*8, kAliveAudioSampleRate);
-
-        // TODO: Allow more than one so things can play in parallel
-        std::lock_guard<std::recursive_mutex> lock(mSeqPlayersMutex);
-
-        auto player = std::make_unique<SequencePlayer>(soundName, *pSound->mVab);
-        if (pSound->mSeqData)
-        {
-            player->LoadSequenceStream(*pSound->mSeqData);
-            player->PlaySequence();
-        }
-        else
-        {
-            player->NoteOnSingleShot(pSound->mProgram, pSound->mNote, 127, 0.0f, RandFloat(static_cast<f32>(pSound->mMinPitch), static_cast<f32>(pSound->mMaxPitch)));
-        }
-
-        return player;
+        return pSound;
     }
     else
     {
@@ -59,7 +49,7 @@ std::unique_ptr<SequencePlayer> Sound::PlaySound(const char* soundName, const ch
 
 void Sound::SetTheme(const char* themeName)
 {
-    std::lock_guard<std::recursive_mutex> lock(mSeqPlayersMutex);
+    std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
 
     mAmbiance = nullptr;
     mMusicTrack = nullptr;
@@ -67,6 +57,29 @@ void Sound::SetTheme(const char* themeName)
     if (!mActiveTheme)
     {
         LOG_ERROR("Music theme " << themeName << " was not found");
+    }
+}
+
+void Sound::CacheSoundEffects()
+{
+    TRACE_ENTRYEXIT;
+
+    if (mCache.Expired())
+    {
+        mCache.Delete();
+    }
+
+    const std::vector<SoundResource>& resources = mLocator.SoundResources();
+    for (const SoundResource& resource : resources)
+    {
+        if (resource.mIsSoundEffect)
+        {
+            std::unique_ptr<ISound> pSound = mLocator.LocateSound(resource.mResourceName.c_str(), nullptr, true, true);
+            if (pSound)
+            {
+                //mCache.Add(resource.mResourceName.c_str(), nullptr, true, true);
+            }
+        }
     }
 }
 
@@ -85,6 +98,12 @@ void Sound::HandleEvent(const char* eventName)
     // TODO: Need quarter beat transition in some cases
     EnsureAmbiance();
 
+    if (strcmp(eventName, "AMBIANCE") == 0)
+    {
+        mMusicTrack = nullptr;
+        return;
+    }
+
     auto ret = PlayThemeEntry(eventName);
     if (ret)
     {
@@ -92,7 +111,7 @@ void Sound::HandleEvent(const char* eventName)
     }
 }
 
-std::unique_ptr<SequencePlayer> Sound::PlayThemeEntry(const char* entryName)
+std::unique_ptr<ISound> Sound::PlayThemeEntry(const char* entryName)
 {
     if (mActiveTheme)
     {
@@ -109,15 +128,17 @@ std::unique_ptr<SequencePlayer> Sound::PlayThemeEntry(const char* entryName)
 
 void Sound::EnsureAmbiance()
 {
+    std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
     if (!mAmbiance)
     {
         mAmbiance = PlayThemeEntry("AMBIANCE");
     }
 }
 
+// Audio thread context
 bool Sound::Play(f32* stream, u32 len)
 {
-    std::lock_guard<std::recursive_mutex> lock(mSeqPlayersMutex);
+    std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
 
     if (mAmbiance)
     {
@@ -129,7 +150,7 @@ bool Sound::Play(f32* stream, u32 len)
         mMusicTrack->Play(stream, len);
     }
 
-    for (auto& player : mSeqPlayers)
+    for (auto& player : mSoundPlayers)
     {
         player->Play(stream, len);
     }
@@ -140,6 +161,7 @@ bool Sound::Play(f32* stream, u32 len)
 {
     Sqrat::Class<Sound, Sqrat::NoConstructor<Sound>> c(Sqrat::DefaultVM::Get(), "Sound");
     c.Func("PlaySoundEffect", &Sound::PlaySoundScript);
+    c.Func("SetTheme", &Sound::SetTheme);
     Sqrat::RootTable().Bind("Sound", c);
 }
 
@@ -163,10 +185,10 @@ void Sound::Update()
     if (Debugging().mBrowserUi.soundBrowserOpen)
     {
         {
-            std::lock_guard<std::recursive_mutex> lock(mSeqPlayersMutex);
-            if (!mSeqPlayers.empty())
+            std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
+            if (!mSoundPlayers.empty())
             {
-                mSeqPlayers[0]->DebugUi();
+                mSoundPlayers[0]->DebugUi();
             }
 
             if (ImGui::Begin("Active SEQs"))
@@ -182,7 +204,7 @@ void Sound::Update()
                 }
 
                 int i = 0;
-                for (auto& player : mSeqPlayers)
+                for (auto& player : mSoundPlayers)
                 {
                     i++;
                     if (ImGui::Button((std::to_string(i) + player->Name()).c_str()))
@@ -197,12 +219,12 @@ void Sound::Update()
         SoundBrowserUi();
     }
 
-    std::lock_guard<std::recursive_mutex> lock(mSeqPlayersMutex);
-    for (auto it = mSeqPlayers.begin(); it != mSeqPlayers.end();)
+    std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
+    for (auto it = mSoundPlayers.begin(); it != mSoundPlayers.end();)
     {
         if ((*it)->AtEnd())
         {
-            it = mSeqPlayers.erase(it);
+            it = mSoundPlayers.erase(it);
         }
         else
         {
@@ -235,7 +257,7 @@ void Sound::Update()
         }
     }
 
-    for (auto& player : mSeqPlayers)
+    for (auto& player : mSoundPlayers)
     {
         player->Update();
     }
@@ -648,7 +670,8 @@ void Sound::SoundBrowserUi()
                         {
                             if (ImGui::Selectable(sb.c_str()))
                             {
-                                mSeqPlayers.push_back(PlaySound(selected->mResourceName.c_str(), sb.c_str(), true, false));
+                                std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
+                                mSoundPlayers.push_back(PlaySound(selected->mResourceName.c_str(), sb.c_str(), true, false));
                             }
                         }
                     }
@@ -664,7 +687,8 @@ void Sound::SoundBrowserUi()
                             {
                                 if (ImGui::Selectable(sb.c_str()))
                                 {
-                                    mSeqPlayers.push_back(PlaySound(selected->mResourceName.c_str(), sb.c_str(), false, true));
+                                    std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
+                                    mSoundPlayers.push_back(PlaySound(selected->mResourceName.c_str(), sb.c_str(), false, true));
                                 }
                             }
                         }

@@ -2289,23 +2289,25 @@ void SoundResourcesDumper::RemoveSoundBanksThatDontMatchPrimarySample()
         {
             // Load sample data for sfxRes out of primarySoundBank
             const std::string primarySoundBank = primaryRec->second;
-            std::unique_ptr<ISound> pFx = mLocator.LocateSound(sfxRes.mResourceName.c_str(), primarySoundBank.c_str(), false, true);
+            std::unique_ptr<ISound> pSound = mLocator.LocateSound(sfxRes.mResourceName.c_str(), primarySoundBank.c_str(), false, true);
+            SingleSeqSampleSound* pFx = dynamic_cast<SingleSeqSampleSound*>(pSound.get());
             if (pFx)
             {
-                const s16 pSampleIndex = pFx->mVab->VagAt(pFx->mProgram, pFx->mNote)->iVag-1;
+                const s16 pSampleIndex = pFx->mVab->VagAt(pFx->mProgram, pFx->mNote)->iVag - 1;
                 Vab::SampleData pSampleData = pFx->mVab->mSamples[pSampleIndex];
                 for (SoundEffectResourceLocation& sfxLoc : sfxRes.mSoundBanks)
                 {
                     // Remove if sample data does not match primary
                     for (auto sbIt = std::begin(sfxLoc.mSoundBanks); sbIt != std::end(sfxLoc.mSoundBanks); )
                     {
-                        std::unique_ptr<ISound> pCurrentFx = mLocator.LocateSound(sfxRes.mResourceName.c_str(), sbIt->c_str(), false, true);
+                        std::unique_ptr<ISound> pCurrentSound = mLocator.LocateSound(sfxRes.mResourceName.c_str(), sbIt->c_str(), false, true);
+                        SingleSeqSampleSound* pCurrentFx = dynamic_cast<SingleSeqSampleSound*>(pCurrentSound.get());
                         if (pCurrentFx)
                         {
                             const VagAtr* pVag = pCurrentFx->mVab->VagAt(pFx->mProgram, pFx->mNote);
                             if (pVag)
                             {
-                                const s16 sampleIndex = pVag->iVag-1;
+                                const s16 sampleIndex = pVag->iVag - 1;
                                 Vab::SampleData sampleData = pCurrentFx->mVab->mSamples[sampleIndex];
                                 if (sampleData != pSampleData)
                                 {
