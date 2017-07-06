@@ -32,9 +32,14 @@ public:
     u32 mWAVE = Oddlib::MakeType("WAVE");
     u32 mFmt = Oddlib::MakeType("fmt ");
 
+    enum eWaveFormats
+    {
+        eIEEEFloat = 3,
+    };
+
     struct WaveChunk
     {
-        u16 mWaveTypeFormat = 1; // 1 = PCM
+        u16 mWaveTypeFormat = eIEEEFloat; // 1 = PCM
         u16 mNumberOfChannels;
         u32 mNumberOfSamplesPerSecond;
         u32 mBytesPerSecond;
@@ -58,7 +63,6 @@ public:
     void Consume(float* readbuffer, long bufferSizeInBytes);
     void Finish();
 private:
-    static float MinMax(float number, float min, float max);
     WavHeader mHeader;
     Oddlib::FileStream mStream;
 };

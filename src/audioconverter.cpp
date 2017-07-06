@@ -85,7 +85,7 @@ void WavHeader::WaveChunk::Write(Oddlib::IStream& stream)
 
 WavEncoder::WavEncoder(const char* outputName) : mStream(outputName, Oddlib::IStream::ReadMode::ReadWrite)
 {
-    mHeader.mWaveChunk.mBitsPerSample = 16;
+    mHeader.mWaveChunk.mBitsPerSample = 32;
     mHeader.mWaveChunk.mNumberOfChannels = 2;
     mHeader.mWaveChunk.mBlockAlignment = (mHeader.mWaveChunk.mNumberOfChannels * mHeader.mWaveChunk.mBitsPerSample) / 8;
     mHeader.mWaveChunk.mNumberOfSamplesPerSecond = 44100L;
@@ -108,32 +108,14 @@ void WavEncoder::Consume(float* readbuffer, long bufferSizeInBytes)
         const float left = readbuffer[pos++];
         const float right = readbuffer[pos++];
 
-        const u16 cLeft = static_cast<s16>(MinMax(left * 32768.0f, -32768.0f, 32767.0f));
-        const u16 cRight = static_cast<s16>(MinMax(right * 32768.0f, -32768.0f, 32767.0f));
-
-        mStream.Write(cLeft);
-        mStream.Write(cRight);
+        mStream.Write(left);
+        mStream.Write(right);
     }
 }
 
 void WavEncoder::Finish()
 {
     mHeader.FixHeaderSizes(mStream);
-}
-
-float WavEncoder::MinMax(float number, float min, float max)
-{
-    if (number < min)
-    {
-        return min;
-    }
-
-    if (number > max)
-    {
-        return max;
-    }
-
-    return number;
 }
 
 OggEncoder::OggEncoder(const char* outputName)
