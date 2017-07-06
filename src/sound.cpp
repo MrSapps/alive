@@ -609,50 +609,82 @@ void Sound::SoundBrowserUi()
 {
     ImGui::Begin("Sound list");
 
-    for (const SoundResource& soundInfo : mLocator.mResMapper.mSoundResources.mSounds)
+    static const SoundResource* selected = nullptr;
+
+    // left
+    ImGui::BeginChild("left pane", ImVec2(200, 0), true);
     {
-        if (gTestedSounds.find(soundInfo.mResourceName) != std::end(gTestedSounds))
+        for (const SoundResource& soundInfo : mLocator.mResMapper.mSoundResources.mSounds)
         {
-            if (ImGui::Button(soundInfo.mResourceName.c_str()))
+            if (ImGui::Selectable(soundInfo.mResourceName.c_str()))
             {
-                PlaySoundScript(soundInfo.mResourceName.c_str());
+                selected = &soundInfo;
             }
         }
-        else
+        ImGui::EndChild();
+    }
+    ImGui::SameLine();
+
+    // right
+    ImGui::BeginGroup();
+    {
+        ImGui::BeginChild("item view");
         {
-            ImGui::TextUnformatted(soundInfo.mResourceName.c_str());
-
-            // TODO: Pick sound banks via SEQ or SAMPLE only
-            const bool bHasMusic = !soundInfo.mMusic.mSoundBanks.empty();
-            const bool bHasSample = !soundInfo.mSoundEffect.mSoundBanks.empty();
-
-            if (bHasMusic)
+            if (selected)
             {
-                for (const std::string& sb : soundInfo.mMusic.mSoundBanks)
-                {
-                    if (ImGui::Button(("MUSIC: Play " + sb + "_" + soundInfo.mResourceName).c_str()))
-                    {
-                        mSeqPlayers.push_back(PlaySound(soundInfo.mResourceName.c_str(), sb.c_str(), true, false));
-                    }
-                }
-            }
+                ImGui::TextWrapped("Resource name: %s", selected->mResourceName.c_str());
+                ImGui::Separator();
+                ImGui::TextWrapped("Comment: %s", selected->mComment.empty() ? "(none)" : selected->mComment.c_str());
+                ImGui::Separator();
+                ImGui::TextWrapped("Is sound effect: %s", selected->mIsSoundEffect ? "true" : "false");
 
-            if (bHasSample)
-            {
-                for (const SoundEffectResourceLocation& sbLoc : soundInfo.mSoundEffect.mSoundBanks)
+                const bool bHasMusic = !selected->mMusic.mSoundBanks.empty();
+                const bool bHasSample = !selected->mSoundEffect.mSoundBanks.empty();
+                if (bHasMusic)
                 {
-                    for (const std::string& sb : sbLoc.mSoundBanks)
+                    if (ImGui::CollapsingHeader("SEQs"))
                     {
-                        if (ImGui::Button(("SFX: Play " + sb + "_" + soundInfo.mResourceName).c_str()))
+                        for (const std::string& sb : selected->mMusic.mSoundBanks)
                         {
-                            mSeqPlayers.push_back(PlaySound(soundInfo.mResourceName.c_str(), sb.c_str(), false, true));
+                            if (ImGui::Selectable(sb.c_str()))
+                            {
+                                mSeqPlayers.push_back(PlaySound(selected->mResourceName.c_str(), sb.c_str(), true, false));
+                            }
                         }
                     }
                 }
-            }
 
+                if (bHasSample)
+                {
+                    if (ImGui::CollapsingHeader("Samples"))
+                    {
+                        for (const SoundEffectResourceLocation& sbLoc : selected->mSoundEffect.mSoundBanks)
+                        {
+                            for (const std::string& sb : sbLoc.mSoundBanks)
+                            {
+                                if (ImGui::Selectable(sb.c_str()))
+                                {
+                                    mSeqPlayers.push_back(PlaySound(selected->mResourceName.c_str(), sb.c_str(), false, true));
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (ImGui::Button("Play"))
+                {
+                    PlaySoundScript(selected->mResourceName.c_str());
+                }
+            }
+            else
+            {
+                ImGui::TextWrapped("Click an item to display its info");
+            }
         }
+        ImGui::EndChild();
     }
+    ImGui::EndGroup();
+
     ImGui::End();
 
     ImGui::Begin("Sound themes");
