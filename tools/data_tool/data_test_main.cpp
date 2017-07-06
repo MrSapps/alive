@@ -466,11 +466,11 @@ public:
         u32 pos = 0;
         for (u32 i = 0; i < kFloatsPerChannel; i++)
         {
-            float left = readbuffer[pos++];
-            float right = readbuffer[pos++];
+            const float left = readbuffer[pos++];
+            const float right = readbuffer[pos++];
 
-            u16 cLeft = static_cast<s16>(MinMax(left * 32768.0f, - 32768.0f, 32767.0f));
-            u16 cRight = static_cast<s16>(MinMax(right * 32768.0f, -32768.0f, 32767.0f));
+            const u16 cLeft = static_cast<s16>(MinMax(left * 32768.0f, - 32768.0f, 32767.0f));
+            const u16 cRight = static_cast<s16>(MinMax(right * 32768.0f, -32768.0f, 32767.0f));
 
             mStream.Write(cLeft);
             mStream.Write(cRight);

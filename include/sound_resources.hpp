@@ -46,8 +46,10 @@ class SoundResource
 {
 public:
     std::string mResourceName;
+    bool mIsSoundEffect;
     MusicResource mMusic;
     SoundEffectResource mSoundEffect;
+    std::string mComment;
 };
 
 

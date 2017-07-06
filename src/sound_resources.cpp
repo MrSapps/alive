@@ -116,6 +116,20 @@ void SoundResources::Parse(const std::string& json)
 
                 soundRes.mResourceName = obj["resource_name"].GetString();
 
+                if (obj.HasMember("comment"))
+                {
+                    soundRes.mComment = obj["comment"].GetString();
+                }
+
+                if (obj.HasMember("is_sound_effect"))
+                {
+                    soundRes.mIsSoundEffect = obj["is_sound_effect"].GetBool();
+                }
+                else
+                {
+                    soundRes.mIsSoundEffect = false;
+                }
+
                 mSounds.push_back(soundRes);
             }
         }
@@ -160,10 +174,8 @@ void SoundResources::Dump(const std::string& fileName)
 
             jsonxx::Object music;
             music
-                << "resource_id"
-                << sndRes.mMusic.mResourceId
-                << "sound_banks"
-                << musicSoundBanks;
+                << "resource_id"     << sndRes.mMusic.mResourceId
+                << "sound_banks"     << musicSoundBanks;
 
             soundResourceObject << "seq" << music;
         }
@@ -207,6 +219,8 @@ void SoundResources::Dump(const std::string& fileName)
         }
 
         soundResourceObject << "resource_name" << sndRes.mResourceName;
+        soundResourceObject << "comment" << sndRes.mComment;
+        soundResourceObject << "is_sound_effect" << sndRes.mIsSoundEffect;
         soundsArray << soundResourceObject;
     }
 

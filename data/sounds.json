@@ -2,6 +2,8 @@
 	{
 		"sound_resources": [
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BARRAMB",
 				"seq": {
 					"resource_id": 6522576,
@@ -16,6 +18,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "GUN",
 				"seq": {
 					"resource_id": 158,
@@ -95,6 +99,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MUDOHM",
 				"seq": {
 					"resource_id": 758927,
@@ -168,6 +174,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "OHM",
 				"seq": {
 					"resource_id": 927,
@@ -253,7 +261,9 @@
 				} 
 			},
 			{
-				"resource_name": "STOPIT",
+				"comment": "",
+				"is_sound_effect": true,
+				"resource_name": "Abe_StopIt",
 				"seq": {
 					"resource_id": 349034,
 					"sound_banks": [
@@ -309,6 +319,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SSCRATCH",
 				"seq": {
 					"resource_id": 33725472,
@@ -364,6 +376,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SLIGBOMB",
 				"seq": {
 					"resource_id": 36316976,
@@ -439,6 +453,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SLIGBOM2",
 				"seq": {
 					"resource_id": 36316972,
@@ -500,6 +516,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "OOPS",
 				"seq": {
 					"resource_id": 9903,
@@ -576,6 +594,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PATROL",
 				"seq": {
 					"resource_id": 54296,
@@ -633,6 +653,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SLEEPING",
 				"seq": {
 					"resource_id": 36990381,
@@ -693,6 +715,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "WHEEL",
 				"seq": {
 					"resource_id": 72996,
@@ -744,6 +768,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BA_1_1",
 				"seq": {
 					"resource_id": 655151,
@@ -755,6 +781,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BA_2_1",
 				"seq": {
 					"resource_id": 655251,
@@ -766,6 +794,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BA_3_1",
 				"seq": {
 					"resource_id": 655351,
@@ -777,6 +807,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BA_4_1",
 				"seq": {
 					"resource_id": 655451,
@@ -788,6 +820,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BA_5_1",
 				"seq": {
 					"resource_id": 655551,
@@ -799,6 +833,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BA_6_1",
 				"seq": {
 					"resource_id": 655651,
@@ -810,6 +846,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MYSTERY1",
 				"seq": {
 					"resource_id": 79349291,
@@ -886,6 +924,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MYSTERY2",
 				"seq": {
 					"resource_id": 79349292,
@@ -962,6 +1002,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "NEGATIV1",
 				"seq": {
 					"resource_id": 89154361,
@@ -1036,6 +1078,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "NEGATIV3",
 				"seq": {
 					"resource_id": 89154363,
@@ -1110,6 +1154,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "POSITIV1",
 				"seq": {
 					"resource_id": 9334361,
@@ -1181,6 +1227,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "POSITIV9",
 				"seq": {
 					"resource_id": 9334369,
@@ -1252,6 +1300,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BAEND_3",
 				"seq": {
 					"resource_id": 6598853,
@@ -1263,6 +1313,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BAEND_4",
 				"seq": {
 					"resource_id": 6598854,
@@ -1274,6 +1326,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BAEND_5",
 				"seq": {
 					"resource_id": 6598855,
@@ -1285,6 +1339,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BAEND_6",
 				"seq": {
 					"resource_id": 6598856,
@@ -1296,6 +1352,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BREWAMB",
 				"seq": {
 					"resource_id": 6297576,
@@ -1309,6 +1367,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BREND_1",
 				"seq": {
 					"resource_id": 6298851,
@@ -1319,6 +1379,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BREND_2",
 				"seq": {
 					"resource_id": 6298852,
@@ -1329,6 +1391,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BREND_3",
 				"seq": {
 					"resource_id": 6298853,
@@ -1339,6 +1403,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BREND_4",
 				"seq": {
 					"resource_id": 6298854,
@@ -1349,6 +1415,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BREND_5",
 				"seq": {
 					"resource_id": 6298855,
@@ -1359,6 +1427,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BREND_6",
 				"seq": {
 					"resource_id": 6298856,
@@ -1369,6 +1439,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BR_1_1",
 				"seq": {
 					"resource_id": 625151,
@@ -1380,6 +1452,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BR_2_1",
 				"seq": {
 					"resource_id": 625251,
@@ -1391,6 +1465,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BR_3_1",
 				"seq": {
 					"resource_id": 625351,
@@ -1402,6 +1478,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BR_4_1",
 				"seq": {
 					"resource_id": 625451,
@@ -1413,6 +1491,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BR_5_1",
 				"seq": {
 					"resource_id": 625551,
@@ -1424,6 +1504,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BR_6_1",
 				"seq": {
 					"resource_id": 625651,
@@ -1435,6 +1517,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BR_8_1",
 				"seq": {
 					"resource_id": 625851,
@@ -1446,6 +1530,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BR_9_1",
 				"seq": {
 					"resource_id": 625951,
@@ -1457,6 +1543,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BR_10_1",
 				"seq": {
 					"resource_id": 6251051,
@@ -1468,6 +1556,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BONEAMB",
 				"seq": {
 					"resource_id": 6989576,
@@ -1482,6 +1572,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BW_1_1",
 				"seq": {
 					"resource_id": 675151,
@@ -1493,6 +1585,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BW_2_1",
 				"seq": {
 					"resource_id": 675251,
@@ -1504,6 +1598,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BW_3_1",
 				"seq": {
 					"resource_id": 675351,
@@ -1515,6 +1611,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BW_4_1",
 				"seq": {
 					"resource_id": 675451,
@@ -1526,6 +1624,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BW_5_1",
 				"seq": {
 					"resource_id": 675551,
@@ -1537,6 +1637,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BW_6_1",
 				"seq": {
 					"resource_id": 675651,
@@ -1548,6 +1650,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BW_8_1",
 				"seq": {
 					"resource_id": 675851,
@@ -1559,6 +1663,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BW_9_1",
 				"seq": {
 					"resource_id": 675951,
@@ -1570,6 +1676,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BW_10_1",
 				"seq": {
 					"resource_id": 6751051,
@@ -1581,6 +1689,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BWEND_3",
 				"seq": {
 					"resource_id": 6798853,
@@ -1592,6 +1702,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BWEND_4",
 				"seq": {
 					"resource_id": 6798854,
@@ -1603,6 +1715,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BWEND_5",
 				"seq": {
 					"resource_id": 6798855,
@@ -1614,6 +1728,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BWEND_6",
 				"seq": {
 					"resource_id": 6798856,
@@ -1625,6 +1741,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BWEND_8",
 				"seq": {
 					"resource_id": 6798858,
@@ -1636,6 +1754,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BWEND_9",
 				"seq": {
 					"resource_id": 6798859,
@@ -1647,6 +1767,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BWEND_10",
 				"seq": {
 					"resource_id": 67988510,
@@ -1658,6 +1780,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_OPTAMB",
 				"seq": {
 					"resource_id": 904576,
@@ -1676,6 +1800,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_OP_2_1",
 				"seq": {
 					"resource_id": 905251,
@@ -1687,6 +1813,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_OP_2_2",
 				"seq": {
 					"resource_id": 905252,
@@ -1698,6 +1826,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_OP_2_3",
 				"seq": {
 					"resource_id": 905253,
@@ -1709,6 +1839,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_OP_3_1",
 				"seq": {
 					"resource_id": 905351,
@@ -1720,6 +1852,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_OP_3_2",
 				"seq": {
 					"resource_id": 905352,
@@ -1731,6 +1865,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_OP_4_1",
 				"seq": {
 					"resource_id": 905451,
@@ -1742,6 +1878,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PARALLYA",
 				"seq": {
 					"resource_id": 5256695,
@@ -1759,6 +1897,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "FEECOAMB",
 				"seq": {
 					"resource_id": 9979576,
@@ -1773,6 +1913,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_FE_1_1",
 				"seq": {
 					"resource_id": 95151,
@@ -1784,6 +1926,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_FE_2_1",
 				"seq": {
 					"resource_id": 95251,
@@ -1794,6 +1938,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_FE_3_1",
 				"seq": {
 					"resource_id": 95351,
@@ -1805,6 +1951,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_FE_4_1",
 				"seq": {
 					"resource_id": 95451,
@@ -1816,6 +1964,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_FE_5_1",
 				"seq": {
 					"resource_id": 95551,
@@ -1827,6 +1977,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_FE_6_1",
 				"seq": {
 					"resource_id": 95651,
@@ -1838,6 +1990,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_FE_8_1",
 				"seq": {
 					"resource_id": 95851,
@@ -1849,6 +2003,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_FE_9_1",
 				"seq": {
 					"resource_id": 95951,
@@ -1860,6 +2016,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_FE_10_1",
 				"seq": {
 					"resource_id": 951051,
@@ -1871,6 +2029,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "FEEND_3",
 				"seq": {
 					"resource_id": 998853,
@@ -1882,6 +2042,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "FEEND_4",
 				"seq": {
 					"resource_id": 998854,
@@ -1893,6 +2055,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "FEEND_5",
 				"seq": {
 					"resource_id": 998855,
@@ -1904,6 +2068,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "FEEND_6",
 				"seq": {
 					"resource_id": 998856,
@@ -1915,6 +2081,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MINESAMB",
 				"seq": {
 					"resource_id": 73893576,
@@ -1928,6 +2096,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MI_1_1",
 				"seq": {
 					"resource_id": 735151,
@@ -1941,6 +2111,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MI_2_1",
 				"seq": {
 					"resource_id": 735251,
@@ -1952,6 +2124,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MI_3_1",
 				"seq": {
 					"resource_id": 735351,
@@ -1963,6 +2137,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MI_4_1",
 				"seq": {
 					"resource_id": 735451,
@@ -1976,6 +2152,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MI_5_1",
 				"seq": {
 					"resource_id": 735551,
@@ -1987,6 +2165,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MI_6_1",
 				"seq": {
 					"resource_id": 735651,
@@ -2000,6 +2180,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MI_8_1",
 				"seq": {
 					"resource_id": 735851,
@@ -2013,6 +2195,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MI_9_1",
 				"seq": {
 					"resource_id": 735951,
@@ -2026,6 +2210,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MI_10_1",
 				"seq": {
 					"resource_id": 7351051,
@@ -2039,6 +2225,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "NECRAMB",
 				"seq": {
 					"resource_id": 8972576,
@@ -2050,6 +2238,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PIGEONS",
 				"seq": {
 					"resource_id": 319983,
@@ -2067,6 +2257,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "FLEECHES",
 				"seq": {
 					"resource_id": 6997293,
@@ -2090,6 +2282,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "NE_1_1",
 				"seq": {
 					"resource_id": 895151,
@@ -2101,6 +2295,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "NE_2_1",
 				"seq": {
 					"resource_id": 895251,
@@ -2112,6 +2308,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "NE_3_1",
 				"seq": {
 					"resource_id": 895351,
@@ -2123,6 +2321,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "NE_4_1",
 				"seq": {
 					"resource_id": 895451,
@@ -2134,6 +2334,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "NE_5_1",
 				"seq": {
 					"resource_id": 895551,
@@ -2145,6 +2347,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "NE_6_1",
 				"seq": {
 					"resource_id": 895651,
@@ -2156,6 +2360,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "NE_7_1",
 				"seq": {
 					"resource_id": 895751,
@@ -2167,6 +2373,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "NE_8_1",
 				"seq": {
 					"resource_id": 895851,
@@ -2178,6 +2386,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "NE_9_1",
 				"seq": {
 					"resource_id": 895951,
@@ -2189,6 +2399,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PARAMB",
 				"seq": {
 					"resource_id": 52576,
@@ -2203,6 +2415,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PARAPANT",
 				"seq": {
 					"resource_id": 5250584,
@@ -2219,6 +2433,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PV_1_1",
 				"seq": {
 					"resource_id": 65151,
@@ -2230,6 +2446,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PV_2_1",
 				"seq": {
 					"resource_id": 65251,
@@ -2241,6 +2459,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PV_3_1",
 				"seq": {
 					"resource_id": 65351,
@@ -2252,6 +2472,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PV_4_1",
 				"seq": {
 					"resource_id": 65451,
@@ -2263,6 +2485,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PV_5_1",
 				"seq": {
 					"resource_id": 65551,
@@ -2274,6 +2498,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PV_6_1",
 				"seq": {
 					"resource_id": 65651,
@@ -2285,6 +2511,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PV_7_1",
 				"seq": {
 					"resource_id": 65751,
@@ -2296,6 +2524,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PV_8_1",
 				"seq": {
 					"resource_id": 65851,
@@ -2307,6 +2537,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PV_9_1",
 				"seq": {
 					"resource_id": 65951,
@@ -2318,6 +2550,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PVEND_3",
 				"seq": {
 					"resource_id": 698853,
@@ -2329,6 +2563,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PVEND_4",
 				"seq": {
 					"resource_id": 698854,
@@ -2340,6 +2576,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PVEND_5",
 				"seq": {
 					"resource_id": 698855,
@@ -2351,6 +2589,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PVEND_6",
 				"seq": {
 					"resource_id": 698856,
@@ -2362,6 +2602,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PVEND_7",
 				"seq": {
 					"resource_id": 698857,
@@ -2372,6 +2614,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PVEND_8",
 				"seq": {
 					"resource_id": 698858,
@@ -2382,6 +2626,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PVEND_9",
 				"seq": {
 					"resource_id": 698859,
@@ -2392,6 +2638,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SCRAMB",
 				"seq": {
 					"resource_id": 372576,
@@ -2406,6 +2654,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SV_1_1",
 				"seq": {
 					"resource_id": 365151,
@@ -2417,6 +2667,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SV_2_1",
 				"seq": {
 					"resource_id": 365251,
@@ -2428,6 +2680,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SV_3_1",
 				"seq": {
 					"resource_id": 365351,
@@ -2439,6 +2693,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SV_4_1",
 				"seq": {
 					"resource_id": 365451,
@@ -2450,6 +2706,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SV_5_1",
 				"seq": {
 					"resource_id": 365551,
@@ -2461,6 +2719,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SV_6_1",
 				"seq": {
 					"resource_id": 365651,
@@ -2472,6 +2732,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SV_7_1",
 				"seq": {
 					"resource_id": 365751,
@@ -2483,6 +2745,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SV_8_1",
 				"seq": {
 					"resource_id": 365851,
@@ -2494,6 +2758,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SV_9_1",
 				"seq": {
 					"resource_id": 365951,
@@ -2505,6 +2771,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SVEND_3",
 				"seq": {
 					"resource_id": 3698853,
@@ -2516,6 +2784,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SVEND_4",
 				"seq": {
 					"resource_id": 3698854,
@@ -2527,6 +2797,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SVEND_5",
 				"seq": {
 					"resource_id": 3698855,
@@ -2538,6 +2810,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SVEND_6",
 				"seq": {
 					"resource_id": 3698856,
@@ -2549,6 +2823,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SVEND_7",
 				"seq": {
 					"resource_id": 3698857,
@@ -2560,6 +2836,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SVEND_8",
 				"seq": {
 					"resource_id": 3698858,
@@ -2571,6 +2849,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SVEND_9",
 				"seq": {
 					"resource_id": 3698859,
@@ -2582,6 +2862,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_PC_DEMO_OP_2_4",
 				"seq": {
 					"resource_id": 905254,
@@ -2591,6 +2873,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_PC_DEMO_OP_2_5",
 				"seq": {
 					"resource_id": 905255,
@@ -2600,6 +2884,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_PC_DEMO_OP_3_3",
 				"seq": {
 					"resource_id": 905353,
@@ -2609,6 +2895,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_PC_DEMO_OP_3_4",
 				"seq": {
 					"resource_id": 905354,
@@ -2618,6 +2906,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_PC_DEMO_OP_3_5",
 				"seq": {
 					"resource_id": 905355,
@@ -2627,6 +2917,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "OPT_0_1",
 				"seq": {
 					"resource_id": 9045051,
@@ -2645,6 +2937,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "OPT_0_2",
 				"seq": {
 					"resource_id": 9045052,
@@ -2663,6 +2957,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "OPT_0_3",
 				"seq": {
 					"resource_id": 9045053,
@@ -2681,6 +2977,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "OPT_0_4",
 				"seq": {
 					"resource_id": 9045054,
@@ -2699,6 +2997,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "OPT_0_5",
 				"seq": {
 					"resource_id": 9045055,
@@ -2717,6 +3017,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "OPT_1_1",
 				"seq": {
 					"resource_id": 9045151,
@@ -2735,6 +3037,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "OPT_1_2",
 				"seq": {
 					"resource_id": 9045152,
@@ -2753,6 +3057,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "OPT_1_3",
 				"seq": {
 					"resource_id": 9045153,
@@ -2771,6 +3077,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "OPT_1_4",
 				"seq": {
 					"resource_id": 9045154,
@@ -2789,6 +3097,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "OPT_1_5",
 				"seq": {
 					"resource_id": 9045155,
@@ -2807,7 +3117,9 @@
 				} 
 			},
 			{
-				"resource_name": "WHISTLE1",
+				"comment": "",
+				"is_sound_effect": true,
+				"resource_name": "Abe_Whistle1",
 				"sample": {
 					"locations": [
 						{
@@ -2859,37 +3171,9 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "WHISTLE2",
-				"sample": {
-					"locations": [
-						{
-							"program": 58,
-							"sound_banks": [
-								"AoPcDemo_C1SEQ_OPTSNDFX",
-								"AoPcDemo_R1SEQ_RFSNDFX",
-								"AoPcDemo_S1SEQ_OPTSNDFX",
-								"AoPc_C1SEQ_OPTSNDFX",
-								"AoPc_D1SEQ_D1SNDFX",
-								"AoPc_D2SEQ_D2ENDER",
-								"AoPc_D2SEQ_D2SNDFX",
-								"AoPc_E1SEQ_E1SNDFX",
-								"AoPc_E2SEQ_E2SNDFX",
-								"AoPc_F1SEQ_F1SNDFX",
-								"AoPc_F2SEQ_F2ENDER",
-								"AoPc_F2SEQ_F2SNDFX",
-								"AoPc_L1SEQ_MLSNDFX",
-								"AoPc_R1SEQ_RFSNDFX",
-								"AoPc_R2SEQ_RFSNDFX",
-								"AoPc_R6SEQ_RFENDER",
-								"AoPc_S1SEQ_OPTSNDFX" 
-							],
-							"tone": 61 
-						} 
-					],
-					"max_pitch": 0,
-					"min_pitch": 0,
-					"volume": 127 
-				},
 				"seq": {
 					"resource_id": 72334692,
 					"sound_banks": [
@@ -2911,6 +3195,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1AMB",
 				"seq": {
 					"resource_id": 1576,
@@ -2921,6 +3207,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BATSQUEK",
 				"seq": {
 					"resource_id": 65431595,
@@ -2940,6 +3228,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1AMB",
 				"seq": {
 					"resource_id": 81576,
@@ -2950,6 +3240,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "EBELL2",
 				"seq": {
 					"resource_id": 969662,
@@ -2964,6 +3256,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ESCRATCH",
 				"seq": {
 					"resource_id": 93725472,
@@ -2978,6 +3272,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ONCHAIN",
 				"seq": {
 					"resource_id": 9872538,
@@ -3001,6 +3297,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "SLOSLEEP",
 				"seq": {
 					"resource_id": 36936990,
@@ -3018,6 +3316,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "PANTING",
 				"seq": {
 					"resource_id": 584381,
@@ -3041,6 +3341,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_0_1",
 				"seq": {
 					"resource_id": 815051,
@@ -3051,6 +3353,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_0_2",
 				"seq": {
 					"resource_id": 815052,
@@ -3061,6 +3365,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_0_3",
 				"seq": {
 					"resource_id": 815053,
@@ -3071,6 +3377,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_1_1",
 				"seq": {
 					"resource_id": 815151,
@@ -3081,6 +3389,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_1_2",
 				"seq": {
 					"resource_id": 815152,
@@ -3091,6 +3401,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_1_3",
 				"seq": {
 					"resource_id": 815153,
@@ -3101,6 +3413,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_1_4",
 				"seq": {
 					"resource_id": 815154,
@@ -3111,6 +3425,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_1_5",
 				"seq": {
 					"resource_id": 815155,
@@ -3121,6 +3437,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_2_1",
 				"seq": {
 					"resource_id": 815251,
@@ -3131,6 +3449,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_2_2",
 				"seq": {
 					"resource_id": 815252,
@@ -3141,6 +3461,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_2_3",
 				"seq": {
 					"resource_id": 815253,
@@ -3151,6 +3473,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_2_4",
 				"seq": {
 					"resource_id": 815254,
@@ -3161,6 +3485,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_2_5",
 				"seq": {
 					"resource_id": 815255,
@@ -3171,6 +3497,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_3_1",
 				"seq": {
 					"resource_id": 815351,
@@ -3181,6 +3509,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_4_1",
 				"seq": {
 					"resource_id": 815451,
@@ -3191,6 +3521,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_5_1",
 				"seq": {
 					"resource_id": 815551,
@@ -3201,6 +3533,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D1_6_1",
 				"seq": {
 					"resource_id": 815651,
@@ -3211,6 +3545,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ALL_4_1",
 				"seq": {
 					"resource_id": 5665451,
@@ -3237,6 +3573,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ALL_5_1",
 				"seq": {
 					"resource_id": 5665551,
@@ -3263,6 +3601,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ALL_5_2",
 				"seq": {
 					"resource_id": 5665552,
@@ -3289,6 +3629,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ALL_5_3",
 				"seq": {
 					"resource_id": 5665553,
@@ -3315,6 +3657,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ALL_7_1",
 				"seq": {
 					"resource_id": 5665751,
@@ -3341,6 +3685,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ALL_8_1",
 				"seq": {
 					"resource_id": 5665851,
@@ -3367,6 +3713,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D2AMB",
 				"seq": {
 					"resource_id": 82576,
@@ -3379,6 +3727,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D2_0_1",
 				"seq": {
 					"resource_id": 825051,
@@ -3391,6 +3741,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D2_0_2",
 				"seq": {
 					"resource_id": 825052,
@@ -3403,6 +3755,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D2_1_1",
 				"seq": {
 					"resource_id": 825151,
@@ -3415,6 +3769,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D2_1_2",
 				"seq": {
 					"resource_id": 825152,
@@ -3427,6 +3783,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D2_2_1",
 				"seq": {
 					"resource_id": 825251,
@@ -3437,6 +3795,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D2_2_2",
 				"seq": {
 					"resource_id": 825252,
@@ -3447,6 +3807,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D2_4_1",
 				"seq": {
 					"resource_id": 825451,
@@ -3459,6 +3821,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D2_5_1",
 				"seq": {
 					"resource_id": 825551,
@@ -3471,6 +3835,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "D2_6_1",
 				"seq": {
 					"resource_id": 825651,
@@ -3483,6 +3849,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "DE_2_1",
 				"seq": {
 					"resource_id": 895251,
@@ -3493,6 +3861,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "DE_4_1",
 				"seq": {
 					"resource_id": 895451,
@@ -3503,6 +3873,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "DE_5_1",
 				"seq": {
 					"resource_id": 895551,
@@ -3513,6 +3885,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1AMB",
 				"seq": {
 					"resource_id": 91576,
@@ -3523,6 +3897,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_0_1",
 				"seq": {
 					"resource_id": 915051,
@@ -3535,6 +3911,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_0_2",
 				"seq": {
 					"resource_id": 915052,
@@ -3547,6 +3925,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_0_3",
 				"seq": {
 					"resource_id": 915053,
@@ -3559,6 +3939,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_0_4",
 				"seq": {
 					"resource_id": 915054,
@@ -3571,6 +3953,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_0_5",
 				"seq": {
 					"resource_id": 915055,
@@ -3583,6 +3967,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_1_1",
 				"seq": {
 					"resource_id": 915151,
@@ -3595,6 +3981,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_1_2",
 				"seq": {
 					"resource_id": 915152,
@@ -3607,6 +3995,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_1_3",
 				"seq": {
 					"resource_id": 915153,
@@ -3619,6 +4009,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_1_4",
 				"seq": {
 					"resource_id": 915154,
@@ -3631,6 +4023,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_1_5",
 				"seq": {
 					"resource_id": 915155,
@@ -3643,6 +4037,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_4_1",
 				"seq": {
 					"resource_id": 915451,
@@ -3655,6 +4051,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_5_1",
 				"seq": {
 					"resource_id": 915551,
@@ -3667,6 +4065,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E1_6_1",
 				"seq": {
 					"resource_id": 915651,
@@ -3679,6 +4079,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "E2AMB",
 				"seq": {
 					"resource_id": 92576,
@@ -3689,6 +4091,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_0_1",
 				"seq": {
 					"resource_id": 15051,
@@ -3699,6 +4103,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_0_2",
 				"seq": {
 					"resource_id": 15052,
@@ -3709,6 +4115,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_0_3",
 				"seq": {
 					"resource_id": 15053,
@@ -3719,6 +4127,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_1_1",
 				"seq": {
 					"resource_id": 15151,
@@ -3729,6 +4139,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_1_2",
 				"seq": {
 					"resource_id": 15152,
@@ -3739,6 +4151,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_1_3",
 				"seq": {
 					"resource_id": 15153,
@@ -3749,6 +4163,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_2_1",
 				"seq": {
 					"resource_id": 15251,
@@ -3759,6 +4175,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_2_2",
 				"seq": {
 					"resource_id": 15252,
@@ -3769,6 +4187,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_2_3",
 				"seq": {
 					"resource_id": 15253,
@@ -3779,6 +4199,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_2_4",
 				"seq": {
 					"resource_id": 15254,
@@ -3789,6 +4211,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_3_1",
 				"seq": {
 					"resource_id": 15351,
@@ -3799,6 +4223,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_4_1",
 				"seq": {
 					"resource_id": 15451,
@@ -3809,6 +4235,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_5_1",
 				"seq": {
 					"resource_id": 15551,
@@ -3819,6 +4247,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F1_6_1",
 				"seq": {
 					"resource_id": 15651,
@@ -3829,6 +4259,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F2AMB",
 				"seq": {
 					"resource_id": 2576,
@@ -3841,6 +4273,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "BASICTRK",
 				"seq": {
 					"resource_id": 65337425,
@@ -3851,6 +4285,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "LE_LO_1",
 				"seq": {
 					"resource_id": 6956951,
@@ -3861,6 +4297,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "LE_LO_2",
 				"seq": {
 					"resource_id": 6956952,
@@ -3871,6 +4309,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "LE_LO_3",
 				"seq": {
 					"resource_id": 6956953,
@@ -3881,6 +4321,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "LE_LO_4",
 				"seq": {
 					"resource_id": 6956954,
@@ -3891,6 +4333,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "LE_SH_1",
 				"seq": {
 					"resource_id": 6953251,
@@ -3901,6 +4345,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "LE_SH_2",
 				"seq": {
 					"resource_id": 6953252,
@@ -3911,6 +4357,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "LE_SH_3",
 				"seq": {
 					"resource_id": 6953253,
@@ -3921,6 +4369,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "LE_SH_4",
 				"seq": {
 					"resource_id": 6953254,
@@ -3931,6 +4381,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F2_0_1",
 				"seq": {
 					"resource_id": 25051,
@@ -3941,6 +4393,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F2_1_1",
 				"seq": {
 					"resource_id": 25151,
@@ -3951,6 +4405,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F2_2_1",
 				"seq": {
 					"resource_id": 25251,
@@ -3961,6 +4417,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F2_4_1",
 				"seq": {
 					"resource_id": 25451,
@@ -3971,6 +4429,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F2_5_1",
 				"seq": {
 					"resource_id": 25551,
@@ -3981,6 +4441,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "F2_6_1",
 				"seq": {
 					"resource_id": 25651,
@@ -3991,6 +4453,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "MLAMB",
 				"seq": {
 					"resource_id": 76576,
@@ -4001,6 +4465,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_0_1",
 				"seq": {
 					"resource_id": 765051,
@@ -4011,6 +4477,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_0_2",
 				"seq": {
 					"resource_id": 765052,
@@ -4021,6 +4489,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_0_3",
 				"seq": {
 					"resource_id": 765053,
@@ -4031,6 +4501,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_0_4",
 				"seq": {
 					"resource_id": 765054,
@@ -4041,6 +4513,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_0_5",
 				"seq": {
 					"resource_id": 765055,
@@ -4051,6 +4525,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_1_1",
 				"seq": {
 					"resource_id": 765151,
@@ -4061,6 +4537,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_1_2",
 				"seq": {
 					"resource_id": 765152,
@@ -4071,6 +4549,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_1_3",
 				"seq": {
 					"resource_id": 765153,
@@ -4081,6 +4561,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_1_4",
 				"seq": {
 					"resource_id": 765154,
@@ -4091,6 +4573,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_1_5",
 				"seq": {
 					"resource_id": 765155,
@@ -4101,6 +4585,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_2_1",
 				"seq": {
 					"resource_id": 765251,
@@ -4111,6 +4597,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_2_2",
 				"seq": {
 					"resource_id": 765252,
@@ -4121,6 +4609,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_2_3",
 				"seq": {
 					"resource_id": 765253,
@@ -4131,6 +4621,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_2_4",
 				"seq": {
 					"resource_id": 765254,
@@ -4141,6 +4633,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_2_5",
 				"seq": {
 					"resource_id": 765255,
@@ -4151,6 +4645,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_3_1",
 				"seq": {
 					"resource_id": 765351,
@@ -4161,6 +4657,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_4_1",
 				"seq": {
 					"resource_id": 765451,
@@ -4171,6 +4669,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_5_1",
 				"seq": {
 					"resource_id": 765551,
@@ -4181,6 +4681,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "ML_6_1",
 				"seq": {
 					"resource_id": 765651,
@@ -4191,6 +4693,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RFAMB",
 				"seq": {
 					"resource_id": 20576,
@@ -4208,6 +4712,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "GRINDER",
 				"seq": {
 					"resource_id": 1238892,
@@ -4222,6 +4728,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "CHIPPER",
 				"seq": {
 					"resource_id": 7230092,
@@ -4235,6 +4743,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_0_1",
 				"seq": {
 					"resource_id": 205051,
@@ -4250,6 +4760,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_0_2",
 				"seq": {
 					"resource_id": 205052,
@@ -4265,6 +4777,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_0_3",
 				"seq": {
 					"resource_id": 205053,
@@ -4280,6 +4794,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_0_4",
 				"seq": {
 					"resource_id": 205054,
@@ -4295,6 +4811,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_1_1",
 				"seq": {
 					"resource_id": 205151,
@@ -4310,6 +4828,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_1_2",
 				"seq": {
 					"resource_id": 205152,
@@ -4325,6 +4845,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_1_3",
 				"seq": {
 					"resource_id": 205153,
@@ -4340,6 +4862,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_2_1",
 				"seq": {
 					"resource_id": 205251,
@@ -4355,6 +4879,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_2_2",
 				"seq": {
 					"resource_id": 205252,
@@ -4370,6 +4896,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_2_3",
 				"seq": {
 					"resource_id": 205253,
@@ -4385,6 +4913,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_2_4",
 				"seq": {
 					"resource_id": 205254,
@@ -4400,6 +4930,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_4_1",
 				"seq": {
 					"resource_id": 205451,
@@ -4416,6 +4948,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_5_1",
 				"seq": {
 					"resource_id": 205551,
@@ -4430,6 +4964,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "RF_6_1",
 				"seq": {
 					"resource_id": 205651,
@@ -4444,6 +4980,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_ALL_2_1",
 				"seq": {
 					"resource_id": 5665251,
@@ -4453,6 +4991,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_ALL_3_1",
 				"seq": {
 					"resource_id": 5665351,
@@ -4462,6 +5002,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_ALL_6_1",
 				"seq": {
 					"resource_id": 5665651,
@@ -4471,6 +5013,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_ALL_6_2",
 				"seq": {
 					"resource_id": 5665652,
@@ -4480,6 +5024,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_ABEMOUNT",
 				"seq": {
 					"resource_id": 56979584,
@@ -4490,6 +5036,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_ALL_4_1",
 				"seq": {
 					"resource_id": 5665451,
@@ -4499,6 +5047,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_ALL_5_1",
 				"seq": {
 					"resource_id": 5665551,
@@ -4508,6 +5058,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_ALL_5_2",
 				"seq": {
 					"resource_id": 5665552,
@@ -4517,6 +5069,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_ALL_5_3",
 				"seq": {
 					"resource_id": 5665553,
@@ -4526,6 +5080,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_ALL_7_1",
 				"seq": {
 					"resource_id": 5665751,
@@ -4535,6 +5091,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_ALL_8_1",
 				"seq": {
 					"resource_id": 5665851,
@@ -4544,6 +5102,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_E1AMB",
 				"seq": {
 					"resource_id": 91576,
@@ -4553,6 +5113,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_E1_0_1",
 				"seq": {
 					"resource_id": 915051,
@@ -4562,6 +5124,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_E1_0_2",
 				"seq": {
 					"resource_id": 915052,
@@ -4571,6 +5135,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_E1_0_3",
 				"seq": {
 					"resource_id": 915053,
@@ -4580,6 +5146,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_E1_0_4",
 				"seq": {
 					"resource_id": 915054,
@@ -4589,6 +5157,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_E1_0_5",
 				"seq": {
 					"resource_id": 915055,
@@ -4598,6 +5168,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_E1_1_1",
 				"seq": {
 					"resource_id": 915151,
@@ -4607,6 +5179,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_E1_1_2",
 				"seq": {
 					"resource_id": 915152,
@@ -4616,6 +5190,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_E1_1_3",
 				"seq": {
 					"resource_id": 915153,
@@ -4625,6 +5201,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_E1_1_4",
 				"seq": {
 					"resource_id": 915154,
@@ -4634,6 +5212,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_E1_1_5",
 				"seq": {
 					"resource_id": 915155,
@@ -4643,6 +5223,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_FE_2_1",
 				"seq": {
 					"resource_id": 95251,
@@ -4654,6 +5236,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_FE_4_1",
 				"seq": {
 					"resource_id": 95451,
@@ -4664,6 +5248,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_FE_5_1",
 				"seq": {
 					"resource_id": 95551,
@@ -4674,6 +5260,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_OPTAMB",
 				"seq": {
 					"resource_id": 904576,
@@ -4686,6 +5274,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_PC_DEMO_OP_2_2",
 				"seq": {
 					"resource_id": 905252,
@@ -4695,6 +5285,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_PC_DEMO_OP_2_3",
 				"seq": {
 					"resource_id": 905253,
@@ -4704,6 +5296,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_PC_DEMO_OP_3_1",
 				"seq": {
 					"resource_id": 905351,
@@ -4713,6 +5307,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AE_PC_DEMO_OP_3_2",
 				"seq": {
 					"resource_id": 905352,
@@ -4722,6 +5318,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_RF_5_1",
 				"seq": {
 					"resource_id": 205551,
@@ -4732,6 +5330,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": false,
 				"resource_name": "AO_PSX_DEMO_RF_6_1",
 				"seq": {
 					"resource_id": 205651,
@@ -4742,6 +5342,8 @@
 				} 
 			},
 			{
+				"comment": "Slig saying hi",
+				"is_sound_effect": true,
 				"resource_name": "Slig_Hi",
 				"sample": {
 					"locations": [
@@ -4772,6 +5374,8 @@
 				} 
 			},
 			{
+				"comment": "Slig saying here boy",
+				"is_sound_effect": true,
 				"resource_name": "Slig_HereBoy",
 				"sample": {
 					"locations": [
@@ -4802,6 +5406,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_GetEm",
 				"sample": {
 					"locations": [
@@ -4832,6 +5438,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_Stay",
 				"sample": {
 					"locations": [
@@ -4862,6 +5470,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_Bs",
 				"sample": {
 					"locations": [
@@ -4892,6 +5502,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_LookOut",
 				"sample": {
 					"locations": [
@@ -4922,6 +5534,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_SmoBs",
 				"sample": {
 					"locations": [
@@ -4950,6 +5564,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_Laugh",
 				"sample": {
 					"locations": [
@@ -4979,6 +5595,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_Freeze",
 				"sample": {
 					"locations": [
@@ -5009,6 +5627,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_What",
 				"sample": {
 					"locations": [
@@ -5037,6 +5657,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_Help",
 				"sample": {
 					"locations": [
@@ -5065,6 +5687,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_Buhlur",
 				"sample": {
 					"locations": [
@@ -5093,6 +5717,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_Gotcha",
 				"sample": {
 					"locations": [
@@ -5119,6 +5745,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_Ow",
 				"sample": {
 					"locations": [
@@ -5144,6 +5772,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Slig_Urgh",
 				"sample": {
 					"locations": [
@@ -5169,6 +5799,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Glukkon_Commere",
 				"sample": {
 					"locations": [
@@ -5192,6 +5824,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Glukkon_AllYa",
 				"sample": {
 					"locations": [
@@ -5215,6 +5849,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Glukkon_DoIt",
 				"sample": {
 					"locations": [
@@ -5238,6 +5874,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Glukkon_Help",
 				"sample": {
 					"locations": [
@@ -5261,6 +5899,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Glukkon_Hey",
 				"sample": {
 					"locations": [
@@ -5284,6 +5924,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Glukkon_StayHere",
 				"sample": {
 					"locations": [
@@ -5307,6 +5949,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Glukkon_Laugh",
 				"sample": {
 					"locations": [
@@ -5330,6 +5974,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Glukkon_Hurg",
 				"sample": {
 					"locations": [
@@ -5351,6 +5997,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Glukkon_KillEm",
 				"sample": {
 					"locations": [
@@ -5374,6 +6022,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Glukkon_Step",
 				"sample": {
 					"locations": [
@@ -5395,6 +6045,8 @@
 				} 
 			},
 			{
+				"comment": "",
+				"is_sound_effect": true,
 				"resource_name": "Glukkon_What",
 				"sample": {
 					"locations": [
@@ -5408,6 +6060,41 @@
 								"AePc_FESEQ_FEENDER" 
 							],
 							"tone": 62 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
+			},
+			{
+				"comment": "",
+				"is_sound_effect": true,
+				"resource_name": "Abe_Whistle2",
+				"sample": {
+					"locations": [
+						{
+							"program": 58,
+							"sound_banks": [
+								"AoPcDemo_C1SEQ_OPTSNDFX",
+								"AoPcDemo_R1SEQ_RFSNDFX",
+								"AoPcDemo_S1SEQ_OPTSNDFX",
+								"AoPc_C1SEQ_OPTSNDFX",
+								"AoPc_D1SEQ_D1SNDFX",
+								"AoPc_D2SEQ_D2ENDER",
+								"AoPc_D2SEQ_D2SNDFX",
+								"AoPc_E1SEQ_E1SNDFX",
+								"AoPc_E2SEQ_E2SNDFX",
+								"AoPc_F1SEQ_F1SNDFX",
+								"AoPc_F2SEQ_F2ENDER",
+								"AoPc_F2SEQ_F2SNDFX",
+								"AoPc_L1SEQ_MLSNDFX",
+								"AoPc_R1SEQ_RFSNDFX",
+								"AoPc_R2SEQ_RFSNDFX",
+								"AoPc_R6SEQ_RFENDER",
+								"AoPc_S1SEQ_OPTSNDFX" 
+							],
+							"tone": 61 
 						} 
 					],
 					"max_pitch": 0,

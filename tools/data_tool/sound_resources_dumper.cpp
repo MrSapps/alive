@@ -1353,7 +1353,9 @@ static std::map<std::string, std::string> gSeqRenames =
     { "ALL_3_1", "AO_PSX_DEMO_ALL_3_1" },
     { "ALL_6_1", "AO_PSX_DEMO_ALL_6_1" },
     { "ALL_6_2", "AO_PSX_DEMO_ALL_6_2" },
-
+    { "WHISTLE1", "Abe_Whistle1" },
+    { "WHISTLE1", "Abe_Whistle2" },
+    { "STOPIT", "Abe_StopIt" },
 };
 
 void SoundResourcesDumper::SplitSEQs()
@@ -1430,46 +1432,43 @@ static void InitGSounds()
 {
     gSounds.clear();
 
-    // TODO: Add a comment field as it won't be obvious from just as a name what some sound effects actually are
-
     // Slig
     gSounds.emplace_back(TempSoundEffectResource("Slig_Hi", 127, 0, 0,
     {
         //{ 62, 60, { "Ao" } },
         { 25, 60, { "AePc" } }
-    }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_HereBoy", 127, 0, 0, { { 25, 62,{ "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_GetEm", 127, 0, 0,{ { 25, 61, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_Stay", 127, 0, 0, { { 25, 63, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_Bs", 127, 0, 0, { { 25, 66, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_LookOut", 127, 0, 0,{ { 25, 37, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_SmoBs", 127, 0, 0, { { 25, 67, { "AePc"} } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_Laugh", 127, 0, 0, { { 25, 38, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_Freeze", 127, 0, 0, { { 25, 57, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_What", 127, 0, 0, { { 25, 58, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_Help", 127, 0, 0, { { 25, 59, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_Buhlur", 127, 0, 0, { { 25, 39, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_Gotcha",  127, 0, 0, { { 25, 64, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_Ow", 127, 0, 0, { { 25, 65, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Slig_Urgh", 127, 0, 0,{ { 25, 68, { "AePc" } } }));
+    }, "Slig saying hi"));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_HereBoy", 127, 0, 0, { { 25, 62,{ "AePc" } } }, "Slig saying here boy"));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_GetEm", 127, 0, 0,{ { 25, 61, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_Stay", 127, 0, 0, { { 25, 63, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_Bs", 127, 0, 0, { { 25, 66, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_LookOut", 127, 0, 0,{ { 25, 37, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_SmoBs", 127, 0, 0, { { 25, 67, { "AePc"} } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_Laugh", 127, 0, 0, { { 25, 38, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_Freeze", 127, 0, 0, { { 25, 57, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_What", 127, 0, 0, { { 25, 58, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_Help", 127, 0, 0, { { 25, 59, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_Buhlur", 127, 0, 0, { { 25, 39, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_Gotcha",  127, 0, 0, { { 25, 64, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_Ow", 127, 0, 0, { { 25, 65, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Slig_Urgh", 127, 0, 0,{ { 25, 68, { "AePc" } } }, ""));
 
     // Glukkon
-    gSounds.emplace_back(TempSoundEffectResource("Glukkon_Commere", 127, 0, 0,{ { 8, 61, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Glukkon_AllYa", 127, 0, 0,{ { 8, 63, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Glukkon_DoIt", 127, 0, 0,{ { 8, 64, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Glukkon_Help", 127, 0, 0,{ { 8, 65, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Glukkon_Hey", 127, 0, 0,{ { 8, 66, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Glukkon_StayHere", 127, 0, 0,{ { 8, 67, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Glukkon_Laugh", 127, 0, 0,{ { 8, 69, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Glukkon_Hurg", 127, 0, 0,{ { 8, 70, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Glukkon_KillEm", 127, 0, 0,{ { 8, 71, { "AePc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("Glukkon_Step", 127, 0, 0,{ { 8, 36, { "AePc" } } })); // TODO: Pitch rand?
-    gSounds.emplace_back(TempSoundEffectResource("Glukkon_What", 127, 0, 0,{ { 8, 62, { "AePc" } } }));
+    gSounds.emplace_back(TempSoundEffectResource("Glukkon_Commere", 127, 0, 0,{ { 8, 61, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Glukkon_AllYa", 127, 0, 0,{ { 8, 63, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Glukkon_DoIt", 127, 0, 0,{ { 8, 64, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Glukkon_Help", 127, 0, 0,{ { 8, 65, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Glukkon_Hey", 127, 0, 0,{ { 8, 66, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Glukkon_StayHere", 127, 0, 0,{ { 8, 67, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Glukkon_Laugh", 127, 0, 0,{ { 8, 69, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Glukkon_Hurg", 127, 0, 0,{ { 8, 70, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Glukkon_KillEm", 127, 0, 0,{ { 8, 71, { "AePc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Glukkon_Step", 127, 0, 0,{ { 8, 36, { "AePc" } } }, "")); // TODO: Pitch rand?
+    gSounds.emplace_back(TempSoundEffectResource("Glukkon_What", 127, 0, 0,{ { 8, 62, { "AePc" } } }, ""));
     
-    // Whistles - must match SEQ name
-    // TODO: Add SEQ to rename list so it can be Abe_Whistle1/2 etc
-    gSounds.emplace_back(TempSoundEffectResource("WHISTLE1", 127, 0, 0, { { 58, 60,{ "AoPc" } } }));
-    gSounds.emplace_back(TempSoundEffectResource("WHISTLE2", 127, 0, 0, { { 58, 61,{ "AoPc" } } }));
+    // Whistles - must match SEQ name, however seq name WHISTLE1/2 are renamed to match these
+    gSounds.emplace_back(TempSoundEffectResource("Abe_Whistle1", 127, 0, 0, { { 58, 60,{ "AoPc" } } }, ""));
+    gSounds.emplace_back(TempSoundEffectResource("Abe_Whistle2", 127, 0, 0, { { 58, 61,{ "AoPc" } } }, ""));
 
     // TODO: Add to new format as above with similar naming convention, also rename in abe.nut where any are currently used
     /*
@@ -2370,6 +2369,7 @@ static void CopyRec(SoundResource& sfxRec, const TempSoundEffectResource& sfx)
     sfxRec.mSoundEffect.mMinPitch = sfx.mMinPitch;
     sfxRec.mSoundEffect.mVolume = sfx.mVolume;
     sfxRec.mSoundEffect.mSoundBanks = sfx.mSoundBanks;
+    sfxRec.mComment = sfx.mComment;
 }
 
 void SoundResourcesDumper::MergeToFinalResources()
@@ -2405,6 +2405,36 @@ void SoundResourcesDumper::MergeToFinalResources()
             mFinalResources.mSounds.push_back(sfxRec);
         }
     }
+}
+
+static std::set<std::string> gForceAsSoundEffect =
+{
+    "OHM",
+    "Abe_StopIt",
+};
+
+void SoundResourcesDumper::MarkItemsAsSoundEffectOrMusic()
+{
+    for (SoundResource& res : mFinalResources.mSounds)
+    {
+        if (res.mSoundEffect.mSoundBanks.empty() == false)
+        {
+            res.mIsSoundEffect = true;
+        }
+        else
+        {
+            res.mIsSoundEffect = false;
+        }
+    }
+
+    for (SoundResource& res : mFinalResources.mSounds)
+    {
+        if (gForceAsSoundEffect.find(res.mResourceName) != std::end(gForceAsSoundEffect))
+        {
+            res.mIsSoundEffect = true;
+        }
+    }
+
 }
 
 void SoundResourcesDumper::GenerateThemes()
@@ -2555,6 +2585,10 @@ void SoundResourcesDumper::OnFinished()
     // Ae WHISTLE1 SAMPLE can be merged but there shouldn't then be
     // anything else that gets merged otherwise it will overwrite the previous
     MergeToFinalResources();
+
+    // If an item only has a sample, or a sample and a seq then assume its a sound effect
+    // also check hard coded override list to mark things that only have a SEQ as a sound effect
+    MarkItemsAsSoundEffectOrMusic();
 
     GenerateThemes();
 

@@ -8,16 +8,18 @@ class TempSoundEffectResource : public SoundEffectResource
 {
 public:
     TempSoundEffectResource() = default;
-    TempSoundEffectResource(std::string name, s32 vol, s32 minPitch, s32 maxPitch, std::vector<SoundEffectResourceLocation> soundBanks)
+    TempSoundEffectResource(std::string name, s32 vol, s32 minPitch, s32 maxPitch, std::vector<SoundEffectResourceLocation> soundBanks, const std::string& comment)
         : mResourceName(name)
     {
         mVolume = vol;
         mMinPitch = minPitch;
         mMaxPitch = maxPitch;
         mSoundBanks = soundBanks;
+        mComment = comment;
     }
 
     std::string mResourceName;
+    std::string mComment;
 };
 
 class TempMusicResource : public MusicResource
@@ -52,6 +54,7 @@ private:
 
     void RemoveSoundBanksThatDontMatchPrimarySample();
     void MergeToFinalResources();
+    void MarkItemsAsSoundEffectOrMusic();
 
     TempMusicResource* Exists(std::vector<TempMusicResource>& all, const TempMusicResource& res);
     bool Exists(const std::vector<SoundBankLocation>& all, const SoundBankLocation& loc);

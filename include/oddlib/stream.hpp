@@ -75,10 +75,10 @@ namespace Oddlib
 
         // Write any fundamental type
         template<class T>
-        void Write(T& type)
+        void Write(const T& type)
         {
             static_assert(std::is_fundamental<T>::value, "Can only write fundamental types");
-            WriteBytes(reinterpret_cast<u8*>(&type), sizeof(type));
+            WriteBytes(reinterpret_cast<const u8*>(&type), sizeof(type));
         }
 
         // Write vector of any fundamental type
