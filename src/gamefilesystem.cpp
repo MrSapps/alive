@@ -23,7 +23,7 @@ bool GameFileSystem::Init()
     auto basePath = InitBasePath();
     if (basePath.empty())
     {
-        LOG_ERROR("Failed to resolve ${GameDir}");
+        LOG_ERROR("Failed to resolve {GameDir}");
         return false;
     }
     mNamedPaths["{GameDir}"] = basePath;
@@ -31,10 +31,19 @@ bool GameFileSystem::Init()
     auto userPath = InitUserPath();
     if (userPath.empty())
     {
-        LOG_ERROR("Failed to resolve ${UserDir}");
+        LOG_ERROR("Failed to resolve {UserDir}");
         return false;
     }
     mNamedPaths["{UserDir}"] = userPath;
+
+    auto cachePath = InitCachePath();
+    if (cachePath.empty())
+    {
+        LOG_ERROR("Failed to resolve {CacheDir}");
+        return false;
+    }
+    mNamedPaths["{CacheDir}"] = cachePath;
+
     return true;
 }
 
@@ -42,17 +51,16 @@ std::string GameFileSystem::FsPath() const
 {
     return mNamedPaths.find("{GameDir}")->second;
 }
-
-std::string GameFileSystem::InitUserPath()
-{
-    std::string userPath;
 #ifdef _WIN32
+static std::string W32CreateDirectory(const wchar_t* dirName)
+{
     wchar_t myDocsPath[MAX_PATH] = {};
     const HRESULT hr = ::SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, myDocsPath);
     if (SUCCEEDED(hr))
     {
         std::wstring userPathW = myDocsPath;
-        userPathW += L"\\ALIVE User files";
+        userPathW += L"\\";
+        userPathW += dirName;
         if (!::CreateDirectoryW(userPathW.c_str(), NULL))
         {
             const DWORD error = ::GetLastError();
@@ -61,15 +69,41 @@ std::string GameFileSystem::InitUserPath()
                 LOG_ERROR("Create CreateDirectoryA failed with Win32 error: " << error);
             }
         }
-        userPath = string_util::wstring_to_utf8(userPathW);
+        return string_util::wstring_to_utf8(userPathW);
     }
     else
     {
         LOG_ERROR("SHGetFolderPathA failed with HRESULT: " << hr);
+        return "";
     }
-#else
-    char* pUserPath = SDL_GetPrefPath("PaulsApps", "ALIVE");
+}
+#endif
 
+std::string GameFileSystem::InitUserPath()
+{
+    std::string userPath;
+#ifdef _WIN32
+    userPath = W32CreateDirectory(L"ALIVE User files");
+#else
+    char* pUserPath = SDL_GetPrefPath("PaulsApps", "ALIVE User files");
+    if (pUserPath)
+    {
+        userPath = pUserPath;
+        SDL_free(pUserPath);
+    }
+#endif
+    NormalizePath(userPath);
+    return userPath;
+}
+
+std::string GameFileSystem::InitCachePath()
+{
+    std::string userPath;
+#ifdef _WIN32
+    userPath = W32CreateDirectory(L"ALIVE User files\\CacheFiles");
+#else
+    // TODO: Check if this will really create the dir on linux/osx
+    char* pUserPath = SDL_GetPrefPath("PaulsApps", "ALIVE User files/CacheFiles");
     if (pUserPath)
     {
         userPath = pUserPath;

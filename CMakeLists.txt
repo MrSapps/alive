@@ -399,6 +399,8 @@ SET(alivelib_src
     src/filesystem.cpp
     include/gamefilesystem.hpp
     src/gamefilesystem.cpp
+    include/audioconverter.hpp
+    src/audioconverter.cpp
     include/cdromfilesystem.hpp
     include/directorylimitedfilesystem.hpp
 )

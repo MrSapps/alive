@@ -1,3 +1,4 @@
 #pragma once
 
+#define ALIVE_VERSION "@ALIVE_VERSION@"
 #define ALIVE_VERSION_NAME_STR "@ALIVE_VERSION@ (%s) (Fps:%.2f)"

@@ -314,7 +314,7 @@ void Engine::InitSubSystems()
         (mFileSystem->FsPath() + "data/fonts/Roboto-Bold.ttf").c_str()
     );
 
-    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator);
+    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, *mFileSystem);
     mLevel = std::make_unique<Level>(*mSound, mAudioHandler, *mResourceLocator, *mRenderer);
 
     InitImGui();

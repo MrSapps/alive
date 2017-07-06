@@ -649,7 +649,7 @@ protected:
     // Audio must init early
     SdlAudioWrapper mAudioHandler;
 
-    std::unique_ptr<class IFileSystem> mFileSystem;
+    std::unique_ptr<class OSBaseFileSystem> mFileSystem;
  
     SDL_Window* mWindow = nullptr;
 

@@ -3,41 +3,156 @@
 #include "core/audiobuffer.hpp"
 #include "logger.hpp"
 #include "resourcemapper.hpp"
+#include "audioconverter.hpp"
+#include "alive_version.h"
+
+SoundCache::SoundCache(OSBaseFileSystem& fs)
+    : mFs(fs)
+{
+
+}
+
+void SoundCache::Sync()
+{
+    mSoundDataCache.clear();
+
+    bool ok = false;
+    std::string versionFile = "{CacheDir}/CacheVersion.txt";
+    if (mFs.FileExists(versionFile))
+    {
+        if (mFs.Open(versionFile)->LoadAllToString() == ALIVE_VERSION)
+        {
+            ok = true;
+        }
+    }
+
+    if (!ok)
+    {
+        DeleteAll();
+    }
+}
+
+void SoundCache::DeleteAll()
+{
+    // TODO: Delete *.wav from {CacheDir}
+    
+    mSoundDataCache.clear();
+
+    const std::string fileName = mFs.ExpandPath("{CacheDir}/CacheVersion.txt");
+    Oddlib::FileStream versionFile(fileName, Oddlib::IStream::ReadMode::ReadWrite);
+    versionFile.Write(std::string(ALIVE_VERSION));
+}
+
+bool SoundCache::ExistsInMemoryCache(const std::string& name) const
+{
+    return mSoundDataCache.find(name) != std::end(mSoundDataCache);
+}
+
+class WavSound : public ISound
+{
+public:
+    WavSound(const std::string& name, std::shared_ptr<std::vector<u8>>& data)
+        : mName(name), mData(data)
+    {
+        //mHeader.Read(data);
+
+    }
+
+    virtual void Load() override { }
+    virtual void DebugUi() override {}
+
+    virtual void Play(f32* /*stream*/, u32 len) override
+    {
+        mOffset += len;
+    }
+
+    virtual bool AtEnd() const
+    {
+        return mOffset == mData->size();
+    }
+
+    virtual void Restart()
+    {
+        mOffset = 0;
+    }
+
+    virtual void Update() { }
+    virtual const std::string& Name() const { return mName; }
+
+private:
+    size_t mOffset = 0;
+    std::string mName;
+    std::shared_ptr<std::vector<u8>> mData;
+    WavHeader mHeader;
+};
+
+std::unique_ptr<ISound> SoundCache::GetCached(const std::string& name)
+{
+    auto it = mSoundDataCache.find(name);
+    if (it != std::end(mSoundDataCache))
+    {
+        return std::make_unique<WavSound>(name, it->second);
+    }
+    return nullptr;
+}
+
+void SoundCache::AddToMemoryAndDiskCache(ISound& sound)
+{
+    const std::string fileName = mFs.ExpandPath("{CacheDir}/" + sound.Name() + ".wav");
+
+    // TODO: mod files that are already wav shouldn't be converted
+    sound.Load();
+    AudioConverter::Convert<WavEncoder>(sound, fileName.c_str());
+
+    auto stream = mFs.Open(fileName);
+    mSoundDataCache[sound.Name()] = std::make_shared<std::vector<u8>>(Oddlib::IStream::ReadAll(*stream));
+}
+
+bool SoundCache::AddToMemoryCacheFromDiskCache(const std::string& name)
+{
+    std::string fileName = mFs.ExpandPath("{CacheDir}/" + name + ".wav");
+    if (mFs.FileExists(fileName))
+    {
+        auto stream = mFs.Open(fileName);
+        mSoundDataCache[name] = std::make_shared<std::vector<u8>>(Oddlib::IStream::ReadAll(*stream));
+        return true;
+    }
+    return false;
+}
+
+void SoundCache::RemoveFromMemoryCache(const std::string& name)
+{
+    auto it = mSoundDataCache.find(name);
+    if (it != std::end(mSoundDataCache))
+    {
+        mSoundDataCache.erase(it);
+    }
+}
+
+// ====================================================================
 
 void Sound::PlaySoundScript(const char* soundName)
 {
-    auto ret = PlaySound(soundName, nullptr, true, true);
+    auto ret = PlaySound(soundName, nullptr, true, true, true);
     if (ret)
     {
         std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
         mSoundPlayers.push_back(std::move(ret));
     }
 }
-
-bool SoundCache::Expired() const
+std::unique_ptr<ISound> Sound::PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRec, bool useSfxRec, bool useCache)
 {
-    return false;
-}
-
-void SoundCache::Delete()
-{
-
-}
-
-std::unique_ptr<ISound> Sound::PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRec, bool useSfxRec)
-{
-    // TODO: Cache all sfx up front
+    if (useCache)
+    {
+        LOG_INFO("Play sound cached: " << soundName);
+        return mCache.GetCached(soundName);
+    }
 
     std::unique_ptr<ISound> pSound = mLocator.LocateSound(soundName, explicitSoundBankName, useMusicRec, useSfxRec);
     if (pSound)
     {
         LOG_INFO("Play sound: " << soundName);
-
-        // TODO: Might want another player instance or a better way of dividing sound fx/vs seq music - also needs higher
-        // abstraction since music/fx could be wave/ogg/mp3 etc
-
         pSound->Load();
-
         return pSound;
     }
     else
@@ -49,12 +164,24 @@ std::unique_ptr<ISound> Sound::PlaySound(const char* soundName, const char* expl
 
 void Sound::SetTheme(const char* themeName)
 {
-    std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
-
     mAmbiance = nullptr;
     mMusicTrack = nullptr;
-    mActiveTheme = mLocator.LocateSoundTheme(themeName);
-    if (!mActiveTheme)
+    const MusicTheme* newTheme = mLocator.LocateSoundTheme(themeName);
+    
+    // Remove current musics from in memory cache
+    if (mActiveTheme)
+    {
+        CacheActiveTheme(false);
+    }
+
+    mActiveTheme = newTheme;
+
+    // Add new musics to in memory cache
+    if (mActiveTheme)
+    {
+        CacheActiveTheme(true);
+    }
+    else
     {
         LOG_ERROR("Music theme " << themeName << " was not found");
     }
@@ -64,33 +191,57 @@ void Sound::CacheSoundEffects()
 {
     TRACE_ENTRYEXIT;
 
-    if (mCache.Expired())
-    {
-        mCache.Delete();
-    }
+    // initial one time sync
+    mCache.Sync();
 
     const std::vector<SoundResource>& resources = mLocator.SoundResources();
     for (const SoundResource& resource : resources)
     {
         if (resource.mIsSoundEffect)
         {
-            std::unique_ptr<ISound> pSound = mLocator.LocateSound(resource.mResourceName.c_str(), nullptr, true, true);
-            if (pSound)
+            CacheSound(resource.mResourceName);
+        }
+    }
+}
+
+void Sound::CacheActiveTheme(bool add)
+{
+    for (auto& entry : mActiveTheme->mEntries)
+    {
+        for (auto& e : entry.second)
+        {
+            if (add)
             {
-                //mCache.Add(resource.mResourceName.c_str(), nullptr, true, true);
+                CacheSound(e.mMusicName);
+            }
+            else
+            {
+                mCache.RemoveFromMemoryCache(e.mMusicName);
             }
         }
     }
 }
 
-void Sound::Preload()
+void Sound::CacheSound(const std::string& name)
 {
-    if (mActiveTheme)
+    if (mCache.ExistsInMemoryCache(name))
     {
-        // TODO: Preload music
+        // Already in memory
+        return;
     }
 
-    // TODO: Preload sound effects
+    if (mCache.AddToMemoryCacheFromDiskCache(name))
+    {
+        // Already on disk and now added to in memory cache
+        return;
+    }
+
+    std::unique_ptr<ISound> pSound = mLocator.LocateSound(name.c_str(), nullptr, true, true);
+    if (pSound)
+    {
+        // Write into disk cache and then load from disk cache into memory cache
+        mCache.AddToMemoryAndDiskCache(*pSound);
+    }
 }
 
 void Sound::HandleEvent(const char* eventName)
@@ -120,7 +271,7 @@ std::unique_ptr<ISound> Sound::PlayThemeEntry(const char* entryName)
         const MusicThemeEntry* entry = mActiveThemeEntry.Entry();
         if (entry)
         {
-            return PlaySound(entry->mMusicName.c_str(), nullptr, true, true);
+            return PlaySound(entry->mMusicName.c_str(), nullptr, true, true, true);
         }
     }
     return nullptr;
@@ -165,8 +316,8 @@ bool Sound::Play(f32* stream, u32 len)
     Sqrat::RootTable().Bind("Sound", c);
 }
 
-Sound::Sound(IAudioController& audioController, ResourceLocator& locator)
-    : mAudioController(audioController), mLocator(locator), mScriptInstance("gSound", this)
+Sound::Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs)
+    : mAudioController(audioController), mLocator(locator), mCache(fs), mScriptInstance("gSound", this)
 {
     mAudioController.AddPlayer(this);
 }
@@ -248,7 +399,7 @@ void Sound::Update()
         {
             if (mActiveThemeEntry.ToNextEntry())
             {
-                mMusicTrack = PlaySound(mActiveThemeEntry.Entry()->mMusicName.c_str(), nullptr, true, true);
+                mMusicTrack = PlaySound(mActiveThemeEntry.Entry()->mMusicName.c_str(), nullptr, true, true, true);
             }
             else
             {
@@ -262,358 +413,6 @@ void Sound::Update()
         player->Update();
     }
 }
-
-// TODO: Remove this when all tracks have been tested
-// Only show one button to play tracks that have been tested/confirmed working
-static std::set<std::string> gTestedSounds =
-{
-    "BARRAMB",
-    "GUN",
-    "MUDOHM",
-    "OHM",
-    "Abe_StopIt",
-    "SSCRATCH", // TODO: psx diff pitch
-    "SLIGBOMB",
-    "SLIGBOM2",
-    "OOPS",
-    "PATROL",
-    "SLEEPING",
-    "WHEEL",
-    "MYSTERY1",
-    "MYSTERY2",
-    "NEGATIV1",
-    "NEGATIV3",
-    "BAEND_3",
-    "BAEND_4",
-    "BAEND_5",
-    "BAEND_6",
-    "BA_1_1",
-    "BA_2_1",
-    "BA_3_1",
-    "BA_4_1",
-    "BA_5_1",
-    "BA_6_1",
-    "PARALLYA",
-    "PIGEONS",
-    "FLEECHES",
-    "GRINDER",
-    "CHIPPER",
-    "BREWAMB",
-    "BREND_1",
-    "BREND_2",
-    "BREND_3",
-    "BREND_4",
-    "BREND_5",
-    "BREND_6",
-    "BR_1_1",
-    "BR_2_1",
-    "BR_3_1",
-    "BR_4_1",
-    "BR_5_1",
-    "BR_6_1",
-    "BR_8_1",
-    "BR_9_1",
-    "BR_10_1",
-    "BONEAMB",
-    "BW_1_1",
-    "BW_2_1",
-    "BW_3_1",
-    "BW_4_1",
-    "BW_5_1",
-    "BW_6_1",
-    "BW_8_1",
-    "BW_9_1",
-    "BW_10_1",
-    "BWEND_3",
-    "BWEND_4",
-    "BWEND_5",
-    "BWEND_6",
-    "BWEND_8",
-    "BWEND_9",
-    "BWEND_10",
-    "FEECOAMB",
-    "AE_FE_1_1",
-    "AE_FE_2_1",
-    "AE_FE_3_1",
-    "AE_FE_4_1",
-    "AO_FE_2_1",
-    "AO_FE_4_1",
-    "AO_FE_5_1",
-    "AE_FE_5_1",
-    "AE_FE_6_1",
-    "AE_FE_8_1",
-    "AE_FE_9_1",
-    "AE_FE_10_1",
-    "FEEND_3",
-    "FEEND_4",
-    "FEEND_5",
-    "FEEND_6",
-    "MI_1_1",
-    "MI_2_1",
-    "MI_3_1",
-    "MI_4_1",
-    "MI_5_1",
-    "MI_6_1",
-    "MI_8_1",
-    "MI_9_1",
-    "MI_10_1",
-    "NE_1_1",
-    "NE_2_1",
-    "NE_3_1",
-    "NE_4_1",
-    "NE_5_1",
-    "NE_6_1",
-    "NE_7_1",
-    "NE_8_1",
-    "NE_9_1",
-    "PARAMB", // PE vs PV as 1 sound diff @ intro
-
-
-    "NECRAMB",
-    "POSITIV1", // TODO: Fix PC vs PSX pitch
-    "POSITIV9", // TODO: Fix PC vs PSX pitch
-    "EBELL2",
-    "PV_1_1",
-    "PV_2_1", // Pc vs PSX slight change
-    "PV_3_1",
-    "PV_4_1", // Pc vs PSX slight change
-    "PV_5_1",
-    "PV_6_1", // Pc vs PSX slight change
-    "PV_7_1", // Pc vs PSX slight change
-    "PV_8_1", // Pc vs PSX slight change
-    "PV_9_1", // Pc vs PSX slight change
-    "PVEND_3",
-    "PVEND_4",
-    "PVEND_5",
-    "PVEND_6",
-    "D1_0_1",
-    "D1_0_2",
-    "D1_0_3",
-    "D1_1_1",
-    "D1_1_2",
-    "D1_1_3",
-    "D1_1_4",
-    "D1_1_5",
-    "D1_2_1",
-    "D1_2_2",
-    "D1_2_3",
-    "D1_2_4",
-    "D1_2_5",
-    "D1_3_1", // not used?
-    "D1_4_1",
-    "D1_5_1",
-    "D1_6_1",
-    "D2AMB",
-    "AO_PSX_DEMO_ALL_4_1",
-    "AO_PSX_DEMO_ALL_5_1",
-    "AO_PSX_DEMO_ALL_5_2",
-    "AO_PSX_DEMO_ALL_5_3",
-    "AO_PSX_DEMO_ALL_7_1",
-    "AO_PSX_DEMO_ALL_8_1",
-    "ALL_4_1",
-    "ALL_5_1",
-    "ALL_5_2",
-    "ALL_5_3",
-    "ALL_7_1",
-    "ALL_8_1",
-    "OPT_0_1",
-    "OPT_0_2",
-    "OPT_0_3",
-    "OPT_0_4",
-    "OPT_0_5",
-    "OPT_1_1",
-    "OPT_1_2",
-    "OPT_1_3",
-    "OPT_1_4",
-    "OPT_1_5",
-    "F1AMB",
-    "BATSQUEK",
-    "D1AMB",
-    "ESCRATCH", // Psx vs pc diff pitch??
-    "ONCHAIN",
-    "SLOSLEEP",
-    "AO_PSX_DEMO_ABEMOUNT",
-    "PANTING",
-    "SCRAMB",
-    "SV_1_1",
-    "SV_2_1",
-    "SV_3_1",
-    "SV_4_1",
-    "SV_5_1",
-    "SV_6_1",
-    "SV_7_1",
-    "SV_8_1",
-    "SV_9_1",
-    "SVEND_3",
-    "SVEND_4",
-    "SVEND_5",
-    "SVEND_6",
-    "SVEND_7",
-    "SVEND_8",
-    "SVEND_9", // Seems like hardly any sound - probably not used?
-    "PVEND_7",
-    "PVEND_8",
-    "PVEND_9",
-    "D2_0_1", // Never used ?
-    "D2_0_2", // Never used ?
-    "D2_1_1",
-    "D2_1_2",
-    "D2_2_1",
-    "D2_2_2",
-    "D2_4_1",
-    "D2_5_1",
-    "D2_6_1",
-    "DE_2_1",
-    "DE_4_1",
-    "DE_5_1",
-    "E1AMB",
-    "E2AMB",
-    "F1_0_1",
-    "F1_0_2",
-    "F1_0_3",
-    "F1_1_1",
-    "F1_1_2",
-    "F1_1_3",
-    "F1_2_1",
-    "F1_2_2",
-    "F1_2_3",
-    "F1_2_4",
-    "F1_3_1",
-    "F1_4_1",
-    "F1_5_1",
-    "F1_6_1",
-    "F2AMB",
-    "AO_PSX_DEMO_E1AMB",
-    "MLAMB",
-    "ML_0_1",
-    "ML_0_2",
-    "ML_0_3",
-    "ML_0_4",
-    "ML_0_5",
-    "ML_1_1",
-    "ML_1_2",
-    "ML_1_3",
-    "ML_1_4",
-    "ML_1_5",
-    "ML_2_1",
-    "ML_2_2",
-    "ML_2_3",
-    "ML_2_4",
-    "ML_2_5",
-    "ML_3_1",
-    "ML_4_1",
-    "ML_5_1",
-    "ML_6_1",
-    "F2_2_1",
-    "F2_4_1",
-    "F2_5_1",
-    "F2_6_1",
-    "RF_0_1",
-    "RF_0_2",
-    "RF_0_3",
-    "RF_0_4",
-    "RF_1_1",
-    "RF_1_2",
-    "RF_1_3",
-    "RF_2_1",
-    "RF_2_2",
-    "RF_2_3",
-    "RF_2_4",
-    "RF_4_1",
-    "RF_5_1",
-    "RF_6_1",
-    "RFAMB",
-    "AO_PSX_DEMO_RF_5_1",
-    "AO_PSX_DEMO_RF_6_1",
-    "AO_PSX_DEMO_ALL_2_1",
-    "AO_PSX_DEMO_ALL_3_1",
-    "AO_PSX_DEMO_ALL_6_1",
-    "AO_PSX_DEMO_ALL_6_2",
-    "E1_4_1",
-    "E1_5_1",
-    "E1_6_1",
-    "AO_PSX_DEMO_E1_0_1",
-    "AO_PSX_DEMO_E1_0_2",
-    "AO_PSX_DEMO_E1_0_3",
-    "AO_PSX_DEMO_E1_0_4",
-    "AO_PSX_DEMO_E1_0_5",
-    "AO_PSX_DEMO_E1_1_1",
-    "AO_PSX_DEMO_E1_1_2",
-    "AO_PSX_DEMO_E1_1_3",
-    "AO_PSX_DEMO_E1_1_4",
-    "AO_PSX_DEMO_E1_1_5",
-    "E1_0_1",
-    "E1_0_2",
-    "E1_0_3",
-    "E1_0_4",
-    "E1_0_5",
-    "E1_1_1",
-    "E1_1_2",
-    "E1_1_3",
-    "E1_1_4",
-    "E1_1_5",
-    "LE_LO_1",
-    "LE_LO_2",
-    "LE_LO_3",
-    "LE_LO_4",
-    "F2_0_1",
-    "F2_1_1",
-    "LE_SH_1",
-    "LE_SH_2",
-    "LE_SH_3",
-    "LE_SH_4",
-    "MINESAMB",
-    "BASICTRK",
-    "PARAPANT",
-    "AE_OPTAMB",
-    "AO_OPTAMB",
-    "AE_OP_2_1",
-    "AE_OP_2_2",
-    "AE_OP_2_3",
-    "AE_OP_3_1",
-    "AE_OP_3_2",
-    "AE_OP_4_1",
-    "AE_PC_DEMO_OP_2_2",
-    "AE_PC_DEMO_OP_2_3",
-    "AE_PC_DEMO_OP_3_1",
-    "AE_PC_DEMO_OP_3_2",
-    "AE_PC_DEMO_OP_2_4",
-    "AE_PC_DEMO_OP_2_5",
-    "AE_PC_DEMO_OP_3_3",
-    "AE_PC_DEMO_OP_3_4",
-    "AE_PC_DEMO_OP_3_5",
-    "Abe_Whistle1",
-    "Abe_Whistle2",
-
-    "Slig_Hi",
-    "Slig_HereBoy",
-    "Slig_GetEm",
-    "Slig_Stay",
-    "Slig_Bs",
-    "Slig_LookOut",
-    "Slig_SmoBs",
-    "Slig_Laugh",
-    "Slig_Freeze",
-    "Slig_What",
-    "Slig_Help",
-    "Slig_Buhlur",
-    "Slig_Gotcha",
-    "Slig_Ow",
-    "Slig_Urgh",
-
-    "Glukkon_Commere",
-    "Glukkon_AllYa",
-    "Glukkon_DoIt",
-    "Glukkon_Help",
-    "Glukkon_Hey",
-    "Glukkon_StayHere",
-    "Glukkon_Laugh",
-    "Glukkon_Hurg",
-    "Glukkon_KillEm",
-    "Glukkon_Step",
-    "Glukkon_What",
-};
-
 
 static const char* kMusicEvents[] =
 {
@@ -660,6 +459,9 @@ void Sound::SoundBrowserUi()
                 ImGui::Separator();
                 ImGui::TextWrapped("Is sound effect: %s", selected->mIsSoundEffect ? "true" : "false");
 
+                static bool bUseCache = false;
+                ImGui::Checkbox("Use cache", &bUseCache);
+
                 const bool bHasMusic = !selected->mMusic.mSoundBanks.empty();
                 const bool bHasSample = !selected->mSoundEffect.mSoundBanks.empty();
                 if (bHasMusic)
@@ -670,8 +472,12 @@ void Sound::SoundBrowserUi()
                         {
                             if (ImGui::Selectable(sb.c_str()))
                             {
-                                std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
-                                mSoundPlayers.push_back(PlaySound(selected->mResourceName.c_str(), sb.c_str(), true, false));
+                                auto player = PlaySound(selected->mResourceName.c_str(), sb.c_str(), true, false, bUseCache);
+                                if (player)
+                                {
+                                    std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
+                                    mSoundPlayers.push_back(std::move(player));
+                                }
                             }
                         }
                     }
@@ -687,15 +493,19 @@ void Sound::SoundBrowserUi()
                             {
                                 if (ImGui::Selectable(sb.c_str()))
                                 {
-                                    std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
-                                    mSoundPlayers.push_back(PlaySound(selected->mResourceName.c_str(), sb.c_str(), false, true));
+                                    auto player = PlaySound(selected->mResourceName.c_str(), sb.c_str(), false, true, bUseCache);
+                                    if (player)
+                                    {
+                                        std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
+                                        mSoundPlayers.push_back(std::move(player));
+                                    }
                                 }
                             }
                         }
                     }
                 }
 
-                if (ImGui::Button("Play"))
+                if (ImGui::Button("Play (cached/scripted)"))
                 {
                     PlaySoundScript(selected->mResourceName.c_str());
                 }
@@ -718,7 +528,6 @@ void Sound::SoundBrowserUi()
         if (ImGui::RadioButton(theme.mName.c_str(), mActiveTheme && theme.mName == mActiveTheme->mName))
         {
             SetTheme(theme.mName.c_str());
-            Preload();
             HandleEvent("BASE_LINE");
         }
     }

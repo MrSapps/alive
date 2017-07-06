@@ -14,6 +14,7 @@ public:
     virtual bool Init() override final;
     virtual std::string FsPath() const override;
     std::string InitUserPath();
+    std::string InitCachePath();
     std::string InitBasePath();
     virtual std::string ExpandPath(const std::string& path) override final;
 private:
