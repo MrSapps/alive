@@ -66,18 +66,18 @@ public:
         mOffset += len;
     }
 
-    virtual bool AtEnd() const
+    virtual bool AtEnd() const override
     {
         return mOffset == mData->size();
     }
 
-    virtual void Restart()
+    virtual void Restart() override
     {
         mOffset = 0;
     }
 
-    virtual void Update() { }
-    virtual const std::string& Name() const { return mName; }
+    virtual void Update() override { }
+    virtual const std::string& Name() const override { return mName; }
 
 private:
     size_t mOffset = 0;
@@ -194,7 +194,7 @@ void Sound::CacheSoundEffects()
     // initial one time sync
     mCache.Sync();
 
-    const std::vector<SoundResource>& resources = mLocator.SoundResources();
+    const std::vector<SoundResource>& resources = mLocator.GetSoundResources();
     for (const SoundResource& resource : resources)
     {
         if (resource.mIsSoundEffect)
@@ -435,7 +435,7 @@ void Sound::SoundBrowserUi()
     // left
     ImGui::BeginChild("left pane", ImVec2(200, 0), true);
     {
-        for (const SoundResource& soundInfo : mLocator.mResMapper.mSoundResources.mSounds)
+        for (const SoundResource& soundInfo : mLocator.GetSoundResources())
         {
             if (ImGui::Selectable(soundInfo.mResourceName.c_str()))
             {

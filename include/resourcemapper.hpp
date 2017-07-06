@@ -746,5 +746,5 @@ private:
     friend class Level; // TODO: Temp debug ui
     friend class Sound; // TODO: Temp debug ui
 public:
-    const std::vector<SoundResource>& SoundResources() const;
+    const std::vector<SoundResource>& GetSoundResources() const;
 };

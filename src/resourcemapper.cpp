@@ -888,7 +888,7 @@ std::shared_ptr<Oddlib::LvlArchive> ResourceLocator::OpenLvl(IFileSystem& fs, co
     return lvlPtr;
 }
 
-const std::vector<SoundResource>& ResourceLocator::SoundResources() const
+const std::vector<SoundResource>& ResourceLocator::GetSoundResources() const
 {
     return mResMapper.SoundResources();
 }
