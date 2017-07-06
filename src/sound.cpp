@@ -54,33 +54,46 @@ public:
     WavSound(const std::string& name, std::shared_ptr<std::vector<u8>>& data)
         : mName(name), mData(data)
     {
-        //mHeader.Read(data);
-
+        memcpy(&mHeader.mData, data->data(), sizeof(mHeader.mData));
+        mOffsetInBytes = sizeof(mHeader.mData);
     }
 
     virtual void Load() override { }
     virtual void DebugUi() override {}
 
-    virtual void Play(f32* /*stream*/, u32 len) override
+    virtual void Play(f32* stream, u32 len) override
     {
-        mOffset += len;
+        u32 kLenInBytes = len * sizeof(f32);
+        
+        // Handle the case where the audio call back wants N data but we only have N-X left
+        if (mOffsetInBytes + kLenInBytes > mData->size())
+        {
+            kLenInBytes = mData->size() - mOffsetInBytes;
+        }
+
+        const f32* src = reinterpret_cast<const f32*>(mData->data() + mOffsetInBytes);
+        for (u32 i = 0; i < kLenInBytes/sizeof(f32); i++)
+        {
+            stream[i] += src[i];
+        }
+        mOffsetInBytes += kLenInBytes;
     }
 
     virtual bool AtEnd() const override
     {
-        return mOffset == mData->size();
+        return mOffsetInBytes >= mData->size();
     }
 
     virtual void Restart() override
     {
-        mOffset = 0;
+        mOffsetInBytes = sizeof(mHeader.mData);
     }
 
     virtual void Update() override { }
     virtual const std::string& Name() const override { return mName; }
 
 private:
-    size_t mOffset = 0;
+    size_t mOffsetInBytes = 0;
     std::string mName;
     std::shared_ptr<std::vector<u8>> mData;
     WavHeader mHeader;

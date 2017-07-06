@@ -27,10 +27,6 @@ public:
     void Write(Oddlib::IStream& stream);
     void FixHeaderSizes(Oddlib::IStream& stream);
 
-    u32 mRiff = Oddlib::MakeType("RIFF");
-    u32 mFileSize = 0;
-    u32 mWAVE = Oddlib::MakeType("WAVE");
-    u32 mFmt = Oddlib::MakeType("fmt ");
 
     enum eWaveFormats
     {
@@ -49,11 +45,21 @@ public:
         void Write(Oddlib::IStream& stream);
     };
     static_assert(sizeof(WaveChunk) == 16, "WaveChunk must be 16 bytes");
-    u32 mWaveChunkSize = sizeof(WaveChunk);
-    WaveChunk mWaveChunk;
+    
+    struct Header
+    {
+        u32 mRiff = Oddlib::MakeType("RIFF");
+        u32 mFileSize = 0;
+        u32 mWAVE = Oddlib::MakeType("WAVE");
+        u32 mFmt = Oddlib::MakeType("fmt ");
+        u32 mWaveChunkSize = sizeof(WaveChunk);
+        WaveChunk mWaveChunk;
+        u32 mDataDescriptionHeader = Oddlib::MakeType("data");
+        u32 mDataSize = 0;
+    };
+    Header mData;
+    //static_assert(sizeof(WaveChunk) == 44, "Header must be 44 bytes");
 
-    u32 mDataDescriptionHeader = Oddlib::MakeType("data");
-    u32 mDataSize = 0;
 };
 
 class WavEncoder

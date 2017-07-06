@@ -46,14 +46,14 @@ void AudioConverter::Convert(ISound& sound, const char* outputName)
 
 void WavHeader::Write(Oddlib::IStream& stream)
 {
-    stream.Write(mRiff);
-    stream.Write(mFileSize);
-    stream.Write(mWAVE);
-    stream.Write(mFmt);
-    stream.Write(mWaveChunkSize);
-    mWaveChunk.Write(stream);
-    stream.Write(mDataDescriptionHeader);
-    stream.Write(mDataSize);
+    stream.Write(mData.mRiff);
+    stream.Write(mData.mFileSize);
+    stream.Write(mData.mWAVE);
+    stream.Write(mData.mFmt);
+    stream.Write(mData.mWaveChunkSize);
+    mData.mWaveChunk.Write(stream);
+    stream.Write(mData.mDataDescriptionHeader);
+    stream.Write(mData.mDataSize);
 }
 
 void WavHeader::FixHeaderSizes(Oddlib::IStream& stream)
@@ -61,16 +61,16 @@ void WavHeader::FixHeaderSizes(Oddlib::IStream& stream)
     const size_t fileSize = stream.Pos();
 
     // Re-calculate mFileSize and mDataSize
-    mFileSize = static_cast<u32>(fileSize - sizeof(mRiff) - sizeof(mFileSize));
-    mDataSize = static_cast<u32>(fileSize - sizeof(WavHeader));
+    mData.mFileSize = static_cast<u32>(fileSize - sizeof(mData.mRiff) - sizeof(mData.mFileSize));
+    mData.mDataSize = static_cast<u32>(fileSize - sizeof(WavHeader));
 
     // Seek to mFileSize and re-write it
-    stream.Seek(sizeof(mRiff));
-    stream.Write(mFileSize);
+    stream.Seek(sizeof(mData.mRiff));
+    stream.Write(mData.mFileSize);
 
     // Seek to mDataSize and re-write it
     stream.Seek(sizeof(WavHeader) - sizeof(u32));
-    stream.Write(mDataSize);
+    stream.Write(mData.mDataSize);
 }
 
 void WavHeader::WaveChunk::Write(Oddlib::IStream& stream)
@@ -83,17 +83,18 @@ void WavHeader::WaveChunk::Write(Oddlib::IStream& stream)
     stream.Write(mBitsPerSample);
 }
 
-WavEncoder::WavEncoder(const char* outputName) : mStream(outputName, Oddlib::IStream::ReadMode::ReadWrite)
+WavEncoder::WavEncoder(const char* outputName) 
+    : mStream(outputName, Oddlib::IStream::ReadMode::ReadWrite)
 {
-    mHeader.mWaveChunk.mBitsPerSample = 32;
-    mHeader.mWaveChunk.mNumberOfChannels = 2;
-    mHeader.mWaveChunk.mBlockAlignment = (mHeader.mWaveChunk.mNumberOfChannels * mHeader.mWaveChunk.mBitsPerSample) / 8;
-    mHeader.mWaveChunk.mNumberOfSamplesPerSecond = 44100L;
-    mHeader.mWaveChunk.mBytesPerSecond = mHeader.mWaveChunk.mNumberOfSamplesPerSecond * mHeader.mWaveChunk.mBlockAlignment;
+    mHeader.mData.mWaveChunk.mBitsPerSample = 32;
+    mHeader.mData.mWaveChunk.mNumberOfChannels = 2;
+    mHeader.mData.mWaveChunk.mBlockAlignment = (mHeader.mData.mWaveChunk.mNumberOfChannels * mHeader.mData.mWaveChunk.mBitsPerSample) / 8;
+    mHeader.mData.mWaveChunk.mNumberOfSamplesPerSecond = 44100L;
+    mHeader.mData.mWaveChunk.mBytesPerSecond = mHeader.mData.mWaveChunk.mNumberOfSamplesPerSecond * mHeader.mData.mWaveChunk.mBlockAlignment;
 
     // Gets fixed up later via FixHeaderSizes
-    mHeader.mFileSize = 0;
-    mHeader.mDataSize = 0;
+    mHeader.mData.mFileSize = 0;
+    mHeader.mData.mDataSize = 0;
 
     mHeader.Write(mStream);
 }
