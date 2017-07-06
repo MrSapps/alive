@@ -1354,7 +1354,7 @@ static std::map<std::string, std::string> gSeqRenames =
     { "ALL_6_1", "AO_PSX_DEMO_ALL_6_1" },
     { "ALL_6_2", "AO_PSX_DEMO_ALL_6_2" },
     { "WHISTLE1", "Abe_Whistle1" },
-    { "WHISTLE1", "Abe_Whistle2" },
+    { "WHISTLE2", "Abe_Whistle2" },
     { "STOPIT", "Abe_StopIt" },
 };
 

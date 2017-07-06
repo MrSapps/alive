@@ -249,7 +249,7 @@ static std::set<std::string> gTestedSounds =
     "GUN",
     "MUDOHM",
     "OHM",
-    "STOPIT",
+    "Abe_StopIt",
     "SSCRATCH", // TODO: psx diff pitch
     "SLIGBOMB",
     "SLIGBOM2",
@@ -560,8 +560,8 @@ static std::set<std::string> gTestedSounds =
     "AE_PC_DEMO_OP_3_3",
     "AE_PC_DEMO_OP_3_4",
     "AE_PC_DEMO_OP_3_5",
-    "WHISTLE1",
-    "WHISTLE2",
+    "Abe_Whistle1",
+    "Abe_Whistle2",
 
     "Slig_Hi",
     "Slig_HereBoy",

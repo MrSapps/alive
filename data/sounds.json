@@ -3172,8 +3172,38 @@
 			},
 			{
 				"comment": "",
-				"is_sound_effect": false,
-				"resource_name": "WHISTLE2",
+				"is_sound_effect": true,
+				"resource_name": "Abe_Whistle2",
+				"sample": {
+					"locations": [
+						{
+							"program": 58,
+							"sound_banks": [
+								"AoPcDemo_C1SEQ_OPTSNDFX",
+								"AoPcDemo_R1SEQ_RFSNDFX",
+								"AoPcDemo_S1SEQ_OPTSNDFX",
+								"AoPc_C1SEQ_OPTSNDFX",
+								"AoPc_D1SEQ_D1SNDFX",
+								"AoPc_D2SEQ_D2ENDER",
+								"AoPc_D2SEQ_D2SNDFX",
+								"AoPc_E1SEQ_E1SNDFX",
+								"AoPc_E2SEQ_E2SNDFX",
+								"AoPc_F1SEQ_F1SNDFX",
+								"AoPc_F2SEQ_F2ENDER",
+								"AoPc_F2SEQ_F2SNDFX",
+								"AoPc_L1SEQ_MLSNDFX",
+								"AoPc_R1SEQ_RFSNDFX",
+								"AoPc_R2SEQ_RFSNDFX",
+								"AoPc_R6SEQ_RFENDER",
+								"AoPc_S1SEQ_OPTSNDFX" 
+							],
+							"tone": 61 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				},
 				"seq": {
 					"resource_id": 72334692,
 					"sound_banks": [
@@ -6060,41 +6090,6 @@
 								"AePc_FESEQ_FEENDER" 
 							],
 							"tone": 62 
-						} 
-					],
-					"max_pitch": 0,
-					"min_pitch": 0,
-					"volume": 127 
-				} 
-			},
-			{
-				"comment": "",
-				"is_sound_effect": true,
-				"resource_name": "Abe_Whistle2",
-				"sample": {
-					"locations": [
-						{
-							"program": 58,
-							"sound_banks": [
-								"AoPcDemo_C1SEQ_OPTSNDFX",
-								"AoPcDemo_R1SEQ_RFSNDFX",
-								"AoPcDemo_S1SEQ_OPTSNDFX",
-								"AoPc_C1SEQ_OPTSNDFX",
-								"AoPc_D1SEQ_D1SNDFX",
-								"AoPc_D2SEQ_D2ENDER",
-								"AoPc_D2SEQ_D2SNDFX",
-								"AoPc_E1SEQ_E1SNDFX",
-								"AoPc_E2SEQ_E2SNDFX",
-								"AoPc_F1SEQ_F1SNDFX",
-								"AoPc_F2SEQ_F2ENDER",
-								"AoPc_F2SEQ_F2SNDFX",
-								"AoPc_L1SEQ_MLSNDFX",
-								"AoPc_R1SEQ_RFSNDFX",
-								"AoPc_R2SEQ_RFSNDFX",
-								"AoPc_R6SEQ_RFENDER",
-								"AoPc_S1SEQ_OPTSNDFX" 
-							],
-							"tone": 61 
 						} 
 					],
 					"max_pitch": 0,
