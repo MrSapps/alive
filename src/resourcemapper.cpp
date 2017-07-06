@@ -475,7 +475,13 @@ std::unique_ptr<ISound> ResourceLocator::DoLoadSoundEffect(const char* resourceN
 
                 LOG_INFO("Using sound bank: " << sbl->mName);
 
-                return std::make_unique<SingleSeqSampleSound>(resourceName, std::move(vab), sfxResLoc.mProgram, sfxResLoc.mTone, sfxRes.mMinPitch, sfxRes.mMaxPitch, sfxRes.mVolume);
+                return std::make_unique<SingleSeqSampleSound>(resourceName,
+                    std::move(vab),
+                    sfxResLoc.mProgram,
+                    sfxResLoc.mTone,
+                    sfxRes.mMinPitch,
+                    sfxRes.mMaxPitch,
+                    sfxRes.mVolume);
             }
         }
     }

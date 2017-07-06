@@ -336,19 +336,16 @@ public:
 
         EncoderAlgorithm encoder(outputName);
 
-        SequencePlayer seqPlayer("test", *music->mVab);
-
-        seqPlayer.LoadSequenceStream(*music->mSeqData);
-        seqPlayer.PlaySequence();
+        music->Load();
 
         for(;;)
         {
             f32 buffer[1024] = {};
 
-            seqPlayer.Update();
+            music->Update();
 
-            seqPlayer.Play(buffer, 1024);
-            const bool endOfAudio = seqPlayer.AtEnd();
+            music->Play(buffer, 1024);
+            const bool endOfAudio = music->AtEnd();
             u32 numSamplesToUse = 1024;
             if (endOfAudio)
             {
