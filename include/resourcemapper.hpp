@@ -54,25 +54,12 @@ public:
         return *this;
     }
 
-    ResourceMapper(IFileSystem& fileSystem, const char* resourceMapFile, const char* soundResourceMapFile, const char* pathsResourceMapFile, const char* fmvsResourceMapFile)
-    {
-        auto resourcesStream = fileSystem.Open(resourceMapFile);
-        assert(resourcesStream != nullptr);
-        const auto jsonData = resourcesStream->LoadAllToString();
-        Parse(jsonData);
-
-        auto soundResourcesStream = fileSystem.Open(soundResourceMapFile);
-        const auto soundJsonData = soundResourcesStream->LoadAllToString();
-        mSoundResources.Parse(soundJsonData);
-
-        auto pathResourcesStream = fileSystem.Open(pathsResourceMapFile);
-        const auto pathJsonData = pathResourcesStream->LoadAllToString();
-        ParsePathResourceJson(pathJsonData);
-
-        auto fmvResourcesStream = fileSystem.Open(fmvsResourceMapFile);
-        const auto fmvJsonData = fmvResourcesStream->LoadAllToString();
-        ParseFmvResourceJson(fmvJsonData);
-    }
+    ResourceMapper(IFileSystem& fileSystem,
+        const char* dataSetContentsFile,
+        const char* animationResourceFile,
+        const char* soundResourceMapFile,
+        const char* pathsResourceMapFile,
+        const char* fmvsResourceMapFile);
 
     struct AnimFile
     {
@@ -269,7 +256,7 @@ private:
     friend class Sound; // TODO: Temp debug ui
     friend class Fmv; // TODO: Temp debug ui
 
-    void Parse(const std::string& json)
+    void ParseDataSetContentsJson(const std::string& json)
     {
         TRACE_ENTRYEXIT;
 
@@ -277,7 +264,6 @@ private:
         document.Parse(json.c_str());
 
         const auto& docRootArray = document.GetArray();
-
         for (auto& it : docRootArray)
         {
             if (it.HasMember("animations"))
@@ -288,7 +274,19 @@ private:
                     ParseAnimResourceJson(obj);
                 }
             }
-            
+        }
+    }
+
+    void ParseAnimationResourcesJson(const std::string& json)
+    {
+        TRACE_ENTRYEXIT;
+
+        rapidjson::Document document;
+        document.Parse(json.c_str());
+
+        const auto& docRootArray = document.GetArray();
+        for (auto& it : docRootArray)
+        {
             if (it.HasMember("lvls"))
             {
                 ParseFileLocations(it);
@@ -304,7 +302,6 @@ private:
         document.Parse(json.c_str());
 
         const auto& docRootArray = document.GetArray();
-
         for (auto& it : docRootArray)
         {
             if (it.HasMember("paths"))
@@ -326,7 +323,6 @@ private:
         document.Parse(json.c_str());
 
         const auto& docRootArray = document.GetArray();
-
         for (auto& it : docRootArray)
         {
             if (it.HasMember("fmvs"))

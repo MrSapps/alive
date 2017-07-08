@@ -413,7 +413,12 @@ public:
 
     void DumpPaths(IFileSystem& gameFs, eDataSetType dataSet, const std::string& resourcePath, const std::vector<std::string>& lvlFiles)
     {
-        ResourceMapper mapper(gameFs, "{GameDir}/data/resources.json", "{GameDir}/data/sounds.json", "{GameDir}/data/paths.json", "{GameDir}/data/fmvs.json");
+        ResourceMapper mapper(gameFs, 
+            "{GameDir}/data/dataset_contents.json",
+            "{GameDir}/data/animations.json",
+            "{GameDir}/data/sounds.json",
+            "{GameDir}/data/paths.json",
+            "{GameDir}/data/fmvs.json");
 
         auto fs = IFileSystem::Factory(gameFs, resourcePath);
         if (!fs)
@@ -1010,7 +1015,7 @@ public:
         //WriteLvlContentMappings(resources);
 
 
-        std::ofstream jsonFile("..\\data\\resources.json");
+        std::ofstream jsonFile("..\\data\\animations.json");
         if (!jsonFile.is_open())
         {
             abort();
@@ -1505,8 +1510,16 @@ int main(int /*argc*/, char** /*argv*/)
         return 1;
     }
 
-    DataPaths dataPaths(gameFs, "{GameDir}/data/DataSetIds.json", "{UserDir}/DataSets.json");
-    ResourceMapper mapper(gameFs, "{GameDir}/data/resources.json", "{GameDir}/data/sounds.json", "{GameDir}/data/paths.json", "{GameDir}/data/fmvs.json");
+    DataPaths dataPaths(gameFs,
+        "{GameDir}/data/DataSetIds.json",
+        "{UserDir}/DataSets.json");
+
+    ResourceMapper mapper(gameFs,
+        "{GameDir}/data/dataset_contents.json",
+        "{GameDir}/data/animations.json",
+        "{GameDir}/data/sounds.json",
+        "{GameDir}/data/paths.json",
+        "{GameDir}/data/fmvs.json");
 
     const auto jsonFiles = gameFs.EnumerateFiles("{GameDir}/data/GameDefinitions", "*.json");
     std::vector<GameDefinition> gameDefs;

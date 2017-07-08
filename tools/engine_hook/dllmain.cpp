@@ -373,7 +373,12 @@ struct AnimLogger
         {
             LOG_ERROR("File system init failure");
         }
-        mResources = std::make_unique<ResourceMapper>(*mFileSystem, "../../data/resources.json", "../../data/sounds.json", "../../data/paths.json", "../../data/fmvs.json");
+        mResources = std::make_unique<ResourceMapper>(*mFileSystem, 
+            "../../data/dataset_contents.json",
+            "../../data/animations.json",
+            "../../data/sounds.json",
+            "../../data/paths.json",
+            "../../data/fmvs.json");
     }
 
     std::string mLastResName;

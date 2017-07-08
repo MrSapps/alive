@@ -255,6 +255,39 @@ f32 Animation::ScaleX() const
 
 const /*static*/ f32 Animation::kPcToPsxScaleFactor = 1.73913043478f;
 
+ResourceMapper::ResourceMapper(IFileSystem& fileSystem, 
+    const char* dataSetContentsFile,
+    const char* animationResourceFile,
+    const char* soundResourceMapFile,
+    const char* pathsResourceMapFile,
+    const char* fmvsResourceMapFile)
+{
+    auto dataSetContentStream = fileSystem.Open(dataSetContentsFile);
+    assert(dataSetContentStream != nullptr);
+    const auto dataSetContentsJsonData = dataSetContentStream->LoadAllToString();
+    ParseDataSetContentsJson(dataSetContentsJsonData);
+
+    auto animationResourcesStream = fileSystem.Open(animationResourceFile);
+    assert(animationResourcesStream != nullptr);
+    const auto animationJson = animationResourcesStream->LoadAllToString();
+    ParseAnimationResourcesJson(animationJson);
+
+    auto soundResourcesStream = fileSystem.Open(soundResourceMapFile);
+    assert(soundResourcesStream != nullptr);
+    const auto soundJsonData = soundResourcesStream->LoadAllToString();
+    mSoundResources.Parse(soundJsonData);
+
+    auto pathResourcesStream = fileSystem.Open(pathsResourceMapFile);
+    assert(pathResourcesStream != nullptr);
+    const auto pathJsonData = pathResourcesStream->LoadAllToString();
+    ParsePathResourceJson(pathJsonData);
+
+    auto fmvResourcesStream = fileSystem.Open(fmvsResourceMapFile);
+    assert(fmvResourcesStream != nullptr);
+    const auto fmvJsonData = fmvResourcesStream->LoadAllToString();
+    ParseFmvResourceJson(fmvJsonData);
+}
+
 std::vector<std::tuple<const char*, const char*, bool>> ResourceMapper::DebugUi(const char* dataSetFilter, const char* nameFilter)
 {
     // Collect the UI data/state

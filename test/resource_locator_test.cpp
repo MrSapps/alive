@@ -243,7 +243,12 @@ TEST(ResourceLocator, ParseResourceMap)
     InMemoryFileSystem fs;
     fs.AddFile("resource_maps.json", resourceMapsJson);
 
-    ResourceMapper mapper(fs, "resource_maps.json", "resource_maps.json", "resource_maps.json", "resource_maps.json");
+    ResourceMapper mapper(fs,
+        "resource_maps.json",
+        "resource_maps.json",
+        "resource_maps.json",
+        "resource_maps.json",
+        "resource_maps.json");
 
     {
         const ResourceMapper::AnimMapping* r0 = mapper.FindAnimation("I don't exist");
