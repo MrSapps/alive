@@ -93,7 +93,7 @@ public:
     void Render(int w, int h);
     void HandleEvent(const char* eventName);
     void SetTheme(const char* themeName);
-    void CacheSoundEffects();
+    void CacheMemoryResidentSounds();
 private:
     void CacheActiveTheme(bool add);
     void CacheSound(const std::string& name);

@@ -1358,6 +1358,12 @@ static std::map<std::string, std::string> gSeqRenames =
     { "STOPIT", "Abe_StopIt" },
 };
 
+static std::set<std::string> gForceAsCacheResident =
+{
+    "OHM",
+    "Abe_StopIt",
+};
+
 void SoundResourcesDumper::SplitSEQs()
 {
     for (auto& toSplit : gSplitSeqs)
@@ -2409,31 +2415,29 @@ void SoundResourcesDumper::MergeToFinalResources()
     }
 }
 
-static std::set<std::string> gForceAsSoundEffect =
-{
-    "OHM",
-    "Abe_StopIt",
-};
-
-void SoundResourcesDumper::MarkItemsAsSoundEffectOrMusic()
+void SoundResourcesDumper::MarkItemsAsCacheResident()
 {
     for (SoundResource& res : mFinalResources.mSounds)
     {
+        // By default put everything that is a sample in the cache as sample and SEQ or only SEQ
+        // is likely to be music which we cache per music theme. Otherwise too much memory will be used.
         if (res.mSoundEffect.mSoundBanks.empty() == false)
         {
-            res.mIsSoundEffect = true;
+            res.mIsCacheResident = true;
         }
         else
         {
-            res.mIsSoundEffect = false;
+            res.mIsCacheResident = false;
         }
     }
 
+    // Then cache things that are sound effect but look like music using the above algorithm. For instance
+    // abe saying StopIt is a SEQ, along with the 'death jingle' and others.
     for (SoundResource& res : mFinalResources.mSounds)
     {
-        if (gForceAsSoundEffect.find(res.mResourceName) != std::end(gForceAsSoundEffect))
+        if (gForceAsCacheResident.find(res.mResourceName) != std::end(gForceAsCacheResident))
         {
-            res.mIsSoundEffect = true;
+            res.mIsCacheResident = true;
         }
     }
 
@@ -2590,7 +2594,7 @@ void SoundResourcesDumper::OnFinished()
 
     // If an item only has a sample, or a sample and a seq then assume its a sound effect
     // also check hard coded override list to mark things that only have a SEQ as a sound effect
-    MarkItemsAsSoundEffectOrMusic();
+    MarkItemsAsCacheResident();
 
     GenerateThemes();
 

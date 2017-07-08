@@ -157,22 +157,31 @@ std::unique_ptr<ISound> Sound::PlaySound(const char* soundName, const char* expl
 {
     if (useCache)
     {
-        LOG_INFO("Play sound cached: " << soundName);
-        return mCache.GetCached(soundName);
-    }
-
-    std::unique_ptr<ISound> pSound = mLocator.LocateSound(soundName, explicitSoundBankName, useMusicRec, useSfxRec);
-    if (pSound)
-    {
-        LOG_INFO("Play sound: " << soundName);
-        pSound->Load();
+        std::unique_ptr<ISound> pSound = mCache.GetCached(soundName);
+        if (pSound)
+        {
+            LOG_INFO("Play sound cached: " << soundName);
+        }
+        else
+        {
+            LOG_ERROR("Cached sound not found: " << soundName);
+        }
         return pSound;
     }
     else
     {
-        LOG_ERROR("Sound: " << soundName << " not found");
+        std::unique_ptr<ISound> pSound = mLocator.LocateSound(soundName, explicitSoundBankName, useMusicRec, useSfxRec);
+        if (pSound)
+        {
+            LOG_INFO("Play sound: " << soundName);
+            pSound->Load();
+        }
+        else
+        {
+            LOG_ERROR("Sound: " << soundName << " not found");
+        }
+        return pSound;
     }
-    return nullptr;
 }
 
 void Sound::SetTheme(const char* themeName)
@@ -200,7 +209,7 @@ void Sound::SetTheme(const char* themeName)
     }
 }
 
-void Sound::CacheSoundEffects()
+void Sound::CacheMemoryResidentSounds()
 {
     TRACE_ENTRYEXIT;
 
@@ -210,7 +219,7 @@ void Sound::CacheSoundEffects()
     const std::vector<SoundResource>& resources = mLocator.GetSoundResources();
     for (const SoundResource& resource : resources)
     {
-        if (resource.mIsSoundEffect)
+        if (resource.mIsCacheResident)
         {
             CacheSound(resource.mResourceName);
         }
@@ -470,7 +479,8 @@ void Sound::SoundBrowserUi()
                 ImGui::Separator();
                 ImGui::TextWrapped("Comment: %s", selected->mComment.empty() ? "(none)" : selected->mComment.c_str());
                 ImGui::Separator();
-                ImGui::TextWrapped("Is sound effect: %s", selected->mIsSoundEffect ? "true" : "false");
+                ImGui::TextWrapped("Is memory resident: %s", selected->mIsCacheResident ? "true" : "false");
+                ImGui::TextWrapped("Is cached: %s", mCache.ExistsInMemoryCache(selected->mResourceName) ? "true" : "false");
 
                 static bool bUseCache = false;
                 ImGui::Checkbox("Use cache", &bUseCache);

@@ -54,7 +54,7 @@ private:
 
     void RemoveSoundBanksThatDontMatchPrimarySample();
     void MergeToFinalResources();
-    void MarkItemsAsSoundEffectOrMusic();
+    void MarkItemsAsCacheResident();
 
     TempMusicResource* Exists(std::vector<TempMusicResource>& all, const TempMusicResource& res);
     bool Exists(const std::vector<SoundBankLocation>& all, const SoundBankLocation& loc);

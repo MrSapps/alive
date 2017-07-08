@@ -46,7 +46,7 @@ class SoundResource
 {
 public:
     std::string mResourceName;
-    bool mIsSoundEffect;
+    bool mIsCacheResident;
     MusicResource mMusic;
     SoundEffectResource mSoundEffect;
     std::string mComment;

@@ -121,13 +121,13 @@ void SoundResources::Parse(const std::string& json)
                     soundRes.mComment = obj["comment"].GetString();
                 }
 
-                if (obj.HasMember("is_sound_effect"))
+                if (obj.HasMember("is_cache_resident"))
                 {
-                    soundRes.mIsSoundEffect = obj["is_sound_effect"].GetBool();
+                    soundRes.mIsCacheResident = obj["is_cache_resident"].GetBool();
                 }
                 else
                 {
-                    soundRes.mIsSoundEffect = false;
+                    soundRes.mIsCacheResident = false;
                 }
 
                 mSounds.push_back(soundRes);
@@ -220,7 +220,7 @@ void SoundResources::Dump(const std::string& fileName)
 
         soundResourceObject << "resource_name" << sndRes.mResourceName;
         soundResourceObject << "comment" << sndRes.mComment;
-        soundResourceObject << "is_sound_effect" << sndRes.mIsSoundEffect;
+        soundResourceObject << "is_cache_resident" << sndRes.mIsCacheResident;
         soundsArray << soundResourceObject;
     }
 
