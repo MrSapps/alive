@@ -240,11 +240,27 @@ std::vector<std::string> OSBaseFileSystem::DoEnumerate(const std::string& direct
 
 #endif
 
+
+void OSBaseFileSystem::DeleteFile(const std::string& path)
+{
+#ifdef _WIN32
+    if (!::DeleteFileA(path.c_str())) // TODO: Should convert to unicode to handle unicode paths
+    {
+        LOG_ERROR("Failed to delete " << path << " error " << ::GetLastError());
+    }
+#else
+    if (remove(path.c_str()) != 0)
+    {
+        LOG_ERROR("Failed to delete " << path << " error " << errno);
+    }
+#endif
+}
+
 #ifdef _WIN32
 bool OSBaseFileSystem::FileExists(std::string& fileName)
 {
     const auto name = ExpandPath(fileName);
-    const DWORD dwAttrib = GetFileAttributes(name.c_str());
+    const DWORD dwAttrib = GetFileAttributes(name.c_str()); // TODO: Unicode
     return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 #else

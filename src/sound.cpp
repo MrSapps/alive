@@ -34,10 +34,20 @@ void SoundCache::Sync()
 
 void SoundCache::DeleteAll()
 {
-    // TODO: Delete *.wav from {CacheDir}
-    
+    TRACE_ENTRYEXIT;
+
+    // Delete *.wav from {CacheDir}/disk
+    std::string dirName = mFs.ExpandPath("{CacheDir}");
+    const auto wavFiles = mFs.EnumerateFiles(dirName, "*.wav");
+    for (const auto& wavFile : wavFiles)
+    {
+        mFs.DeleteFile(dirName + "/" + wavFile);
+    }
+
+    // Remove from memory
     mSoundDataCache.clear();
 
+    // Update cache version marker to current
     const std::string fileName = mFs.ExpandPath("{CacheDir}/CacheVersion.txt");
     Oddlib::FileStream versionFile(fileName, Oddlib::IStream::ReadMode::ReadWrite);
     versionFile.Write(std::string(ALIVE_VERSION));

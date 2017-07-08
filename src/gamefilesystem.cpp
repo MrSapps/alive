@@ -1,6 +1,9 @@
 #include "gamefilesystem.hpp"
 #ifdef _WIN32
 #include <windows.h>
+
+#undef DeleteFile
+
 #pragma warning(push)
 #pragma warning(disable:4917)
 #pragma warning(disable:4091) //  'typedef ': ignored on left of 'tagGPFIDL_FLAGS' when no variable is declared 

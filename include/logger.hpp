@@ -35,6 +35,7 @@ enum colour
 #include <windows.h>
 #undef GetObject
 #undef PlaySound
+#undef DeleteFile
 
 static void* gConsoleHandle = ::GetStdHandle(STD_OUTPUT_HANDLE);
 

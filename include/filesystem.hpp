@@ -103,6 +103,7 @@ public:
 
     virtual std::string ExpandPath(const std::string& path) = 0;
 
+    void DeleteFile(const std::string& path);
 private:
     std::vector<std::string> DoEnumerate(const std::string& directory, bool files, const char* filter);
 };

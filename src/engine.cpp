@@ -20,6 +20,9 @@
 #define NOMINMAX
 #endif
 #include <windows.h>
+
+#undef DeleteFile
+
 #include "rsc\resource.h"
 #include "SDL_syswm.h"
 #include "stdthread.h"
