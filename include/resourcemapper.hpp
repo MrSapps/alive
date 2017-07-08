@@ -266,13 +266,9 @@ private:
         const auto& docRootArray = document.GetArray();
         for (auto& it : docRootArray)
         {
-            if (it.HasMember("animations"))
+            if (it.HasMember("lvls"))
             {
-                const auto& animationsArray = it["animations"].GetArray();
-                for (auto& obj : animationsArray)
-                {
-                    ParseAnimResourceJson(obj);
-                }
+                ParseFileLocations(it);
             }
         }
     }
@@ -287,9 +283,10 @@ private:
         const auto& docRootArray = document.GetArray();
         for (auto& it : docRootArray)
         {
-            if (it.HasMember("lvls"))
+            const auto& animationsArray = it["animations"].GetArray();
+            for (auto& obj : animationsArray)
             {
-                ParseFileLocations(it);
+                ParseAnimResourceJson(obj);
             }
         }
     }
