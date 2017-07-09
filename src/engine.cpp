@@ -10,10 +10,11 @@
 #include "core/audiobuffer.hpp"
 #include "sound.hpp"
 #include "gridmap.hpp"
-#include "gameselectionscreen.hpp"
+#include "GameSelectionState.hpp"
 #include "gamefilesystem.hpp"
 #include "fmv.hpp"
 #include "rendererfactory.hpp"
+#include "rungamestate.hpp"
 
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -236,38 +237,30 @@ Engine::~Engine()
 
 bool Engine::Init()
 {
-    try
+
+    // load the list of data paths (if any) and discover what they are
+    mFileSystem = std::make_unique<GameFileSystem>();
+    if (!mFileSystem->Init())
     {
-        // load the list of data paths (if any) and discover what they are
-        mFileSystem = std::make_unique<GameFileSystem>();
-        if (!mFileSystem->Init())
-        {
-            LOG_ERROR("File system init failure");
-            return false;
-        }
-        
-        InitResources();
-
-        if (!InitSDL())
-        {
-            LOG_ERROR("SDL init failure");
-            return false;
-        }
-
-
-        InitSubSystems();
-
-        Debugging().mInput = &mInputState;
-        
-        mStateMachine.ToState(std::make_unique<GameSelectionScreen>(mStateMachine, mGameDefinitions, *mSound, *mLevel, *mResourceLocator, *mFileSystem));
-
-        return true;
-    }
-    catch (const std::exception& ex)
-    {
-        LOG_ERROR("Caught error when trying to init: " << ex.what());
+        LOG_ERROR("File system init failure");
         return false;
     }
+
+    //InitResources();
+
+    if (!InitSDL())
+    {
+        LOG_ERROR("SDL init failure");
+        return false;
+    }
+
+    InitSubSystems();
+
+    Debugging().mInput = &mInputState;
+
+    mState = EngineStates::eEngineInit;
+
+    return true;
 }
 
 void ScriptLogTrace(const char* msg) { if (msg) { LOG_NOFUNC_TRACE(msg); } else  { LOG_NOFUNC_TRACE("nil"); } }
@@ -317,13 +310,13 @@ void Engine::InitSubSystems()
         (mFileSystem->FsPath() + "data/fonts/Roboto-Bold.ttf").c_str()
     );
 
-    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, *mFileSystem);
-    mLevel = std::make_unique<Level>(*mSound, mAudioHandler, *mResourceLocator, *mRenderer);
-
     InitImGui();
 
     mInputState.AddControllers();
+}
 
+void Engine::RunInitScript()
+{
     SquirrelVm::CompileAndRun(*mResourceLocator, "main.nut");
 
     LOG_INFO("Calling script init()");
@@ -375,7 +368,7 @@ int Engine::Run()
     BasicFramesPerSecondCounter fpsCounter;
     auto startTime = THighResClock::now();
 
-    while (mStateMachine.HasState())
+    while (mState != EngineStates::eQuit)
     {
         // Limit update to 60fps
         const THighResClock::duration totalRunTime = THighResClock::now() - startTime;
@@ -560,7 +553,7 @@ void Engine::Update()
             break;
 
         case SDL_QUIT:
-            mStateMachine.ToState(nullptr);
+            mState = EngineStates::eQuit;
             break;
 
         case SDL_TEXTINPUT:
@@ -649,17 +642,53 @@ void Engine::Update()
     mInputState.mMousePosition.mY = mouse_y;
 
     ImGui::NewFrame();
-
     mInputState.Update();
-    Debugging().Update(mInputState);
 
-    // HACK: Should be called from within the "init/starting" state
-    Sqrat::Function initFunc(Sqrat::RootTable(), "update");
-    initFunc.Execute();
-    SquirrelVm::CheckError();
+    if (mState == EngineStates::eRunGameState)
+    {
+        Debugging().Update(mInputState);
+    }
 
     UpdateImGui();
-    mStateMachine.Update(mInputState, *mRenderer);
+
+    switch (mState)
+    {
+    case EngineStates::eRunGameState:
+        mState = mRunGameState->Update(mInputState, *mRenderer);
+        break;
+    case EngineStates::eGameSelection:
+        mState = mGameSelectionScreen->Update(mInputState, *mRenderer);
+        break;
+    case EngineStates::eEngineInit:
+        {
+            if (!mFuture)
+            {
+                mFuture = std::make_unique<std::future<void>>(std::async(std::launch::async, [&]()
+                {
+                    // At this point nothing else is reading the things this thread is writing, so
+                    // should be thread safe.
+                    InitResources();
+                }));
+            }
+
+            if (mFuture->wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+            {
+                mFuture = nullptr;
+                mState = EngineStates::eGameSelection;
+
+                mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, *mFileSystem);
+
+                mRunGameState = std::make_unique<RunGameState>(*mResourceLocator);
+                mGameSelectionScreen = std::make_unique<GameSelectionState>(mGameDefinitions, *mSound, *mResourceLocator, *mFileSystem);
+            
+                RunInitScript();
+                mResourcesAreLoading = false;
+            }
+        }
+        break;
+    case EngineStates::eQuit:
+        break;
+    }
 }
 
 void Engine::Render()
@@ -668,17 +697,67 @@ void Engine::Render()
     int h = 0;
     SDL_GetWindowSize(mWindow, &w, &h);
 
-
     mRenderer->UpdateCamera();
     mRenderer->BeginFrame(w, h);
 
-    mStateMachine.Render(w, h, *mRenderer);
+    switch (mState)
+    {
+    case EngineStates::eRunGameState:
+        mRunGameState->Render(*mRenderer);
+        break;
 
-    Debugging().Render(*mRenderer);
+    case EngineStates::eGameSelection:
+        mGameSelectionScreen->Render(*mRenderer);
+        break;
+
+    case EngineStates::eEngineInit:
+    case EngineStates::eQuit:
+        mRenderer->Clear(0.0f, 0.0f, 0.0f);
+        break;
+    }
+
+    if (mState == EngineStates::eRunGameState)
+    {
+        Debugging().Render(*mRenderer);
+    }
+
+    if (!mLoadingIcon)
+    {
+        std::unique_ptr<Oddlib::IStream> pngStream = mFileSystem->Open("{GameDir}/data/images/loading.png");
+        if (pngStream)
+        {
+            mLoadingIcon = SDLHelpers::LoadPng(*pngStream, true);
+        }
+
+        if (!mLoadingIcon)
+        {
+            throw Oddlib::Exception("Failed to load {GameDir}/data/images/loading.png");
+        }
+    }
+
+    if (mResourcesAreLoading)
+    {
+        TextureHandle hTexture = mRenderer->CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, mLoadingIcon->w, mLoadingIcon->h, AbstractRenderer::eTextureFormats::eRGBA, mLoadingIcon->pixels, true);
+
+        const f32 imagew = static_cast<f32>(mLoadingIcon->w);
+        const f32 imageh = static_cast<f32>(mLoadingIcon->h);
+
+        const f32 padding = 30.0f;
+
+        const f32 xpos = static_cast<f32>(mRenderer->Width()) - imagew - padding;
+        const f32 ypos = static_cast<f32>(mRenderer->Height()) - imageh - padding;
+
+        mRenderer->TexturedQuad(hTexture,
+            xpos,
+            ypos,
+            imagew,
+            imageh,
+            AbstractRenderer::eLayers::eFmv + 5, { 255, 255, 255, 255 }, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
+
+        mRenderer->DestroyTexture(hTexture);
+    }
 
     mRenderer->EndFrame();
-
-
 }
 
 bool Engine::InitSDL()

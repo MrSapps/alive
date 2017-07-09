@@ -9,8 +9,3 @@ function init()
 {
     log_info("Main script init");
 }
-
-function update()
-{
-
-}

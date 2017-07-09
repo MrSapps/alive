@@ -362,10 +362,12 @@ SET(alivelib_src
     include/engine.hpp
     src/engine.cpp
     include/engine.hpp
-    src/developerscreen.cpp
-    include/developerscreen.hpp
-    src/gameselectionscreen.cpp
-    include/gameselectionscreen.hpp
+    src/animationbrowser.cpp
+    include/animationbrowser.hpp
+    src/gameselectionstate.cpp
+    include/gameselectionstate.hpp
+    src/rungamestate.cpp
+    include/rungamestate.hpp
     include/gridmap.hpp
     src/gridmap.cpp
     include/rendererfactory.hpp

@@ -107,7 +107,6 @@ void AbstractRenderer::BeginFrame(int w, int h)
     assert(mRenderDrawLists.empty());
     assert(mWritePos == 0);
 
-    ClearFrameBufferImpl(0.4f, 0.4f, 0.4f, 1.0f);
     if (mW != w)
     {
         mW = w;
@@ -124,6 +123,11 @@ void AbstractRenderer::BeginFrame(int w, int h)
     {
         fonsResetAtlas(mFontStashContext, 512, 512);
     }
+}
+
+void AbstractRenderer::Clear(f32 r, f32 g, f32 b)
+{
+    ClearFrameBufferImpl(r, g, b, 1.0f);
 }
 
 void AbstractRenderer::EndFrame()

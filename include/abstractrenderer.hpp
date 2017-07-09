@@ -198,6 +198,7 @@ public:
     virtual ~AbstractRenderer();
 
     void BeginFrame(int w, int h);
+    void Clear(f32 r, f32 g, f32 b);
     void EndFrame();
     void Init(const char* regularFontPath, const char* italticFontPath, const char* boldFontPath);
     void ShutDown();

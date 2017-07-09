@@ -1,4 +1,4 @@
-#include "developerscreen.hpp"
+#include "animationbrowser.hpp"
 #include "abstractrenderer.hpp"
 #include "oddlib/anim.hpp"
 #include "oddlib/lvlarchive.hpp"
@@ -6,15 +6,8 @@
 #include "sound.hpp"
 #include "gridmap.hpp"
 
-void DeveloperScreen::Init()
+void AnimationBrowser::Update(const InputState& input, CoordinateSpace& coords)
 {
-    
-}
-
-void DeveloperScreen::Update(const InputState& input, CoordinateSpace& coords)
-{
-    // When this gets bigger it can be moved to a separate class etc.
-
     if (Debugging().mBrowserUi.animationBrowserOpen)
     {
         RenderAnimationSelector(coords);
@@ -27,13 +20,11 @@ void DeveloperScreen::Update(const InputState& input, CoordinateSpace& coords)
 
     const glm::vec2 mouseWorldPos = coords.ScreenToWorld(glm::vec2(input.mMousePosition.mX, input.mMousePosition.mY));
 
-
     // Set the "selected" animation
     if (!mSelected && input.mMouseButtons[0].IsPressed())
     {
         for (auto& anim : mLoadedAnims)
         {
-
             if (anim->Collision(static_cast<s32>(mouseWorldPos.x), static_cast<s32>(mouseWorldPos.y)))
             {
                 mSelected = anim.get();
@@ -70,26 +61,16 @@ void DeveloperScreen::Update(const InputState& input, CoordinateSpace& coords)
         }
         mSelected = nullptr;
     }
-
-    mSound.Update();
-    mLevel.Update(input, coords);
 }
 
-void DeveloperScreen::EnterState()
-{
-    mLevel.EnterState();
-    Debugging().mFnNextPath();
-}
-
-void DeveloperScreen::ExitState()
+AnimationBrowser::AnimationBrowser(ResourceLocator& resMapper) 
+    : mResourceLocator(resMapper)
 {
 
 }
 
-void DeveloperScreen::Render(int, int, AbstractRenderer& renderer)
+void AnimationBrowser::Render(AbstractRenderer& renderer)
 {
-    mLevel.Render(renderer);
-
     for (auto& anim : mLoadedAnims)
     {
         if (mDebugResetAnimStates)
@@ -100,7 +81,7 @@ void DeveloperScreen::Render(int, int, AbstractRenderer& renderer)
     }
 }
 
-void DeveloperScreen::RenderAnimationSelector(CoordinateSpace& coords)
+void AnimationBrowser::RenderAnimationSelector(CoordinateSpace& coords)
 {
     mDebugResetAnimStates = false;
     if (ImGui::Begin("Animations"))

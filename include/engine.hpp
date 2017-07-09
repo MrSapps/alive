@@ -6,77 +6,9 @@
 #include "core/audiobuffer.hpp"
 #include "resourcemapper.hpp"
 #include "bitutils.hpp"
+#include <future>
 
-class StateMachine;
 class InputState;
-
-class IState
-{
-public:
-    IState(StateMachine& stateMachine) : mStateMachine(stateMachine) {}
-    IState(const IState&) = delete;
-    IState& operator = (const IState&) = delete;
-    virtual ~IState() = default;
-
-    virtual void Update(const InputState& input, CoordinateSpace& coords) = 0;
-    virtual void Render(int w, int h, class AbstractRenderer& renderer) = 0;
-    virtual void ExitState() = 0;
-    virtual void EnterState() = 0;
-protected:
-    StateMachine& mStateMachine;
-};
-
-class StateMachine
-{
-public:
-    virtual ~StateMachine() = default;
-
-    void ToState(std::unique_ptr<IState> state)
-    {
-        if (mState)
-        {
-            mState->ExitState();
-        }
-
-        // Delay delete of mState until the next Update() to prevent
-        // a "delete this" happening during a call to ToState().
-        mPreviousState = std::move(mState);
-        mState = std::move(state);
-
-        if (mState)
-        {
-            mState->EnterState();
-        }
-    }
-
-    void Update(const InputState& input, CoordinateSpace& coords)
-    {
-        if (mState)
-        {
-            mState->Update(input, coords);
-        }
-
-        // Destroy previous state one update later
-        if (mPreviousState)
-        {
-            mPreviousState = nullptr;
-        }
-    }
-
-    void Render(int w, int h, class AbstractRenderer& renderer)
-    {
-        if (mState)
-        {
-            mState->Render(w, h, renderer);
-        }
-    }
-
-    bool HasState() const { return mState != nullptr; }
-private:
-    std::unique_ptr<class IState> mState = nullptr;
-    std::unique_ptr<class IState> mPreviousState = nullptr;
-};
-
 
 template<class T>
 void UpdateStateInputItemGeneric(T& state)
@@ -622,6 +554,14 @@ private:
     HSQUIRRELVM mVm = 0;
 };
 
+enum class EngineStates
+{
+    eEngineInit,
+    eRunGameState,
+    eGameSelection,
+    eQuit
+};
+
 class Engine final
 {
 public:
@@ -630,6 +570,7 @@ public:
     bool Init();
     int Run();
 private:
+    void RunInitScript();
     void Include(const std::string& scriptName);
     void Update();
     void Render();
@@ -656,15 +597,21 @@ protected:
     std::unique_ptr<class ResourceLocator> mResourceLocator;
     std::unique_ptr<class AbstractRenderer> mRenderer;
     std::unique_ptr<class Sound> mSound;
-    std::unique_ptr<class Level> mLevel;
 
     std::vector<GameDefinition> mGameDefinitions;
 
     InputState mInputState;
 
-    StateMachine mStateMachine;
-
     SquirrelVm mSquirrelVm;
     TextureHandle mGuiFontHandle = {};
     bool mTryDirectX9 = false;
+
+    bool mResourcesAreLoading = true;
+
+    EngineStates mState = EngineStates::eEngineInit;
+    std::unique_ptr<class RunGameState> mRunGameState;
+    std::unique_ptr<class GameSelectionState> mGameSelectionScreen;
+
+    SDL_SurfacePtr mLoadingIcon;
+    std::unique_ptr<std::future<void>> mFuture;
 };
