@@ -414,7 +414,7 @@ public:
     const std::string& Name() const { return mName; }
     const std::string& Description() const { return mDescription; }
     const std::string& Author() const { return mAuthor; }
-    const std::string& GameScript() const { return mGameScript; }
+    const std::string& GameScriptName() const { return mGameScript; }
     const std::string& DataSetName() const { return mDataSetName; }
     const std::vector<std::string> RequiredDataSets() const { return mRequiredDataSets; }
     bool Hidden() const { return mHidden; }

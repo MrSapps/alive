@@ -12,9 +12,9 @@ public:
             IFileSystem& newFs);
     void Render(AbstractRenderer& renderer);
     EngineStates Update(const InputState& input, CoordinateSpace& coords);
-    void UpdateVisibleGameDefinitions();
+    const GameDefinition& SelectedGame() const { return *mVisibleGameDefinitions[mSelectedGameDefintionIndex]; }
 private:
-
+    void UpdateVisibleGameDefinitions();
     EngineStates RenderSelectGame();
     void RenderFindDataSets();
     void LoadGameDefinition();

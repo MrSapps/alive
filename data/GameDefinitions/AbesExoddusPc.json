@@ -2,6 +2,6 @@
   "Name" : "Oddworld Abe's Exoddus PC",
   "Description" : "The original PC version of Oddworld Abe's Exoddus",
   "Author" : "Oddworld Inhabitants",
-  "InitialLevel" : "mi_path1",
+  "GameScript" : "abes_exoddus_pc.nut",
   "DatasetName" : "AePc"
 }

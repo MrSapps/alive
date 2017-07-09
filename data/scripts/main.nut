@@ -5,6 +5,11 @@ function include(scriptName)
     gEngine.include(scriptName);
 }
 
+function load_map(mapName)
+{
+    gEngine.LoadMap(mapName);
+}
+
 function init()
 {
     log_info("Main script init");

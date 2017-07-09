@@ -658,6 +658,10 @@ void Engine::Update()
         break;
     case EngineStates::eGameSelection:
         mState = mGameSelectionScreen->Update(mInputState, *mRenderer);
+        if (mState == EngineStates::eRunGameState)
+        {
+            mRunGameState->OnStart(mGameSelectionScreen->SelectedGame().GameScriptName(), mSound.get());
+        }
         break;
     case EngineStates::ePlayFmv:
         mState = mPlayFmvState->Update(mInputState);
@@ -681,7 +685,7 @@ void Engine::Update()
 
                 mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, *mFileSystem);
 
-                mRunGameState = std::make_unique<RunGameState>(*mResourceLocator);
+                mRunGameState = std::make_unique<RunGameState>(*mResourceLocator, *mRenderer);
                 mGameSelectionScreen = std::make_unique<GameSelectionState>(mGameDefinitions, *mResourceLocator, *mFileSystem);
                 mPlayFmvState = std::make_unique<PlayFmvState>(mAudioHandler, *mResourceLocator);
 

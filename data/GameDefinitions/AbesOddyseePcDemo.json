@@ -2,7 +2,7 @@
   "Name" : "Oddworld Abe's Oddysee PC Demo",
   "Description" : "The original PC demo of Oddworld Abe's Oddysee",
   "Author" : "Oddworld Inhabitants",
-  "GameScript" : "abes_oddysee_pc_demo",
+  "GameScript" : "abes_oddysee_pc_demo.nut",
   "DatasetName": "AoPcDemo",
   "RequiredDatasets": [ "AePc" ]
 }

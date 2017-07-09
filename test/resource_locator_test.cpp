@@ -393,7 +393,7 @@ TEST(ResourceLocator, ParseGameDefinition)
     ASSERT_EQ(gd.Name(), "Oddworld Abe's Exoddus PC");
     ASSERT_EQ(gd.Description(), "The original PC version of Oddworld Abe's Exoddus");
     ASSERT_EQ(gd.Author(), "Oddworld Inhabitants");
-    ASSERT_EQ(gd.GameScript(), "run_the_game");
+    ASSERT_EQ(gd.GameScriptName(), "run_the_game");
     ASSERT_EQ(gd.DataSetName(), "AePc");
     ASSERT_EQ(gd.Hidden(), true);
 }

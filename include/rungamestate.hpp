@@ -20,11 +20,15 @@ private:
 class RunGameState
 {
 public:
-    RunGameState(ResourceLocator& locator);
+    RunGameState(ResourceLocator& locator, AbstractRenderer& renderer);
     void Render(AbstractRenderer& renderer);
+    void OnStart(const std::string& initScriptName, Sound* pSound);
+    void LoadMap(const std::string& mapName);
     EngineStates Update(const InputState& input, CoordinateSpace& coords);
 private:
     ResourceLocator& mResourceLocator;
+    AbstractRenderer& mRenderer;
     AnimationBrowser mAnimBrowser;
     std::unique_ptr<class Level> mLevel;
+    Sound* mSound = nullptr;
 };

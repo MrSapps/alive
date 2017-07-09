@@ -2,7 +2,7 @@
     "Name": "Oddworld Abe's Exoddus PSX",
     "Description": "The original PSX version of Oddworld Abe's Exoddus",
     "Author": "Oddworld Inhabitants",
-    "InitialLevel": "abes_exoddus_psx",
+    "InitialLevel": "abes_exoddus_psx.nut",
     "DatasetName": "AePsx",
     "RequiredDatasets": [ "AePsxCd1", "AePsxCd2", "AePc" ]
 }
