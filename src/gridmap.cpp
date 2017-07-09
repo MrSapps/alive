@@ -15,7 +15,7 @@
 #include "fmv.hpp"
 #include "sound.hpp"
 
-Level::Level(Sound& sound, IAudioController& audioController, ResourceLocator& locator, AbstractRenderer& rend)
+Level::Level(Sound& sound, ResourceLocator& locator, AbstractRenderer& rend)
     : mLocator(locator)
 {
 
@@ -30,7 +30,7 @@ Level::Level(Sound& sound, IAudioController& audioController, ResourceLocator& l
         {
             if (!mMap)
             {
-                mMap = std::make_unique<GridMap>(audioController, mLocator);
+                mMap = std::make_unique<GridMap>();
             }
             mMap->LoadMap(*path, mLocator, rend);
             currentPathName = name;
@@ -53,7 +53,7 @@ Level::Level(Sound& sound, IAudioController& audioController, ResourceLocator& l
                 {
                     if (!mMap)
                     {
-                        mMap = std::make_unique<GridMap>(audioController, mLocator);
+                        mMap = std::make_unique<GridMap>();
                     }
                     mMap->LoadMap(*path, mLocator, rend);
 
@@ -86,7 +86,7 @@ Level::Level(Sound& sound, IAudioController& audioController, ResourceLocator& l
             {
                 if (!mMap)
                 {
-                    mMap = std::make_unique<GridMap>(audioController, mLocator);
+                    mMap = std::make_unique<GridMap>();
                 }
                 mMap->LoadMap(*path, mLocator, rend);
             }
@@ -225,13 +225,11 @@ void GridScreen::Render(float x, float y, float w, float h)
     Sqrat::RootTable().Bind("GridMap", gm);
 }
 
-GridMap::GridMap(IAudioController& audioController, ResourceLocator& locator)
+GridMap::GridMap()
     : mScriptInstance("gMap", this)
 {
     mEditorMode = std::make_unique<EditorMode>(mMapState);
     mGameMode = std::make_unique<GameMode>(mMapState);
-
-    mFmv = std::make_unique<Fmv>(audioController, locator);
 
     // Size of the screen you see during normal game play, this is always less the the "block" the camera image fits into
     mMapState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
@@ -348,17 +346,7 @@ GridMap::~GridMap()
 
 void GridMap::Update(const InputState& input, CoordinateSpace& coords)
 {
-    mFmv->Update();
-
-    if (mFmv->IsPlaying())
-    {
-        if (input.Mapping().GetActions().mIsPressed)
-        {
-            LOG_INFO("Stopping FMV due to key press");
-            mFmv->Stop();
-        }
-    }
-    else if (mMapState.mState == GridMapState::eStates::eEditor)
+    if (mMapState.mState == GridMapState::eStates::eEditor)
     {
         mEditorMode->Update(input, coords);
     }
@@ -575,20 +563,16 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
 
 void GridMap::Render(AbstractRenderer& rend) const
 {
-    mFmv->Render(rend);
-    if (!mFmv->IsPlaying())
+    if (mMapState.mState == GridMapState::eStates::eEditor)
     {
-        if (mMapState.mState == GridMapState::eStates::eEditor)
-        {
-            mEditorMode->Render(rend);
-        }
-        else if (mMapState.mState == GridMapState::eStates::eInGame)
-        {
-            mGameMode->Render(rend);
-        }
-        else
-        {
-            RenderToEditorOrToGame(rend);
-        }
+        mEditorMode->Render(rend);
+    }
+    else if (mMapState.mState == GridMapState::eStates::eInGame)
+    {
+        mGameMode->Render(rend);
+    }
+    else
+    {
+        RenderToEditorOrToGame(rend);
     }
 }

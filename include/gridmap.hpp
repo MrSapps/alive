@@ -41,7 +41,7 @@ public:
     {
         TRACE_ENTRYEXIT;
     }
-    Level(Sound& sound, IAudioController& audioController, ResourceLocator& locator, AbstractRenderer& render);
+    Level(Sound& sound, ResourceLocator& locator, AbstractRenderer& render);
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend);
     void EnterState();
@@ -130,7 +130,7 @@ class GridMap : public IMap
 public:
     GridMap(const GridMap&) = delete;
     GridMap& operator = (const GridMap&) = delete;
-    GridMap(class IAudioController& audioController, ResourceLocator& locator);
+    GridMap();
     ~GridMap();
     void LoadMap(Oddlib::Path& path, ResourceLocator& locator, AbstractRenderer& rend);
     void Update(const InputState& input, CoordinateSpace& coords);
@@ -149,6 +149,5 @@ private:
     GridMapState mMapState;
     std::unique_ptr<class EditorMode> mEditorMode;
     std::unique_ptr<class GameMode> mGameMode;
-    std::unique_ptr<class Fmv> mFmv;
     InstanceBinder<class GridMap> mScriptInstance;
 };

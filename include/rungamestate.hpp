@@ -7,6 +7,16 @@ class AbstractRenderer;
 class CoordinateSpace;
 class InputState;
 
+class PlayFmvState
+{
+public:
+    PlayFmvState(IAudioController& audioController, ResourceLocator& locator);
+    void Render(AbstractRenderer& renderer);
+    EngineStates Update(const InputState& input);
+private:
+    std::unique_ptr<class Fmv> mFmv;
+};
+
 class RunGameState
 {
 public:

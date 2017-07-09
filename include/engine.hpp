@@ -559,6 +559,7 @@ enum class EngineStates
     eEngineInit,
     eRunGameState,
     eGameSelection,
+    ePlayFmv,
     eQuit
 };
 
@@ -611,6 +612,7 @@ protected:
     EngineStates mState = EngineStates::eEngineInit;
     std::unique_ptr<class RunGameState> mRunGameState;
     std::unique_ptr<class GameSelectionState> mGameSelectionScreen;
+    std::unique_ptr<class PlayFmvState> mPlayFmvState;
 
     SDL_SurfacePtr mLoadingIcon;
     std::unique_ptr<std::future<void>> mFuture;

@@ -224,7 +224,7 @@ Engine::~Engine()
     ImGui::Shutdown();
 
     mSound.reset();
-    mLevel.reset();
+    mRunGameState.reset();
     if (mRenderer)
     {
         mRenderer->ShutDown();
@@ -659,6 +659,9 @@ void Engine::Update()
     case EngineStates::eGameSelection:
         mState = mGameSelectionScreen->Update(mInputState, *mRenderer);
         break;
+    case EngineStates::ePlayFmv:
+        mState = mPlayFmvState->Update(mInputState);
+        break;
     case EngineStates::eEngineInit:
         {
             if (!mFuture)
@@ -679,8 +682,9 @@ void Engine::Update()
                 mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, *mFileSystem);
 
                 mRunGameState = std::make_unique<RunGameState>(*mResourceLocator);
-                mGameSelectionScreen = std::make_unique<GameSelectionState>(mGameDefinitions, *mSound, *mResourceLocator, *mFileSystem);
-            
+                mGameSelectionScreen = std::make_unique<GameSelectionState>(mGameDefinitions, *mResourceLocator, *mFileSystem);
+                mPlayFmvState = std::make_unique<PlayFmvState>(mAudioHandler, *mResourceLocator);
+
                 RunInitScript();
                 mResourcesAreLoading = false;
             }
@@ -708,6 +712,10 @@ void Engine::Render()
 
     case EngineStates::eGameSelection:
         mGameSelectionScreen->Render(*mRenderer);
+        break;
+
+    case EngineStates::ePlayFmv:
+        mPlayFmvState->Render(*mRenderer);
         break;
 
     case EngineStates::eEngineInit:
