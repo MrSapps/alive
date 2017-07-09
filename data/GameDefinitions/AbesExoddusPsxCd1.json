@@ -2,7 +2,7 @@
     "Name": "Oddworld Abe's Exoddus PSX CD1",
     "Description": "The original PSX version of Oddworld Abe's Exoddus CD1",
     "Author": "Oddworld Inhabitants",
-    "InitialLevel": "mi_path1",
+    "GameScript": "",
     "Hidden" :  true,
     "DatasetName": "AePsxCd1"
 }

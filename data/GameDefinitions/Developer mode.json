@@ -2,7 +2,7 @@
     "Name": "Developer mode",
     "Description": "A 'fake' game definition which enables developer mode to view all game data",
     "Author": "ALIVE team",
-    "InitialLevel": "not_used",
+    "GameScript": "developer_mode",
     "DatasetName": "Developer",
     "RequiredDatasets": [ "AePc", "AePcDemo", "AePsx", "AePsxDemo", "AoPc", "AoPcDemo", "AoPsx", "AoPsxDemo" ]
 }

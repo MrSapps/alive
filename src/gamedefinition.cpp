@@ -134,9 +134,9 @@ void GameDefinition::Parse(const std::string& json)
     mName = root.get<jsonxx::String>("Name");
     mDescription = root.get<jsonxx::String>("Description");
     mAuthor = root.get<jsonxx::String>("Author");
-    if (root.has<jsonxx::String>("InitialLevel"))
+    if (root.has<jsonxx::String>("GameScript"))
     {
-        mInitialLevel = root.get<jsonxx::String>("InitialLevel");
+        mGameScript = root.get<jsonxx::String>("GameScript");
     }
     mDataSetName = root.get<jsonxx::String>("DatasetName");
     if (root.has<jsonxx::Boolean>("Hidden"))

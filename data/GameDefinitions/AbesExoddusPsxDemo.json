@@ -2,7 +2,7 @@
   "Name" : "Oddworld Abe's Exoddus PSX demo",
   "Description" : "The original PSX demo of Oddworld Abe's Exoddus",
   "Author" : "Oddworld Inhabitants",
-  "InitialLevel" : "mi_path1",
+  "GameScript" : "abes_exoddus_psx_demo",
   "DatasetName": "AePsxDemo",
   "RequiredDatasets": [ "AePc" ]
 }

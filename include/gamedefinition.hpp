@@ -414,7 +414,7 @@ public:
     const std::string& Name() const { return mName; }
     const std::string& Description() const { return mDescription; }
     const std::string& Author() const { return mAuthor; }
-    const std::string& InitialLevel() const { return mInitialLevel; }
+    const std::string& GameScript() const { return mGameScript; }
     const std::string& DataSetName() const { return mDataSetName; }
     const std::vector<std::string> RequiredDataSets() const { return mRequiredDataSets; }
     bool Hidden() const { return mHidden; }
@@ -427,7 +427,7 @@ private:
     std::string mName;
     std::string mDescription;
     std::string mAuthor;
-    std::string mInitialLevel;
+    std::string mGameScript;
     std::string mDataSetName; // Name of this data set
     bool mHidden = false;
     std::vector<std::string> mRequiredDataSets;

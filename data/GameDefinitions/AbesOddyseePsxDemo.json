@@ -2,7 +2,7 @@
   "Name" : "Oddworld Abe's Oddysee PSX Demo",
   "Description" : "The original PSX demo of Oddworld Abe's Oddysee",
   "Author" : "Oddworld Inhabitants",
-  "InitialLevel" : "r1_path1",
+  "GameScript" : "abes_oddysee_psx_demo",
   "DatasetName": "AoPsxDemo",
   "RequiredDatasets": [ "AePc" ]
 }

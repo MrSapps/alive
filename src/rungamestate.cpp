@@ -32,6 +32,8 @@ EngineStates PlayFmvState::Update(const InputState& input)
     return EngineStates::eRunGameState;
 }
 
+// ==============================================================
+
 RunGameState::RunGameState(ResourceLocator& locator)
     : mResourceLocator(locator), mAnimBrowser(locator)
 {
@@ -48,9 +50,11 @@ void RunGameState::Render(AbstractRenderer& renderer)
 
 EngineStates RunGameState::Update(const InputState& input, CoordinateSpace& coords)
 {   
+    // TODO: Load the game script which then loads the first level
+
     if (!mLevel)
     {
-        //mLevel = std::make_unique<Level>(*mSound, mAudioHandler, mResourceLocator, *mRenderer);
+        //mLevel = std::make_unique<Level>(*mSound, mResourceLocator, *mRenderer);
     }
 
     mAnimBrowser.Update(input, coords);

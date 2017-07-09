@@ -379,7 +379,7 @@ TEST(ResourceLocator, ParseGameDefinition)
       "Name" : "Oddworld Abe's Exoddus PC",
       "Description" : "The original PC version of Oddworld Abe's Exoddus",
       "Author" : "Oddworld Inhabitants",
-      "InitialLevel" : "st_path1",
+      "GameScript" : "run_the_game",
       "DatasetName" : "AePc",
       "Hidden" : true,
       "RequiredDatasets"  : []
@@ -393,7 +393,7 @@ TEST(ResourceLocator, ParseGameDefinition)
     ASSERT_EQ(gd.Name(), "Oddworld Abe's Exoddus PC");
     ASSERT_EQ(gd.Description(), "The original PC version of Oddworld Abe's Exoddus");
     ASSERT_EQ(gd.Author(), "Oddworld Inhabitants");
-    ASSERT_EQ(gd.InitialLevel(), "st_path1");
+    ASSERT_EQ(gd.GameScript(), "run_the_game");
     ASSERT_EQ(gd.DataSetName(), "AePc");
     ASSERT_EQ(gd.Hidden(), true);
 }
@@ -520,7 +520,7 @@ TEST(ResourceLocator, Construct)
       "Name" : "Oddworld Abe's Exoddus PC",
       "Description" : "The original PC version of Oddworld Abe's Exoddus",
       "Author" : "Oddworld Inhabitants",
-      "InitialLevel" : "st_path1",
+      "GameScript" : "run_the_game",
       "DatasetName" : "AePc",
       "RequiredDatasets"  : [ "Foo1", "Foo2" ]
     }

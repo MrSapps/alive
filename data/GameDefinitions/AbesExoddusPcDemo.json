@@ -2,7 +2,7 @@
   "Name" : "Oddworld Abe's Exoddus PC demo",
   "Description" : "The original PC demo of Oddworld Abe's Exoddus",
   "Author" : "Oddworld Inhabitants",
-  "InitialLevel" : "mi_path1",
+  "GameScript" : "abes_exoddus_pc_demo",
   "DatasetName": "AePcDemo",
   "RequiredDatasets": [ "AePc" ]
 }

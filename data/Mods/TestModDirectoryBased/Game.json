@@ -2,7 +2,7 @@
     "Name": "Pauls tests",
     "Description": "A test",
     "Author": "ALIVE team",
-    "InitialLevel": "not_used",
+    "GameScript": "test_dir_mod.nut",
     "DatasetName": "Paul",
     "RequiredDatasets": [ "AePsx", "AePc" ]
 }
