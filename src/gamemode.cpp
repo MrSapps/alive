@@ -1,5 +1,6 @@
 #include "gamemode.hpp"
 #include "engine.hpp"
+#include "debug.hpp"
 
 GameMode::GameMode(GridMapState& mapState)
     : mMapState(mapState)
@@ -82,7 +83,7 @@ void GameMode::Render(AbstractRenderer& rend) const
             GridScreen* screen = mMapState.mScreens[camX][camY].get();
             if (screen->hasTexture())
             {
-                screen->Render(
+                screen->Render(rend,
                     (camX * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
                     (camY * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
                     mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);

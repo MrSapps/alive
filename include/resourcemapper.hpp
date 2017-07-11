@@ -245,6 +245,9 @@ public:
         std::vector<UiItem> mItems;
     };
     UiContext mUi;
+
+    const std::map<std::string, ResourceMapper::PathMapping>& PathMaps() const { return mPathMaps; }
+
 private:
 
     std::map<std::string, AnimMapping> mAnimMaps;
@@ -252,7 +255,6 @@ private:
     std::map<std::string, PathMapping> mPathMaps;
     SoundResources mSoundResources;
 
-    friend class Level; // TODO: Temp debug ui
     friend class Sound; // TODO: Temp debug ui
     friend class Fmv; // TODO: Temp debug ui
 
@@ -701,6 +703,8 @@ public:
     {
         return mDataPaths;
     }
+    
+    const std::map<std::string, ResourceMapper::PathMapping>& PathMaps() const { return mResMapper.PathMaps(); }
 
     std::string LocateScript(const char* scriptName);
 

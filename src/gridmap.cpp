@@ -15,92 +15,15 @@
 #include "fmv.hpp"
 #include "sound.hpp"
 
-Level::Level(Sound& sound, ResourceLocator& locator, AbstractRenderer& rend)
+Level::Level(ResourceLocator& locator)
     : mLocator(locator)
 {
-
-    // Debugging - reload path and load next path
-    static std::string currentPathName;
-    static s32 nextPathIndex;
-
-    Debugging().fnLoadPath = [&](const char* name)
-    {
-        std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(name);
-        if (path)
-        {
-            if (!mMap)
-            {
-                mMap = std::make_unique<GridMap>();
-            }
-            mMap->LoadMap(*path, mLocator, rend);
-            currentPathName = name;
-        }
-        else
-        {
-            LOG_ERROR("LVL or file in LVL not found");
-        }
-    };
-
-    Debugging().mFnNextPath = [&]() 
-    {
-        s32 idx = 0;
-        for (const auto& pathMap : mLocator.mResMapper.mPathMaps)
-        {
-            if (idx == nextPathIndex)
-            {
-                std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(pathMap.first.c_str());
-                if (path)
-                {
-                    if (!mMap)
-                    {
-                        mMap = std::make_unique<GridMap>();
-                    }
-                    mMap->LoadMap(*path, mLocator, rend);
-
-                    currentPathName = pathMap.first;
-                    nextPathIndex = idx +1;
-                    if (nextPathIndex > static_cast<s32>(mLocator.mResMapper.mPathMaps.size()))
-                    {
-                        nextPathIndex = 0;
-                    }
-
-                    sound.SetTheme(pathMap.second.mMusicTheme.c_str());
-                    sound.HandleEvent("BASE_LINE");
-                }
-                else
-                {
-                    LOG_ERROR("LVL or file in LVL not found");
-                }
-                return;
-            }
-            idx++;
-        }
-    };
-
-    Debugging().mFnReloadPath = [&]()
-    {
-        if (!currentPathName.empty())
-        {
-            std::unique_ptr<Oddlib::Path> path = mLocator.LocatePath(currentPathName.c_str());
-            if (path)
-            {
-                if (!mMap)
-                {
-                    mMap = std::make_unique<GridMap>();
-                }
-                mMap->LoadMap(*path, mLocator, rend);
-            }
-            else
-            {
-                LOG_ERROR("LVL or file in LVL not found");
-            }
-        }
-    };
+    mMap = std::make_unique<GridMap>();
 }
 
-void Level::EnterState()
+void Level::LoadMap(const Oddlib::Path& path)
 {
-
+    mMap->LoadMap(path, mLocator);
 }
 
 void Level::Update(const InputState& input, CoordinateSpace& coords)
@@ -128,7 +51,7 @@ void Level::RenderDebugPathSelection()
 {
     if (ImGui::Begin("Paths"))
     {
-        for (const auto& pathMap : mLocator.mResMapper.mPathMaps)
+        for (const auto& pathMap : mLocator.PathMaps())
         {
             if (ImGui::Button(pathMap.first.c_str()))
             {
@@ -139,28 +62,21 @@ void Level::RenderDebugPathSelection()
     ImGui::End();
 }
 
-GridScreen::GridScreen(const Oddlib::Path::Camera& camera, AbstractRenderer& rend, ResourceLocator& locator)
+GridScreen::GridScreen(const Oddlib::Path::Camera& camera, ResourceLocator& locator)
     : mFileName(camera.mName)
     , mCamera(camera)
     , mLocator(locator)
-    , mRend(rend)
 {
    
 }
 
 GridScreen::~GridScreen()
 {
-    if (mTexHandle.IsValid())
-    {
-        mRend.DestroyTexture(mTexHandle);
-    }
-    if (mTexHandle2.IsValid())
-    {
-        mRend.DestroyTexture(mTexHandle2);
-    }
+    assert(mTexHandle.IsValid() == false);
+    assert(mTexHandle2.IsValid() == false);
 }
 
-void GridScreen::LoadTextures()
+void GridScreen::LoadTextures(AbstractRenderer& rend)
 {
     if (!mTexHandle.IsValid())
     {
@@ -168,7 +84,7 @@ void GridScreen::LoadTextures()
         if (mCam) // One path trys to load BRP08C10.CAM which exists in no data sets anywhere!
         {
             SDL_Surface* surf = mCam->GetSurface();
-            mTexHandle = mRend.CreateTexture(AbstractRenderer::eTextureFormats::eRGB, surf->w, surf->h, AbstractRenderer::eTextureFormats::eRGB, surf->pixels, true);
+            mTexHandle = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGB, surf->w, surf->h, AbstractRenderer::eTextureFormats::eRGB, surf->pixels, true);
 
             if (!mTexHandle2.IsValid())
             {
@@ -177,11 +93,23 @@ void GridScreen::LoadTextures()
                     SDL_Surface* fg1Surf = mCam->GetFg1()->GetSurface();
                     if (fg1Surf)
                     {
-                        mTexHandle2 = mRend.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->w, fg1Surf->h, AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->pixels, true);
+                        mTexHandle2 = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->w, fg1Surf->h, AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->pixels, true);
                     }
                 }
             }
         }
+    }
+}
+
+void GridScreen::UnLoadTextures(AbstractRenderer& rend)
+{
+    if (mTexHandle.IsValid())
+    {
+        rend.DestroyTexture(mTexHandle);
+    }
+    if (mTexHandle2.IsValid())
+    {
+        rend.DestroyTexture(mTexHandle2);
     }
 }
 
@@ -199,17 +127,17 @@ bool GridScreen::hasTexture() const
     return !onlySpaces;
 }
 
-void GridScreen::Render(float x, float y, float w, float h)
+void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float h)
 {
-    LoadTextures();
+    LoadTextures(rend);
     if (mTexHandle.IsValid())
     {
-        mRend.TexturedQuad(mTexHandle, x, y, w, h, AbstractRenderer::eForegroundLayer0, ColourU8{ 255, 255, 255, 255 });
+        rend.TexturedQuad(mTexHandle, x, y, w, h, AbstractRenderer::eForegroundLayer0, ColourU8{ 255, 255, 255, 255 });
     }
 
     if (mTexHandle2.IsValid())
     {
-        mRend.TexturedQuad(mTexHandle2, x, y, w, h, AbstractRenderer::eForegroundLayer1, ColourU8{ 255, 255, 255, 255 });
+        rend.TexturedQuad(mTexHandle2, x, y, w, h, AbstractRenderer::eForegroundLayer1, ColourU8{ 255, 255, 255, 255 });
     }
 }
 
@@ -235,7 +163,7 @@ GridMap::GridMap()
     mMapState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
 }
 
-void GridMap::LoadMap(Oddlib::Path& path, ResourceLocator& locator, AbstractRenderer& rend)
+void GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator)
 {
     // Clear out existing objects from previous map
     mMapState.mObjs.clear();
@@ -262,7 +190,7 @@ void GridMap::LoadMap(Oddlib::Path& path, ResourceLocator& locator, AbstractRend
     {
         for (u32 y = 0; y < path.YSize(); y++)
         {
-            mMapState.mScreens[x][y] = std::make_unique<GridScreen>(path.CameraByPosition(x, y), rend, locator);
+            mMapState.mScreens[x][y] = std::make_unique<GridScreen>(path.CameraByPosition(x, y), locator);
         }
     }
 

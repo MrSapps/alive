@@ -5,6 +5,8 @@
 #include "fmv.hpp"
 #include "sound.hpp"
 #include "gridmap.hpp"
+#include "debug.hpp"
+#include "resourcemapper.hpp"
 
 void AnimationBrowser::Update(const InputState& input, CoordinateSpace& coords)
 {

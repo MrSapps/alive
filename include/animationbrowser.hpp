@@ -1,7 +1,8 @@
 #pragma once
 
 #include "engine.hpp"
-#include "resourcemapper.hpp"
+
+class Animation;
 
 class AnimationBrowser
 {

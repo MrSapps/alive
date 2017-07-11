@@ -459,7 +459,7 @@ void EditorMode::Render(AbstractRenderer& rend) const
                 if (!screen->hasTexture())
                     continue;
 
-                screen->Render((x * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
+                screen->Render(rend, (x * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
                     (y * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
                     mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
             }

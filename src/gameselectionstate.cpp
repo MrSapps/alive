@@ -2,6 +2,7 @@
 #include "animationbrowser.hpp"
 #include "nfd.h"
 #include "sound.hpp"
+#include "resourcemapper.hpp"
 
 namespace
 {

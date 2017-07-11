@@ -4,6 +4,7 @@
 #include "gridmap.hpp"
 #include "fmv.hpp"
 #include "sound.hpp"
+#include "resourcemapper.hpp"
 
 PlayFmvState::PlayFmvState(IAudioController& audioController, ResourceLocator& locator)
 {
@@ -38,11 +39,47 @@ EngineStates PlayFmvState::Update(const InputState& input)
 RunGameState::RunGameState(ResourceLocator& locator, AbstractRenderer& renderer)
     : mResourceLocator(locator), mRenderer(renderer), mAnimBrowser(locator)
 {
+    mLevel = std::make_unique<Level>(mResourceLocator);
 
+    // Debugging - reload path and load next path
+    static std::string currentPathName;
+    static s32 nextPathIndex;
+
+    Debugging().fnLoadPath = [&](const char* name)
+    {
+        LoadMap(name);
+    };
+
+    Debugging().mFnNextPath = [&]()
+    {
+        s32 idx = 0;
+        for (const auto& pathMap : mResourceLocator.PathMaps())
+        {
+            if (idx == nextPathIndex)
+            {
+                LoadMap(pathMap.first.c_str());
+                return;
+            }
+            idx++;
+        }
+    };
+
+    Debugging().mFnReloadPath = [&]()
+    {
+        // TODO: Fix me
+        //LoadMap(mLevel->MapName());
+    };
 }
 
+// Engine init pending
+// First init pending
+// Map load pending
+// Screen change pending
+// Screen change across maps pending
+// To editor mode pending
+// To game mode pending
 
-void RunGameState::OnStart(const std::string& initScriptName, Sound* pSound)
+void RunGameState::OnStartASync(const std::string& initScriptName, Sound* pSound)
 {
     mSound = pSound;
 
@@ -56,11 +93,31 @@ void RunGameState::OnStart(const std::string& initScriptName, Sound* pSound)
     SquirrelVm::CheckError();
 
     mSound->CacheMemoryResidentSounds();
+
+    // TODO: Should be the script calling this
+    Debugging().mFnNextPath();
 }
 
-void RunGameState::LoadMap(const std::string& /*mapName*/)
+void RunGameState::RegisterScriptBindings()
 {
+    Sqrat::Class<Sound, Sqrat::NoConstructor<Sound>> c(Sqrat::DefaultVM::Get(), "Game");
+    c.Func("LoadMap", &RunGameState::LoadMap);
+    Sqrat::RootTable().Bind("Game", c);
+}
 
+void RunGameState::LoadMap(const std::string& mapName)
+{
+    std::unique_ptr<Oddlib::Path> path = mResourceLocator.LocatePath(mapName.c_str());
+    if (path)
+    {
+        mLevel->LoadMap(*path);
+
+        //mSound->SetTheme(path->MusicTheme());
+    }
+    else
+    {
+        LOG_ERROR("LVL or file in LVL not found");
+    }
 }
 
 void RunGameState::Render(AbstractRenderer& renderer)
@@ -79,11 +136,6 @@ void RunGameState::Render(AbstractRenderer& renderer)
 EngineStates RunGameState::Update(const InputState& input, CoordinateSpace& coords)
 {   
     // TODO: Load the game script which then loads the first level
-
-    if (!mLevel)
-    {
-        mLevel = std::make_unique<Level>(*mSound, mResourceLocator, mRenderer);
-    }
 
     if (mLevel)
     {

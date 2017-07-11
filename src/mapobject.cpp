@@ -4,6 +4,7 @@
 #include "physics.hpp"
 #include "collisionline.hpp"
 #include "gridmap.hpp"
+#include "resourcemapper.hpp"
 
 /*static*/ void MapObject::RegisterScriptBindings()
 {

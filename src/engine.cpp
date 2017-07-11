@@ -15,6 +15,8 @@
 #include "fmv.hpp"
 #include "rendererfactory.hpp"
 #include "rungamestate.hpp"
+#include "debug.hpp"
+#include "resourcemapper.hpp"
 
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -293,6 +295,7 @@ void Engine::BindScriptTypes()
     GridMap::RegisterScriptBindings();
     Sound::RegisterScriptBindings();
     Fmv::RegisterScriptBindings();
+    RunGameState::RegisterScriptBindings();
 }
 
 void Engine::InitSubSystems()
@@ -313,6 +316,23 @@ void Engine::InitSubSystems()
     InitImGui();
 
     mInputState.AddControllers();
+}
+
+void Engine::StartASyncJob(std::function<void()> job)
+{
+    if (!mASyncJob)
+    {
+        mASyncJob = std::make_unique<std::future<void>>(std::async(std::launch::async, job));
+    }
+}
+
+bool Engine::ASyncJobCompleted()
+{
+    if (!mASyncJob || mASyncJob->wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+    {
+        return true;
+    }
+    return false;
 }
 
 void Engine::RunInitScript()
@@ -397,7 +417,7 @@ int Engine::Run()
 static bool mousePressed[4] = { false, false };
 static ImVec2 mousePosScale(1.0f, 1.0f);
 
-static void UpdateImGui()
+static void UpdateImGuiMouseInput()
 {
     ImGuiIO& io = ImGui::GetIO();
 
@@ -641,26 +661,42 @@ void Engine::Update()
     mInputState.mMousePosition.mX = mouse_x;
     mInputState.mMousePosition.mY = mouse_y;
 
-    ImGui::NewFrame();
     mInputState.Update();
 
-    if (mState == EngineStates::eRunGameState)
+    ImGui::NewFrame();
+
+    if (mState == EngineStates::eRunGameState && !mASyncJob)
     {
         Debugging().Update(mInputState);
     }
 
-    UpdateImGui();
+    UpdateImGuiMouseInput();
 
     switch (mState)
     {
     case EngineStates::eRunGameState:
-        mState = mRunGameState->Update(mInputState, *mRenderer);
+     
+        if (ASyncJobCompleted())
+        {
+            mASyncJob = nullptr;
+        }
+        
+        if (!mASyncJob)
+        {
+            mState = mRunGameState->Update(mInputState, *mRenderer);
+        }
         break;
     case EngineStates::eGameSelection:
         mState = mGameSelectionScreen->Update(mInputState, *mRenderer);
         if (mState == EngineStates::eRunGameState)
         {
-            mRunGameState->OnStart(mGameSelectionScreen->SelectedGame().GameScriptName(), mSound.get());
+            if (!mASyncJob)
+            {
+                StartASyncJob([&]
+                {
+                    mRunGameState->OnStartASync(mGameSelectionScreen->SelectedGame().GameScriptName(), mSound.get());
+                });
+            }
         }
         break;
     case EngineStates::ePlayFmv:
@@ -668,29 +704,31 @@ void Engine::Update()
         break;
     case EngineStates::eEngineInit:
         {
-            if (!mFuture)
+            if (!mASyncJob)
             {
-                mFuture = std::make_unique<std::future<void>>(std::async(std::launch::async, [&]()
+                StartASyncJob([&]
                 {
                     // At this point nothing else is reading the things this thread is writing, so
                     // should be thread safe.
                     InitResources();
-                }));
+                });
             }
-
-            if (mFuture->wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+            else
             {
-                mFuture = nullptr;
-                mState = EngineStates::eGameSelection;
+                if (ASyncJobCompleted())
+                {
+                    mASyncJob = nullptr;
 
-                mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, *mFileSystem);
+                    mState = EngineStates::eGameSelection;
 
-                mRunGameState = std::make_unique<RunGameState>(*mResourceLocator, *mRenderer);
-                mGameSelectionScreen = std::make_unique<GameSelectionState>(mGameDefinitions, *mResourceLocator, *mFileSystem);
-                mPlayFmvState = std::make_unique<PlayFmvState>(mAudioHandler, *mResourceLocator);
+                    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, *mFileSystem);
 
-                RunInitScript();
-                mResourcesAreLoading = false;
+                    mRunGameState = std::make_unique<RunGameState>(*mResourceLocator, *mRenderer);
+                    mGameSelectionScreen = std::make_unique<GameSelectionState>(mGameDefinitions, *mResourceLocator, *mFileSystem);
+                    mPlayFmvState = std::make_unique<PlayFmvState>(mAudioHandler, *mResourceLocator);
+
+                    RunInitScript();
+                }
             }
         }
         break;
@@ -711,7 +749,14 @@ void Engine::Render()
     switch (mState)
     {
     case EngineStates::eRunGameState:
-        mRunGameState->Render(*mRenderer);
+        if (mASyncJob)
+        {
+            mRenderer->Clear(0.0f, 0.0f, 0.0f);
+        }
+        else
+        {
+            mRunGameState->Render(*mRenderer);
+        }
         break;
 
     case EngineStates::eGameSelection:
@@ -747,7 +792,7 @@ void Engine::Render()
         }
     }
 
-    if (mResourcesAreLoading)
+    if (mASyncJob)
     {
         TextureHandle hTexture = mRenderer->CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, mLoadingIcon->w, mLoadingIcon->h, AbstractRenderer::eTextureFormats::eRGBA, mLoadingIcon->pixels, true);
 
@@ -886,4 +931,16 @@ void Engine::InitResources()
 
     // TODO: After user selects game def then add/validate the required paths/data sets in the res mapper
     // also add in any extra maps for resources defined by the mod @ game selection screen
+}
+
+void SquirrelVm::CompileAndRun(ResourceLocator& resourceLocator, const std::string& scriptName)
+{
+    TRACE_ENTRYEXIT;
+
+    Sqrat::Script script;
+    script.CompileString(resourceLocator.LocateScript(scriptName.c_str()), scriptName);
+    CheckError();
+
+    script.Run();
+    CheckError();
 }

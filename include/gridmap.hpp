@@ -41,10 +41,10 @@ public:
     {
         TRACE_ENTRYEXIT;
     }
-    Level(Sound& sound, ResourceLocator& locator, AbstractRenderer& render);
+    Level(ResourceLocator& locator);
+    void LoadMap(const Oddlib::Path& path);
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend);
-    void EnterState();
 private:
     void RenderDebugPathSelection();
     std::unique_ptr<class GridMap> mMap;
@@ -56,13 +56,14 @@ class GridScreen
 public:
     GridScreen(const GridScreen&) = delete;
     GridScreen& operator = (const GridScreen&) = delete;
-    GridScreen(const Oddlib::Path::Camera& camera, AbstractRenderer& rend, ResourceLocator& locator);
+    GridScreen(const Oddlib::Path::Camera& camera, ResourceLocator& locator);
     ~GridScreen();
     const std::string& FileName() const { return mFileName; }
-    void LoadTextures();
+    void LoadTextures(AbstractRenderer& rend);
+    void UnLoadTextures(AbstractRenderer& rend);
     bool hasTexture() const;
     const Oddlib::Path::Camera &getCamera() const { return mCamera; }
-    void Render(float x, float y, float w, float h);
+    void Render(AbstractRenderer& rend, float x, float y, float w, float h);
 private:
     std::string mFileName;
     TextureHandle mTexHandle;
@@ -75,7 +76,6 @@ private:
     std::unique_ptr<Oddlib::IBits> mCam;
 
     ResourceLocator& mLocator;
-    AbstractRenderer& mRend;
 };
 
 
@@ -132,7 +132,7 @@ public:
     GridMap& operator = (const GridMap&) = delete;
     GridMap();
     ~GridMap();
-    void LoadMap(Oddlib::Path& path, ResourceLocator& locator, AbstractRenderer& rend);
+    void LoadMap(const Oddlib::Path& path, ResourceLocator& locator);
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend) const;
     static void RegisterScriptBindings();

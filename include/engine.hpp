@@ -4,11 +4,15 @@
 #include "oddlib/masher.hpp"
 #include "SDL.h"
 #include "core/audiobuffer.hpp"
-#include "resourcemapper.hpp"
 #include "bitutils.hpp"
+#include "logger.hpp"
+#include "gamedefinition.hpp"
+#include "abstractrenderer.hpp"
+#include "oddlib/sdl_raii.hpp"
 #include <future>
 
 class InputState;
+class ResourceLocator;
 
 template<class T>
 void UpdateStateInputItemGeneric(T& state)
@@ -492,17 +496,7 @@ public:
         }
     }
 
-    static void CompileAndRun(ResourceLocator& resourceLocator, const std::string& scriptName)
-    {
-        TRACE_ENTRYEXIT;
-
-        Sqrat::Script script;
-        script.CompileString(resourceLocator.LocateScript(scriptName.c_str()), scriptName);
-        CheckError();
-
-        script.Run();
-        CheckError();
-    }
+    static void CompileAndRun(ResourceLocator& resourceLocator, const std::string& scriptName);
 
     HSQUIRRELVM Handle() const { return mVm; }
 private:
@@ -587,6 +581,8 @@ protected:
     void BindScriptTypes();
     void InitSubSystems();
     
+    void StartASyncJob(std::function<void()> job);
+    bool ASyncJobCompleted();
 
     // Audio must init early
     SdlAudioWrapper mAudioHandler;
@@ -607,13 +603,11 @@ protected:
     TextureHandle mGuiFontHandle = {};
     bool mTryDirectX9 = false;
 
-    bool mResourcesAreLoading = true;
-
     EngineStates mState = EngineStates::eEngineInit;
     std::unique_ptr<class RunGameState> mRunGameState;
     std::unique_ptr<class GameSelectionState> mGameSelectionScreen;
     std::unique_ptr<class PlayFmvState> mPlayFmvState;
 
     SDL_SurfacePtr mLoadingIcon;
-    std::unique_ptr<std::future<void>> mFuture;
+    std::unique_ptr<std::future<void>> mASyncJob;
 };
