@@ -575,52 +575,55 @@ std::unique_ptr<ISound> ResourceLocator::LocateSound(const char* resourceName, c
     return nullptr;
 }
 
-std::unique_ptr<Oddlib::Path> ResourceLocator::LocatePath(const char* resourceName)
+up_future_UP_Path ResourceLocator::LocatePath(const std::string& resourceName)
 {
-    const ResourceMapper::PathMapping* mapping = mResMapper.FindPath(resourceName);
-    if (mapping)
+    return std::make_unique<future_UP_Path>(std::async(std::launch::async, [=]() -> Oddlib::UP_Path
     {
-        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+        const ResourceMapper::PathMapping* mapping = mResMapper.FindPath(resourceName.c_str());
+        if (mapping)
         {
-            if (fs.mIsMod)
+            for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
             {
-                // TODO: Mod path
-            }
-            else
-            {
-                const ResourceMapper::PathLocation* pathLocation = mapping->Find(fs.mDataSetName);
-                if (pathLocation)
+                if (fs.mIsMod)
                 {
-                    const std::vector<ResourceMapper::DataSetFileAttributes>* locationsInThisDataSet = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), pathLocation->mDataSetFileName.c_str());
-                    if (locationsInThisDataSet)
+                    // TODO: Mod path
+                }
+                else
+                {
+                    const ResourceMapper::PathLocation* pathLocation = mapping->Find(fs.mDataSetName);
+                    if (pathLocation)
                     {
-                        for (const ResourceMapper::DataSetFileAttributes& attributes : *locationsInThisDataSet)
+                        const std::vector<ResourceMapper::DataSetFileAttributes>* locationsInThisDataSet = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), pathLocation->mDataSetFileName.c_str());
+                        if (locationsInThisDataSet)
                         {
-                            std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, attributes.mLvlName);
-                            if (lvl)
+                            for (const ResourceMapper::DataSetFileAttributes& attributes : *locationsInThisDataSet)
                             {
-                                auto lvlFile = lvl->FileByName(pathLocation->mDataSetFileName);
-                                if (lvlFile)
+                                std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, attributes.mLvlName);
+                                if (lvl)
                                 {
-                                    auto chunk = lvlFile->ChunkById(mapping->mId);
-                                    auto stream = chunk->Stream();
-                                    return std::make_unique<Oddlib::Path>(*stream,
-                                        mapping->mCollisionOffset,
-                                        mapping->mIndexTableOffset,
-                                        mapping->mObjectOffset,
-                                        mapping->mNumberOfScreensX,
-                                        mapping->mNumberOfScreensY,
-                                        attributes.mIsAo);
+                                    auto lvlFile = lvl->FileByName(pathLocation->mDataSetFileName);
+                                    if (lvlFile)
+                                    {
+                                        auto chunk = lvlFile->ChunkById(mapping->mId);
+                                        auto stream = chunk->Stream();
+                                        return std::make_unique<Oddlib::Path>(*stream,
+                                            mapping->mCollisionOffset,
+                                            mapping->mIndexTableOffset,
+                                            mapping->mObjectOffset,
+                                            mapping->mNumberOfScreensX,
+                                            mapping->mNumberOfScreensY,
+                                            attributes.mIsAo);
+                                    }
                                 }
-                            }
 
+                            }
                         }
                     }
                 }
             }
         }
-    }
-    return nullptr;
+        return nullptr;
+    }));
 }
 
 std::unique_ptr<Oddlib::IBits> ResourceLocator::LocateCamera(const char* resourceName)

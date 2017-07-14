@@ -86,16 +86,11 @@ void RunGameState::OnStartASync(const std::string& initScriptName, Sound* pSound
     const std::string gameScript = mResourceLocator.LocateScript(initScriptName.c_str());
 
     Sqrat::Script script;
-    script.CompileString(gameScript, initScriptName);
+    mMainScript.CompileString(gameScript, initScriptName);
     SquirrelVm::CheckError();
 
-    script.Run();
-    SquirrelVm::CheckError();
-
-    mSound->CacheMemoryResidentSounds();
-
-    // TODO: Should be the script calling this
-    Debugging().mFnNextPath();
+    mLoadSoundEffectsFuture = mSound->CacheMemoryResidentSounds();
+    mState = RunGameStates::eLoadingSoundEffects;
 }
 
 void RunGameState::RegisterScriptBindings()
@@ -107,17 +102,13 @@ void RunGameState::RegisterScriptBindings()
 
 void RunGameState::LoadMap(const std::string& mapName)
 {
-    std::unique_ptr<Oddlib::Path> path = mResourceLocator.LocatePath(mapName.c_str());
-    if (path)
-    {
-        mLevel->LoadMap(*path);
+    mLocatePathFuture = mResourceLocator.LocatePath(mapName.c_str());
+    mState = RunGameStates::eLoadingMap;
+}
 
-        //mSound->SetTheme(path->MusicTheme());
-    }
-    else
-    {
-        LOG_ERROR("LVL or file in LVL not found");
-    }
+bool RunGameState::IsLoading() const
+{
+    return mState != RunGameStates::eRunning;
 }
 
 void RunGameState::Render(AbstractRenderer& renderer)
@@ -135,11 +126,54 @@ void RunGameState::Render(AbstractRenderer& renderer)
 
 EngineStates RunGameState::Update(const InputState& input, CoordinateSpace& coords)
 {   
-    // TODO: Load the game script which then loads the first level
-
-    if (mLevel)
+    if (mState == RunGameStates::eLoadingSoundEffects)
     {
-        mLevel->Update(input, coords);
+        if (FutureIsDone(mLoadSoundEffectsFuture))
+        {
+            mLoadSoundEffectsFuture = nullptr;
+            mState = RunGameStates::eRunning;
+            mMainScript.Run();
+
+            // TODO: Should be the script calling this
+            Debugging().mFnNextPath();
+        }
+    }
+    else if (mState == RunGameStates::eRunning)
+    {
+        if (mLevel)
+        {
+            // TODO: This can change state
+            mLevel->Update(input, coords);
+        }
+    }
+    else if (mState == RunGameStates::eLoadingMap)
+    {
+        if (mLocatePathFuture && FutureIsDone(mLocatePathFuture))
+        {
+            mPathBeingLoaded = mLocatePathFuture->get();
+            mLocatePathFuture = nullptr;
+        }
+
+        if (!mLocatePathFuture)
+        {
+            if (mPathBeingLoaded)
+            {
+                // Note: This is iterative loading which happens in the main thread
+                if (mLevel->LoadMap(*mPathBeingLoaded))
+                {
+                    // TODO: Construct sprite sheets for objects that exist in this map
+
+                    //mSound->SetTheme(path->MusicTheme());
+                    mState = RunGameStates::eRunning;
+                }
+            }
+            else
+            {
+                // TODO: Throw ?
+                LOG_ERROR("LVL or file in LVL not found");
+                mState = RunGameStates::eRunning;
+            }
+        }
     }
 
     mAnimBrowser.Update(input, coords);

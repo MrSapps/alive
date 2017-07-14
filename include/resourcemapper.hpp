@@ -20,6 +20,7 @@
 
 #include "gamedefinition.hpp" // DataPaths
 #include "imgui/imgui.h"
+#include <future>
 
 namespace Oddlib
 {
@@ -584,6 +585,7 @@ public:
     }
 };
 
+// Thread safe
 class ResourceCache
 {
 public:
@@ -620,6 +622,7 @@ private:
     std::shared_ptr<ObjectType> Add(KeyType& key, Container& container, std::unique_ptr<ObjectType> uptr)
     {
         assert(container.find(key) == std::end(container));
+        std::lock_guard<std::mutex> lock(mMutex);
         std::shared_ptr<ObjectType> sptr(uptr.release(), AutoRemoveFromContainerDeleter<KeyType, ObjectType>(&container, key));
         container.insert(std::make_pair(key, sptr));
         return sptr;
@@ -628,6 +631,7 @@ private:
     template<class ObjectType, class KeyType, class Container>
     std::shared_ptr<ObjectType> Get(KeyType& key, Container& container)
     {
+        std::lock_guard<std::mutex> lock(mMutex);
         auto it = container.find(key);
         if (it != std::end(container))
         {
@@ -636,6 +640,7 @@ private:
         return nullptr;
     }
 
+    std::mutex mMutex;
     std::map<std::string, std::weak_ptr<Oddlib::LvlArchive>> mOpenLvls;
     std::map<std::string, std::weak_ptr<Oddlib::AnimationSet>> mAnimationSets;
 };
@@ -690,6 +695,9 @@ public:
     std::unique_ptr<Oddlib::IStream> mSeqData;
 };
 
+using future_UP_Path = std::future<Oddlib::UP_Path>;
+using up_future_UP_Path = std::unique_ptr<future_UP_Path>;
+
 class ResourceLocator
 {
 public:
@@ -712,7 +720,7 @@ public:
     const MusicTheme* LocateSoundTheme(const char* themeName);
 
     // TODO: Should be returning higher level abstraction
-    std::unique_ptr<Oddlib::Path> LocatePath(const char* resourceName);
+    up_future_UP_Path LocatePath(const std::string& resourceName);
     std::unique_ptr<Oddlib::IBits> LocateCamera(const char* resourceName);
     std::unique_ptr<class IMovie> LocateFmv(class IAudioController& audioController, const char* resourceName);
     std::unique_ptr<Animation> LocateAnimation(const char* resourceName);

@@ -42,7 +42,7 @@ public:
         TRACE_ENTRYEXIT;
     }
     Level(ResourceLocator& locator);
-    void LoadMap(const Oddlib::Path& path);
+    bool LoadMap(const Oddlib::Path& path);
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend);
 private:
@@ -132,11 +132,45 @@ public:
     GridMap& operator = (const GridMap&) = delete;
     GridMap();
     ~GridMap();
-    void LoadMap(const Oddlib::Path& path, ResourceLocator& locator);
+    bool LoadMap(const Oddlib::Path& path, ResourceLocator& locator);
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend) const;
     static void RegisterScriptBindings();
 private:
+    class Loader
+    {
+    public:
+        Loader(GridMap& gm);
+        bool Load(const Oddlib::Path& path, ResourceLocator& locator);
+    private:
+        void HandleInit(const Oddlib::Path& path);
+        void HandleAllocateCameraMemory(const Oddlib::Path& path);
+        void HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& locator);
+        void HandleObjectLoaderScripts(ResourceLocator& locator);
+        void HandleLoadObjects(const Oddlib::Path& path, ResourceLocator& locator);
+        void HandleHackAbeIntoValidCamera(ResourceLocator& locator);
+
+        GridMap& mGm;
+        enum class LoaderStates
+        {
+            eInit,
+            eAllocateCameraMemory,
+            eLoadCameras,
+            eObjectLoaderScripts,
+            eLoadObjects,
+            eHackToPlaceAbeInValidCamera,
+        };
+        
+        LoaderStates mState = LoaderStates::eInit;
+
+        size_t mXIndex = 0;
+        size_t mYIndex = 0;
+        size_t mIndex = 0;
+
+        void SetState(LoaderStates state);
+    };
+    Loader mLoader;
+
     MapObject* GetMapObject(s32 x, s32 y, const char* type);
     
     void UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& coords);

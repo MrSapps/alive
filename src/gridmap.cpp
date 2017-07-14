@@ -21,9 +21,9 @@ Level::Level(ResourceLocator& locator)
     mMap = std::make_unique<GridMap>();
 }
 
-void Level::LoadMap(const Oddlib::Path& path)
+bool Level::LoadMap(const Oddlib::Path& path)
 {
-    mMap->LoadMap(path, mLocator);
+    return mMap->LoadMap(path, mLocator);
 }
 
 void Level::Update(const InputState& input, CoordinateSpace& coords)
@@ -154,7 +154,7 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
 }
 
 GridMap::GridMap()
-    : mScriptInstance("gMap", this)
+    : mScriptInstance("gMap", this), mLoader(*this)
 {
     mEditorMode = std::make_unique<EditorMode>(mMapState);
     mGameMode = std::make_unique<GameMode>(mMapState);
@@ -163,37 +163,64 @@ GridMap::GridMap()
     mMapState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
 }
 
-void GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator)
+GridMap::Loader::Loader(GridMap& gm)
+    : mGm(gm)
+{
+
+}
+
+void GridMap::Loader::HandleInit(const Oddlib::Path& path)
 {
     // Clear out existing objects from previous map
-    mMapState.mObjs.clear();
-    mMapState.mCollisionItems.clear();
-    mEditorMode->OnMapChanged();
+    mGm.mMapState.mObjs.clear();
+    mGm.mMapState.mCollisionItems.clear();
+    mGm.mEditorMode->OnMapChanged();
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
-    mMapState.kCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
-    mMapState.kCamGapSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+    mGm.mMapState.kCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+    mGm.mMapState.kCamGapSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 
     // Since the camera won't fill a block it can be offset so the camera image is in the middle
     // of the block or else where.
-    mMapState.kCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
+    mGm.mMapState.kCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
 
-    ConvertCollisionItems(path.CollisionItems());
+    mGm.ConvertCollisionItems(path.CollisionItems());
 
-    mMapState.mScreens.resize(path.XSize());
-    for (auto& col : mMapState.mScreens)
+    SetState(LoaderStates::eAllocateCameraMemory);
+}
+
+void GridMap::Loader::HandleAllocateCameraMemory(const Oddlib::Path& path)
+{
+    mGm.mMapState.mScreens.resize(path.XSize());
+    for (auto& col : mGm.mMapState.mScreens)
     {
         col.resize(path.YSize());
     }
+    SetState(LoaderStates::eLoadCameras);
+}
 
-    for (u32 x = 0; x < path.XSize(); x++)
+void GridMap::Loader::HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& locator)
+{
+    if (mXIndex < path.XSize())
     {
-        for (u32 y = 0; y < path.YSize(); y++)
+        if (mYIndex < path.YSize())
         {
-            mMapState.mScreens[x][y] = std::make_unique<GridScreen>(path.CameraByPosition(x, y), locator);
+            mGm.mMapState.mScreens[mXIndex][mYIndex] = std::make_unique<GridScreen>(path.CameraByPosition(mXIndex, mYIndex), locator);
+            mYIndex++;
+            return;
         }
-    }
 
+        mYIndex = 0;
+        mXIndex++;
+    }
+    else
+    {
+        SetState(LoaderStates::eObjectLoaderScripts);
+    }
+}
+
+void GridMap::Loader::HandleObjectLoaderScripts(ResourceLocator& locator)
+{
     SquirrelVm::CompileAndRun(locator, "object_factory.nut");
     Sqrat::Function objFactoryInit(Sqrat::RootTable(), "init_object_factory");
     objFactoryInit.Execute();
@@ -201,16 +228,20 @@ void GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator)
 
     SquirrelVm::CompileAndRun(locator, "map.nut");
 
-    // Load objects
-    for (auto x = 0u; x < mMapState.mScreens.size(); x++)
+    SetState(LoaderStates::eLoadObjects);
+}
+
+void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocator& locator)
+{
+    if (mXIndex < mGm.mMapState.mScreens.size())
     {
-        for (auto y = 0u; y < mMapState.mScreens[x].size(); y++)
+        if (mYIndex < mGm.mMapState.mScreens[mXIndex].size())
         {
-            GridScreen* screen = mMapState.mScreens[x][y].get();
+            GridScreen* screen = mGm.mMapState.mScreens[mXIndex][mYIndex].get();
             const Oddlib::Path::Camera& cam = screen->getCamera();
-            for (size_t i = 0; i < cam.mObjects.size(); ++i)
+            if (mIndex < cam.mObjects.size())
             {
-                const Oddlib::Path::MapObject& obj = cam.mObjects[i];
+                const Oddlib::Path::MapObject& obj = cam.mObjects[mIndex];
                 Oddlib::MemoryStream ms(std::vector<u8>(obj.mData.data(), obj.mData.data() + obj.mData.size()));
                 const ObjRect rect =
                 {
@@ -220,51 +251,110 @@ void GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator)
                     obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
                 };
 
-                auto tmp = std::make_unique<MapObject>(locator, rect);
-
+                auto mapObj = std::make_unique<MapObject>(locator, rect);
 
                 Sqrat::Function objFactory(Sqrat::RootTable(), "object_factory");
                 Oddlib::IStream* s = &ms; // Script only knows about IStream, not the derived types
-                Sqrat::SharedPtr<bool> ret = objFactory.Evaluate<bool>(tmp.get(), this, path.IsAo(), obj.mType, rect, s); // TODO: Don't need to pass rect?
+                Sqrat::SharedPtr<bool> ret = objFactory.Evaluate<bool>(mapObj.get(), &mGm, path.IsAo(), obj.mType, rect, s); // TODO: Don't need to pass rect?
                 SquirrelVm::CheckError();
                 if (ret.get() && *ret)
                 {
-                    tmp->Init();
-                    mMapState.mObjs.push_back(std::move(tmp));
+                    mapObj->Init();
+                    mGm.mMapState.mObjs.push_back(std::move(mapObj));
                 }
+                mIndex++;
+                return;
             }
+            mIndex = 0;
+            mYIndex++;
+            return;
         }
+        mYIndex = 0;
+        mXIndex++;
     }
+    else
+    {
+        SetState(LoaderStates::eHackToPlaceAbeInValidCamera);
+    }
+}
 
+void GridMap::Loader::HandleHackAbeIntoValidCamera(ResourceLocator& locator)
+{
     // TODO: Need to figure out what the right way to figure out where abe goes is
     // HACK: Place the player in the first screen that isn't blank
-    for (auto x = 0u; x < mMapState.mScreens.size(); x++)
+    for (auto x = 0u; x < mGm.mMapState.mScreens.size(); x++)
     {
-        for (auto y = 0u; y < mMapState.mScreens[x].size(); y++)
+        for (auto y = 0u; y < mGm.mMapState.mScreens[x].size(); y++)
         {
-            GridScreen *screen = mMapState.mScreens[x][y].get();
+            GridScreen *screen = mGm.mMapState.mScreens[x][y].get();
             if (screen->hasTexture())
             {
 
-                auto xPos = (x * mMapState.kCamGapSize.x) + 100.0f;
-                auto yPos = (y * mMapState.kCamGapSize.y) + 100.0f;
+                auto xPos = (x * mGm.mMapState.kCamGapSize.x) + 100.0f;
+                auto yPos = (y * mGm.mMapState.kCamGapSize.y) + 100.0f;
 
                 auto tmp = std::make_unique<MapObject>(locator, ObjRect{});
 
                 Sqrat::Function onInitMap(Sqrat::RootTable(), "on_init_map");
-                Sqrat::SharedPtr<bool> ret = onInitMap.Evaluate<bool>(tmp.get(), this, xPos, yPos);
+                Sqrat::SharedPtr<bool> ret = onInitMap.Evaluate<bool>(tmp.get(), &mGm, xPos, yPos);
                 SquirrelVm::CheckError();
                 if (ret.get() && *ret)
                 {
                     tmp->Init();
                     tmp->SnapXToGrid(); // Ensure player is locked to grid
-                    mMapState.mCameraSubject = tmp.get();
-                    mMapState.mObjs.push_back(std::move(tmp));
+                    mGm.mMapState.mCameraSubject = tmp.get();
+                    mGm.mMapState.mObjs.push_back(std::move(tmp));
                     return;
                 }
             }
         }
     }
+}
+
+void GridMap::Loader::SetState(GridMap::Loader::LoaderStates state)
+{
+    mXIndex = 0;
+    mYIndex = 0;
+    mIndex = 0;
+    mState = state;
+}
+
+bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
+{
+    switch (mState)
+    {
+    case LoaderStates::eInit:
+        HandleInit(path);
+        break;
+
+    case LoaderStates::eAllocateCameraMemory:
+        HandleAllocateCameraMemory(path);
+        break;
+
+    case LoaderStates::eLoadCameras:
+        HandleLoadCameras(path, locator);
+        break;
+
+    case LoaderStates::eObjectLoaderScripts:
+        HandleObjectLoaderScripts(locator);
+        break;
+
+    case LoaderStates::eLoadObjects:
+        HandleLoadObjects(path, locator);
+        break;
+
+    case LoaderStates::eHackToPlaceAbeInValidCamera:
+        HandleHackAbeIntoValidCamera(locator);
+        SetState(LoaderStates::eInit);
+        return true;
+    }
+
+    return false;
+}
+
+bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator)
+{
+    return mLoader.Load(path, locator);
 }
 
 GridMap::~GridMap()
@@ -368,6 +458,10 @@ void GridMapState::RenderDebug(AbstractRenderer& rend) const
             for (auto y = 0u; y < mScreens[x].size(); y++)
             {
                 GridScreen* screen = mScreens[x][y].get();
+                if (!screen)
+                {
+                    continue;
+                }
                 const Oddlib::Path::Camera& cam = screen->getCamera();
                 for (size_t i = 0; i < cam.mObjects.size(); ++i)
                 {

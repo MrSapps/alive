@@ -455,13 +455,17 @@ void EditorMode::Render(AbstractRenderer& rend) const
         {
             for (auto y = 0u; y < mMapState.mScreens[x].size(); y++)
             {
-                GridScreen *screen = mMapState.mScreens[x][y].get();
-                if (!screen->hasTexture())
-                    continue;
+                // screen can be null while the array is being populated during loading
+                GridScreen* screen = mMapState.mScreens[x][y].get();
+                if (screen)
+                {
+                    if (!screen->hasTexture())
+                        continue;
 
-                screen->Render(rend, (x * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
-                    (y * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
-                    mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
+                    screen->Render(rend, (x * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
+                        (y * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
+                        mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
+                }
             }
         }
     }

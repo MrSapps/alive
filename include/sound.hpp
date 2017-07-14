@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <mutex>
+#include <future>
 #include "proxy_sqrat.hpp"
 #include "core/audiobuffer.hpp"
 
@@ -64,6 +65,7 @@ namespace Oddlib
     class MemoryStream;
 }
 
+// Thread safe
 class SoundCache
 {
 public:
@@ -77,9 +79,13 @@ public:
 private:
     OSBaseFileSystem& mFs;
     std::map<std::string, std::shared_ptr<std::vector<u8>>> mSoundDataCache;
+    mutable std::mutex mCacheMutex;
 public:
     void RemoveFromMemoryCache(const std::string& name);
 };
+
+using future_void = std::future<void>;
+using up_future_void = std::unique_ptr<future_void>;
 
 class Sound : public IAudioPlayer
 {
@@ -93,7 +99,7 @@ public:
     void Render(int w, int h);
     void HandleEvent(const char* eventName);
     void SetTheme(const char* themeName);
-    void CacheMemoryResidentSounds();
+    up_future_void CacheMemoryResidentSounds();
 private:
     void CacheActiveTheme(bool add);
     void CacheSound(const std::string& name);
@@ -113,9 +119,14 @@ private:
     ActiveMusicThemeEntry mActiveThemeEntry;
 
     std::mutex mSoundPlayersMutex;
+
+    // Thread safe
     std::unique_ptr<ISound> mAmbiance;
+
+    // Thread safe
     std::unique_ptr<ISound> mMusicTrack;
 
+    // Thread safe
     std::vector<std::unique_ptr<ISound>> mSoundPlayers;
 
     InstanceBinder<class Sound> mScriptInstance;

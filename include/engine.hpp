@@ -557,6 +557,12 @@ enum class EngineStates
     eQuit
 };
 
+template<class T>
+inline bool FutureIsDone(T& future)
+{
+    return future->wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+}
+
 class Engine final
 {
 public:
@@ -577,6 +583,7 @@ private:
     void InitResources();
     void InitImGui();
     void ImGui_WindowResize();
+    void RenderLoadingIcon();
 protected:
     void BindScriptTypes();
     void InitSubSystems();

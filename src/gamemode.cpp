@@ -81,12 +81,15 @@ void GameMode::Render(AbstractRenderer& rend) const
             camY < static_cast<s32>(mMapState.mScreens[camX].size()))
         {
             GridScreen* screen = mMapState.mScreens[camX][camY].get();
-            if (screen->hasTexture())
+            if (screen)
             {
-                screen->Render(rend,
-                    (camX * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
-                    (camY * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
-                    mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
+                if (screen->hasTexture())
+                {
+                    screen->Render(rend,
+                        (camX * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
+                        (camY * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
+                        mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
+                }
             }
         }
     }

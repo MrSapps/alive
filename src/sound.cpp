@@ -14,6 +14,10 @@ SoundCache::SoundCache(OSBaseFileSystem& fs)
 
 void SoundCache::Sync()
 {
+    TRACE_ENTRYEXIT;
+
+    std::lock_guard<std::mutex> lock(mCacheMutex);
+
     mSoundDataCache.clear();
 
     bool ok = false;
@@ -35,6 +39,8 @@ void SoundCache::Sync()
 void SoundCache::DeleteAll()
 {
     TRACE_ENTRYEXIT;
+    
+    std::lock_guard<std::mutex> lock(mCacheMutex);
 
     // Delete *.wav from {CacheDir}/disk
     std::string dirName = mFs.ExpandPath("{CacheDir}");
@@ -55,6 +61,7 @@ void SoundCache::DeleteAll()
 
 bool SoundCache::ExistsInMemoryCache(const std::string& name) const
 {
+    std::lock_guard<std::mutex> lock(mCacheMutex);
     return mSoundDataCache.find(name) != std::end(mSoundDataCache);
 }
 
@@ -219,21 +226,24 @@ void Sound::SetTheme(const char* themeName)
     }
 }
 
-void Sound::CacheMemoryResidentSounds()
+up_future_void Sound::CacheMemoryResidentSounds()
 {
-    TRACE_ENTRYEXIT;
-
-    // initial one time sync
-    mCache.Sync();
-
-    const std::vector<SoundResource>& resources = mLocator.GetSoundResources();
-    for (const SoundResource& resource : resources)
+    return std::make_unique<future_void>(std::async(std::launch::async, [&]() 
     {
-        if (resource.mIsCacheResident)
+        TRACE_ENTRYEXIT;
+
+        // initial one time sync
+        mCache.Sync();
+
+        const std::vector<SoundResource>& resources = mLocator.GetSoundResources();
+        for (const SoundResource& resource : resources)
         {
-            CacheSound(resource.mResourceName);
+            if (resource.mIsCacheResident)
+            {
+                CacheSound(resource.mResourceName);
+            }
         }
-    }
+    }));
 }
 
 void Sound::CacheActiveTheme(bool add)

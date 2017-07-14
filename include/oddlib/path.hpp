@@ -4,12 +4,14 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <memory>
 #include "types.hpp"
 
 namespace Oddlib
 {
     class IStream;
 
+    using UP_Path = std::unique_ptr<class Path>;
     class Path
     {
     public:

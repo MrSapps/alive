@@ -328,7 +328,7 @@ void Engine::StartASyncJob(std::function<void()> job)
 
 bool Engine::ASyncJobCompleted()
 {
-    if (!mASyncJob || mASyncJob->wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+    if (!mASyncJob || FutureIsDone(mASyncJob))
     {
         return true;
     }
@@ -690,13 +690,7 @@ void Engine::Update()
         mState = mGameSelectionScreen->Update(mInputState, *mRenderer);
         if (mState == EngineStates::eRunGameState)
         {
-            if (!mASyncJob)
-            {
-                StartASyncJob([&]
-                {
-                    mRunGameState->OnStartASync(mGameSelectionScreen->SelectedGame().GameScriptName(), mSound.get());
-                });
-            }
+            mRunGameState->OnStartASync(mGameSelectionScreen->SelectedGame().GameScriptName(), mSound.get());
         }
         break;
     case EngineStates::ePlayFmv:
@@ -778,6 +772,16 @@ void Engine::Render()
         Debugging().Render(*mRenderer);
     }
 
+    if (mASyncJob || (mState == EngineStates::eRunGameState && mRunGameState->IsLoading()))
+    {
+        RenderLoadingIcon();
+    }
+
+    mRenderer->EndFrame();
+}
+
+void Engine::RenderLoadingIcon()
+{
     if (!mLoadingIcon)
     {
         std::unique_ptr<Oddlib::IStream> pngStream = mFileSystem->Open("{GameDir}/data/images/loading.png");
@@ -792,29 +796,24 @@ void Engine::Render()
         }
     }
 
-    if (mASyncJob)
-    {
-        TextureHandle hTexture = mRenderer->CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, mLoadingIcon->w, mLoadingIcon->h, AbstractRenderer::eTextureFormats::eRGBA, mLoadingIcon->pixels, true);
+    TextureHandle hTexture = mRenderer->CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, mLoadingIcon->w, mLoadingIcon->h, AbstractRenderer::eTextureFormats::eRGBA, mLoadingIcon->pixels, true);
 
-        const f32 imagew = static_cast<f32>(mLoadingIcon->w);
-        const f32 imageh = static_cast<f32>(mLoadingIcon->h);
+    const f32 imagew = static_cast<f32>(mLoadingIcon->w);
+    const f32 imageh = static_cast<f32>(mLoadingIcon->h);
 
-        const f32 padding = 30.0f;
+    const f32 padding = 30.0f;
 
-        const f32 xpos = static_cast<f32>(mRenderer->Width()) - imagew - padding;
-        const f32 ypos = static_cast<f32>(mRenderer->Height()) - imageh - padding;
+    const f32 xpos = static_cast<f32>(mRenderer->Width()) - imagew - padding;
+    const f32 ypos = static_cast<f32>(mRenderer->Height()) - imageh - padding;
 
-        mRenderer->TexturedQuad(hTexture,
-            xpos,
-            ypos,
-            imagew,
-            imageh,
-            AbstractRenderer::eLayers::eFmv + 5, { 255, 255, 255, 255 }, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
+    mRenderer->TexturedQuad(hTexture,
+        xpos,
+        ypos,
+        imagew,
+        imageh,
+        AbstractRenderer::eLayers::eFmv + 5, { 255, 255, 255, 255 }, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
 
-        mRenderer->DestroyTexture(hTexture);
-    }
-
-    mRenderer->EndFrame();
+    mRenderer->DestroyTexture(hTexture);
 }
 
 bool Engine::InitSDL()
