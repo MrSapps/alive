@@ -78,7 +78,7 @@ public:
         // Handle the case where the audio call back wants N data but we only have N-X left
         if (mOffsetInBytes + kLenInBytes > mData->size())
         {
-            kLenInBytes = mData->size() - mOffsetInBytes;
+            kLenInBytes = static_cast<u32>(mData->size()) - mOffsetInBytes;
         }
 
         const f32* src = reinterpret_cast<const f32*>(mData->data() + mOffsetInBytes);
