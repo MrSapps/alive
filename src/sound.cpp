@@ -73,16 +73,16 @@ public:
 
     virtual void Play(f32* stream, u32 len) override
     {
-        u32 kLenInBytes = len * sizeof(f32);
+        size_t kLenInBytes = len * sizeof(f32);
         
         // Handle the case where the audio call back wants N data but we only have N-X left
         if (mOffsetInBytes + kLenInBytes > mData->size())
         {
-            kLenInBytes = static_cast<u32>(mData->size()) - mOffsetInBytes;
+            kLenInBytes = mData->size() - mOffsetInBytes;
         }
 
         const f32* src = reinterpret_cast<const f32*>(mData->data() + mOffsetInBytes);
-        for (u32 i = 0; i < kLenInBytes/sizeof(f32); i++)
+        for (auto i = 0u; i < kLenInBytes/sizeof(f32); i++)
         {
             stream[i] += src[i];
         }
