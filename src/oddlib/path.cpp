@@ -36,14 +36,17 @@ namespace Oddlib
      : mXSize(mapXSize), mYSize(mapYSize), mIsAo(isAo)
     {
         TRACE_ENTRYEXIT;
-        ReadCameraMap(pathChunkStream);
+        ReadPath(pathChunkStream, collisionDataOffset, objectIndexTableOffset, objectDataOffset);
+    }
 
+    void Path::ReadPath(IStream& stream, u32 collisionDataOffset, u32 objectIndexTableOffset, u32 objectDataOffset)
+    {
+        ReadCameraArray(stream);
 
         if (collisionDataOffset != 0)
         {
             //pathChunkStream.BinaryDump("PATH.DUMP");
-
-            assert(pathChunkStream.Pos()+16 == collisionDataOffset);
+            assert(stream.Pos() + 16 == collisionDataOffset);
         }
 
         // TODO: Psx data != pc data for Ao
@@ -54,8 +57,8 @@ namespace Oddlib
         {
             const u32 numCollisionDataBytes = objectDataOffset - collisionDataOffset;
             const u32 numCollisionItems = numCollisionDataBytes / kCollisionItemSize;
-            ReadCollisionItems(pathChunkStream, numCollisionItems);
-            ReadMapObjects(pathChunkStream, objectIndexTableOffset);
+            ReadCollisionItemArray(stream, numCollisionItems);
+            ReadMapObjectsArray(stream, objectIndexTableOffset);
         }
     }
 
@@ -76,30 +79,36 @@ namespace Oddlib
             LOG_ERROR("Out of bounds x:y"
                 << std::to_string(x) << " " << std::to_string(y) <<" vs " 
                 << std::to_string(XSize()) << " " << std::to_string(YSize()));
+            abort();
         }
 
         return mCameras[(y * XSize()) + x];
     }
 
-    void Path::ReadCameraMap(IStream& stream)
+    void Path::ReadCameraArray(IStream& stream)
     {
         const u32 numberOfCameras = XSize() * YSize();
         mCameras.reserve(numberOfCameras);
 
-        std::array<u8, 8> nameBuffer;
         for (u32 i = 0; i < numberOfCameras; i++)
         {
-            stream.Read(nameBuffer);
-            std::string tmpStr(reinterpret_cast<const char*>(nameBuffer.data()), nameBuffer.size());
-            if (tmpStr[0] != 0)
-            {
-                tmpStr += ".CAM";
-            }
-            mCameras.emplace_back(Camera(std::move(tmpStr)));
+            ReadCamera(stream);
         }
     }
 
-    void Path::ReadCollisionItems(IStream& stream, u32 numberOfCollisionItems)
+    void Path::ReadCamera(IStream& stream)
+    {
+        std::array<char, 8> nameBuffer;
+        stream.Read(nameBuffer);
+        std::string tmpStr(nameBuffer.data(), nameBuffer.size());
+        if (tmpStr[0] != 0)
+        {
+            tmpStr += ".CAM";
+        }
+        mCameras.emplace_back(Camera(std::move(tmpStr)));
+    }
+
+    void Path::ReadCollisionItemArray(IStream& stream, u32 numberOfCollisionItems)
     {
         mCollisionItems.resize(numberOfCollisionItems);
         for (u32 i = 0; i < numberOfCollisionItems; i++)
@@ -108,15 +117,12 @@ namespace Oddlib
         }
     }
 
-    void Path::ReadMapObjects(IStream& stream, u32 objectIndexTableOffset)
+    std::vector<u32> Path::ReadOffsetsToPerCameraObjectLists(IStream& stream, u32 objectIndexTableOffset)
     {
-        const size_t collisionEnd = stream.Pos();
-
         // TODO -16 is for the chunk header, probably shouldn't have this already included in the
         // pathdb, may also apply to collision info
-        stream.Seek(objectIndexTableOffset-16);
+        stream.Seek(objectIndexTableOffset - 16);
 
-        // Read the pointers to the object list for each camera
         const u32 numberOfCameras = XSize() * YSize();
         std::vector<u32> cameraObjectOffsets;
         cameraObjectOffsets.reserve(numberOfCameras);
@@ -126,6 +132,72 @@ namespace Oddlib
             stream.Read(offset);
             cameraObjectOffsets.push_back(offset);
         }
+
+        return cameraObjectOffsets;
+    }
+
+    void Path::ReadMapObject(IStream& stream, Path::MapObject& mapObject)
+    {
+        stream.Read(mapObject.mFlags);
+        stream.Read(mapObject.mLength);
+        stream.Read(mapObject.mType);
+
+        LOG_INFO("Object TLV: " << mapObject.mType << " " << mapObject.mLength << " " << mapObject.mLength);
+
+        if (mIsAo)
+        {
+            // Don't know what this is for
+            u32 unknownData = 0;
+            stream.Read(unknownData);
+        }
+
+
+        stream.Read(mapObject.mRectTopLeft.mX);
+        stream.Read(mapObject.mRectTopLeft.mY);
+
+        // Ao duplicated the first two parts of data for some reason
+        if (mIsAo)
+        {
+            u32 duplicatedXY = 0;
+            stream.Read(duplicatedXY);
+        }
+
+        stream.Read(mapObject.mRectBottomRight.mX);
+        stream.Read(mapObject.mRectBottomRight.mY);
+
+        if (mapObject.mLength > 0)
+        {
+            const u32 len = mapObject.mLength - (sizeof(u16) * (mIsAo ? 12 : 8));
+            if (len > 512)
+            {
+                LOG_ERROR("Map object data length " << mapObject.mLength << " is larger than fixed size");
+                abort();
+            }
+            stream.ReadBytes(mapObject.mData.data(), len);
+        }
+
+    }
+
+    void Path::ReadMapObjectsForCamera(IStream& stream, Camera& camera)
+    {
+        for (;;)
+        {
+            MapObject mapObject;
+            ReadMapObject(stream, mapObject);
+            camera.mObjects.emplace_back(mapObject);
+            if (mapObject.mFlags & 0x4)
+            {
+                break;
+            }
+        }
+    }
+
+    void Path::ReadMapObjectsArray(IStream& stream, u32 objectIndexTableOffset)
+    {
+        const size_t collisionEndPos = stream.Pos();
+
+        // Read the pointers to the object list for each camera
+        const std::vector<u32> cameraObjectOffsets = ReadOffsetsToPerCameraObjectLists(stream, objectIndexTableOffset);
         
         // Now load the objects for each camera
         for (auto i = 0u; i < cameraObjectOffsets.size(); i++)
@@ -134,55 +206,8 @@ namespace Oddlib
             const auto objectsOffset = cameraObjectOffsets[i];
             if (objectsOffset != 0xFFFFFFFF)
             {
-                stream.Seek(collisionEnd + objectsOffset);
-                for (;;)
-                {
-                    MapObject mapObject;
-                    stream.Read(mapObject.mFlags);
-                    stream.Read(mapObject.mLength);
-                    stream.Read(mapObject.mType);
-
-                    LOG_INFO("Object TLV: " << mapObject.mType << " " << mapObject.mLength << " " << mapObject.mLength);
-                   
-                    if (mIsAo)
-                    {
-                        // Don't know what this is for
-                        u32 unknownData = 0;
-                        stream.Read(unknownData);
-                    }
-
-
-                    stream.Read(mapObject.mRectTopLeft.mX);
-                    stream.Read(mapObject.mRectTopLeft.mY);
-
-                    // Ao duplicated the first two parts of data for some reason
-                    if (mIsAo)
-                    {
-                        u32 duplicatedXY = 0;
-                        stream.Read(duplicatedXY);
-                    }
-
-                    stream.Read(mapObject.mRectBottomRight.mX);
-                    stream.Read(mapObject.mRectBottomRight.mY);
-
-                    if (mapObject.mLength > 0)
-                    {
-                        const u32 len = mapObject.mLength - (sizeof(u16) * (mIsAo ? 12 : 8));
-                        if (len > 512)
-                        {
-                            LOG_ERROR("Map object data length " << mapObject.mLength << " is larger than fixed size");
-                            abort();
-                        }
-                        stream.ReadBytes(mapObject.mData.data(), len);
-                    }
-
-                    mCameras[i].mObjects.emplace_back(mapObject);
-
-                    if (mapObject.mFlags & 0x4)
-                    {
-                        break;
-                    }
-                }
+                stream.Seek(collisionEndPos + objectsOffset);
+                ReadMapObjectsForCamera(stream, mCameras[i]);
             }
         }
     }
