@@ -470,6 +470,8 @@ static const char* kMusicEvents[] =
 
 void Sound::SoundBrowserUi()
 {
+    ImGui::SetNextWindowPos(ImVec2(120, 120), ImGuiSetCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiSetCond_FirstUseEver);
     ImGui::Begin("Sound list");
 
     static const SoundResource* selected = nullptr;
