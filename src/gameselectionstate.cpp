@@ -1,4 +1,4 @@
-#include "GameSelectionState.hpp"
+#include "gameselectionstate.hpp"
 #include "animationbrowser.hpp"
 #include "nfd.h"
 #include "sound.hpp"

@@ -10,7 +10,7 @@
 #include "core/audiobuffer.hpp"
 #include "sound.hpp"
 #include "gridmap.hpp"
-#include "GameSelectionState.hpp"
+#include "gameselectionstate.hpp"
 #include "gamefilesystem.hpp"
 #include "fmv.hpp"
 #include "rendererfactory.hpp"
