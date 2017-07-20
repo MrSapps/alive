@@ -201,19 +201,13 @@ void GridMap::Loader::HandleAllocateCameraMemory(const Oddlib::Path& path)
 
 void GridMap::Loader::HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& locator)
 {
-    if (mXIndex < path.XSize())
+    if (mXForLoop.IterateNested(path.XSize(), [&]()
     {
-        if (mYIndex < path.YSize())
+        return mYForLoop.Iterate(path.YSize(), [&]()
         {
-            mGm.mMapState.mScreens[mXIndex][mYIndex] = std::make_unique<GridScreen>(path.CameraByPosition(mXIndex, mYIndex), locator);
-            mYIndex++;
-            return;
-        }
-
-        mYIndex = 0;
-        mXIndex++;
-    }
-    else
+            mGm.mMapState.mScreens[mXForLoop.Value()][mYForLoop.Value()] = std::make_unique<GridScreen>(path.CameraByPosition(mXForLoop.Value(), mYForLoop.Value()), locator);
+        });
+    }))
     {
         SetState(LoaderStates::eObjectLoaderScripts);
     }
@@ -233,15 +227,15 @@ void GridMap::Loader::HandleObjectLoaderScripts(ResourceLocator& locator)
 
 void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocator& locator)
 {
-    if (mXIndex < mGm.mMapState.mScreens.size())
+    if (mXForLoop.IterateNested(path.XSize(), [&]()
     {
-        if (mYIndex < mGm.mMapState.mScreens[mXIndex].size())
+        return mYForLoop.IterateNested(path.YSize(), [&]()
         {
-            GridScreen* screen = mGm.mMapState.mScreens[mXIndex][mYIndex].get();
+            GridScreen* screen = mGm.mMapState.mScreens[mXForLoop.Value()][mYForLoop.Value()].get();
             const Oddlib::Path::Camera& cam = screen->getCamera();
-            if (mIndex < cam.mObjects.size())
+            return mIForLoop.Iterate(static_cast<u32>(cam.mObjects.size()), [&]()
             {
-                const Oddlib::Path::MapObject& obj = cam.mObjects[mIndex];
+                const Oddlib::Path::MapObject& obj = cam.mObjects[mIForLoop.Value()];
                 Oddlib::MemoryStream ms(std::vector<u8>(obj.mData.data(), obj.mData.data() + obj.mData.size()));
                 const ObjRect rect =
                 {
@@ -262,17 +256,9 @@ void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocato
                     mapObj->Init();
                     mGm.mMapState.mObjs.push_back(std::move(mapObj));
                 }
-                mIndex++;
-                return;
-            }
-            mIndex = 0;
-            mYIndex++;
-            return;
-        }
-        mYIndex = 0;
-        mXIndex++;
-    }
-    else
+            });
+        });
+    }))
     {
         SetState(LoaderStates::eHackToPlaceAbeInValidCamera);
     }
@@ -313,10 +299,10 @@ void GridMap::Loader::HandleHackAbeIntoValidCamera(ResourceLocator& locator)
 
 void GridMap::Loader::SetState(GridMap::Loader::LoaderStates state)
 {
-    mXIndex = 0;
-    mYIndex = 0;
-    mIndex = 0;
-    mState = state;
+    if (state != mState)
+    {
+        mState = state;
+    }
 }
 
 bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)

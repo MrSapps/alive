@@ -277,6 +277,7 @@ SET(oddlib_src
     include/proxy_sqrat.hpp
     include/msvc_sdl_link.hpp
     include/stdthread.h
+    include/iterativeforloop.hpp
     include/logger.hpp
     include/string_util.hpp
     include/oddlib/exceptions.hpp

@@ -14,6 +14,7 @@
 #include "proxy_sqrat.hpp"
 #include "mapobject.hpp"
 #include "imgui/imgui.h"
+#include "iterativeforloop.hpp"
 
 class AbstractRenderer;
 class ResourceLocator;
@@ -162,10 +163,9 @@ private:
         };
         
         LoaderStates mState = LoaderStates::eInit;
-
-        size_t mXIndex = 0;
-        size_t mYIndex = 0;
-        size_t mIndex = 0;
+        IterativeForLoopU32 mXForLoop;
+        IterativeForLoopU32 mYForLoop;
+        IterativeForLoopU32 mIForLoop;
 
         void SetState(LoaderStates state);
     };
