@@ -159,7 +159,7 @@ GridMap::GridMap()
     mEditorMode = std::make_unique<EditorMode>(mMapState);
     mGameMode = std::make_unique<GameMode>(mMapState);
 
-    // Size of the screen you see during normal game play, this is always less the the "block" the camera image fits into
+    // Size of the screen you see during normal game play, this is always less than the "block" the camera image fits into
     mMapState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
 }
 
@@ -201,7 +201,7 @@ void GridMap::Loader::HandleAllocateCameraMemory(const Oddlib::Path& path)
 
 void GridMap::Loader::HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& locator)
 {
-    if (mXForLoop.IterateIf(path.XSize(), [&]()
+    if (mXForLoop.IterateTimeBoxedIf(kMaxExecutionTimeMs, path.XSize(), [&]()
     {
         return mYForLoop.Iterate(path.YSize(), [&]()
         {
@@ -350,7 +350,7 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
         break;
 
     case LoaderStates::eLoadObjects:
-        HandleLoadObjects(path, locator);
+        RunForAtLeast(kMaxExecutionTimeMs, [&]() { HandleLoadObjects(path, locator); });
         break;
 
     case LoaderStates::eHackToPlaceAbeInValidCamera:

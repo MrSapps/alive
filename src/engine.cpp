@@ -346,7 +346,7 @@ void Engine::RunInitScript()
 }
 
 // TODO: Using averaging value or anything that is more accurate than this
-typedef std::chrono::high_resolution_clock THighResClock;
+using THighResClock = std::chrono::high_resolution_clock;
 class BasicFramesPerSecondCounter
 {
 public:

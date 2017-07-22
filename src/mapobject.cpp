@@ -47,25 +47,6 @@
     }
 }
 
-
-template<class T, class U>
-static void IterateArray(Sqrat::Object& sqObj, const char* arrayName, U callBack)
-{
-    Sqrat::Array sqArray = sqObj[arrayName];
-    if (!sqArray.IsNull())
-    {
-        const SQInteger arraySize = sqArray.GetSize();
-        for (SQInteger i = 0; i < arraySize; i++)
-        {
-            Sqrat::SharedPtr<T> item = sqArray.GetValue<T>(static_cast<int>(i));
-            if (item)
-            {
-                callBack(*item);
-            }
-        }
-    }
-}
-
 static bool GetArray(Sqrat::Object& sqObj, const char* arrayName, Sqrat::Array& sqArray)
 {
     sqArray = sqObj[arrayName];
@@ -116,7 +97,7 @@ void MapObject::Loader::LoadAnimations()
     Sqrat::Array animsArray;
     if (GetArray(mMapObj.mScriptObject, "kAnimationResources", animsArray))
     {
-        if (mForLoop.Iterate(animsArray.GetSize(), [&]()
+        if (mForLoop.IterateTimeBoxed(kMaxExecutionTimeMs, animsArray.GetSize(), [&]()
         {
             Sqrat::SharedPtr<std::string> item = animsArray.GetValue<std::string>(static_cast<int>(mForLoop.Value()));
             if (item)
@@ -139,7 +120,7 @@ void MapObject::Loader::LoadSounds()
     Sqrat::Array soundsArray;
     if (GetArray(mMapObj.mScriptObject, "kSoundResources", soundsArray))
     {
-        if (mForLoop.Iterate(soundsArray.GetSize(), [&]()
+        if (mForLoop.IterateTimeBoxed(kMaxExecutionTimeMs, soundsArray.GetSize(), [&]()
         {
             Sqrat::SharedPtr<std::string> item = soundsArray.GetValue<std::string>(static_cast<int>(mForLoop.Value()));
             if (item)
