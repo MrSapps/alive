@@ -381,8 +381,6 @@ SET(alivelib_src
     src/mapobject.cpp
     include/fsm.hpp
     src/fsm.cpp
-    include/gridobject.hpp
-    src/gridobject.cpp
     include/subtitles.hpp
     include/sound_resources.hpp
     src/sound_resources.cpp
