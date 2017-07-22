@@ -154,7 +154,7 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
 }
 
 GridMap::GridMap()
-    : mScriptInstance("gMap", this), mLoader(*this)
+    : mLoader(*this), mScriptInstance("gMap", this)
 {
     mEditorMode = std::make_unique<EditorMode>(mMapState);
     mGameMode = std::make_unique<GameMode>(mMapState);
