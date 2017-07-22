@@ -4,6 +4,7 @@
 #include "types.hpp"
 #include "proxy_sqrat.hpp"
 #include "logger.hpp"
+#include "iterativeforloop.hpp"
 
 struct ObjRect
 {
@@ -43,6 +44,9 @@ struct CollisionResult
     float distance;
 };
 
+using UP_MapObject = std::unique_ptr<class MapObject>;
+using IterativeForLoopSQInteger = IterativeForLoop<SQInteger>;
+
 class MapObject
 {
 public:
@@ -66,7 +70,7 @@ public:
         mScriptObject = obj;
     }
 
-    void Init();
+    bool Init();
     void Update(const InputState& input);
     void Render(AbstractRenderer& rend, int x, int y, float scale, int layer) const;
     void ReloadScript();
@@ -87,7 +91,30 @@ public:
 
     CollisionResult FloorCollision(IMap& map) const;
 private:
-    void ScriptLoadAnimations();
+    class Loader
+    {
+    public:
+        Loader(MapObject& obj);
+        bool Load();
+        void LoadAnimations();
+        void LoadSounds();
+    private:
+        enum class LoaderStates
+        {
+            eInit,
+            eLoadAnimations,
+            eLoadSounds
+        };
+
+        void SetState(LoaderStates state);
+
+        LoaderStates mState = LoaderStates::eInit;
+        IterativeForLoopSQInteger mForLoop;
+        MapObject& mMapObj;
+    };
+    using UP_Loader = std::unique_ptr<Loader>;
+    UP_Loader mLoader;
+
     std::map<std::string, std::shared_ptr<Animation>> mAnims;
     Animation* mAnim = nullptr;
 

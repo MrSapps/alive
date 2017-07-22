@@ -144,7 +144,7 @@ private:
         Loader(GridMap& gm);
         bool Load(const Oddlib::Path& path, ResourceLocator& locator);
     private:
-        void HandleInit(const Oddlib::Path& path);
+        void SetupAndConvertCollisionItems(const Oddlib::Path& path);
         void HandleAllocateCameraMemory(const Oddlib::Path& path);
         void HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& locator);
         void HandleObjectLoaderScripts(ResourceLocator& locator);
@@ -155,6 +155,7 @@ private:
         enum class LoaderStates
         {
             eInit,
+            eSetupAndConvertCollisionItems,
             eAllocateCameraMemory,
             eLoadCameras,
             eObjectLoaderScripts,
@@ -166,6 +167,7 @@ private:
         IterativeForLoopU32 mXForLoop;
         IterativeForLoopU32 mYForLoop;
         IterativeForLoopU32 mIForLoop;
+        UP_MapObject mMapObjectBeingLoaded;
 
         void SetState(LoaderStates state);
     };

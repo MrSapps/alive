@@ -27,7 +27,7 @@ public:
     }
 
     template<class Func>
-    bool IterateNested(LoopIndexType bound, Func loopIterationFunc)
+    bool IterateIf(LoopIndexType bound, Func loopIterationFunc)
     {
         return IterateCommon(bound, [&]()
         {

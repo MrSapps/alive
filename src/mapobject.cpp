@@ -47,6 +47,7 @@
     }
 }
 
+
 template<class T, class U>
 static void IterateArray(Sqrat::Object& sqObj, const char* arrayName, U callBack)
 {
@@ -65,6 +66,106 @@ static void IterateArray(Sqrat::Object& sqObj, const char* arrayName, U callBack
     }
 }
 
+static bool GetArray(Sqrat::Object& sqObj, const char* arrayName, Sqrat::Array& sqArray)
+{
+    sqArray = sqObj[arrayName];
+    if (!sqArray.IsNull())
+    {
+        const SQInteger arraySize = sqArray.GetSize();
+        if (arraySize > 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+MapObject::Loader::Loader(MapObject& obj)
+    : mMapObj(obj)
+{
+
+}
+
+bool MapObject::Loader::Load()
+{
+    switch (mState)
+    {
+    case LoaderStates::eInit:
+        SetState(LoaderStates::eLoadAnimations);
+        break;
+
+    case LoaderStates::eLoadAnimations:
+        LoadAnimations();
+        break;
+
+    case LoaderStates::eLoadSounds:
+        LoadSounds();
+        break;
+    }
+
+    if (mState == LoaderStates::eInit)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+void MapObject::Loader::LoadAnimations()
+{
+    Sqrat::Array animsArray;
+    if (GetArray(mMapObj.mScriptObject, "kAnimationResources", animsArray))
+    {
+        if (mForLoop.Iterate(animsArray.GetSize(), [&]()
+        {
+            Sqrat::SharedPtr<std::string> item = animsArray.GetValue<std::string>(static_cast<int>(mForLoop.Value()));
+            if (item)
+            {
+                mMapObj.LoadAnimation(*item);
+            }
+        }))
+        {
+            SetState(LoaderStates::eLoadSounds);
+        }
+    }
+    else
+    {
+        SetState(LoaderStates::eLoadSounds);
+    }
+}
+
+void MapObject::Loader::LoadSounds()
+{
+    Sqrat::Array soundsArray;
+    if (GetArray(mMapObj.mScriptObject, "kSoundResources", soundsArray))
+    {
+        if (mForLoop.Iterate(soundsArray.GetSize(), [&]()
+        {
+            Sqrat::SharedPtr<std::string> item = soundsArray.GetValue<std::string>(static_cast<int>(mForLoop.Value()));
+            if (item)
+            {
+                // TODO: Now that all sfx are cached this probably shouldn't be needed.. unless used as hook for loading mod fx?
+                LOG_INFO(*item);
+            }
+        }))
+        {
+            SetState(LoaderStates::eInit);
+        }
+    }
+    else
+    {
+        SetState(LoaderStates::eInit);
+    }
+}
+
+void MapObject::Loader::SetState(MapObject::Loader::LoaderStates state)
+{
+    if (state != mState)
+    {
+        mState = state;
+    }
+}
+
 MapObject::~MapObject()
 {
 }
@@ -74,20 +175,20 @@ void MapObject::LoadAnimation(const std::string& name)
     mAnims[name] = mLocator.LocateAnimation(name.c_str());
 }
 
-void MapObject::Init()
+bool MapObject::Init()
 {
-    // Read the kAnimationResources array and kSoundResources
-    IterateArray<std::string>(mScriptObject, "kAnimationResources", [&](const std::string& anim)
+    if (!mLoader)
     {
-        LoadAnimation(anim);
-    });
+        mLoader = std::make_unique<Loader>(*this);
+    }
 
-    IterateArray<std::string>(mScriptObject, "kSoundResources", [&](const std::string& anim)
+    if (mLoader->Load())
     {
-        LOG_INFO(anim);
-    });
+        mLoader = nullptr;
+        return true;
+    }
 
-
+    return false;
 }
 
 bool MapObject::WallCollision(IMap& map, f32 dx, f32 dy) const
