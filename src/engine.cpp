@@ -284,6 +284,8 @@ void Engine::BindScriptTypes()
 
     Sqrat::Class<Engine, Sqrat::NoConstructor<Engine>> engine(Sqrat::DefaultVM::Get(), "Engine");
     engine.Func("include", &Engine::Include);
+    engine.Func("PlayFmv", &Engine::PlayFmv);
+
     Sqrat::RootTable().Bind("Engine", engine);
     // TODO: Use InstanceBinder
     Sqrat::RootTable().SetInstance("gEngine", this);
@@ -294,7 +296,6 @@ void Engine::BindScriptTypes()
     ObjRect::RegisterScriptBindings();
     GridMap::RegisterScriptBindings();
     Sound::RegisterScriptBindings();
-    Fmv::RegisterScriptBindings();
     RunGameState::RegisterScriptBindings();
 }
 
@@ -549,6 +550,12 @@ void Engine::ImGui_WindowResize()
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2((float)fb_w, (float)fb_h);  // Display size, in pixels. For clamping windows positions.
     //    io.PixelCenterOffset = 0.0f;                        // Align OpenGL texels
+}
+
+void Engine::PlayFmv(const char* fmvName)
+{
+    mPlayFmvState->Play(fmvName);
+    mState = EngineStates::ePlayFmv;
 }
 
 void Engine::Update()
@@ -938,6 +945,18 @@ void SquirrelVm::CompileAndRun(ResourceLocator& resourceLocator, const std::stri
 
     Sqrat::Script script;
     script.CompileString(resourceLocator.LocateScript(scriptName.c_str()), scriptName);
+    CheckError();
+
+    script.Run();
+    CheckError();
+}
+
+void SquirrelVm::CompileAndRun(const std::string& scriptName, const std::string& scriptSource)
+{
+    TRACE_ENTRYEXIT;
+
+    Sqrat::Script script;
+    script.CompileString(scriptSource, scriptName);
     CheckError();
 
     script.Run();

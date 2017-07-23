@@ -65,10 +65,14 @@ void Debug::Update(class InputState& input)
 
             if (ImGui::CollapsingHeader("Browsers"))
             {
-                ImGui::Checkbox("FMV browser", &Debugging().mBrowserUi.fmvBrowserOpen);
                 ImGui::Checkbox("Sound browser", &Debugging().mBrowserUi.soundBrowserOpen);
                 ImGui::Checkbox("Level browser", &Debugging().mBrowserUi.levelBrowserOpen);
                 ImGui::Checkbox("Animation browser", &Debugging().mBrowserUi.animationBrowserOpen);
+            }
+
+            for (auto& section : mSections)
+            {
+                section();
             }
 
             if (ImGui::CollapsingHeader("Paths"))

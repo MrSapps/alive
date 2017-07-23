@@ -5,6 +5,7 @@
 #include "resourcemapper.hpp"
 #include "cdromfilesystem.hpp"
 #include "soxr.h"
+#include "engine.hpp"
 
 class AutoMouseCursorHide
 {
@@ -576,18 +577,10 @@ private:
     }
 }
 
-/*static*/ void Fmv::RegisterScriptBindings()
-{
-    Sqrat::Class<Fmv, Sqrat::NoConstructor<Fmv>> c(Sqrat::DefaultVM::Get(), "Fmv");
-    c.Func("Play", &Fmv::Play);
-    c.Func("IsPlaying", &Fmv::IsPlaying);
-    c.Func("Stop", &Fmv::Stop);
-    Sqrat::RootTable().Bind("Fmv", c);
-}
-
 Fmv::Fmv(IAudioController& audioController, ResourceLocator& resourceLocator)
-    : mResourceLocator(resourceLocator), mAudioController(audioController), mScriptInstance("gMovie", this)
+    : mResourceLocator(resourceLocator), mAudioController(audioController)
 {
+    Debugging().AddSection([&]() {DebugUi(); });
 }
 
 Fmv::~Fmv()
@@ -640,11 +633,6 @@ void Fmv::Update()
     {
         Stop();
     }
-
-    if (Debugging().mBrowserUi.fmvBrowserOpen)
-    {
-        DebugUi();
-    }
 }
 
 void Fmv::Render(AbstractRenderer& rend)
@@ -681,7 +669,7 @@ void Fmv::DebugUi()
     static int mListBoxSelectedItem = -1;
     static std::vector<const char*> mListBoxItems;
 
-    if (ImGui::Begin("Video player"))
+    if (ImGui::CollapsingHeader("Video player"))
     {
         bool rebuild = false;
         if (ImGui::InputText("Filter", mFilterString, sizeof(mFilterString)))
@@ -714,9 +702,9 @@ void Fmv::DebugUi()
         if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
         {
             const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-            Play(fmvName);
             mListBoxSelectedItem = -1;
+
+            SquirrelVm::CompileAndRun("DebugPlayMovie.nut", "gEngine.PlayFmv(\"" + fmvName + "\");");
         }
     }
-    ImGui::End();
 }

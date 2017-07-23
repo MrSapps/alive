@@ -497,6 +497,7 @@ public:
     }
 
     static void CompileAndRun(ResourceLocator& resourceLocator, const std::string& scriptName);
+    static void CompileAndRun(const std::string& scriptName, const std::string& script);
 
     HSQUIRRELVM Handle() const { return mVm; }
 private:
@@ -570,6 +571,7 @@ public:
     ~Engine();
     bool Init();
     int Run();
+    void PlayFmv(const char* fmvName);
 private:
     void RunInitScript();
     void Include(const std::string& scriptName);

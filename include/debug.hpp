@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <vector>
 #include "types.hpp"
 
 struct Debug
@@ -27,7 +28,6 @@ struct Debug
         {
 
         }
-        bool fmvBrowserOpen;
         bool soundBrowserOpen = true;
         bool levelBrowserOpen;
         bool animationBrowserOpen;
@@ -54,6 +54,14 @@ struct Debug
 
     void Update(class InputState& input);
     void Render(class AbstractRenderer& renderer);
+
+    void AddSection(std::function<void()> fnSection)
+    {
+        mSections.push_back(fnSection);
+    }
+
+private:
+    std::vector<std::function<void()>> mSections;
 };
 
 Debug& Debugging();

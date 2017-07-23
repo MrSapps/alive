@@ -34,6 +34,11 @@ EngineStates PlayFmvState::Update(const InputState& input)
     return EngineStates::eRunGameState;
 }
 
+void PlayFmvState::Play(const char* fmvName)
+{
+    mFmv->Play(fmvName);
+}
+
 // ==============================================================
 
 RunGameState::RunGameState(ResourceLocator& locator, AbstractRenderer& renderer)

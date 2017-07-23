@@ -17,6 +17,8 @@ public:
     EngineStates Update(const InputState& input);
 private:
     std::unique_ptr<class Fmv> mFmv;
+public:
+    void Play(const char* fmvName);
 };
 
 class RunGameState

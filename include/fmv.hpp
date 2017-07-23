@@ -75,7 +75,6 @@ private:
 class Fmv final
 {
 public:
-    static void RegisterScriptBindings();
     Fmv(const Fmv&) = delete;
     Fmv& operator = (const Fmv&) = delete;
     Fmv(IAudioController& audioController, class ResourceLocator& resourceLocator);
@@ -92,5 +91,4 @@ protected:
     IAudioController& mAudioController;
     std::unique_ptr<class IMovie> mFmv;
     std::string mFmvName;
-    InstanceBinder<class Fmv> mScriptInstance;
 };
