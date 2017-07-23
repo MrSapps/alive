@@ -23,7 +23,8 @@ class RunGameState
 {
 public:
     RunGameState(ResourceLocator& locator, AbstractRenderer& renderer);
-    void Render(AbstractRenderer& renderer);
+    ~RunGameState();
+    void Render();
     void OnStartASync(const std::string& initScriptName, Sound* pSound);
     void LoadMap(const std::string& mapName);
     EngineStates Update(const InputState& input, CoordinateSpace& coords);

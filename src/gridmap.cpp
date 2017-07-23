@@ -62,6 +62,11 @@ void Level::RenderDebugPathSelection()
     ImGui::End();
 }
 
+void Level::UnloadMap(AbstractRenderer& renderer)
+{
+    mMap->UnloadMap(renderer);
+}
+
 GridScreen::GridScreen(const Oddlib::Path::Camera& camera, ResourceLocator& locator)
     : mFileName(camera.mName)
     , mCamera(camera)
@@ -106,10 +111,12 @@ void GridScreen::UnLoadTextures(AbstractRenderer& rend)
     if (mTexHandle.IsValid())
     {
         rend.DestroyTexture(mTexHandle);
+        mTexHandle.mData = nullptr;
     }
     if (mTexHandle2.IsValid())
     {
         rend.DestroyTexture(mTexHandle2);
+        mTexHandle2.mData = nullptr;
     }
 }
 
@@ -350,7 +357,7 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
         break;
 
     case LoaderStates::eLoadObjects:
-        RunForAtLeast(kMaxExecutionTimeMs, [&]() { HandleLoadObjects(path, locator); });
+        RunForAtLeast(kMaxExecutionTimeMs, [&]() { if (mState == LoaderStates::eLoadObjects) { HandleLoadObjects(path, locator); } });
         break;
 
     case LoaderStates::eHackToPlaceAbeInValidCamera:
@@ -594,6 +601,26 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
     }
 
     // TODO: Render connected segments as one with control points
+}
+
+void GridMap::UnloadMap(AbstractRenderer& renderer)
+{
+    for (auto x = 0u; x < mMapState.mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mMapState.mScreens[x].size(); y++)
+        {
+            GridScreen* screen = mMapState.mScreens[x][y].get();
+            if (!screen)
+            {
+                continue;
+            }
+            screen->UnLoadTextures(renderer);
+        }
+    }
+
+    mMapState.mObjs.clear();
+    mMapState.mCollisionItems.clear();
+    mMapState.mScreens.clear();
 }
 
 void GridMap::Render(AbstractRenderer& rend) const

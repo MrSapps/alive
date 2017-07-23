@@ -71,6 +71,14 @@ RunGameState::RunGameState(ResourceLocator& locator, AbstractRenderer& renderer)
     };
 }
 
+RunGameState::~RunGameState()
+{
+    if (mLevel)
+    {
+        mLevel->UnloadMap(mRenderer);
+    }
+}
+
 // Engine init pending
 // First init pending
 // Map load pending
@@ -102,6 +110,8 @@ void RunGameState::RegisterScriptBindings()
 
 void RunGameState::LoadMap(const std::string& mapName)
 {
+    mLevel->UnloadMap(mRenderer);
+
     mLocatePathFuture = mResourceLocator.LocatePath(mapName.c_str());
     mState = RunGameStates::eLoadingMap;
 }
@@ -111,18 +121,17 @@ bool RunGameState::IsLoading() const
     return mState != RunGameStates::eRunning;
 }
 
-void RunGameState::Render(AbstractRenderer& renderer)
+void RunGameState::Render()
 {
-    renderer.Clear(0.4f, 0.4f, 0.4f);
+    mRenderer.Clear(0.4f, 0.4f, 0.4f);
 
     if (mLevel)
     {
-        mLevel->Render(renderer);
+        mLevel->Render(mRenderer);
     }
 
-    mAnimBrowser.Render(renderer);
+    mAnimBrowser.Render(mRenderer);
 }
-
 
 EngineStates RunGameState::Update(const InputState& input, CoordinateSpace& coords)
 {   

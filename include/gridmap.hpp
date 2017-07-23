@@ -50,6 +50,8 @@ private:
     void RenderDebugPathSelection();
     std::unique_ptr<class GridMap> mMap;
     ResourceLocator& mLocator;
+public:
+    void UnloadMap(AbstractRenderer& renderer);
 };
 
 class GridScreen
@@ -186,4 +188,6 @@ private:
     std::unique_ptr<class EditorMode> mEditorMode;
     std::unique_ptr<class GameMode> mGameMode;
     InstanceBinder<class GridMap> mScriptInstance;
+public:
+    void UnloadMap(AbstractRenderer& renderer);
 };

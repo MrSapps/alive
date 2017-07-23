@@ -749,7 +749,7 @@ void Engine::Render()
         }
         else
         {
-            mRunGameState->Render(*mRenderer);
+            mRunGameState->Render();
         }
         break;
 
