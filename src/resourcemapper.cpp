@@ -791,8 +791,25 @@ std::unique_ptr<Oddlib::IBits> ResourceLocator::DoLocateCamera(const char* resou
     return nullptr;
 }
 
-std::unique_ptr<IMovie> ResourceLocator::LocateFmv(IAudioController& audioController, const char* resourceName)
+std::unique_ptr<IMovie> ResourceLocator::LocateFmv(IAudioController& audioController, const char* resourceName, const ResourceMapper::FmvFileLocation* location)
 {
+    // Try from explicitly passed in location
+    if (location)
+    {
+        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+        {
+            if (fs.mDataSetName == location->mDataSetName)
+            {
+                auto ret = DoLocateFmvFromFileLocation(*location, fs, resourceName, audioController);
+                if (ret)
+                {
+                    return ret;
+                }
+            }
+        }
+        return nullptr;
+    }
+
     const ResourceMapper::FmvMapping* fmvMapping = mResMapper.FindFmv(resourceName);
     if (!fmvMapping)
     {
@@ -828,30 +845,40 @@ std::unique_ptr<IMovie> ResourceLocator::DoLocateFmv(IAudioController& audioCont
         // Check if the mapping applies to the data set that fs is
         if (location.mDataSetName == fs.mDataSetName)
         {
-            std::string locationFileName = location.mFileName;
-            if (fs.mFileSystem->FileExists(locationFileName))
+            auto ret = DoLocateFmvFromFileLocation(location, fs, resourceName, audioController);
+            if (ret)
             {
-                auto stream = fs.mFileSystem->Open(locationFileName);
-                if (stream)
-                {
-                    std::unique_ptr<SubTitleParser> subTitles;
-                    std::string subTitleFileName = "{GameDir}/data/subtitles/" + std::string(resourceName) + ".SRT";
-                    if (mDataPaths.GameFs().FileExists(subTitleFileName))
-                    {
-                        auto subsStream = mDataPaths.GameFs().Open(subTitleFileName);
-                        if (subsStream)
-                        {
-                            subTitles = std::make_unique<SubTitleParser>(std::move(subsStream));
-                        }
-                    }
-                    return IMovie::Factory(resourceName, audioController, std::move(stream), std::move(subTitles), location.mStartSector, location.mEndSector);
-                }
+                return ret;
             }
         }
     }
     return nullptr;
 }
 
+
+std::unique_ptr<IMovie> ResourceLocator::DoLocateFmvFromFileLocation(const ResourceMapper::FmvFileLocation& location, const DataPaths::FileSystemInfo& fs, const char* resourceName, IAudioController& audioController)
+{
+    std::string locationFileName = location.mFileName;
+    if (fs.mFileSystem->FileExists(locationFileName))
+    {
+        auto stream = fs.mFileSystem->Open(locationFileName);
+        if (stream)
+        {
+            std::unique_ptr<SubTitleParser> subTitles;
+            std::string subTitleFileName = "{GameDir}/data/subtitles/" + std::string(resourceName) + ".SRT";
+            if (mDataPaths.GameFs().FileExists(subTitleFileName))
+            {
+                auto subsStream = mDataPaths.GameFs().Open(subTitleFileName);
+                if (subsStream)
+                {
+                    subTitles = std::make_unique<SubTitleParser>(std::move(subsStream));
+                }
+            }
+            return IMovie::Factory(resourceName, audioController, std::move(stream), std::move(subTitles), location.mStartSector, location.mEndSector);
+        }
+    }
+    return nullptr;
+}
 
 std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resourceName)
 {

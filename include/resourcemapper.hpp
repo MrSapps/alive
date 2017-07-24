@@ -722,7 +722,7 @@ public:
     // TODO: Should be returning higher level abstraction
     up_future_UP_Path LocatePath(const std::string& resourceName);
     std::unique_ptr<Oddlib::IBits> LocateCamera(const char* resourceName);
-    std::unique_ptr<class IMovie> LocateFmv(class IAudioController& audioController, const char* resourceName);
+    std::unique_ptr<class IMovie> LocateFmv(class IAudioController& audioController, const char* resourceName, const ResourceMapper::FmvFileLocation* location);
     std::unique_ptr<Animation> LocateAnimation(const char* resourceName);
 
 
@@ -738,6 +738,8 @@ private:
     std::unique_ptr<Animation> DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping);
 
     std::unique_ptr<IMovie> DoLocateFmv(IAudioController& audioController, const char* resourceName, const DataPaths::FileSystemInfo& fs, const ResourceMapper::FmvMapping& fmvMapping);
+
+    std::unique_ptr<IMovie> DoLocateFmvFromFileLocation(const ResourceMapper::FmvFileLocation& location, const DataPaths::FileSystemInfo& fs, const char* resourceName, IAudioController& audioController);
 
     std::unique_ptr<Oddlib::IBits> DoLocateCamera(const char* resourceName, bool ignoreMods);
 

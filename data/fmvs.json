@@ -6,207 +6,357 @@
           {
             "dataset": "AePc",
             "file": "TRAIN2.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 18880,
+            "end_sector": 23958
           }
         ],
-        "name": "TRAIN2_DDV_AePc"
+        "name": "AE_SSBTrain"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BREW.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 49573,
+            "end_sector": 65592
           }
         ],
-        "name": "BREW_DDV_AePc"
+        "name": "AE_TheBigDoorOpens"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "ASLIKEXP.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "FD/FD.MOV",
+            "start_sector": 0,
+            "end_sector": 3278
           }
         ],
-        "name": "ASLIKEXP_DDV_AePc"
+        "name": "AE_AslikExplodes"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "ASLIKINF.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "FD/FD.MOV",
+            "start_sector": 3279,
+            "end_sector": 9308
           }
         ],
-        "name": "ASLIKINF_DDV_AePc"
+        "name": "AE_FeeCoMoM1"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BA1114.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BA/BA.MOV",
+            "start_sector": 13899,
+            "end_sector": 14568
           }
         ],
-        "name": "BA1114_DDV_AePc"
+        "name": "AE_Tr_BA1114"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BACKSTRY.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "ST/ST.MOV",
+            "start_sector": 9028,
+            "end_sector": 25097
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "ST/ST.MOV",
+            "start_sector": 9028,
+            "end_sector": 25097
           }
         ],
-        "name": "BACKSTRY_DDV_AePc"
+        "name": "AE_Backstory"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BDENDING.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 54479,
+            "end_sector": 64197
           }
         ],
-        "name": "BDENDING_DDV_AePc"
+        "name": "AE_BadEnding"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BREWCAMT.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 65593,
+            "end_sector": 67302
           }
         ],
-        "name": "BREWCAMT_DDV_AePc"
+        "name": "AE_AbeEvadesFlyingSlig"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BRP01C01.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 0,
+            "end_sector": 669
           }
         ],
-        "name": "BRP01C01_DDV_AePc"
+        "name": "AE_Tr_BRP01C01"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BRP01C02.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 670,
+            "end_sector": 1339
           }
         ],
-        "name": "BRP01C02_DDV_AePc"
+        "name": "AE_Tr_BRP01C02"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BRP01C03.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "BR/BR.MOV",
+            "start_sector": 0,
+            "end_sector": 669
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 1340,
+            "end_sector": 2009
           }
         ],
-        "name": "BRP01C03_DDV_AePc"
+        "name": "AE_Tr_BRP01C03"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BRP01C04.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 2010,
+            "end_sector": 2679
           }
         ],
-        "name": "BRP01C04_DDV_AePc"
+        "name": "AE_Tr_BRP01C04"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BRP01C05.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 2680,
+            "end_sector": 3349
           }
         ],
-        "name": "BRP01C05_DDV_AePc"
+        "name": "AE_Tr_BRP01C05"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BRP01C06.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 3350,
+            "end_sector": 4619
           }
         ],
-        "name": "BRP01C06_DDV_AePc"
+        "name": "AE_Tr_BRP01C06"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BRP01C1R.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 4620,
+            "end_sector": 5289
           }
         ],
-        "name": "BRP01C1R_DDV_AePc"
+        "name": "AE_Tr_BRP01C1R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BRP01C2R.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 5290,
+            "end_sector": 5959
           }
         ],
-        "name": "BRP01C2R_DDV_AePc"
+        "name": "AE_Tr_BRP01C2R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BRP01C3R.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 5960,
+            "end_sector": 6629
           }
         ],
-        "name": "BRP01C3R_DDV_AePc"
+        "name": "AE_Tr_BRP01C3R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BRP01C4R.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 6630,
+            "end_sector": 7299
           }
         ],
-        "name": "BRP01C4R_DDV_AePc"
+        "name": "AE_Tr_BRP01C4R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BRP01C5R.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 7300,
+            "end_sector": 7969
           }
         ],
-        "name": "BRP01C5R_DDV_AePc"
+        "name": "AE_Tr_BRP01C5R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BRP01C6R.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 7970,
+            "end_sector": 9239
           }
         ],
-        "name": "BRP01C6R_DDV_AePc"
+        "name": "AE_Tr_BRP01C6R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BWP3P4.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BW/BW.MOV",
+            "start_sector": 670,
+            "end_sector": 1339
           }
         ],
-        "name": "BWP3P4_DDV_AePc"
+        "name": "AE_Tr_BWP3P4"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "BWP3P4R.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BW/BW.MOV",
+            "start_sector": 1340,
+            "end_sector": 2009
           }
         ],
-        "name": "BWP3P4R_DDV_AePc"
+        "name": "AE_Tr_BWP3P4R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "CONFRNCE.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 9240,
+            "end_sector": 13549
           }
         ],
-        "name": "CONFRNCE_DDV_AePc"
+        "name": "AE_ZeBoilah"
       },
       {
         "locations": [
@@ -215,1097 +365,1830 @@
             "file": "Ddlogo.ddv"
           }
         ],
-        "name": "Ddlogo_ddv_AePc"
+        "name": "AE_DigitalDialect"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "DRIPEXP.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BA/BA.MOV",
+            "start_sector": 1340,
+            "end_sector": 3969
           }
         ],
-        "name": "DRIPEXP_DDV_AePc"
+        "name": "AE_DripikExplodes"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "DRIPINF.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BA/BA.MOV",
+            "start_sector": 3970,
+            "end_sector": 9419
           }
         ],
-        "name": "DRIPINF_DDV_AePc"
+        "name": "AE_SBarracksMoM"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "ESCAPE.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 48073,
+            "end_sector": 49572
           }
         ],
-        "name": "ESCAPE_DDV_AePc"
+        "name": "AE_EscapeFromNecrumMines"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "FEECO.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "FD/FD.MOV",
+            "start_sector": 15049,
+            "end_sector": 29188
           }
         ],
-        "name": "FEECO_DDV_AePc"
+        "name": "AE_GlukkonTriumvirate"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "GDENDING.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 30609,
+            "end_sector": 54478
           }
         ],
-        "name": "GDENDING_DDV_AePc"
+        "name": "AE_GoodEnding"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "gtilogo.ddv"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "ST/ST.MOV",
+            "start_sector": 0,
+            "end_sector": 1019
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "ST/ST.MOV",
+            "start_sector": 0,
+            "end_sector": 1019
           }
         ],
-        "name": "gtilogo_ddv_AePc"
+        "name": "AE_GTILogo"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "INFBOOTH.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "FD/FD.MOV",
+            "start_sector": 9309,
+            "end_sector": 15048
           }
         ],
-        "name": "INFBOOTH_DDV_AePc"
+        "name": "AE_FeeCoMoM2"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "INGRDNT.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 23959,
+            "end_sector": 30608
           }
         ],
-        "name": "INGRDNT_DDV_AePc"
+        "name": "AE_TearExtractor"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "INTRO.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "ST/ST.MOV",
+            "start_sector": 3139,
+            "end_sector": 8508
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "ST/ST.MOV",
+            "start_sector": 3139,
+            "end_sector": 8508
           }
         ],
-        "name": "INTRO_DDV_AePc"
+        "name": "AE_Intro"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "logo.ddv"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "ST/ST.MOV",
+            "start_sector": 1020,
+            "end_sector": 3138
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "ST/ST.MOV",
+            "start_sector": 1020,
+            "end_sector": 3138
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "CR/CR.MOV",
+            "start_sector": 0,
+            "end_sector": 2118
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "CR/CR.MOV",
+            "start_sector": 0,
+            "end_sector": 2118
           }
         ],
-        "name": "logo_ddv_AePc"
+        "name": "AE_OWILogo"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "M1018310.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 67813,
+            "end_sector": 68331
           }
         ],
-        "name": "M1018310_DDV_AePc"
+        "name": "AE_Tr_M1018310"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "M1018517.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 68332,
+            "end_sector": 68850
           }
         ],
-        "name": "M1018517_DDV_AePc"
+        "name": "AE_Tr_M1018517"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "M5171018.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 68851,
+            "end_sector": 69369
           }
         ],
-        "name": "M5171018_DDV_AePc"
+        "name": "AE_Tr_M5171018"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI122711.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 20094,
+            "end_sector": 20612
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 12309,
+            "end_sector": 12827
           }
         ],
-        "name": "MI122711_DDV_AePc"
+        "name": "AE_Tr_MI122711"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI218227.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 12828,
+            "end_sector": 13346
           }
         ],
-        "name": "MI218227_DDV_AePc"
+        "name": "AE_Tr_MI218227"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI221222.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 19056,
+            "end_sector": 19574
           }
         ],
-        "name": "MI221222_DDV_AePc"
+        "name": "AE_Tr_MI221222"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI221227.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 18018,
+            "end_sector": 18536
           }
         ],
-        "name": "MI221227_DDV_AePc"
+        "name": "AE_Tr_MI221227"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI222221.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 16980,
+            "end_sector": 17498
           }
         ],
-        "name": "MI222221_DDV_AePc"
+        "name": "AE_Tr_MI222221"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI227218.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 13347,
+            "end_sector": 13865
           }
         ],
-        "name": "MI227218_DDV_AePc"
+        "name": "AE_Tr_MI227218"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI227221.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 15942,
+            "end_sector": 16460
           }
         ],
-        "name": "MI227221_DDV_AePc"
+        "name": "AE_Tr_MI227221"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI313401.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 13866,
+            "end_sector": 14384
           }
         ],
-        "name": "MI313401_DDV_AePc"
+        "name": "AE_Tr_MI313401"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "Mi404430.ddv"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 15423,
+            "end_sector": 15941
           }
         ],
-        "name": "Mi404430_ddv_AePc"
+        "name": "AE_Tr_MI404430"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI410313.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 14385,
+            "end_sector": 14903
           }
         ],
-        "name": "MI410313_DDV_AePc"
+        "name": "AE_Tr_MI410313"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI419431.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 70408,
+            "end_sector": 70926
           }
         ],
-        "name": "MI419431_DDV_AePc"
+        "name": "AE_Tr_MI419431"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI420432.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 14904,
+            "end_sector": 15422
           }
         ],
-        "name": "MI420432_DDV_AePc"
+        "name": "AE_Tr_MI420432"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI422423.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 69370,
+            "end_sector": 69888
           }
         ],
-        "name": "MI422423_DDV_AePc"
+        "name": "AE_Tr_MI422423"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI422437.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 16461,
+            "end_sector": 16979
           }
         ],
-        "name": "MI422437_DDV_AePc"
+        "name": "AE_Tr_MI422437"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI426427.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 17499,
+            "end_sector": 18017
           }
         ],
-        "name": "MI426427_DDV_AePc"
+        "name": "AE_Tr_MI426427"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "Mi430044.ddv"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 18537,
+            "end_sector": 19055
           }
         ],
-        "name": "Mi430044_ddv_AePc"
+        "name": "AE_Tr_MI430044"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI431419.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 70927,
+            "end_sector": 71445
           }
         ],
-        "name": "MI431419_DDV_AePc"
+        "name": "AE_Tr_MI431419"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "Mi437422.ddv"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 19575,
+            "end_sector": 20093
           }
         ],
-        "name": "Mi437422_ddv_AePc"
+        "name": "AE_Tr_MI437422"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MI711122.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 69889,
+            "end_sector": 70407
           }
         ],
-        "name": "MI711122_DDV_AePc"
+        "name": "AE_Tr_MI711122"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MIP01C03.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 10969,
+            "end_sector": 11638
           }
         ],
-        "name": "MIP01C03_DDV_AePc"
+        "name": "AE_Tr_MIP01C03"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MP1C1C2.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 9999,
+            "end_sector": 10968
           }
         ],
-        "name": "MP1C1C2_DDV_AePc"
+        "name": "AE_Tr_MP1C1C2"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "MP1C2C1.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 9029,
+            "end_sector": 9998
           }
         ],
-        "name": "MP1C2C1_DDV_AePc"
+        "name": "AE_Tr_MP1C2C1"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NE140601.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 3199,
+            "end_sector": 3717
           }
         ],
-        "name": "NE140601_DDV_AePc"
+        "name": "AE_Tr_NE140601"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NE140604.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 8257,
+            "end_sector": 8775
           }
         ],
-        "name": "NE140604_DDV_AePc"
+        "name": "AE_Tr_NE140604"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NE310033.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 3718,
+            "end_sector": 4236
           }
         ],
-        "name": "NE310033_DDV_AePc"
+        "name": "AE_Tr_NE310033"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NE330309.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 2680,
+            "end_sector": 3198
           }
         ],
-        "name": "NE330309_DDV_AePc"
+        "name": "AE_Tr_NE330309"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NE410404.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 8776,
+            "end_sector": 9294
           }
         ],
-        "name": "NE410404_DDV_AePc"
+        "name": "AE_Tr_NE410404"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NE440401.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 9295,
+            "end_sector": 9813
           }
         ],
-        "name": "NE440401_DDV_AePc"
+        "name": "AE_Tr_NE440401"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NE610104.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "NE/NE.MOV",
+            "start_sector": 0,
+            "end_sector": 518
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 9814,
+            "end_sector": 10332
           }
         ],
-        "name": "NE610104_DDV_AePc"
+        "name": "AE_Tr_NE610104"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NE610602.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 10333,
+            "end_sector": 10851
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "NE/NE.MOV",
+            "start_sector": 519,
+            "end_sector": 1037
           }
         ],
-        "name": "NE610602_DDV_AePc"
+        "name": "AE_Tr_NE610602"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NE620603.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 10852,
+            "end_sector": 11370
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "NE/NE.MOV",
+            "start_sector": 1038,
+            "end_sector": 1556
           }
         ],
-        "name": "NE620603_DDV_AePc"
+        "name": "AE_Tr_NE620603"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NE630604.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 11371,
+            "end_sector": 11889
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "NE/NE.MOV",
+            "start_sector": 1557,
+            "end_sector": 2075
           }
         ],
-        "name": "NE630604_DDV_AePc"
+        "name": "AE_Tr_NE630604"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NE640401.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 11890,
+            "end_sector": 12408
           }
         ],
-        "name": "NE640401_DDV_AePc"
+        "name": "AE_Tr_NE640401"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NE640601.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 33879,
+            "end_sector": 34397
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "NE/NE.MOV",
+            "start_sector": 2076,
+            "end_sector": 2594
           }
         ],
-        "name": "NE640601_DDV_AePc"
+        "name": "AE_Tr_NE640601"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NEBLK201.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 71446,
+            "end_sector": 71964
           }
         ],
-        "name": "NEBLK201_DDV_AePc"
+        "name": "AE_Tr_NEBLK201"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NEP01C08.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 670,
+            "end_sector": 1339
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 4237,
+            "end_sector": 4906
           }
         ],
-        "name": "NEP01C08_DDV_AePc"
+        "name": "AE_Tr_NEP01C08"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NEP01C09.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 1340,
+            "end_sector": 2009
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 4907,
+            "end_sector": 5576
           }
         ],
-        "name": "NEP01C09_DDV_AePc"
+        "name": "AE_Tr_NEP01C09"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NEP01C10.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 2010,
+            "end_sector": 2679
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 5577,
+            "end_sector": 6246
           }
         ],
-        "name": "NEP01C10_DDV_AePc"
+        "name": "AE_Tr_NEP01C10"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NEP01C8R.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 6247,
+            "end_sector": 6916
           }
         ],
-        "name": "NEP01C8R_DDV_AePc"
+        "name": "AE_Tr_NEP01C8R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NEP02C01.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 12758,
+            "end_sector": 13427
           }
         ],
-        "name": "NEP02C01_DDV_AePc"
+        "name": "AE_Tr_NEP02C01"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NEP02C02.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 12607,
+            "end_sector": 13276
           }
         ],
-        "name": "NEP02C02_DDV_AePc"
+        "name": "AE_Tr_NEP02C02"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "NEP1C10R.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 7587,
+            "end_sector": 8256
           }
         ],
-        "name": "NEP1C10R_DDV_AePc"
+        "name": "AE_Tr_NEP1C10R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "option.ddv"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "ST/ST.MOV",
+            "start_sector": 8509,
+            "end_sector": 9027
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "ST/ST.MOV",
+            "start_sector": 8509,
+            "end_sector": 9027
           }
         ],
-        "name": "option_ddv_AePc"
+        "name": "AE_MainMenu"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "P1391314.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 1859,
+            "end_sector": 2377
           }
         ],
-        "name": "P1391314_DDV_AePc"
+        "name": "AE_Tr_P1391314"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PHLEGEXP.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BW/BW.MOV",
+            "start_sector": 8820,
+            "end_sector": 13149
           }
         ],
-        "name": "PHLEGEXP_DDV_AePc"
+        "name": "AE_PhlegExplodes"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PHLEGINF.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BW/BW.MOV",
+            "start_sector": 2010,
+            "end_sector": 8819
           }
         ],
-        "name": "PHLEGINF_DDV_AePc"
+        "name": "AE_BWMoM"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "prophecy.ddv"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 0,
+            "end_sector": 4469
           }
         ],
-        "name": "prophecy_ddv_AePc"
+        "name": "AE_Prophecy"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV107071.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 37795,
+            "end_sector": 38313
           }
         ],
-        "name": "PV107071_DDV_AePc"
+        "name": "AE_Tr_PV107071"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV114081.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 4454,
+            "end_sector": 4972
           }
         ],
-        "name": "PV114081_DDV_AePc"
+        "name": "AE_Tr_PV114081"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV12181R.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 2378,
+            "end_sector": 2896
           }
         ],
-        "name": "PV12181R_DDV_AePc"
+        "name": "AE_Tr_PV12181R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV131452.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 34398,
+            "end_sector": 34916
           }
         ],
-        "name": "PV131452_DDV_AePc"
+        "name": "AE_Tr_PV131452"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV370801.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 6530,
+            "end_sector": 7048
           }
         ],
-        "name": "PV370801_DDV_AePc"
+        "name": "AE_Tr_PV370801"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV410801.DDV"
+          },
+          {
+            "dataset": "AePc",
+            "file": "PV550801.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 8606,
+            "end_sector": 9124
           }
         ],
-        "name": "PV410801_DDV_AePc"
+        "name": "AE_Tr_PV410801"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV430402.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 38833,
+            "end_sector": 39351
           }
         ],
-        "name": "PV430402_DDV_AePc"
+        "name": "AE_Tr_PV430402"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV470801.DDV"
-          }
-        ],
-        "name": "PV470801_DDV_AePc"
-      },
-      {
-        "locations": [
+          },
           {
-            "dataset": "AePc",
-            "file": "PV550801.DDV"
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 7568,
+            "end_sector": 8086
           }
         ],
-        "name": "PV550801_DDV_AePc"
+        "name": "AE_Tr_PV470801"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV712101.DDV"
-          }
-        ],
-        "name": "PV712101_DDV_AePc"
-      },
-      {
-        "locations": [
+          },
           {
-            "dataset": "AePc",
-            "file": "Pv801901.ddv"
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 38314,
+            "end_sector": 38832
           }
         ],
-        "name": "Pv801901_ddv_AePc"
+        "name": "AE_Tr_PV712101"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV810301.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 9644,
+            "end_sector": 10162
           }
         ],
-        "name": "PV810301_DDV_AePc"
+        "name": "AE_Tr_PV810301"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV810401.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 10163,
+            "end_sector": 10681
           }
         ],
-        "name": "PV810401_DDV_AePc"
+        "name": "AE_Tr_PV810401"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV810501.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 10682,
+            "end_sector": 11200
           }
         ],
-        "name": "PV810501_DDV_AePc"
+        "name": "AE_Tr_PV810501"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV810901.DDV"
+          },
+          {
+            "dataset": "AePc",
+            "file": "Pv801901.ddv"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 11201,
+            "end_sector": 11719
           }
         ],
-        "name": "PV810901_DDV_AePc"
+        "name": "AE_Tr_PV810901"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV811101.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 11720,
+            "end_sector": 12238
           }
         ],
-        "name": "PV811101_DDV_AePc"
+        "name": "AE_Tr_PV811101"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV811201.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 12239,
+            "end_sector": 12757
           }
         ],
-        "name": "PV811201_DDV_AePc"
+        "name": "AE_Tr_PV811201"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "Pv821301.ddv"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 13428,
+            "end_sector": 13946
           }
         ],
-        "name": "Pv821301_ddv_AePc"
+        "name": "AE_Tr_Pv821301"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PV910801.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 13947,
+            "end_sector": 14465
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 37276,
+            "end_sector": 37794
           }
         ],
-        "name": "PV910801_DDV_AePc"
+        "name": "AE_Tr_PV910801"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "PVP01C5R.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 15136,
+            "end_sector": 15805
           }
         ],
-        "name": "PVP01C5R_DDV_AePc"
+        "name": "AE_Tr_PVP01C5R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "REWARD.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 14617,
+            "end_sector": 36086
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "PV/PV.MOV",
+            "start_sector": 15806,
+            "end_sector": 37275
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 12409,
+            "end_sector": 33878
           }
         ],
-        "name": "REWARD_DDV_AePc"
+        "name": "AE_AbeGainsHealingPower"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "S1102N58.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "NE/NE.MOV",
+            "start_sector": 34917,
+            "end_sector": 35435
           }
         ],
-        "name": "S1102N58_DDV_AePc"
+        "name": "AE_Tr_S1102N58"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SBP01C01.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BA/BA.MOV",
+            "start_sector": 0,
+            "end_sector": 669
           }
         ],
-        "name": "SBP01C01_DDV_AePc"
+        "name": "AE_Tr_SBP01C01"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SBP01C1R.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BA/BA.MOV",
+            "start_sector": 670,
+            "end_sector": 1339
           }
         ],
-        "name": "SBP01C1R_DDV_AePc"
+        "name": "AE_Tr_SBP01C1R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SSINFO.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BR/BR.MOV",
+            "start_sector": 13550,
+            "end_sector": 18879
           }
         ],
-        "name": "SSINFO_DDV_AePc"
+        "name": "AE_SSBMoM"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "Sv101112.ddv"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 36606,
+            "end_sector": 37124
           }
         ],
-        "name": "Sv101112_ddv_AePc"
+        "name": "AE_Tr_Sv101112"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV110703.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 1708,
+            "end_sector": 2226
           }
         ],
-        "name": "SV110703_DDV_AePc"
+        "name": "AE_Tr_SV110703"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV140106.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 2227,
+            "end_sector": 2745
           }
         ],
-        "name": "SV140106_DDV_AePc"
+        "name": "AE_Tr_SV140106"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV160703.ddv"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 2746,
+            "end_sector": 3264
           }
         ],
-        "name": "SV160703_ddv_AePc"
+        "name": "AE_Tr_SV160703"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV22073L.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 670,
+            "end_sector": 1188
           }
         ],
-        "name": "SV22073L_DDV_AePc"
+        "name": "AE_Tr_SV22073L"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV36073R.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 3784,
+            "end_sector": 4302
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 1189,
+            "end_sector": 1707
           }
         ],
-        "name": "SV36073R_DDV_AePc"
+        "name": "AE_Tr_SV36073R"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV420405.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 4822,
+            "end_sector": 5340
           }
         ],
-        "name": "SV420405_DDV_AePc"
+        "name": "AE_Tr_SV420405"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV430703.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 5341,
+            "end_sector": 5859
           }
         ],
-        "name": "SV430703_DDV_AePc"
+        "name": "AE_Tr_SV430703"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV520504.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 5860,
+            "end_sector": 6378
           }
         ],
-        "name": "SV520504_DDV_AePc"
+        "name": "AE_Tr_SV520504"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV550507.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 6379,
+            "end_sector": 6897
           }
         ],
-        "name": "SV550507_DDV_AePc"
+        "name": "AE_Tr_SV550507"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV590703.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 6898,
+            "end_sector": 7416
           }
         ],
-        "name": "SV590703_DDV_AePc"
+        "name": "AE_Tr_SV590703"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV616618.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 37644,
+            "end_sector": 38162
           }
         ],
-        "name": "SV616618_DDV_AePc"
+        "name": "AE_Tr_SV616618"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV619622.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 38163,
+            "end_sector": 38681
           }
         ],
-        "name": "SV619622_DDV_AePc"
+        "name": "AE_Tr_SV619622"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV624063.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 37125,
+            "end_sector": 37643
           }
         ],
-        "name": "SV624063_DDV_AePc"
+        "name": "AE_Tr_SV624063"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV630609.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 36087,
+            "end_sector": 36605
           }
         ],
-        "name": "SV630609_DDV_AePc"
+        "name": "AE_Tr_SV630609"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV690613.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 38682,
+            "end_sector": 39200
           }
         ],
-        "name": "SV690613_DDV_AePc"
+        "name": "AE_Tr_SV690613"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV730101.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 7417,
+            "end_sector": 7935
           }
         ],
-        "name": "SV730101_DDV_AePc"
+        "name": "AE_Tr_SV730101"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV730202.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 7936,
+            "end_sector": 8454
           }
         ],
-        "name": "SV730202_DDV_AePc"
+        "name": "AE_Tr_SV730202"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV730306.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 8455,
+            "end_sector": 8973
           }
         ],
-        "name": "SV730306_DDV_AePc"
+        "name": "AE_Tr_SV730306"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV730401.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 8974,
+            "end_sector": 9492
           }
         ],
-        "name": "SV730401_DDV_AePc"
+        "name": "AE_Tr_SV730401"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV730502.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 9493,
+            "end_sector": 10011
           }
         ],
-        "name": "SV730502_DDV_AePc"
+        "name": "AE_Tr_SV730502"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV730801.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 10012,
+            "end_sector": 10530
           }
         ],
-        "name": "SV730801_DDV_AePc"
+        "name": "AE_Tr_SV730801"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV740904.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 10531,
+            "end_sector": 11049
           }
         ],
-        "name": "SV740904_DDV_AePc"
+        "name": "AE_Tr_SV740904"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV830703.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 11569,
+            "end_sector": 12087
           }
         ],
-        "name": "SV830703_DDV_AePc"
+        "name": "AE_Tr_SV830703"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SV940704.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 12088,
+            "end_sector": 12606
           }
         ],
-        "name": "SV940704_DDV_AePc"
+        "name": "AE_Tr_SV940704"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "SVP01C05.DDV"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 13277,
+            "end_sector": 13946
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "SV/SV.MOV",
+            "start_sector": 0,
+            "end_sector": 669
           }
         ],
-        "name": "SVP01C05_DDV_AePc"
+        "name": "AE_Tr_SVP01C05"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "TRAIN1.DDV"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BA/BA.MOV",
+            "start_sector": 9420,
+            "end_sector": 13898
           }
         ],
-        "name": "TRAIN1_DDV_AePc"
+        "name": "AE_SBarracksTrain"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "train3.ddv"
+          },
+          {
+            "dataset": "AePsxCd2",
+            "file": "BW/BW.MOV",
+            "start_sector": 13150,
+            "end_sector": 18209
           }
         ],
-        "name": "train3_ddv_AePc"
+        "name": "AE_BWTrain"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "v1a4s01.ddv"
+          },
+          {
+            "dataset": "AePsxCd1",
+            "file": "MI/MI.MOV",
+            "start_sector": 4470,
+            "end_sector": 9028
           }
         ],
-        "name": "v1a4s01_ddv_AePc"
+        "name": "AE_InfiltratingNecrumMines"
       },
       {
         "locations": [
           {
             "dataset": "AePc",
             "file": "vision.ddv"
-          }
-        ],
-        "name": "vision_ddv_AePc"
-      },
-      {
-        "locations": [
+          },
           {
             "dataset": "AePsxCd1",
-            "file": "ST/ST.MOV",
-            "start_sector": 0,
-            "end_sector": 1019
+            "file": "MI/MI.MOV",
+            "start_sector": 20613,
+            "end_sector": 48072
           }
         ],
-        "name": "ST_ST_MOV_0_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "ST/ST.MOV",
-            "start_sector": 1020,
-            "end_sector": 3138
-          }
-        ],
-        "name": "ST_ST_MOV_1_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "ST/ST.MOV",
-            "start_sector": 3139,
-            "end_sector": 8508
-          }
-        ],
-        "name": "ST_ST_MOV_2_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "ST/ST.MOV",
-            "start_sector": 8509,
-            "end_sector": 9027
-          }
-        ],
-        "name": "ST_ST_MOV_3_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "ST/ST.MOV",
-            "start_sector": 9028,
-            "end_sector": 25097
-          }
-        ],
-        "name": "ST_ST_MOV_4_AePsxCd1"
+        "name": "AE_NecrumMinesIntro"
       },
       {
         "locations": [
@@ -1316,7 +2199,7 @@
             "end_sector": 669
           }
         ],
-        "name": "PV_PV_MOV_0_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_0_AePsxCd1"
       },
       {
         "locations": [
@@ -1327,7 +2210,7 @@
             "end_sector": 1339
           }
         ],
-        "name": "PV_PV_MOV_1_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_1_AePsxCd1"
       },
       {
         "locations": [
@@ -1338,29 +2221,7 @@
             "end_sector": 1858
           }
         ],
-        "name": "PV_PV_MOV_2_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 1859,
-            "end_sector": 2377
-          }
-        ],
-        "name": "PV_PV_MOV_3_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 2378,
-            "end_sector": 2896
-          }
-        ],
-        "name": "PV_PV_MOV_4_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_2_AePsxCd1"
       },
       {
         "locations": [
@@ -1371,7 +2232,7 @@
             "end_sector": 3415
           }
         ],
-        "name": "PV_PV_MOV_5_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_5_AePsxCd1"
       },
       {
         "locations": [
@@ -1382,7 +2243,7 @@
             "end_sector": 3934
           }
         ],
-        "name": "PV_PV_MOV_6_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_6_AePsxCd1"
       },
       {
         "locations": [
@@ -1393,18 +2254,7 @@
             "end_sector": 4453
           }
         ],
-        "name": "PV_PV_MOV_7_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 4454,
-            "end_sector": 4972
-          }
-        ],
-        "name": "PV_PV_MOV_8_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_7_AePsxCd1"
       },
       {
         "locations": [
@@ -1415,7 +2265,7 @@
             "end_sector": 5491
           }
         ],
-        "name": "PV_PV_MOV_9_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_9_AePsxCd1"
       },
       {
         "locations": [
@@ -1426,7 +2276,7 @@
             "end_sector": 6010
           }
         ],
-        "name": "PV_PV_MOV_10_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_10_AePsxCd1"
       },
       {
         "locations": [
@@ -1437,18 +2287,7 @@
             "end_sector": 6529
           }
         ],
-        "name": "PV_PV_MOV_11_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 6530,
-            "end_sector": 7048
-          }
-        ],
-        "name": "PV_PV_MOV_12_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_11_AePsxCd1"
       },
       {
         "locations": [
@@ -1459,18 +2298,7 @@
             "end_sector": 7567
           }
         ],
-        "name": "PV_PV_MOV_13_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 7568,
-            "end_sector": 8086
-          }
-        ],
-        "name": "PV_PV_MOV_14_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_13_AePsxCd1"
       },
       {
         "locations": [
@@ -1481,18 +2309,7 @@
             "end_sector": 8605
           }
         ],
-        "name": "PV_PV_MOV_15_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 8606,
-            "end_sector": 9124
-          }
-        ],
-        "name": "PV_PV_MOV_16_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_15_AePsxCd1"
       },
       {
         "locations": [
@@ -1503,106 +2320,7 @@
             "end_sector": 9643
           }
         ],
-        "name": "PV_PV_MOV_17_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 9644,
-            "end_sector": 10162
-          }
-        ],
-        "name": "PV_PV_MOV_18_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 10163,
-            "end_sector": 10681
-          }
-        ],
-        "name": "PV_PV_MOV_19_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 10682,
-            "end_sector": 11200
-          }
-        ],
-        "name": "PV_PV_MOV_20_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 11201,
-            "end_sector": 11719
-          }
-        ],
-        "name": "PV_PV_MOV_21_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 11720,
-            "end_sector": 12238
-          }
-        ],
-        "name": "PV_PV_MOV_22_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 12239,
-            "end_sector": 12757
-          }
-        ],
-        "name": "PV_PV_MOV_23_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 12758,
-            "end_sector": 13427
-          }
-        ],
-        "name": "PV_PV_MOV_24_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 13428,
-            "end_sector": 13946
-          }
-        ],
-        "name": "PV_PV_MOV_25_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 13947,
-            "end_sector": 14465
-          }
-        ],
-        "name": "PV_PV_MOV_26_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_17_AePsxCd1"
       },
       {
         "locations": [
@@ -1613,139 +2331,7 @@
             "end_sector": 15135
           }
         ],
-        "name": "PV_PV_MOV_27_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 15136,
-            "end_sector": 15805
-          }
-        ],
-        "name": "PV_PV_MOV_28_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 15806,
-            "end_sector": 37275
-          }
-        ],
-        "name": "PV_PV_MOV_29_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 37276,
-            "end_sector": 37794
-          }
-        ],
-        "name": "PV_PV_MOV_30_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 37795,
-            "end_sector": 38313
-          }
-        ],
-        "name": "PV_PV_MOV_31_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 38314,
-            "end_sector": 38832
-          }
-        ],
-        "name": "PV_PV_MOV_32_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "PV/PV.MOV",
-            "start_sector": 38833,
-            "end_sector": 39351
-          }
-        ],
-        "name": "PV_PV_MOV_33_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 0,
-            "end_sector": 669
-          }
-        ],
-        "name": "SV_SV_MOV_0_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 670,
-            "end_sector": 1188
-          }
-        ],
-        "name": "SV_SV_MOV_1_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 1189,
-            "end_sector": 1707
-          }
-        ],
-        "name": "SV_SV_MOV_2_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 1708,
-            "end_sector": 2226
-          }
-        ],
-        "name": "SV_SV_MOV_3_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 2227,
-            "end_sector": 2745
-          }
-        ],
-        "name": "SV_SV_MOV_4_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 2746,
-            "end_sector": 3264
-          }
-        ],
-        "name": "SV_SV_MOV_5_AePsxCd1"
+        "name": "UNUSED_PV_PV_MOV_27_AePsxCd1"
       },
       {
         "locations": [
@@ -1756,18 +2342,7 @@
             "end_sector": 3783
           }
         ],
-        "name": "SV_SV_MOV_6_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 3784,
-            "end_sector": 4302
-          }
-        ],
-        "name": "SV_SV_MOV_7_AePsxCd1"
+        "name": "UNUSED_SV_SV_MOV_6_AePsxCd1"
       },
       {
         "locations": [
@@ -1778,139 +2353,7 @@
             "end_sector": 4821
           }
         ],
-        "name": "SV_SV_MOV_8_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 4822,
-            "end_sector": 5340
-          }
-        ],
-        "name": "SV_SV_MOV_9_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 5341,
-            "end_sector": 5859
-          }
-        ],
-        "name": "SV_SV_MOV_10_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 5860,
-            "end_sector": 6378
-          }
-        ],
-        "name": "SV_SV_MOV_11_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 6379,
-            "end_sector": 6897
-          }
-        ],
-        "name": "SV_SV_MOV_12_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 6898,
-            "end_sector": 7416
-          }
-        ],
-        "name": "SV_SV_MOV_13_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 7417,
-            "end_sector": 7935
-          }
-        ],
-        "name": "SV_SV_MOV_14_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 7936,
-            "end_sector": 8454
-          }
-        ],
-        "name": "SV_SV_MOV_15_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 8455,
-            "end_sector": 8973
-          }
-        ],
-        "name": "SV_SV_MOV_16_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 8974,
-            "end_sector": 9492
-          }
-        ],
-        "name": "SV_SV_MOV_17_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 9493,
-            "end_sector": 10011
-          }
-        ],
-        "name": "SV_SV_MOV_18_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 10012,
-            "end_sector": 10530
-          }
-        ],
-        "name": "SV_SV_MOV_19_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 10531,
-            "end_sector": 11049
-          }
-        ],
-        "name": "SV_SV_MOV_20_AePsxCd1"
+        "name": "UNUSED_SV_SV_MOV_8_AePsxCd1"
       },
       {
         "locations": [
@@ -1921,51 +2364,7 @@
             "end_sector": 11568
           }
         ],
-        "name": "SV_SV_MOV_21_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 11569,
-            "end_sector": 12087
-          }
-        ],
-        "name": "SV_SV_MOV_22_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 12088,
-            "end_sector": 12606
-          }
-        ],
-        "name": "SV_SV_MOV_23_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 12607,
-            "end_sector": 13276
-          }
-        ],
-        "name": "SV_SV_MOV_24_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 13277,
-            "end_sector": 13946
-          }
-        ],
-        "name": "SV_SV_MOV_25_AePsxCd1"
+        "name": "UNUSED_SV_SV_MOV_21_AePsxCd1"
       },
       {
         "locations": [
@@ -1976,84 +2375,7 @@
             "end_sector": 14616
           }
         ],
-        "name": "SV_SV_MOV_26_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 14617,
-            "end_sector": 36086
-          }
-        ],
-        "name": "SV_SV_MOV_27_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 36087,
-            "end_sector": 36605
-          }
-        ],
-        "name": "SV_SV_MOV_28_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 36606,
-            "end_sector": 37124
-          }
-        ],
-        "name": "SV_SV_MOV_29_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 37125,
-            "end_sector": 37643
-          }
-        ],
-        "name": "SV_SV_MOV_30_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 37644,
-            "end_sector": 38162
-          }
-        ],
-        "name": "SV_SV_MOV_31_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 38163,
-            "end_sector": 38681
-          }
-        ],
-        "name": "SV_SV_MOV_32_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "SV/SV.MOV",
-            "start_sector": 38682,
-            "end_sector": 39200
-          }
-        ],
-        "name": "SV_SV_MOV_33_AePsxCd1"
+        "name": "UNUSED_SV_SV_MOV_26_AePsxCd1"
       },
       {
         "locations": [
@@ -2064,7 +2386,7 @@
             "end_sector": 39719
           }
         ],
-        "name": "SV_SV_MOV_34_AePsxCd1"
+        "name": "UNUSED_SV_SV_MOV_34_AePsxCd1"
       },
       {
         "locations": [
@@ -2075,117 +2397,7 @@
             "end_sector": 669
           }
         ],
-        "name": "NE_NE_MOV_0_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 670,
-            "end_sector": 1339
-          }
-        ],
-        "name": "NE_NE_MOV_1_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 1340,
-            "end_sector": 2009
-          }
-        ],
-        "name": "NE_NE_MOV_2_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 2010,
-            "end_sector": 2679
-          }
-        ],
-        "name": "NE_NE_MOV_3_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 2680,
-            "end_sector": 3198
-          }
-        ],
-        "name": "NE_NE_MOV_4_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 3199,
-            "end_sector": 3717
-          }
-        ],
-        "name": "NE_NE_MOV_5_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 3718,
-            "end_sector": 4236
-          }
-        ],
-        "name": "NE_NE_MOV_6_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 4237,
-            "end_sector": 4906
-          }
-        ],
-        "name": "NE_NE_MOV_7_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 4907,
-            "end_sector": 5576
-          }
-        ],
-        "name": "NE_NE_MOV_8_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 5577,
-            "end_sector": 6246
-          }
-        ],
-        "name": "NE_NE_MOV_9_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 6247,
-            "end_sector": 6916
-          }
-        ],
-        "name": "NE_NE_MOV_10_AePsxCd1"
+        "name": "UNUSED_NE_NE_MOV_0_AePsxCd1"
       },
       {
         "locations": [
@@ -2196,205 +2408,7 @@
             "end_sector": 7586
           }
         ],
-        "name": "NE_NE_MOV_11_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 7587,
-            "end_sector": 8256
-          }
-        ],
-        "name": "NE_NE_MOV_12_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 8257,
-            "end_sector": 8775
-          }
-        ],
-        "name": "NE_NE_MOV_13_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 8776,
-            "end_sector": 9294
-          }
-        ],
-        "name": "NE_NE_MOV_14_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 9295,
-            "end_sector": 9813
-          }
-        ],
-        "name": "NE_NE_MOV_15_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 9814,
-            "end_sector": 10332
-          }
-        ],
-        "name": "NE_NE_MOV_16_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 10333,
-            "end_sector": 10851
-          }
-        ],
-        "name": "NE_NE_MOV_17_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 10852,
-            "end_sector": 11370
-          }
-        ],
-        "name": "NE_NE_MOV_18_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 11371,
-            "end_sector": 11889
-          }
-        ],
-        "name": "NE_NE_MOV_19_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 11890,
-            "end_sector": 12408
-          }
-        ],
-        "name": "NE_NE_MOV_20_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 12409,
-            "end_sector": 33878
-          }
-        ],
-        "name": "NE_NE_MOV_21_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 33879,
-            "end_sector": 34397
-          }
-        ],
-        "name": "NE_NE_MOV_22_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 34398,
-            "end_sector": 34916
-          }
-        ],
-        "name": "NE_NE_MOV_23_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "NE/NE.MOV",
-            "start_sector": 34917,
-            "end_sector": 35435
-          }
-        ],
-        "name": "NE_NE_MOV_24_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 0,
-            "end_sector": 4469
-          }
-        ],
-        "name": "MI_MI_MOV_0_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 4470,
-            "end_sector": 9028
-          }
-        ],
-        "name": "MI_MI_MOV_1_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 9029,
-            "end_sector": 9998
-          }
-        ],
-        "name": "MI_MI_MOV_2_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 9999,
-            "end_sector": 10968
-          }
-        ],
-        "name": "MI_MI_MOV_3_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 10969,
-            "end_sector": 11638
-          }
-        ],
-        "name": "MI_MI_MOV_4_AePsxCd1"
+        "name": "UNUSED_NE_NE_MOV_11_AePsxCd1"
       },
       {
         "locations": [
@@ -2405,227 +2419,7 @@
             "end_sector": 12308
           }
         ],
-        "name": "MI_MI_MOV_5_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 12309,
-            "end_sector": 12827
-          }
-        ],
-        "name": "MI_MI_MOV_6_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 12828,
-            "end_sector": 13346
-          }
-        ],
-        "name": "MI_MI_MOV_7_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 13347,
-            "end_sector": 13865
-          }
-        ],
-        "name": "MI_MI_MOV_8_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 13866,
-            "end_sector": 14384
-          }
-        ],
-        "name": "MI_MI_MOV_9_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 14385,
-            "end_sector": 14903
-          }
-        ],
-        "name": "MI_MI_MOV_10_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 14904,
-            "end_sector": 15422
-          }
-        ],
-        "name": "MI_MI_MOV_11_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 15423,
-            "end_sector": 15941
-          }
-        ],
-        "name": "MI_MI_MOV_12_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 15942,
-            "end_sector": 16460
-          }
-        ],
-        "name": "MI_MI_MOV_13_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 16461,
-            "end_sector": 16979
-          }
-        ],
-        "name": "MI_MI_MOV_14_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 16980,
-            "end_sector": 17498
-          }
-        ],
-        "name": "MI_MI_MOV_15_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 17499,
-            "end_sector": 18017
-          }
-        ],
-        "name": "MI_MI_MOV_16_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 18018,
-            "end_sector": 18536
-          }
-        ],
-        "name": "MI_MI_MOV_17_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 18537,
-            "end_sector": 19055
-          }
-        ],
-        "name": "MI_MI_MOV_18_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 19056,
-            "end_sector": 19574
-          }
-        ],
-        "name": "MI_MI_MOV_19_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 19575,
-            "end_sector": 20093
-          }
-        ],
-        "name": "MI_MI_MOV_20_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 20094,
-            "end_sector": 20612
-          }
-        ],
-        "name": "MI_MI_MOV_21_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 20613,
-            "end_sector": 48072
-          }
-        ],
-        "name": "MI_MI_MOV_22_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 48073,
-            "end_sector": 49572
-          }
-        ],
-        "name": "MI_MI_MOV_23_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 49573,
-            "end_sector": 65592
-          }
-        ],
-        "name": "MI_MI_MOV_24_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 65593,
-            "end_sector": 67302
-          }
-        ],
-        "name": "MI_MI_MOV_25_AePsxCd1"
+        "name": "UNUSED_MI_MI_MOV_5_AePsxCd1"
       },
       {
         "locations": [
@@ -2636,293 +2430,7 @@
             "end_sector": 67812
           }
         ],
-        "name": "MI_MI_MOV_26_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 67813,
-            "end_sector": 68331
-          }
-        ],
-        "name": "MI_MI_MOV_27_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 68332,
-            "end_sector": 68850
-          }
-        ],
-        "name": "MI_MI_MOV_28_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 68851,
-            "end_sector": 69369
-          }
-        ],
-        "name": "MI_MI_MOV_29_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 69370,
-            "end_sector": 69888
-          }
-        ],
-        "name": "MI_MI_MOV_30_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 69889,
-            "end_sector": 70407
-          }
-        ],
-        "name": "MI_MI_MOV_31_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 70408,
-            "end_sector": 70926
-          }
-        ],
-        "name": "MI_MI_MOV_32_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 70927,
-            "end_sector": 71445
-          }
-        ],
-        "name": "MI_MI_MOV_33_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "MI/MI.MOV",
-            "start_sector": 71446,
-            "end_sector": 71964
-          }
-        ],
-        "name": "MI_MI_MOV_34_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "CR/CR.MOV",
-            "start_sector": 0,
-            "end_sector": 2118
-          }
-        ],
-        "name": "CR_CR_MOV_0_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd1",
-            "file": "BR/BR.MOV",
-            "start_sector": 0,
-            "end_sector": 669
-          }
-        ],
-        "name": "BR_BR_MOV_0_AePsxCd1"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "ST/ST.MOV",
-            "start_sector": 0,
-            "end_sector": 1019
-          }
-        ],
-        "name": "ST_ST_MOV_0_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "ST/ST.MOV",
-            "start_sector": 1020,
-            "end_sector": 3138
-          }
-        ],
-        "name": "ST_ST_MOV_1_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "ST/ST.MOV",
-            "start_sector": 3139,
-            "end_sector": 8508
-          }
-        ],
-        "name": "ST_ST_MOV_2_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "ST/ST.MOV",
-            "start_sector": 8509,
-            "end_sector": 9027
-          }
-        ],
-        "name": "ST_ST_MOV_3_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "ST/ST.MOV",
-            "start_sector": 9028,
-            "end_sector": 25097
-          }
-        ],
-        "name": "ST_ST_MOV_4_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "CR/CR.MOV",
-            "start_sector": 0,
-            "end_sector": 2118
-          }
-        ],
-        "name": "CR_CR_MOV_0_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "FD/FD.MOV",
-            "start_sector": 0,
-            "end_sector": 3278
-          }
-        ],
-        "name": "FD_FD_MOV_0_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "FD/FD.MOV",
-            "start_sector": 3279,
-            "end_sector": 9308
-          }
-        ],
-        "name": "FD_FD_MOV_1_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "FD/FD.MOV",
-            "start_sector": 9309,
-            "end_sector": 15048
-          }
-        ],
-        "name": "FD_FD_MOV_2_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "FD/FD.MOV",
-            "start_sector": 15049,
-            "end_sector": 29188
-          }
-        ],
-        "name": "FD_FD_MOV_3_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BA/BA.MOV",
-            "start_sector": 0,
-            "end_sector": 669
-          }
-        ],
-        "name": "BA_BA_MOV_0_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BA/BA.MOV",
-            "start_sector": 670,
-            "end_sector": 1339
-          }
-        ],
-        "name": "BA_BA_MOV_1_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BA/BA.MOV",
-            "start_sector": 1340,
-            "end_sector": 3969
-          }
-        ],
-        "name": "BA_BA_MOV_2_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BA/BA.MOV",
-            "start_sector": 3970,
-            "end_sector": 9419
-          }
-        ],
-        "name": "BA_BA_MOV_3_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BA/BA.MOV",
-            "start_sector": 9420,
-            "end_sector": 13898
-          }
-        ],
-        "name": "BA_BA_MOV_4_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BA/BA.MOV",
-            "start_sector": 13899,
-            "end_sector": 14568
-          }
-        ],
-        "name": "BA_BA_MOV_5_AePsxCd2"
+        "name": "UNUSED_MI_MI_MOV_26_AePsxCd1"
       },
       {
         "locations": [
@@ -2933,7 +2441,7 @@
             "end_sector": 15238
           }
         ],
-        "name": "BA_BA_MOV_6_AePsxCd2"
+        "name": "UNUSED_BA_BA_MOV_6_AePsxCd2"
       },
       {
         "locations": [
@@ -2944,315 +2452,7 @@
             "end_sector": 669
           }
         ],
-        "name": "BW_BW_MOV_0_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BW/BW.MOV",
-            "start_sector": 670,
-            "end_sector": 1339
-          }
-        ],
-        "name": "BW_BW_MOV_1_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BW/BW.MOV",
-            "start_sector": 1340,
-            "end_sector": 2009
-          }
-        ],
-        "name": "BW_BW_MOV_2_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BW/BW.MOV",
-            "start_sector": 2010,
-            "end_sector": 8819
-          }
-        ],
-        "name": "BW_BW_MOV_3_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BW/BW.MOV",
-            "start_sector": 8820,
-            "end_sector": 13149
-          }
-        ],
-        "name": "BW_BW_MOV_4_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BW/BW.MOV",
-            "start_sector": 13150,
-            "end_sector": 18209
-          }
-        ],
-        "name": "BW_BW_MOV_5_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 0,
-            "end_sector": 669
-          }
-        ],
-        "name": "BR_BR_MOV_0_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 670,
-            "end_sector": 1339
-          }
-        ],
-        "name": "BR_BR_MOV_1_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 1340,
-            "end_sector": 2009
-          }
-        ],
-        "name": "BR_BR_MOV_2_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 2010,
-            "end_sector": 2679
-          }
-        ],
-        "name": "BR_BR_MOV_3_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 2680,
-            "end_sector": 3349
-          }
-        ],
-        "name": "BR_BR_MOV_4_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 3350,
-            "end_sector": 4619
-          }
-        ],
-        "name": "BR_BR_MOV_5_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 4620,
-            "end_sector": 5289
-          }
-        ],
-        "name": "BR_BR_MOV_6_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 5290,
-            "end_sector": 5959
-          }
-        ],
-        "name": "BR_BR_MOV_7_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 5960,
-            "end_sector": 6629
-          }
-        ],
-        "name": "BR_BR_MOV_8_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 6630,
-            "end_sector": 7299
-          }
-        ],
-        "name": "BR_BR_MOV_9_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 7300,
-            "end_sector": 7969
-          }
-        ],
-        "name": "BR_BR_MOV_10_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 7970,
-            "end_sector": 9239
-          }
-        ],
-        "name": "BR_BR_MOV_11_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 9240,
-            "end_sector": 13549
-          }
-        ],
-        "name": "BR_BR_MOV_12_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 13550,
-            "end_sector": 18879
-          }
-        ],
-        "name": "BR_BR_MOV_13_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 18880,
-            "end_sector": 23958
-          }
-        ],
-        "name": "BR_BR_MOV_14_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 23959,
-            "end_sector": 30608
-          }
-        ],
-        "name": "BR_BR_MOV_15_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 30609,
-            "end_sector": 54478
-          }
-        ],
-        "name": "BR_BR_MOV_16_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "BR/BR.MOV",
-            "start_sector": 54479,
-            "end_sector": 64197
-          }
-        ],
-        "name": "BR_BR_MOV_17_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "NE/NE.MOV",
-            "start_sector": 0,
-            "end_sector": 518
-          }
-        ],
-        "name": "NE_NE_MOV_0_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "NE/NE.MOV",
-            "start_sector": 519,
-            "end_sector": 1037
-          }
-        ],
-        "name": "NE_NE_MOV_1_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "NE/NE.MOV",
-            "start_sector": 1038,
-            "end_sector": 1556
-          }
-        ],
-        "name": "NE_NE_MOV_2_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "NE/NE.MOV",
-            "start_sector": 1557,
-            "end_sector": 2075
-          }
-        ],
-        "name": "NE_NE_MOV_3_AePsxCd2"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AePsxCd2",
-            "file": "NE/NE.MOV",
-            "start_sector": 2076,
-            "end_sector": 2594
-          }
-        ],
-        "name": "NE_NE_MOV_4_AePsxCd2"
+        "name": "UNUSED_BW_BW_MOV_0_AePsxCd2"
       },
       {
         "locations": [
@@ -3314,594 +2514,1049 @@
           {
             "dataset": "AoPc",
             "file": "Badend.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 42912,
+            "end_sector": 47081
           }
         ],
-        "name": "Badend_ddv_AoPc"
+        "name": "AO_BadEnding"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "Begin.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 59332,
+            "end_sector": 92501
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "R1.MOV",
+            "start_sector": 0,
+            "end_sector": 33169
           }
         ],
-        "name": "Begin_ddv_AoPc"
+        "name": "AO_Intro"
+      },
+      {
+        "locations": [
+          {
+            "dataset": "AoPsx",
+            "file": "R1.MOV",
+            "start_sector": 36240,
+            "end_sector": 41315
+          }
+        ],
+        "name": "AO_IntroShort"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "ABEMORPH.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 18422,
+            "end_sector": 20971
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 9889,
+            "end_sector": 12438
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 15677,
+            "end_sector": 18226
           }
         ],
-        "name": "ABEMORPH_ddv_AoPc"
+        "name": "AO_ShrykullIntro"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "Barrels.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "E1.MOV",
+            "start_sector": 0,
+            "end_sector": 3569
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "R1.MOV",
+            "start_sector": 49056,
+            "end_sector": 52625
           }
         ],
-        "name": "Barrels_ddv_AoPc"
+        "name": "AO_StockyardIntro"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d1p1p2.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D1.MOV",
+            "start_sector": 0,
+            "end_sector": 969
           }
         ],
-        "name": "d1p1p2_ddv_AoPc"
+        "name": "AO_Tr_d1p1p2"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "D1P2P1.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D1.MOV",
+            "start_sector": 970,
+            "end_sector": 1939
           }
         ],
-        "name": "D1P2P1_ddv_AoPc"
+        "name": "AO_Tr_D1P2P1"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d1p3p4.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D1.MOV",
+            "start_sector": 1940,
+            "end_sector": 2909
           }
         ],
-        "name": "d1p3p4_ddv_AoPc"
+        "name": "AO_Tr_d1p3p4"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "D1P4P3.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D1.MOV",
+            "start_sector": 2910,
+            "end_sector": 3879
           }
         ],
-        "name": "D1P4P3_ddv_AoPc"
+        "name": "AO_Tr_D1P4P3"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d1p6p7.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D1.MOV",
+            "start_sector": 3880,
+            "end_sector": 5549
           }
         ],
-        "name": "d1p6p7_ddv_AoPc"
+        "name": "AO_Tr_d1p6p7"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "D1P7P6.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D1.MOV",
+            "start_sector": 5550,
+            "end_sector": 7219
           }
         ],
-        "name": "D1P7P6_ddv_AoPc"
+        "name": "AO_Tr_D1P7P6"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d1p9d2.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D1.MOV",
+            "start_sector": 10768,
+            "end_sector": 12187
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 0,
+            "end_sector": 1419
           }
         ],
-        "name": "d1p9d2_ddv_AoPc"
+        "name": "AO_Tr_d1p9d2"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p10d7.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 14395,
+            "end_sector": 14913
           }
         ],
-        "name": "d2p10d7_ddv_AoPc"
+        "name": "AO_Tr_d2p10d7"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p10p2.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 1939,
+            "end_sector": 2457
           }
         ],
-        "name": "d2p10p2_ddv_AoPc"
+        "name": "AO_Tr_d2p10p2"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p10p3.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 2458,
+            "end_sector": 2976
           }
         ],
-        "name": "d2p10p3_ddv_AoPc"
+        "name": "AO_Tr_d2p10p3"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p10p4.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 2977,
+            "end_sector": 3495
           }
         ],
-        "name": "d2p10p4_ddv_AoPc"
+        "name": "AO_Tr_d2p10p4"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p10p5.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 3496,
+            "end_sector": 4014
           }
         ],
-        "name": "d2p10p5_ddv_AoPc"
+        "name": "AO_Tr_d2p10p5"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p10p6.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 4015,
+            "end_sector": 4533
           }
         ],
-        "name": "d2p10p6_ddv_AoPc"
+        "name": "AO_Tr_d2p10p6"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p10p7.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 4534,
+            "end_sector": 5052
           }
         ],
-        "name": "d2p10p7_ddv_AoPc"
+        "name": "AO_Tr_d2p10p7"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p10p8.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 5053,
+            "end_sector": 5571
           }
         ],
-        "name": "d2p10p8_ddv_AoPc"
+        "name": "AO_Tr_d2p10p8"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p10p9.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 5572,
+            "end_sector": 6090
           }
         ],
-        "name": "d2p10p9_ddv_AoPc"
+        "name": "AO_Tr_d2p10p9"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p1p10.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 1420,
+            "end_sector": 1938
           }
         ],
-        "name": "d2p1p10_ddv_AoPc"
+        "name": "AO_Tr_d2p1p10"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p2p10.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 6091,
+            "end_sector": 6609
           }
         ],
-        "name": "d2p2p10_ddv_AoPc"
+        "name": "AO_Tr_d2p2p10"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p2p10b.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 6610,
+            "end_sector": 7128
           }
         ],
-        "name": "d2p2p10b_ddv_AoPc"
+        "name": "AO_Tr_d2p2p10b"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p3p10.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 7129,
+            "end_sector": 7647
           }
         ],
-        "name": "d2p3p10_ddv_AoPc"
+        "name": "AO_Tr_d2p3p10"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p3p10b.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 7648,
+            "end_sector": 8166
           }
         ],
-        "name": "d2p3p10b_ddv_AoPc"
+        "name": "AO_Tr_d2p3p10b"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p4p10.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 8167,
+            "end_sector": 8685
           }
         ],
-        "name": "d2p4p10_ddv_AoPc"
+        "name": "AO_Tr_d2p4p10"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p4p10b.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 8686,
+            "end_sector": 9204
           }
         ],
-        "name": "d2p4p10b_ddv_AoPc"
+        "name": "AO_Tr_d2p4p10b"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p5p10.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 9205,
+            "end_sector": 9723
           }
         ],
-        "name": "d2p5p10_ddv_AoPc"
+        "name": "AO_Tr_d2p5p10"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p5p10b.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 9724,
+            "end_sector": 10242
           }
         ],
-        "name": "d2p5p10b_ddv_AoPc"
+        "name": "AO_Tr_d2p5p10b"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p6p10.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 10243,
+            "end_sector": 10761
           }
         ],
-        "name": "d2p6p10_ddv_AoPc"
+        "name": "AO_Tr_d2p6p10"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p6p10b.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 10762,
+            "end_sector": 11280
           }
         ],
-        "name": "d2p6p10b_ddv_AoPc"
+        "name": "AO_Tr_d2p6p10b"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p7p10.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 11281,
+            "end_sector": 11799
           }
         ],
-        "name": "d2p7p10_ddv_AoPc"
+        "name": "AO_Tr_d2p7p10"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p7p10b.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 11800,
+            "end_sector": 12318
           }
         ],
-        "name": "d2p7p10b_ddv_AoPc"
+        "name": "AO_Tr_d2p7p10b"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p8p10.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 12319,
+            "end_sector": 12837
           }
         ],
-        "name": "d2p8p10_ddv_AoPc"
+        "name": "AO_Tr_d2p8p10"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p8p10b.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 12838,
+            "end_sector": 13356
           }
         ],
-        "name": "d2p8p10b_ddv_AoPc"
+        "name": "AO_Tr_d2p8p10b"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p9p10.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 13357,
+            "end_sector": 13875
           }
         ],
-        "name": "d2p9p10_ddv_AoPc"
+        "name": "AO_Tr_d2p9p10"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d2p9p10b.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 13876,
+            "end_sector": 14394
           }
         ],
-        "name": "d2p9p10b_ddv_AoPc"
+        "name": "AO_Tr_d2p9p10b"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d7c11c12.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 14914,
+            "end_sector": 15432
           }
         ],
-        "name": "d7c11c12_ddv_AoPc"
+        "name": "AO_Tr_d7c11c12"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "d7c12c11.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 15433,
+            "end_sector": 15951
           }
         ],
-        "name": "d7c12c11_ddv_AoPc"
+        "name": "AO_Tr_d7c12c11"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "Drag.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 37892,
+            "end_sector": 42911
           }
         ],
-        "name": "Drag_ddv_AoPc"
+        "name": "AO_DraggedToMolluck"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "E1P4C8.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "E1.MOV",
+            "start_sector": 3570,
+            "end_sector": 4088
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 21611,
+            "end_sector": 22129
           }
         ],
-        "name": "E1P4C8_ddv_AoPc"
+        "name": "AO_Tr_E1P4C8"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "E2P2R2.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 0,
+            "end_sector": 518
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/E2.MOV",
+            "start_sector": 0,
+            "end_sector": 518
           }
         ],
-        "name": "E2P2R2_ddv_AoPc"
+        "name": "AO_Tr_E2P2R2"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F1p1p2.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F1.MOV",
+            "start_sector": 0,
+            "end_sector": 529
           }
         ],
-        "name": "F1p1p2_ddv_AoPc"
+        "name": "AO_Tr_F1p1p2"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F1P2P1.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F1.MOV",
+            "start_sector": 530,
+            "end_sector": 1059
           }
         ],
-        "name": "F1P2P1_ddv_AoPc"
+        "name": "AO_Tr_F1P2P1"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F1P2P5.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F1.MOV",
+            "start_sector": 1060,
+            "end_sector": 1429
           }
         ],
-        "name": "F1P2P5_ddv_AoPc"
+        "name": "AO_Tr_F1P2P5"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F1P5P2.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F1.MOV",
+            "start_sector": 1430,
+            "end_sector": 1799
           }
         ],
-        "name": "F1P5P2_ddv_AoPc"
+        "name": "AO_Tr_F1P5P2"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F1P5P6.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F1.MOV",
+            "start_sector": 1800,
+            "end_sector": 2318
           }
         ],
-        "name": "F1P5P6_ddv_AoPc"
+        "name": "AO_Tr_F1P5P6"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F1P6P5.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F1.MOV",
+            "start_sector": 2319,
+            "end_sector": 2837
           }
         ],
-        "name": "F1P6P5_ddv_AoPc"
+        "name": "AO_Tr_F1P6P5"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F1P8P9.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F1.MOV",
+            "start_sector": 2838,
+            "end_sector": 3356
           }
         ],
-        "name": "F1P8P9_ddv_AoPc"
+        "name": "AO_Tr_F1P8P9"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F1p9f2.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F1.MOV",
+            "start_sector": 7424,
+            "end_sector": 8883
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 0,
+            "end_sector": 1459
           }
         ],
-        "name": "F1p9f2_ddv_AoPc"
+        "name": "AO_Tr_F1p9f2"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F1P9P8.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F1.MOV",
+            "start_sector": 3357,
+            "end_sector": 3875
           }
         ],
-        "name": "F1P9P8_ddv_AoPc"
+        "name": "AO_Tr_F1P9P8"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P1P8.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 1460,
+            "end_sector": 1978
           }
         ],
-        "name": "F2P1P8_ddv_AoPc"
+        "name": "AO_Tr_F2P1P8"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P2P8.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 1979,
+            "end_sector": 2497
           }
         ],
-        "name": "F2P2P8_ddv_AoPc"
+        "name": "AO_Tr_F2P2P8"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P2P8B.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 2498,
+            "end_sector": 3016
           }
         ],
-        "name": "F2P2P8B_ddv_AoPc"
+        "name": "AO_Tr_F2P2P8B"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2p3p8.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 3017,
+            "end_sector": 3535
           }
         ],
-        "name": "F2p3p8_ddv_AoPc"
+        "name": "AO_Tr_F2p3p8"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2p3p8b.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 3536,
+            "end_sector": 4054
           }
         ],
-        "name": "F2p3p8b_ddv_AoPc"
+        "name": "AO_Tr_F2p3p8b"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P4P8.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 4055,
+            "end_sector": 4573
           }
         ],
-        "name": "F2P4P8_ddv_AoPc"
+        "name": "AO_Tr_F2P4P8"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P4P8B.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 4574,
+            "end_sector": 5092
           }
         ],
-        "name": "F2P4P8B_ddv_AoPc"
+        "name": "AO_Tr_F2P4P8B"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P5P8.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 5093,
+            "end_sector": 5611
           }
         ],
-        "name": "F2P5P8_ddv_AoPc"
+        "name": "AO_Tr_F2P5P8"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P5P8B.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 5612,
+            "end_sector": 6130
           }
         ],
-        "name": "F2P5P8B_ddv_AoPc"
+        "name": "AO_Tr_F2P5P8B"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P6P8.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 6131,
+            "end_sector": 6649
           }
         ],
-        "name": "F2P6P8_ddv_AoPc"
+        "name": "AO_Tr_F2P6P8"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P6P8B.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 6650,
+            "end_sector": 7168
           }
         ],
-        "name": "F2P6P8B_ddv_AoPc"
+        "name": "AO_Tr_F2P6P8B"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P7P8.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 7169,
+            "end_sector": 7687
           }
         ],
-        "name": "F2P7P8_ddv_AoPc"
+        "name": "AO_Tr_F2P7P8"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P7P8B.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 7688,
+            "end_sector": 8206
           }
         ],
-        "name": "F2P7P8B_ddv_AoPc"
+        "name": "AO_Tr_F2P7P8B"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P8F4.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 11321,
+            "end_sector": 11839
           }
         ],
-        "name": "F2P8F4_ddv_AoPc"
+        "name": "AO_Tr_F2P8F4"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P8P2.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 8207,
+            "end_sector": 8725
           }
         ],
-        "name": "F2P8P2_ddv_AoPc"
+        "name": "AO_Tr_F2P8P2"
       },
       {
         "locations": [
@@ -3910,403 +3565,752 @@
             "file": "f2p8p3.ddv"
           }
         ],
-        "name": "f2p8p3_ddv_AoPc"
+        "name": "UNUSED_f2p8p3_ddv_AoPc"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P8P4.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 9245,
+            "end_sector": 9763
           }
         ],
-        "name": "F2P8P4_ddv_AoPc"
+        "name": "AO_Tr_F2P8P4"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P8P5.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 9764,
+            "end_sector": 10282
           }
         ],
-        "name": "F2P8P5_ddv_AoPc"
+        "name": "AO_Tr_F2P8P5"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P8P6.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 10283,
+            "end_sector": 10801
           }
         ],
-        "name": "F2P8P6_ddv_AoPc"
+        "name": "AO_Tr_F2P8P6"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F2P8P7.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 10802,
+            "end_sector": 11320
           }
         ],
-        "name": "F2P8P7_ddv_AoPc"
+        "name": "AO_Tr_F2P8P7"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F4C11C13.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 11840,
+            "end_sector": 12358
           }
         ],
-        "name": "F4C11C13_ddv_AoPc"
+        "name": "AO_Tr_F4C11C13"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "F4C13C11.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 12359,
+            "end_sector": 12877
           }
         ],
-        "name": "F4C13C11_ddv_AoPc"
+        "name": "AO_Tr_F4C13C11"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "GAMEBGN.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "R1.MOV",
+            "start_sector": 33170,
+            "end_sector": 36239
           }
         ],
-        "name": "GAMEBGN_ddv_AoPc"
+        "name": "AO_GameBegin"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "Goodend.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 47082,
+            "end_sector": 59331
           }
         ],
-        "name": "Goodend_ddv_AoPc"
+        "name": "AO_GoodEnding"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "gtddlogo.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "S1.MOV",
+            "start_sector": 0,
+            "end_sector": 1118
           }
         ],
-        "name": "gtddlogo_ddv_AoPc"
+        "name": "AO_IntroGtddlogo"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "Halts.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 2838,
+            "end_sector": 5707
           }
         ],
-        "name": "Halts_ddv_AoPc"
+        "name": "AO_MachineryHalts"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "L1P1C14.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "E1.MOV",
+            "start_sector": 16739,
+            "end_sector": 17257
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 34780,
+            "end_sector": 35298
           }
         ],
-        "name": "L1P1C14_ddv_AoPc"
+        "name": "AO_Tr_L1P1C14"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "L1P1P2.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 0,
+            "end_sector": 669
           }
         ],
-        "name": "L1P1P2_ddv_AoPc"
+        "name": "AO_Tr_L1P1P2"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "L1P2P1.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 670,
+            "end_sector": 1339
           }
         ],
-        "name": "L1P2P1_ddv_AoPc"
+        "name": "AO_Tr_L1P2P1"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "L1P2P3.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 1340,
+            "end_sector": 2309
           }
         ],
-        "name": "L1P2P3_ddv_AoPc"
+        "name": "AO_Tr_L1P2P3"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "L1P3P2.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 2310,
+            "end_sector": 3279
           }
         ],
-        "name": "L1P3P2_ddv_AoPc"
+        "name": "AO_Tr_L1P3P2"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "L1P5C4.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 12439,
+            "end_sector": 12957
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 18227,
+            "end_sector": 18745
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 20972,
+            "end_sector": 21490
           }
         ],
-        "name": "L1P5C4_ddv_AoPc"
+        "name": "AO_Tr_L1P5C4"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "L1P5P6.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 3280,
+            "end_sector": 3949
           }
         ],
-        "name": "L1P5P6_ddv_AoPc"
+        "name": "AO_Tr_L1P5P6"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "L1P6E2.ddv"
+          },
+          {
+            "dataset": "AoPc",
+            "file": "li1p6e2.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 21092,
+            "end_sector": 21610
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/E2.MOV",
+            "start_sector": 519,
+            "end_sector": 1037
           }
         ],
-        "name": "L1P6E2_ddv_AoPc"
+        "name": "AO_Tr_L1P6E2"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "L1P6P5.ddv"
-          }
-        ],
-        "name": "L1P6P5_ddv_AoPc"
-      },
-      {
-        "locations": [
+          },
           {
-            "dataset": "AoPc",
-            "file": "li1p6e2.ddv"
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 3950,
+            "end_sector": 4619
           }
         ],
-        "name": "li1p6e2_ddv_AoPc"
+        "name": "AO_Tr_L1P6P5"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "logoint.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "S1.MOV",
+            "start_sector": 1119,
+            "end_sector": 6988
           }
         ],
-        "name": "logoint_ddv_AoPc"
+        "name": "AO_introOWI"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "LP1C15C3.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 18497,
+            "end_sector": 19015
           }
         ],
-        "name": "LP1C15C3_ddv_AoPc"
+        "name": "AO_Tr_LP1C15C3"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "LP1C16C3.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 19535,
+            "end_sector": 20053
           }
         ],
-        "name": "LP1C16C3_ddv_AoPc"
+        "name": "AO_Tr_LP1C16C3"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "LP1C3C15.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 17978,
+            "end_sector": 18496
           }
         ],
-        "name": "LP1C3C15_ddv_AoPc"
+        "name": "AO_Tr_LP1C3C15"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "LP1C3C16.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 19016,
+            "end_sector": 19534
           }
         ],
-        "name": "LP1C3C16_ddv_AoPc"
+        "name": "AO_Tr_LP1C3C16"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "LP5C3C4.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 20054,
+            "end_sector": 20572
           }
         ],
-        "name": "LP5C3C4_ddv_AoPc"
+        "name": "AO_Tr_LP5C3C4"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "LP5C4C3.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 20573,
+            "end_sector": 21091
           }
         ],
-        "name": "LP5C4C3_ddv_AoPc"
+        "name": "AO_Tr_LP5C4C3"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "Mollock.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 519,
+            "end_sector": 2837
           }
         ],
-        "name": "Mollock_ddv_AoPc"
+        "name": "AO_Tr_Molluck"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "moon.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 22130,
+            "end_sector": 34779
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "E1.MOV",
+            "start_sector": 4089,
+            "end_sector": 16738
           }
         ],
-        "name": "moon_ddv_AoPc"
+        "name": "AO_Moon"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "PARAMITE.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 12958,
+            "end_sector": 15467
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F1.MOV",
+            "start_sector": 3876,
+            "end_sector": 4394
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F1.MOV",
+            "start_sector": 4395,
+            "end_sector": 6904
           }
         ],
-        "name": "PARAMITE_ddv_AoPc"
+        "name": "AO_ParamoniaWell"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "PARSCAR.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "F2.MOV",
+            "start_sector": 12878,
+            "end_sector": 15676
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 7090,
+            "end_sector": 9888
           }
         ],
-        "name": "PARSCAR_ddv_AoPc"
+        "name": "AO_ParamiteScar"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "R1P11P6.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 5708,
+            "end_sector": 6226
           }
         ],
-        "name": "R1P11P6_ddv_AoPc"
+        "name": "AO_Tr_R1P11P6"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "R1p13p1.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 23990,
+            "end_sector": 27089
           }
         ],
-        "name": "R1p13p1_ddv_AoPc"
+        "name": "AO_Tr_R1p13p1"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "r1p13p14.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 27094,
+            "end_sector": 30193
           }
         ],
-        "name": "r1p13p14_ddv_AoPc"
+        "name": "AO_Tr_r1p13p14"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "r1p14p13.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 30198,
+            "end_sector": 33297
           }
         ],
-        "name": "r1p14p13_ddv_AoPc"
+        "name": "AO_Tr_r1p14p13"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "R1p18p1.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 17686,
+            "end_sector": 20884
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 6746,
+            "end_sector": 9944
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "R1.MOV",
+            "start_sector": 42656,
+            "end_sector": 45854
           }
         ],
-        "name": "R1p18p1_ddv_AoPc"
+        "name": "AO_Tr_R1p18p1"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "R1P18P19.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "R1.MOV",
+            "start_sector": 41316,
+            "end_sector": 41985
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 13146,
+            "end_sector": 13815
           }
         ],
-        "name": "R1P18P19_ddv_AoPc"
+        "name": "AO_Tr_R1P18P19"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "R1P19P18.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "R1.MOV",
+            "start_sector": 41986,
+            "end_sector": 42655
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 13816,
+            "end_sector": 14485
           }
         ],
-        "name": "R1P19P18_ddv_AoPc"
+        "name": "AO_Tr_R1P19P18"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "R1P1P13.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 20886,
+            "end_sector": 23985
           }
         ],
-        "name": "R1P1P13_ddv_AoPc"
+        "name": "AO_Tr_R1P1P13"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "R1p1p18.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 9946,
+            "end_sector": 13144
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "R1.MOV",
+            "start_sector": 45856,
+            "end_sector": 49054
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 14486,
+            "end_sector": 17684
           }
         ],
-        "name": "R1p1p18_ddv_AoPc"
+        "name": "AO_Tr_R1p1p18"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "R1P6P11.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/R2.MOV",
+            "start_sector": 6227,
+            "end_sector": 6745
           }
         ],
-        "name": "R1P6P11_ddv_AoPc"
+        "name": "AO_Tr_R1P6P11"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "Scrab.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 15468,
+            "end_sector": 17977
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D1.MOV",
+            "start_sector": 7739,
+            "end_sector": 10248
           }
         ],
-        "name": "Scrab_ddv_AoPc"
+        "name": "AO_ScrabaniaWell"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "ScrScar.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "P2/D2.MOV",
+            "start_sector": 15952,
+            "end_sector": 18421
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "L1.MOV",
+            "start_sector": 4620,
+            "end_sector": 7089
           }
         ],
-        "name": "ScrScar_ddv_AoPc"
+        "name": "AO_ScrabScar"
       },
       {
         "locations": [
           {
             "dataset": "AoPc",
             "file": "xaosopen.ddv"
+          },
+          {
+            "dataset": "AoPsx",
+            "file": "S1.MOV",
+            "start_sector": 6989,
+            "end_sector": 7507
           }
         ],
-        "name": "xaosopen_ddv_AoPc"
+        "name": "AO_MainMenuIntro"
       },
       {
         "locations": [
@@ -4348,705 +4352,12 @@
         "locations": [
           {
             "dataset": "AoPsx",
-            "file": "S1.MOV",
-            "start_sector": 0,
-            "end_sector": 1118
-          }
-        ],
-        "name": "S1_MOV_0_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "S1.MOV",
-            "start_sector": 1119,
-            "end_sector": 6988
-          }
-        ],
-        "name": "S1_MOV_1_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "S1.MOV",
-            "start_sector": 6989,
-            "end_sector": 7507
-          }
-        ],
-        "name": "S1_MOV_2_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "R1.MOV",
-            "start_sector": 0,
-            "end_sector": 33169
-          }
-        ],
-        "name": "R1_MOV_0_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "R1.MOV",
-            "start_sector": 33170,
-            "end_sector": 36239
-          }
-        ],
-        "name": "R1_MOV_1_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "R1.MOV",
-            "start_sector": 36240,
-            "end_sector": 41315
-          }
-        ],
-        "name": "R1_MOV_2_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "R1.MOV",
-            "start_sector": 41316,
-            "end_sector": 41985
-          }
-        ],
-        "name": "R1_MOV_3_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "R1.MOV",
-            "start_sector": 41986,
-            "end_sector": 42655
-          }
-        ],
-        "name": "R1_MOV_4_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "R1.MOV",
-            "start_sector": 42656,
-            "end_sector": 45854
-          }
-        ],
-        "name": "R1_MOV_5_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "R1.MOV",
-            "start_sector": 45856,
-            "end_sector": 49054
-          }
-        ],
-        "name": "R1_MOV_6_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "R1.MOV",
-            "start_sector": 49056,
-            "end_sector": 52625
-          }
-        ],
-        "name": "R1_MOV_7_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "E1.MOV",
-            "start_sector": 0,
-            "end_sector": 3569
-          }
-        ],
-        "name": "E1_MOV_0_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "E1.MOV",
-            "start_sector": 3570,
-            "end_sector": 4088
-          }
-        ],
-        "name": "E1_MOV_1_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "E1.MOV",
-            "start_sector": 4089,
-            "end_sector": 16738
-          }
-        ],
-        "name": "E1_MOV_2_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "E1.MOV",
-            "start_sector": 16739,
-            "end_sector": 17257
-          }
-        ],
-        "name": "E1_MOV_3_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 0,
-            "end_sector": 669
-          }
-        ],
-        "name": "L1_MOV_0_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 670,
-            "end_sector": 1339
-          }
-        ],
-        "name": "L1_MOV_1_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 1340,
-            "end_sector": 2309
-          }
-        ],
-        "name": "L1_MOV_2_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 2310,
-            "end_sector": 3279
-          }
-        ],
-        "name": "L1_MOV_3_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 3280,
-            "end_sector": 3949
-          }
-        ],
-        "name": "L1_MOV_4_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 3950,
-            "end_sector": 4619
-          }
-        ],
-        "name": "L1_MOV_5_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 4620,
-            "end_sector": 7089
-          }
-        ],
-        "name": "L1_MOV_6_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 7090,
-            "end_sector": 9888
-          }
-        ],
-        "name": "L1_MOV_7_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 9889,
-            "end_sector": 12438
-          }
-        ],
-        "name": "L1_MOV_8_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 12439,
-            "end_sector": 12957
-          }
-        ],
-        "name": "L1_MOV_9_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 12958,
-            "end_sector": 15467
-          }
-        ],
-        "name": "L1_MOV_10_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 15468,
-            "end_sector": 17977
-          }
-        ],
-        "name": "L1_MOV_11_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 17978,
-            "end_sector": 18496
-          }
-        ],
-        "name": "L1_MOV_12_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 18497,
-            "end_sector": 19015
-          }
-        ],
-        "name": "L1_MOV_13_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 19016,
-            "end_sector": 19534
-          }
-        ],
-        "name": "L1_MOV_14_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 19535,
-            "end_sector": 20053
-          }
-        ],
-        "name": "L1_MOV_15_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 20054,
-            "end_sector": 20572
-          }
-        ],
-        "name": "L1_MOV_16_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 20573,
-            "end_sector": 21091
-          }
-        ],
-        "name": "L1_MOV_17_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 21092,
-            "end_sector": 21610
-          }
-        ],
-        "name": "L1_MOV_18_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 21611,
-            "end_sector": 22129
-          }
-        ],
-        "name": "L1_MOV_19_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 22130,
-            "end_sector": 34779
-          }
-        ],
-        "name": "L1_MOV_20_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "L1.MOV",
-            "start_sector": 34780,
-            "end_sector": 35298
-          }
-        ],
-        "name": "L1_MOV_21_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F1.MOV",
-            "start_sector": 0,
-            "end_sector": 529
-          }
-        ],
-        "name": "F1_MOV_0_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F1.MOV",
-            "start_sector": 530,
-            "end_sector": 1059
-          }
-        ],
-        "name": "F1_MOV_1_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F1.MOV",
-            "start_sector": 1060,
-            "end_sector": 1429
-          }
-        ],
-        "name": "F1_MOV_2_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F1.MOV",
-            "start_sector": 1430,
-            "end_sector": 1799
-          }
-        ],
-        "name": "F1_MOV_3_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F1.MOV",
-            "start_sector": 1800,
-            "end_sector": 2318
-          }
-        ],
-        "name": "F1_MOV_4_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F1.MOV",
-            "start_sector": 2319,
-            "end_sector": 2837
-          }
-        ],
-        "name": "F1_MOV_5_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F1.MOV",
-            "start_sector": 2838,
-            "end_sector": 3356
-          }
-        ],
-        "name": "F1_MOV_6_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F1.MOV",
-            "start_sector": 3357,
-            "end_sector": 3875
-          }
-        ],
-        "name": "F1_MOV_7_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F1.MOV",
-            "start_sector": 3876,
-            "end_sector": 4394
-          }
-        ],
-        "name": "F1_MOV_8_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F1.MOV",
-            "start_sector": 4395,
-            "end_sector": 6904
-          }
-        ],
-        "name": "F1_MOV_9_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
             "file": "F1.MOV",
             "start_sector": 6905,
             "end_sector": 7423
           }
         ],
-        "name": "F1_MOV_10_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F1.MOV",
-            "start_sector": 7424,
-            "end_sector": 8883
-          }
-        ],
-        "name": "F1_MOV_11_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 0,
-            "end_sector": 1459
-          }
-        ],
-        "name": "F2_MOV_0_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 1460,
-            "end_sector": 1978
-          }
-        ],
-        "name": "F2_MOV_1_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 1979,
-            "end_sector": 2497
-          }
-        ],
-        "name": "F2_MOV_2_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 2498,
-            "end_sector": 3016
-          }
-        ],
-        "name": "F2_MOV_3_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 3017,
-            "end_sector": 3535
-          }
-        ],
-        "name": "F2_MOV_4_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 3536,
-            "end_sector": 4054
-          }
-        ],
-        "name": "F2_MOV_5_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 4055,
-            "end_sector": 4573
-          }
-        ],
-        "name": "F2_MOV_6_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 4574,
-            "end_sector": 5092
-          }
-        ],
-        "name": "F2_MOV_7_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 5093,
-            "end_sector": 5611
-          }
-        ],
-        "name": "F2_MOV_8_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 5612,
-            "end_sector": 6130
-          }
-        ],
-        "name": "F2_MOV_9_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 6131,
-            "end_sector": 6649
-          }
-        ],
-        "name": "F2_MOV_10_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 6650,
-            "end_sector": 7168
-          }
-        ],
-        "name": "F2_MOV_11_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 7169,
-            "end_sector": 7687
-          }
-        ],
-        "name": "F2_MOV_12_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 7688,
-            "end_sector": 8206
-          }
-        ],
-        "name": "F2_MOV_13_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 8207,
-            "end_sector": 8725
-          }
-        ],
-        "name": "F2_MOV_14_AoPsx"
+        "name": "UNUSED_F1_MOV_10_AoPsx"
       },
       {
         "locations": [
@@ -5057,183 +4368,7 @@
             "end_sector": 9244
           }
         ],
-        "name": "F2_MOV_15_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 9245,
-            "end_sector": 9763
-          }
-        ],
-        "name": "F2_MOV_16_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 9764,
-            "end_sector": 10282
-          }
-        ],
-        "name": "F2_MOV_17_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 10283,
-            "end_sector": 10801
-          }
-        ],
-        "name": "F2_MOV_18_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 10802,
-            "end_sector": 11320
-          }
-        ],
-        "name": "F2_MOV_19_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 11321,
-            "end_sector": 11839
-          }
-        ],
-        "name": "F2_MOV_20_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 11840,
-            "end_sector": 12358
-          }
-        ],
-        "name": "F2_MOV_21_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 12359,
-            "end_sector": 12877
-          }
-        ],
-        "name": "F2_MOV_22_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 12878,
-            "end_sector": 15676
-          }
-        ],
-        "name": "F2_MOV_23_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 15677,
-            "end_sector": 18226
-          }
-        ],
-        "name": "F2_MOV_24_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "F2.MOV",
-            "start_sector": 18227,
-            "end_sector": 18745
-          }
-        ],
-        "name": "F2_MOV_25_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D1.MOV",
-            "start_sector": 0,
-            "end_sector": 969
-          }
-        ],
-        "name": "P2_D1_MOV_0_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D1.MOV",
-            "start_sector": 970,
-            "end_sector": 1939
-          }
-        ],
-        "name": "P2_D1_MOV_1_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D1.MOV",
-            "start_sector": 1940,
-            "end_sector": 2909
-          }
-        ],
-        "name": "P2_D1_MOV_2_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D1.MOV",
-            "start_sector": 2910,
-            "end_sector": 3879
-          }
-        ],
-        "name": "P2_D1_MOV_3_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D1.MOV",
-            "start_sector": 3880,
-            "end_sector": 5549
-          }
-        ],
-        "name": "P2_D1_MOV_4_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D1.MOV",
-            "start_sector": 5550,
-            "end_sector": 7219
-          }
-        ],
-        "name": "P2_D1_MOV_5_AoPsx"
+        "name": "UNUSED_F2_MOV_15_AoPsx"
       },
       {
         "locations": [
@@ -5244,18 +4379,7 @@
             "end_sector": 7738
           }
         ],
-        "name": "P2_D1_MOV_6_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D1.MOV",
-            "start_sector": 7739,
-            "end_sector": 10248
-          }
-        ],
-        "name": "P2_D1_MOV_7_AoPsx"
+        "name": "UNUSED_P2_D1_MOV_6_AoPsx"
       },
       {
         "locations": [
@@ -5266,557 +4390,7 @@
             "end_sector": 10767
           }
         ],
-        "name": "P2_D1_MOV_8_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D1.MOV",
-            "start_sector": 10768,
-            "end_sector": 12187
-          }
-        ],
-        "name": "P2_D1_MOV_9_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 0,
-            "end_sector": 1419
-          }
-        ],
-        "name": "P2_D2_MOV_0_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 1420,
-            "end_sector": 1938
-          }
-        ],
-        "name": "P2_D2_MOV_1_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 1939,
-            "end_sector": 2457
-          }
-        ],
-        "name": "P2_D2_MOV_2_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 2458,
-            "end_sector": 2976
-          }
-        ],
-        "name": "P2_D2_MOV_3_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 2977,
-            "end_sector": 3495
-          }
-        ],
-        "name": "P2_D2_MOV_4_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 3496,
-            "end_sector": 4014
-          }
-        ],
-        "name": "P2_D2_MOV_5_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 4015,
-            "end_sector": 4533
-          }
-        ],
-        "name": "P2_D2_MOV_6_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 4534,
-            "end_sector": 5052
-          }
-        ],
-        "name": "P2_D2_MOV_7_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 5053,
-            "end_sector": 5571
-          }
-        ],
-        "name": "P2_D2_MOV_8_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 5572,
-            "end_sector": 6090
-          }
-        ],
-        "name": "P2_D2_MOV_9_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 6091,
-            "end_sector": 6609
-          }
-        ],
-        "name": "P2_D2_MOV_10_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 6610,
-            "end_sector": 7128
-          }
-        ],
-        "name": "P2_D2_MOV_11_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 7129,
-            "end_sector": 7647
-          }
-        ],
-        "name": "P2_D2_MOV_12_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 7648,
-            "end_sector": 8166
-          }
-        ],
-        "name": "P2_D2_MOV_13_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 8167,
-            "end_sector": 8685
-          }
-        ],
-        "name": "P2_D2_MOV_14_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 8686,
-            "end_sector": 9204
-          }
-        ],
-        "name": "P2_D2_MOV_15_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 9205,
-            "end_sector": 9723
-          }
-        ],
-        "name": "P2_D2_MOV_16_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 9724,
-            "end_sector": 10242
-          }
-        ],
-        "name": "P2_D2_MOV_17_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 10243,
-            "end_sector": 10761
-          }
-        ],
-        "name": "P2_D2_MOV_18_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 10762,
-            "end_sector": 11280
-          }
-        ],
-        "name": "P2_D2_MOV_19_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 11281,
-            "end_sector": 11799
-          }
-        ],
-        "name": "P2_D2_MOV_20_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 11800,
-            "end_sector": 12318
-          }
-        ],
-        "name": "P2_D2_MOV_21_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 12319,
-            "end_sector": 12837
-          }
-        ],
-        "name": "P2_D2_MOV_22_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 12838,
-            "end_sector": 13356
-          }
-        ],
-        "name": "P2_D2_MOV_23_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 13357,
-            "end_sector": 13875
-          }
-        ],
-        "name": "P2_D2_MOV_24_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 13876,
-            "end_sector": 14394
-          }
-        ],
-        "name": "P2_D2_MOV_25_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 14395,
-            "end_sector": 14913
-          }
-        ],
-        "name": "P2_D2_MOV_26_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 14914,
-            "end_sector": 15432
-          }
-        ],
-        "name": "P2_D2_MOV_27_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 15433,
-            "end_sector": 15951
-          }
-        ],
-        "name": "P2_D2_MOV_28_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 15952,
-            "end_sector": 18421
-          }
-        ],
-        "name": "P2_D2_MOV_29_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 18422,
-            "end_sector": 20971
-          }
-        ],
-        "name": "P2_D2_MOV_30_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/D2.MOV",
-            "start_sector": 20972,
-            "end_sector": 21490
-          }
-        ],
-        "name": "P2_D2_MOV_31_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/E2.MOV",
-            "start_sector": 0,
-            "end_sector": 518
-          }
-        ],
-        "name": "P2_E2_MOV_0_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/E2.MOV",
-            "start_sector": 519,
-            "end_sector": 1037
-          }
-        ],
-        "name": "P2_E2_MOV_1_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 0,
-            "end_sector": 518
-          }
-        ],
-        "name": "P2_R2_MOV_0_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 519,
-            "end_sector": 2837
-          }
-        ],
-        "name": "P2_R2_MOV_1_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 2838,
-            "end_sector": 5707
-          }
-        ],
-        "name": "P2_R2_MOV_2_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 5708,
-            "end_sector": 6226
-          }
-        ],
-        "name": "P2_R2_MOV_3_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 6227,
-            "end_sector": 6745
-          }
-        ],
-        "name": "P2_R2_MOV_4_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 6746,
-            "end_sector": 9944
-          }
-        ],
-        "name": "P2_R2_MOV_5_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 9946,
-            "end_sector": 13144
-          }
-        ],
-        "name": "P2_R2_MOV_6_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 13146,
-            "end_sector": 13815
-          }
-        ],
-        "name": "P2_R2_MOV_7_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 13816,
-            "end_sector": 14485
-          }
-        ],
-        "name": "P2_R2_MOV_8_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 14486,
-            "end_sector": 17684
-          }
-        ],
-        "name": "P2_R2_MOV_9_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 17686,
-            "end_sector": 20884
-          }
-        ],
-        "name": "P2_R2_MOV_10_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 20886,
-            "end_sector": 23985
-          }
-        ],
-        "name": "P2_R2_MOV_11_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 23990,
-            "end_sector": 27089
-          }
-        ],
-        "name": "P2_R2_MOV_12_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 27094,
-            "end_sector": 30193
-          }
-        ],
-        "name": "P2_R2_MOV_13_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 30198,
-            "end_sector": 33297
-          }
-        ],
-        "name": "P2_R2_MOV_14_AoPsx"
+        "name": "UNUSED_P2_D1_MOV_8_AoPsx"
       },
       {
         "locations": [
@@ -5827,51 +4401,7 @@
             "end_sector": 37891
           }
         ],
-        "name": "P2_R2_MOV_15_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 37892,
-            "end_sector": 42911
-          }
-        ],
-        "name": "P2_R2_MOV_16_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 42912,
-            "end_sector": 47081
-          }
-        ],
-        "name": "P2_R2_MOV_17_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 47082,
-            "end_sector": 59331
-          }
-        ],
-        "name": "P2_R2_MOV_18_AoPsx"
-      },
-      {
-        "locations": [
-          {
-            "dataset": "AoPsx",
-            "file": "P2/R2.MOV",
-            "start_sector": 59332,
-            "end_sector": 92501
-          }
-        ],
-        "name": "P2_R2_MOV_19_AoPsx"
+        "name": "AO_GuardianAngel"
       },
       {
         "locations": [

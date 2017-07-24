@@ -598,7 +598,7 @@ void Fmv::Play(const std::string& name)
             mFmv->Stop();
         }
 
-        mFmv = mResourceLocator.LocateFmv(mAudioController, name.c_str());
+        mFmv = mResourceLocator.LocateFmv(mAudioController, name.c_str(), mDebugMapping);
         
         if (mFmv)
         {
@@ -666,45 +666,96 @@ void Fmv::Render(AbstractRenderer& rend)
 void Fmv::DebugUi()
 {
     static char mFilterString[64] = {};
+    static std::vector<std::pair<std::string, ResourceMapper::FmvMapping>> mListBoxItems;
     static int mListBoxSelectedItem = -1;
-    static std::vector<const char*> mListBoxItems;
 
     if (ImGui::CollapsingHeader("Video player"))
     {
-        bool rebuild = false;
-        if (ImGui::InputText("Filter", mFilterString, sizeof(mFilterString)))
-        {
-            rebuild = true;
-        }
+        ImGui::SetNextWindowPos(ImVec2(120, 120), ImGuiSetCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiSetCond_FirstUseEver);
 
-        if (rebuild || mListBoxItems.empty())
+        // left
+        ImGui::BeginChild("left pane", ImVec2(250, 0), true);
         {
-            mListBoxItems.clear();
-            mListBoxItems.reserve(mResourceLocator.mResMapper.mFmvMaps.size());
-
-            for (const auto& fmv : mResourceLocator.mResMapper.mFmvMaps)
+            bool rebuild = false;
+            if (ImGui::InputText("Filter", mFilterString, sizeof(mFilterString)))
             {
-                if (string_util::StringFilter(fmv.first.c_str(), mFilterString))
+                rebuild = true;
+                mListBoxSelectedItem = -1;
+            }
+
+            if (rebuild || mListBoxItems.empty())
+            {
+                mListBoxItems.clear();
+                mListBoxItems.reserve(mResourceLocator.mResMapper.mFmvMaps.size());
+
+                for (const auto& fmv : mResourceLocator.mResMapper.mFmvMaps)
                 {
-                    mListBoxItems.emplace_back(fmv.first.c_str());
+                    if (string_util::StringFilter(fmv.first.c_str(), mFilterString))
+                    {
+                        mListBoxItems.emplace_back(fmv);
+                    }
                 }
             }
-        }
 
-        for (size_t i = 0; i < mListBoxItems.size(); i++)
-        {
-            if (ImGui::Selectable(mListBoxItems[i], static_cast<int>(i) == mListBoxSelectedItem))
+            for (size_t i = 0; i < mListBoxItems.size(); i++)
             {
-                mListBoxSelectedItem = static_cast<int>(i);
+                if (ImGui::Selectable(mListBoxItems[i].first.c_str(), static_cast<int>(i) == mListBoxSelectedItem))
+                {
+                    mListBoxSelectedItem = static_cast<int>(i);
+                }
             }
+            ImGui::EndChild();
         }
+        ImGui::SameLine();
 
-        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
+        // right
+        ImGui::BeginGroup();
         {
-            const std::string fmvName = mListBoxItems[mListBoxSelectedItem];
-            mListBoxSelectedItem = -1;
+            ImGui::BeginChild("item view");
+            {
+                if (mListBoxSelectedItem > 0)
+                {
+                    ImGui::TextWrapped("Resource name: %s", mListBoxItems[mListBoxSelectedItem].first.c_str());
 
-            SquirrelVm::CompileAndRun("DebugPlayMovie.nut", "gEngine.PlayFmv(\"" + fmvName + "\");");
+                    if (ImGui::CollapsingHeader("Locations"))
+                    {
+                        
+                        for (const ResourceMapper::FmvFileLocation& mapping : mListBoxItems[mListBoxSelectedItem].second.mLocations)
+                        {
+                            std::string name = mapping.mDataSetName + "_" + mapping.mFileName;
+                            if (mapping.mStartSector || mapping.mEndSector)
+                            {
+                                name += " Sectors (" + std::to_string(mapping.mStartSector) + ", " + std::to_string(mapping.mEndSector) + ")";
+                            }
+
+                            if (ImGui::Selectable(name.c_str()))
+                            {
+                                const std::string fmvName = mListBoxItems[mListBoxSelectedItem].first;
+                                mDebugMapping = &mapping;
+                                SquirrelVm::CompileAndRun("DebugPlayMovie.nut", "gEngine.PlayFmv(\"" + fmvName + "\");");
+                                mDebugMapping = nullptr;
+                            }
+                        }
+                    }
+         
+                    if (ImGui::Button("Play (default)"))
+                    {
+                        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
+                        {
+                            const std::string fmvName = mListBoxItems[mListBoxSelectedItem].first;
+                            SquirrelVm::CompileAndRun("DebugPlayMovie.nut", "gEngine.PlayFmv(\"" + fmvName + "\");");
+                            mDebugMapping = nullptr;
+                        }
+                    }
+                }
+                else
+                {
+                    ImGui::TextWrapped("Click an item to display its info");
+                }
+            }
+            ImGui::EndChild();
         }
+        ImGui::EndGroup();
     }
 }

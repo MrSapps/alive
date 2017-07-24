@@ -9,6 +9,7 @@
 #include "core/audiobuffer.hpp"
 #include "subtitles.hpp"
 #include "stdthread.h"
+#include "resourcemapper.hpp"
 #include <functional>
 
 class GameData;
@@ -91,4 +92,7 @@ protected:
     IAudioController& mAudioController;
     std::unique_ptr<class IMovie> mFmv;
     std::string mFmvName;
+
+    // To play an FMV from a specfic location for debugging
+    const ResourceMapper::FmvFileLocation* mDebugMapping = nullptr;
 };
