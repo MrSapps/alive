@@ -28,8 +28,6 @@ struct Debug
         {
 
         }
-        bool soundBrowserOpen = true;
-        bool levelBrowserOpen;
         bool animationBrowserOpen;
     };
 

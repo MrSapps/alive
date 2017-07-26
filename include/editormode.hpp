@@ -42,11 +42,7 @@ private:
 class UndoStack
 {
 public:
-    UndoStack(s32 stackLimit = -1)
-        : mStackLimit(stackLimit)
-    {
-
-    }
+    UndoStack(s32 stackLimit = -1);
 
     template<class T, class... Args>
     void PushMerge(bool shouldMerge, Args&&... args)

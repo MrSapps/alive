@@ -362,6 +362,11 @@ Sound::Sound(IAudioController& audioController, ResourceLocator& locator, OSBase
     : mAudioController(audioController), mLocator(locator), mCache(fs), mScriptInstance("gSound", this)
 {
     mAudioController.AddPlayer(this);
+
+    Debugging().AddSection([&]()
+    {
+        SoundBrowserUi();
+    });
 }
 
 Sound::~Sound()
@@ -375,43 +380,6 @@ Sound::~Sound()
 
 void Sound::Update()
 {
-    if (Debugging().mBrowserUi.soundBrowserOpen)
-    {
-        {
-            std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
-            if (!mSoundPlayers.empty())
-            {
-                mSoundPlayers[0]->DebugUi();
-            }
-
-            if (ImGui::Begin("Active SEQs"))
-            {
-                if (mAmbiance)
-                {
-                   ImGui::Text("Ambiance: %s", mAmbiance->Name().c_str());
-                }
-
-                if (mMusicTrack)
-                {
-                    ImGui::Text("Music: %s", mMusicTrack->Name().c_str());
-                }
-
-                int i = 0;
-                for (auto& player : mSoundPlayers)
-                {
-                    i++;
-                    if (ImGui::Button((std::to_string(i) + player->Name()).c_str()))
-                    {
-                        // TODO: Kill whatever this SEQ is
-                    }
-                }
-            }
-            ImGui::End();
-        }
-
-        SoundBrowserUi();
-    }
-
     std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
     for (auto it = mSoundPlayers.begin(); it != mSoundPlayers.end();)
     {
@@ -470,75 +438,85 @@ static const char* kMusicEvents[] =
 
 void Sound::SoundBrowserUi()
 {
-    ImGui::SetNextWindowPos(ImVec2(120, 120), ImGuiSetCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiSetCond_FirstUseEver);
-    ImGui::Begin("Sound list");
-
-    static const SoundResource* selected = nullptr;
-
-    // left
-    ImGui::BeginChild("left pane", ImVec2(200, 0), true);
     {
-        for (const SoundResource& soundInfo : mLocator.GetSoundResources())
+        std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
+        if (!mSoundPlayers.empty())
         {
-            if (ImGui::Selectable(soundInfo.mResourceName.c_str()))
+            mSoundPlayers[0]->DebugUi();
+        }
+
+        if (ImGui::CollapsingHeader("Active SEQs"))
+        {
+            if (mAmbiance)
             {
-                selected = &soundInfo;
+                ImGui::Text("Ambiance: %s", mAmbiance->Name().c_str());
+            }
+
+            if (mMusicTrack)
+            {
+                ImGui::Text("Music: %s", mMusicTrack->Name().c_str());
+            }
+
+            int i = 0;
+            for (auto& player : mSoundPlayers)
+            {
+                i++;
+                if (ImGui::Button((std::to_string(i) + player->Name()).c_str()))
+                {
+                    // TODO: Kill whatever this SEQ is
+                }
             }
         }
-        ImGui::EndChild();
     }
-    ImGui::SameLine();
 
-    // right
-    ImGui::BeginGroup();
+    ImGui::SetNextWindowPos(ImVec2(120, 120), ImGuiSetCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiSetCond_FirstUseEver);
+    if (ImGui::CollapsingHeader("Sound list"))
     {
-        ImGui::BeginChild("item view");
+        static const SoundResource* selected = nullptr;
+
+        // left
+        ImGui::BeginChild("left pane", ImVec2(200, 0), true);
         {
-            if (selected)
+            for (const SoundResource& soundInfo : mLocator.GetSoundResources())
             {
-                ImGui::TextWrapped("Resource name: %s", selected->mResourceName.c_str());
-                ImGui::Separator();
-                ImGui::TextWrapped("Comment: %s", selected->mComment.empty() ? "(none)" : selected->mComment.c_str());
-                ImGui::Separator();
-                ImGui::TextWrapped("Is memory resident: %s", selected->mIsCacheResident ? "true" : "false");
-                ImGui::TextWrapped("Is cached: %s", mCache.ExistsInMemoryCache(selected->mResourceName) ? "true" : "false");
-
-                static bool bUseCache = false;
-                ImGui::Checkbox("Use cache", &bUseCache);
-
-                const bool bHasMusic = !selected->mMusic.mSoundBanks.empty();
-                const bool bHasSample = !selected->mSoundEffect.mSoundBanks.empty();
-                if (bHasMusic)
+                if (ImGui::Selectable(soundInfo.mResourceName.c_str()))
                 {
-                    if (ImGui::CollapsingHeader("SEQs"))
-                    {
-                        for (const std::string& sb : selected->mMusic.mSoundBanks)
-                        {
-                            if (ImGui::Selectable(sb.c_str()))
-                            {
-                                auto player = PlaySound(selected->mResourceName.c_str(), sb.c_str(), true, false, bUseCache);
-                                if (player)
-                                {
-                                    std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
-                                    mSoundPlayers.push_back(std::move(player));
-                                }
-                            }
-                        }
-                    }
+                    selected = &soundInfo;
                 }
+            }
+            ImGui::EndChild();
+        }
+        ImGui::SameLine();
 
-                if (bHasSample)
+        // right
+        ImGui::BeginGroup();
+        {
+            ImGui::BeginChild("item view");
+            {
+                if (selected)
                 {
-                    if (ImGui::CollapsingHeader("Samples"))
+                    ImGui::TextWrapped("Resource name: %s", selected->mResourceName.c_str());
+                    ImGui::Separator();
+                    ImGui::TextWrapped("Comment: %s", selected->mComment.empty() ? "(none)" : selected->mComment.c_str());
+                    ImGui::Separator();
+                    ImGui::TextWrapped("Is memory resident: %s", selected->mIsCacheResident ? "true" : "false");
+                    ImGui::TextWrapped("Is cached: %s", mCache.ExistsInMemoryCache(selected->mResourceName) ? "true" : "false");
+
+                    static bool bUseCache = false;
+                    ImGui::Checkbox("Use cache", &bUseCache);
+
+                    const bool bHasMusic = !selected->mMusic.mSoundBanks.empty();
+                    const bool bHasSample = !selected->mSoundEffect.mSoundBanks.empty();
+                    if (bHasMusic)
                     {
-                        for (const SoundEffectResourceLocation& sbLoc : selected->mSoundEffect.mSoundBanks)
+                        if (ImGui::CollapsingHeader("SEQs"))
                         {
-                            for (const std::string& sb : sbLoc.mSoundBanks)
+                            for (const std::string& sb : selected->mMusic.mSoundBanks)
                             {
                                 if (ImGui::Selectable(sb.c_str()))
                                 {
-                                    auto player = PlaySound(selected->mResourceName.c_str(), sb.c_str(), false, true, bUseCache);
+                                    auto player = PlaySound(selected->mResourceName.c_str(), sb.c_str(), true, false, bUseCache);
                                     if (player)
                                     {
                                         std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
@@ -548,45 +526,63 @@ void Sound::SoundBrowserUi()
                             }
                         }
                     }
-                }
 
-                if (ImGui::Button("Play (cached/scripted)"))
+                    if (bHasSample)
+                    {
+                        if (ImGui::CollapsingHeader("Samples"))
+                        {
+                            for (const SoundEffectResourceLocation& sbLoc : selected->mSoundEffect.mSoundBanks)
+                            {
+                                for (const std::string& sb : sbLoc.mSoundBanks)
+                                {
+                                    if (ImGui::Selectable(sb.c_str()))
+                                    {
+                                        auto player = PlaySound(selected->mResourceName.c_str(), sb.c_str(), false, true, bUseCache);
+                                        if (player)
+                                        {
+                                            std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
+                                            mSoundPlayers.push_back(std::move(player));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (ImGui::Button("Play (cached/scripted)"))
+                    {
+                        PlaySoundScript(selected->mResourceName.c_str());
+                    }
+                }
+                else
                 {
-                    PlaySoundScript(selected->mResourceName.c_str());
+                    ImGui::TextWrapped("Click an item to display its info");
                 }
             }
-            else
+            ImGui::EndChild();
+        }
+        ImGui::EndGroup();
+    }
+
+    if (ImGui::CollapsingHeader("Sound themes"))
+    {
+        for (const MusicTheme& theme : mLocator.mResMapper.mSoundResources.mThemes)
+        {
+            if (ImGui::RadioButton(theme.mName.c_str(), mActiveTheme && theme.mName == mActiveTheme->mName))
             {
-                ImGui::TextWrapped("Click an item to display its info");
+                SetTheme(theme.mName.c_str());
+                HandleEvent("BASE_LINE");
             }
         }
-        ImGui::EndChild();
-    }
-    ImGui::EndGroup();
 
-    ImGui::End();
-
-    ImGui::Begin("Sound themes");
-
-    for (const MusicTheme& theme : mLocator.mResMapper.mSoundResources.mThemes)
-    {
-        if (ImGui::RadioButton(theme.mName.c_str(), mActiveTheme && theme.mName == mActiveTheme->mName))
+        for (const char* eventName : kMusicEvents)
         {
-            SetTheme(theme.mName.c_str());
-            HandleEvent("BASE_LINE");
+            if (ImGui::Button(eventName))
+            {
+                HandleEvent(eventName);
+            }
         }
     }
-
-    for (const char* eventName : kMusicEvents)
-    {
-        if (ImGui::Button(eventName))
-        {
-            HandleEvent(eventName);
-        }
-    }
-
-    ImGui::End();
-
 }
 
 void Sound::Render(int /*w*/, int /*h*/)

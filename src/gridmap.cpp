@@ -19,6 +19,10 @@ Level::Level(ResourceLocator& locator)
     : mLocator(locator)
 {
     mMap = std::make_unique<GridMap>();
+    Debugging().AddSection([&]() 
+    {
+        RenderDebugPathSelection();
+    });
 }
 
 bool Level::LoadMap(const Oddlib::Path& path)
@@ -28,11 +32,6 @@ bool Level::LoadMap(const Oddlib::Path& path)
 
 void Level::Update(const InputState& input, CoordinateSpace& coords)
 {
-    if (Debugging().mBrowserUi.levelBrowserOpen)
-    {
-        RenderDebugPathSelection();
-    }
-
     if (mMap)
     {
         mMap->Update(input, coords);
@@ -49,7 +48,7 @@ void Level::Render(AbstractRenderer& rend)
 
 void Level::RenderDebugPathSelection()
 {
-    if (ImGui::Begin("Paths"))
+    if (ImGui::CollapsingHeader("Maps"))
     {
         for (const auto& pathMap : mLocator.PathMaps())
         {
@@ -59,7 +58,6 @@ void Level::RenderDebugPathSelection()
             }
         }
     }
-    ImGui::End();
 }
 
 void Level::UnloadMap(AbstractRenderer& renderer)

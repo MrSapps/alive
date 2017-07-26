@@ -207,18 +207,23 @@ void Selection::Select(CollisionLines& items, s32 idx, bool select)
     }
 }
 
+UndoStack::UndoStack(s32 stackLimit /*= -1*/)
+    : mStackLimit(stackLimit)
+{
+    Debugging().AddSection([&]()
+    {
+        DebugRenderCommandList();
+    });
+}
+
 void UndoStack::DebugRenderCommandList() const
 {
-    if (Debugging().mShowDebugUi)
+    if (ImGui::CollapsingHeader("Undo stack"))
     {
-        if (ImGui::Begin("Undo stack"))
+        for (const auto& cmd : mUndoStack)
         {
-            for (const auto& cmd : mUndoStack)
-            {
-                ImGui::TextUnformatted(cmd->Message().c_str());
-            }
+            ImGui::TextUnformatted(cmd->Message().c_str());
         }
-        ImGui::End();
     }
 }
 
@@ -226,7 +231,6 @@ void UndoStack::Clear()
 {
     mUndoStack.clear();
 }
-
 void UndoStack::Undo()
 {
     if (Count() > 0 && mCommandIndex >= 1)
@@ -263,8 +267,6 @@ EditorMode::EditorMode(GridMapState& mapState)
 
 void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
 {
-    mUndoStack.DebugRenderCommandList();
-
     const glm::vec2 mousePosWorld = coords.ScreenToWorld({ input.mMousePosition.mX, input.mMousePosition.mY });
 
     if (input.mKeys[SDL_SCANCODE_E].IsPressed())
