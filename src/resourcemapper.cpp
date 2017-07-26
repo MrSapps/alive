@@ -606,7 +606,7 @@ up_future_UP_Path ResourceLocator::LocatePath(const std::string& resourceName)
                                     {
                                         auto chunk = lvlFile->ChunkById(mapping->mId);
                                         auto stream = chunk->Stream();
-                                        return std::make_unique<Oddlib::Path>(*stream,
+                                        return std::make_unique<Oddlib::Path>(mapping->mMusicTheme, *stream,
                                             mapping->mCollisionOffset,
                                             mapping->mIndexTableOffset,
                                             mapping->mObjectOffset,

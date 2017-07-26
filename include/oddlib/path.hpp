@@ -75,7 +75,8 @@ namespace Oddlib
 
         Path(const Path&) = delete;
         Path& operator = (const Path&) = delete;
-        Path(IStream& pathChunkStream, 
+        Path(const std::string& musicThemeName,
+             IStream& pathChunkStream,
              u32 collisionDataOffset,
              u32 objectIndexTableOffset, 
              u32 objectDataOffset,
@@ -88,12 +89,15 @@ namespace Oddlib
         const Camera& CameraByPosition(u32 x, u32 y) const;
         const std::vector<CollisionItem>& CollisionItems() const { return mCollisionItems; }
         bool IsAo() const { return mIsAo; }
+        const std::string& MusicThemeName() const { return mMusicThemeName; }
     private:
         void ReadPath(IStream& stream, u32 collisionDataOffset, u32 objectIndexTableOffset, u32 objectDataOffset);
         void ReadCamera(IStream& stream);
         std::vector<u32> ReadOffsetsToPerCameraObjectLists(IStream& stream, u32 objectIndexTableOffset);
         void ReadMapObject(IStream& stream, Path::MapObject& mapObject);
         void ReadMapObjectsForCamera(IStream& stream, Camera& camera);
+
+        std::string mMusicThemeName;
 
         u32 mXSize = 0;
         u32 mYSize = 0;

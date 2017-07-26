@@ -571,7 +571,13 @@ public:
     ~Engine();
     bool Init();
     int Run();
+
+public: // Scripting entry points
     void PlayFmv(const char* fmvName);
+    void LoadMap(const char* mapName);
+    void HandleMusicEvent(const char* eventName);
+    void SetMusicTheme(const char* themeName);
+    void PlaySoundEffect(const char* soundName);
 private:
     void RunInitScript();
     void Include(const std::string& scriptName);

@@ -102,15 +102,11 @@ void RunGameState::OnStartASync(const std::string& initScriptName, Sound* pSound
     mMainScript.CompileString(gameScript, initScriptName);
     SquirrelVm::CheckError();
 
-    mLoadSoundEffectsFuture = mSound->CacheMemoryResidentSounds();
-    mState = RunGameStates::eLoadingSoundEffects;
-}
+    // TODO: Exec via script
+    mMainScript.Run();
 
-void RunGameState::RegisterScriptBindings()
-{
-    Sqrat::Class<Sound, Sqrat::NoConstructor<Sound>> c(Sqrat::DefaultVM::Get(), "Game");
-    c.Func("LoadMap", &RunGameState::LoadMap);
-    Sqrat::RootTable().Bind("Game", c);
+    //LoadMap("BAPATH1");
+    Debugging().mFnNextPath();
 }
 
 void RunGameState::LoadMap(const std::string& mapName)
@@ -140,19 +136,7 @@ void RunGameState::Render()
 
 EngineStates RunGameState::Update(const InputState& input, CoordinateSpace& coords)
 {   
-    if (mState == RunGameStates::eLoadingSoundEffects)
-    {
-        if (FutureIsDone(mLoadSoundEffectsFuture))
-        {
-            mLoadSoundEffectsFuture = nullptr;
-            mState = RunGameStates::eRunning;
-            mMainScript.Run();
-
-            // TODO: Should be the script calling this
-            Debugging().mFnNextPath();
-        }
-    }
-    else if (mState == RunGameStates::eRunning)
+    if (mState == RunGameStates::eRunning)
     {
         if (mLevel)
         {
@@ -175,10 +159,8 @@ EngineStates RunGameState::Update(const InputState& input, CoordinateSpace& coor
                 // Note: This is iterative loading which happens in the main thread
                 if (mLevel->LoadMap(*mPathBeingLoaded))
                 {
-                    // TODO: Construct sprite sheets for objects that exist in this map
-
-                    //mSound->SetTheme(path->MusicTheme());
-                    mState = RunGameStates::eRunning;
+                    mState = RunGameStates::eSoundsLoading;
+                    mSound->SetMusicTheme(mPathBeingLoaded->MusicThemeName().c_str());
                 }
             }
             else
@@ -189,10 +171,29 @@ EngineStates RunGameState::Update(const InputState& input, CoordinateSpace& coor
             }
         }
     }
+    else if (mState == RunGameStates::eSoundsLoading || mState == RunGameStates::eSoundsLoadingAgain)
+    {
+        // TODO: Construct sprite sheets for objects that exist in this map
+        if (!mSound->IsLoading())
+        {
+            mState = RunGameStates::eRunning;
+            if (mState != RunGameStates::eSoundsLoadingAgain)
+            {
+                // If a script explicitly changed the music theme then don't auto start playing the base line
+                mSound->HandleMusicEvent("BASE_LINE");
+            }
+        }
+    }
 
     mAnimBrowser.Update(input, coords);
 
     mSound->Update();
+
+    if (mState == RunGameStates::eRunning && mSound->IsLoading())
+    {
+        // If any point mid-game something changes the sound them then go back to this state
+        mState = RunGameStates::eSoundsLoading;
+    }
 
     return EngineStates::eRunGameState;
 }

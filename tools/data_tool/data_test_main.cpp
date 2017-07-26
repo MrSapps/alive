@@ -486,7 +486,7 @@ public:
 
                     // Load the path block
                     auto pathStream = chunk->Stream();
-                    Oddlib::Path path(*pathStream, pathData->mCollisionOffset, pathData->mIndexTableOffset, pathData->mObjectOffset, pathData->mNumberOfScreensX, pathData->mNumberOfScreensY, IsAo(eType));
+                    Oddlib::Path path(pathData->mMusicTheme, *pathStream, pathData->mCollisionOffset, pathData->mIndexTableOffset, pathData->mObjectOffset, pathData->mNumberOfScreensX, pathData->mNumberOfScreensY, IsAo(eType));
                     CheckSecondLinkIsNotUsed(path.CollisionItems());
                 }
             }

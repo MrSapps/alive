@@ -161,7 +161,7 @@ void SoundCache::RemoveFromMemoryCache(const std::string& name)
 
 // ====================================================================
 
-void Sound::PlaySoundScript(const char* soundName)
+void Sound::PlaySoundEffect(const char* soundName)
 {
     auto ret = PlaySound(soundName, nullptr, true, true, true);
     if (ret)
@@ -170,6 +170,12 @@ void Sound::PlaySoundScript(const char* soundName)
         mSoundPlayers.push_back(std::move(ret));
     }
 }
+
+bool Sound::IsLoading() const
+{
+    return mState == eSoundStates::eIdle;
+}
+
 std::unique_ptr<ISound> Sound::PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRec, bool useSfxRec, bool useCache)
 {
     if (useCache)
@@ -201,19 +207,23 @@ std::unique_ptr<ISound> Sound::PlaySound(const char* soundName, const char* expl
     }
 }
 
-void Sound::SetTheme(const char* themeName)
+void Sound::SetMusicTheme(const char* themeName)
 {
+    //CacheMemoryResidentSounds();
+
     mAmbiance = nullptr;
     mMusicTrack = nullptr;
-    const MusicTheme* newTheme = mLocator.LocateSoundTheme(themeName);
+    mThemeToLoad = mLocator.LocateSoundTheme(themeName);
     
+    mState = eSoundStates::eLoadingSoundTheme;
+
     // Remove current musics from in memory cache
     if (mActiveTheme)
     {
         CacheActiveTheme(false);
     }
 
-    mActiveTheme = newTheme;
+    mActiveTheme = mThemeToLoad;
 
     // Add new musics to in memory cache
     if (mActiveTheme)
@@ -231,6 +241,8 @@ up_future_void Sound::CacheMemoryResidentSounds()
     return std::make_unique<future_void>(std::async(std::launch::async, [&]() 
     {
         TRACE_ENTRYEXIT;
+
+        mState = eSoundStates::eLoadingSoundEffects;
 
         // initial one time sync
         mCache.Sync();
@@ -286,7 +298,7 @@ void Sound::CacheSound(const std::string& name)
     }
 }
 
-void Sound::HandleEvent(const char* eventName)
+void Sound::HandleMusicEvent(const char* eventName)
 {
     // TODO: Need quarter beat transition in some cases
     EnsureAmbiance();
@@ -350,16 +362,8 @@ bool Sound::Play(f32* stream, u32 len)
     return false;
 }
 
-/*static*/ void Sound::RegisterScriptBindings()
-{
-    Sqrat::Class<Sound, Sqrat::NoConstructor<Sound>> c(Sqrat::DefaultVM::Get(), "Sound");
-    c.Func("PlaySoundEffect", &Sound::PlaySoundScript);
-    c.Func("SetTheme", &Sound::SetTheme);
-    Sqrat::RootTable().Bind("Sound", c);
-}
-
 Sound::Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs)
-    : mAudioController(audioController), mLocator(locator), mCache(fs), mScriptInstance("gSound", this)
+    : mAudioController(audioController), mLocator(locator), mCache(fs)
 {
     mAudioController.AddPlayer(this);
 
@@ -380,6 +384,18 @@ Sound::~Sound()
 
 void Sound::Update()
 {
+    switch (mState)
+    {
+    case eSoundStates::eIdle:
+        break;
+
+    case eSoundStates::eLoadingSoundEffects:
+        break;
+
+    case eSoundStates::eLoadingSoundTheme:
+        break;
+    }
+
     std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
     for (auto it = mSoundPlayers.begin(); it != mSoundPlayers.end();)
     {
@@ -551,7 +567,7 @@ void Sound::SoundBrowserUi()
 
                     if (ImGui::Button("Play (cached/scripted)"))
                     {
-                        PlaySoundScript(selected->mResourceName.c_str());
+                        PlaySoundEffect(selected->mResourceName.c_str());
                     }
                 }
                 else
@@ -570,8 +586,8 @@ void Sound::SoundBrowserUi()
         {
             if (ImGui::RadioButton(theme.mName.c_str(), mActiveTheme && theme.mName == mActiveTheme->mName))
             {
-                SetTheme(theme.mName.c_str());
-                HandleEvent("BASE_LINE");
+                SetMusicTheme(theme.mName.c_str());
+                HandleMusicEvent("BASE_LINE");
             }
         }
 
@@ -579,13 +595,8 @@ void Sound::SoundBrowserUi()
         {
             if (ImGui::Button(eventName))
             {
-                HandleEvent(eventName);
+                HandleMusicEvent(eventName);
             }
         }
     }
-}
-
-void Sound::Render(int /*w*/, int /*h*/)
-{
-
 }

@@ -285,6 +285,10 @@ void Engine::BindScriptTypes()
     Sqrat::Class<Engine, Sqrat::NoConstructor<Engine>> engine(Sqrat::DefaultVM::Get(), "Engine");
     engine.Func("include", &Engine::Include);
     engine.Func("PlayFmv", &Engine::PlayFmv);
+    engine.Func("LoadMap", &Engine::LoadMap);
+    engine.Func("HandleMusicEvent", &Engine::HandleMusicEvent);
+    engine.Func("SetMusicTheme", &Engine::SetMusicTheme);
+    engine.Func("PlaySoundEffect", &Engine::PlaySoundEffect);
 
     Sqrat::RootTable().Bind("Engine", engine);
     // TODO: Use InstanceBinder
@@ -295,8 +299,6 @@ void Engine::BindScriptTypes()
     MapObject::RegisterScriptBindings();
     ObjRect::RegisterScriptBindings();
     GridMap::RegisterScriptBindings();
-    Sound::RegisterScriptBindings();
-    RunGameState::RegisterScriptBindings();
 }
 
 void Engine::InitSubSystems()
@@ -556,6 +558,27 @@ void Engine::PlayFmv(const char* fmvName)
 {
     mPlayFmvState->Play(fmvName);
     mState = EngineStates::ePlayFmv;
+}
+
+void Engine::LoadMap(const char* mapName)
+{
+    mRunGameState->LoadMap(mapName);
+    mState = EngineStates::eRunGameState;
+}
+
+void Engine::HandleMusicEvent(const char* eventName)
+{
+    mSound->HandleMusicEvent(eventName);
+}
+
+void Engine::SetMusicTheme(const char* themeName)
+{
+    mSound->SetMusicTheme(themeName);
+}
+
+void Engine::PlaySoundEffect(const char* soundName)
+{
+    mSound->PlaySoundEffect(soundName);
 }
 
 void Engine::Update()

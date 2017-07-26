@@ -30,7 +30,6 @@ public:
     void OnStartASync(const std::string& initScriptName, Sound* pSound);
     void LoadMap(const std::string& mapName);
     EngineStates Update(const InputState& input, CoordinateSpace& coords);
-    static void RegisterScriptBindings();
     bool IsLoading() const;
 private:
     ResourceLocator& mResourceLocator;
@@ -41,13 +40,13 @@ private:
     enum class RunGameStates
     {
         eInit,
-        eLoadingSoundEffects,
+        eSoundsLoading,
+        eSoundsLoadingAgain,
         eLoadingMap,
         eRunning,
     };
     RunGameStates mState = RunGameStates::eInit;
     Sqrat::Script mMainScript;
-    up_future_void mLoadSoundEffectsFuture;
     up_future_UP_Path mLocatePathFuture;
     Oddlib::UP_Path mPathBeingLoaded;
 };

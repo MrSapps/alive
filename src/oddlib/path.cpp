@@ -27,13 +27,14 @@ namespace Oddlib
         stream.Read(mLineLength);
     }
 
-    Path::Path( IStream& pathChunkStream,
+    Path::Path( const std::string& musicThemeName,
+                IStream& pathChunkStream,
                 u32 collisionDataOffset,
                 u32 objectIndexTableOffset,
                 u32 objectDataOffset,
                 u32 mapXSize, u32 mapYSize,
                 bool isAo)
-     : mXSize(mapXSize), mYSize(mapYSize), mIsAo(isAo)
+     : mMusicThemeName(musicThemeName), mXSize(mapXSize), mYSize(mapYSize), mIsAo(isAo)
     {
         TRACE_ENTRYEXIT;
         ReadPath(pathChunkStream, collisionDataOffset, objectIndexTableOffset, objectDataOffset);

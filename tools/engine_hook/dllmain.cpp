@@ -706,6 +706,7 @@ static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* p
                 PathData& pathData = *data.mBlyArrayPtr->iBlyRecs[j].mPathData;
 
                 gPath = std::make_unique<Oddlib::Path>(
+                    "",
                     pathDataStream, 
                     pCollisionInfo->mCollisionOffset + 16, 
                     pathData.object_indextable_offset + 16,

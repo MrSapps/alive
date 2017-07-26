@@ -90,20 +90,22 @@ using up_future_void = std::unique_ptr<future_void>;
 class Sound : public IAudioPlayer
 {
 public:
-    static void RegisterScriptBindings();
     Sound(const Sound&) = delete;
     Sound& operator = (const Sound&) = delete;
     Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs);
     ~Sound();
     void Update();
-    void Render(int w, int h);
-    void HandleEvent(const char* eventName);
-    void SetTheme(const char* themeName);
-    up_future_void CacheMemoryResidentSounds();
+
+    void HandleMusicEvent(const char* eventName);
+    void SetMusicTheme(const char* themeName);
+    void PlaySoundEffect(const char* soundName);
+    bool IsLoading() const;
+
 private:
+    up_future_void CacheMemoryResidentSounds();
+
     void CacheActiveTheme(bool add);
     void CacheSound(const std::string& name);
-    void PlaySoundScript(const char* soundName);
     std::unique_ptr<ISound> PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRecord, bool useSfxRecord, bool useCache);
     void SoundBrowserUi();
     std::unique_ptr<ISound> PlayThemeEntry(const char* entryName);
@@ -116,6 +118,7 @@ private:
     SoundCache mCache;
 
     const MusicTheme* mActiveTheme = nullptr;
+    const MusicTheme* mThemeToLoad = nullptr;
     ActiveMusicThemeEntry mActiveThemeEntry;
 
     std::mutex mSoundPlayersMutex;
@@ -129,5 +132,11 @@ private:
     // Thread safe
     std::vector<std::unique_ptr<ISound>> mSoundPlayers;
 
-    InstanceBinder<class Sound> mScriptInstance;
+    enum class eSoundStates
+    {
+        eLoadingSoundEffects,
+        eLoadingSoundTheme,
+        eIdle
+    };
+    eSoundStates mState = eSoundStates::eIdle;
 };
