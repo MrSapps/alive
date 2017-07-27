@@ -482,17 +482,20 @@ void Sound::SoundBrowserUi()
                     // TODO: Kill whatever this SEQ is
                 }
             }
+
+            if (!mAmbiance && !mMusicTrack && mSoundPlayers.empty())
+            {
+                ImGui::TextUnformatted("(none)");
+            }
         }
     }
 
-    ImGui::SetNextWindowPos(ImVec2(120, 120), ImGuiSetCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiSetCond_FirstUseEver);
     if (ImGui::CollapsingHeader("Sound list"))
     {
         static const SoundResource* selected = nullptr;
 
         // left
-        ImGui::BeginChild("left pane", ImVec2(200, 0), true);
+        ImGui::BeginChild("left pane", ImVec2(200, 200), true);
         {
             for (const SoundResource& soundInfo : mLocator.GetSoundResources())
             {
@@ -508,7 +511,7 @@ void Sound::SoundBrowserUi()
         // right
         ImGui::BeginGroup();
         {
-            ImGui::BeginChild("item view");
+            ImGui::BeginChild("item view", ImVec2(0, 200));
             {
                 if (selected)
                 {

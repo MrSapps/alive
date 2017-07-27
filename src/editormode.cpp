@@ -224,6 +224,11 @@ void UndoStack::DebugRenderCommandList() const
         {
             ImGui::TextUnformatted(cmd->Message().c_str());
         }
+
+        if (mUndoStack.empty())
+        {
+            ImGui::TextUnformatted("(Empty)");
+        }
     }
 }
 

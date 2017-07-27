@@ -671,11 +671,8 @@ void Fmv::DebugUi()
 
     if (ImGui::CollapsingHeader("Video player"))
     {
-        ImGui::SetNextWindowPos(ImVec2(120, 120), ImGuiSetCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiSetCond_FirstUseEver);
-
         // left
-        ImGui::BeginChild("left pane", ImVec2(250, 0), true);
+        ImGui::BeginChild("left pane 2", ImVec2(250, 200), true);
         {
             bool rebuild = false;
             if (ImGui::InputText("Filter", mFilterString, sizeof(mFilterString)))
@@ -712,7 +709,7 @@ void Fmv::DebugUi()
         // right
         ImGui::BeginGroup();
         {
-            ImGui::BeginChild("item view");
+            ImGui::BeginChild("item view 2", ImVec2(0, 200));
             {
                 if (mListBoxSelectedItem > 0)
                 {
