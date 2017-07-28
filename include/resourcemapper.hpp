@@ -656,6 +656,7 @@ public:
     virtual bool AtEnd() const = 0;
     virtual void Restart() = 0;
     virtual void Update() = 0;
+    virtual void Stop() = 0;
     virtual const std::string& Name() const = 0;
 };
 
@@ -668,6 +669,7 @@ public:
     virtual bool AtEnd() const override;
     virtual void Restart() override;
     virtual void Update() override;
+    virtual void Stop() override;
     virtual const std::string& Name() const override;
 
     std::unique_ptr<Vab> mVab;

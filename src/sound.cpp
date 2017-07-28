@@ -109,6 +109,11 @@ public:
     virtual void Update() override { }
     virtual const std::string& Name() const override { return mName; }
 
+    virtual void Stop() override
+    {
+        mOffsetInBytes = mData->size();
+    }
+
 private:
     size_t mOffsetInBytes = 0;
     std::string mName;
@@ -479,7 +484,10 @@ void Sound::SoundBrowserUi()
                 i++;
                 if (ImGui::Button((std::to_string(i) + player->Name()).c_str()))
                 {
-                    // TODO: Kill whatever this SEQ is
+                    if (player.get() == mSoundPlayers[i].get())
+                    {
+                        player->Stop();
+                    }
                 }
             }
 

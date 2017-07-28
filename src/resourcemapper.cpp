@@ -1058,6 +1058,11 @@ void BaseSeqSound::Update()
     mSeqPlayer->Update();
 }
 
+void BaseSeqSound::Stop()
+{
+    mSeqPlayer->StopSequence();
+}
+
 const std::string& BaseSeqSound::Name() const
 {
     return mSoundName;
