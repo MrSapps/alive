@@ -59,7 +59,7 @@ namespace Oddlib
             {
                 LOG_ERROR("File not found or couldn't be created for writing " << fileName);
             }
-            throw Exception("File I/O error");
+            throw Exception("File I/O error: " + fileName + " mode: " + std::to_string(static_cast<u32>(mode)));
         }
 
         mSize = static_cast<size_t>(s->tellg());
