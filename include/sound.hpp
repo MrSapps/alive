@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <mutex>
+#include <deque>
 #include <future>
 #include "proxy_sqrat.hpp"
 #include "core/audiobuffer.hpp"
@@ -74,7 +75,7 @@ public:
     void DeleteAll();
     bool ExistsInMemoryCache(const std::string& name) const;
     std::unique_ptr<ISound> GetCached(const std::string& name);
-    void AddToMemoryAndDiskCache(ISound& sound);
+    void AddToMemoryAndDiskCacheASync(ISound& sound);
     bool AddToMemoryCacheFromDiskCache(const std::string& name);
 private:
     OSBaseFileSystem& mFs;
@@ -103,6 +104,8 @@ public:
 
 private:
     up_future_void CacheMemoryResidentSounds();
+
+    void HandleLoadingSoundTheme();
 
     void CacheActiveTheme(bool add);
     void CacheSound(const std::string& name);
@@ -139,4 +142,17 @@ private:
         eIdle
     };
     eSoundStates mState = eSoundStates::eIdle;
+
+    void SetState(Sound::eSoundStates state);
+
+    enum class eLoadingSoundThemeStates
+    {
+        eIdle,
+        eUnloadingActiveTheme,
+        eLoadingActiveTheme
+    };
+    eLoadingSoundThemeStates mLoadingSoundThemeState = eLoadingSoundThemeStates::eIdle;
+
+    void SetLoadingSoundThemeState(Sound::eLoadingSoundThemeStates state);
+
 };

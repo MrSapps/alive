@@ -131,7 +131,7 @@ std::unique_ptr<ISound> SoundCache::GetCached(const std::string& name)
     return nullptr;
 }
 
-void SoundCache::AddToMemoryAndDiskCache(ISound& sound)
+void SoundCache::AddToMemoryAndDiskCacheASync(ISound& sound)
 {
     const std::string fileName = mFs.ExpandPath("{CacheDir}/" + sound.Name() + ".wav");
 
@@ -178,7 +178,7 @@ void Sound::PlaySoundEffect(const char* soundName)
 
 bool Sound::IsLoading() const
 {
-    return mState == eSoundStates::eIdle;
+    return mState != eSoundStates::eIdle;
 }
 
 std::unique_ptr<ISound> Sound::PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRec, bool useSfxRec, bool useCache)
@@ -218,22 +218,13 @@ void Sound::SetMusicTheme(const char* themeName)
 
     mAmbiance = nullptr;
     mMusicTrack = nullptr;
+
+    // This is just an in-memory non blocking look up
     mThemeToLoad = mLocator.LocateSoundTheme(themeName);
-    
-    mState = eSoundStates::eLoadingSoundTheme;
-
-    // Remove current musics from in memory cache
-    if (mActiveTheme)
+    if (mThemeToLoad)
     {
-        CacheActiveTheme(false);
-    }
-
-    mActiveTheme = mThemeToLoad;
-
-    // Add new musics to in memory cache
-    if (mActiveTheme)
-    {
-        CacheActiveTheme(true);
+        mState = eSoundStates::eLoadingSoundTheme;
+        SetLoadingSoundThemeState(eLoadingSoundThemeStates::eUnloadingActiveTheme);
     }
     else
     {
@@ -299,7 +290,7 @@ void Sound::CacheSound(const std::string& name)
     if (pSound)
     {
         // Write into disk cache and then load from disk cache into memory cache
-        mCache.AddToMemoryAndDiskCache(*pSound);
+        mCache.AddToMemoryAndDiskCacheASync(*pSound);
     }
 }
 
@@ -387,6 +378,48 @@ Sound::~Sound()
     mAudioController.RemovePlayer(this);
 }
 
+void Sound::HandleLoadingSoundTheme()
+{
+    switch (mLoadingSoundThemeState)
+    {
+    case Sound::eLoadingSoundThemeStates::eIdle:
+        SetState(eSoundStates::eIdle);
+        break;
+
+    case Sound::eLoadingSoundThemeStates::eUnloadingActiveTheme:
+        if (mActiveTheme)
+        {
+            CacheActiveTheme(false);
+        }
+        mActiveTheme = mThemeToLoad;
+        mThemeToLoad = nullptr;
+        SetLoadingSoundThemeState(eLoadingSoundThemeStates::eLoadingActiveTheme);
+        break;
+
+    case eLoadingSoundThemeStates::eLoadingActiveTheme:
+        if (mActiveTheme)
+        {
+            CacheActiveTheme(true);
+        }
+        SetLoadingSoundThemeState(eLoadingSoundThemeStates::eIdle);
+        break;
+    }
+}
+
+void Sound::SetState(Sound::eSoundStates state)
+{
+    if (mState != state)
+    {
+        mState = state;
+        SetLoadingSoundThemeState(eLoadingSoundThemeStates::eIdle);
+    }
+}
+
+void Sound::SetLoadingSoundThemeState(Sound::eLoadingSoundThemeStates state)
+{
+    mLoadingSoundThemeState = state;
+}
+
 void Sound::Update()
 {
     switch (mState)
@@ -398,6 +431,7 @@ void Sound::Update()
         break;
 
     case eSoundStates::eLoadingSoundTheme:
+        HandleLoadingSoundTheme();
         break;
     }
 

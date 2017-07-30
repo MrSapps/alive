@@ -354,6 +354,7 @@ SET(alivelib_src
     src/core/audiobuffer.cpp
     include/fmv.hpp
     src/fmv.cpp
+    include/asyncqueue.hpp
     include/sound.hpp
     src/sound.cpp
     include/abstractrenderer.hpp
@@ -584,6 +585,7 @@ SET(test_src
     test/resource_locator_test.cpp
     test/zip_fs_tests.cpp
     test/string_util_tests.cpp
+    test/asyncqueue_tests.cpp
     test/collision_test.cpp
     test/coordinatespace_test.cpp
     test/undoredo_test.cpp
