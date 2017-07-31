@@ -36,6 +36,12 @@ public:
         mHaveWork.notify_one();
     }
 
+    bool IsIdle() const
+    {
+        std::unique_lock<std::mutex> queueLock(mQueueMutex);
+        return mExecutingJobCount == 0 && mQueue.empty();
+    }
+
     void Start(u32 numWorkers = std::thread::hardware_concurrency(), bool waitForWorkersToStart = true)
     {
         std::unique_lock<std::mutex> lock(mStartStopMutex);
@@ -111,7 +117,9 @@ private:
 
                 lock.unlock();
 
+                mExecutingJobCount++;
                 mExecFunc(std::move(item), mQuit);
+                mExecutingJobCount--;
 
                 lock.lock();
             }
@@ -119,9 +127,10 @@ private:
     }
 
     std::mutex mStartStopMutex; // Prevent concurrent Start/Stop/Add
-    std::mutex mQueueMutex;     // Protect mQueue
+    mutable std::mutex mQueueMutex;     // Protect mQueue
     std::atomic<bool> mQuit = false;
     std::atomic<u32> mRunningThreadCount = 0;
+    std::atomic<u32> mExecutingJobCount = 0;
     std::condition_variable mHaveWork;
     std::deque<QueuedItemType> mQueue;
     std::vector<std::thread> mWorkers;

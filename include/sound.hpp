@@ -9,6 +9,7 @@
 #include <future>
 #include "proxy_sqrat.hpp"
 #include "core/audiobuffer.hpp"
+#include "asyncqueue.hpp"
 
 class GameData;
 class IAudioController;
@@ -67,22 +68,41 @@ namespace Oddlib
 }
 
 // Thread safe
+
+class SoundConversionJob
+{
+public:
+    SoundConversionJob(const std::string& fileName, std::unique_ptr<ISound> sound)
+        : mFileName(fileName), mSound(std::move(sound))
+    {
+
+    }
+public:
+    std::string mFileName;
+    std::unique_ptr<ISound> mSound;
+};
+
 class SoundCache
 {
 public:
     explicit SoundCache(OSBaseFileSystem& fs);
+    ~SoundCache();
     void Sync();
     void DeleteAll();
     bool ExistsInMemoryCache(const std::string& name) const;
     std::unique_ptr<ISound> GetCached(const std::string& name);
-    void AddToMemoryAndDiskCacheASync(ISound& sound);
+    void AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound);
     bool AddToMemoryCacheFromDiskCache(const std::string& name);
+    bool IsBusy() const { return mLoaderQueue.IsIdle() == false; }
 private:
+    void AsyncQueueWorkerFunction(SoundConversionJob item, std::atomic<bool>& quitFlag);
+
     OSBaseFileSystem& mFs;
     std::map<std::string, std::shared_ptr<std::vector<u8>>> mSoundDataCache;
     mutable std::mutex mCacheMutex;
 public:
     void RemoveFromMemoryCache(const std::string& name);
+    ASyncQueue<SoundConversionJob> mLoaderQueue;
 };
 
 using future_void = std::future<void>;
@@ -149,6 +169,7 @@ private:
     {
         eIdle,
         eUnloadingActiveTheme,
+        eLoadActiveTheme,
         eLoadingActiveTheme
     };
     eLoadingSoundThemeStates mLoadingSoundThemeState = eLoadingSoundThemeStates::eIdle;

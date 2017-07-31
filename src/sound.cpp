@@ -7,9 +7,19 @@
 #include "alive_version.h"
 
 SoundCache::SoundCache(OSBaseFileSystem& fs)
-    : mFs(fs)
+  : mFs(fs), 
+    mLoaderQueue([this](SoundConversionJob item, std::atomic<bool>& quitFlag) 
+    {
+        AsyncQueueWorkerFunction(std::move(item), quitFlag);
+    })
 {
+    mLoaderQueue.Start();
+}
 
+SoundCache::~SoundCache()
+{
+    TRACE_ENTRYEXIT;
+    mLoaderQueue.Stop();
 }
 
 void SoundCache::Sync()
@@ -123,6 +133,7 @@ private:
 
 std::unique_ptr<ISound> SoundCache::GetCached(const std::string& name)
 {
+    std::lock_guard<std::mutex> lock(mCacheMutex);
     auto it = mSoundDataCache.find(name);
     if (it != std::end(mSoundDataCache))
     {
@@ -131,16 +142,28 @@ std::unique_ptr<ISound> SoundCache::GetCached(const std::string& name)
     return nullptr;
 }
 
-void SoundCache::AddToMemoryAndDiskCacheASync(ISound& sound)
+void SoundCache::AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound)
 {
-    const std::string fileName = mFs.ExpandPath("{CacheDir}/" + sound.Name() + ".wav");
+    const std::string fileName = mFs.ExpandPath("{CacheDir}/" + sound->Name() + ".wav");
+    mLoaderQueue.Add(SoundConversionJob(fileName, std::move(sound)));
+}
+
+void SoundCache::AsyncQueueWorkerFunction(SoundConversionJob item, std::atomic<bool>& quitFlag)
+{
+    if (quitFlag)
+    {
+        return;
+    }
 
     // TODO: mod files that are already wav shouldn't be converted
-    sound.Load();
-    AudioConverter::Convert<WavEncoder>(sound, fileName.c_str());
+    item.mSound->Load();
+    AudioConverter::Convert<WavEncoder>(*item.mSound, item.mFileName.c_str());
 
-    auto stream = mFs.Open(fileName);
-    mSoundDataCache[sound.Name()] = std::make_shared<std::vector<u8>>(Oddlib::IStream::ReadAll(*stream));
+    auto stream = mFs.Open(item.mFileName);
+    auto data = std::make_shared<std::vector<u8>>(Oddlib::IStream::ReadAll(*stream));;
+
+    std::lock_guard<std::mutex> lock(mCacheMutex);
+    mSoundDataCache[item.mSound->Name()] = data;
 }
 
 bool SoundCache::AddToMemoryCacheFromDiskCache(const std::string& name)
@@ -149,7 +172,9 @@ bool SoundCache::AddToMemoryCacheFromDiskCache(const std::string& name)
     if (mFs.FileExists(fileName))
     {
         auto stream = mFs.Open(fileName);
-        mSoundDataCache[name] = std::make_shared<std::vector<u8>>(Oddlib::IStream::ReadAll(*stream));
+        auto data = std::make_shared<std::vector<u8>>(Oddlib::IStream::ReadAll(*stream));
+        std::lock_guard<std::mutex> lock(mCacheMutex);
+        mSoundDataCache[name] = data;
         return true;
     }
     return false;
@@ -157,6 +182,7 @@ bool SoundCache::AddToMemoryCacheFromDiskCache(const std::string& name)
 
 void SoundCache::RemoveFromMemoryCache(const std::string& name)
 {
+    std::lock_guard<std::mutex> lock(mCacheMutex);
     auto it = mSoundDataCache.find(name);
     if (it != std::end(mSoundDataCache))
     {
@@ -290,7 +316,7 @@ void Sound::CacheSound(const std::string& name)
     if (pSound)
     {
         // Write into disk cache and then load from disk cache into memory cache
-        mCache.AddToMemoryAndDiskCacheASync(*pSound);
+        mCache.AddToMemoryAndDiskCacheASync(std::move(pSound));
     }
 }
 
@@ -393,15 +419,22 @@ void Sound::HandleLoadingSoundTheme()
         }
         mActiveTheme = mThemeToLoad;
         mThemeToLoad = nullptr;
-        SetLoadingSoundThemeState(eLoadingSoundThemeStates::eLoadingActiveTheme);
+        SetLoadingSoundThemeState(eLoadingSoundThemeStates::eLoadActiveTheme);
         break;
 
-    case eLoadingSoundThemeStates::eLoadingActiveTheme:
+    case eLoadingSoundThemeStates::eLoadActiveTheme:
         if (mActiveTheme)
         {
             CacheActiveTheme(true);
         }
-        SetLoadingSoundThemeState(eLoadingSoundThemeStates::eIdle);
+        SetLoadingSoundThemeState(eLoadingSoundThemeStates::eLoadingActiveTheme);
+        break;
+
+    case eLoadingSoundThemeStates::eLoadingActiveTheme:
+        if (!mCache.IsBusy())
+        {
+            SetLoadingSoundThemeState(eLoadingSoundThemeStates::eIdle);
+        }
         break;
     }
 }
