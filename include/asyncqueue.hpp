@@ -9,18 +9,16 @@
 #include <future>
 #include "types.hpp"
 
-template<class T>
+template<class QueuedItemType>
 class ASyncQueue
 {
+    static_assert(std::is_move_constructible<QueuedItemType>::value == true, "QueuedItemType must be move constructible");
+    static_assert(std::is_move_assignable<QueuedItemType>::value == true, "QueuedItemType must be move assignable");
 public:
-    ASyncQueue(u32 numWorkers)
+    ASyncQueue(std::function<void(QueuedItemType item, std::atomic<bool>& quitFlag)> executeItemNoLock)
+        : mExecFunc(executeItemNoLock)
     {
-        assert(numWorkers >= 1);
 
-        for (u32 i = 0; i < numWorkers; i++)
-        {
-            mWorkers.push_back(std::thread(&ASyncQueue::WorkerFunc, this));
-        }
     }
 
     ~ASyncQueue()
@@ -28,37 +26,104 @@ public:
         Stop();
     }
 
-    void Cancel()
+    void Add(QueuedItemType item)
     {
-
+        {
+            std::unique_lock<std::mutex> startStopLock(mStartStopMutex);
+            std::unique_lock<std::mutex> queueLock(mQueueMutex);
+            mQueue.push_back(std::move(item));
+        } // Do not hold lock while doing notify_one()
+        mHaveWork.notify_one();
     }
 
-    void QueueWork(std::unique_ptr<T> item)
+    void Start(u32 numWorkers = std::thread::hardware_concurrency(), bool waitForWorkersToStart = true)
     {
-        std::unique_lock<std::mutex> lock(mMutex);
-        mQueue.push_back(std::move(item));
-    }
+        std::unique_lock<std::mutex> lock(mStartStopMutex);
 
-    bool IsIdle()
-    {
-        return false;
+        // Ensure we have at least 1 worker
+        if (numWorkers == 0)
+        {
+            numWorkers = 1;
+        }
+
+        // Create workers
+        for (u32 i = 0; i < numWorkers; i++)
+        {
+            mWorkers.push_back(std::thread(&ASyncQueue::WorkerFunc, this));
+        }
+
+        if (waitForWorkersToStart)
+        {
+            while (mRunningThreadCount < numWorkers) {}
+        }
     }
 
     void Stop()
     {
+        std::unique_lock<std::mutex> lock(mStartStopMutex);
 
+        // Break all workers out of the WorkerFunc
+        mQuit = true;
+
+        {
+            std::unique_lock<std::mutex> queueLock(mQueueMutex);
+            mQueue.clear();
+        }
+
+        mHaveWork.notify_all();
+
+
+        // Wait for running workers to exit
+        for (auto& thread : mWorkers)
+        {
+            if (thread.joinable())
+            {
+                thread.join();
+            }
+        }
+
+        mWorkers.clear();
+        mRunningThreadCount = 0;
     }
 
 private:
     void WorkerFunc()
     {
-        std::unique_lock<std::mutex> lock;
-        mHaveWork.wait(lock);
+        mRunningThreadCount++;
+
+        std::unique_lock<std::mutex> lock(mQueueMutex);
+        while (!mQuit)
+        {
+            mHaveWork.wait(lock, [this]() 
+            {
+                return !mQueue.empty() || mQuit;
+            });
+
+            if (mQuit)
+            {
+                return;
+            }
+
+            if (!mQueue.empty())
+            {
+                auto item = std::move(mQueue.front());
+                mQueue.pop_front();
+
+                lock.unlock();
+
+                mExecFunc(std::move(item), mQuit);
+
+                lock.lock();
+            }
+        }
     }
 
-    std::mutex mMutex;
+    std::mutex mStartStopMutex; // Prevent concurrent Start/Stop/Add
+    std::mutex mQueueMutex;     // Protect mQueue
+    std::atomic<bool> mQuit = false;
+    std::atomic<u32> mRunningThreadCount = 0;
     std::condition_variable mHaveWork;
-    std::deque<std::unique_ptr<T>> mQueue;
-    std::deque<std::unique_ptr<T>> mExecutingItems;
+    std::deque<QueuedItemType> mQueue;
     std::vector<std::thread> mWorkers;
+    std::function<void(QueuedItemType item, std::atomic<bool>& quitFlag)> mExecFunc;
 };
