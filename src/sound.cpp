@@ -8,7 +8,7 @@
 
 SoundCache::SoundCache(OSBaseFileSystem& fs)
   : mFs(fs), 
-    mLoaderQueue([this](SoundConversionJob item, std::atomic<bool>& quitFlag) 
+    mLoaderQueue([this](SoundAddToCacheJob item, std::atomic<bool>& quitFlag) 
     {
         AsyncQueueWorkerFunction(std::move(item), quitFlag);
     })
@@ -44,6 +44,8 @@ void SoundCache::Sync()
     {
         DeleteAll();
     }
+
+    DeleteFromDiskCache("*.tmp");
 }
 
 void SoundCache::DeleteAll()
@@ -52,13 +54,7 @@ void SoundCache::DeleteAll()
     
     std::lock_guard<std::mutex> lock(mCacheMutex);
 
-    // Delete *.wav from {CacheDir}/disk
-    std::string dirName = mFs.ExpandPath("{CacheDir}");
-    const auto wavFiles = mFs.EnumerateFiles(dirName, "*.wav");
-    for (const auto& wavFile : wavFiles)
-    {
-        mFs.DeleteFile(dirName + "/" + wavFile);
-    }
+    DeleteFromDiskCache("*.wav");
 
     // Remove from memory
     mSoundDataCache.clear();
@@ -67,6 +63,21 @@ void SoundCache::DeleteAll()
     const std::string fileName = mFs.ExpandPath("{CacheDir}/CacheVersion.txt");
     Oddlib::FileStream versionFile(fileName, Oddlib::IStream::ReadMode::ReadWrite);
     versionFile.Write(std::string(ALIVE_VERSION));
+}
+
+void SoundCache::DeleteFromDiskCache(const std::string& filter)
+{
+    std::lock_guard<std::mutex> lock(mCacheMutex);
+
+    // Delete files matching filter from {CacheDir}/disk
+    std::string dirName = mFs.ExpandPath("{CacheDir}");
+    const auto wavFiles = mFs.EnumerateFiles(dirName, filter.c_str());
+    for (const auto& wavFile : wavFiles)
+    {
+        const std::string fullName = dirName + "/" + wavFile;
+        LOG_INFO("Deleting: " << fullName);
+        mFs.DeleteFile(fullName);
+    }
 }
 
 bool SoundCache::ExistsInMemoryCache(const std::string& name) const
@@ -145,29 +156,60 @@ std::unique_ptr<ISound> SoundCache::GetCached(const std::string& name)
 void SoundCache::AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound)
 {
     const std::string fileName = mFs.ExpandPath("{CacheDir}/" + sound->Name() + ".wav");
-    mLoaderQueue.Add(SoundConversionJob(fileName, std::move(sound)));
+
+    // TODO: mod files that are already wav shouldn't be converted
+    sound->Load();
+    AudioConverter::Convert<WavEncoder>(*sound, fileName.c_str());
+
+    auto stream = mFs.Open(fileName);
+    auto data = std::make_shared<std::vector<u8>>(Oddlib::IStream::ReadAll(*stream));;
+
+    std::lock_guard<std::mutex> lock(mCacheMutex);
+    mSoundDataCache[sound->Name()] = data;
 }
 
-void SoundCache::AsyncQueueWorkerFunction(SoundConversionJob item, std::atomic<bool>& quitFlag)
+void SoundCache::AsyncQueueWorkerFunction(SoundAddToCacheJob item, std::atomic<bool>& quitFlag)
 {
     if (quitFlag)
     {
         return;
     }
 
-    // TODO: mod files that are already wav shouldn't be converted
-    item.mSound->Load();
-    AudioConverter::Convert<WavEncoder>(*item.mSound, item.mFileName.c_str());
+    CacheSoundImpl(item.mLocator, item.mName);
+}
 
-    auto stream = mFs.Open(item.mFileName);
-    auto data = std::make_shared<std::vector<u8>>(Oddlib::IStream::ReadAll(*stream));;
+void SoundCache::CacheSound(ResourceLocator& locator, const std::string& name)
+{
+    mLoaderQueue.Add(SoundAddToCacheJob(locator, name));
+}
 
-    std::lock_guard<std::mutex> lock(mCacheMutex);
-    mSoundDataCache[item.mSound->Name()] = data;
+// TODO: Allow cancelling 
+void SoundCache::CacheSoundImpl(ResourceLocator& locator, const std::string& name)
+{
+    if (ExistsInMemoryCache(name))
+    {
+        // Already in memory
+        return;
+    }
+
+    if (AddToMemoryCacheFromDiskCache(name))
+    {
+        // Already on disk and now added to in memory cache
+        return;
+    }
+
+    // TODO: Res locator must be thread safe
+    std::unique_ptr<ISound> pSound = locator.LocateSound(name.c_str(), nullptr, true, true);
+    if (pSound)
+    {
+        // Write into disk cache and then load from disk cache into memory cache
+        AddToMemoryAndDiskCacheASync(std::move(pSound));
+    }
 }
 
 bool SoundCache::AddToMemoryCacheFromDiskCache(const std::string& name)
 {
+    // TODO: fs must be thread safe
     std::string fileName = mFs.ExpandPath("{CacheDir}/" + name + ".wav");
     if (mFs.FileExists(fileName))
     {
@@ -249,8 +291,7 @@ void Sound::SetMusicTheme(const char* themeName)
     mThemeToLoad = mLocator.LocateSoundTheme(themeName);
     if (mThemeToLoad)
     {
-        mState = eSoundStates::eLoadingSoundTheme;
-        SetLoadingSoundThemeState(eLoadingSoundThemeStates::eUnloadingActiveTheme);
+        SetState(eSoundStates::eUnloadingActiveSoundTheme);
     }
     else
     {
@@ -264,7 +305,7 @@ up_future_void Sound::CacheMemoryResidentSounds()
     {
         TRACE_ENTRYEXIT;
 
-        mState = eSoundStates::eLoadingSoundEffects;
+        SetState(eSoundStates::eLoadingSoundEffects);
 
         // initial one time sync
         mCache.Sync();
@@ -274,7 +315,7 @@ up_future_void Sound::CacheMemoryResidentSounds()
         {
             if (resource.mIsCacheResident)
             {
-                CacheSound(resource.mResourceName);
+                mCache.CacheSound(mLocator, resource.mResourceName);
             }
         }
     }));
@@ -288,35 +329,13 @@ void Sound::CacheActiveTheme(bool add)
         {
             if (add)
             {
-                CacheSound(e.mMusicName);
+                mCache.CacheSound(mLocator, e.mMusicName);
             }
             else
             {
                 mCache.RemoveFromMemoryCache(e.mMusicName);
             }
         }
-    }
-}
-
-void Sound::CacheSound(const std::string& name)
-{
-    if (mCache.ExistsInMemoryCache(name))
-    {
-        // Already in memory
-        return;
-    }
-
-    if (mCache.AddToMemoryCacheFromDiskCache(name))
-    {
-        // Already on disk and now added to in memory cache
-        return;
-    }
-
-    std::unique_ptr<ISound> pSound = mLocator.LocateSound(name.c_str(), nullptr, true, true);
-    if (pSound)
-    {
-        // Write into disk cache and then load from disk cache into memory cache
-        mCache.AddToMemoryAndDiskCacheASync(std::move(pSound));
     }
 }
 
@@ -404,67 +423,48 @@ Sound::~Sound()
     mAudioController.RemovePlayer(this);
 }
 
-void Sound::HandleLoadingSoundTheme()
-{
-    switch (mLoadingSoundThemeState)
-    {
-    case Sound::eLoadingSoundThemeStates::eIdle:
-        SetState(eSoundStates::eIdle);
-        break;
-
-    case Sound::eLoadingSoundThemeStates::eUnloadingActiveTheme:
-        if (mActiveTheme)
-        {
-            CacheActiveTheme(false);
-        }
-        mActiveTheme = mThemeToLoad;
-        mThemeToLoad = nullptr;
-        SetLoadingSoundThemeState(eLoadingSoundThemeStates::eLoadActiveTheme);
-        break;
-
-    case eLoadingSoundThemeStates::eLoadActiveTheme:
-        if (mActiveTheme)
-        {
-            CacheActiveTheme(true);
-        }
-        SetLoadingSoundThemeState(eLoadingSoundThemeStates::eLoadingActiveTheme);
-        break;
-
-    case eLoadingSoundThemeStates::eLoadingActiveTheme:
-        if (!mCache.IsBusy())
-        {
-            SetLoadingSoundThemeState(eLoadingSoundThemeStates::eIdle);
-        }
-        break;
-    }
-}
 
 void Sound::SetState(Sound::eSoundStates state)
 {
     if (mState != state)
     {
         mState = state;
-        SetLoadingSoundThemeState(eLoadingSoundThemeStates::eIdle);
     }
-}
-
-void Sound::SetLoadingSoundThemeState(Sound::eLoadingSoundThemeStates state)
-{
-    mLoadingSoundThemeState = state;
 }
 
 void Sound::Update()
 {
     switch (mState)
     {
-    case eSoundStates::eIdle:
+    case Sound::eSoundStates::eIdle:
         break;
 
     case eSoundStates::eLoadingSoundEffects:
         break;
 
-    case eSoundStates::eLoadingSoundTheme:
-        HandleLoadingSoundTheme();
+    case Sound::eSoundStates::eUnloadingActiveSoundTheme:
+        if (mActiveTheme)
+        {
+            CacheActiveTheme(false);
+        }
+        mActiveTheme = mThemeToLoad;
+        mThemeToLoad = nullptr;
+        SetState(eSoundStates::eLoadActiveSoundTheme);
+        break;
+
+    case eSoundStates::eLoadActiveSoundTheme:
+        if (mActiveTheme)
+        {
+            CacheActiveTheme(true);
+        }
+        SetState(eSoundStates::eLoadingActiveSoundTheme);
+        break;
+
+    case eSoundStates::eLoadingActiveSoundTheme:
+        if (!mCache.IsBusy())
+        {
+            SetState(eSoundStates::eIdle);
+        }
         break;
     }
 

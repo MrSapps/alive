@@ -69,17 +69,18 @@ namespace Oddlib
 
 // Thread safe
 
-class SoundConversionJob
+class SoundAddToCacheJob
 {
 public:
-    SoundConversionJob(const std::string& fileName, std::unique_ptr<ISound> sound)
-        : mFileName(fileName), mSound(std::move(sound))
+    SoundAddToCacheJob(ResourceLocator& locator, const std::string& name)
+        : mLocator(locator), mName(name)
     {
 
     }
+
 public:
-    std::string mFileName;
-    std::unique_ptr<ISound> mSound;
+    std::reference_wrapper<ResourceLocator> mLocator;
+    std::string mName;
 };
 
 class SoundCache
@@ -88,21 +89,26 @@ public:
     explicit SoundCache(OSBaseFileSystem& fs);
     ~SoundCache();
     void Sync();
-    void DeleteAll();
     bool ExistsInMemoryCache(const std::string& name) const;
     std::unique_ptr<ISound> GetCached(const std::string& name);
+    bool IsBusy() const { return mLoaderQueue.IsIdle() == false; }
+    void CacheSound(ResourceLocator& locator, const std::string& name);
+private:
+    void DeleteAll();
+    void CacheSoundImpl(ResourceLocator& locator, const std::string& name);
+
     void AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound);
     bool AddToMemoryCacheFromDiskCache(const std::string& name);
-    bool IsBusy() const { return mLoaderQueue.IsIdle() == false; }
-private:
-    void AsyncQueueWorkerFunction(SoundConversionJob item, std::atomic<bool>& quitFlag);
+    void AsyncQueueWorkerFunction(SoundAddToCacheJob item, std::atomic<bool>& quitFlag);
+    void DeleteFromDiskCache(const std::string& filter);
+
 
     OSBaseFileSystem& mFs;
     std::map<std::string, std::shared_ptr<std::vector<u8>>> mSoundDataCache;
     mutable std::mutex mCacheMutex;
 public:
     void RemoveFromMemoryCache(const std::string& name);
-    ASyncQueue<SoundConversionJob> mLoaderQueue;
+    ASyncQueue<SoundAddToCacheJob> mLoaderQueue;
 };
 
 using future_void = std::future<void>;
@@ -115,20 +121,19 @@ public:
     Sound& operator = (const Sound&) = delete;
     Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs);
     ~Sound();
+
+    void SetMusicTheme(const char* themeName);
+    bool IsLoading() const;
+
     void Update();
 
     void HandleMusicEvent(const char* eventName);
-    void SetMusicTheme(const char* themeName);
     void PlaySoundEffect(const char* soundName);
-    bool IsLoading() const;
 
 private:
     up_future_void CacheMemoryResidentSounds();
 
-    void HandleLoadingSoundTheme();
-
     void CacheActiveTheme(bool add);
-    void CacheSound(const std::string& name);
     std::unique_ptr<ISound> PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRecord, bool useSfxRecord, bool useCache);
     void SoundBrowserUi();
     std::unique_ptr<ISound> PlayThemeEntry(const char* entryName);
@@ -158,22 +163,12 @@ private:
     enum class eSoundStates
     {
         eLoadingSoundEffects,
-        eLoadingSoundTheme,
+        eUnloadingActiveSoundTheme,
+        eLoadActiveSoundTheme,
+        eLoadingActiveSoundTheme,
         eIdle
     };
     eSoundStates mState = eSoundStates::eIdle;
 
     void SetState(Sound::eSoundStates state);
-
-    enum class eLoadingSoundThemeStates
-    {
-        eIdle,
-        eUnloadingActiveTheme,
-        eLoadActiveTheme,
-        eLoadingActiveTheme
-    };
-    eLoadingSoundThemeStates mLoadingSoundThemeState = eLoadingSoundThemeStates::eIdle;
-
-    void SetLoadingSoundThemeState(Sound::eLoadingSoundThemeStates state);
-
 };
