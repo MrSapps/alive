@@ -42,7 +42,9 @@ public:
         return mExecutingJobCount == 0 && mQueue.empty();
     }
 
-    void Start(u32 numWorkers = std::thread::hardware_concurrency(), bool waitForWorkersToStart = true)
+    // Default to half of the CPU cores - if we use all of them then it will take too much time from
+    // whatever core is running the main thread/game loop.
+    void Start(u32 numWorkers = std::thread::hardware_concurrency() / 2, bool waitForWorkersToStart = true)
     {
         std::unique_lock<std::mutex> lock(mStartStopMutex);
 

@@ -321,10 +321,18 @@ void Sound::SoundBrowserUi()
             {
                 ImGui::Text("Ambiance: %s", mAmbiance->Name().c_str());
             }
+            else
+            {
+                ImGui::TextUnformatted("Ambiance: (none)");
+            }
 
             if (mMusicTrack)
             {
                 ImGui::Text("Music: %s", mMusicTrack->Name().c_str());
+            }
+            else
+            {
+                ImGui::TextUnformatted("Music: (none)");
             }
 
             int i = 0;
@@ -338,11 +346,6 @@ void Sound::SoundBrowserUi()
                         player->Stop();
                     }
                 }
-            }
-
-            if (!mAmbiance && !mMusicTrack && mSoundPlayers.empty())
-            {
-                ImGui::TextUnformatted("(none)");
             }
         }
     }
