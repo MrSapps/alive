@@ -3,6 +3,7 @@
 #include "oddlib/stream.hpp"
 #include "oddlib/lvlarchive.hpp"
 #include <vorbis/vorbisenc.h>
+#include <atomic>
 
 class ISound;
 
@@ -18,7 +19,7 @@ public:
     AudioConverter() = delete;
 
     template<class EncoderAlgorithm>
-    static void Convert(ISound& sound, const char* outputName);
+    static void Convert(ISound& sound, const char* outputName, std::atomic<bool>& quitFlag);
 };
 
 class WavHeader

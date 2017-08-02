@@ -384,6 +384,8 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
 
 std::string ResourceLocator::LocateScript(const char* scriptName)
 {
+    std::unique_lock<std::mutex> lock(mMutex);
+
     // Look for the engine built-in script first
     std::string fileName = std::string("{GameDir}\\data\\scripts\\") + scriptName;
     if (mDataPaths.GameFs().FileExists(fileName))
@@ -523,6 +525,8 @@ std::unique_ptr<ISound> ResourceLocator::DoLoadSoundEffect(const char* resourceN
 
 std::unique_ptr<ISound> ResourceLocator::LocateSound(const char* resourceName, const char* explicitSoundBankName /*= nullptr*/, bool useMusicRec /*= true*/, bool useSfxRec /*= true*/)
 {
+    std::unique_lock<std::mutex> lock(mMutex);
+
     const SoundResource* sr = mResMapper.FindSound(resourceName);
     for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
     {
@@ -579,6 +583,7 @@ up_future_UP_Path ResourceLocator::LocatePath(const std::string& resourceName)
 {
     return std::make_unique<future_UP_Path>(std::async(std::launch::async, [=]() -> Oddlib::UP_Path
     {
+        std::unique_lock<std::mutex> lock(mMutex);
         const ResourceMapper::PathMapping* mapping = mResMapper.FindPath(resourceName.c_str());
         if (mapping)
         {
@@ -629,6 +634,7 @@ up_future_UP_Path ResourceLocator::LocatePath(const std::string& resourceName)
 std::unique_ptr<Oddlib::IBits> ResourceLocator::LocateCamera(const char* resourceName)
 {
     LOG_INFO("Requesting camera " << resourceName);
+    std::unique_lock<std::mutex> lock(mMutex);
     return DoLocateCamera(resourceName, false);
 }
 
@@ -794,6 +800,7 @@ std::unique_ptr<Oddlib::IBits> ResourceLocator::DoLocateCamera(const char* resou
 std::unique_ptr<IMovie> ResourceLocator::LocateFmv(IAudioController& audioController, const char* resourceName, const ResourceMapper::FmvFileLocation* location)
 {
     // Try from explicitly passed in location
+    std::unique_lock<std::mutex> lock(mMutex);
     if (location)
     {
         for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
@@ -882,6 +889,8 @@ std::unique_ptr<IMovie> ResourceLocator::DoLocateFmvFromFileLocation(const Resou
 
 std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resourceName)
 {
+    std::unique_lock<std::mutex> lock(mMutex);
+
     const ResourceMapper::AnimMapping* animMapping = mResMapper.FindAnimation(resourceName);
     if (!animMapping)
     {
@@ -914,6 +923,7 @@ std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resource
 
 std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resourceName, const char* dataSetName)
 {
+    std::unique_lock<std::mutex> lock(mMutex);
     for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
     {
         if (fs.mDataSetName == dataSetName)
@@ -958,6 +968,7 @@ const std::vector<SoundResource>& ResourceLocator::GetSoundResources() const
 
 const MusicTheme* ResourceLocator::LocateSoundTheme(const char* themeName)
 {
+    std::unique_lock<std::mutex> lock(mMutex);
     return mResMapper.FindSoundTheme(themeName);
 }
 

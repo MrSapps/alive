@@ -140,7 +140,6 @@ bool SoundCache::ExistsInMemoryCache(const std::string& name) const
     return mSoundDataCache.find(name) != std::end(mSoundDataCache);
 }
 
-
 std::unique_ptr<ISound> SoundCache::GetCached(const std::string& name)
 {
     std::lock_guard<std::mutex> lock(mCacheMutex);
@@ -152,16 +151,32 @@ std::unique_ptr<ISound> SoundCache::GetCached(const std::string& name)
     return nullptr;
 }
 
-void SoundCache::AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound)
+void SoundCache::AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound, std::atomic<bool>& quitFlag)
 {
     const std::string fileName = mFs.ExpandPath("{CacheDir}/" + sound->Name() + ".wav");
 
-    // TODO: mod files that are already wav shouldn't be converted
+    // TODO: mod files that are already wav shouldn't be converted - but could still be copied to the cache
+
     sound->Load();
-    AudioConverter::Convert<WavEncoder>(*sound, fileName.c_str());
+
+    if (quitFlag)
+    {
+        return;
+    }
+
+    // TODO: Write to a .tmp file and rename when completed
+
+    AudioConverter::Convert<WavEncoder>(*sound, fileName.c_str(), quitFlag);
+
+    //mFs.Rename(fileName.c_str(), fileName.c_str());
 
     auto stream = mFs.Open(fileName);
     auto data = std::make_shared<std::vector<u8>>(Oddlib::IStream::ReadAll(*stream));;
+
+    if (quitFlag)
+    {
+        return;
+    }
 
     std::lock_guard<std::mutex> lock(mCacheMutex);
     mSoundDataCache[sound->Name()] = data;
@@ -174,7 +189,7 @@ void SoundCache::AsyncQueueWorkerFunction(SoundAddToCacheJob item, std::atomic<b
         return;
     }
 
-    CacheSoundImpl(item.mLocator, item.mName);
+    CacheSoundImpl(item.mLocator, item.mName, quitFlag);
 }
 
 void SoundCache::CacheSound(ResourceLocator& locator, const std::string& name)
@@ -182,33 +197,30 @@ void SoundCache::CacheSound(ResourceLocator& locator, const std::string& name)
     mLoaderQueue.Add(SoundAddToCacheJob(locator, name));
 }
 
-// TODO: Allow cancelling 
-void SoundCache::CacheSoundImpl(ResourceLocator& locator, const std::string& name)
+void SoundCache::CacheSoundImpl(ResourceLocator& locator, const std::string& name, std::atomic<bool>& quitFlag)
 {
-    if (ExistsInMemoryCache(name))
+    if (quitFlag || ExistsInMemoryCache(name))
     {
         // Already in memory
         return;
     }
 
-    if (AddToMemoryCacheFromDiskCache(name))
+    if (quitFlag || AddToMemoryCacheFromDiskCache(name))
     {
         // Already on disk and now added to in memory cache
         return;
     }
 
-    // TODO: Res locator must be thread safe
     std::unique_ptr<ISound> pSound = locator.LocateSound(name.c_str(), nullptr, true, true);
-    if (pSound)
+    if (!quitFlag && pSound)
     {
         // Write into disk cache and then load from disk cache into memory cache
-        AddToMemoryAndDiskCacheASync(std::move(pSound));
+        AddToMemoryAndDiskCacheASync(std::move(pSound), quitFlag);
     }
 }
 
 bool SoundCache::AddToMemoryCacheFromDiskCache(const std::string& name)
 {
-    // TODO: fs must be thread safe
     std::string fileName = mFs.ExpandPath("{CacheDir}/" + name + ".wav");
     if (mFs.FileExists(fileName))
     {

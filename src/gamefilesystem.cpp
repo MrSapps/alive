@@ -23,6 +23,8 @@
 
 bool GameFileSystem::Init()
 {
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
+
     auto basePath = InitBasePath();
     if (basePath.empty())
     {
@@ -52,6 +54,7 @@ bool GameFileSystem::Init()
 
 std::string GameFileSystem::FsPath() const
 {
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
     return mNamedPaths.find("{GameDir}")->second;
 }
 #ifdef _WIN32
@@ -84,6 +87,8 @@ static std::string W32CreateDirectory(const wchar_t* dirName)
 
 std::string GameFileSystem::InitUserPath()
 {
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
+
     std::string userPath;
 #ifdef _WIN32
     userPath = W32CreateDirectory(L"ALIVE User files");
@@ -101,6 +106,8 @@ std::string GameFileSystem::InitUserPath()
 
 std::string GameFileSystem::InitCachePath()
 {
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
+
     std::string userPath;
 #ifdef _WIN32
     userPath = W32CreateDirectory(L"ALIVE User files\\CacheFiles");
@@ -119,6 +126,8 @@ std::string GameFileSystem::InitCachePath()
 
 std::string GameFileSystem::InitBasePath()
 {
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
+
     char* pBasePath = SDL_GetBasePath();
     std::string basePath;
     if (pBasePath)
@@ -155,6 +164,7 @@ std::string GameFileSystem::InitBasePath()
 
 std::string GameFileSystem::ExpandPath(const std::string& path)
 {
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
     std::string ret = path;
     for (const auto& namedPath : mNamedPaths)
     {

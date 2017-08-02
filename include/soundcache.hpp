@@ -35,9 +35,9 @@ public:
     void CacheSound(ResourceLocator& locator, const std::string& name);
 private:
     void DeleteAll();
-    void CacheSoundImpl(ResourceLocator& locator, const std::string& name);
+    void CacheSoundImpl(ResourceLocator& locator, const std::string& name, std::atomic<bool>& quitFlag);
 
-    void AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound);
+    void AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound, std::atomic<bool>& quitFlag);
     bool AddToMemoryCacheFromDiskCache(const std::string& name);
     void AsyncQueueWorkerFunction(SoundAddToCacheJob item, std::atomic<bool>& quitFlag);
     void DeleteFromDiskCache(const std::string& filter);

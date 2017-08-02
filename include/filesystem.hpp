@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <mutex>
 
 namespace Oddlib
 {
@@ -91,11 +92,13 @@ public:
 
     virtual std::vector<std::string> EnumerateFiles(const std::string& directory, const char* filter) override
     {
+        std::unique_lock<std::recursive_mutex> lock(mMutex);
         return DoEnumerate(directory, true, filter);
     }
 
     virtual std::vector<std::string> EnumerateFolders(const std::string& directory) override
     {
+        std::unique_lock<std::recursive_mutex> lock(mMutex);
         return DoEnumerate(directory, false, nullptr);
     }
 
@@ -106,5 +109,7 @@ public:
     void DeleteFile(const std::string& path);
 private:
     std::vector<std::string> DoEnumerate(const std::string& directory, bool files, const char* filter);
+protected:
+    mutable std::recursive_mutex mMutex;
 };
 

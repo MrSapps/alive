@@ -1,11 +1,11 @@
 #include "audioconverter.hpp"
 #include "resourcemapper.hpp"
 
-template void AudioConverter::Convert<OggEncoder>(ISound& sound, const char* outputName);
-template void AudioConverter::Convert<WavEncoder>(ISound& sound, const char* outputName);
+template void AudioConverter::Convert<OggEncoder>(ISound& sound, const char* outputName, std::atomic<bool>& quitFlag);
+template void AudioConverter::Convert<WavEncoder>(ISound& sound, const char* outputName, std::atomic<bool>& quitFlag);
 
 template<class EncoderAlgorithm>
-void AudioConverter::Convert(ISound& sound, const char* outputName)
+void AudioConverter::Convert(ISound& sound, const char* outputName, std::atomic<bool>& quitFlag)
 {
     TRACE_ENTRYEXIT;
 
@@ -35,7 +35,7 @@ void AudioConverter::Convert(ISound& sound, const char* outputName)
 
         encoder.Consume(buffer, numSamplesToUse * sizeof(f32));
 
-        if (endOfAudio)
+        if (endOfAudio || quitFlag)
         {
             break;
         }

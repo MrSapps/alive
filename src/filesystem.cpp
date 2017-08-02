@@ -125,11 +125,13 @@
 
 std::unique_ptr<Oddlib::IStream> OSBaseFileSystem::Open(const std::string& fileName)
 {
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
     return std::make_unique<Oddlib::FileStream>(ExpandPath(fileName), Oddlib::IStream::ReadMode::ReadOnly);
 }
 
 std::unique_ptr<Oddlib::IStream> OSBaseFileSystem::Create(const std::string& fileName)
 {
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
     return std::make_unique<Oddlib::FileStream>(ExpandPath(fileName), Oddlib::IStream::ReadMode::ReadWrite);
 }
 
@@ -149,6 +151,8 @@ typedef std::unique_ptr<HANDLE, FindCloseDeleter> FindCloseHandle;
 
 std::vector<std::string> OSBaseFileSystem::DoEnumerate(const std::string& directory, bool files, const char* filter)
 {
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
+
     std::vector<std::string> ret;
     WIN32_FIND_DATA findData = {};
     // Wild carding is supported directly by the host OS API
@@ -191,6 +195,8 @@ typedef std::unique_ptr<DIR, closedirDeleter> closedirHandle;
 
 std::vector<std::string> OSBaseFileSystem::DoEnumerate(const std::string& directory, bool files, const char* filter)
 {
+    std::unique_lock<std::mutex> lock(mMutex);
+
     std::vector<std::string> ret;
     const std::string dirPath = ExpandPath(directory) + "/";
     closedirHandle dir(opendir(dirPath.c_str()));
@@ -243,6 +249,7 @@ std::vector<std::string> OSBaseFileSystem::DoEnumerate(const std::string& direct
 
 void OSBaseFileSystem::DeleteFile(const std::string& path)
 {
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
 #ifdef _WIN32
     if (!::DeleteFileA(path.c_str())) // TODO: Should convert to unicode to handle unicode paths
     {
@@ -259,6 +266,8 @@ void OSBaseFileSystem::DeleteFile(const std::string& path)
 #ifdef _WIN32
 bool OSBaseFileSystem::FileExists(std::string& fileName)
 {
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
+
     const auto name = ExpandPath(fileName);
     const DWORD dwAttrib = GetFileAttributes(name.c_str()); // TODO: Unicode
     return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
@@ -266,6 +275,8 @@ bool OSBaseFileSystem::FileExists(std::string& fileName)
 #else
 bool OSBaseFileSystem::FileExists(std::string& fileName)
 {
+    std::unique_lock<std::mutex> lock(mMutex);
+
     const std::string dirPart = Parent(fileName);
     std::vector<std::string> files = DoEnumerate(dirPart, true, nullptr);
 

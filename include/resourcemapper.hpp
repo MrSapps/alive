@@ -709,11 +709,12 @@ public:
     ~ResourceLocator();
 
     // TOOD: Provide limited interface to this?
-    DataPaths& GetDataPaths()
+    DataPaths& GetDataPaths() // Not thread safe
     {
         return mDataPaths;
     }
     
+    // Not thread safe
     const std::map<std::string, ResourceMapper::PathMapping>& PathMaps() const { return mResMapper.PathMaps(); }
 
     std::string LocateScript(const char* scriptName);
@@ -732,6 +733,7 @@ public:
     // in dataset A and B.
     std::unique_ptr<Animation> LocateAnimation(const char* resourceName, const char* dataSetName);
 
+    // Not thread safe
     std::vector<std::tuple<const char*, const char*, bool>> DebugUi(const char* dataSetFilter, const char* nameFilter);
 private:
     std::unique_ptr<ISound> DoLoadSoundEffect(const char* resourceName, const DataPaths::FileSystemInfo& fs, const std::string& strSb, const SoundEffectResource& sfxRes, const SoundEffectResourceLocation& sfxResLoc);
@@ -754,6 +756,8 @@ private:
     friend class Fmv; // TODO: Temp debug ui
     friend class Level; // TODO: Temp debug ui
     friend class Sound; // TODO: Temp debug ui
+
+    std::mutex mMutex;
 public:
     const std::vector<SoundResource>& GetSoundResources() const;
 };
