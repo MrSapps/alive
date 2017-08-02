@@ -37,7 +37,7 @@ void Sound::SetMusicTheme(const char* themeName, const char* eventOnLoad)
 
     // This is just an in-memory non blocking look up
     mThemeToLoad = mLocator.LocateSoundTheme(themeName);
-    mEventToSetAfterLoad = eventOnLoad;
+    mEventToSetAfterLoad = eventOnLoad ? eventOnLoad : "";
 
     if (mThemeToLoad)
     {
