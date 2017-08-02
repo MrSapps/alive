@@ -148,7 +148,7 @@ EngineStates RunGameState::Update(const InputState& input, CoordinateSpace& coor
     {
         if (mLocatePathFuture && FutureIsDone(mLocatePathFuture))
         {
-            mPathBeingLoaded = mLocatePathFuture->get();
+            mPathBeingLoaded = mLocatePathFuture->get(); // Will re-throw anything that was throwning during the async processing
             mLocatePathFuture = nullptr;
         }
 

@@ -153,7 +153,9 @@ std::unique_ptr<ISound> SoundCache::GetCached(const std::string& name)
 
 void SoundCache::AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound, std::atomic<bool>& quitFlag)
 {
-    const std::string fileName = mFs.ExpandPath("{CacheDir}/" + sound->Name() + ".wav");
+    const std::string baseFileName = mFs.ExpandPath("{CacheDir}/" + sound->Name());
+    const std::string tmpFileName = baseFileName + ".tmp";
+    const std::string finalFileName = baseFileName + ".wav";
 
     // TODO: mod files that are already wav shouldn't be converted - but could still be copied to the cache
 
@@ -164,13 +166,21 @@ void SoundCache::AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound, std
         return;
     }
 
-    // TODO: Write to a .tmp file and rename when completed
+    // Write to a .tmp file and atomically (or as atomically as possible) rename when completed
+    // to handle the process crashing/being killed in anyway during conversion. Otherwise we will try to load
+    // incomplete conversions of sound data.
+    AudioConverter::Convert<WavEncoder>(*sound, tmpFileName.c_str(), quitFlag);
 
-    AudioConverter::Convert<WavEncoder>(*sound, fileName.c_str(), quitFlag);
+    // Ensure we don't rename if it was stopped halfway! 
+    if (quitFlag)
+    {
+        mFs.DeleteFile(tmpFileName.c_str());
+        return;
+    }
 
-    //mFs.Rename(fileName.c_str(), fileName.c_str());
+    mFs.RenameFile(tmpFileName.c_str(), finalFileName.c_str());
 
-    auto stream = mFs.Open(fileName);
+    auto stream = mFs.Open(finalFileName);
     auto data = std::make_shared<std::vector<u8>>(Oddlib::IStream::ReadAll(*stream));;
 
     if (quitFlag)

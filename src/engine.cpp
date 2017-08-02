@@ -333,6 +333,10 @@ bool Engine::ASyncJobCompleted()
 {
     if (!mASyncJob || FutureIsDone(mASyncJob))
     {
+        if (mASyncJob)
+        {
+            mASyncJob->get(); // Will re-throw any exceptions that happened in the async task
+        }
         return true;
     }
     return false;

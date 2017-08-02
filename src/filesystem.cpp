@@ -23,6 +23,18 @@
 #include "directorylimitedfilesystem.hpp"
 #include "cdromfilesystem.hpp"
 
+static std::wstring Utf8ToUtf16(const std::string& utf8)
+{
+    std::vector<wchar_t> utf16(utf8.length() + 1);
+    utf16[utf8.size()] = L'\0';
+    if (::MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), static_cast<int>(utf8.length()), utf16.data(), static_cast<int>(utf8.length())) == 0)
+    {
+        std::string err = "MultiByteToWideChar failed: err: " + std::to_string(::GetLastError());
+        throw Oddlib::Exception(err);
+    }
+    return utf16.data();
+}
+
 /*static*/ std::unique_ptr<IFileSystem> IFileSystem::Factory(IFileSystem& fs, const std::string& path)
 {
     TRACE_ENTRYEXIT;
@@ -251,7 +263,7 @@ void OSBaseFileSystem::DeleteFile(const std::string& path)
 {
     std::unique_lock<std::recursive_mutex> lock(mMutex);
 #ifdef _WIN32
-    if (!::DeleteFileA(path.c_str())) // TODO: Should convert to unicode to handle unicode paths
+    if (!::DeleteFileW(Utf8ToUtf16(path).c_str()))
     {
         LOG_ERROR("Failed to delete " << path << " error " << ::GetLastError());
     }
@@ -263,13 +275,29 @@ void OSBaseFileSystem::DeleteFile(const std::string& path)
 #endif
 }
 
+void OSBaseFileSystem::RenameFile(const std::string& source, const std::string& destination)
+{
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
+#ifdef _WIN32
+    if (!::MoveFileExW(Utf8ToUtf16(source).c_str(), Utf8ToUtf16(destination).c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING))
+    {
+        LOG_ERROR("Failed to rename " << source << " to " << destination << " error " << ::GetLastError());
+    }
+#else
+    if (rename(source.c_str(), destination.c_str()) == -1)
+    {
+        LOG_ERROR("Failed to rename " << source << " to " << destination << " error " << errno);
+    }
+#endif
+}
+
 #ifdef _WIN32
 bool OSBaseFileSystem::FileExists(std::string& fileName)
 {
     std::unique_lock<std::recursive_mutex> lock(mMutex);
 
     const auto name = ExpandPath(fileName);
-    const DWORD dwAttrib = GetFileAttributes(name.c_str()); // TODO: Unicode
+    const DWORD dwAttrib = GetFileAttributesW(Utf8ToUtf16(name).c_str());
     return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 #else
