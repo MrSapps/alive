@@ -357,6 +357,8 @@ SET(alivelib_src
     include/asyncqueue.hpp
     include/sound.hpp
     src/sound.cpp
+    include/soundcache.hpp
+    src/soundcache.cpp
     include/abstractrenderer.hpp
     src/abstractrenderer.cpp
     include/openglrenderer.hpp

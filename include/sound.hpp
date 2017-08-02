@@ -7,9 +7,8 @@
 #include <mutex>
 #include <deque>
 #include <future>
-#include "proxy_sqrat.hpp"
 #include "core/audiobuffer.hpp"
-#include "asyncqueue.hpp"
+#include "soundcache.hpp"
 
 class GameData;
 class IAudioController;
@@ -17,7 +16,6 @@ class IFileSystem;
 class ResourceLocator;
 class MusicTheme;
 class MusicThemeEntry;
-class SequencePlayer;
 
 class ActiveMusicThemeEntry
 {
@@ -67,49 +65,6 @@ namespace Oddlib
     class MemoryStream;
 }
 
-// Thread safe
-
-class SoundAddToCacheJob
-{
-public:
-    SoundAddToCacheJob(ResourceLocator& locator, const std::string& name)
-        : mLocator(locator), mName(name)
-    {
-
-    }
-
-public:
-    std::reference_wrapper<ResourceLocator> mLocator;
-    std::string mName;
-};
-
-class SoundCache
-{
-public:
-    explicit SoundCache(OSBaseFileSystem& fs);
-    ~SoundCache();
-    void Sync();
-    bool ExistsInMemoryCache(const std::string& name) const;
-    std::unique_ptr<ISound> GetCached(const std::string& name);
-    bool IsBusy() const { return mLoaderQueue.IsIdle() == false; }
-    void CacheSound(ResourceLocator& locator, const std::string& name);
-private:
-    void DeleteAll();
-    void CacheSoundImpl(ResourceLocator& locator, const std::string& name);
-
-    void AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound);
-    bool AddToMemoryCacheFromDiskCache(const std::string& name);
-    void AsyncQueueWorkerFunction(SoundAddToCacheJob item, std::atomic<bool>& quitFlag);
-    void DeleteFromDiskCache(const std::string& filter);
-
-
-    OSBaseFileSystem& mFs;
-    std::map<std::string, std::shared_ptr<std::vector<u8>>> mSoundDataCache;
-    mutable std::mutex mCacheMutex;
-public:
-    void RemoveFromMemoryCache(const std::string& name);
-    ASyncQueue<SoundAddToCacheJob> mLoaderQueue;
-};
 
 using future_void = std::future<void>;
 using up_future_void = std::unique_ptr<future_void>;
