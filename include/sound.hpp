@@ -77,13 +77,13 @@ public:
     Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs);
     ~Sound();
 
-    void SetMusicTheme(const char* themeName);
+    void SetMusicTheme(const char* themeName, const char* eventOnLoad = nullptr);
     bool IsLoading() const;
-
-    void Update();
 
     void HandleMusicEvent(const char* eventName);
     void PlaySoundEffect(const char* soundName);
+
+    void Update();
 
 private:
     up_future_void CacheMemoryResidentSounds();
@@ -102,6 +102,8 @@ private:
 
     const MusicTheme* mActiveTheme = nullptr;
     const MusicTheme* mThemeToLoad = nullptr;
+    std::string mEventToSetAfterLoad;
+
     ActiveMusicThemeEntry mActiveThemeEntry;
 
     std::mutex mSoundPlayersMutex;

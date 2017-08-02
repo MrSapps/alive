@@ -2,13 +2,50 @@
 #include "logger.hpp"
 #include "resourcemapper.hpp"
 
-void Sound::PlaySoundEffect(const char* soundName)
+Sound::Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs)
+    : mAudioController(audioController), mLocator(locator), mCache(fs)
 {
-    auto ret = PlaySound(soundName, nullptr, true, true, true);
-    if (ret)
+    mAudioController.AddPlayer(this);
+
+    Debugging().AddSection([&]()
     {
-        std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
-        mSoundPlayers.push_back(std::move(ret));
+        SoundBrowserUi();
+    });
+}
+
+Sound::~Sound()
+{
+    // Ensure the audio call back stops at this point else will be
+    // calling back into freed objects
+    SDL_AudioQuit();
+
+    mAudioController.RemovePlayer(this);
+}
+
+void Sound::SetMusicTheme(const char* themeName, const char* eventOnLoad)
+{
+    //CacheMemoryResidentSounds();
+
+    if (mState != eSoundStates::eIdle)
+    {
+        LOG_ERROR("TODO: Handle setting a theme while one is still setting");
+        return;
+    }
+
+    mAmbiance = nullptr;
+    mMusicTrack = nullptr;
+
+    // This is just an in-memory non blocking look up
+    mThemeToLoad = mLocator.LocateSoundTheme(themeName);
+    mEventToSetAfterLoad = eventOnLoad;
+
+    if (mThemeToLoad)
+    {
+        SetState(eSoundStates::eUnloadingActiveSoundTheme);
+    }
+    else
+    {
+        LOG_ERROR("Music theme " << themeName << " was not found");
     }
 }
 
@@ -48,24 +85,34 @@ std::unique_ptr<ISound> Sound::PlaySound(const char* soundName, const char* expl
     }
 }
 
-void Sound::SetMusicTheme(const char* themeName)
+void Sound::HandleMusicEvent(const char* eventName)
 {
-    //CacheMemoryResidentSounds();
+    // TODO: Need quarter beat transition in some cases
+    EnsureAmbiance();
 
-    mAmbiance = nullptr;
-    mMusicTrack = nullptr;
-
-    // This is just an in-memory non blocking look up
-    mThemeToLoad = mLocator.LocateSoundTheme(themeName);
-    if (mThemeToLoad)
+    if (strcmp(eventName, "AMBIANCE") == 0)
     {
-        SetState(eSoundStates::eUnloadingActiveSoundTheme);
+        mMusicTrack = nullptr;
+        return;
     }
-    else
+
+    auto ret = PlayThemeEntry(eventName);
+    if (ret)
     {
-        LOG_ERROR("Music theme " << themeName << " was not found");
+        mMusicTrack = std::move(ret);
     }
 }
+
+void Sound::PlaySoundEffect(const char* soundName)
+{
+    auto ret = PlaySound(soundName, nullptr, true, true, true);
+    if (ret)
+    {
+        std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
+        mSoundPlayers.push_back(std::move(ret));
+    }
+}
+
 
 up_future_void Sound::CacheMemoryResidentSounds()
 {
@@ -107,23 +154,6 @@ void Sound::CacheActiveTheme(bool add)
     }
 }
 
-void Sound::HandleMusicEvent(const char* eventName)
-{
-    // TODO: Need quarter beat transition in some cases
-    EnsureAmbiance();
-
-    if (strcmp(eventName, "AMBIANCE") == 0)
-    {
-        mMusicTrack = nullptr;
-        return;
-    }
-
-    auto ret = PlayThemeEntry(eventName);
-    if (ret)
-    {
-        mMusicTrack = std::move(ret);
-    }
-}
 
 std::unique_ptr<ISound> Sound::PlayThemeEntry(const char* entryName)
 {
@@ -171,27 +201,6 @@ bool Sound::Play(f32* stream, u32 len)
     return false;
 }
 
-Sound::Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs)
-    : mAudioController(audioController), mLocator(locator), mCache(fs)
-{
-    mAudioController.AddPlayer(this);
-
-    Debugging().AddSection([&]()
-    {
-        SoundBrowserUi();
-    });
-}
-
-Sound::~Sound()
-{
-    // Ensure the audio call back stops at this point else will be
-    // calling back into freed objects
-    SDL_AudioQuit();
-
-    mAudioController.RemovePlayer(this);
-}
-
-
 void Sound::SetState(Sound::eSoundStates state)
 {
     if (mState != state)
@@ -232,6 +241,11 @@ void Sound::Update()
         if (!mCache.IsBusy())
         {
             SetState(eSoundStates::eIdle);
+            if (!mEventToSetAfterLoad.empty())
+            {
+                HandleMusicEvent(mEventToSetAfterLoad.c_str());
+                mEventToSetAfterLoad.clear();
+            }
         }
         break;
     }
@@ -432,11 +446,11 @@ void Sound::SoundBrowserUi()
         {
             if (ImGui::RadioButton(theme.mName.c_str(), mActiveTheme && theme.mName == mActiveTheme->mName))
             {
-                SetMusicTheme(theme.mName.c_str());
-                HandleMusicEvent("BASE_LINE");
+                SetMusicTheme(theme.mName.c_str(), "BASE_LINE");
             }
         }
 
+        // TODO: Use radio buttons - use as active event when theme is changed
         for (const char* eventName : kMusicEvents)
         {
             if (ImGui::Button(eventName))
