@@ -24,9 +24,6 @@ Sound::~Sound()
 
 void Sound::SetMusicTheme(const char* themeName, const char* eventOnLoad)
 {
-    //CacheMemoryResidentSounds();
-
-
     mAmbiance = nullptr;
     mMusicTrack = nullptr;
 
@@ -115,29 +112,6 @@ void Sound::PlaySoundEffect(const char* soundName)
     }
 }
 
-
-up_future_void Sound::CacheMemoryResidentSounds()
-{
-    return std::make_unique<future_void>(std::async(std::launch::async, [&]() 
-    {
-        TRACE_ENTRYEXIT;
-
-        SetState(eSoundStates::eLoadingSoundEffects);
-
-        // initial one time sync
-        mCache.Sync();
-
-        const std::vector<SoundResource>& resources = mLocator.GetSoundResources();
-        for (const SoundResource& resource : resources)
-        {
-            if (resource.mIsCacheResident)
-            {
-                mCache.CacheSound(mLocator, resource.mResourceName);
-            }
-        }
-    }));
-}
-
 void Sound::CacheActiveTheme(bool add)
 {
     for (auto& entry : mActiveTheme->mEntries)
@@ -218,7 +192,16 @@ void Sound::Update()
     case Sound::eSoundStates::eIdle:
         break;
 
+    case eSoundStates::eLoadSoundEffects:
+        SetState(eSoundStates::eLoadingSoundEffects);
+        mCache.CacheAllSoundEffects(mLocator);
+        break;
+
     case eSoundStates::eLoadingSoundEffects:
+        if (!mCache.IsBusy())
+        {
+            SetState(eSoundStates::eLoadActiveSoundTheme);
+        }
         break;
 
     case eSoundStates::eCancel:
@@ -240,7 +223,7 @@ void Sound::Update()
         }
         mActiveTheme = mThemeToLoad;
         mThemeToLoad = nullptr;
-        SetState(eSoundStates::eLoadActiveSoundTheme);
+        SetState(eSoundStates::eLoadSoundEffects);
         break;
 
     case eSoundStates::eLoadActiveSoundTheme:

@@ -65,10 +65,6 @@ namespace Oddlib
     class MemoryStream;
 }
 
-
-using future_void = std::future<void>;
-using up_future_void = std::unique_ptr<future_void>;
-
 class Sound : public IAudioPlayer
 {
 public:
@@ -86,8 +82,6 @@ public:
     void Update();
 
 private:
-    up_future_void CacheMemoryResidentSounds();
-
     void CacheActiveTheme(bool add);
     std::unique_ptr<ISound> PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRecord, bool useSfxRecord, bool useCache);
     void SoundBrowserUi();
@@ -119,6 +113,7 @@ private:
 
     enum class eSoundStates
     {
+        eLoadSoundEffects,
         eLoadingSoundEffects,
         eUnloadingActiveSoundTheme,
         eLoadActiveSoundTheme,

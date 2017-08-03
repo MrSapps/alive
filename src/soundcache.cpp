@@ -62,10 +62,7 @@ private:
 
 SoundCache::SoundCache(OSBaseFileSystem& fs)
     : mFs(fs),
-    mLoaderQueue([this](SoundAddToCacheJob item, std::atomic<bool>& quitFlag)
-{
-    AsyncQueueWorkerFunction(std::move(item), quitFlag);
-})
+    mLoaderQueue(std::bind(&SoundCache::AsyncQueueWorkerFunction, this, std::placeholders::_1, std::placeholders::_2))
 {
     mLoaderQueue.Start();
 }
@@ -79,34 +76,37 @@ SoundCache::~SoundCache()
 void SoundCache::Sync()
 {
     TRACE_ENTRYEXIT;
-
-    std::lock_guard<std::mutex> lock(mCacheMutex);
-
-    mSoundDataCache.clear();
-
-    bool ok = false;
-    std::string versionFile = "{CacheDir}/CacheVersion.txt";
-    if (mFs.FileExists(versionFile))
+    if (!mSyncDone)
     {
-        if (mFs.Open(versionFile)->LoadAllToString() == ALIVE_VERSION)
+        std::lock_guard<std::recursive_mutex> lock(mCacheMutex);
+
+        mSoundDataCache.clear();
+
+        bool ok = false;
+        std::string versionFile = "{CacheDir}/CacheVersion.txt";
+        if (mFs.FileExists(versionFile))
         {
-            ok = true;
+            if (mFs.Open(versionFile)->LoadAllToString() == ALIVE_VERSION)
+            {
+                ok = true;
+            }
         }
-    }
 
-    if (!ok)
-    {
-        DeleteAll();
-    }
+        if (!ok)
+        {
+            DeleteAll();
+        }
 
-    DeleteFromDiskCache("*.tmp");
+        DeleteFromDiskCache("*.tmp");
+    }
+    mSyncDone = true;
 }
 
 void SoundCache::DeleteAll()
 {
     TRACE_ENTRYEXIT;
 
-    std::lock_guard<std::mutex> lock(mCacheMutex);
+    std::lock_guard<std::recursive_mutex> lock(mCacheMutex);
 
     DeleteFromDiskCache("*.wav");
 
@@ -121,7 +121,7 @@ void SoundCache::DeleteAll()
 
 void SoundCache::DeleteFromDiskCache(const std::string& filter)
 {
-    std::lock_guard<std::mutex> lock(mCacheMutex);
+    std::lock_guard<std::recursive_mutex> lock(mCacheMutex);
 
     // Delete files matching filter from {CacheDir}/disk
     std::string dirName = mFs.ExpandPath("{CacheDir}");
@@ -136,13 +136,13 @@ void SoundCache::DeleteFromDiskCache(const std::string& filter)
 
 bool SoundCache::ExistsInMemoryCache(const std::string& name) const
 {
-    std::lock_guard<std::mutex> lock(mCacheMutex);
+    std::lock_guard<std::recursive_mutex> lock(mCacheMutex);
     return mSoundDataCache.find(name) != std::end(mSoundDataCache);
 }
 
 std::unique_ptr<ISound> SoundCache::GetCached(const std::string& name)
 {
-    std::lock_guard<std::mutex> lock(mCacheMutex);
+    std::lock_guard<std::recursive_mutex> lock(mCacheMutex);
     auto it = mSoundDataCache.find(name);
     if (it != std::end(mSoundDataCache))
     {
@@ -198,24 +198,60 @@ void SoundCache::AddToMemoryAndDiskCache(std::unique_ptr<ISound> sound, std::ato
         return;
     }
 
-    std::lock_guard<std::mutex> lock(mCacheMutex);
+    std::lock_guard<std::recursive_mutex> lock(mCacheMutex);
     mSoundDataCache[sound->Name()] = data;
 }
 
-void SoundCache::AsyncQueueWorkerFunction(SoundAddToCacheJob item, std::atomic<bool>& quitFlag)
+void SoundCache::AsyncQueueWorkerFunction(UP_BaseSoundCacheJob item, std::atomic<bool>& quitFlag)
 {
     if (quitFlag)
     {
         return;
     }
 
-    CacheSoundImpl(item.mLocator, item.mName, quitFlag);
+    item->Execute(quitFlag);
 }
 
 void SoundCache::CacheSound(ResourceLocator& locator, const std::string& name)
 {
     mLoaderQueue.UnPause();
-    mLoaderQueue.Add(SoundAddToCacheJob(locator, name));
+    mLoaderQueue.Add(std::make_unique<SoundAddToCacheJob>(*this, locator, name));
+}
+
+void SoundCache::CacheAllSoundEffects(ResourceLocator& locator)
+{
+    mLoaderQueue.UnPause();
+    mLoaderQueue.Add(std::make_unique<CacheAllSoundEffectsJob>(*this, locator));
+}
+
+void SoundAddToCacheJob::Execute(std::atomic<bool>& quitFlag)
+{
+    mSoundCache.CacheSoundImpl(mLocator, mName, quitFlag);
+}
+
+void CacheAllSoundEffectsJob::Execute(std::atomic<bool>& quitFlag)
+{
+    mSoundCache.CacheAllSoundEffectsImp(mLocator, quitFlag);
+}
+
+void SoundCache::CacheAllSoundEffectsImp(ResourceLocator& locator, std::atomic<bool>& quitFlag)
+{
+    // initial one time sync
+    Sync();
+
+    const std::vector<SoundResource>& resources = locator.GetSoundResources();
+    for (const SoundResource& resource : resources)
+    {
+        if (quitFlag)
+        {
+            return;
+        }
+
+        if (resource.mIsCacheResident)
+        {
+            CacheSound(locator, resource.mResourceName);
+        }
+    }
 }
 
 void SoundCache::CacheSoundImpl(ResourceLocator& locator, const std::string& name, std::atomic<bool>& quitFlag)
@@ -247,7 +283,7 @@ bool SoundCache::AddToMemoryCacheFromDiskCache(const std::string& name)
     {
         auto stream = mFs.Open(fileName);
         auto data = std::make_shared<std::vector<u8>>(Oddlib::IStream::ReadAll(*stream));
-        std::lock_guard<std::mutex> lock(mCacheMutex);
+        std::lock_guard<std::recursive_mutex> lock(mCacheMutex);
         mSoundDataCache[name] = data;
         return true;
     }
@@ -256,7 +292,7 @@ bool SoundCache::AddToMemoryCacheFromDiskCache(const std::string& name)
 
 void SoundCache::RemoveFromMemoryCache(const std::string& name)
 {
-    std::lock_guard<std::mutex> lock(mCacheMutex);
+    std::lock_guard<std::recursive_mutex> lock(mCacheMutex);
     auto it = mSoundDataCache.find(name);
     if (it != std::end(mSoundDataCache))
     {
