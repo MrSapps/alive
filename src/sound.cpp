@@ -26,11 +26,6 @@ void Sound::SetMusicTheme(const char* themeName, const char* eventOnLoad)
 {
     //CacheMemoryResidentSounds();
 
-    if (mState != eSoundStates::eIdle)
-    {
-        LOG_ERROR("TODO: Handle setting a theme while one is still setting");
-        return;
-    }
 
     mAmbiance = nullptr;
     mMusicTrack = nullptr;
@@ -41,7 +36,14 @@ void Sound::SetMusicTheme(const char* themeName, const char* eventOnLoad)
 
     if (mThemeToLoad)
     {
-        SetState(eSoundStates::eUnloadingActiveSoundTheme);
+        if (mState != eSoundStates::eIdle)
+        {
+            SetState(eSoundStates::eCancel);
+        }
+        else
+        {
+            SetState(eSoundStates::eUnloadingActiveSoundTheme);
+        }
     }
     else
     {
@@ -217,6 +219,18 @@ void Sound::Update()
         break;
 
     case eSoundStates::eLoadingSoundEffects:
+        break;
+
+    case eSoundStates::eCancel:
+        mCache.Cancel();
+        SetState(eSoundStates::eCancelling);
+        break;
+
+    case eSoundStates::eCancelling:
+        if (!mCache.IsBusy())
+        {
+            SetState(eSoundStates::eUnloadingActiveSoundTheme);
+        }
         break;
 
     case Sound::eSoundStates::eUnloadingActiveSoundTheme:

@@ -31,13 +31,14 @@ public:
     void Sync();
     bool ExistsInMemoryCache(const std::string& name) const;
     std::unique_ptr<ISound> GetCached(const std::string& name);
-    bool IsBusy() const { return mLoaderQueue.IsIdle() == false; }
+    bool IsBusy() const;
+    void Cancel();
     void CacheSound(ResourceLocator& locator, const std::string& name);
 private:
     void DeleteAll();
     void CacheSoundImpl(ResourceLocator& locator, const std::string& name, std::atomic<bool>& quitFlag);
 
-    void AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound, std::atomic<bool>& quitFlag);
+    void AddToMemoryAndDiskCache(std::unique_ptr<ISound> sound, std::atomic<bool>& quitFlag);
     bool AddToMemoryCacheFromDiskCache(const std::string& name);
     void AsyncQueueWorkerFunction(SoundAddToCacheJob item, std::atomic<bool>& quitFlag);
     void DeleteFromDiskCache(const std::string& filter);

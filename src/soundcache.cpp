@@ -151,7 +151,17 @@ std::unique_ptr<ISound> SoundCache::GetCached(const std::string& name)
     return nullptr;
 }
 
-void SoundCache::AddToMemoryAndDiskCacheASync(std::unique_ptr<ISound> sound, std::atomic<bool>& quitFlag)
+bool SoundCache::IsBusy() const
+{
+    return mLoaderQueue.IsIdle() == false;
+}
+
+void SoundCache::Cancel()
+{
+    mLoaderQueue.PauseAndCancelASync();
+}
+
+void SoundCache::AddToMemoryAndDiskCache(std::unique_ptr<ISound> sound, std::atomic<bool>& quitFlag)
 {
     const std::string baseFileName = mFs.ExpandPath("{CacheDir}/" + sound->Name());
     const std::string tmpFileName = baseFileName + ".tmp";
@@ -204,6 +214,7 @@ void SoundCache::AsyncQueueWorkerFunction(SoundAddToCacheJob item, std::atomic<b
 
 void SoundCache::CacheSound(ResourceLocator& locator, const std::string& name)
 {
+    mLoaderQueue.UnPause();
     mLoaderQueue.Add(SoundAddToCacheJob(locator, name));
 }
 
@@ -225,7 +236,7 @@ void SoundCache::CacheSoundImpl(ResourceLocator& locator, const std::string& nam
     if (!quitFlag && pSound)
     {
         // Write into disk cache and then load from disk cache into memory cache
-        AddToMemoryAndDiskCacheASync(std::move(pSound), quitFlag);
+        AddToMemoryAndDiskCache(std::move(pSound), quitFlag);
     }
 }
 

@@ -123,6 +123,8 @@ private:
         eUnloadingActiveSoundTheme,
         eLoadActiveSoundTheme,
         eLoadingActiveSoundTheme,
+        eCancel,
+        eCancelling,
         eIdle
     };
     eSoundStates mState = eSoundStates::eIdle;
