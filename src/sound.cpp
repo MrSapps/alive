@@ -335,7 +335,6 @@ void Sound::SoundBrowserUi()
             int i = 0;
             for (auto& player : mSoundPlayers)
             {
-                i++;
                 if (ImGui::Button((std::to_string(i) + player->Name()).c_str()))
                 {
                     if (player.get() == mSoundPlayers[i].get())
@@ -343,6 +342,7 @@ void Sound::SoundBrowserUi()
                         player->Stop();
                     }
                 }
+                i++;
             }
         }
     }

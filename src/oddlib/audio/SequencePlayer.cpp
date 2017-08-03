@@ -412,9 +412,5 @@ void SequencePlayer::AudioSettingsUi()
 void SequencePlayer::DebugUi()
 {
     // NOTE: Read only debug UI - no locks
-
-    if (mVabBrowser)
-    {
-        mAliveAudio.VabBrowserUi();
-    }
+    mAliveAudio.VabBrowserUi();
 }

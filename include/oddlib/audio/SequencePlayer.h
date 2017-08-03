@@ -118,7 +118,4 @@ private:
             m_QuarterCallback();
         }
     }
-
-    // debug ui
-    bool mVabBrowser = true;
 };
