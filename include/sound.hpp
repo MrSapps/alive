@@ -125,4 +125,7 @@ private:
     eSoundStates mState = eSoundStates::eIdle;
 
     void SetState(Sound::eSoundStates state);
+
+    // Shared to avoid locking
+    std::shared_ptr<class SequencePlayer> mSoundBankBeingBrowsed;
 };

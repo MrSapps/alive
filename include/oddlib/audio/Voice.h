@@ -26,6 +26,7 @@ public:
     f64	f_Velocity = 1.0f;
     f64	f_Pitch = 0.0f;
     bool    m_DebugDisableResampling = false;
+    bool mbIgnoreLoops = false;
 
     f64	f_TrackDelay = 0; // Used by the sequencer for perfect timing
     bool	m_UsesNoteOffDelay = false;

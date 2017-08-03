@@ -484,6 +484,7 @@ public:
     const SoundBankLocation* FindSoundBank(const std::string& soundBank);
     const MusicTheme* FindSoundTheme(const char* themeName);
     const std::vector<SoundResource>& GetSoundResources() const;
+    const std::vector<SoundBankLocation>& GetSoundBankResources() const;
 };
 
 // TODO: Move to physics
@@ -735,6 +736,8 @@ public:
 
     // Not thread safe
     std::vector<std::tuple<const char*, const char*, bool>> DebugUi(const char* dataSetFilter, const char* nameFilter);
+
+    std::unique_ptr<Vab> LocateVab(const char* dataSetName, const char* baseVabName);
 private:
     std::unique_ptr<ISound> DoLoadSoundEffect(const char* resourceName, const DataPaths::FileSystemInfo& fs, const std::string& strSb, const SoundEffectResource& sfxRes, const SoundEffectResourceLocation& sfxResLoc);
     std::unique_ptr<ISound> DoLoadSoundMusic(const char* resourceName, const DataPaths::FileSystemInfo& fs, const std::string& strSb, const MusicResource& sfxRes);
@@ -760,4 +763,5 @@ private:
     std::mutex mMutex;
 public:
     const std::vector<SoundResource>& GetSoundResources() const;
+    const std::vector<SoundBankLocation>& GetSoundBankResources() const;
 };

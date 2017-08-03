@@ -1,6 +1,7 @@
 #include "sound.hpp"
 #include "logger.hpp"
 #include "resourcemapper.hpp"
+#include "oddlib\audio\SequencePlayer.h"
 
 Sound::Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs)
     : mAudioController(audioController), mLocator(locator), mCache(fs)
@@ -158,6 +159,12 @@ void Sound::EnsureAmbiance()
 // Audio thread context
 bool Sound::Play(f32* stream, u32 len)
 {
+    auto copy = mSoundBankBeingBrowsed;
+    if (copy)
+    {
+        copy->Play(stream, len);
+    }
+
     std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
 
     if (mAmbiance)
@@ -245,6 +252,12 @@ void Sound::Update()
             }
         }
         break;
+    }
+
+    auto copy = mSoundBankBeingBrowsed;
+    if (copy)
+    {
+        copy->Update();
     }
 
     std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
@@ -344,6 +357,28 @@ void Sound::SoundBrowserUi()
                 }
                 i++;
             }
+        }
+    }
+
+    if (ImGui::CollapsingHeader("Sound bank debugger"))
+    {
+        for (const SoundBankLocation& soundBank : mLocator.GetSoundBankResources())
+        {
+            if (ImGui::Selectable(soundBank.mName.c_str()))
+            {
+                auto vab = mLocator.LocateVab(soundBank.mDataSetName.c_str(), soundBank.mSoundBankName.c_str());
+                mSoundBankBeingBrowsed = std::make_unique<SequencePlayer>(soundBank.mName, *vab);
+            }
+        }
+
+    }
+
+    if (mSoundBankBeingBrowsed)
+    {
+        auto copy = mSoundBankBeingBrowsed;
+        if (copy)
+        {
+            copy->DebugUi();
         }
     }
 

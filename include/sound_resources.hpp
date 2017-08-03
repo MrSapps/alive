@@ -14,6 +14,11 @@ public:
     std::string mDataSetName;
     std::string mSeqFileName;
     std::string mSoundBankName;
+
+    bool operator < (const SoundBankLocation& rhs) const
+    {
+        return std::tie(mName, mDataSetName, mSeqFileName, mSoundBankName) < std::tie(rhs.mName, rhs.mDataSetName, rhs.mSeqFileName, rhs.mSoundBankName);
+    }
 };
 
 class MusicResource

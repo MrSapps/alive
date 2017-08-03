@@ -105,11 +105,32 @@ f32 AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antialia
     // That constant is 2^(1/12)
     f64 sampleFrameRateMul = pow(1.05946309436, i_Note - m_Tone->mMidiRootKey + m_Tone->Pitch + f_Pitch) * (44100.0 / kAliveAudioSampleRate);
     if (m_DebugDisableResampling)
+    {
         sampleFrameRateMul = 1.0f;
+    }
+
     f_SampleOffset += (sampleFrameRateMul);
 
-    // For some reason, for samples that dont loop, they need to be cut off 1 sample earlier.
+    // For some reason, for samples that don't loop, they need to be cut off 1 sample earlier.
     // Todo: Revise this. Maybe its the loop flag at the end of the sample!? 
+    if (m_Tone->Loop && !mbIgnoreLoops)
+    {
+        if (f_SampleOffset >= m_Tone->m_Sample->mSampleSize)
+        {
+            f_SampleOffset = 0;
+        }
+    }
+    else
+    {
+        if (f_SampleOffset >= m_Tone->m_Sample->mSampleSize - 1)
+        {
+            b_Dead = true;
+            return 0; // Voice is dead now, so don't return anything.
+        }
+    }
+    
+    /* TODO: Below code is revised above but WTF is this even doing? Now the loading sound is prevented from attempting to write out
+    an infinitely long loop. But if we loop the written out sample it dosen't sound like how the below code worked?? Argh
     if ((m_Tone->Loop) ? f_SampleOffset >= m_Tone->m_Sample->mSampleSize : (f_SampleOffset >= m_Tone->m_Sample->mSampleSize - 1))
     {
         if (m_Tone->Loop)
@@ -122,7 +143,7 @@ f32 AliveAudioVoice::GetSample(AudioInterpolation interpolation, bool /*antialia
             b_Dead = true;
             return 0; // Voice is dead now, so don't return anything.
         }
-    }
+    }*/
 
     { // Actual sample calculation
         std::vector<u16>& sampleBuffer = m_Tone->m_Sample->m_SampleBuffer;

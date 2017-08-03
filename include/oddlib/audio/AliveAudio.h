@@ -41,7 +41,7 @@ public:
     AliveAudio& operator = (const AliveAudio&) = delete;
     AliveAudio& operator = (AliveAudio&&) = delete;
 
-    void NoteOn(int program, int note, char velocity, f64 trackDelay = 0, f64 pitch = 0.0f);
+    void NoteOn(int program, int note, char velocity, f64 trackDelay = 0, f64 pitch = 0.0f, bool ignoreLoops = false);
     void NoteOff(int program, int note);
     void NoteOffDelay(int program, int note, f32 trackDelay = 0);
     void ClearAllVoices(bool forceKill = true);
@@ -74,4 +74,6 @@ private:
 
     void CleanVoices();
     void AliveRenderAudio(f32* AudioStream, int StreamLength);
+
+    std::recursive_mutex mVoiceMutex;
 };

@@ -4,7 +4,7 @@
 void AliveAudio::CleanVoices()
 {
     std::vector<AliveAudioVoice *> deadVoices;
-
+    std::unique_lock<std::recursive_mutex> voiceLock(mVoiceMutex);
     for (auto& voice : m_Voices)
     {
         if (voice->b_Dead)
@@ -30,66 +30,69 @@ void AliveAudio::AliveRenderAudio(f32 * AudioStream, int StreamLength)
         m_ReverbChannelBuffer[i] = 0;
     }
 
-    const size_t voiceCount = m_Voices.size();
-
-    AliveAudioVoice ** rawPointer = m_Voices.data(); // Real nice speed boost here.
-
-    for (int i = 0; i < StreamLength; i += 2)
     {
-        for (size_t v = 0; v < voiceCount; v++)
+        std::unique_lock<std::recursive_mutex> voiceLock(mVoiceMutex);
+        const size_t voiceCount = m_Voices.size();
+
+        AliveAudioVoice ** rawPointer = m_Voices.data(); // Real nice speed boost here.
+
+        for (int i = 0; i < StreamLength; i += 2)
         {
-            AliveAudioVoice * voice = rawPointer[v]; // Raw pointer skips all that vector bottleneck crap
-
-            voice->f_TrackDelay--;
-
-            if (voice->m_UsesNoteOffDelay)
+            for (size_t v = 0; v < voiceCount; v++)
             {
-                voice->f_NoteOffDelay--;
+                AliveAudioVoice * voice = rawPointer[v]; // Raw pointer skips all that vector bottleneck crap
+
+                voice->f_TrackDelay--;
+
+                if (voice->m_UsesNoteOffDelay)
+                {
+                    voice->f_NoteOffDelay--;
+                }
+
+                if (voice->m_UsesNoteOffDelay && voice->f_NoteOffDelay <= 0 && voice->b_NoteOn == true)
+                {
+                    voice->b_NoteOn = false;
+                    //printf("off");
+                }
+
+                if (voice->b_Dead || voice->f_TrackDelay > 0)
+                {
+                    continue;
+                }
+
+                f32 centerPan = voice->m_Tone->f_Pan;
+                f32 leftPan = 1.0f;
+                f32 rightPan = 1.0f;
+
+                if (centerPan > 0)
+                {
+                    leftPan = 1.0f - std::abs(centerPan);
+                }
+
+                if (centerPan < 0)
+                {
+                    rightPan = 1.0f - std::abs(centerPan);
+                }
+
+                // TODO FIX ME
+                f32  s = voice->GetSample(Interpolation, false);
+                f32 leftSample = (s * leftPan);
+                f32 rightSample = (s * rightPan);
+
+                if (voice->m_Tone->Reverbate || ForceReverb)
+                {
+                    m_ReverbChannelBuffer[i] += leftSample;
+                    m_ReverbChannelBuffer[i + 1] += rightSample;
+                }
+                else
+                {
+                    m_DryChannelBuffer[i] += leftSample;
+                    m_DryChannelBuffer[i + 1] += rightSample;
+                }
             }
 
-            if (voice->m_UsesNoteOffDelay && voice->f_NoteOffDelay <= 0 && voice->b_NoteOn == true)
-            {
-                voice->b_NoteOn = false;
-                //printf("off");
-            }
-
-            if (voice->b_Dead || voice->f_TrackDelay > 0)
-            {
-                continue;
-            }
-
-            f32 centerPan = voice->m_Tone->f_Pan;
-            f32 leftPan = 1.0f;
-            f32 rightPan = 1.0f;
-
-            if (centerPan > 0)
-            {
-                leftPan = 1.0f - std::abs(centerPan);
-            }
-
-            if (centerPan < 0)
-            {
-                rightPan = 1.0f - std::abs(centerPan);
-            }
-
-            // TODO FIX ME
-            f32  s = voice->GetSample(Interpolation, false);
-            f32 leftSample = (s * leftPan);
-            f32 rightSample = (s * rightPan);
-
-            if (voice->m_Tone->Reverbate || ForceReverb)
-            {
-                m_ReverbChannelBuffer[i] += leftSample;
-                m_ReverbChannelBuffer[i + 1] += rightSample;
-            }
-            else
-            {
-                m_DryChannelBuffer[i] += leftSample;
-                m_DryChannelBuffer[i + 1] += rightSample;
-            }
+            mCurrentSampleIndex++;
         }
-
-        mCurrentSampleIndex++;
     }
 
     m_Reverb.setEffectMix(ReverbMix);
@@ -208,7 +211,7 @@ void AliveAudio::PlayOneShot(std::string soundID)
 }
 */
 
-void AliveAudio::NoteOn(int program, int note, char velocity, f64 trackDelay, f64 pitch)
+void AliveAudio::NoteOn(int program, int note, char velocity, f64 trackDelay, f64 pitch, bool ignoreLoops)
 {
     for (auto& tone : m_Soundbank->m_Programs[program]->m_Tones)
     {
@@ -222,6 +225,8 @@ void AliveAudio::NoteOn(int program, int note, char velocity, f64 trackDelay, f6
             voice->f_Velocity = velocity / 127.0f;
             voice->f_TrackDelay = trackDelay;
             voice->m_DebugDisableResampling = DebugDisableVoiceResampling;
+            voice->mbIgnoreLoops = ignoreLoops;
+            std::unique_lock<std::recursive_mutex> voiceLock(mVoiceMutex);
             m_Voices.push_back(voice);
         }
     }
@@ -229,6 +234,7 @@ void AliveAudio::NoteOn(int program, int note, char velocity, f64 trackDelay, f6
 
 void AliveAudio::NoteOff(int program, int note)
 {
+    std::unique_lock<std::recursive_mutex> voiceLock(mVoiceMutex);
     for (auto& voice : m_Voices)
     {
         if (voice->i_Note == note && voice->i_Program == program)
@@ -240,6 +246,7 @@ void AliveAudio::NoteOff(int program, int note)
 
 void AliveAudio::NoteOffDelay(int program, int note, f32 trackDelay)
 {
+    std::unique_lock<std::recursive_mutex> voiceLock(mVoiceMutex);
     for (auto& voice : m_Voices)
     {
         if (voice->i_Note == note && voice->i_Program == program && voice->f_TrackDelay < trackDelay && voice->f_NoteOffDelay <= 0)
@@ -255,6 +262,7 @@ void AliveAudio::ClearAllVoices(bool forceKill)
 {
     std::vector<AliveAudioVoice *> deadVoices;
 
+    std::unique_lock<std::recursive_mutex> voiceLock(mVoiceMutex);
     for (auto& voice : m_Voices)
     {
         if (forceKill)
@@ -271,19 +279,20 @@ void AliveAudio::ClearAllVoices(bool forceKill)
         }
     }
 
+
     for (auto& obj : deadVoices)
     {
         delete obj;
 
         m_Voices.erase(std::remove(m_Voices.begin(), m_Voices.end(), obj), m_Voices.end());
     }
-
 }
 
 void AliveAudio::ClearAllTrackVoices(bool forceKill)
 {
     std::vector<AliveAudioVoice *> deadVoices;
 
+    std::unique_lock<std::recursive_mutex> voiceLock(mVoiceMutex);
     for (auto& voice : m_Voices)
     {
         if (forceKill)

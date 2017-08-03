@@ -149,7 +149,7 @@ void SequencePlayer::NoteOnSingleShot(int program, int note, char velocity, f64 
 {
     std::lock_guard<std::mutex> lock(mMutex);
     m_PlayerState = ALIVE_SEQUENCER_FINISHED;
-    mAliveAudio.NoteOn(program, note, velocity, trackDelay, pitch);
+    mAliveAudio.NoteOn(program, note, velocity, trackDelay, pitch, true);
 }
 
 void SequencePlayer::PlaySequence()

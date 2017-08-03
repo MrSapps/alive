@@ -192,7 +192,7 @@ public:
     void ReadVb(Oddlib::IStream& aStream, bool isPsx, bool useSoundsDat, Oddlib::IStream* soundsDatStream = nullptr);
     void ReadVh(Oddlib::IStream& stream, bool isPsx);
 
-    const VagAtr* VagAt(u32 programNumber, u32 note) const 
+    const VagAtr* VagAt(u32 programNumber, u32 note) const
     {
         for (const VagAtr* vag : mProgs[programNumber].iTones)
         {

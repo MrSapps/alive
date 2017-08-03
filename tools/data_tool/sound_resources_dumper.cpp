@@ -127,6 +127,8 @@ std::map<eDataSetType, std::pair<const char**, size_t>> dataSetToSeqListMap =
 
 static std::map<eDataSetType, std::map<u32, std::string>> dataSetToSeqIdMap;
 
+std::set<std::string> allVabs;
+std::set<SoundBankLocation> allLocations;
 
 void SoundResourcesDumper::HandleLvl(eDataSetType eType, const std::string& /*lvlName*/, std::unique_ptr<Oddlib::LvlArchive> lvl)
 {
@@ -138,9 +140,28 @@ void SoundResourcesDumper::HandleLvl(eDataSetType eType, const std::string& /*lv
     }
 
     auto vhs = GetFilesOfType(*lvl, "VH");
-    RemoveLoadingVhs(vhs);
-
     auto bsqs = GetFilesOfType(*lvl, "BSQ");
+
+    for (const Oddlib::LvlArchive::File* vhFile : vhs)
+    {
+        for (const Oddlib::LvlArchive::File* bsqFile : bsqs)
+        {
+            const std::string soundBankBaseName = string_util::split(vhFile->FileName(), '.')[0];
+            std::string soundBankNameResourceName = std::string(ToString(eType)) + "_" + string_util::split(bsqFile->FileName(), '.')[0] + "_" + soundBankBaseName;
+            allVabs.insert(soundBankNameResourceName);
+
+            SoundBankLocation location;
+            location.mDataSetName = ToString(eType);
+            location.mName = soundBankNameResourceName;
+            location.mSeqFileName = bsqFile->FileName();
+            location.mSoundBankName = string_util::split(vhFile->FileName(), '.')[0];
+
+            allLocations.insert(location);
+        }
+    }
+
+
+    RemoveLoadingVhs(vhs);
     for (auto& bsq : bsqs)
     {
         HandleBsq(eType, it->second, *bsq, vhs);
@@ -1361,7 +1382,34 @@ static std::map<std::string, std::string> gSeqRenames =
 static std::set<std::string> gForceAsCacheResident =
 {
     "OHM",
+    "GUN",
+    "MUDOHM",
     "Abe_StopIt",
+    "SSCRATCH",
+    "SLIGBOMB",
+    "SLIGBOM2",
+    "OOPS",
+    "PATROL",
+    "SLEEPING",
+    "WHEEL",
+    "PARALLYA",
+    "PIGEONS",
+    "FLEECHES",
+    "PARAPANT",
+    "BATSQUEK",
+    "EBELL2",
+    "ESCRATCH",
+    "ONCHAIN",
+    "SLOSLEEP",
+    "PANTING",
+    "BASICTRK", // ???
+    "GRINDER",
+    "CHIPPER",
+    "Abe_Whistle1",
+    "Abe_Whistle2",
+    "AO_PSX_DEMO_ABEMOUNT",
+   
+
 };
 
 void SoundResourcesDumper::SplitSEQs()
@@ -1437,6 +1485,8 @@ static std::vector<TempSoundEffectResource> gSounds;
 static void InitGSounds()
 {
     gSounds.clear();
+
+    gSounds.emplace_back(TempSoundEffectResource("Loading_Effect", 127, 0, 0, { { 0, 36, { "AePc" } } }, "Sound that plays when loading the first level"));
 
     // Slig
     gSounds.emplace_back(TempSoundEffectResource("Slig_Hi", 127, 0, 0,
@@ -2060,6 +2110,8 @@ static void InitGSounds()
 
 static std::map<std::string, std::string> gPrimarySfxSoundBanks =
 {
+    { "Loading_Effect", "AePc_STSEQ_MONK" },
+
     { "Glukkon_Commere", "AePc_B2SEQ_BAENDER" },
     { "Glukkon_AllYa", "AePc_B2SEQ_BAENDER" },
     { "Glukkon_DoIt", "AePc_B2SEQ_BAENDER" },
@@ -2071,6 +2123,25 @@ static std::map<std::string, std::string> gPrimarySfxSoundBanks =
     { "Glukkon_KillEm", "AePc_B2SEQ_BAENDER" },
     { "Glukkon_Step", "AePc_B2SEQ_BAENDER" },
     { "Glukkon_What", "AePc_B2SEQ_BAENDER" },
+
+    { "Slig_Hi", "AePc_B2SEQ_BAENDER" },
+    { "Slig_HereBoy", "AePc_B2SEQ_BAENDER" },
+    { "Slig_GetEm", "AePc_B2SEQ_BAENDER" },
+    { "Slig_Stay", "AePc_B2SEQ_BAENDER" },
+    { "Slig_Bs", "AePc_B2SEQ_BAENDER" },
+    { "Slig_LookOut", "AePc_B2SEQ_BAENDER" },
+    { "Slig_SmoBs", "AePc_B2SEQ_BAENDER" },
+    { "Slig_Laugh", "AePc_B2SEQ_BAENDER" },
+    { "Slig_Freeze", "AePc_B2SEQ_BAENDER" },
+    { "Slig_What", "AePc_B2SEQ_BAENDER" },
+    { "Slig_Help", "AePc_B2SEQ_BAENDER" },
+    { "Slig_Buhlur", "AePc_B2SEQ_BAENDER" },
+    { "Slig_Gotcha", "AePc_FDSEQ_FEECO" },
+    { "Slig_Ow", "AePc_FDSEQ_FEECO" },
+    { "Slig_Urgh", "AePc_FDSEQ_FEECO" },
+
+    { "Abe_Whistle1", "AoPc_D2SEQ_D2ENDER" },
+    { "Abe_Whistle2", "AoPc_D2SEQ_D2ENDER" },
 
 };
 
@@ -2223,16 +2294,6 @@ static std::map<std::string, std::set<std::string>> gBrokenSfxSoundBanks =
 
 void SoundResourcesDumper::PopulateSoundEffectSoundBanks()
 {
-    std::set<std::string> allVabs;
-    for (auto& res : mTempResources.mMusics)
-    {
-        for (auto& vab : res.mSoundBanks)
-        {
-            allVabs.insert(vab);
-        }
-    }
-
-
     for (TempSoundEffectResource& soundEffect : gSounds)
     {
         if (soundEffect.mSoundBanks.empty())
@@ -2602,5 +2663,13 @@ void SoundResourcesDumper::OnFinished()
     {
         LOG_INFO(res.mResourceName);
     }
+
+    // HACK: Should only be copied in ones that are actually used instead of everything
+    mFinalResources.mSoundBanks.clear();
+    for (auto& loc : allLocations)
+    {
+        mFinalResources.mSoundBanks.push_back(loc);
+    }
+
     mFinalResources.Dump("..\\data\\sounds.json");
 }
