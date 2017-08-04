@@ -977,7 +977,7 @@ void SquirrelVm::CompileAndRun(ResourceLocator& resourceLocator, const std::stri
     TRACE_ENTRYEXIT;
 
     Sqrat::Script script;
-    script.CompileString(resourceLocator.LocateScript(scriptName.c_str()), scriptName);
+    script.CompileString(resourceLocator.LocateScript(scriptName).get(), scriptName);
     CheckError();
 
     script.Run();

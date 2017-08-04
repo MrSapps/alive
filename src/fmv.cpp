@@ -598,7 +598,7 @@ void Fmv::Play(const std::string& name)
             mFmv->Stop();
         }
 
-        mFmv = mResourceLocator.LocateFmv(mAudioController, name.c_str(), mDebugMapping);
+        mFmv = mResourceLocator.LocateFmv(mAudioController, name, mDebugMapping).get();
         
         if (mFmv)
         {

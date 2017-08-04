@@ -447,9 +447,9 @@ TEST(ResourceLocator, LocateAnimation)
 
     ResourceLocator locator(std::move(mapper), std::move(paths));
 
-    std::unique_ptr<Animation> resMapped1 = locator.LocateAnimation("SLIGZ.BND_417_1");
+    std::unique_ptr<Animation> resMapped1 = locator.LocateAnimation("SLIGZ.BND_417_1").get();
 
-    std::unique_ptr<Animation> resMapped2 = locator.LocateAnimation("SLIGZ.BND_417_1");
+    std::unique_ptr<Animation> resMapped2 = locator.LocateAnimation("SLIGZ.BND_417_1").get();
 
     // Can explicitly set the dataset to obtain it from a known location
     auto resDirect = locator.LocateAnimation("SLIGZ.BND_417_1", "AePc");
@@ -596,7 +596,7 @@ TEST(ResourceLocator, Construct)
 
 
     // Now we can obtain resources
-    std::unique_ptr<Animation> resMapped1 = resourceLocator.LocateAnimation("SLIGZ.BND_417_1");
+    std::unique_ptr<Animation> resMapped1 = resourceLocator.LocateAnimation("SLIGZ.BND_417_1").get();
 }
 
 TEST(ResourceLocator, GameDefinitionDeps)

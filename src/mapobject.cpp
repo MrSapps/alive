@@ -153,7 +153,7 @@ MapObject::~MapObject()
 
 void MapObject::LoadAnimation(const std::string& name)
 {
-    mAnims[name] = mLocator.LocateAnimation(name.c_str());
+    mAnims[name] = mLocator.LocateAnimation(name).get();
 }
 
 bool MapObject::Init()

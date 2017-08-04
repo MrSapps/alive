@@ -31,7 +31,7 @@ void Sound::SetMusicTheme(const char* themeName, const char* eventOnLoad)
     mMusicTrack = nullptr;
 
     // This is just an in-memory non blocking look up
-    mThemeToLoad = mLocator.LocateSoundTheme(themeName);
+    mThemeToLoad = mLocator.LocateSoundTheme(themeName).get();
     mEventToSetAfterLoad = eventOnLoad ? eventOnLoad : "";
 
     if (mThemeToLoad)
@@ -56,7 +56,7 @@ bool Sound::IsLoading() const
     return mState != eSoundStates::eIdle;
 }
 
-std::unique_ptr<ISound> Sound::PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRec, bool useSfxRec, bool useCache)
+std::unique_ptr<ISound> Sound::PlaySound(const std::string& soundName, const std::string& explicitSoundBankName, bool useMusicRec, bool useSfxRec, bool useCache)
 {
     if (useCache)
     {
@@ -73,7 +73,7 @@ std::unique_ptr<ISound> Sound::PlaySound(const char* soundName, const char* expl
     }
     else
     {
-        std::unique_ptr<ISound> pSound = mLocator.LocateSound(soundName, explicitSoundBankName, useMusicRec, useSfxRec);
+        std::unique_ptr<ISound> pSound = mLocator.LocateSound(soundName, explicitSoundBankName, useMusicRec, useSfxRec).get();
         if (pSound)
         {
             LOG_INFO("Play sound: " << soundName);
@@ -107,7 +107,7 @@ void Sound::HandleMusicEvent(const char* eventName)
 
 SoundId Sound::PlaySoundEffect(const char* soundName)
 {
-    auto pSound = PlaySound(soundName, nullptr, true, true, true);
+    auto pSound = PlaySound(soundName, "", true, true, true);
     if (pSound)
     {
         std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
@@ -156,7 +156,7 @@ std::unique_ptr<ISound> Sound::PlayThemeEntry(const char* entryName)
         const MusicThemeEntry* entry = mActiveThemeEntry.Entry();
         if (entry)
         {
-            return PlaySound(entry->mMusicName.c_str(), nullptr, true, true, true);
+            return PlaySound(entry->mMusicName, "", true, true, true);
         }
     }
     return nullptr;
@@ -304,7 +304,7 @@ void Sound::Update()
         {
             if (mActiveThemeEntry.ToNextEntry())
             {
-                mMusicTrack = PlaySound(mActiveThemeEntry.Entry()->mMusicName.c_str(), nullptr, true, true, true);
+                mMusicTrack = PlaySound(mActiveThemeEntry.Entry()->mMusicName, "", true, true, true);
             }
             else
             {
@@ -381,7 +381,7 @@ void Sound::SoundBrowserUi()
         {
             if (ImGui::Selectable(soundBank.mName.c_str()))
             {
-                auto vab = mLocator.LocateVab(soundBank.mDataSetName.c_str(), soundBank.mSoundBankName.c_str());
+                auto vab = mLocator.LocateVab(soundBank.mDataSetName, soundBank.mSoundBankName).get();
                 mSoundBankBeingBrowsed = std::make_unique<SequencePlayer>(soundBank.mName, *vab);
             }
         }
@@ -442,7 +442,7 @@ void Sound::SoundBrowserUi()
                             {
                                 if (ImGui::Selectable(sb.c_str()))
                                 {
-                                    auto player = PlaySound(selected->mResourceName.c_str(), sb.c_str(), true, false, bUseCache);
+                                    auto player = PlaySound(selected->mResourceName, sb, true, false, bUseCache);
                                     if (player)
                                     {
                                         std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
@@ -463,7 +463,7 @@ void Sound::SoundBrowserUi()
                                 {
                                     if (ImGui::Selectable(sb.c_str()))
                                     {
-                                        auto player = PlaySound(selected->mResourceName.c_str(), sb.c_str(), false, true, bUseCache);
+                                        auto player = PlaySound(selected->mResourceName, sb, false, true, bUseCache);
                                         if (player)
                                         {
                                             std::lock_guard<std::mutex> lock(mSoundPlayersMutex);

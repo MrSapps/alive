@@ -268,7 +268,7 @@ void SoundCache::CacheSoundImpl(ResourceLocator& locator, const std::string& nam
         return;
     }
 
-    std::unique_ptr<ISound> pSound = locator.LocateSound(name.c_str(), nullptr, true, true);
+    std::unique_ptr<ISound> pSound = locator.LocateSound(name, "", true, true).get();
     if (!quitFlag && pSound)
     {
         // Write into disk cache and then load from disk cache into memory cache

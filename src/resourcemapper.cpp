@@ -387,21 +387,24 @@ std::vector<std::tuple<const char*, const char*, bool>> ResourceLocator::DebugUi
     return mResMapper.DebugUi(dataSetFilter, nameFilter);
 }
 
-std::string ResourceLocator::LocateScript(const char* scriptName)
+std::future<std::string> ResourceLocator::LocateScript(const std::string& scriptName)
 {
-    std::unique_lock<std::mutex> lock(mMutex);
-
-    // Look for the engine built-in script first
-    std::string fileName = std::string("{GameDir}\\data\\scripts\\") + scriptName;
-    if (mDataPaths.GameFs().FileExists(fileName))
+    return std::async(std::launch::async, [=]() 
     {
-        return mDataPaths.GameFs().Open(fileName)->LoadAllToString();
-    }
+        std::unique_lock<std::mutex> lock(mMutex);
 
-    // TODO: Look in the mods for script overrides or new scripts
-    LOG_ERROR("Script not found: " << scriptName);
+        // Look for the engine built-in script first
+        std::string fileName = "{GameDir}\\data\\scripts\\" + scriptName;
+        if (mDataPaths.GameFs().FileExists(fileName))
+        {
+            return mDataPaths.GameFs().Open(fileName)->LoadAllToString();
+        }
 
-    return "";
+        // TODO: Look in the mods for script overrides or new scripts
+        LOG_ERROR("Script not found: " << scriptName);
+
+        return std::string("");
+    });
 }
 
 std::unique_ptr<ISound> ResourceLocator::DoLoadSoundMusic(const char* resourceName, const DataPaths::FileSystemInfo& fs, const std::string& strSb, const MusicResource& musicRes)
@@ -467,56 +470,59 @@ std::unique_ptr<ISound> ResourceLocator::DoLoadSoundMusic(const char* resourceNa
     return nullptr;
 }
 
-std::unique_ptr<Vab> ResourceLocator::LocateVab(const char* dataSetName, const char* baseVabName)
+std::future<std::unique_ptr<Vab>> ResourceLocator::LocateVab(const std::string& dataSetName, const std::string& baseVabName)
 {
-    for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+    return std::async(std::launch::async, [=]() 
     {
-        if (fs.mDataSetName == dataSetName)
+        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
         {
-            const std::string vh = std::string(baseVabName) + ".VH";
-            const std::vector<ResourceMapper::DataSetFileAttributes>* bsqFileLocationsInThisDataSet = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), vh.c_str());
-            if (!bsqFileLocationsInThisDataSet)
+            if (fs.mDataSetName == dataSetName)
             {
-                return nullptr;
-            }
-
-            for (const ResourceMapper::DataSetFileAttributes& vhFileAttributes : *bsqFileLocationsInThisDataSet)
-            {
-                std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, vhFileAttributes.mLvlName);
-                if (lvl)
+                const std::string vh = baseVabName + ".VH";
+                const std::vector<ResourceMapper::DataSetFileAttributes>* bsqFileLocationsInThisDataSet = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), vh.c_str());
+                if (!bsqFileLocationsInThisDataSet)
                 {
-                    const std::string vb = std::string(baseVabName) + ".VB";
-                    auto vhFile = lvl->FileByName(vh);
-                    auto vbFile = lvl->FileByName(vb);
-                    if (vhFile && vbFile)
+                    return std::unique_ptr<Vab>();
+                }
+
+                for (const ResourceMapper::DataSetFileAttributes& vhFileAttributes : *bsqFileLocationsInThisDataSet)
+                {
+                    std::shared_ptr<Oddlib::LvlArchive> lvl = OpenLvl(*fs.mFileSystem, fs.mDataSetName, vhFileAttributes.mLvlName);
+                    if (lvl)
                     {
-                        auto vab = std::make_unique<Vab>();
-
-                        // Read VH
-                        auto vhStream = vhFile->ChunkByIndex(0)->Stream();
-                        vab->ReadVh(*vhStream, vhFileAttributes.mIsPsx);
-
-                        // Get sounds.dat for VB if required
-                        std::string soundsDatFileName = "sounds.dat";
-                        const bool useSoundsDat = vhFileAttributes.mIsAo == false && vhFileAttributes.mIsPsx == false && fs.mFileSystem->FileExists(soundsDatFileName);
-                        std::unique_ptr<Oddlib::IStream> soundsDatStream;
-                        if (useSoundsDat)
+                        const std::string vb = baseVabName + ".VB";
+                        auto vhFile = lvl->FileByName(vh);
+                        auto vbFile = lvl->FileByName(vb);
+                        if (vhFile && vbFile)
                         {
-                            soundsDatStream = fs.mFileSystem->Open(soundsDatFileName);
+                            auto vab = std::make_unique<Vab>();
+
+                            // Read VH
+                            auto vhStream = vhFile->ChunkByIndex(0)->Stream();
+                            vab->ReadVh(*vhStream, vhFileAttributes.mIsPsx);
+
+                            // Get sounds.dat for VB if required
+                            std::string soundsDatFileName = "sounds.dat";
+                            const bool useSoundsDat = vhFileAttributes.mIsAo == false && vhFileAttributes.mIsPsx == false && fs.mFileSystem->FileExists(soundsDatFileName);
+                            std::unique_ptr<Oddlib::IStream> soundsDatStream;
+                            if (useSoundsDat)
+                            {
+                                soundsDatStream = fs.mFileSystem->Open(soundsDatFileName);
+                            }
+
+                            // Read VB
+                            auto vbStream = vbFile->ChunkByIndex(0)->Stream();
+                            vab->ReadVb(*vbStream, vhFileAttributes.mIsPsx, useSoundsDat, soundsDatStream.get());
+
+                            return vab;
                         }
-
-                        // Read VB
-                        auto vbStream = vbFile->ChunkByIndex(0)->Stream();
-                        vab->ReadVb(*vbStream, vhFileAttributes.mIsPsx, useSoundsDat, soundsDatStream.get());
-
-                        return vab;
                     }
                 }
             }
         }
-    }
 
-    return nullptr;
+        return std::unique_ptr<Vab>();;
+    });
 }
 
 std::unique_ptr<ISound> ResourceLocator::DoLoadSoundEffect(const char* resourceName, const DataPaths::FileSystemInfo& fs, const std::string& strSb, const SoundEffectResource& sfxRes, const SoundEffectResourceLocation& sfxResLoc)
@@ -580,60 +586,63 @@ std::unique_ptr<ISound> ResourceLocator::DoLoadSoundEffect(const char* resourceN
     return nullptr;
 }
 
-std::unique_ptr<ISound> ResourceLocator::LocateSound(const char* resourceName, const char* explicitSoundBankName /*= nullptr*/, bool useMusicRec /*= true*/, bool useSfxRec /*= true*/)
+std::future<std::unique_ptr<ISound>> ResourceLocator::LocateSound(const std::string& resourceName, const std::string&explicitSoundBankName /*= ""*/, bool useMusicRec /*= true*/, bool useSfxRec /*= true*/)
 {
-    std::unique_lock<std::mutex> lock(mMutex);
-
-    const SoundResource* sr = mResMapper.FindSound(resourceName);
-    for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+    return std::async(std::launch::async, [=]()
     {
-        if (fs.mIsMod)
+        std::unique_lock<std::mutex> lock(mMutex);
+
+        const SoundResource* sr = mResMapper.FindSound(resourceName.c_str());
+        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
         {
-            // TODO: Mod path
-        }
-        else
-        {
-            if (sr)
+            if (fs.mIsMod)
             {
-                if (useMusicRec && !sr->mMusic.mSoundBanks.empty())
+                // TODO: Mod path
+            }
+            else
+            {
+                if (sr)
                 {
-                    const std::set<std::string>& soundBanks = explicitSoundBankName ? std::set<std::string> { explicitSoundBankName } : sr->mMusic.mSoundBanks;
-                    for (const std::string& sb : soundBanks)
+                    if (useMusicRec && !sr->mMusic.mSoundBanks.empty())
                     {
-                        auto ret = DoLoadSoundMusic(resourceName, fs, sb, sr->mMusic);
-                        if (ret)
-                        {
-                            return ret;
-                        }
-                    }
-                }
-
-                if (useSfxRec && !sr->mSoundEffect.mSoundBanks.empty())
-                {
-                    for (const SoundEffectResourceLocation& loc : sr->mSoundEffect.mSoundBanks)
-                    {
-                        const bool explicitSoundBankNameExists = explicitSoundBankName && loc.mSoundBanks.find(explicitSoundBankName) != std::end(loc.mSoundBanks);
-                        if (explicitSoundBankName && !explicitSoundBankNameExists)
-                        {
-                            break;
-                        }
-
-                        const std::set<std::string>& soundBanks = explicitSoundBankName ? std::set<std::string> { explicitSoundBankName } : loc.mSoundBanks;
+                        const std::set<std::string>& soundBanks = !explicitSoundBankName.empty() ? std::set<std::string> { explicitSoundBankName } : sr->mMusic.mSoundBanks;
                         for (const std::string& sb : soundBanks)
                         {
-                            auto ret = DoLoadSoundEffect(resourceName, fs, sb, sr->mSoundEffect, loc);
+                            auto ret = DoLoadSoundMusic(resourceName.c_str(), fs, sb, sr->mMusic);
                             if (ret)
                             {
                                 return ret;
                             }
                         }
                     }
+
+                    if (useSfxRec && !sr->mSoundEffect.mSoundBanks.empty())
+                    {
+                        for (const SoundEffectResourceLocation& loc : sr->mSoundEffect.mSoundBanks)
+                        {
+                            const bool explicitSoundBankNameExists = !explicitSoundBankName.empty() && loc.mSoundBanks.find(explicitSoundBankName) != std::end(loc.mSoundBanks);
+                            if (!explicitSoundBankName.empty() && !explicitSoundBankNameExists)
+                            {
+                                break;
+                            }
+
+                            const std::set<std::string>& soundBanks = !explicitSoundBankName.empty() ? std::set<std::string> { explicitSoundBankName } : loc.mSoundBanks;
+                            for (const std::string& sb : soundBanks)
+                            {
+                                auto ret = DoLoadSoundEffect(resourceName.c_str(), fs, sb, sr->mSoundEffect, loc);
+                                if (ret)
+                                {
+                                    return ret;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-    }
 
-    return nullptr;
+        return std::unique_ptr<ISound>();
+    });
 }
 
 up_future_UP_Path ResourceLocator::LocatePath(const std::string& resourceName)
@@ -688,11 +697,14 @@ up_future_UP_Path ResourceLocator::LocatePath(const std::string& resourceName)
     }));
 }
 
-std::unique_ptr<Oddlib::IBits> ResourceLocator::LocateCamera(const char* resourceName)
+std::future<std::unique_ptr<Oddlib::IBits>> ResourceLocator::LocateCamera(const std::string& resourceName)
 {
     LOG_INFO("Requesting camera " << resourceName);
-    std::unique_lock<std::mutex> lock(mMutex);
-    return DoLocateCamera(resourceName, false);
+    return std::async(std::launch::async, [=]() 
+    {
+        std::unique_lock<std::mutex> lock(mMutex);
+        return DoLocateCamera(resourceName.c_str(), false);
+    });
 }
 
 static bool CanDeltaBeApplied(int camW, int camH, int deltaW, int deltaH)
@@ -854,50 +866,53 @@ std::unique_ptr<Oddlib::IBits> ResourceLocator::DoLocateCamera(const char* resou
     return nullptr;
 }
 
-std::unique_ptr<IMovie> ResourceLocator::LocateFmv(IAudioController& audioController, const char* resourceName, const ResourceMapper::FmvFileLocation* location)
+std::future<std::unique_ptr<IMovie>> ResourceLocator::LocateFmv(IAudioController& audioController, const std::string& resourceName, const ResourceMapper::FmvFileLocation* location)
 {
-    // Try from explicitly passed in location
-    std::unique_lock<std::mutex> lock(mMutex);
-    if (location)
+    return std::async(std::launch::async, [this, &audioController, resourceName, location ]() 
     {
+        // Try from explicitly passed in location
+        std::unique_lock<std::mutex> lock(mMutex);
+        if (location)
+        {
+            for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+            {
+                if (fs.mDataSetName == location->mDataSetName)
+                {
+                    auto ret = DoLocateFmvFromFileLocation(*location, fs, resourceName.c_str(), audioController);
+                    if (ret)
+                    {
+                        return ret;
+                    }
+                }
+            }
+            return std::unique_ptr<IMovie>();
+        }
+
+        const ResourceMapper::FmvMapping* fmvMapping = mResMapper.FindFmv(resourceName.c_str());
+        if (!fmvMapping)
+        {
+            return std::unique_ptr<IMovie>();
+        }
+
         for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
         {
-            if (fs.mDataSetName == location->mDataSetName)
+            if (fs.mIsMod)
             {
-                auto ret = DoLocateFmvFromFileLocation(*location, fs, resourceName, audioController);
+                // TODO: Look up the override in the mod fs
+
+            }
+            else
+            {
+                auto ret = DoLocateFmv(audioController, resourceName.c_str(), fs, *fmvMapping);
                 if (ret)
                 {
                     return ret;
                 }
             }
         }
-        return nullptr;
-    }
 
-    const ResourceMapper::FmvMapping* fmvMapping = mResMapper.FindFmv(resourceName);
-    if (!fmvMapping)
-    {
-        return nullptr;
-    }
-
-    for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
-    {
-        if (fs.mIsMod)
-        {
-            // TODO: Look up the override in the mod fs
-
-        }
-        else
-        {
-            auto ret = DoLocateFmv(audioController, resourceName, fs, *fmvMapping);
-            if (ret)
-            {
-                return ret;
-            }
-        }
-    }
-
-    return nullptr;
+        return std::unique_ptr<IMovie>();
+    });
 }
 
 
@@ -944,61 +959,67 @@ std::unique_ptr<IMovie> ResourceLocator::DoLocateFmvFromFileLocation(const Resou
     return nullptr;
 }
 
-std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resourceName)
+std::future<std::unique_ptr<Animation>> ResourceLocator::LocateAnimation(const std::string& resourceName)
 {
-    std::unique_lock<std::mutex> lock(mMutex);
-
-    const ResourceMapper::AnimMapping* animMapping = mResMapper.FindAnimation(resourceName);
-    if (!animMapping)
+    return std::async(std::launch::async, [=]() 
     {
-        return nullptr;
-    }
+        std::unique_lock<std::mutex> lock(mMutex);
 
-    // For each data set attempt to find resourceName by mapping
-    // to a LVL/file/chunk. Or in the case of a mod dataset something else.
-    for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
-    {
-        if (fs.mIsMod)
+        const ResourceMapper::AnimMapping* animMapping = mResMapper.FindAnimation(resourceName.c_str());
+        if (!animMapping)
         {
-            // TODO: Look up the override in the mod fs
-
-            // If this name is not a known resource then it is a new resource for this mod
-
-            // TODO: Handle special case overrides that still need the real file (i.e cam deltas)
+            return std::unique_ptr<Animation>();
         }
-        else
+
+        // For each data set attempt to find resourceName by mapping
+        // to a LVL/file/chunk. Or in the case of a mod dataset something else.
+        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
         {
-            auto ret = DoLocateAnimation(fs, resourceName, *animMapping);
-            if (ret)
+            if (fs.mIsMod)
             {
-                return ret;
+                // TODO: Look up the override in the mod fs
+
+                // If this name is not a known resource then it is a new resource for this mod
+
+                // TODO: Handle special case overrides that still need the real file (i.e cam deltas)
+            }
+            else
+            {
+                auto ret = DoLocateAnimation(fs, resourceName.c_str(), *animMapping);
+                if (ret)
+                {
+                    return ret;
+                }
             }
         }
-    }
-    return nullptr;
+        return std::unique_ptr<Animation>();
+    });
 }
 
-std::unique_ptr<Animation> ResourceLocator::LocateAnimation(const char* resourceName, const char* dataSetName)
+std::future<std::unique_ptr<Animation>> ResourceLocator::LocateAnimation(const std::string& resourceName, const std::string& dataSetName)
 {
-    std::unique_lock<std::mutex> lock(mMutex);
-    for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
+    return std::async(std::launch::async, [=]() 
     {
-        if (fs.mDataSetName == dataSetName)
+        std::unique_lock<std::mutex> lock(mMutex);
+        for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
         {
-            const ResourceMapper::AnimMapping* animMapping = mResMapper.FindAnimation(resourceName);
-            if (!animMapping)
+            if (fs.mDataSetName == dataSetName)
             {
-                return nullptr;
-            }
+                const ResourceMapper::AnimMapping* animMapping = mResMapper.FindAnimation(resourceName.c_str());
+                if (!animMapping)
+                {
+                    return std::unique_ptr<Animation>();
+                }
 
-            auto ret = DoLocateAnimation(fs, resourceName, *animMapping);
-            if (ret)
-            {
-                return ret;
+                auto ret = DoLocateAnimation(fs, resourceName.c_str(), *animMapping);
+                if (ret)
+                {
+                    return ret;
+                }
             }
         }
-    }
-    return nullptr;
+        return std::unique_ptr<Animation>();
+    });
 }
 
 std::shared_ptr<Oddlib::LvlArchive> ResourceLocator::OpenLvl(IFileSystem& fs, const std::string& dataSetName, const std::string& lvlName)
@@ -1028,10 +1049,13 @@ const std::vector<SoundBankLocation>& ResourceLocator::GetSoundBankResources() c
     return mResMapper.GetSoundBankResources();
 }
 
-const MusicTheme* ResourceLocator::LocateSoundTheme(const char* themeName)
+std::future<const MusicTheme*> ResourceLocator::LocateSoundTheme(const std::string& themeName)
 {
-    std::unique_lock<std::mutex> lock(mMutex);
-    return mResMapper.FindSoundTheme(themeName);
+    return std::async(std::launch::async, [=]() 
+    {
+        std::unique_lock<std::mutex> lock(mMutex);
+        return mResMapper.FindSoundTheme(themeName.c_str());
+    });
 }
 
 std::unique_ptr<Animation> ResourceLocator::DoLocateAnimation(const DataPaths::FileSystemInfo& fs, const char* resourceName, const ResourceMapper::AnimMapping& animMapping)

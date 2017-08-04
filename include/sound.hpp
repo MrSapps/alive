@@ -86,7 +86,7 @@ public:
 
 private:
     void CacheActiveTheme(bool add);
-    std::unique_ptr<ISound> PlaySound(const char* soundName, const char* explicitSoundBankName, bool useMusicRecord, bool useSfxRecord, bool useCache);
+    std::unique_ptr<ISound> PlaySound(const std::string& soundName, const std::string& explicitSoundBankName, bool useMusicRecord, bool useSfxRecord, bool useCache);
     void SoundBrowserUi();
     std::unique_ptr<ISound> PlayThemeEntry(const char* entryName);
     void EnsureAmbiance();

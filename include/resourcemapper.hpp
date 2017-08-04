@@ -716,29 +716,28 @@ public:
         return mDataPaths;
     }
     
-    // Not thread safe
+    // Not thread safe - only used by debug path browsers etc
     const std::map<std::string, ResourceMapper::PathMapping>& PathMaps() const { return mResMapper.PathMaps(); }
 
-    std::string LocateScript(const char* scriptName);
+    std::future<std::string> LocateScript(const std::string& scriptName);
 
-    std::unique_ptr<ISound> LocateSound(const char* resourceName, const char* explicitSoundBankName = nullptr, bool useMusicRec = true, bool useSfxRec = true);
-    const MusicTheme* LocateSoundTheme(const char* themeName);
+    std::future<std::unique_ptr<ISound>> LocateSound(const std::string& resourceName, const std::string& explicitSoundBankName = "", bool useMusicRec = true, bool useSfxRec = true);
+    std::future<const MusicTheme*> LocateSoundTheme(const std::string& themeName);
 
     // TODO: Should be returning higher level abstraction
     up_future_UP_Path LocatePath(const std::string& resourceName);
-    std::unique_ptr<Oddlib::IBits> LocateCamera(const char* resourceName);
-    std::unique_ptr<class IMovie> LocateFmv(class IAudioController& audioController, const char* resourceName, const ResourceMapper::FmvFileLocation* location);
-    std::unique_ptr<Animation> LocateAnimation(const char* resourceName);
-
+    std::future<std::unique_ptr<Oddlib::IBits>> LocateCamera(const std::string& resourceName);
+    std::future<std::unique_ptr<class IMovie>> LocateFmv(class IAudioController& audioController, const std::string& resourceName, const ResourceMapper::FmvFileLocation* location);
+    std::future<std::unique_ptr<Animation>> LocateAnimation(const std::string& resourceName);
 
     // This method should be used for debugging only - i.e so we can compare what resource X looks like
     // in dataset A and B.
-    std::unique_ptr<Animation> LocateAnimation(const char* resourceName, const char* dataSetName);
+    std::future<std::unique_ptr<Animation>> LocateAnimation(const std::string& resourceName, const std::string& dataSetName);
 
     // Not thread safe
     std::vector<std::tuple<const char*, const char*, bool>> DebugUi(const char* dataSetFilter, const char* nameFilter);
 
-    std::unique_ptr<Vab> LocateVab(const char* dataSetName, const char* baseVabName);
+    std::future<std::unique_ptr<Vab>> LocateVab(const std::string& dataSetName, const std::string& baseVabName);
 private:
     std::unique_ptr<ISound> DoLoadSoundEffect(const char* resourceName, const DataPaths::FileSystemInfo& fs, const std::string& strSb, const SoundEffectResource& sfxRes, const SoundEffectResourceLocation& sfxResLoc);
     std::unique_ptr<ISound> DoLoadSoundMusic(const char* resourceName, const DataPaths::FileSystemInfo& fs, const std::string& strSb, const MusicResource& sfxRes);

@@ -83,7 +83,7 @@ void GridScreen::LoadTextures(AbstractRenderer& rend)
 {
     if (!mTexHandle.IsValid())
     {
-        mCam = mLocator.LocateCamera(mFileName.c_str());
+        mCam = mLocator.LocateCamera(mFileName).get();
         if (mCam) // One path trys to load BRP08C10.CAM which exists in no data sets anywhere!
         {
             SDL_Surface* surf = mCam->GetSurface();

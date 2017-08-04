@@ -96,7 +96,7 @@ void RunGameState::OnStartASync(const std::string& initScriptName, Sound* pSound
 {
     mSound = pSound;
 
-    const std::string gameScript = mResourceLocator.LocateScript(initScriptName.c_str());
+    const std::string gameScript = mResourceLocator.LocateScript(initScriptName).get();
 
     Sqrat::Script script;
     mMainScript.CompileString(gameScript, initScriptName);

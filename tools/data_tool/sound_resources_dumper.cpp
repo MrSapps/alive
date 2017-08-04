@@ -2356,7 +2356,7 @@ void SoundResourcesDumper::RemoveSoundBanksThatDontMatchPrimarySample()
         {
             // Load sample data for sfxRes out of primarySoundBank
             const std::string primarySoundBank = primaryRec->second;
-            std::unique_ptr<ISound> pSound = mLocator.LocateSound(sfxRes.mResourceName.c_str(), primarySoundBank.c_str(), false, true);
+            std::unique_ptr<ISound> pSound = mLocator.LocateSound(sfxRes.mResourceName, primarySoundBank, false, true).get();
             SingleSeqSampleSound* pFx = dynamic_cast<SingleSeqSampleSound*>(pSound.get());
             if (pFx)
             {
@@ -2367,7 +2367,7 @@ void SoundResourcesDumper::RemoveSoundBanksThatDontMatchPrimarySample()
                     // Remove if sample data does not match primary
                     for (auto sbIt = std::begin(sfxLoc.mSoundBanks); sbIt != std::end(sfxLoc.mSoundBanks); )
                     {
-                        std::unique_ptr<ISound> pCurrentSound = mLocator.LocateSound(sfxRes.mResourceName.c_str(), sbIt->c_str(), false, true);
+                        std::unique_ptr<ISound> pCurrentSound = mLocator.LocateSound(sfxRes.mResourceName, *sbIt, false, true).get();
                         SingleSeqSampleSound* pCurrentFx = dynamic_cast<SingleSeqSampleSound*>(pCurrentSound.get());
                         if (pCurrentFx)
                         {

@@ -114,7 +114,7 @@ void AnimationBrowser::RenderAnimationSelector(CoordinateSpace& coords)
                 bool load = std::get<2>(res);
                 if (load)
                 {
-                    auto anim = mResourceLocator.LocateAnimation(resourceName, dataSetName);
+                    auto anim = mResourceLocator.LocateAnimation(resourceName, dataSetName).get();
                     if (anim)
                     {
                         anim->SetXPos(static_cast<s32>(coords.CameraPosition().x));
