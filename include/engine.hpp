@@ -564,6 +564,8 @@ inline bool FutureIsDone(T& future)
     return future->wait_for(std::chrono::seconds(0)) == std::future_status::ready;
 }
 
+using SoundId = u32;
+
 class Engine final
 {
 public:
@@ -577,7 +579,8 @@ public: // Scripting entry points
     void LoadMap(const char* mapName);
     void HandleMusicEvent(const char* eventName);
     void SetMusicTheme(const char* themeName);
-    void PlaySoundEffect(const char* soundName);
+    SoundId PlaySoundEffect(const char* soundName);
+    void StopSoundEffect(SoundId id);
 private:
     void RunInitScript();
     void Include(const std::string& scriptName);

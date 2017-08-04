@@ -289,6 +289,7 @@ void Engine::BindScriptTypes()
     engine.Func("HandleMusicEvent", &Engine::HandleMusicEvent);
     engine.Func("SetMusicTheme", &Engine::SetMusicTheme);
     engine.Func("PlaySoundEffect", &Engine::PlaySoundEffect);
+    engine.Func("StopSoundEffect", &Engine::StopSoundEffect);
 
     Sqrat::RootTable().Bind("Engine", engine);
     // TODO: Use InstanceBinder
@@ -580,9 +581,14 @@ void Engine::SetMusicTheme(const char* themeName)
     mSound->SetMusicTheme(themeName);
 }
 
-void Engine::PlaySoundEffect(const char* soundName)
+SoundId Engine::PlaySoundEffect(const char* soundName)
 {
-    mSound->PlaySoundEffect(soundName);
+    return mSound->PlaySoundEffect(soundName);
+}
+
+void Engine::StopSoundEffect(SoundId id)
+{
+    mSound->StopSoundEffect(id);
 }
 
 void Engine::Update()

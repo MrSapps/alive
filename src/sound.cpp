@@ -3,6 +3,8 @@
 #include "resourcemapper.hpp"
 #include "oddlib\audio\SequencePlayer.h"
 
+std::atomic<SoundId> Sound::mSoundId = 99;
+
 Sound::Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs)
     : mAudioController(audioController), mLocator(locator), mCache(fs)
 {
@@ -103,13 +105,26 @@ void Sound::HandleMusicEvent(const char* eventName)
     }
 }
 
-void Sound::PlaySoundEffect(const char* soundName)
+SoundId Sound::PlaySoundEffect(const char* soundName)
 {
-    auto ret = PlaySound(soundName, nullptr, true, true, true);
-    if (ret)
+    auto pSound = PlaySound(soundName, nullptr, true, true, true);
+    if (pSound)
     {
         std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
-        mSoundPlayers.push_back(std::move(ret));
+        auto id = mSoundId++;
+        mSoundPlayers[id] = std::move(pSound);
+        return id;
+    }
+    return 0;
+}
+
+void Sound::StopSoundEffect(SoundId id)
+{
+    std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
+    auto it = mSoundPlayers.find(id);
+    if (it != mSoundPlayers.end())
+    {
+        mSoundPlayers.erase(it);
     }
 }
 
@@ -179,7 +194,7 @@ bool Sound::Play(f32* stream, u32 len)
 
     for (auto& player : mSoundPlayers)
     {
-        player->Play(stream, len);
+        player.second->Play(stream, len);
     }
     return false;
 }
@@ -263,7 +278,7 @@ void Sound::Update()
     std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
     for (auto it = mSoundPlayers.begin(); it != mSoundPlayers.end();)
     {
-        if ((*it)->AtEnd())
+        if ((it->second)->AtEnd())
         {
             it = mSoundPlayers.erase(it);
         }
@@ -300,7 +315,7 @@ void Sound::Update()
 
     for (auto& player : mSoundPlayers)
     {
-        player->Update();
+        player.second->Update();
     }
 }
 
@@ -348,11 +363,11 @@ void Sound::SoundBrowserUi()
             int i = 0;
             for (auto& player : mSoundPlayers)
             {
-                if (ImGui::Button((std::to_string(i) + player->Name()).c_str()))
+                if (ImGui::Button((std::to_string(i) + player.second->Name()).c_str()))
                 {
-                    if (player.get() == mSoundPlayers[i].get())
+                    if (player.second.get() == mSoundPlayers[i].get())
                     {
-                        player->Stop();
+                        player.second->Stop();
                     }
                 }
                 i++;
@@ -431,7 +446,7 @@ void Sound::SoundBrowserUi()
                                     if (player)
                                     {
                                         std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
-                                        mSoundPlayers.push_back(std::move(player));
+                                        mSoundPlayers[mSoundId++] = std::move(player);
                                     }
                                 }
                             }
@@ -452,7 +467,7 @@ void Sound::SoundBrowserUi()
                                         if (player)
                                         {
                                             std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
-                                            mSoundPlayers.push_back(std::move(player));
+                                            mSoundPlayers[mSoundId++] = std::move(player);
                                         }
                                     }
                                 }

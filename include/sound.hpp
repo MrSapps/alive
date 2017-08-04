@@ -65,6 +65,8 @@ namespace Oddlib
     class MemoryStream;
 }
 
+using SoundId = u32;
+
 class Sound : public IAudioPlayer
 {
 public:
@@ -77,7 +79,8 @@ public:
     bool IsLoading() const;
 
     void HandleMusicEvent(const char* eventName);
-    void PlaySoundEffect(const char* soundName);
+    SoundId PlaySoundEffect(const char* soundName);
+    void StopSoundEffect(SoundId id);
 
     void Update();
 
@@ -109,7 +112,9 @@ private:
     std::unique_ptr<ISound> mMusicTrack;
 
     // Thread safe
-    std::vector<std::unique_ptr<ISound>> mSoundPlayers;
+    std::map<SoundId, std::unique_ptr<ISound>> mSoundPlayers;
+
+    static std::atomic<SoundId> mSoundId;
 
     enum class eSoundStates
     {

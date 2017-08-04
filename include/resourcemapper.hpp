@@ -660,6 +660,7 @@ public:
     virtual void Stop() = 0;
     virtual const std::string& Name() const = 0;
 };
+using UP_ISound = std::unique_ptr<ISound>;
 
 class BaseSeqSound : public ISound
 {
