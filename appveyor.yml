@@ -37,7 +37,7 @@ artifacts:
  - path: build\*.zip
    name: ZIP-Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
 
- - path: build\bin\%configuration%\ddraw.dll
+ - path: build\%configuration%\ddraw.dll
    name: HOOK-Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
 
 test: off
