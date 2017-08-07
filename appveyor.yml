@@ -34,10 +34,10 @@ artifacts:
  - path: build\*.msi
    name: Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
 
-- path: build\*.zip
-  name: Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
+ - path: build\*.zip
+   name: Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
 
-- path: bin\%configuration%\ddraw.dll
-  name: HOOK-Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
+ - path: bin\%configuration%\ddraw.dll
+   name: HOOK-Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
 
 test: off
