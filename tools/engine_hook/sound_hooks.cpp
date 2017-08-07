@@ -30,14 +30,14 @@ signed int __cdecl SND_Reload(AliveSoundBuffer* a1, void *a2, const void *a3, un
 
 signed int __cdecl SND_PlayEx(AliveSoundBuffer* pSound, unsigned int volL, unsigned int volR, float unknown1, IDirectSoundBuffer* pDuplicated, DWORD playFlags, int unknown2)
 {
-    if (!*g_lPDSound_dword_BBC344)
+    if (!gVars.g_lPDSound_dword_BBC344.Get())
     {
         return -1;
     }
 
     if (!pSound)
     {
-        error_msgbox("C:\\abe2\\code\\POS\\SND.C", 845, -1, "SND_PlayEx: NULL SAMPLE !!!");
+        gFuncs.error_msgbox("C:\\abe2\\code\\POS\\SND.C", 845, -1, "SND_PlayEx: NULL SAMPLE !!!");
         return -1;
     }
 
@@ -48,7 +48,7 @@ signed int __cdecl SND_PlayEx(AliveSoundBuffer* pSound, unsigned int volL, unsig
     }
 
     auto currentTime = timeGetTime();
-    g_snd_time_dword_BBC33C = currentTime;
+    gVars.g_snd_time_dword_BBC33C.Set(currentTime);
 
     auto maxVol = volR;
     if (volL > volR)
@@ -56,7 +56,7 @@ signed int __cdecl SND_PlayEx(AliveSoundBuffer* pSound, unsigned int volL, unsig
         maxVol = volL;
     }
 
-    auto volumeRelated = (signed int)(120 * maxVol * dword_575158) >> 14;
+    auto volumeRelated = (signed int)(120 * maxVol * gVars.dword_575158.Get()) >> 14;
     if (volumeRelated >= 0)
     {
         if (volumeRelated > 127)
@@ -86,27 +86,27 @@ signed int __cdecl SND_PlayEx(AliveSoundBuffer* pSound, unsigned int volL, unsig
         {
             auto freq = (signed __int64)((long double)pSound->mSampleRate * unknown1 + 0.5);
             pDirectSoundBuffer->SetFrequency((DWORD)freq);
-            pDirectSoundBuffer->SetVolume(dword_BBBD38[volumeRelated]);
+            pDirectSoundBuffer->SetVolume(gVars.dword_BBBD38.Get()[volumeRelated]);
             pDirectSoundBuffer->SetCurrentPosition(0);
             return 0;
         }
     }
     else
     {
-        IDirectSoundBuffer* pDuplicate = sub_4EF970(pSound->mIndex, volumeRelated + unknown2);
+        IDirectSoundBuffer* pDuplicate = gFuncs.sub_4EF970(pSound->mIndex, volumeRelated + unknown2);
         if (!pDuplicate)
         {
             return -1;
         }
 
-        HRESULT errorCode = (*g_lPDSound_dword_BBC344)->DuplicateSoundBuffer(
+        HRESULT errorCode = gVars.g_lPDSound_dword_BBC344.Get()->DuplicateSoundBuffer(
             pDirectSoundBuffer,
             &pDuplicate);
 
         if (errorCode)
         {
             auto errorString = "fix me";// GetDSoundError(errorCode);
-            error_msgbox("C:\\abe2\\code\\POS\\SND.C", 921, -1, errorString);
+            gFuncs.error_msgbox("C:\\abe2\\code\\POS\\SND.C", 921, -1, errorString);
             return -1;
         }
 
@@ -134,7 +134,7 @@ signed int __cdecl SND_PlayEx(AliveSoundBuffer* pSound, unsigned int volL, unsig
     pDirectSoundBuffer->SetFrequency((DWORD)freq);
     
 
-    pDirectSoundBuffer->SetVolume(dword_BBBD38[volumeRelated]);
+    pDirectSoundBuffer->SetVolume(gVars.dword_BBBD38.Get()[volumeRelated]);
   
     auto panValue = (signed int)(10000 * (volL - volR)
         +((unsigned __int64)(18446744071578977289i64 * (signed int)(10000 * (volL - volR))) >> 32)) >> 6;
