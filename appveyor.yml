@@ -35,9 +35,9 @@ artifacts:
    name: Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
 
 - path: build\*.zip
-   name: Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
+  name: Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
 
 - path: bin\%configuration%\ddraw.dll
-   name: HOOK-Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
+  name: HOOK-Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
 
 test: off
