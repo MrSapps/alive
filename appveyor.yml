@@ -32,12 +32,12 @@ install:
 
 artifacts:
  - path: build\*.msi
-   name: Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
+   name: MSI-Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
 
  - path: build\*.zip
-   name: Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
+   name: ZIP-Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
 
- - path: bin\%configuration%\ddraw.dll
+ - path: build\bin\%configuration%\ddraw.dll
    name: HOOK-Alive-$(configuration)-$(APPVEYOR_REPO_COMMIT)
 
 test: off
