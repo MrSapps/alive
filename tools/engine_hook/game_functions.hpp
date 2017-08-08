@@ -46,6 +46,9 @@ struct GameVars
     Address<DWORD> dword_575158 = { 0x575158 , 0x0 };
     Address<DWORD> g_snd_time_dword_BBC33C = { 0xBBC33C , 0x0 };
     Address<DWORD*> dword_BBBD38 = { 0xBBBD38 , 0x0 };
+
+    Address<DWORD> ddCheatOn = { 0x005CA4B5 , 0x0 };
+    Address<DWORD> alwaysDrawDebugText = { 0x005BC000 , 0x0 };
 };
 
 extern bool gIsAe;
