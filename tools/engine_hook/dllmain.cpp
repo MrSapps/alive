@@ -33,7 +33,6 @@
 
 HINSTANCE gDllInstance = NULL;
 
-typedef int(__cdecl* gdi_draw_hook_type)(DWORD * hdc);
 static int __cdecl gdi_draw_hook(DWORD * hdc);
 
 static int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
@@ -100,11 +99,12 @@ struct CollisionInfo;
 typedef int(__thiscall* sub_418930_thiscall)(int thisPtr, const CollisionInfo* pCollisionInfo, u8* pPathBlock);
 static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* pCollisionInfo, u8* pPathBlock);
 
+
 namespace Hooks
 {
     Hook<decltype(&::sub_418930_hook), sub_418930_thiscall> sub_418930(0x00418930);
     Hook<decltype(&::set_first_camera_hook), set_first_camera_thiscall> set_first_camera(0x00401415);
-    Hook<decltype(&::gdi_draw_hook), gdi_draw_hook_type> gdi_draw(0x004F21F0);
+    Hook<decltype(&::gdi_draw_hook)> gdi_draw(gFuncs.gdi_draw.Address());
     Hook<decltype(&::anim_decode_hook), anim_decode_thiscall> anim_decode(0x0040AC90);
     Hook<decltype(&::get_anim_frame_hook)> get_anim_frame(0x0040B730);
 }
@@ -512,7 +512,7 @@ struct PathRootData
 {
     PathRoot iLvls[17];
 };
-PathRootData* gPathData = nullptr;
+
 std::unique_ptr<Oddlib::Path> gPath;
 
 static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* pCollisionInfo, u8* pPathBlock)
@@ -521,7 +521,7 @@ static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* p
 
     for (s32 i = 0; i < kNumLvls; i++)
     {
-        PathRoot& data = gPathData->iLvls[i];
+        PathRoot& data = gVars.gPathData.Get()->iLvls[i];
         for (s32 j = 1; j < data.mNumPaths + 1; j++)
         {
             if (data.mBlyArrayPtr->iBlyRecs[j].mBlyName && data.mBlyArrayPtr->iBlyRecs[j].mCollisionData == pCollisionInfo)
@@ -555,11 +555,9 @@ static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* p
 
 void GetPathArray()
 {
-    gPathData = reinterpret_cast<PathRootData*>(0x00559660);
-
     for (s32 i = 0; i < kNumLvls; i++)
     {
-        PathRoot& data = gPathData->iLvls[i];
+        PathRoot& data = gVars.gPathData.Get()->iLvls[i];
         for (s32 j = 1; j < data.mNumPaths+1; j++)
         {
             if (data.mBlyArrayPtr->iBlyRecs[j].mBlyName && data.mBlyArrayPtr->iBlyRecs[j].mCollisionData->iFuncPtr)
@@ -569,11 +567,6 @@ void GetPathArray()
         }
     }
 }
-
-typedef HDC(__cdecl * ConvertAbeHdcHandle)(DWORD * hdc);
-ConvertAbeHdcHandle ddHdcToGdi = reinterpret_cast<ConvertAbeHdcHandle>(0x4F2150);
-typedef DWORD(__cdecl * ConvertAbeHdcHandle2)(DWORD * hdc, int hdc2);
-ConvertAbeHdcHandle2 gdiHdcToDd = reinterpret_cast<ConvertAbeHdcHandle2>(0x4F21A0);
 
 void GdiLoop(HDC hdc)
 {
@@ -623,13 +616,10 @@ void GdiLoop(HDC hdc)
 
     if (gCollisionsEnabled)
     {
-        char currentLevelId = *reinterpret_cast<char*>(0x5C3030);
-        char * currentLevelName = gPathData->iLvls[currentLevelId].mName;
-        char currentPath = *reinterpret_cast<char*>(0x5C3032);
-        char currentCam = *reinterpret_cast<char*>(0x5C3034);
-        char currentCamBuffer[24];
-        sprintf(currentCamBuffer, "%sP%02dC%02d.CAM", currentLevelName, currentPath, currentCam);
-        if (gPathData)
+        char * currentLevelName = gVars.gPathData.Get()->iLvls[gVars.currentLevelId.Get()].mName;
+        char currentCamBuffer[24] = {};
+        sprintf(currentCamBuffer, "%sP%02dC%02d.CAM", currentLevelName, gVars.currentPath.Get(), gVars.currentCam.Get());
+        if (gVars.gPathData.Get())
         {
             int camX = 0;
             int camY = 0;
@@ -695,9 +685,9 @@ void GdiLoop(HDC hdc)
 
 static int __cdecl gdi_draw_hook(DWORD * hdcPtr)
 {
-    HDC hdc = ddHdcToGdi(hdcPtr);
+    HDC hdc = gFuncs.ConvertAbeHdcHandle(hdcPtr);
     GdiLoop(hdc);
-    gdiHdcToDd(hdcPtr, (int)hdc);
+    gFuncs.ConvertAbeHdcHandle2(hdcPtr, (int)hdc);
     
     return Hooks::gdi_draw.Real()(hdcPtr);
 }
