@@ -758,8 +758,8 @@ void HookMain()
 // Proxy DLL entry point
 HRESULT WINAPI NewDirectDrawCreate(GUID* lpGUID, IDirectDraw** lplpDD, IUnknown* pUnkOuter)
 {
-    const HMODULE hDDrawDll = LoadRealDDrawDll();
-    const TDirectDrawCreate pRealDirectDrawCreate = GetFunctionPointersToRealDDrawFunctions(hDDrawDll);
+    const HMODULE hDDrawDll = Utils::LoadRealDDrawDll();
+    const Utils::TDirectDrawCreate pRealDirectDrawCreate = Utils::GetFunctionPointersToRealDDrawFunctions(hDDrawDll);
     const HRESULT ret = pRealDirectDrawCreate(lpGUID, lplpDD, pUnkOuter);
     if (SUCCEEDED(ret))
     {

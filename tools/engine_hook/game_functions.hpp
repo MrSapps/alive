@@ -3,11 +3,6 @@
 #include <dsound.h>
 #include <type_traits>
 
-namespace Utils
-{
-    bool IsAe();
-}
-
 template<class AddressType>
 struct Address
 {
