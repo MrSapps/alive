@@ -490,7 +490,7 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         tools/engine_hook/dsurface7proxy.hpp
         tools/engine_hook/window_hooks.hpp
         tools/engine_hook/hook_utils.hpp
-
+        tools/engine_hook/hook_utils.cpp
         )
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_RELEASE  "/SUBSYSTEM:WINDOWS")
