@@ -3,7 +3,10 @@
 #include <dsound.h>
 #include <type_traits>
 
-extern bool gIsAe;
+namespace Utils
+{
+    bool IsAe();
+}
 
 template<class AddressType>
 struct Address
@@ -22,6 +25,23 @@ struct Address
 };
 
 template<class AddressType>
+struct Address<AddressType*>
+{
+    DWORD mAe;
+    DWORD mAo;
+
+    AddressType* Get()
+    {
+        return reinterpret_cast<AddressType*>(mAe);
+    }
+
+    void Set(AddressType* value)
+    {
+        reinterpret_cast<AddressType*>(mAe) = value;
+    }
+};
+
+template<class AddressType>
 struct AddressFunction
 {
     DWORD mAe;
@@ -29,7 +49,7 @@ struct AddressFunction
 
     DWORD Address() const
     {
-        return gIsAe ? mAe : mAo;
+        return Utils::IsAe() ? mAe : mAo;
     }
 
     template<typename... Params>
@@ -71,6 +91,5 @@ struct GameVars
     Address<char> currentCam = { 0x5C3034, 0x0 };
 };
 
-
-extern GameFunctions gFuncs;
-extern GameVars gVars;
+GameFunctions& Funcs();
+GameVars& Vars();

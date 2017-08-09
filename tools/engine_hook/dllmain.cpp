@@ -104,7 +104,7 @@ namespace Hooks
 {
     Hook<decltype(&::sub_418930_hook), sub_418930_thiscall> sub_418930(0x00418930);
     Hook<decltype(&::set_first_camera_hook), set_first_camera_thiscall> set_first_camera(0x00401415);
-    Hook<decltype(&::gdi_draw_hook)> gdi_draw(gFuncs.gdi_draw.Address());
+    Hook<decltype(&::gdi_draw_hook)> gdi_draw(Funcs().gdi_draw.Address());
     Hook<decltype(&::anim_decode_hook), anim_decode_thiscall> anim_decode(0x0040AC90);
     Hook<decltype(&::get_anim_frame_hook)> get_anim_frame(0x0040B730);
 }
@@ -521,7 +521,7 @@ static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* p
 
     for (s32 i = 0; i < kNumLvls; i++)
     {
-        PathRoot& data = gVars.gPathData.Get()->iLvls[i];
+        PathRoot& data = Vars().gPathData.Get()->iLvls[i];
         for (s32 j = 1; j < data.mNumPaths + 1; j++)
         {
             if (data.mBlyArrayPtr->iBlyRecs[j].mBlyName && data.mBlyArrayPtr->iBlyRecs[j].mCollisionData == pCollisionInfo)
@@ -557,7 +557,8 @@ void GetPathArray()
 {
     for (s32 i = 0; i < kNumLvls; i++)
     {
-        PathRoot& data = gVars.gPathData.Get()->iLvls[i];
+        PathRootData* ptr = Vars().gPathData.Get();
+        PathRoot& data = ptr->iLvls[i];
         for (s32 j = 1; j < data.mNumPaths+1; j++)
         {
             if (data.mBlyArrayPtr->iBlyRecs[j].mBlyName && data.mBlyArrayPtr->iBlyRecs[j].mCollisionData->iFuncPtr)
@@ -616,10 +617,10 @@ void GdiLoop(HDC hdc)
 
     if (gCollisionsEnabled)
     {
-        char * currentLevelName = gVars.gPathData.Get()->iLvls[gVars.currentLevelId.Get()].mName;
+        char * currentLevelName = Vars().gPathData.Get()->iLvls[Vars().currentLevelId.Get()].mName;
         char currentCamBuffer[24] = {};
-        sprintf(currentCamBuffer, "%sP%02dC%02d.CAM", currentLevelName, gVars.currentPath.Get(), gVars.currentCam.Get());
-        if (gVars.gPathData.Get())
+        sprintf(currentCamBuffer, "%sP%02dC%02d.CAM", currentLevelName, Vars().currentPath.Get(), Vars().currentCam.Get());
+        if (Vars().gPathData.Get())
         {
             int camX = 0;
             int camY = 0;
@@ -685,9 +686,9 @@ void GdiLoop(HDC hdc)
 
 static int __cdecl gdi_draw_hook(DWORD * hdcPtr)
 {
-    HDC hdc = gFuncs.ConvertAbeHdcHandle(hdcPtr);
+    HDC hdc = Funcs().ConvertAbeHdcHandle(hdcPtr);
     GdiLoop(hdc);
-    gFuncs.ConvertAbeHdcHandle2(hdcPtr, (int)hdc);
+    Funcs().ConvertAbeHdcHandle2(hdcPtr, (int)hdc);
     
     return Hooks::gdi_draw.Real()(hdcPtr);
 }
@@ -750,8 +751,8 @@ void HookMain()
 
     GetPathArray();
 
-    gVars.ddCheatOn.Set(1);
-    gVars.alwaysDrawDebugText.Set(1);
+    Vars().ddCheatOn.Set(1);
+    Vars().alwaysDrawDebugText.Set(1);
 }
 
 // Proxy DLL entry point
