@@ -493,6 +493,8 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         tools/engine_hook/hook_utils.cpp
         tools/engine_hook/anim_logger.hpp
         tools/engine_hook/anim_logger.cpp
+        tools/engine_hook/resource.h
+        tools/engine_hook/resources.rc
         )
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_RELEASE  "/SUBSYSTEM:WINDOWS")

@@ -16,6 +16,7 @@
 #include "window_hooks.hpp"
 #include "game_functions.hpp"
 #include "anim_logger.hpp"
+#include "resource.h"
 
 #define private public
 #include "gridmap.hpp"
@@ -645,9 +646,13 @@ void HookMain()
     Vars().alwaysDrawDebugText.Set(1);
 }
 
+static HMODULE gDllHandle = NULL;
+
 // Proxy DLL entry point
 HRESULT WINAPI NewDirectDrawCreate(GUID* lpGUID, IDirectDraw** lplpDD, IUnknown* pUnkOuter)
 {
+    //CreateDialog(gDllHandle, MAKEINTRESOURCE(IDD_MAIN), NULL, NULL);
+
     const HMODULE hDDrawDll = Utils::LoadRealDDrawDll();
     const Utils::TDirectDrawCreate pRealDirectDrawCreate = Utils::GetFunctionPointersToRealDDrawFunctions(hDDrawDll);
     const HRESULT ret = pRealDirectDrawCreate(lpGUID, lplpDD, pUnkOuter);
@@ -663,6 +668,8 @@ static bool gConsoleDone = false;
 
 extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID /*lpReserved*/)
 {
+    gDllHandle = hModule;
+
     if (!gConsoleDone)
     {
         gConsoleDone = true;
