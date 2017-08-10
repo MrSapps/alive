@@ -15,16 +15,11 @@
 #include "hook_utils.hpp"
 #include "window_hooks.hpp"
 #include "game_functions.hpp"
+#include "anim_logger.hpp"
 
-// Hack to access private parts of ResourceMapper
 #define private public
-
-#include "resourcemapper.hpp"
-
-#undef private
-
 #include "gridmap.hpp"
-
+#undef private
 
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_Primary;
 /*static*/ DirectSurface7Proxy* DirectSurface7Proxy::g_BackBuffer;
@@ -134,111 +129,6 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
     return Hooks::set_first_camera.Real()(thisPtr, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
 }
 
-struct AnimLogger
-{
-    std::unique_ptr<IFileSystem> mFileSystem;
-    std::unique_ptr<ResourceMapper> mResources;
-
-    std::map<u32, std::unique_ptr<Oddlib::AnimSerializer>> mAnimCache;
-    std::map<std::pair<u32, u32>, Oddlib::AnimSerializer*> mAnims;
-
-    Oddlib::AnimSerializer* AddAnim(u32 id, u8* ptr, u32 size)
-    {
-        auto it = mAnimCache.find(id);
-        if (it == std::end(mAnimCache))
-        {
-            std::vector<u8> data(
-                reinterpret_cast<u8*>(ptr),
-                reinterpret_cast<u8*>(ptr) + size);
-
-            Oddlib::MemoryStream ms(std::move(data));
-            mAnimCache[id] = std::make_unique<Oddlib::AnimSerializer>(ms, false);
-            return AddAnim(id, ptr, size);
-        }
-        else
-        {
-            return it->second.get();
-        }
-    }
-
-    void Add(u32 id, u32 idx, Oddlib::AnimSerializer* anim)
-    {
-        auto key = std::make_pair(id, idx);
-        auto it = mAnims.find(key);
-        if (it == std::end(mAnims))
-        {
-            mAnims[key] = anim;
-        }
-
-        LogAnim(id, idx);
-    }
-
-    std::string Find(u32 id, u32 idx)
-    {
-        for (const auto& mapping : mResources->mAnimMaps)
-        {
-            for (const auto& location : mapping.second.mLocations)
-            {
-                if (location.mDataSetName == "AePc")
-                {
-                    for (const auto& file : location.mFiles)
-                    {
-                        if (file.mAnimationIndex == idx && file.mId == id)
-                        {
-                            return mapping.first;
-                        }
-                    }
-                }
-            }
-        }
-        return "";
-    }
-
-    void ResourcesInit()
-    {
-        TRACE_ENTRYEXIT;
-        mFileSystem = std::make_unique<GameFileSystem>();
-        if (!mFileSystem->Init())
-        {
-            LOG_ERROR("File system init failure");
-        }
-        mResources = std::make_unique<ResourceMapper>(*mFileSystem, 
-            "../../data/dataset_contents.json",
-            "../../data/animations.json",
-            "../../data/sounds.json",
-            "../../data/paths.json",
-            "../../data/fmvs.json");
-    }
-
-    std::string mLastResName;
-
-    void LogAnim(u32 id, u32 idx)
-    {
-        if (GetAsyncKeyState(VK_F2))
-        {
-            std::cout << "RELOAD RESOURCES" << std::endl;
-            mFileSystem = nullptr;
-            mResources = nullptr;
-        }
-
-        if (!mFileSystem)
-        {
-            ResourcesInit();
-        }
-
-        std::string resName = Find(id, idx);
-        if (resName != mLastResName)
-        {
-            std::string s = "id: " + std::to_string(id) + " idx: " + std::to_string(idx) + " resource name: " + resName;
-            std::cout << "ANIM: " << s << std::endl; // use cout directly, don't want the function name etc here
-            mLastResName = resName;
-        }
-
-        //::Sleep(128);
-    }
-};
-
-AnimLogger gAnimLogger;
 
 // First 16bits is the whole number, last 16bits is the remainder (??)
 class HalfFloat
@@ -379,7 +269,7 @@ void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
             // thisPtr->mFrameTableOffset = *(ptr + 1);
 
             // Get anim from cache or add to cache
-            Oddlib::AnimSerializer* as = gAnimLogger.AddAnim(
+            Oddlib::AnimSerializer* as = GetAnimLogger().AddAnim(
                 *id, 
                 reinterpret_cast<u8*>(ptr),
                 *(ptr - 4) - (sizeof(DWORD) * 4));
@@ -400,7 +290,7 @@ void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
             if (found)
             {
                 // Log the animation id/index against the parsed/cache animation
-                gAnimLogger.Add(
+                GetAnimLogger().Add(
                     *id,
                     idx,
                     as);
