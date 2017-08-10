@@ -1,4 +1,5 @@
 #include "hook_utils.hpp"
+#include "string_util.hpp"
 
 namespace Utils
 {
@@ -38,6 +39,7 @@ namespace Utils
         wchar_t buffer[MAX_PATH + 1] = {};
         ::GetModuleFileNameW(GetModuleHandle(NULL), buffer, _countof(buffer));
 
-        return true;
+        const auto exeName = string_util::split(std::wstring(buffer), L'\\').back();
+        return _wcsicmp(exeName.c_str(), L"Exoddus.exe") == 0;
     }
 }
