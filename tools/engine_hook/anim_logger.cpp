@@ -8,6 +8,8 @@
 
 #undef private
 
+#include "window_hooks.hpp"
+#include "debug_dialog.hpp"
 
 Oddlib::AnimSerializer* AnimLogger::AddAnim(u32 id, u8* ptr, u32 size)
 {
@@ -97,6 +99,8 @@ void AnimLogger::LogAnim(u32 id, u32 idx)
         std::string s = "id: " + std::to_string(id) + " idx: " + std::to_string(idx) + " resource name: " + resName;
         std::cout << "ANIM: " << s << std::endl; // use cout directly, don't want the function name etc here
         mLastResName = resName;
+
+        gDebugUi->LogAnimation(resName);
     }
 
     //::Sleep(128);

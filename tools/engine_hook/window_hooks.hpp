@@ -1,9 +1,11 @@
 #pragma once
 
 #include "hook.hpp"
+#include <memory>
 
 extern bool gCollisionsEnabled;
 extern bool gGridEnabled;
+extern std::unique_ptr<class DebugDialog> gDebugUi;
 
 namespace Hooks
 {

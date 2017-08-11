@@ -57,6 +57,16 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     return FALSE;
 }
 
+DebugDialog::DebugDialog()
+{
+
+}
+
+DebugDialog::~DebugDialog()
+{
+
+}
+
 bool DebugDialog::Create(LPCSTR dialogId)
 {
     mHwnd = ::CreateDialogParam(gDllHandle, dialogId, NULL, DlgProc, reinterpret_cast<LPARAM>(this));
@@ -70,12 +80,15 @@ BOOL DebugDialog::Proc(HWND hwnd, UINT message, WPARAM /*wParam*/, LPARAM /*lPar
     case WM_INITDIALOG:
     {
         HWND hListBox = GetDlgItem(hwnd, IDC_ANIMATIONS);
-        auto listbox = std::make_unique<ListBox>(hListBox);
-        listbox->AddString("Testing");
-        mWindows.push_back(std::move(listbox));
+        mListBox = std::make_unique<ListBox>(hListBox);
     }
     return FALSE;
     }
 
     return FALSE;
+}
+
+void DebugDialog::LogAnimation(const std::string& name)
+{
+    mListBox->AddString(name.c_str());
 }

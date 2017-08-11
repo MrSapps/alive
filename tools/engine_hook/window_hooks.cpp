@@ -7,7 +7,7 @@
 bool gCollisionsEnabled = true;
 bool gGridEnabled = false;
 static WNDPROC g_pOldProc = 0;
-static std::unique_ptr<DebugDialog> gDebugUi;
+std::unique_ptr<DebugDialog> gDebugUi;
 
 namespace Hooks
 {
