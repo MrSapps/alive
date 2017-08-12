@@ -16,6 +16,8 @@
 #include "window_hooks.hpp"
 #include "game_functions.hpp"
 #include "anim_logger.hpp"
+#include "start_dialog.hpp"
+#include "resource.h"
 
 #define private public
 #include "gridmap.hpp"
@@ -104,6 +106,7 @@ namespace Hooks
     Hook<decltype(&::get_anim_frame_hook)> get_anim_frame(0x0040B730);
 }
 
+static StartDialog::StartMode gStartMode = StartDialog::eNormal;
 
 static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
 {
@@ -112,19 +115,26 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
     // AE Cheat screen, I think we have to fake cheat input or set a bool for this to work :(
     // cameraNumber = 31;
 
-    // Setting to Feco lets us go directly in game, with the side effect that pausing will crash
-    // and some other nasties, still its good enough for debugging animations
-    //levelNumber = 5;
-
-    // Abe "hello" screen when levelNumber is left as the intro level
-    //cameraNumber = 1;
-
-    //pathNumber = 1;
-
     // 5 = "flash" on
     // 4 = top to bottom
     // 8 = door effect/sound
-    screenChangeEffect = 5;
+    //screenChangeEffect = 5;
+
+    switch (gStartMode)
+    {
+    case StartDialog::eNormal:
+        break;
+    case StartDialog::eStartFeeco:
+        // Setting to Feco lets us go directly in game, with the side effect that pausing will crash
+        // and some other nasties, still its good enough for debugging animations
+        levelNumber = 5;
+        cameraNumber = 1;
+        break;
+    case StartDialog::eStartMenuDirect:
+        // Abe "hello" screen when levelNumber is left as the intro level
+        cameraNumber = 1;
+        break;
+    }
 
     return Hooks::set_first_camera.Real()(thisPtr, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
 }
@@ -622,6 +632,8 @@ namespace Hooks
     Hook<decltype(&::AbeSnap_sub_449930_hook)> AbeSnap_sub_449930(0x00449930);
 }
 
+HMODULE gDllHandle = NULL;
+
 void HookMain()
 {
     TRACE_ENTRYEXIT;
@@ -644,8 +656,6 @@ void HookMain()
     Vars().ddCheatOn.Set(1);
     Vars().alwaysDrawDebugText.Set(1);
 }
-
-HMODULE gDllHandle = NULL;
 
 // Proxy DLL entry point
 HRESULT WINAPI NewDirectDrawCreate(GUID* lpGUID, IDirectDraw** lplpDD, IUnknown* pUnkOuter)
@@ -674,6 +684,10 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPV
         freopen("CONOUT$", "w", stdout);
         SetConsoleTitle("ALIVE hook debug console");
         SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_RED);
+
+        StartDialog startDlg;
+        startDlg.Create(gDllHandle, MAKEINTRESOURCE(IDD_STARTUP), true);
+        gStartMode = startDlg.GetStartMode();
     }
 
     if (ul_reason_for_call == DLL_PROCESS_ATTACH)

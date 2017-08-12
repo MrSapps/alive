@@ -19,30 +19,44 @@ protected:
 using UP_BaseWindow = std::unique_ptr<BaseWindow>;
 
 class BaseDialog;
-class BaseControl : public BaseWindow
+class EventSink : public BaseWindow
 {
 public:
-    BaseControl(BaseDialog* parentDialog, DWORD id);
-    ~BaseControl();
+    EventSink(BaseDialog* parentDialog);
+    ~EventSink();
     virtual bool HandleMessage(WPARAM wparam, LPARAM lParam) = 0;
 protected:
     BaseDialog* mParent = nullptr;
     DWORD mId = 0;
 };
 
+class BaseControl : public EventSink
+{
+public:
+    BaseControl(BaseDialog* parentDialog, DWORD id);
+protected:
+    BaseDialog* mParent = nullptr;
+    DWORD mId = 0;
+};
+
+class Timer;
+
 class BaseDialog : public BaseWindow
 {
 public:
-    void AddControl(BaseControl* ptr);
-    void RemoveControl(BaseControl* ptr);
-    bool Create(HINSTANCE instance, LPCSTR dialogId);
+    void AddControl(EventSink* ptr);
+    void RemoveControl(EventSink* ptr);
+    bool Create(HINSTANCE instance, LPCSTR dialogId, bool modal = false);
+    void RemoveTimer(Timer* timer);
+    void AddTimer(Timer* pTimer);
 protected:
     virtual BOOL Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
     virtual BOOL CreateControls() = 0;
     static BOOL CALLBACK StaticDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 private:
     bool HandleControlMessages(WPARAM wparam, LPARAM lParam);
-    std::set<BaseControl*> mControls;
+    std::set<Timer*> mTimers;
+    std::set<EventSink*> mControls;
 };
 
 class ListBox : public BaseControl
@@ -54,14 +68,53 @@ public:
     virtual bool HandleMessage(WPARAM wparam, LPARAM lParam) override;
 };
 
-class Button : public BaseControl
+class BaseButton : public BaseControl
 {
 public:
     using BaseControl::BaseControl;
     void OnClicked(std::function<void()> onClick);
     virtual bool HandleMessage(WPARAM wparam, LPARAM lParam) override;
-private:
+protected:
     std::function<void()> mOnClicked;
+};
+
+class Button : public BaseButton
+{
+public:
+    using BaseButton::BaseButton;
+};
+
+class Label : public BaseControl
+{
+public:
+    using BaseControl::BaseControl;
+    void SetText(const std::string& text);
+    virtual bool HandleMessage(WPARAM wparam, LPARAM lParam) override;
+};
+
+class Timer
+{
+public:
+    Timer(BaseDialog* parent, DWORD intervalMs);
+    ~Timer();
+    void OnTick(std::function<void()> onTick);
+    void Stop();
+    void Tick();
+    UINT_PTR Id() const { return (UINT_PTR)mId; }
+private:
+    static DWORD mIdGen;
+    DWORD mId = 0;
+    BaseDialog* mParent = nullptr;
+    std::function<void()> mOnTick;
+    UINT_PTR mTimerId = 0;
+};
+
+class RadioButton : public BaseButton
+{
+public:
+    using BaseButton::BaseButton;
+    bool IsSelected();
+    void SetSelected(bool selected);
 };
 
 class TextBox : public BaseControl

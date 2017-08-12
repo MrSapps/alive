@@ -46,6 +46,16 @@ BOOL DebugDialog::CreateControls()
     return TRUE;
 }
 
+BOOL DebugDialog::Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    // Closing this dialog should completely end the game
+    if (message == WM_CLOSE)
+    {
+        ::PostQuitMessage(0);
+    }
+    return BaseDialog::Proc(hwnd, message, wParam, lParam);
+}
+
 void DebugDialog::LogAnimation(const std::string& name)
 {
     DWORD hitCount = 0;

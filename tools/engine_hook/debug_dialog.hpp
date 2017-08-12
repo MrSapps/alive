@@ -27,6 +27,7 @@ public:
     void OnReloadAnimJson(std::function<void()> fnOnReload) { mOnReloadJson = fnOnReload; }
 protected:
     virtual BOOL CreateControls() override;
+    virtual BOOL Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) override;
 private:
     void SyncAnimListBoxData();
     void ClearAnimListBoxAndAnimData();

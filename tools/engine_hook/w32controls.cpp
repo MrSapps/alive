@@ -22,12 +22,12 @@ BaseWindow::~BaseWindow()
 
 }
 
-void BaseDialog::AddControl(BaseControl* ptr)
+void BaseDialog::AddControl(EventSink* ptr)
 {
     mControls.insert(ptr);
 }
 
-void BaseDialog::RemoveControl(BaseControl* ptr)
+void BaseDialog::RemoveControl(EventSink* ptr)
 {
     auto it = mControls.find(ptr);
     if (it != std::end(mControls))
@@ -36,10 +36,35 @@ void BaseDialog::RemoveControl(BaseControl* ptr)
     }
 }
 
-bool BaseDialog::Create(HINSTANCE instance, LPCSTR dialogId)
+bool BaseDialog::Create(HINSTANCE instance, LPCSTR dialogId, bool modal)
 {
-    mHwnd = ::CreateDialogParam(instance, dialogId, NULL, StaticDlgProc, reinterpret_cast<LPARAM>(this));
-    return mHwnd != NULL;
+    if (modal)
+    {
+        if (!::DialogBoxParam(instance, dialogId, NULL, StaticDlgProc, reinterpret_cast<LPARAM>(this)))
+        {
+            return false;
+        }
+        return true;
+    }
+    else
+    {
+        mHwnd = ::CreateDialogParam(instance, dialogId, NULL, StaticDlgProc, reinterpret_cast<LPARAM>(this));
+        return mHwnd != NULL;
+    }
+}
+
+void BaseDialog::RemoveTimer(Timer* timer)
+{
+    auto it = mTimers.find(timer);
+    if (it != std::end(mTimers))
+    {
+        mTimers.erase(it);
+    }
+}
+
+void BaseDialog::AddTimer(Timer* pTimer)
+{
+    mTimers.insert(pTimer);
 }
 
 BOOL BaseDialog::Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -49,6 +74,16 @@ BOOL BaseDialog::Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     if (message == WM_INITDIALOG)
     {
         return CreateControls();
+    }
+    else if (message == WM_TIMER)
+    {
+        for (auto& timer : mTimers)
+        {
+            if (timer->Id() == wParam)
+            {
+                timer->Tick();
+            }
+        }
     }
     else if (message == WM_COMMAND)
     {
@@ -65,17 +100,22 @@ BOOL BaseDialog::Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK BaseDialog::StaticDlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    if (message == WM_CLOSE)
-    {
-        SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
-        PostQuitMessage(0);
-        return TRUE;
-    }
-
     BaseDialog* thisPtr = (BaseDialog*)GetWindowLongPtr(hwnd, GWL_USERDATA);
     if (thisPtr)
     {
-        return thisPtr->Proc(hwnd, message, wParam, lParam);
+        if (message == WM_CLOSE)
+        {
+            SetWindowLongPtrW(hwnd, GWLP_USERDATA, 0);
+            if (!thisPtr->Proc(hwnd, message, wParam, lParam))
+            {
+                EndDialog(hwnd, 0);
+                return TRUE;
+            }
+        }
+        else
+        {
+            return thisPtr->Proc(hwnd, message, wParam, lParam);
+        }
     }
 
     if (message == WM_INITDIALOG)
@@ -101,17 +141,22 @@ bool BaseDialog::HandleControlMessages(WPARAM wparam, LPARAM lParam)
     return false;
 }
 
-BaseControl::BaseControl(BaseDialog* parentDialog, DWORD id)
-    : mParent(parentDialog), mId(id)
+EventSink::EventSink(BaseDialog* parentDialog)
+    : mParent(parentDialog)
 {
-    mHwnd = GetDlgItem(parentDialog->Hwnd(), id);
-    assert(mHwnd != NULL);
     mParent->AddControl(this);
 }
 
-BaseControl::~BaseControl()
+EventSink::~EventSink()
 {
     mParent->RemoveControl(this);
+}
+
+BaseControl::BaseControl(BaseDialog* parentDialog, DWORD id)
+    : EventSink(parentDialog), mId(id)
+{
+    mHwnd = GetDlgItem(parentDialog->Hwnd(), id);
+    assert(mHwnd != nullptr);
 }
 
 void ListBox::AddString(const std::string& str)
@@ -129,12 +174,12 @@ bool ListBox::HandleMessage(WPARAM /*wparam*/, LPARAM /*lParam*/)
     return FALSE;
 }
 
-void Button::OnClicked(std::function<void()> onClick)
+void BaseButton::OnClicked(std::function<void()> onClick)
 {
     mOnClicked = onClick;
 }
 
-bool Button::HandleMessage(WPARAM wparam, LPARAM /*lParam*/) 
+bool BaseButton::HandleMessage(WPARAM wparam, LPARAM /*lParam*/)
 {
     if (LOWORD(wparam) == mId && mOnClicked)
     {
@@ -142,6 +187,61 @@ bool Button::HandleMessage(WPARAM wparam, LPARAM /*lParam*/)
         return true;
     }
     return false;
+}
+
+void Label::SetText(const std::string& text)
+{
+    ::SetWindowText(mHwnd, text.c_str());
+}
+
+bool Label::HandleMessage(WPARAM /*wparam*/, LPARAM /*lParam*/)
+{
+    return false;
+}
+
+DWORD Timer::mIdGen = 1;
+
+Timer::Timer(BaseDialog* parent, DWORD intervalMs)
+    : mParent(parent)
+{
+    mParent->AddTimer(this);
+    mId = mIdGen;
+    mIdGen++;
+    mTimerId = ::SetTimer(mParent->Hwnd(), mId, intervalMs, 0);
+}
+
+Timer::~Timer()
+{
+    Stop();
+}
+
+void Timer::Stop()
+{
+    mParent->RemoveTimer(this);
+    ::KillTimer(mParent->Hwnd(), mTimerId);
+}
+
+void Timer::Tick()
+{
+    if (mOnTick)
+    {
+        mOnTick();
+    }
+}
+
+void Timer::OnTick(std::function<void()> onTick)
+{
+    mOnTick = onTick;
+}
+
+bool RadioButton::IsSelected()
+{
+    return IsDlgButtonChecked(mHwnd, mId) == BST_CHECKED;
+}
+
+void RadioButton::SetSelected(bool selected)
+{
+    ::SendMessage(mHwnd, BM_SETCHECK, selected ? BST_CHECKED : BST_UNCHECKED, 0);
 }
 
 void TextBox::OnTextChanged(std::function<void()> onChanged)
