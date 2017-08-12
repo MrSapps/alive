@@ -257,13 +257,13 @@ void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
         // with pTarget its limited to abe anims only
 
         // 303 = dust
-        if (*id == 55 && pTarget == nullptr)
+        //if (*id == 55 && pTarget == nullptr)
         {
-            pTarget = thisPtr;
+            //pTarget = thisPtr;
         }
 
         // 55 index 5 = idle stand or walk
-        if (pTarget && thisPtr == pTarget)
+        //if (pTarget && thisPtr == pTarget)
         {
             // Force anim index 0
             // thisPtr->mFrameTableOffset = *(ptr + 1);

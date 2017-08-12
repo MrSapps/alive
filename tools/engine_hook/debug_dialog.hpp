@@ -3,6 +3,18 @@
 #include <windows.h>
 #include <memory>
 #include <vector>
+#include <set>
+
+struct AnimPriorityData
+{
+    std::string mName;
+    DWORD mHitCount; 
+};
+
+inline bool operator < (const AnimPriorityData& l, const AnimPriorityData& r)
+{
+    return l.mName < r.mName;
+}
 
 class BaseWindow
 {
@@ -16,6 +28,20 @@ protected:
 };
 using UP_BaseWindow = std::unique_ptr<BaseWindow>;
 
+class BaseControl : public BaseWindow
+{
+public:
+    BaseControl(DWORD id)
+        : mId(id)
+    {
+
+    }
+
+    virtual bool HandleMessage(WPARAM wparam, LPARAM lParam) = 0;
+protected:
+    DWORD mId = 0;
+};
+
 class DebugDialog : public BaseWindow
 {
 public:
@@ -25,5 +51,17 @@ public:
     BOOL Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
     void LogAnimation(const std::string& name);
 private:
+    void SyncAnimListBoxData();
+    void ClearAnimListBoxAndAnimData();
+
+    std::unique_ptr<class Button> mResetAnimLogsButton;
+    std::unique_ptr<class Button> mUpdateAnimLogsNowButton;
+    std::unique_ptr<class TextBox> mAnimFilterTextBox;
+
+    std::vector<BaseControl*> mControls;
+
     std::unique_ptr<class ListBox> mListBox;
+    std::set<AnimPriorityData> mAnims;
+    DWORD mTicksSinceLastAnimUpdate = 0;
+
 };
