@@ -95,12 +95,14 @@ public:
 class Timer
 {
 public:
-    Timer(BaseDialog* parent, DWORD intervalMs);
+    explicit Timer(BaseDialog* parent);
     ~Timer();
     void OnTick(std::function<void()> onTick);
     void Stop();
     void Tick();
     UINT_PTR Id() const { return (UINT_PTR)mId; }
+    void Start(DWORD intervalMs);
+    bool IsRunning() const { return Id() != 0; }
 private:
     static DWORD mIdGen;
     DWORD mId = 0;

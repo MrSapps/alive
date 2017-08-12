@@ -7,7 +7,7 @@
 
 DebugDialog::DebugDialog()
 {
-    mTicksSinceLastAnimUpdate = ::GetTickCount();
+
 }
 
 DebugDialog::~DebugDialog()
@@ -43,6 +43,13 @@ BOOL DebugDialog::CreateControls()
         ReloadAnimJson();
     });
 
+    mRefreshTimer = std::make_unique<Timer>(this);
+    mRefreshTimer->OnTick([&]() 
+    {
+        SyncAnimListBoxData();
+        mRefreshTimer->Stop();
+    });
+
     return TRUE;
 }
 
@@ -66,14 +73,13 @@ void DebugDialog::LogAnimation(const std::string& name)
         mAnims.erase(it);
     }
 
+
     AnimPriorityData data{ name, hitCount+1 };
     mAnims.insert(data);
 
-    const DWORD tickCount = ::GetTickCount();
-    if (abs(static_cast<long>(mTicksSinceLastAnimUpdate - tickCount)) > 500)
+    if (!mRefreshTimer->IsRunning())
     {
-        SyncAnimListBoxData();
-        mTicksSinceLastAnimUpdate = ::GetTickCount();
+        mRefreshTimer->Start(500);
     }
 }
 

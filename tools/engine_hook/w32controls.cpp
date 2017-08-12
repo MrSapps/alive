@@ -201,23 +201,22 @@ bool Label::HandleMessage(WPARAM /*wparam*/, LPARAM /*lParam*/)
 
 DWORD Timer::mIdGen = 1;
 
-Timer::Timer(BaseDialog* parent, DWORD intervalMs)
+Timer::Timer(BaseDialog* parent)
     : mParent(parent)
 {
     mParent->AddTimer(this);
-    mId = mIdGen;
-    mIdGen++;
-    mTimerId = ::SetTimer(mParent->Hwnd(), mId, intervalMs, 0);
 }
 
 Timer::~Timer()
 {
+    mParent->RemoveTimer(this);
     Stop();
 }
 
 void Timer::Stop()
 {
-    mParent->RemoveTimer(this);
+    mTimerId = 0;
+    mId = 0;
     ::KillTimer(mParent->Hwnd(), mTimerId);
 }
 
@@ -227,6 +226,14 @@ void Timer::Tick()
     {
         mOnTick();
     }
+}
+
+void Timer::Start(DWORD intervalMs)
+{
+    assert(mTimerId == 0);
+    mId = mIdGen;
+    mIdGen++;
+    mTimerId = ::SetTimer(mParent->Hwnd(), mId, intervalMs, 0);
 }
 
 void Timer::OnTick(std::function<void()> onTick)

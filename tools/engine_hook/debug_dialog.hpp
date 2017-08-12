@@ -37,10 +37,10 @@ private:
     std::unique_ptr<class Button> mUpdateAnimLogsNowButton;
     std::unique_ptr<class TextBox> mAnimFilterTextBox;
     std::unique_ptr<class Button> mReloadAnimJsonButton;
+    std::unique_ptr<Timer> mRefreshTimer;
 
     std::unique_ptr<class ListBox> mListBox;
     std::set<AnimPriorityData> mAnims;
-    DWORD mTicksSinceLastAnimUpdate = 0;
 
     std::function<void()> mOnReloadJson;
 };

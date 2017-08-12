@@ -38,11 +38,12 @@ BOOL StartDialog::CreateControls()
     });
 
     mCountDownLabel = std::make_unique<Label>(this, IDC_COUNT_DOWN);
-    mCoutDownTimer = std::make_unique<Timer>(this, 1000);
+    mCoutDownTimer = std::make_unique<Timer>(this);
     mCoutDownTimer->OnTick([&]() 
     {
         OnCounter();
     });
+    mCoutDownTimer->Start(1000);
 
     // Set default selection
     mStartMenuDirect->SetSelected(true);
