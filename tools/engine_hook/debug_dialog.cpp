@@ -7,13 +7,10 @@
 
 extern HMODULE gDllHandle;
 
-class ListBox : public BaseWindow
+class ListBox : public BaseControl
 {
 public:
-    explicit ListBox(HWND hwnd)
-    {
-        mHwnd = hwnd;
-    }
+    using BaseControl::BaseControl;
 
     void AddString(const std::string& str)
     {
@@ -24,16 +21,17 @@ public:
     {
         ::SendMessage(mHwnd, LB_RESETCONTENT, 0, 0);
     }
+
+    virtual bool HandleMessage(WPARAM /*wparam*/, LPARAM /*lParam*/) override
+    {
+        return FALSE;
+    }
 };
 
 class Button : public BaseControl
 {
 public:
-    Button(HWND hwnd, DWORD id)
-        : BaseControl(id)
-    {
-        mHwnd = hwnd;
-    }
+    using BaseControl::BaseControl;
 
     void OnClicked(std::function<void()> onClick)
     {
@@ -57,11 +55,7 @@ private:
 class TextBox : public BaseControl
 {
 public:
-    TextBox(HWND hwnd, DWORD id)
-        : BaseControl(id)
-    {
-        mHwnd = hwnd;
-    }
+    using BaseControl::BaseControl;
 
     void OnTextChanged(std::function<void()> onChanged)
     {
@@ -160,53 +154,42 @@ bool DebugDialog::Create(LPCSTR dialogId)
 
 BOOL DebugDialog::Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    mHwnd = hwnd;
+
     switch (message)
     {
-    case WM_INITDIALOG:
-    {
-        mListBox = std::make_unique<ListBox>(GetDlgItem(hwnd, IDC_ANIMATIONS));
-
-        mResetAnimLogsButton = std::make_unique<Button>(GetDlgItem(hwnd, IDC_ANIM_LOG_RESET), IDC_ANIM_LOG_RESET);
-        mResetAnimLogsButton->OnClicked([&]() 
+        case WM_INITDIALOG:
         {
-            ClearAnimListBoxAndAnimData();
-        });
-        mControls.push_back(mResetAnimLogsButton.get());
+            mListBox = std::make_unique<ListBox>(this, IDC_ANIMATIONS);
 
-        mUpdateAnimLogsNowButton = std::make_unique<Button>(GetDlgItem(hwnd, IDC_ANIM_LIST_UPDATE_NOW), IDC_ANIM_LIST_UPDATE_NOW);
-        mUpdateAnimLogsNowButton->OnClicked([&]()
-        {
-            SyncAnimListBoxData();
-        });
-        mControls.push_back(mUpdateAnimLogsNowButton.get());
-
-        mAnimFilterTextBox = std::make_unique<TextBox>(GetDlgItem(hwnd, IDC_ANIM_FILTER), IDC_ANIM_FILTER);
-        mAnimFilterTextBox->OnTextChanged([&]()
-        {
-            SyncAnimListBoxData();
-        }); 
-        mControls.push_back(mAnimFilterTextBox.get());
-
-        mReloadAnimJsonButton = std::make_unique<Button>(GetDlgItem(hwnd, IDC_ANIM_JSON_RELOAD), IDC_ANIM_JSON_RELOAD);
-        mReloadAnimJsonButton->OnClicked([&]()
-        {
-            ReloadAnimJson();
-        });
-        mControls.push_back(mReloadAnimJsonButton.get());
-    }
-    return FALSE;
-
-    case WM_COMMAND:
-        for (auto& control : mControls)
-        {
-            if (control->HandleMessage(wParam, lParam))
+            mResetAnimLogsButton = std::make_unique<Button>(this, IDC_ANIM_LOG_RESET);
+            mResetAnimLogsButton->OnClicked([&]()
             {
-                return TRUE;
-            }
+                ClearAnimListBoxAndAnimData();
+            });
+
+            mUpdateAnimLogsNowButton = std::make_unique<Button>(this, IDC_ANIM_LIST_UPDATE_NOW);
+            mUpdateAnimLogsNowButton->OnClicked([&]()
+            {
+                SyncAnimListBoxData();
+            });
+
+            mAnimFilterTextBox = std::make_unique<TextBox>(this, IDC_ANIM_FILTER);
+            mAnimFilterTextBox->OnTextChanged([&]()
+            {
+                SyncAnimListBoxData();
+            });
+
+            mReloadAnimJsonButton = std::make_unique<Button>(this, IDC_ANIM_JSON_RELOAD);
+            mReloadAnimJsonButton->OnClicked([&]()
+            {
+                ReloadAnimJson();
+            });
         }
+        return FALSE;
     }
 
-    return FALSE;
+    return BaseDialog::Proc(hwnd, message, wParam, lParam);
 }
 
 void DebugDialog::LogAnimation(const std::string& name)
@@ -256,4 +239,17 @@ void DebugDialog::ReloadAnimJson()
     {
         mOnReloadJson();
     }
+}
+
+BaseControl::BaseControl(BaseDialog* parentDialog, DWORD id) 
+    : mParent(parentDialog), mId(id)
+{
+    mHwnd = GetDlgItem(parentDialog->Hwnd(), id);
+    assert(mHwnd != NULL);
+    mParent->AddControl(this);
+}
+
+BaseControl::~BaseControl()
+{
+    mParent->RemoveControl(this);
 }
