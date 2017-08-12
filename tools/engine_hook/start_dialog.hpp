@@ -20,6 +20,11 @@ private:
     std::unique_ptr<RadioButton> mStartNormal;
     std::unique_ptr<RadioButton> mStartFeeco;
     std::unique_ptr<RadioButton> mStartMenuDirect;
+
+    std::unique_ptr<RadioButton> mMusicOn;
+    std::unique_ptr<RadioButton> mMusicOff;
+
+
     std::unique_ptr<Label> mCountDownLabel;
     std::unique_ptr<Timer> mCoutDownTimer;
     std::unique_ptr<Button> mGoButton;

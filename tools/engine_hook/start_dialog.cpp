@@ -3,6 +3,8 @@
 #include "resource.h"
 #include <string>
 
+extern bool gNoMusic;
+
 BOOL StartDialog::CreateControls()
 {
     CenterWnd(mHwnd);
@@ -50,6 +52,21 @@ BOOL StartDialog::CreateControls()
     mStartMode = eStartMenuDirect;
 
     OnCounter();
+
+    mMusicOn = std::make_unique<RadioButton>(this, IDC_MUSIC_ON);
+    mMusicOn->OnClicked([&]()
+    {
+        gNoMusic = false;
+    });
+
+    mMusicOff = std::make_unique<RadioButton>(this, IDC_MUSIC_OFF);
+    mMusicOff->OnClicked([&]()
+    {
+        gNoMusic = true;
+    });
+
+    mMusicOff->SetSelected(true);
+    gNoMusic = true;
 
     return TRUE;
 }

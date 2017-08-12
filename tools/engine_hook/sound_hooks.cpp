@@ -216,9 +216,16 @@ struct SeqHeader
     u8 rythnDemoninator;
 };
 
+bool gNoMusic = true;
+
 // 0x004FD100 
 signed int __cdecl SND_seq_play_q(int aSeqIndx)
 {
+    if (gNoMusic)
+    {
+        return 0;
+    }
+
     // The index seems to be an index into an internal array - I can't figure out how the heck it
     // works but the structure of what is in the array appears to be known, so look up the SEQ data
     // from the item in the array at aSeqIndx and then look up the SEQ name from its ID.
