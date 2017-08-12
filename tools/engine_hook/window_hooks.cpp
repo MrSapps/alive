@@ -9,6 +9,7 @@ bool gCollisionsEnabled = true;
 bool gGridEnabled = false;
 static WNDPROC g_pOldProc = 0;
 std::unique_ptr<DebugDialog> gDebugUi;
+extern HMODULE gDllHandle;
 
 namespace Hooks
 {
@@ -20,7 +21,7 @@ LRESULT CALLBACK NewWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
     if (!gDebugUi)
     {
         gDebugUi = std::make_unique<DebugDialog>();
-        gDebugUi->Create(MAKEINTRESOURCE(IDD_MAIN));
+        gDebugUi->Create(gDllHandle, MAKEINTRESOURCE(IDD_MAIN));
         gDebugUi->Show();
         CenterWnd(gDebugUi->Hwnd());
 
