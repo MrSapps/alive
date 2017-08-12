@@ -18,6 +18,7 @@ public:
     std::string Find(u32 id, u32 idx);
     void ResourcesInit();
     void LogAnim(u32 id, u32 idx);
+    void ReloadJson();
 private:
     std::unique_ptr<class IFileSystem> mFileSystem;
     std::unique_ptr<class ResourceMapper> mResources;

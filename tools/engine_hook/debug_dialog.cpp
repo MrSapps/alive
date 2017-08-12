@@ -186,6 +186,13 @@ BOOL DebugDialog::Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
             SyncAnimListBoxData();
         }); 
         mControls.push_back(mAnimFilterTextBox.get());
+
+        mReloadAnimJsonButton = std::make_unique<Button>(GetDlgItem(hwnd, IDC_ANIM_JSON_RELOAD), IDC_ANIM_JSON_RELOAD);
+        mReloadAnimJsonButton->OnClicked([&]()
+        {
+            ReloadAnimJson();
+        });
+        mControls.push_back(mReloadAnimJsonButton.get());
     }
     return FALSE;
 
@@ -241,4 +248,12 @@ void DebugDialog::ClearAnimListBoxAndAnimData()
 {
     mAnims.clear();
     mListBox->Clear();
+}
+
+void DebugDialog::ReloadAnimJson()
+{
+    if (mOnReloadJson)
+    {
+        mOnReloadJson();
+    }
 }

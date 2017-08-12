@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <memory>
 #include <vector>
+#include <functional>
 #include <set>
 
 struct AnimPriorityData
@@ -50,13 +51,16 @@ public:
     bool Create(LPCSTR dialogId);
     BOOL Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
     void LogAnimation(const std::string& name);
+    void OnReloadAnimJson(std::function<void()> fnOnReload) { mOnReloadJson = fnOnReload; }
 private:
     void SyncAnimListBoxData();
     void ClearAnimListBoxAndAnimData();
+    void ReloadAnimJson();
 
     std::unique_ptr<class Button> mResetAnimLogsButton;
     std::unique_ptr<class Button> mUpdateAnimLogsNowButton;
     std::unique_ptr<class TextBox> mAnimFilterTextBox;
+    std::unique_ptr<class Button> mReloadAnimJsonButton;
 
     std::vector<BaseControl*> mControls;
 
@@ -64,4 +68,5 @@ private:
     std::set<AnimPriorityData> mAnims;
     DWORD mTicksSinceLastAnimUpdate = 0;
 
+    std::function<void()> mOnReloadJson;
 };

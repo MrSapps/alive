@@ -3,6 +3,7 @@
 #include "resource.h"
 #include <memory>
 #include <vector>
+#include "anim_logger.hpp"
 
 bool gCollisionsEnabled = true;
 bool gGridEnabled = false;
@@ -22,6 +23,8 @@ LRESULT CALLBACK NewWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
         gDebugUi->Create(MAKEINTRESOURCE(IDD_MAIN));
         gDebugUi->Show();
         CenterWnd(gDebugUi->Hwnd());
+
+        gDebugUi->OnReloadAnimJson([&]() { GetAnimLogger().ReloadJson(); });
     }
 
     switch (message)

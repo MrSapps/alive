@@ -81,13 +81,6 @@ void AnimLogger::ResourcesInit()
 
 void AnimLogger::LogAnim(u32 id, u32 idx)
 {
-    if (GetAsyncKeyState(VK_F2))
-    {
-        std::cout << "RELOAD RESOURCES" << std::endl;
-        mFileSystem = nullptr;
-        mResources = nullptr;
-    }
-
     if (!mFileSystem)
     {
         ResourcesInit();
@@ -106,6 +99,12 @@ void AnimLogger::LogAnim(u32 id, u32 idx)
     //::Sleep(128);
 }
 
+void AnimLogger::ReloadJson()
+{
+    std::cout << "RELOAD RESOURCES" << std::endl;
+    mFileSystem = nullptr;
+    mResources = nullptr;
+}
 
 AnimLogger& GetAnimLogger()
 {
