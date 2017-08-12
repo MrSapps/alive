@@ -82,17 +82,17 @@ public:
 
     std::string GetText()
     {
-        mBuffer.resize(GetWindowTextLength(mHwnd));
-        GetWindowText(mHwnd, mBuffer.data(), static_cast<int>(mBuffer.size()));
-        if (mBuffer.empty())
+        std::vector<char> buffer;
+        buffer.resize(GetWindowTextLength(mHwnd));
+        GetWindowText(mHwnd, buffer.data(), static_cast<int>(buffer.size()));
+        if (buffer.empty())
         {
             return "";
         }
-        return std::string(mBuffer.data(), mBuffer.size());
+        return std::string(buffer.data(), buffer.size());
     }
 
 private:
-    std::vector<char> mBuffer;
     std::function<void()> mOnChanged;
 };
 
@@ -111,7 +111,7 @@ BaseWindow::~BaseWindow()
 
 }
 
-BOOL CALLBACK DlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+static BOOL CALLBACK DlgProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     if (message == WM_CLOSE)
     {
