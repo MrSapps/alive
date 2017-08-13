@@ -70,7 +70,7 @@ __int16 __cdecl SND_disable_all_psx_sound_channels();
 __int16 __cdecl SND_get_next_helper(unsigned __int16 a1, char a2, __int16 a3);
 
 // 0x004FCB30
-int __cdecl SND_play_snd_internal_q(int a1, int programNumber, signed int noteAndOtherData, signed int a4, signed int a5, int vol_right);
+int __cdecl SND_play_snd_internal_q(int a1, int programNumber, signed int noteAndOtherData, signed int panLeft, signed int panRight, int volume);
 
 // 0x004FD100 
 signed int __cdecl SND_seq_play_q(int aSeqIndx);

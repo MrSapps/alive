@@ -33,21 +33,21 @@ struct SData
         struct
         {
             char b1;
-            char b2;
+            BYTE b2;
             char b3;
             char b4;
         };
     };
 };
 
-int __cdecl SND_play_snd_internal_q(int a1, int programNumber, signed int noteAndOtherData, signed int a4, signed int a5, int vol_right)
+int __cdecl SND_play_snd_internal_q(int a1, int programNumber, signed int noteAndOtherData, signed int panLeft, signed int panRight, int volume)
 {
     SData c;
     c.data = noteAndOtherData;
 
-    std::cout << "PLAYING: Program: " << (DWORD)programNumber << " NOTE: " << (DWORD)c.b2 << std::endl;
+    std::cout << "PLAYING: Program: " << (DWORD)programNumber << " NOTE: " << (DWORD)c.b2 << " B1: " << (DWORD)c.b1 << " B3: " << (DWORD)c.b3 << " B4: " << (DWORD)c.b4 << std::endl;
 
-    return SND_play_snd_internal_q_hook.Real()(a1, programNumber, c.data, a4, a5, vol_right);
+    return SND_play_snd_internal_q_hook.Real()(a1, programNumber, c.data, panLeft, panRight, volume);
 }
 
 static decltype(&SND_Reload) gSND_Reload = reinterpret_cast<decltype(&SND_Reload)>(0x004EF1C0);
