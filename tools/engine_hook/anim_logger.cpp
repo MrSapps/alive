@@ -106,6 +106,52 @@ void AnimLogger::ReloadJson()
     mResources = nullptr;
 }
 
+std::string AnimLogger::LookUpSoundEffect(const std::string vabName, DWORD program, DWORD note)
+{
+    std::string cacheKey = vabName + "_" + std::to_string(program) + "_" + std::to_string(note);
+    auto it = mSoundNameCache.find(cacheKey);
+    if (it != std::end(mSoundNameCache))
+    {
+        return it->second;
+    }
+
+    std::string vabNameNoExt = string_util::split(vabName, '.')[0];
+
+    std::string foundName;
+    for (const SoundBankLocation& sbl : mResources->mSoundResources.mSoundBanks)
+    {
+        if (sbl.mSoundBankName == vabNameNoExt)
+        {
+            foundName = sbl.mName;
+            break;
+        }
+    }
+
+    if (!foundName.empty())
+    {
+        for (const SoundResource& sr : mResources->mSoundResources.mSounds)
+        {
+            for (const SoundEffectResourceLocation& serl : sr.mSoundEffect.mSoundBanks)
+            {
+                if (serl.mProgram == (s32)program && serl.mTone == (s32)note)
+                {
+                    for (const std::string& sb : serl.mSoundBanks)
+                    {
+                        if (sb == foundName)
+                        {
+                            mSoundNameCache[cacheKey] = sr.mResourceName;
+                            return sr.mResourceName;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    mSoundNameCache[cacheKey] = cacheKey;
+    return cacheKey;
+}
+
 AnimLogger& GetAnimLogger()
 {
     static AnimLogger logger;

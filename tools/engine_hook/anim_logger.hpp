@@ -1,5 +1,6 @@
 #pragma once
 
+#include <windows.h>
 #include <memory>
 #include <map>
 #include <string>
@@ -19,12 +20,14 @@ public:
     void ResourcesInit();
     void LogAnim(u32 id, u32 idx);
     void ReloadJson();
+    std::string LookUpSoundEffect(const std::string vabName, DWORD program, DWORD note);
 private:
     std::unique_ptr<class IFileSystem> mFileSystem;
     std::unique_ptr<class ResourceMapper> mResources;
     std::map<u32, std::unique_ptr<Oddlib::AnimSerializer>> mAnimCache;
     std::map<std::pair<u32, u32>, Oddlib::AnimSerializer*> mAnims;
     std::string mLastResName;
+    std::map<std::string, std::string> mSoundNameCache;
 };
 
 AnimLogger& GetAnimLogger();

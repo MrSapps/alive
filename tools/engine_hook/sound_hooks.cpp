@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <map>
 #include "seq_name_algorithm.hpp"
+#include "debug_dialog.hpp"
+#include "window_hooks.hpp"
 
 #pragma comment(lib, "Winmm.lib")
 
@@ -40,12 +42,15 @@ struct SData
     };
 };
 
+// TODO: When a map objects sets the freq such as the muds "voice" property, how does it relate to this?
 int __cdecl SND_play_snd_internal_q(int a1, int programNumber, signed int noteAndOtherData, signed int panLeft, signed int panRight, int volume)
 {
     SData c;
     c.data = noteAndOtherData;
 
     std::cout << "PLAYING: Program: " << (DWORD)programNumber << " NOTE: " << (DWORD)c.b2 << " B1: " << (DWORD)c.b1 << " B3: " << (DWORD)c.b3 << " B4: " << (DWORD)c.b4 << std::endl;
+
+    gDebugUi->LogSound(programNumber, c.b2);
 
     return SND_play_snd_internal_q_hook.Real()(a1, programNumber, c.data, panLeft, panRight, volume);
 }

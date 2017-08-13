@@ -4,6 +4,7 @@
 #include <math.h>
 #include <functional>
 #include "string_util.hpp"
+#include "anim_logger.hpp"
 
 DebugDialog::DebugDialog()
 {
@@ -17,12 +18,19 @@ DebugDialog::~DebugDialog()
 
 BOOL DebugDialog::CreateControls()
 {
-    mListBox = std::make_unique<ListBox>(this, IDC_ANIMATIONS);
+    mAnimListBox = std::make_unique<ListBox>(this, IDC_ANIMATIONS);
+    mSoundsListBox = std::make_unique<ListBox>(this, IDC_SOUNDS);
 
     mResetAnimLogsButton = std::make_unique<Button>(this, IDC_ANIM_LOG_RESET);
     mResetAnimLogsButton->OnClicked([&]()
     {
         ClearAnimListBoxAndAnimData();
+    });
+
+    mClearSoundLogsButton = std::make_unique<Button>(this, IDC_CLEAR_SOUND_LOGS);
+    mClearSoundLogsButton->OnClicked([&]()
+    {
+        ClearSoundData();
     });
 
     mUpdateAnimLogsNowButton = std::make_unique<Button>(this, IDC_ANIM_LIST_UPDATE_NOW);
@@ -47,8 +55,12 @@ BOOL DebugDialog::CreateControls()
     mRefreshTimer->OnTick([&]() 
     {
         SyncAnimListBoxData();
+        SyncSoundListBoxData();
         mRefreshTimer->Stop();
     });
+
+    mActiveVabLabel = std::make_unique<Label>(this, IDC_ACTIVE_VAB);
+
 
     return TRUE;
 }
@@ -77,22 +89,43 @@ void DebugDialog::LogAnimation(const std::string& name)
     AnimPriorityData data{ name, hitCount+1 };
     mAnims.insert(data);
 
-    if (!mRefreshTimer->IsRunning())
+    TriggerRefreshTimer();
+}
+
+void DebugDialog::SetActiveVab(const std::string& vab)
+{
+    mActiveVab = vab;
+    mActiveVabLabel->SetText(vab);
+}
+
+void DebugDialog::LogSound(DWORD program, DWORD note)
+{
+    const std::string name = GetAnimLogger().LookUpSoundEffect(mActiveVab, program, note);
+
+    DWORD hitCount = 0;
+    auto it = mSounds.find(SoundPriorityData{ name, 0 });
+    if (it != std::end(mSounds))
     {
-        mRefreshTimer->Start(500);
+        hitCount = it->mHitCount;
+        mSounds.erase(it);
     }
+
+    SoundPriorityData data{ name, hitCount + 1 };
+    mSounds.insert(data);
+
+    TriggerRefreshTimer();
 }
 
 void DebugDialog::SyncAnimListBoxData()
 {
-    mListBox->Clear();
+    mAnimListBox->Clear();
 
     std::string strFilter = mAnimFilterTextBox->GetText();
     for (auto& d : mAnims)
     {
         if (strFilter.empty() || string_util::StringFilter(d.mName.c_str(), strFilter.c_str()))
         {
-            mListBox->AddString(d.mName + "(" + std::to_string(d.mHitCount) + ")");
+            mAnimListBox->AddString(d.mName + "(" + std::to_string(d.mHitCount) + ")");
         }
     }
 }
@@ -100,7 +133,7 @@ void DebugDialog::SyncAnimListBoxData()
 void DebugDialog::ClearAnimListBoxAndAnimData()
 {
     mAnims.clear();
-    mListBox->Clear();
+    mAnimListBox->Clear();
 }
 
 void DebugDialog::ReloadAnimJson()
@@ -108,5 +141,29 @@ void DebugDialog::ReloadAnimJson()
     if (mOnReloadJson)
     {
         mOnReloadJson();
+    }
+}
+
+void DebugDialog::TriggerRefreshTimer()
+{
+    if (!mRefreshTimer->IsRunning())
+    {
+        mRefreshTimer->Start(500);
+    }
+}
+
+void DebugDialog::ClearSoundData()
+{
+    mSounds.clear();
+    mSoundsListBox->Clear();
+}
+
+void DebugDialog::SyncSoundListBoxData()
+{
+    mSoundsListBox->Clear();
+
+    for (auto& d : mSounds)
+    {
+        mSoundsListBox->AddString(d.mName + "(" + std::to_string(d.mHitCount) + ")");
     }
 }

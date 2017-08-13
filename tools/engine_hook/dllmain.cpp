@@ -19,6 +19,7 @@
 #include "start_dialog.hpp"
 #include "resource.h"
 #include "dsound7proxy.hpp"
+#include "debug_dialog.hpp"
 
 #define private public
 #include "gridmap.hpp"
@@ -443,6 +444,8 @@ static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* p
                     pathData.mBTop / pathData.mWidth,
                     pathData.mBBottom / pathData.mHeight,
                     false);
+
+                gDebugUi->SetActiveVab(data.mMusicPtr->mVabBodyName);
 
                 return Hooks::sub_418930.Real()(thisPtr, pCollisionInfo, pPathBlock);
             }
