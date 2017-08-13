@@ -169,6 +169,21 @@ void ListBox::Clear()
     ::SendMessage(mHwnd, LB_RESETCONTENT, 0, 0);
 }
 
+DWORD ListBox::SelectedIndex() const
+{
+    auto ret = ::SendMessage(mHwnd, LB_GETCURSEL, 0, 0);
+    if (ret == LB_ERR)
+    {
+        return 0;
+    }
+    return ret;
+}
+
+void ListBox::SetSelectedIndex(DWORD index)
+{
+    ::SendMessage(mHwnd, LB_SETCURSEL, index, 0);
+}
+
 bool ListBox::HandleMessage(WPARAM /*wparam*/, LPARAM /*lParam*/)
 {
     return FALSE;

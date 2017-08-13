@@ -118,6 +118,8 @@ void DebugDialog::LogSound(DWORD program, DWORD note)
 
 void DebugDialog::SyncAnimListBoxData()
 {
+    const DWORD sel = mAnimListBox->SelectedIndex();
+
     mAnimListBox->Clear();
 
     std::string strFilter = mAnimFilterTextBox->GetText();
@@ -128,6 +130,8 @@ void DebugDialog::SyncAnimListBoxData()
             mAnimListBox->AddString(d.mName + "(" + std::to_string(d.mHitCount) + ")");
         }
     }
+
+    mAnimListBox->SetSelectedIndex(sel);
 }
 
 void DebugDialog::ClearAnimListBoxAndAnimData()

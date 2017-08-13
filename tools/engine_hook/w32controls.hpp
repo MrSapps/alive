@@ -65,6 +65,8 @@ public:
     using BaseControl::BaseControl;
     void AddString(const std::string& str);
     void Clear();
+    DWORD SelectedIndex() const;
+    void SetSelectedIndex(DWORD index);
     virtual bool HandleMessage(WPARAM wparam, LPARAM lParam) override;
 };
 
