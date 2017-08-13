@@ -18,6 +18,7 @@
 #include "anim_logger.hpp"
 #include "start_dialog.hpp"
 #include "resource.h"
+#include "dsound7proxy.hpp"
 
 #define private public
 #include "gridmap.hpp"
@@ -657,6 +658,23 @@ void HookMain()
     Vars().alwaysDrawDebugText.Set(1);
 }
 
+HRESULT __stdcall Stub_DirectSoundCreate_Hook(LPGUID lpGuid, LPDIRECTSOUND *ppDS, LPUNKNOWN pUnkOuter);
+std::set<class DirectSoundBuffer7Proxy*> gSoundBuffers;
+class DirectSound7Proxy* gDSound;
+
+static Hook<decltype(&Stub_DirectSoundCreate_Hook)> gStub_DirectSoundCreate_Hook(0x0052C762);
+
+HRESULT __stdcall Stub_DirectSoundCreate_Hook(LPGUID lpGuid, LPDIRECTSOUND *ppDS, LPUNKNOWN pUnkOuter)
+{
+    const HRESULT hr = gStub_DirectSoundCreate_Hook.Real()(lpGuid, ppDS, pUnkOuter);
+    if (SUCCEEDED(hr))
+    {
+        auto pWrapper = new DirectSound7Proxy(**ppDS);
+        *ppDS = pWrapper;
+    }
+    return hr;
+}
+
 // Proxy DLL entry point
 HRESULT WINAPI NewDirectDrawCreate(GUID* lpGUID, IDirectDraw** lplpDD, IUnknown* pUnkOuter)
 {
@@ -666,7 +684,10 @@ HRESULT WINAPI NewDirectDrawCreate(GUID* lpGUID, IDirectDraw** lplpDD, IUnknown*
     if (SUCCEEDED(ret))
     {
         *lplpDD = new DirectDraw7Proxy(*lplpDD);
+        
+        gStub_DirectSoundCreate_Hook.Install(Stub_DirectSoundCreate_Hook);
         HookMain();
+
     }
     return ret;
 }

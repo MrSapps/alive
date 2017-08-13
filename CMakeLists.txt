@@ -486,6 +486,7 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         tools/engine_hook/sound_hooks.hpp
         tools/engine_hook/game_functions.cpp
         tools/engine_hook/game_functions.hpp
+        tools/engine_hook/dsound7proxy.hpp
         tools/engine_hook/ddraw7proxy.hpp
         tools/engine_hook/dsurface7proxy.hpp
         tools/engine_hook/window_hooks.hpp

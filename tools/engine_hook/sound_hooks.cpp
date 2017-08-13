@@ -11,6 +11,8 @@
 
 static Hook<decltype(&::SND_PlayEx)> SND_PlayEx_hook(0x004EF740);
 static Hook<decltype(&::SND_seq_play_q)> SND_seq_play_q_hook(0x004FD100);
+static Hook<decltype(&::SND_play_snd_internal_q)>  SND_play_snd_internal_q_hook(0x004FCB30);
+
 
 static void SoundTest();
 
@@ -18,8 +20,34 @@ void InstallSoundHooks()
 {
     //SND_PlayEx_hook.Install(SND_PlayEx);
     SND_seq_play_q_hook.Install(SND_seq_play_q);
+    SND_play_snd_internal_q_hook.Install(SND_play_snd_internal_q);
 
     SoundTest();
+}
+
+struct SData
+{
+    union
+    {
+        DWORD data; 
+        struct
+        {
+            char b1;
+            char b2;
+            char b3;
+            char b4;
+        };
+    };
+};
+
+int __cdecl SND_play_snd_internal_q(int a1, int programNumber, signed int noteAndOtherData, signed int a4, signed int a5, int vol_right)
+{
+    SData c;
+    c.data = noteAndOtherData;
+
+    std::cout << "PLAYING: Program: " << (DWORD)programNumber << " NOTE: " << (DWORD)c.b2 << std::endl;
+
+    return SND_play_snd_internal_q_hook.Real()(a1, programNumber, c.data, a4, a5, vol_right);
 }
 
 static decltype(&SND_Reload) gSND_Reload = reinterpret_cast<decltype(&SND_Reload)>(0x004EF1C0);
