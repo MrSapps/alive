@@ -38,6 +38,7 @@ public:
     void SetActiveVab(const std::string& vab);
     void LogSound(DWORD program, DWORD note);
     void OnReloadAnimJson(std::function<void()> fnOnReload) { mOnReloadJson = fnOnReload; }
+    void OnFrameEnd();
 protected:
     virtual BOOL CreateControls() override;
     virtual BOOL Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) override;

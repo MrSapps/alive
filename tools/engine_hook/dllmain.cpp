@@ -678,6 +678,15 @@ HRESULT __stdcall Stub_DirectSoundCreate_Hook(LPGUID lpGuid, LPDIRECTSOUND *ppDS
     return hr;
 }
 
+int __cdecl end_Frame(char fps);
+static Hook<decltype(&end_Frame)> gend_Frame_Hook(0x004950F0);
+
+int __cdecl end_Frame(char fps)
+{
+    gDebugUi->OnFrameEnd();
+    return gend_Frame_Hook.Real()(fps);
+}
+
 // Proxy DLL entry point
 HRESULT WINAPI NewDirectDrawCreate(GUID* lpGUID, IDirectDraw** lplpDD, IUnknown* pUnkOuter)
 {
@@ -689,6 +698,8 @@ HRESULT WINAPI NewDirectDrawCreate(GUID* lpGUID, IDirectDraw** lplpDD, IUnknown*
         *lplpDD = new DirectDraw7Proxy(*lplpDD);
         
         gStub_DirectSoundCreate_Hook.Install(Stub_DirectSoundCreate_Hook);
+        gend_Frame_Hook.Install(end_Frame);
+
         HookMain();
 
     }

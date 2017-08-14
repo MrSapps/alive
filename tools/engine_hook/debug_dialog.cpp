@@ -94,8 +94,6 @@ BOOL DebugDialog::CreateControls()
     mObjectsListBox->OnDoubleClick([&](const std::string& item) 
     {
         auto ptrValueStr = string_util::split(item, '_')[0];
-
-        // TODO: Start to track deltas for mSelectedPointer
         mSelectedPointer = std::stol(ptrValueStr);
         mSelectedObjectLabel->SetText(ptrValueStr);
     });
@@ -134,6 +132,17 @@ void DebugDialog::SetActiveVab(const std::string& vab)
 {
     mActiveVab = vab;
     mActiveVabLabel->SetText(vab);
+}
+
+void DebugDialog::OnFrameEnd()
+{
+    /*
+    if (mSelectedPointer)
+    {
+        // TODO: Validate pointer is still valid
+        GameObjectList::BaseObj* ptr = (GameObjectList::BaseObj*)mSelectedPointer;
+        ptr->mState = 0;
+    }*/
 }
 
 void DebugDialog::LogSound(DWORD program, DWORD note)
