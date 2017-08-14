@@ -94,8 +94,7 @@ std::string GameObjectList::AeTypeToString(u16 type)
 
 void GameObjectList::LogObjects()
 {
-    Objs** ppp = (Objs**)0x00BB47C4;
-    Objs* p = *ppp;
+    Objs* p = GetObjectsPtr();
     if (p)
     {
         for (int i = 0; i < p->mCount; i++)
@@ -109,3 +108,9 @@ void GameObjectList::LogObjects()
     }
 }
 
+GameObjectList::Objs* GameObjectList::GetObjectsPtr()
+{
+    Objs** ppp = (Objs**)0x00BB47C4;
+    Objs* p = *ppp;
+    return p;
+}

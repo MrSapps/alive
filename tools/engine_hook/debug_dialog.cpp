@@ -5,6 +5,7 @@
 #include <functional>
 #include "string_util.hpp"
 #include "anim_logger.hpp"
+#include "game_objects.hpp"
 
 DebugDialog::DebugDialog()
 {
@@ -61,6 +62,43 @@ BOOL DebugDialog::CreateControls()
 
     mActiveVabLabel = std::make_unique<Label>(this, IDC_ACTIVE_VAB);
 
+    mSelectedObjectLabel = std::make_unique<Label>(this, IDC_SELECTED_OBJECT);
+    mClearSelectObjectDeltas = std::make_unique<Button>(this, IDC_CLEAR_OBJECT_DELTAS);
+    mClearSelectObjectDeltas->OnClicked([&]() 
+    {
+        mObjectDeltasListBox->Clear();
+    });
+
+    mObjectDeltasListBox = std::make_unique<ListBox>(this, IDC_OBJECT_DELTAS);
+   
+    mRefreshObjectListButton = std::make_unique<Button>(this, IDC_REFRESH_OBJECT_LIST);
+    mRefreshObjectListButton->OnClicked([&]() 
+    {
+        mObjectsListBox->Clear();
+
+        GameObjectList::Objs* pObjs = GameObjectList::GetObjectsPtr();
+        for (int i = 0; i < pObjs->mCount; i++)
+        {
+            DWORD ptrValue = reinterpret_cast<DWORD>(pObjs->mPointerToObjects[i]);
+
+            std::string typeString = GameObjectList::AeTypeToString(pObjs->mPointerToObjects[i]->mTypeId);
+
+            std::string name = std::to_string(ptrValue) + "_" + typeString;
+
+            mObjectsListBox->AddString(name);
+        }
+
+    });
+
+    mObjectsListBox = std::make_unique<ListBox>(this, IDC_OBJECT_LIST);
+    mObjectsListBox->OnDoubleClick([&](const std::string& item) 
+    {
+        auto ptrValueStr = string_util::split(item, '_')[0];
+
+        // TODO: Start to track deltas for mSelectedPointer
+        mSelectedPointer = std::stol(ptrValueStr);
+        mSelectedObjectLabel->SetText(ptrValueStr);
+    });
 
     return TRUE;
 }

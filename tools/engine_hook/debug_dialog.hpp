@@ -49,17 +49,25 @@ private:
     void ClearSoundData();
     void  SyncSoundListBoxData();
 
-    std::unique_ptr<class Button> mResetAnimLogsButton;
-    std::unique_ptr<class Button> mClearSoundLogsButton;
-    std::unique_ptr<class Button> mUpdateAnimLogsNowButton;
-    std::unique_ptr<class TextBox> mAnimFilterTextBox;
-    std::unique_ptr<class Button> mReloadAnimJsonButton;
+    std::unique_ptr<Button> mResetAnimLogsButton;
+    std::unique_ptr<Button> mClearSoundLogsButton;
+    std::unique_ptr<Button> mUpdateAnimLogsNowButton;
+    std::unique_ptr<TextBox> mAnimFilterTextBox;
+    std::unique_ptr<Button> mReloadAnimJsonButton;
     std::unique_ptr<Timer> mRefreshTimer;
 
     std::unique_ptr<Label> mActiveVabLabel;
 
-    std::unique_ptr<class ListBox> mAnimListBox;
-    std::unique_ptr<class ListBox> mSoundsListBox;
+    std::unique_ptr<Label> mSelectedObjectLabel;
+    std::unique_ptr<Button> mClearSelectObjectDeltas;
+    std::unique_ptr<ListBox> mObjectDeltasListBox;
+
+    std::unique_ptr<Button> mRefreshObjectListButton;
+    std::unique_ptr<ListBox> mObjectsListBox;
+    long mSelectedPointer = 0;
+
+    std::unique_ptr<ListBox> mAnimListBox;
+    std::unique_ptr<ListBox> mSoundsListBox;
 
     std::set<AnimPriorityData> mAnims;
 

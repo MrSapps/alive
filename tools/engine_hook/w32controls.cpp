@@ -184,9 +184,29 @@ void ListBox::SetSelectedIndex(DWORD index)
     ::SendMessage(mHwnd, LB_SETCURSEL, index, 0);
 }
 
-bool ListBox::HandleMessage(WPARAM /*wparam*/, LPARAM /*lParam*/)
+bool ListBox::HandleMessage(WPARAM wparam, LPARAM /*lParam*/)
 {
-    return FALSE;
+    if (LOWORD(wparam) == mId)
+    {
+        if (HIWORD(wparam) == LBN_DBLCLK)
+        {
+            if (mOnDoubleClick)
+            {
+                DWORD idx = SelectedIndex();
+                DWORD len = ::SendMessage(mHwnd, LB_GETTEXTLEN, idx, 0);
+                std::vector<char> buffer(len + 1);
+                ::SendMessage(mHwnd, LB_GETTEXT, idx, (LPARAM)buffer.data());
+                mOnDoubleClick(buffer.data());
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void ListBox::OnDoubleClick(std::function<void(const std::string&)> fnOnDoubleClick)
+{
+    mOnDoubleClick = fnOnDoubleClick;
 }
 
 void BaseButton::OnClicked(std::function<void()> onClick)

@@ -67,7 +67,10 @@ public:
     void Clear();
     DWORD SelectedIndex() const;
     void SetSelectedIndex(DWORD index);
+    void OnDoubleClick(std::function<void(const std::string&)> fnOnDoubleClick);
     virtual bool HandleMessage(WPARAM wparam, LPARAM lParam) override;
+private:
+    std::function<void(const std::string&)> mOnDoubleClick;
 };
 
 class BaseButton : public BaseControl

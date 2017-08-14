@@ -31,5 +31,6 @@ public:
         u16 mCount;
     };
 
-    void LogObjects();
+    static void LogObjects();
+    static Objs* GetObjectsPtr();
 };
