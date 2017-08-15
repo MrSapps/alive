@@ -10,37 +10,39 @@ Addresses& Addrs()
 
 u32 Addresses::GetWindowHandle() const
 {
-    return Utils::IsAe() ? 0x004F2C70 : 0x0;
+    return Utils::IsAe() ? 0x004F2C70 : 0x0048E930;
 }
 
 u32 Addresses::error_msgbox() const
 {
-    return Utils::IsAe() ? 0x004F2920 : 0x0;
+    return Utils::IsAe() ? 0x004F2920 : 0x0048DDC0;
 }
 
 u32 Addresses::sub_4EF970() const
 {
+    // Called by SND_PlayEx - appears to not exist in AO
     return Utils::IsAe() ? 0x004EF970 : 0x0;
 }
 
 u32 Addresses::gdi_draw() const
 {
-    return Utils::IsAe() ? 0x004F21F0 : 0x0;
+    // In AO ConvertAbeHdcHandle and ConvertAbeHdcHandle2 functions are in-lined into this one
+    return Utils::IsAe() ? 0x004F21F0 : 0x0048FAF0;
 }
 
 u32 Addresses::ConvertAbeHdcHandle() const
 {
-    return Utils::IsAe() ? 0x4F2150 : 0x0;
+    return Utils::IsAe() ? 0x4F2150 : 0x0048FA50;
 }
 
 u32 Addresses::ConvertAbeHdcHandle2() const
 {
-    return Utils::IsAe() ? 0x4F21A0 : 0x0;
+    return Utils::IsAe() ? 0x4F21A0 : 0x0048FAA0;
 }
 
 u32 Addresses::g_lPDSound_dword_BBC344() const
 {
-    return Utils::IsAe() ? 0x00BBC344 : 0x0;
+    return Utils::IsAe() ? 0x00BBC344 : 0x00A08264;
 }
 
 u32 Addresses::dword_575158() const
@@ -60,12 +62,12 @@ u32 Addresses::dword_BBBD38() const
 
 u32 Addresses::ddCheatOn() const
 {
-    return Utils::IsAe() ? 0x005CA4B5 : 0x0;
+    return Utils::IsAe() ? 0x005CA4B5 : 0x508BF8;
 }
 
 u32 Addresses::alwaysDrawDebugText() const
 {
-    return Utils::IsAe() ? 0x005BC000 : 0x0;
+    return Utils::IsAe() ? 0x005BC000 : 0x4FF860;
 }
 
 u32 Addresses::gPathData() const
@@ -125,30 +127,35 @@ u32 Addresses::ObjectList() const
 
 u32 Addresses::SND_PlayEx() const
 {
-    return Utils::IsAe() ? 0x004EF740 : 0x0;
+    return Utils::IsAe() ? 0x004EF740 : 0x00493040;
 }
 
 u32 Addresses::SND_seq_play_q() const
 {
-    return Utils::IsAe() ? 0x004FD100 : 0x0;
+    return Utils::IsAe() ? 0x004FD100 : 0x49DD30;
 }
 
 u32 Addresses::SND_play_snd_internal_q() const
 {
-    return Utils::IsAe() ? 0x004FCB30 : 0x0;
+    return Utils::IsAe() ? 0x004FCB30 : 0x49D730;
 }
 
 u32 Addresses::SND_Reload() const
 {
-    return Utils::IsAe() ? 0x004EF1C0 : 0x0;
+    return Utils::IsAe() ? 0x004EF1C0 : 0x00492B20;
 }
 
 u32 Addresses::gSeqData() const
 {
-    return Utils::IsAe() ? 0x00558D50 : 0x0;
+    return Utils::IsAe() ? 0x00558D50 : 0x4C9E70;
 }
 
 u32 Addresses::g_seq_data_dword_C13400() const
 {
-    return Utils::IsAe() ? 0xC13400 : 0x0;
+    return Utils::IsAe() ? 0xC13400 : 0xABFB40;
+}
+
+u32 Addresses::Stub_DirectSoundCreate() const
+{
+    return Utils::IsAe() ? 0x0052C762 : 0x004B6B02;
 }

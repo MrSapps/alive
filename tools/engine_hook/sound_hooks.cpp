@@ -22,6 +22,7 @@ static void SoundTest();
 void InstallSoundHooks()
 {
     //SND_PlayEx_hook.Install(SND_PlayEx);
+    
     SND_seq_play_q_hook.Install(SND_seq_play_q);
     SND_play_snd_internal_q_hook.Install(SND_play_snd_internal_q);
 
@@ -186,12 +187,23 @@ signed int __cdecl SND_PlayEx(AliveSoundBuffer* pSound, unsigned int volL, unsig
     return -1;
 }
 
+/* TODO FIX ME
 struct SeqData
 {
     const char* mSeqName;   // The original sound file name! For example MINESAMB.SEQ
     u32 mGeneratedResId;    // This is the SEQ ID generated via ResourceNameHash(mSeqName)
     u16 mIndexUnknown;      // Seems to get used as an index into something else
     u16 mUnknown;
+    u32 mSeqIdOrZero;       // Probably a pointer?
+};
+*/
+
+struct SeqData
+{
+    const char* mSeqName;   // The original sound file name! For example MINESAMB.SEQ
+    u32 mGeneratedResId;    // This is the SEQ ID generated via ResourceNameHash(mSeqName)
+    u32 mIndexUnknown;      // Seems to get used as an index into something else
+    u32 mUnknown;
     u32 mSeqIdOrZero;       // Probably a pointer?
 };
 
@@ -208,7 +220,7 @@ std::map<u32, const char*> gSeqIdToName;
 static void SoundTest()
 {
 
-    for (SeqData& data : gSeqData->mData)
+    for (SeqData& data : gSeqData->mData) // TODO: FIX ME SeqData structure has changed in AE
     {
         if (data.mSeqName)
         {
@@ -223,6 +235,7 @@ static void SoundTest()
     //assert(resId == 0x0DCD80);
 
 }
+
 
 struct SeqStruct
 {

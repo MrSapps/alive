@@ -111,7 +111,7 @@ namespace Hooks
 
 static StartDialog::StartMode gStartMode = StartDialog::eNormal;
 
-static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
+/*static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
 {
     TRACE_ENTRYEXIT;
 
@@ -141,7 +141,7 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
 
     return Hooks::set_first_camera.Real()(thisPtr, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
 }
-
+*/
 
 // First 16bits is the whole number, last 16bits is the remainder (??)
 class HalfFloat
@@ -457,7 +457,6 @@ static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* p
     return Hooks::sub_418930.Real()(thisPtr, pCollisionInfo, pPathBlock);
 }
 
-
 void GetPathArray()
 {
     for (s32 i = 0; i < kNumLvls; i++)
@@ -476,9 +475,10 @@ void GetPathArray()
 
 void GdiLoop(HDC hdc)
 {
-    std::string text("Abe: X: " + 
+    // TODO FIX ME
+    std::string text(/*"Abe: X: " + 
         std::to_string((*hero)->xpos.AsDouble()) + 
-        " Y: " + std::to_string((*hero)->ypos.AsDouble()) + 
+        " Y: " + std::to_string((*hero)->ypos.AsDouble()) + */
         " Grid: " + std::to_string(gGridEnabled) + 
         " Collisions: " + std::to_string(gCollisionsEnabled) + "(G/H)");
 
@@ -486,6 +486,9 @@ void GdiLoop(HDC hdc)
     SetBkColor(hdc, 0);
     SetTextColor(hdc, RGB(255, 0, 0));
     TextOut(hdc, 0, 0, text.c_str(), text.length());
+
+    // TODO FIX ME
+    if (true) return;
 
     XFORM xForm;
     xForm.eM11 = (FLOAT) 1.73913;
@@ -644,19 +647,21 @@ void HookMain()
     TRACE_ENTRYEXIT;
 
     Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
-    Hooks::set_first_camera.Install(set_first_camera_hook);
+    // TODO FIX ME
+    //Hooks::set_first_camera.Install(set_first_camera_hook);
     Hooks::gdi_draw.Install(gdi_draw_hook);
-    Hooks::anim_decode.Install(anim_decode_hook);
-    Hooks::get_anim_frame.Install(get_anim_frame_hook);
+   // Hooks::anim_decode.Install(anim_decode_hook);
+    //Hooks::get_anim_frame.Install(get_anim_frame_hook);
     Hooks::sub_418930.Install(sub_418930_hook);
-    Hooks::sub_418930.Install(sub_418930_hook);
-    Hooks::AbeSnap_sub_449930.Install(AbeSnap_sub_449930_hook);
+   // Hooks::sub_418930.Install(sub_418930_hook);
+   // Hooks::AbeSnap_sub_449930.Install(AbeSnap_sub_449930_hook);
     InstallSoundHooks();
 
     SubClassWindow();
     PatchWindowTitle();
 
-    GetPathArray();
+    // TODO FIX ME
+   // GetPathArray();
 
     Vars().ddCheatOn.Set(1);
     Vars().alwaysDrawDebugText.Set(1);
@@ -666,7 +671,7 @@ HRESULT __stdcall Stub_DirectSoundCreate_Hook(LPGUID lpGuid, LPDIRECTSOUND *ppDS
 std::set<class DirectSoundBuffer7Proxy*> gSoundBuffers;
 class DirectSound7Proxy* gDSound;
 
-static Hook<decltype(&Stub_DirectSoundCreate_Hook)> gStub_DirectSoundCreate_Hook(0x0052C762);
+static Hook<decltype(&Stub_DirectSoundCreate_Hook)> gStub_DirectSoundCreate_Hook(Addrs().Stub_DirectSoundCreate());
 
 HRESULT __stdcall Stub_DirectSoundCreate_Hook(LPGUID lpGuid, LPDIRECTSOUND *ppDS, LPUNKNOWN pUnkOuter)
 {
@@ -699,7 +704,7 @@ HRESULT WINAPI NewDirectDrawCreate(GUID* lpGUID, IDirectDraw** lplpDD, IUnknown*
         *lplpDD = new DirectDraw7Proxy(*lplpDD);
         
         gStub_DirectSoundCreate_Hook.Install(Stub_DirectSoundCreate_Hook);
-        gend_Frame_Hook.Install(end_Frame);
+        //gend_Frame_Hook.Install(end_Frame); // FIX ME
 
         HookMain();
 
