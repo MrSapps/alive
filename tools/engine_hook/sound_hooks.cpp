@@ -8,12 +8,13 @@
 #include "seq_name_algorithm.hpp"
 #include "debug_dialog.hpp"
 #include "window_hooks.hpp"
+#include "addresses.hpp"
 
 #pragma comment(lib, "Winmm.lib")
 
-static Hook<decltype(&::SND_PlayEx)> SND_PlayEx_hook(0x004EF740);
-static Hook<decltype(&::SND_seq_play_q)> SND_seq_play_q_hook(0x004FD100);
-static Hook<decltype(&::SND_play_snd_internal_q)>  SND_play_snd_internal_q_hook(0x004FCB30);
+static Hook<decltype(&::SND_PlayEx)> SND_PlayEx_hook(Addrs().SND_PlayEx());
+static Hook<decltype(&::SND_seq_play_q)> SND_seq_play_q_hook(Addrs().SND_seq_play_q());
+static Hook<decltype(&::SND_play_snd_internal_q)>  SND_play_snd_internal_q_hook(Addrs().SND_play_snd_internal_q());
 
 
 static void SoundTest();
@@ -55,7 +56,7 @@ int __cdecl SND_play_snd_internal_q(int a1, int programNumber, signed int noteAn
     return SND_play_snd_internal_q_hook.Real()(a1, programNumber, c.data, panLeft, panRight, volume);
 }
 
-static decltype(&SND_Reload) gSND_Reload = reinterpret_cast<decltype(&SND_Reload)>(0x004EF1C0);
+static decltype(&SND_Reload) gSND_Reload = reinterpret_cast<decltype(&SND_Reload)>(Addrs().SND_Reload());
 signed int __cdecl SND_Reload(AliveSoundBuffer* a1, void *a2, const void *a3, unsigned int a4)
 {
     return gSND_Reload(a1, a2, a3, a4);
@@ -199,7 +200,7 @@ struct SeqDataTable
     SeqData mData[145];
 };
 
-SeqDataTable* gSeqData = reinterpret_cast<SeqDataTable*>(0x00558D50);
+SeqDataTable* gSeqData = reinterpret_cast<SeqDataTable*>(Addrs().gSeqData());
 
 
 std::map<u32, const char*> gSeqIdToName;
@@ -237,7 +238,7 @@ struct SeqStruct
 };
 static_assert(sizeof(SeqStruct) == 100, "Wrong size SeqStruct");
 
-SeqStruct* g_seq_data_dword_C13400 = (SeqStruct*)0xC13400;
+SeqStruct* g_seq_data_dword_C13400 = (SeqStruct*)Addrs().g_seq_data_dword_C13400(); 
 
 struct SeqHeader
 {

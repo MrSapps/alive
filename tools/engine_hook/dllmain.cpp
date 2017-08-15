@@ -20,6 +20,7 @@
 #include "resource.h"
 #include "dsound7proxy.hpp"
 #include "debug_dialog.hpp"
+#include "addresses.hpp"
 
 #define private public
 #include "gridmap.hpp"
@@ -101,11 +102,11 @@ static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* p
 
 namespace Hooks
 {
-    Hook<decltype(&::sub_418930_hook), sub_418930_thiscall> sub_418930(0x00418930);
-    Hook<decltype(&::set_first_camera_hook), set_first_camera_thiscall> set_first_camera(0x00401415);
-    Hook<decltype(&::gdi_draw_hook)> gdi_draw(Funcs().gdi_draw.Address());
-    Hook<decltype(&::anim_decode_hook), anim_decode_thiscall> anim_decode(0x0040AC90);
-    Hook<decltype(&::get_anim_frame_hook)> get_anim_frame(0x0040B730);
+    Hook<decltype(&::sub_418930_hook), sub_418930_thiscall> sub_418930(Addrs().sub_418930());
+    Hook<decltype(&::set_first_camera_hook), set_first_camera_thiscall> set_first_camera(Addrs().set_first_camera());
+    Hook<decltype(&::gdi_draw_hook)> gdi_draw(Funcs().gdi_draw.mAddr);
+    Hook<decltype(&::anim_decode_hook), anim_decode_thiscall> anim_decode(Addrs().anim_decode());
+    Hook<decltype(&::get_anim_frame_hook)> get_anim_frame(Addrs().get_anim_frame());
 }
 
 static StartDialog::StartMode gStartMode = StartDialog::eNormal;
@@ -633,7 +634,7 @@ int __cdecl AbeSnap_sub_449930_hook(int scale, const signed int xpos)
 
 namespace Hooks
 {
-    Hook<decltype(&::AbeSnap_sub_449930_hook)> AbeSnap_sub_449930(0x00449930);
+    Hook<decltype(&::AbeSnap_sub_449930_hook)> AbeSnap_sub_449930(Addrs().AbeSnap_sub_449930());
 }
 
 HMODULE gDllHandle = NULL;
@@ -679,7 +680,7 @@ HRESULT __stdcall Stub_DirectSoundCreate_Hook(LPGUID lpGuid, LPDIRECTSOUND *ppDS
 }
 
 int __cdecl end_Frame(char fps);
-static Hook<decltype(&end_Frame)> gend_Frame_Hook(0x004950F0);
+static Hook<decltype(&end_Frame)> gend_Frame_Hook(Addrs().end_Frame());
 
 int __cdecl end_Frame(char fps)
 {

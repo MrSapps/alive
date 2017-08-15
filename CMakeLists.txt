@@ -503,6 +503,8 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         tools/engine_hook/start_dialog.hpp
         tools/engine_hook/game_objects.cpp
         tools/engine_hook/game_objects.hpp
+        tools/engine_hook/addresses.cpp
+        tools/engine_hook/addresses.hpp
         tools/engine_hook/resource.h
         tools/engine_hook/resources.rc
         )

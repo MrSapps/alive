@@ -1,5 +1,6 @@
 #include "game_objects.hpp"
 #include "logger.hpp"
+#include "addresses.hpp"
 
 std::string GameObjectList::AeTypeToString(u16 type)
 {
@@ -110,7 +111,7 @@ void GameObjectList::LogObjects()
 
 GameObjectList::Objs* GameObjectList::GetObjectsPtr()
 {
-    Objs** ppp = (Objs**)0x00BB47C4;
+    Objs** ppp = (Objs**)Addrs().ObjectList();
     Objs* p = *ppp;
     return p;
 }
