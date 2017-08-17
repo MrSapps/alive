@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include "types.hpp"
+#include "resourcemapper.hpp"
 
 namespace Oddlib
 {
@@ -21,9 +22,10 @@ public:
     void LogAnim(u32 id, u32 idx);
     void ReloadJson();
     std::string LookUpSoundEffect(const std::string vabName, DWORD program, DWORD note);
+    const ResourceMapper::PathMapping* LoadPath(const std::string& name);
 private:
     std::unique_ptr<class IFileSystem> mFileSystem;
-    std::unique_ptr<class ResourceMapper> mResources;
+    std::unique_ptr<ResourceMapper> mResources;
     std::map<u32, std::unique_ptr<Oddlib::AnimSerializer>> mAnimCache;
     std::map<std::pair<u32, u32>, Oddlib::AnimSerializer*> mAnims;
     std::string mLastResName;

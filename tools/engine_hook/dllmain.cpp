@@ -96,8 +96,8 @@ typedef void (__thiscall* anim_decode_thiscall)(anim_struct* thisPtr);
 int __fastcall get_anim_frame_hook(anim_struct* thisPtr, int a2, __int16 a3);
 
 struct CollisionInfo;
-typedef int(__thiscall* sub_418930_thiscall)(int thisPtr, const CollisionInfo* pCollisionInfo, u8* pPathBlock);
-static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* pCollisionInfo, u8* pPathBlock);
+typedef int(__thiscall* sub_418930_thiscall)(void* thisPtr, const CollisionInfo* pCollisionInfo, u8* pPathBlock);
+static int __fastcall sub_418930_hook(void* thisPtr, void*, const CollisionInfo* pCollisionInfo, u8* pPathBlock);
 
 
 namespace Hooks
@@ -111,7 +111,7 @@ namespace Hooks
 
 static StartDialog::StartMode gStartMode = StartDialog::eNormal;
 
-/*static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
+static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
 {
     TRACE_ENTRYEXIT;
 
@@ -141,7 +141,6 @@ static StartDialog::StartMode gStartMode = StartDialog::eNormal;
 
     return Hooks::set_first_camera.Real()(thisPtr, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
 }
-*/
 
 // First 16bits is the whole number, last 16bits is the remainder (??)
 class HalfFloat
@@ -258,7 +257,7 @@ void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
 {
     static anim_struct* pTarget = nullptr;
 
-    DumpDeltas(thisPtr);
+   // DumpDeltas(thisPtr);
 
     if (thisPtr->mAnimChunkPtrs)
     {
@@ -357,22 +356,23 @@ struct PathRoot
 
 struct PathData
 {
-    unsigned short int mBLeft;	// for ao ??
-    unsigned short int mBRight; // for ao ??
-    unsigned short int mBTop;
-    unsigned short int mBBottom;
+    u16 mBLeft;	// for ao ??
+    u16 mBRight; // for ao ??
+    u16 mBTop;
+    u16 mBBottom;
 
-    unsigned short int mGridWidth;
-    unsigned short int mGridHeight;
+    u16 mGridWidth;
+    u16 mGridHeight;
 
-    unsigned short int mWidth;
-    unsigned short int mHeight;
+    u16 mWidth;
+    u16 mHeight;
 
-    unsigned int object_offset;
-    unsigned int object_indextable_offset;
+    u32 object_offset;
+    u32 object_indextable_offset;
 
-    unsigned short int mUnknown3; // values offset for ao?
-    unsigned short int mUnknown4; // part of the above for ao??
+
+    u16 mUnknown3; // values offset for ao?
+    u16 mUnknown4; // part of the above for ao??
 
     void* (*mObjectFuncs[256])(void);
 };
@@ -410,19 +410,26 @@ struct PathBlyRecHeader
     struct PathBlyRec iBlyRecs[99];
 };
 
-const int kNumLvls = 17;
+const int kNumLvlsAe = 17;
+const int kNumLevelsAo = 15;
+
+inline s32 NumLevels()
+{
+    return Utils::IsAe() ? kNumLvlsAe : kNumLevelsAo;
+}
+
 struct PathRootData
 {
-    PathRoot iLvls[17];
+    PathRoot iLvls[kNumLvlsAe];
 };
 
 std::unique_ptr<Oddlib::Path> gPath;
 
-static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* pCollisionInfo, u8* pPathBlock)
+static int __fastcall sub_418930_hook(void* thisPtr, void*, const CollisionInfo* pCollisionInfo, u8* pPathBlock)
 {
     LOG_INFO("Load collision data");
 
-    for (s32 i = 0; i < kNumLvls; i++)
+    for (s32 i = 0; i < NumLevels(); i++)
     {
         PathRoot& data = Vars().gPathData.Get()->iLvls[i];
         for (s32 j = 1; j < data.mNumPaths + 1; j++)
@@ -434,17 +441,42 @@ static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* p
                 DWORD size = *reinterpret_cast<DWORD*>(pPathBlock - 16); // Back by the size of res header which contains the chunk size
                 Oddlib::MemoryStream pathDataStream(std::vector<u8>(pPathBlock, pPathBlock + size));
 
+                if (Utils::IsAe())
+                {
+                    PathData& pathData = *data.mBlyArrayPtr->iBlyRecs[j].mPathData;
 
-                PathData& pathData = *data.mBlyArrayPtr->iBlyRecs[j].mPathData;
+                    gPath = std::make_unique<Oddlib::Path>(
+                        pathDataStream,
+                        pCollisionInfo->mCollisionOffset + 16,
+                        pathData.object_indextable_offset + 16,
+                        pathData.object_offset + 16,
+                        pathData.mBTop / pathData.mWidth,
+                        pathData.mBBottom / pathData.mHeight,
+                        false);
+                }
+                else
+                {
+                    // don't know where the info is in the AO data, so just look it up from the new engines
+                    // resources instead
+                    const std::string blyName = data.mBlyArrayPtr->iBlyRecs[j].mBlyName;
 
-                gPath = std::make_unique<Oddlib::Path>(
-                    pathDataStream, 
-                    pCollisionInfo->mCollisionOffset + 16, 
-                    pathData.object_indextable_offset + 16,
-                    pathData.object_offset + 16,
-                    pathData.mBTop / pathData.mWidth,
-                    pathData.mBBottom / pathData.mHeight,
-                    false);
+                    const std::string lvlName = blyName.substr(0, 2);
+                    std::string pathNumber = blyName.substr(3);
+                    pathNumber = pathNumber.substr(0, pathNumber.length() - 4);
+
+                    const std::string resName = lvlName + "PATH_" + pathNumber;
+
+                    const ResourceMapper::PathMapping*  mapping = GetAnimLogger().LoadPath(resName);
+
+                    gPath = std::make_unique<Oddlib::Path>(
+                        pathDataStream,
+                        mapping->mCollisionOffset,
+                        mapping->mIndexTableOffset,
+                        mapping->mObjectOffset,
+                        mapping->mNumberOfScreensX,
+                        mapping->mNumberOfScreensY,
+                        false);
+                }
 
                 gDebugUi->SetActiveVab(data.mMusicPtr->mVabBodyName);
 
@@ -457,9 +489,10 @@ static int __fastcall sub_418930_hook(int thisPtr, void*, const CollisionInfo* p
     return Hooks::sub_418930.Real()(thisPtr, pCollisionInfo, pPathBlock);
 }
 
+
 void GetPathArray()
 {
-    for (s32 i = 0; i < kNumLvls; i++)
+    for (s32 i = 0; i < NumLevels(); i++)
     {
         PathRootData* ptr = Vars().gPathData.Get();
         PathRoot& data = ptr->iLvls[i];
@@ -486,9 +519,6 @@ void GdiLoop(HDC hdc)
     SetBkColor(hdc, 0);
     SetTextColor(hdc, RGB(255, 0, 0));
     TextOut(hdc, 0, 0, text.c_str(), text.length());
-
-    // TODO FIX ME
-    if (true) return;
 
     XFORM xForm;
     xForm.eM11 = (FLOAT) 1.73913;
@@ -550,13 +580,19 @@ void GdiLoop(HDC hdc)
             }
         camPosFound:
 
-            int camRoomSizeX = 375;
-            int camRoomSizeY = 260;
+            int camRoomSizeX = Utils::IsAe() ? 375 : 1024;
+            int camRoomSizeY = Utils::IsAe() ? 260 : 480;
 
             int renderOffsetX = camRoomSizeX * camX;
             int renderOffsetY = camRoomSizeY * camY;
 
-            for (auto collision : gPath->mCollisionItems)
+            if (!Utils::IsAe())
+            {
+                renderOffsetX += 257;
+                renderOffsetY += 114;
+            }
+
+            for (auto collision : gPath->CollisionItems())
             {
                 int p1x = collision.mP1.mX - renderOffsetX;
                 int p1y = collision.mP1.mY - renderOffsetY;
@@ -647,21 +683,19 @@ void HookMain()
     TRACE_ENTRYEXIT;
 
     Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
-    // TODO FIX ME
-    //Hooks::set_first_camera.Install(set_first_camera_hook);
+    Hooks::set_first_camera.Install(set_first_camera_hook);
     Hooks::gdi_draw.Install(gdi_draw_hook);
-   // Hooks::anim_decode.Install(anim_decode_hook);
+    Hooks::anim_decode.Install(anim_decode_hook);
     //Hooks::get_anim_frame.Install(get_anim_frame_hook);
     Hooks::sub_418930.Install(sub_418930_hook);
-   // Hooks::sub_418930.Install(sub_418930_hook);
+
    // Hooks::AbeSnap_sub_449930.Install(AbeSnap_sub_449930_hook);
     InstallSoundHooks();
 
     SubClassWindow();
     PatchWindowTitle();
 
-    // TODO FIX ME
-   // GetPathArray();
+    GetPathArray();
 
     Vars().ddCheatOn.Set(1);
     Vars().alwaysDrawDebugText.Set(1);
@@ -704,7 +738,7 @@ HRESULT WINAPI NewDirectDrawCreate(GUID* lpGUID, IDirectDraw** lplpDD, IUnknown*
         *lplpDD = new DirectDraw7Proxy(*lplpDD);
         
         gStub_DirectSoundCreate_Hook.Install(Stub_DirectSoundCreate_Hook);
-        //gend_Frame_Hook.Install(end_Frame); // FIX ME
+        gend_Frame_Hook.Install(end_Frame);
 
         HookMain();
 

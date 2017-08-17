@@ -255,6 +255,7 @@ private:
     friend class Level; // TODO: Temp debug ui
     friend class Sound; // TODO: Temp debug ui
     friend class Fmv; // TODO: Temp debug ui
+    friend class AnimLogger; // TODO: Hook access
 
     void ParseDataSetContentsJson(const std::string& json)
     {

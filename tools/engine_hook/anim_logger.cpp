@@ -1,13 +1,5 @@
 #include "anim_logger.hpp"
 #include "gamefilesystem.hpp"
-
-// Hack to access private parts of ResourceMapper
-#define private public
-
-#include "resourcemapper.hpp"
-
-#undef private
-
 #include "window_hooks.hpp"
 #include "debug_dialog.hpp"
 
@@ -44,11 +36,12 @@ void AnimLogger::Add(u32 id, u32 idx, Oddlib::AnimSerializer* anim)
 
 std::string AnimLogger::Find(u32 id, u32 idx)
 {
+    std::string toFind = Utils::IsAe() ? "AePc" : "AoPc";
     for (const auto& mapping : mResources->mAnimMaps)
     {
         for (const auto& location : mapping.second.mLocations)
         {
-            if (location.mDataSetName == "AePc")
+            if (location.mDataSetName == toFind)
             {
                 for (const auto& file : location.mFiles)
                 {
@@ -150,6 +143,15 @@ std::string AnimLogger::LookUpSoundEffect(const std::string vabName, DWORD progr
 
     mSoundNameCache[cacheKey] = cacheKey;
     return cacheKey;
+}
+
+const ResourceMapper::PathMapping* AnimLogger::LoadPath(const std::string& name)
+{
+    if (!mResources)
+    {
+        ResourcesInit();
+    }
+    return mResources->FindPath(name.c_str());
 }
 
 AnimLogger& GetAnimLogger()

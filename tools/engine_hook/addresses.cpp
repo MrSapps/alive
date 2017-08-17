@@ -47,17 +47,17 @@ u32 Addresses::g_lPDSound_dword_BBC344() const
 
 u32 Addresses::dword_575158() const
 {
-    return Utils::IsAe() ? 0x575158 : 0x0;
+    return Utils::IsAe() ? 0x575158 : 0x0;  // Only used for SND_PlayEx
 }
 
 u32 Addresses::g_snd_time_dword_BBC33C() const
 {
-    return Utils::IsAe() ? 0xBBC33C : 0x0;
+    return Utils::IsAe() ? 0xBBC33C : 0x0;  // Only used for SND_PlayEx
 }
 
 u32 Addresses::dword_BBBD38() const
 {
-    return Utils::IsAe() ? 0xBBBD38 : 0x0;
+    return Utils::IsAe() ? 0xBBBD38 : 0x0;  // Only used for SND_PlayEx
 }
 
 u32 Addresses::ddCheatOn() const
@@ -72,57 +72,57 @@ u32 Addresses::alwaysDrawDebugText() const
 
 u32 Addresses::gPathData() const
 {
-    return Utils::IsAe() ? 0x00559660 : 0x0;
+    return Utils::IsAe() ? 0x00559660 : 0x4CAB58;
 }
 
 u32 Addresses::currentLevelId() const
 {
-    return Utils::IsAe() ? 0x5C3030 : 0x0;
+    return Utils::IsAe() ? 0x5C3030 : 0x507BB2;
 }
 
 u32 Addresses::currentPath() const
 {
-    return Utils::IsAe() ? 0x5C3032 : 0x0;
+    return Utils::IsAe() ? 0x5C3032 : 0x507BAA;
 }
 
 u32 Addresses::currentCam() const
 {
-    return Utils::IsAe() ? 0x5C3034 : 0x0;
+    return Utils::IsAe() ? 0x5C3034 : 0x507BAC;
 }
 
 u32 Addresses::set_first_camera() const
 {
-    return Utils::IsAe() ? 0x00401415 : 0x0;
+    return Utils::IsAe() ? 0x00401415 : 0x443EE0;
 }
 
-u32 Addresses::sub_418930() const
+u32 Addresses::sub_418930() const // Collision line loader
 {
-    return Utils::IsAe() ? 0x00418930 : 0x0;
+    return Utils::IsAe() ? 0x00418930 : 0x40CF30;
 }
 
 u32 Addresses::anim_decode() const
 {
-    return Utils::IsAe() ? 0x0040AC90 : 0x0;
+    return Utils::IsAe() ? 0x0040AC90 : 0x00403550;
 }
 
 u32 Addresses::get_anim_frame() const
 {
-    return Utils::IsAe() ? 0x0040B730 : 0x0;
+    return Utils::IsAe() ? 0x0040B730 : 0x0;  // FIXME: This function is in-lined into anim_decode in AO
 }
 
 u32 Addresses::end_Frame() const
 {
-    return Utils::IsAe() ? 0x004950F0 : 0x0;
+    return Utils::IsAe() ? 0x004950F0 : 0x004505D0;
 }
 
 u32 Addresses::AbeSnap_sub_449930() const
 {
-    return Utils::IsAe() ? 0x00449930 : 0x0;
+    return Utils::IsAe() ? 0x00449930 : 0x0; // TODO
 }
 
 u32 Addresses::ObjectList() const
 {
-    return Utils::IsAe() ? 0x00BB47C4 : 0x0;
+    return Utils::IsAe() ? 0x00BB47C4 : 0x009F2DF0;
 }
 
 u32 Addresses::SND_PlayEx() const

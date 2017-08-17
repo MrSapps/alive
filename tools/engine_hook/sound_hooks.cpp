@@ -16,8 +16,54 @@ static Hook<decltype(&::SND_PlayEx)> SND_PlayEx_hook(Addrs().SND_PlayEx());
 static Hook<decltype(&::SND_seq_play_q)> SND_seq_play_q_hook(Addrs().SND_seq_play_q());
 static Hook<decltype(&::SND_play_snd_internal_q)>  SND_play_snd_internal_q_hook(Addrs().SND_play_snd_internal_q());
 
+struct SeqDataAe
+{
+    const char* mSeqName;   // The original sound file name! For example MINESAMB.SEQ
+    u32 mGeneratedResId;    // This is the SEQ ID generated via ResourceNameHash(mSeqName)
+    u16 mIndexUnknown;      // Seems to get used as an index into something else
+    u16 mUnknown;
+    u32 mSeqIdOrZero;       // Probably a pointer?
+};
 
-static void SoundTest();
+struct SeqDataAo
+{
+    const char* mSeqName;   // The original sound file name! For example MINESAMB.SEQ
+    u32 mGeneratedResId;    // This is the SEQ ID generated via ResourceNameHash(mSeqName)
+    u32 mIndexUnknown;      // Seems to get used as an index into something else
+    u32 mUnknown;
+    u32 mSeqIdOrZero;       // Probably a pointer?
+};
+
+struct SeqDataTableAe
+{
+    SeqDataAe mData[145];
+};
+
+struct SeqDataTableAo
+{
+    SeqDataAo mData[164];
+};
+
+std::map<u32, const char*> gSeqIdToName;
+
+template<class T>
+static void PullSeqNames(T ptr)
+{
+    for (auto& data : ptr->mData)
+    {
+        if (data.mSeqName)
+        {
+            data.mGeneratedResId = SeqResourceNameHash(data.mSeqName);
+            gSeqIdToName[data.mGeneratedResId] = data.mSeqName;
+            LOG_INFO(data.mSeqName);
+            // LOG_INFO(data.mSeqName << " " << std::hex << data.mGeneratedResId);
+        }
+    }
+
+    //u32 resId = SeqResourceNameHash("OPTAMB.SEQ");
+    //assert(resId == 0x0DCD80);
+
+}
 
 void InstallSoundHooks()
 {
@@ -26,7 +72,14 @@ void InstallSoundHooks()
     SND_seq_play_q_hook.Install(SND_seq_play_q);
     SND_play_snd_internal_q_hook.Install(SND_play_snd_internal_q);
 
-    SoundTest();
+    if (Utils::IsAe())
+    {
+        PullSeqNames(reinterpret_cast<SeqDataTableAe*>(Addrs().gSeqData()));
+    }
+    else
+    {
+        PullSeqNames(reinterpret_cast<SeqDataTableAo*>(Addrs().gSeqData()));
+    }
 }
 
 struct SData
@@ -186,56 +239,6 @@ signed int __cdecl SND_PlayEx(AliveSoundBuffer* pSound, unsigned int volL, unsig
 
     return -1;
 }
-
-/* TODO FIX ME
-struct SeqData
-{
-    const char* mSeqName;   // The original sound file name! For example MINESAMB.SEQ
-    u32 mGeneratedResId;    // This is the SEQ ID generated via ResourceNameHash(mSeqName)
-    u16 mIndexUnknown;      // Seems to get used as an index into something else
-    u16 mUnknown;
-    u32 mSeqIdOrZero;       // Probably a pointer?
-};
-*/
-
-struct SeqData
-{
-    const char* mSeqName;   // The original sound file name! For example MINESAMB.SEQ
-    u32 mGeneratedResId;    // This is the SEQ ID generated via ResourceNameHash(mSeqName)
-    u32 mIndexUnknown;      // Seems to get used as an index into something else
-    u32 mUnknown;
-    u32 mSeqIdOrZero;       // Probably a pointer?
-};
-
-struct SeqDataTable
-{
-    SeqData mData[145];
-};
-
-SeqDataTable* gSeqData = reinterpret_cast<SeqDataTable*>(Addrs().gSeqData());
-
-
-std::map<u32, const char*> gSeqIdToName;
-
-static void SoundTest()
-{
-
-    for (SeqData& data : gSeqData->mData) // TODO: FIX ME SeqData structure has changed in AE
-    {
-        if (data.mSeqName)
-        {
-            data.mGeneratedResId = SeqResourceNameHash(data.mSeqName);
-            gSeqIdToName[data.mGeneratedResId] = data.mSeqName;
-            LOG_INFO(data.mSeqName);
-           // LOG_INFO(data.mSeqName << " " << std::hex << data.mGeneratedResId);
-        }
-    }
-
-    //u32 resId = SeqResourceNameHash("OPTAMB.SEQ");
-    //assert(resId == 0x0DCD80);
-
-}
-
 
 struct SeqStruct
 {
