@@ -290,11 +290,13 @@ signed int __cdecl SND_seq_play_q(int aSeqIndx)
         auto it = gSeqIdToName.find(id);
         if (it != std::end(gSeqIdToName))
         {
-            LOG_INFO("Playing: " << it->second);
+            //LOG_INFO("Playing: " << it->second);
+            gDebugUi->LogMusic(it->second);
         }
         else
         {
-            LOG_ERROR("UNKNOWN SEQ");
+            //LOG_ERROR("UNKNOWN SEQ");
+            gDebugUi->LogMusic("UNKNOWN SEQ");
         }
     }
 

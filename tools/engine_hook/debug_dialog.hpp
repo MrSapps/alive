@@ -76,4 +76,6 @@ private:
     std::set<SoundPriorityData> mSounds;
 
     std::function<void()> mOnReloadJson;
+public:
+    void LogMusic(const std::string& seqName);
 };

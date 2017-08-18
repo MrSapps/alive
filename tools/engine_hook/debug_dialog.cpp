@@ -211,10 +211,29 @@ void DebugDialog::ClearSoundData()
 
 void DebugDialog::SyncSoundListBoxData()
 {
+    const DWORD selected = mSoundsListBox->SelectedIndex();
+
     mSoundsListBox->Clear();
 
     for (auto& d : mSounds)
     {
         mSoundsListBox->AddString(d.mName + "(" + std::to_string(d.mHitCount) + ")");
     }
+    mSoundsListBox->SetSelectedIndex(selected);
+}
+
+void DebugDialog::LogMusic(const std::string& seqName)
+{
+    DWORD hitCount = 0;
+    auto it = mSounds.find(SoundPriorityData{ seqName, 0 });
+    if (it != std::end(mSounds))
+    {
+        hitCount = it->mHitCount;
+        mSounds.erase(it);
+    }
+
+    SoundPriorityData data{ seqName, hitCount + 1 };
+    mSounds.insert(data);
+
+    TriggerRefreshTimer();
 }
