@@ -1,96 +1,81 @@
 #include "game_objects.hpp"
 #include "logger.hpp"
 #include "addresses.hpp"
+#include "hook_utils.hpp"
+#include <map>
+
+static std::map<u32, std::string> gAeObjectNames = 
+{
+    { 0, "No ID"},
+    { 7, "Animation" },
+    { 13, "Brew Machine" },
+    { 30, "Grinder" },
+    { 33, "Door" },
+    { 34, "Door Lock" },
+    { 35, "Bird" },
+    { 39, "Electrocute" },
+    { 48, "Rock Spawner" },
+    { 50, "Fleech" },
+    { 53, "Item Count" },
+    { 54, "Flying Slig" },
+    { 61, "Locked Soul" },
+    { 64, "Greeter" },
+    { 67, "Gluckon" },
+    { 68, "Help Phone" },
+    { 69, "Hero" },
+    { 78, "Pulley" },
+    { 83, "Anti Chant" },
+    { 84, "Meat" },
+    { 85, "Meat Sack" },
+    { 88, "Mine" },
+    { 91, "Greeter Body" },
+    { 95, "Pause Menu" },
+    { 96, "Paramite" },
+    { 103, "Pull Rope" },
+    { 105, "Rock" },
+    { 106, "Rock Sack" },
+    { 110, "Mudokon" },
+    { 111, "Red Laser" },
+    { 112, "Scrab" },
+    { 122, "Gate" },
+    { 124, "Snooz Particle" },
+    { 125, "Slig" },
+    { 126, "Slog" },
+    { 129, "Slug" },
+    { 134, "Particle" },
+    { 139, "Lever" },
+    { 142, "Trapdoor" },
+    { 143, "UXB" },
+    { 146, "Web" }
+};
+
+static std::map<u32, std::string> gAoObjectNames =
+{
+    { 0, "No ID" },
+    { 43, "Hero" },
+    { 67, "FG1" },
+};
 
 std::string GameObjectList::AeTypeToString(u16 type)
 {
-    switch (type)
+    if (Utils::IsAe())
     {
-    case 0:
-        return "No ID";
-    case 7:
-        return "Animation";
-    case 13:
-        return "Brew Machine";
-    case 30:
-        return "Grinder";
-    case 33:
-        return "Door";
-    case 34:
-        return "Door Lock";
-    case 35:
-        return "Bird";
-    case 39:
-        return "Electrocute";
-    case 48:
-        return "Rock Spawner";
-    case 50:
-        return "Fleech";
-    case 53:
-        return "Item Count";
-    case 54:
-        return "Flying Slig";
-    case 61:
-        return "Locked Soul";
-    case 64:
-        return "Greeter";
-    case 67:
-        return "Gluckon";
-    case 68:
-        return "Help Phone";
-    case 69:
-        return "Hero";
-    case 78:
-        return "Pulley";
-    case 83:
-        return "Anti Chant";
-    case 84:
-        return "Meat";
-    case 85:
-        return "Meat Sack";
-    case 88:
-        return "Mine";
-    case 91:
-        return "Greeter Body";
-    case 95:
-        return "Pause Menu";
-    case 96:
-        return "Paramite";
-    case 103:
-        return "Pull Rope";
-    case 105:
-        return "Rock";
-    case 106:
-        return "Rock Sack";
-    case 110:
-        return "Mudokon";
-    case 111:
-        return "Red Laser";
-    case 112:
-        return "Scrab";
-    case 122:
-        return "Gate";
-    case 124:
-        return "Snooz Particle";
-    case 125:
-        return "Slig";
-    case 126:
-        return "Slog";
-    case 129:
-        return "Slug";
-    case 134:
-        return "Particle";
-    case 139:
-        return "Lever";
-    case 142:
-        return "Trapdoor";
-    case 143:
-        return "UXB";
-    case 146:
-        return "Web";
-    default:
-        return "Unknown";
+        auto it = gAeObjectNames.find(static_cast<u32>(type));
+        if (it != std::end(gAeObjectNames))
+        {
+            return it->second;
+        }
     }
+    else
+    {
+        auto it = gAoObjectNames.find(static_cast<u32>(type));
+        if (it != std::end(gAoObjectNames))
+        {
+            return it->second;
+        }
+    }
+
+    return "Unknown(" + std::to_string(type) + ")";
 }
 
 void GameObjectList::LogObjects()
@@ -114,4 +99,55 @@ GameObjectList::Objs* GameObjectList::GetObjectsPtr()
     Objs** ppp = (Objs**)Addrs().ObjectList();
     Objs* p = *ppp;
     return p;
+}
+
+GameObjectList::BaseObj* GameObjectList::HeroPtr()
+{
+    const u32 heroId = Utils::IsAe() ? 69 : 43;
+
+    Objs* ptrs = GetObjectsPtr();
+    for (int i = 0; i < ptrs->mCount; i++)
+    {
+        if (ptrs->mPointerToObjects[i]->mTypeId == heroId)
+        {
+            return ptrs->mPointerToObjects[i];
+        }
+    }
+    return nullptr;
+}
+
+template<class T>
+static T OffsetAs(void* ptr, u32 offset)
+{
+    BYTE* pThis = (BYTE*)ptr;
+
+    pThis += offset;
+
+    T value = *reinterpret_cast<s32*>(pThis);
+
+    return value;
+}
+
+HalfFloat GameObjectList::BaseObj::xpos()
+{
+    const s32 value = OffsetAs<s32>(this, Utils::IsAe() ? 0xB8 : 0xA8);
+    return HalfFloat(value);
+}
+
+HalfFloat GameObjectList::BaseObj::ypos()
+{
+    const s32 value = OffsetAs<s32>(this, Utils::IsAe() ? 0xBC : 0xAC);
+    return HalfFloat(value);
+}
+
+u32 GameObjectList::BaseObj::velocity_x()
+{
+    // TODO
+    return 0;
+}
+
+u32 GameObjectList::BaseObj::velocity_y()
+{
+    // TODO
+    return 0;
 }

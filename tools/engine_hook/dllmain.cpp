@@ -21,6 +21,7 @@
 #include "dsound7proxy.hpp"
 #include "debug_dialog.hpp"
 #include "addresses.hpp"
+#include "game_objects.hpp"
 
 #define private public
 #include "gridmap.hpp"
@@ -142,88 +143,6 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
     return Hooks::set_first_camera.Real()(thisPtr, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
 }
 
-// First 16bits is the whole number, last 16bits is the remainder (??)
-class HalfFloat
-{
-public:
-    HalfFloat() = default;
-    HalfFloat(s32 value) : mValue(value) { }
-    f64 AsDouble() const { return static_cast<double>(mValue) / 65536.0; }
-    HalfFloat& operator = (int value) { mValue = value; }
-    bool operator != (const HalfFloat& r) const { return mValue != r.mValue; }
-private:
-    friend HalfFloat operator -(const HalfFloat& l, const HalfFloat& r);
-    s32 mValue;
-};
-
-inline HalfFloat operator - (const HalfFloat& l, const HalfFloat& r) { return HalfFloat(l.mValue - r.mValue); }
-
-#pragma pack(push)
-#pragma pack(4)
-struct abe
-{
-
-    void *vtable;
-    __int16 type;
-    char objectMode;
-    char field_7;
-    char gap8;
-    int field_C;
-    char *field_10;
-    int field_14;
-    BYTE gap18[8];
-    int field_20;
-    char field_24;
-    __declspec(align(2)) char field_26;
-    __declspec(align(2)) char field_28;
-    char gap29;
-    __int16 field_2A;
-    __int16 field_2C;
-    BYTE gap2E[6];
-    __int16 field_34;
-    BYTE gap36[6];
-    int field_3C;
-    BYTE gap40[20];
-    int field_54;
-    __int16 gap58;
-    BYTE gap5A[88];
-    char field_B2;
-    BYTE gapB3[5];
-    HalfFloat xpos;
-    HalfFloat ypos;
-    char field_C0;
-    HalfFloat velocity_x;
-    HalfFloat velocity_y;
-    int scale;
-    char color_r;
-    __declspec(align(2)) char color_g;
-    __declspec(align(2)) char color_b;
-    __declspec(align(2)) char layer;
-    __int16 sprite_offset_x;
-    __int16 sprite_offset_y;
-    BYTE gapDC[28];
-    int field_F8;
-    BYTE gapFC[4];
-    int field_100;
-    __int16 gap104;
-    __int16 alive_state;
-    BYTE gap108[4];
-    int health;
-    BYTE gap110[32];
-    int field_130;
-    int field_134;
-    __int16 field_138;
-    BYTE gap13A[48];
-    char ring_ability;
-    BYTE gap16B[55];
-    char rock_count;
-    BYTE gap1A3[148];
-    __declspec(align(1)) __int16 gap10A;
-};
-#pragma pack(pop)
-
-abe ** hero = reinterpret_cast<abe**>(0x005C1B68);
-
 void DumpDeltas(anim_struct* thisPtr)
 {
     static HalfFloat prevX = 0;
@@ -231,26 +150,28 @@ void DumpDeltas(anim_struct* thisPtr)
     static HalfFloat preVX = 0;
     static HalfFloat preVY = 0;
 
-    if (prevX != (*hero)->xpos ||
-        prevY != (*hero)->ypos ||
-        preVX != (*hero)->velocity_x ||
-        preVY != (*hero)->velocity_y)
+    GameObjectList::BaseObj* hero = GameObjectList::HeroPtr();
+
+    if (prevX != hero->xpos() ||
+        prevY != hero->ypos() ||
+        preVX != hero->velocity_x() ||
+        preVY != hero->velocity_y())
     {
 
         printf("XD:%f YD:%f F:%d XV:%f YV:%f\n",
-            ((*hero)->xpos - prevX).AsDouble(),
-            ((*hero)->ypos - prevY).AsDouble(),
+            (hero->xpos() - prevX).AsDouble(),
+            (hero->ypos() - prevY).AsDouble(),
             thisPtr->mFrameNum,
-            ((*hero)->velocity_x - preVX).AsDouble(),
-            ((*hero)->velocity_y - preVY).AsDouble()
+            (hero->velocity_x() - preVX).AsDouble(),
+            (hero->velocity_y() - preVY).AsDouble()
         );
         //system("PAUSE");
     }
 
-    prevX = (*hero)->xpos;
-    prevY = (*hero)->ypos;
-    preVX = (*hero)->velocity_x;
-    preVY = (*hero)->velocity_y;
+    prevX = hero->xpos();
+    prevY = hero->ypos();
+    preVX = hero->velocity_x();
+    preVY = hero->velocity_y();
 }
 
 void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
@@ -508,10 +429,12 @@ void GetPathArray()
 
 void GdiLoop(HDC hdc)
 {
-    // TODO FIX ME
-    std::string text(/*"Abe: X: " + 
-        std::to_string((*hero)->xpos.AsDouble()) + 
-        " Y: " + std::to_string((*hero)->ypos.AsDouble()) + */
+    GameObjectList::BaseObj* hero = GameObjectList::HeroPtr();
+
+
+    std::string text("Abe: X: " + 
+        (hero ? std::to_string(hero->xpos().AsDouble()) : "??") +
+        (hero ? " Y: " + std::to_string(hero->ypos().AsDouble()) : "??") +
         " Grid: " + std::to_string(gGridEnabled) + 
         " Collisions: " + std::to_string(gCollisionsEnabled) + "(G/H)");
 
