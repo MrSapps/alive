@@ -140,14 +140,14 @@ HalfFloat GameObjectList::BaseObj::ypos()
     return HalfFloat(value);
 }
 
-u32 GameObjectList::BaseObj::velocity_x()
+HalfFloat GameObjectList::BaseObj::velocity_x()
 {
     // TODO
-    return 0;
+    return{};
 }
 
-u32 GameObjectList::BaseObj::velocity_y()
+HalfFloat GameObjectList::BaseObj::velocity_y()
 {
     // TODO
-    return 0;
+    return{};
 }

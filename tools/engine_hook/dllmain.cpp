@@ -131,8 +131,11 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
     case StartDialog::eStartFeeco:
         // Setting to Feco lets us go directly in game, with the side effect that pausing will crash
         // and some other nasties, still its good enough for debugging animations
-        levelNumber = 5;
-        cameraNumber = 1;
+        if (Utils::IsAe()) // This will just instantly crash for AO
+        {
+            levelNumber = 5;
+            cameraNumber = 1;
+        }
         break;
     case StartDialog::eStartMenuDirect:
         // Abe "hello" screen when levelNumber is left as the intro level
@@ -150,35 +153,36 @@ void DumpDeltas(anim_struct* thisPtr)
     static HalfFloat preVX = 0;
     static HalfFloat preVY = 0;
 
-    GameObjectList::BaseObj* hero = GameObjectList::HeroPtr();
+    GameObjectList::BaseObj* pAbe = GameObjectList::HeroPtr();
+    if (!pAbe) return;
 
-    if (prevX != hero->xpos() ||
-        prevY != hero->ypos() ||
-        preVX != hero->velocity_x() ||
-        preVY != hero->velocity_y())
+    if (prevX != pAbe->xpos() ||
+        prevY != pAbe->ypos() ||
+        preVX != pAbe->velocity_x() ||
+        preVY != pAbe->velocity_y())
     {
 
         printf("XD:%f YD:%f F:%d XV:%f YV:%f\n",
-            (hero->xpos() - prevX).AsDouble(),
-            (hero->ypos() - prevY).AsDouble(),
+            (pAbe->xpos() - prevX).AsDouble(),
+            (pAbe->ypos() - prevY).AsDouble(),
             thisPtr->mFrameNum,
-            (hero->velocity_x() - preVX).AsDouble(),
-            (hero->velocity_y() - preVY).AsDouble()
+            (pAbe->velocity_x() - preVX).AsDouble(),
+            (pAbe->velocity_y() - preVY).AsDouble()
         );
         //system("PAUSE");
     }
 
-    prevX = hero->xpos();
-    prevY = hero->ypos();
-    preVX = hero->velocity_x();
-    preVY = hero->velocity_y();
+    prevX = pAbe->xpos();
+    prevY = pAbe->ypos();
+    preVX = pAbe->velocity_x();
+    preVY = pAbe->velocity_y();
 }
 
 void __fastcall anim_decode_hook(anim_struct* thisPtr, void*)
 {
     static anim_struct* pTarget = nullptr;
 
-   // DumpDeltas(thisPtr);
+    DumpDeltas(thisPtr);
 
     if (thisPtr->mAnimChunkPtrs)
     {

@@ -136,13 +136,18 @@ void DebugDialog::SetActiveVab(const std::string& vab)
 
 void DebugDialog::OnFrameEnd()
 {
-    /*
     if (mSelectedPointer)
     {
-        // TODO: Validate pointer is still valid
-        GameObjectList::BaseObj* ptr = (GameObjectList::BaseObj*)mSelectedPointer;
-        ptr->mState = 0;
-    }*/
+        GameObjectList::BaseObj* pSelected = reinterpret_cast<GameObjectList::BaseObj*>(mSelectedPointer);
+        GameObjectList::Objs* pObjs = GameObjectList::GetObjectsPtr();
+        for (int i = 0; i < pObjs->mCount; i++)
+        {
+            if (pSelected == pObjs->mPointerToObjects[i])
+            {
+               // LOG_INFO("XPOS: " << pSelected->xpos().AsDouble());
+            }
+        }
+    }
 }
 
 void DebugDialog::LogSound(DWORD program, DWORD note)

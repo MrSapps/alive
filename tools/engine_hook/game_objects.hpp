@@ -29,6 +29,7 @@ public:
         u8 mState;
         u8 pad1;
         u32 pad2;
+        u32 pad3;
         u32* mLoadedBans;
 
         // TODO: Correct offsets + offsets change per game
@@ -39,8 +40,8 @@ public:
         u32 mScale;
         HalfFloat xpos();
         HalfFloat ypos();
-        u32 velocity_x();
-        u32 velocity_y();
+        HalfFloat velocity_x();
+        HalfFloat velocity_y();
     };
 
     static std::string AeTypeToString(u16 type);
