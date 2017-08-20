@@ -295,9 +295,10 @@ struct PathData
     u32 object_offset;
     u32 object_indextable_offset;
 
+    // TODO: This isn't the full story, to get the true x,y start pos some other value is subtracted
 
-    u16 mUnknown3; // values offset for ao?
-    u16 mUnknown4; // part of the above for ao??
+    u16 mAbeXStartPos; // values offset for ao?
+    u16 mAbeStartYPos; // part of the above for ao??
 
     void* (*mObjectFuncs[256])(void);
 };
