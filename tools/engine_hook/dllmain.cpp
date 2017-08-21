@@ -436,10 +436,11 @@ void GdiLoop(HDC hdc)
 {
     BaseObj* hero = GameObjectList::HeroPtr();
 
-
     std::string text("Abe: X: " + 
         (hero ? std::to_string(hero->xpos().AsDouble()) : "??") +
-        (hero ? " Y: " + std::to_string(hero->ypos().AsDouble()) : "??") +
+        (hero ? " Y: " + std::to_string(hero->ypos().AsDouble()) : "??") + 
+        (hero ? " VX: " + std::to_string(hero->velocity_x().AsDouble()) : "??") +
+        (hero ? " VY: " + std::to_string(hero->velocity_y().AsDouble()) : "??") +
         " Grid: " + std::to_string(gGridEnabled) + 
         " Collisions: " + std::to_string(gCollisionsEnabled) + "(G/H)");
 
