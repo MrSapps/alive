@@ -297,6 +297,6 @@ std::string DeltaRecord::ToString() const
         std::to_string(y) +
         " velx:" +
         std::to_string(velx) + 
-        " velx: " +
+        " vely: " +
         std::to_string(vely);
 }

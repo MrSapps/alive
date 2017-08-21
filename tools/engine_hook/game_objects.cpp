@@ -142,12 +142,12 @@ HalfFloat BaseObj::ypos()
 
 HalfFloat BaseObj::velocity_x()
 {
-    // TODO
-    return{};
+    const s32 value = OffsetAs<s32>(this, Utils::IsAe() ? 0xC4 : 0xB4);
+    return HalfFloat(value);
 }
 
 HalfFloat BaseObj::velocity_y()
 {
-    // TODO
-    return{};
+    const s32 value = OffsetAs<s32>(this, Utils::IsAe() ? 0xC8 : 0xB8);
+    return HalfFloat(value);
 }
