@@ -101,7 +101,7 @@ GameObjectList::Objs* GameObjectList::GetObjectsPtr()
     return p;
 }
 
-GameObjectList::BaseObj* GameObjectList::HeroPtr()
+BaseObj* GameObjectList::HeroPtr()
 {
     const u32 heroId = Utils::IsAe() ? 69 : 43;
 
@@ -128,25 +128,25 @@ static T OffsetAs(void* ptr, u32 offset)
     return value;
 }
 
-HalfFloat GameObjectList::BaseObj::xpos()
+HalfFloat BaseObj::xpos()
 {
     const s32 value = OffsetAs<s32>(this, Utils::IsAe() ? 0xB8 : 0xA8);
     return HalfFloat(value);
 }
 
-HalfFloat GameObjectList::BaseObj::ypos()
+HalfFloat BaseObj::ypos()
 {
     const s32 value = OffsetAs<s32>(this, Utils::IsAe() ? 0xBC : 0xAC);
     return HalfFloat(value);
 }
 
-HalfFloat GameObjectList::BaseObj::velocity_x()
+HalfFloat BaseObj::velocity_x()
 {
     // TODO
     return{};
 }
 
-HalfFloat GameObjectList::BaseObj::velocity_y()
+HalfFloat BaseObj::velocity_y()
 {
     // TODO
     return{};

@@ -78,6 +78,7 @@ struct GameVars
     Address<char> currentLevelId = { Addrs().currentLevelId() };
     Address<char> currentPath = { Addrs().currentPath() };
     Address<char> currentCam = { Addrs().currentCam() };
+    Address<DWORD> gnFrame = { Addrs().gnFrame() };
 };
 
 GameFunctions& Funcs();

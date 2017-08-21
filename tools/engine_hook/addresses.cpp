@@ -159,3 +159,8 @@ u32 Addresses::Stub_DirectSoundCreate() const
 {
     return Utils::IsAe() ? 0x0052C762 : 0x004B6B02;
 }
+
+u32 Addresses::gnFrame()
+{
+    return Utils::IsAe() ? 0x005CA300 : 0x00508AFC;
+}

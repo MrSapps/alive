@@ -35,6 +35,7 @@ public:
     u32 gSeqData() const;
     u32 g_seq_data_dword_C13400() const;
     u32 Stub_DirectSoundCreate() const;
+    u32 gnFrame();
 };
 
 Addresses& Addrs();

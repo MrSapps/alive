@@ -5,6 +5,7 @@
 #include <functional>
 #include "string_util.hpp"
 #include "anim_logger.hpp"
+#include "game_functions.hpp"
 #include "game_objects.hpp"
 
 DebugDialog::DebugDialog()
@@ -57,6 +58,7 @@ BOOL DebugDialog::CreateControls()
     {
         SyncAnimListBoxData();
         SyncSoundListBoxData();
+        SyncDeltaListBoxData();
         mRefreshTimer->Stop();
     });
 
@@ -67,6 +69,8 @@ BOOL DebugDialog::CreateControls()
     mClearSelectObjectDeltas->OnClicked([&]() 
     {
         mObjectDeltasListBox->Clear();
+        mDeltas.clear();
+        mDeltaInfo = {};
     });
 
     mObjectDeltasListBox = std::make_unique<ListBox>(this, IDC_OBJECT_DELTAS);
@@ -96,6 +100,7 @@ BOOL DebugDialog::CreateControls()
         auto ptrValueStr = string_util::split(item, '_')[0];
         mSelectedPointer = std::stol(ptrValueStr);
         mSelectedObjectLabel->SetText(ptrValueStr);
+        mDeltaInfo = {};
     });
 
     return TRUE;
@@ -114,7 +119,7 @@ BOOL DebugDialog::Proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 void DebugDialog::LogAnimation(const std::string& name)
 {
     DWORD hitCount = 0;
-    auto it = mAnims.find(AnimPriorityData{ name, 0 });
+    auto it = mAnims.find(AnimPriorityData{ name, 0, 0 });
     if (it != std::end(mAnims))
     {
         hitCount = it->mHitCount;
@@ -122,7 +127,7 @@ void DebugDialog::LogAnimation(const std::string& name)
     }
 
 
-    AnimPriorityData data{ name, hitCount+1 };
+    AnimPriorityData data{ name, Vars().gnFrame.Get(), hitCount+1 };
     mAnims.insert(data);
 
     TriggerRefreshTimer();
@@ -138,13 +143,14 @@ void DebugDialog::OnFrameEnd()
 {
     if (mSelectedPointer)
     {
-        GameObjectList::BaseObj* pSelected = reinterpret_cast<GameObjectList::BaseObj*>(mSelectedPointer);
+        BaseObj* pSelected = reinterpret_cast<BaseObj*>(mSelectedPointer);
         GameObjectList::Objs* pObjs = GameObjectList::GetObjectsPtr();
         for (int i = 0; i < pObjs->mCount; i++)
         {
             if (pSelected == pObjs->mPointerToObjects[i])
             {
-               // LOG_INFO("XPOS: " << pSelected->xpos().AsDouble());
+                RecordObjectDeltas(*pSelected);
+                return;
             }
         }
     }
@@ -155,14 +161,14 @@ void DebugDialog::LogSound(DWORD program, DWORD note)
     const std::string name = GetAnimLogger().LookUpSoundEffect(mActiveVab, program, note);
 
     DWORD hitCount = 0;
-    auto it = mSounds.find(SoundPriorityData{ name, 0 });
+    auto it = mSounds.find(SoundPriorityData{ name, 0, 0 });
     if (it != std::end(mSounds))
     {
         hitCount = it->mHitCount;
         mSounds.erase(it);
     }
 
-    SoundPriorityData data{ name, hitCount + 1 };
+    SoundPriorityData data{ name, Vars().gnFrame.Get(), hitCount + 1 };
     mSounds.insert(data);
 
     TriggerRefreshTimer();
@@ -179,7 +185,7 @@ void DebugDialog::SyncAnimListBoxData()
     {
         if (strFilter.empty() || string_util::StringFilter(d.mName.c_str(), strFilter.c_str()))
         {
-            mAnimListBox->AddString(d.mName + "(" + std::to_string(d.mHitCount) + ")");
+            mAnimListBox->AddString(d.mName + "(F:" + std::to_string(d.mLastFrame) + " H:" + std::to_string(d.mHitCount) + ")");
         }
     }
 
@@ -222,7 +228,7 @@ void DebugDialog::SyncSoundListBoxData()
 
     for (auto& d : mSounds)
     {
-        mSoundsListBox->AddString(d.mName + "(" + std::to_string(d.mHitCount) + ")");
+        mSoundsListBox->AddString(d.mName + "(F:" + std::to_string(d.mLastFrame) + " H:" + std::to_string(d.mHitCount) + ")");
     }
     mSoundsListBox->SetSelectedIndex(selected);
 }
@@ -230,15 +236,67 @@ void DebugDialog::SyncSoundListBoxData()
 void DebugDialog::LogMusic(const std::string& seqName)
 {
     DWORD hitCount = 0;
-    auto it = mSounds.find(SoundPriorityData{ seqName, 0 });
+    auto it = mSounds.find(SoundPriorityData{ seqName, 0, 0 });
     if (it != std::end(mSounds))
     {
         hitCount = it->mHitCount;
         mSounds.erase(it);
     }
 
-    SoundPriorityData data{ seqName, hitCount + 1 };
+    SoundPriorityData data{ seqName, Vars().gnFrame.Get(), hitCount + 1 };
     mSounds.insert(data);
 
     TriggerRefreshTimer();
+}
+
+void DebugDialog::SyncDeltaListBoxData()
+{
+    const DWORD selected = mObjectDeltasListBox->SelectedIndex();
+
+    mObjectDeltasListBox->Clear();
+
+    for (auto& d : mDeltas)
+    {
+        mObjectDeltasListBox->AddString(d.ToString());
+    }
+    mObjectDeltasListBox->SetSelectedIndex(selected);
+}
+
+void DebugDialog::RecordObjectDeltas(BaseObj& obj)
+{
+    if (mDeltaInfo.prevX != obj.xpos() ||
+        mDeltaInfo.prevY != obj.ypos() ||
+        mDeltaInfo.preVX != obj.velocity_x() ||
+        mDeltaInfo.preVY != obj.velocity_y())
+    {
+        mDeltas.push_back(DeltaRecord
+        {
+            Vars().gnFrame.Get(),
+            (obj.xpos() - mDeltaInfo.prevX).AsDouble(),
+            (obj.ypos() - mDeltaInfo.prevY).AsDouble(),
+            (obj.velocity_x() - mDeltaInfo.preVX).AsDouble(),
+            (obj.velocity_y() - mDeltaInfo.preVY).AsDouble()
+        });
+        TriggerRefreshTimer();
+    }
+
+    mDeltaInfo.prevX = obj.xpos();
+    mDeltaInfo.prevY = obj.ypos();
+    mDeltaInfo.preVX = obj.velocity_x();
+    mDeltaInfo.preVY = obj.velocity_y();
+}
+
+std::string DeltaRecord::ToString() const
+{
+    return 
+        " F: " +
+        std::to_string(f) +
+        " x:" +
+        std::to_string(x) + 
+        " y:" +
+        std::to_string(y) +
+        " velx:" +
+        std::to_string(velx) + 
+        " velx: " +
+        std::to_string(vely);
 }

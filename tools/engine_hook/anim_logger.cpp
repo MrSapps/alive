@@ -113,7 +113,7 @@ std::string AnimLogger::LookUpSoundEffect(const std::string vabName, DWORD progr
     std::string foundName;
     for (const SoundBankLocation& sbl : mResources->mSoundResources.mSoundBanks)
     {
-        if (sbl.mSoundBankName == vabNameNoExt)
+        if (sbl.mSoundBankName == vabNameNoExt && (sbl.mDataSetName == (Utils::IsAe() ? "AePc" : "AoPc")))
         {
             foundName = sbl.mName;
             break;

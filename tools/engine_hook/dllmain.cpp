@@ -153,7 +153,7 @@ void DumpDeltas(anim_struct* thisPtr)
     static HalfFloat preVX = 0;
     static HalfFloat preVY = 0;
 
-    GameObjectList::BaseObj* pAbe = GameObjectList::HeroPtr();
+    BaseObj* pAbe = GameObjectList::HeroPtr();
     if (!pAbe) return;
 
     if (prevX != pAbe->xpos() ||
@@ -434,7 +434,7 @@ void GetPathArray()
 
 void GdiLoop(HDC hdc)
 {
-    GameObjectList::BaseObj* hero = GameObjectList::HeroPtr();
+    BaseObj* hero = GameObjectList::HeroPtr();
 
 
     std::string text("Abe: X: " + 
