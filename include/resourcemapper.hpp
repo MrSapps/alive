@@ -556,7 +556,7 @@ private:
     u32 mFrameDelay = 1;
 
     // When >= mFrameDelay, mFrameNum is incremented
-    u32 mCounter = 0;
+    u32 mCounter = 0; // TODO: Switch to using Engine::mGlobalFrameCounter
     s32 mFrameNum = -1;
     
     s32 mXPos = 100;

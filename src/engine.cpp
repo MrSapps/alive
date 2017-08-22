@@ -290,6 +290,7 @@ void Engine::BindScriptTypes()
     engine.Func("SetMusicTheme", &Engine::SetMusicTheme);
     engine.Func("PlaySoundEffect", &Engine::PlaySoundEffect);
     engine.Func("StopSoundEffect", &Engine::StopSoundEffect);
+    engine.Func("GlobalFrameCounter", &Engine::GlobalFrameCounter);
 
     Sqrat::RootTable().Bind("Engine", engine);
     // TODO: Use InstanceBinder
@@ -769,6 +770,8 @@ void Engine::Update()
     case EngineStates::eQuit:
         break;
     }
+
+    mGlobalFrameCounter++;
 }
 
 void Engine::Render()

@@ -581,6 +581,7 @@ public: // Scripting entry points
     void SetMusicTheme(const char* themeName);
     SoundId PlaySoundEffect(const char* soundName);
     void StopSoundEffect(SoundId id);
+    u32 GlobalFrameCounter() const { return mGlobalFrameCounter; }
 private:
     void RunInitScript();
     void Include(const std::string& scriptName);
@@ -628,4 +629,6 @@ protected:
 
     SDL_SurfacePtr mLoadingIcon;
     std::unique_ptr<std::future<void>> mASyncJob;
+
+    u32 mGlobalFrameCounter = 0;
 };
