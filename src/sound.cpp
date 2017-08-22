@@ -3,7 +3,7 @@
 #include "resourcemapper.hpp"
 #include "oddlib/audio/SequencePlayer.h"
 
-std::atomic<SoundId> Sound::mSoundId = 99;
+std::atomic<SoundId> Sound::mSoundId(99);
 
 Sound::Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs)
     : mAudioController(audioController), mLocator(locator), mCache(fs)

@@ -73,7 +73,7 @@ private:
 public:
     void RemoveFromMemoryCache(const std::string& name);
     ASyncQueue<UP_BaseSoundCacheJob> mLoaderQueue;
-    std::atomic<bool> mSyncDone = false;
+    std::atomic<bool> mSyncDone{ false };
 
     friend class SoundAddToCacheJob;
     friend class CacheAllSoundEffectsJob;
