@@ -158,10 +158,10 @@ private:
 
     std::mutex mStartStopMutex; // Prevent concurrent Start/Stop/Add
     mutable std::mutex mQueueMutex;     // Protect mQueue
-    std::atomic<bool> mQuit = false;
-    std::atomic<bool> mStopWork = false;
-    std::atomic<u32> mRunningThreadCount = 0;
-    std::atomic<u32> mExecutingJobCount = 0;
+    std::atomic<bool> mQuit { false };
+    std::atomic<bool> mStopWork { false };
+    std::atomic<u32> mRunningThreadCount { 0 };
+    std::atomic<u32> mExecutingJobCount { 0 };
     std::condition_variable mHaveWork;
     std::deque<QueuedItemType> mQueue;
     std::vector<std::thread> mWorkers;

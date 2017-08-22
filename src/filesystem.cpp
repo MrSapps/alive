@@ -23,6 +23,7 @@
 #include "directorylimitedfilesystem.hpp"
 #include "cdromfilesystem.hpp"
 
+#ifdef _WIN32
 static std::wstring Utf8ToUtf16(const std::string& utf8)
 {
     std::vector<wchar_t> utf16(utf8.length() + 1);
@@ -34,6 +35,7 @@ static std::wstring Utf8ToUtf16(const std::string& utf8)
     }
     return utf16.data();
 }
+#endif
 
 /*static*/ std::unique_ptr<IFileSystem> IFileSystem::Factory(IFileSystem& fs, const std::string& path)
 {
@@ -207,7 +209,7 @@ typedef std::unique_ptr<DIR, closedirDeleter> closedirHandle;
 
 std::vector<std::string> OSBaseFileSystem::DoEnumerate(const std::string& directory, bool files, const char* filter)
 {
-    std::unique_lock<std::mutex> lock(mMutex);
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
 
     std::vector<std::string> ret;
     const std::string dirPath = ExpandPath(directory) + "/";
@@ -303,7 +305,7 @@ bool OSBaseFileSystem::FileExists(std::string& fileName)
 #else
 bool OSBaseFileSystem::FileExists(std::string& fileName)
 {
-    std::unique_lock<std::mutex> lock(mMutex);
+    std::unique_lock<std::recursive_mutex> lock(mMutex);
 
     const std::string dirPart = Parent(fileName);
     std::vector<std::string> files = DoEnumerate(dirPart, true, nullptr);
