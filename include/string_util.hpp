@@ -70,12 +70,13 @@ namespace string_util
         return (wsback <= wsfront ? std::string() : std::string(wsfront, wsback));
     }
 
-    inline std::deque<std::string> split(const std::string& input, char delimiter)
+    template<class StringType>
+    inline std::deque<StringType> split(const StringType& input, char delimiter)
     {
-        std::deque<std::string> tokens;
+        std::deque<StringType> tokens;
         size_t start = 0;
         size_t end = 0;
-        while ((end = input.find(delimiter, start)) != std::string::npos)
+        while ((end = input.find(delimiter, start)) != StringType::npos)
         {
             tokens.push_back(input.substr(start, end - start));
             start = end + 1;

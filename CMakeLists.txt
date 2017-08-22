@@ -490,8 +490,28 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         tools/engine_hook/sound_hooks.hpp
         tools/engine_hook/game_functions.cpp
         tools/engine_hook/game_functions.hpp
+        tools/engine_hook/dsound7proxy.hpp
         tools/engine_hook/ddraw7proxy.hpp
         tools/engine_hook/dsurface7proxy.hpp
+        tools/engine_hook/window_hooks.hpp
+        tools/engine_hook/window_hooks.cpp
+        tools/engine_hook/hook_utils.hpp
+        tools/engine_hook/hook_utils.cpp
+        tools/engine_hook/anim_logger.hpp
+        tools/engine_hook/anim_logger.cpp
+        tools/engine_hook/debug_dialog.hpp
+        tools/engine_hook/debug_dialog.cpp
+        tools/engine_hook/w32controls.cpp
+        tools/engine_hook/w32controls.hpp
+        tools/engine_hook/start_dialog.cpp
+        tools/engine_hook/start_dialog.hpp
+        tools/engine_hook/game_objects.cpp
+        tools/engine_hook/game_objects.hpp
+        tools/engine_hook/half_float.hpp
+        tools/engine_hook/addresses.cpp
+        tools/engine_hook/addresses.hpp
+        tools/engine_hook/resource.h
+        tools/engine_hook/resources.rc
         )
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_DEBUG "/SUBSYSTEM:WINDOWS")
     set_target_properties(ddraw PROPERTIES LINK_FLAGS_RELEASE  "/SUBSYSTEM:WINDOWS")

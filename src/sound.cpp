@@ -1,7 +1,7 @@
 #include "sound.hpp"
 #include "logger.hpp"
 #include "resourcemapper.hpp"
-#include "oddlib\audio\SequencePlayer.h"
+#include "oddlib/audio/SequencePlayer.h"
 
 std::atomic<SoundId> Sound::mSoundId = 99;
 

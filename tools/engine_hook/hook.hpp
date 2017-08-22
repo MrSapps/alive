@@ -1,10 +1,6 @@
 #pragma once
 
-inline void FatalExit(const char* msg)
-{
-    ::MessageBox(NULL, msg, "Error", MB_OK | MB_ICONEXCLAMATION);
-    exit(-1);
-}
+#include "hook_utils.hpp"
 
 template<class FunctionType, class RealFunctionType = FunctionType>
 class Hook
@@ -31,7 +27,7 @@ public:
         DetourAttach(&(PVOID&)mOldPtr, newFunc);
         if (DetourTransactionCommit() != NO_ERROR)
         {
-            FatalExit("detouring failed");
+            Utils::FatalExit("detouring failed");
         }
     }
 
