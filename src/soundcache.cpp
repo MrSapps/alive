@@ -62,7 +62,7 @@ private:
 
 SoundCache::SoundCache(OSBaseFileSystem& fs)
     : mFs(fs),
-    mLoaderQueue(std::bind(&SoundCache::AsyncQueueWorkerFunction, this, std::placeholders::_1, std::placeholders::_2))
+    mLoaderQueue([&](UP_BaseSoundCacheJob item, std::atomic<bool>& quitFlag) { AsyncQueueWorkerFunction(std::move(item), quitFlag); })
 {
     mLoaderQueue.Start();
 }
