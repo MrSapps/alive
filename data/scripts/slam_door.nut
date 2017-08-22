@@ -1,3 +1,20 @@
+class TestObj extends BaseMapObject
+{
+    function constructor(mapObj, map, x, y)
+    {
+        base.constructor(mapObj, map, "Child test");
+        mBase.mXPos = x + 30;
+        mBase.mYPos = y;
+        base.LoadAnimation("SLAM.BAN_2020_AePc_1");
+        base.SetAnimation("SLAM.BAN_2020_AePc_1");
+    }
+
+    function Update(actions)
+    {
+
+    }
+}
+
 class SlamDoor extends BaseMapObject
 {
     mClosed = 0;
@@ -23,6 +40,10 @@ class SlamDoor extends BaseMapObject
         mId = IStream.ReadU16(stream);
         mInverted = IStream.ReadU16(stream);
         mDelete = IStream.ReadU32(stream);
+
+        local nativeObj = base.AddChildObject();
+        local scriptInst = TestObj(nativeObj, map, mBase.mXPos, mBase.mYPos);
+        nativeObj.SetScriptInstance(scriptInst);
     }
 
     function Update(actions)
@@ -35,6 +56,13 @@ class SlamDoor extends BaseMapObject
         else
         {
             base.SetAnimation("");
+        }
+
+        local childCount = base.ChildCount();
+        for (local i=0; i<childCount; i++)
+        {
+            local child = base.ChildAt(i);
+            child.Update(actions);
         }
     }
 }

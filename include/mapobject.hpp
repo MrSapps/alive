@@ -55,6 +55,7 @@ public:
         : mLocator(locator), mRect(rect)
     {
     }
+
     MapObject(const MapObject&) = delete;
     MapObject(MapObject&& other) = delete;
    
@@ -90,6 +91,11 @@ public:
     bool CellingCollision(IMap& map, f32 dx, f32 dy) const;
 
     CollisionResult FloorCollision(IMap& map) const;
+
+    MapObject* AddChildObject();
+    u32 ChildCount() const;
+    Sqrat::Object& ChildAt(u32 index);
+    void RemoveChild(u32 index);
 private:
     class Loader
     {
@@ -142,4 +148,6 @@ private:
     s32 mId = 0;
     ObjRect mRect;
     Sqrat::Object mScriptObject; // Derived script object instance
+
+    std::vector<UP_MapObject> mChildren;
 };

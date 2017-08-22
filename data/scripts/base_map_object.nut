@@ -22,6 +22,26 @@ class BaseMapObject
         }
     }
 
+    function ChildCount()
+    {
+        return mBase.ChildCount();
+    }
+
+    function ChildAt(index)
+    {
+        return mBase.ChildAt(index);
+    }
+
+    function RemoveChild(index)
+    {
+        mBase.RemoveChild(index);
+    }
+
+    function AddChildObject()
+    {
+        return mBase.AddChildObject();
+    }
+
     function AnimUpdate()
     {
         return mBase.AnimUpdate();

@@ -10,6 +10,12 @@
 {
     {
         Sqrat::Class<MapObject, Sqrat::NoConstructor<MapObject>> c(Sqrat::DefaultVM::Get(), "MapObject");
+        
+        c.Func("AddChildObject", &MapObject::AddChildObject);
+        c.Func("ChildCount", &MapObject::ChildCount);
+        c.Func("ChildAt", &MapObject::ChildAt);
+        c.Func("RemoveChild", &MapObject::RemoveChild);
+
         c.Func("SetScriptInstance", &MapObject::SetScriptInstance);
         c.Func("LoadAnimation", &MapObject::LoadAnimation);
         c.Func("SetAnimation", &MapObject::SetAnimation);
@@ -206,6 +212,36 @@ CollisionResult MapObject::FloorCollision(IMap& map) const
     return{};
 }
 
+MapObject* MapObject::AddChildObject()
+{
+    auto ptr = std::make_unique<MapObject>(mLocator, mRect);
+    MapObject* pRaw = ptr.get();
+    mChildren.push_back(std::move(ptr));
+    return pRaw;
+}
+
+u32 MapObject::ChildCount() const
+{
+    return static_cast<u32>(mChildren.size());
+}
+
+Sqrat::Object& MapObject::ChildAt(u32 index)
+{
+    if (index < mChildren.size())
+    {
+        return mChildren[index]->mScriptObject;
+    }
+    throw Oddlib::Exception("ChildAt() index out of bounds");
+}
+
+void MapObject::RemoveChild(u32 index)
+{
+    if (index < mChildren.size())
+    {
+        mChildren.erase(mChildren.begin() + index);
+    }
+}
+
 void MapObject::LoadScript()
 {
     /*
@@ -377,6 +413,10 @@ void MapObject::Render(AbstractRenderer& rend, int x, int y, float scale, int la
         mAnim->SetYPos(static_cast<s32>(mYPos) + y);
         mAnim->SetScale(scale);
         mAnim->Render(rend, mFlipX, layer);
+    }
+    for (auto& child : mChildren)
+    {
+        child->Render(rend, x, y, scale, layer);
     }
 }
 
