@@ -79,6 +79,7 @@ public:
     void SetMusicTheme(const char* themeName, const char* eventOnLoad = nullptr);
     bool IsLoading() const;
 
+    void StopAllMusic();
     void HandleMusicEvent(const char* eventName);
     SoundId PlaySoundEffect(const char* soundName);
     void StopSoundEffect(SoundId id);

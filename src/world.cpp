@@ -183,6 +183,7 @@ void World::LoadMap(const std::string& mapName)
     mLocatePathFuture = mLocator.LocatePath(mapName.c_str());
 
     mWorldState.mState = WorldState::States::eLoadingMap;
+    mSound.StopAllMusic();
     mLoadingIcon.SetEnabled(true);
 }
 

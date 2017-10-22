@@ -47,7 +47,11 @@ void Sound::SetMusicTheme(const char* themeName, const char* eventOnLoad)
     }
     else
     {
-        LOG_ERROR("Music theme " << themeName << " was not found");
+        if (mState == eSoundStates::eIdle)
+        {
+            SetState(eSoundStates::eUnloadingActiveSoundTheme);
+        }
+        LOG_ERROR("Music theme " << themeName << " was not found.");
     }
 }
 
@@ -85,6 +89,12 @@ std::unique_ptr<ISound> Sound::PlaySound(const std::string& soundName, const std
         }
         return pSound;
     }
+}
+
+void Sound::StopAllMusic()
+{
+    mAmbiance = nullptr;
+    mMusicTrack = nullptr;
 }
 
 void Sound::HandleMusicEvent(const char* eventName)
