@@ -247,10 +247,7 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
         if (!mSound.IsLoading())
         {
             mWorldState.mState = WorldState::States::eInGame;
-
-            // If a script explicitly changed the music theme then don't auto start playing the base line
             mSound.HandleMusicEvent("BASE_LINE");
-
             mLoadingIcon.SetEnabled(false);
         }
         break;
