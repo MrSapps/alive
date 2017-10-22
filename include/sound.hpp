@@ -59,6 +59,7 @@ private:
 
 class ISound;
 class OSBaseFileSystem;
+class JobSystem;
 
 namespace Oddlib
 {
@@ -72,7 +73,7 @@ class Sound : public IAudioPlayer
 public:
     Sound(const Sound&) = delete;
     Sound& operator = (const Sound&) = delete;
-    Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs);
+    Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs, JobSystem& jobSystem);
     ~Sound();
 
     void SetMusicTheme(const char* themeName, const char* eventOnLoad = nullptr);

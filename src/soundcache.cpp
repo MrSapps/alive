@@ -60,17 +60,15 @@ private:
     WavHeader mHeader;
 };
 
-SoundCache::SoundCache(OSBaseFileSystem& fs)
-    : mFs(fs),
-    mLoaderQueue([&](UP_BaseSoundCacheJob item, std::atomic<bool>& quitFlag) { AsyncQueueWorkerFunction(std::move(item), quitFlag); })
+SoundCache::SoundCache(OSBaseFileSystem& fs, JobSystem& jobSystem)
+    : mFs(fs), mJobSystem(jobSystem), mJobTracker(mJobSystem)
 {
-    mLoaderQueue.Start();
+
 }
 
 SoundCache::~SoundCache()
 {
     TRACE_ENTRYEXIT;
-    mLoaderQueue.Stop();
 }
 
 void SoundCache::Sync()
@@ -153,15 +151,15 @@ std::unique_ptr<ISound> SoundCache::GetCached(const std::string& name)
 
 bool SoundCache::IsBusy() const
 {
-    return mLoaderQueue.IsIdle() == false;
+    return mJobTracker.OutstandingJobCount() != 0;
 }
 
 void SoundCache::Cancel()
 {
-    mLoaderQueue.PauseAndCancelASync();
+    mJobTracker.CancelOutstandingJobs();
 }
 
-void SoundCache::AddToMemoryAndDiskCache(std::unique_ptr<ISound> sound, std::atomic<bool>& quitFlag)
+void SoundCache::AddToMemoryAndDiskCache(std::unique_ptr<ISound> sound, const CancelFlag& quitFlag)
 {
     const std::string baseFileName = mFs.ExpandPath("{CacheDir}/" + sound->Name());
     const std::string tmpFileName = baseFileName + ".tmp";
@@ -171,7 +169,7 @@ void SoundCache::AddToMemoryAndDiskCache(std::unique_ptr<ISound> sound, std::ato
 
     sound->Load();
 
-    if (quitFlag)
+    if (quitFlag.IsCancelled())
     {
         return;
     }
@@ -182,7 +180,7 @@ void SoundCache::AddToMemoryAndDiskCache(std::unique_ptr<ISound> sound, std::ato
     AudioConverter::Convert<WavEncoder>(*sound, tmpFileName.c_str(), quitFlag);
 
     // Ensure we don't rename if it was stopped halfway! 
-    if (quitFlag)
+    if (quitFlag.IsCancelled())
     {
         mFs.DeleteFile(tmpFileName.c_str());
         return;
@@ -193,7 +191,7 @@ void SoundCache::AddToMemoryAndDiskCache(std::unique_ptr<ISound> sound, std::ato
     auto stream = mFs.Open(finalFileName);
     auto data = std::make_shared<std::vector<u8>>(Oddlib::IStream::ReadAll(*stream));;
 
-    if (quitFlag)
+    if (quitFlag.IsCancelled())
     {
         return;
     }
@@ -202,39 +200,37 @@ void SoundCache::AddToMemoryAndDiskCache(std::unique_ptr<ISound> sound, std::ato
     mSoundDataCache[sound->Name()] = data;
 }
 
-void SoundCache::AsyncQueueWorkerFunction(UP_BaseSoundCacheJob item, std::atomic<bool>& quitFlag)
+void SoundCache::AsyncQueueWorkerFunction(UP_BaseSoundCacheJob item, const CancelFlag& quitFlag)
 {
-    if (quitFlag)
+    if (quitFlag.IsCancelled())
     {
         return;
     }
 
-    item->Execute(quitFlag);
+    item->OnExecute(quitFlag);
 }
 
 void SoundCache::CacheSound(ResourceLocator& locator, const std::string& name)
 {
-    mLoaderQueue.UnPause();
-    mLoaderQueue.Add(std::make_unique<SoundAddToCacheJob>(*this, locator, name));
+    mJobTracker.StartJob(std::make_unique<SoundAddToCacheJob>(*this, locator, name));
 }
 
 void SoundCache::CacheAllSoundEffects(ResourceLocator& locator)
 {
-    mLoaderQueue.UnPause();
-    mLoaderQueue.Add(std::make_unique<CacheAllSoundEffectsJob>(*this, locator));
+    mJobTracker.StartJob(std::make_unique<CacheAllSoundEffectsJob>(*this, locator));
 }
 
-void SoundAddToCacheJob::Execute(std::atomic<bool>& quitFlag)
+void SoundAddToCacheJob::OnExecute(const CancelFlag& quitFlag)
 {
     mSoundCache.CacheSoundImpl(mLocator, mName, quitFlag);
 }
 
-void CacheAllSoundEffectsJob::Execute(std::atomic<bool>& quitFlag)
+void CacheAllSoundEffectsJob::OnExecute(const CancelFlag& quitFlag)
 {
     mSoundCache.CacheAllSoundEffectsImp(mLocator, quitFlag);
 }
 
-void SoundCache::CacheAllSoundEffectsImp(ResourceLocator& locator, std::atomic<bool>& quitFlag)
+void SoundCache::CacheAllSoundEffectsImp(ResourceLocator& locator, const CancelFlag& quitFlag)
 {
     // initial one time sync
     Sync();
@@ -242,7 +238,7 @@ void SoundCache::CacheAllSoundEffectsImp(ResourceLocator& locator, std::atomic<b
     const std::vector<SoundResource>& resources = locator.GetSoundResources();
     for (const SoundResource& resource : resources)
     {
-        if (quitFlag)
+        if (quitFlag.IsCancelled())
         {
             return;
         }
@@ -254,22 +250,22 @@ void SoundCache::CacheAllSoundEffectsImp(ResourceLocator& locator, std::atomic<b
     }
 }
 
-void SoundCache::CacheSoundImpl(ResourceLocator& locator, const std::string& name, std::atomic<bool>& quitFlag)
+void SoundCache::CacheSoundImpl(ResourceLocator& locator, const std::string& name, const CancelFlag& quitFlag)
 {
-    if (quitFlag || ExistsInMemoryCache(name))
+    if (quitFlag.IsCancelled() || ExistsInMemoryCache(name))
     {
         // Already in memory
         return;
     }
 
-    if (quitFlag || AddToMemoryCacheFromDiskCache(name))
+    if (quitFlag.IsCancelled() || AddToMemoryCacheFromDiskCache(name))
     {
         // Already on disk and now added to in memory cache
         return;
     }
 
     std::unique_ptr<ISound> pSound = locator.LocateSound(name, "", true, true).get();
-    if (!quitFlag && pSound)
+    if (!quitFlag.IsCancelled() && pSound)
     {
         // Write into disk cache and then load from disk cache into memory cache
         AddToMemoryAndDiskCache(std::move(pSound), quitFlag);

@@ -1,7 +1,7 @@
 #include "editormode.hpp"
 #include "engine.hpp"
 #include "debug.hpp"
-
+#include "world.hpp"
 
 class CommandSelectOrDeselectLine : public ICommandWithId<CommandSelectOrDeselectLine>
 {
@@ -264,32 +264,86 @@ void UndoStack::Redo()
     }
 }
 
-EditorMode::EditorMode(GridMapState& mapState)
-    : mMapState(mapState)
+EditorMode::EditorMode(WorldState& mapState)
+    : mWorldState(mapState)
 {
 
 }
 
 void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
 {
+    bool menuItemHandled = false;
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            menuItemHandled = true;
+
+            ImGui::MenuItem("New map", nullptr);
+            ImGui::MenuItem("Open map", nullptr);
+            ImGui::MenuItem("Save", nullptr);
+            ImGui::MenuItem("Save as", nullptr);
+
+            if (ImGui::MenuItem("Exit", nullptr)) 
+            {
+                mWorldState.mState = WorldState::States::eQuit;
+            }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Edit"))
+        {
+            menuItemHandled = true;
+
+            if (ImGui::MenuItem("Undo", "CTRL+Z")) 
+            {
+                mUndoStack.Undo();
+            }
+
+            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false))
+            {
+                mUndoStack.Redo();
+            }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Help"))
+        {
+            menuItemHandled = true;
+
+            if (ImGui::MenuItem("About", nullptr))
+            {
+                // TODO
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+
+    if (menuItemHandled)
+    {
+        return;
+    }
+
     const glm::vec2 mousePosWorld = coords.ScreenToWorld({ input.mMousePosition.mX, input.mMousePosition.mY });
 
     if (input.mKeys[SDL_SCANCODE_E].IsPressed())
     {
-        mMapState.mState = GridMapState::eStates::eToGame;
+        mWorldState.mState = WorldState::States::eToGame;
         coords.mSmoothCameraPosition = true;
-        mMapState.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
+        mWorldState.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
 
-        const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / mMapState.kCameraBlockSize.x);
-        const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / mMapState.kCameraBlockSize.y);
+        const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / mWorldState.kCameraBlockSize.x);
+        const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / mWorldState.kCameraBlockSize.y);
 
-        mMapState.mCameraPosition.x = (mouseCamX * mMapState.kCameraBlockSize.x) + (mMapState.kVirtualScreenSize.x / 2);
-        mMapState.mCameraPosition.y = (mouseCamY * mMapState.kCameraBlockSize.y) + (mMapState.kVirtualScreenSize.y / 2);
+        mWorldState.mCameraPosition.x = (mouseCamX * mWorldState.kCameraBlockSize.x) + (mWorldState.kVirtualScreenSize.x / 2);
+        mWorldState.mCameraPosition.y = (mouseCamY * mWorldState.kCameraBlockSize.y) + (mWorldState.kVirtualScreenSize.y / 2);
 
-        if (mMapState.mCameraSubject)
+        if (mWorldState.mCameraSubject)
         {
-            mMapState.mCameraSubject->mXPos = mMapState.mCameraPosition.x;
-            mMapState.mCameraSubject->mYPos = mMapState.mCameraPosition.y;
+            mWorldState.mCameraSubject->mXPos = mWorldState.mCameraPosition.x;
+            mWorldState.mCameraSubject->mYPos = mWorldState.mCameraPosition.y;
         }
     }
 
@@ -311,18 +365,18 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
             editorCamSpeed *= 4.0f;
         }
 
-        if (input.mKeys[SDL_SCANCODE_W].IsDown()) { mMapState.mCameraPosition.y -= editorCamSpeed; }
-        else if (input.mKeys[SDL_SCANCODE_S].IsDown()) { mMapState.mCameraPosition.y += editorCamSpeed; }
+        if (input.mKeys[SDL_SCANCODE_W].IsDown()) { mWorldState.mCameraPosition.y -= editorCamSpeed; }
+        else if (input.mKeys[SDL_SCANCODE_S].IsDown()) { mWorldState.mCameraPosition.y += editorCamSpeed; }
 
-        if (input.mKeys[SDL_SCANCODE_A].IsDown()) { mMapState.mCameraPosition.x -= editorCamSpeed; }
-        else if (input.mKeys[SDL_SCANCODE_D].IsDown()) { mMapState.mCameraPosition.x += editorCamSpeed; }
+        if (input.mKeys[SDL_SCANCODE_A].IsDown()) { mWorldState.mCameraPosition.x -= editorCamSpeed; }
+        else if (input.mKeys[SDL_SCANCODE_D].IsDown()) { mWorldState.mCameraPosition.x += editorCamSpeed; }
     }
 
     coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorCamZoom);
-    coords.SetCameraPosition(mMapState.mCameraPosition);
+    coords.SetCameraPosition(mWorldState.mCameraPosition);
 
     // Find out what line is under the mouse pos, if any
-    const s32 lineIdx = CollisionLine::Pick(mMapState.mCollisionItems, mousePosWorld, mMapState.mState == GridMapState::eStates::eInGame ? 1.0f : mEditorCamZoom);
+    const s32 lineIdx = CollisionLine::Pick(mWorldState.mCollisionItems, mousePosWorld, mWorldState.mState == WorldState::States::eInGame ? 1.0f : mEditorCamZoom);
 
     if (lineIdx >= 0)
     {
@@ -361,8 +415,8 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
             {
                 LOG_INFO("Toggle line selected status");
                 // Only change state if we select a new line, when we de-select there is no selection area to update
-                updateState = !mMapState.mCollisionItems[lineIdx]->IsSelected();
-                mUndoStack.Push<CommandSelectOrDeselectLine>(mMapState.mCollisionItems, mSelection, lineIdx, !mMapState.mCollisionItems[lineIdx]->IsSelected());
+                updateState = !mWorldState.mCollisionItems[lineIdx]->IsSelected();
+                mUndoStack.Push<CommandSelectOrDeselectLine>(mWorldState.mCollisionItems, mSelection, lineIdx, !mWorldState.mCollisionItems[lineIdx]->IsSelected());
                 if (!updateState)
                 {
                     mSelectionState = eSelectionState::eNone;
@@ -376,9 +430,9 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
                     LOG_INFO("Select single line");
                     if (mSelection.HasSelection())
                     {
-                        mUndoStack.Push<CommandClearSelection>(mMapState.mCollisionItems, mSelection);
+                        mUndoStack.Push<CommandClearSelection>(mWorldState.mCollisionItems, mSelection);
                     }
-                    mUndoStack.Push<CommandSelectOrDeselectLine>(mMapState.mCollisionItems, mSelection, lineIdx, true);
+                    mUndoStack.Push<CommandSelectOrDeselectLine>(mWorldState.mCollisionItems, mSelection, lineIdx, true);
                 }
                 else
                 {
@@ -394,9 +448,9 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
                 }
                 else if (mSelection.SelectedLines().size() == 1)
                 {
-                    const f32 lineLength = mMapState.mCollisionItems[lineIdx]->mLine.Length();
-                    const f32 distToP1 = glm::distance(mMapState.mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld) / lineLength;
-                    const f32 distToP2 = glm::distance(mMapState.mCollisionItems[lineIdx]->mLine.mP2, mousePosWorld) / lineLength;
+                    const f32 lineLength = mWorldState.mCollisionItems[lineIdx]->mLine.Length();
+                    const f32 distToP1 = glm::distance(mWorldState.mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld) / lineLength;
+                    const f32 distToP2 = glm::distance(mWorldState.mCollisionItems[lineIdx]->mLine.mP2, mousePosWorld) / lineLength;
                     if (distToP1 < 0.2f)
                     {
                         mSelectionState = eSelectionState::eLineP1Selected;
@@ -422,7 +476,7 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
             if (mSelection.HasSelection())
             {
                 LOG_INFO("Nothing clicked, clear selected");
-                mUndoStack.Push<CommandClearSelection>(mMapState.mCollisionItems, mSelection);
+                mUndoStack.Push<CommandClearSelection>(mWorldState.mCollisionItems, mSelection);
             }
         }
     }
@@ -434,13 +488,13 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
         case eSelectionState::eLineP1Selected:
         case eSelectionState::eLineP2Selected:
             // TODO: Handle dis/connect to other lines when moving end points
-            mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mMapState.mCollisionItems, mSelection, mousePosWorld, mSelectionState == eSelectionState::eLineP1Selected);
+            mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mWorldState.mCollisionItems, mSelection, mousePosWorld, mSelectionState == eSelectionState::eLineP1Selected);
             break;
 
         case eSelectionState::eMoveSelected:
         case eSelectionState::eLineMiddleSelected:
             // TODO: Disconnect from other lines if moved away
-            mUndoStack.PushMerge<MoveSelection>(mMergeCommand, mMapState.mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
+            mUndoStack.PushMerge<MoveSelection>(mMergeCommand, mWorldState.mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
             break;
 
         case eSelectionState::eNone:
@@ -458,25 +512,25 @@ void EditorMode::Render(AbstractRenderer& rend) const
     if (Debugging().mDrawCameras)
     {
         // Draw every cam
-        for (auto x = 0u; x < mMapState.mScreens.size(); x++)
+        for (auto x = 0u; x < mWorldState.mScreens.size(); x++)
         {
-            for (auto y = 0u; y < mMapState.mScreens[x].size(); y++)
+            for (auto y = 0u; y < mWorldState.mScreens[x].size(); y++)
             {
                 // screen can be null while the array is being populated during loading
-                GridScreen* screen = mMapState.mScreens[x][y].get();
+                GridScreen* screen = mWorldState.mScreens[x][y].get();
                 if (screen)
                 {
                     if (!screen->hasTexture())
                         continue;
 
-                    screen->Render(rend, (x * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
-                        (y * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
-                        mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
+                    screen->Render(rend, (x * mWorldState.kCameraBlockSize.x) + mWorldState.kCameraBlockImageOffset.x,
+                        (y * mWorldState.kCameraBlockSize.y) + mWorldState.kCameraBlockImageOffset.y,
+                        mWorldState.kVirtualScreenSize.x, mWorldState.kVirtualScreenSize.y);
                 }
             }
         }
     }
-    mMapState.RenderDebug(rend);
+    mWorldState.RenderDebug(rend);
 }
 
 void EditorMode::OnMapChanged()

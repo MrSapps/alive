@@ -12,11 +12,10 @@
 #include "gridmap.hpp"
 #include "gameselectionstate.hpp"
 #include "gamefilesystem.hpp"
-#include "fmv.hpp"
 #include "rendererfactory.hpp"
-#include "rungamestate.hpp"
 #include "debug.hpp"
 #include "resourcemapper.hpp"
+#include "world.hpp"
 
 #ifdef _WIN32
 #ifndef NOMINMAX
@@ -72,133 +71,6 @@ void setWindowsIcon(SDL_Window *sdlWindow)
 }
 #endif
 
-InputMapping::InputMapping()
-{
-    // Keyboard
-    mKeyBoardConfig[Actions::eLeft] =         { 1u, { SDL_SCANCODE_LEFT } };
-    mKeyBoardConfig[Actions::eRight] =        { 1u, { SDL_SCANCODE_RIGHT } };
-    mKeyBoardConfig[Actions::eUp] =           { 1u, { SDL_SCANCODE_UP } };
-    mKeyBoardConfig[Actions::eDown] =         { 1u, { SDL_SCANCODE_DOWN } };
-    mKeyBoardConfig[Actions::eChant] =        { 1u, { SDL_SCANCODE_0 } };
-    mKeyBoardConfig[Actions::eRun] =          { 1u, { SDL_SCANCODE_LSHIFT,    SDL_SCANCODE_RSHIFT } };
-    mKeyBoardConfig[Actions::eSneak] =        { 1u, { SDL_SCANCODE_LALT,      SDL_SCANCODE_RALT } };
-    mKeyBoardConfig[Actions::eJump] =         { 1u, { SDL_SCANCODE_SPACE } };
-    mKeyBoardConfig[Actions::eThrow] =        { 1u, { SDL_SCANCODE_Z } };
-    mKeyBoardConfig[Actions::eAction] =       { 1u, { SDL_SCANCODE_LCTRL,     SDL_SCANCODE_RCTRL } };
-    mKeyBoardConfig[Actions::eRollOrFart] =   { 1u, { SDL_SCANCODE_X } };
-    mKeyBoardConfig[Actions::eGameSpeak1] =   { 1u, { SDL_SCANCODE_1 } };
-    mKeyBoardConfig[Actions::eGameSpeak2] =   { 1u, { SDL_SCANCODE_2 } };
-    mKeyBoardConfig[Actions::eGameSpeak3] =   { 1u, { SDL_SCANCODE_3 } };
-    mKeyBoardConfig[Actions::eGameSpeak4] =   { 1u, { SDL_SCANCODE_4 } };
-    mKeyBoardConfig[Actions::eGameSpeak5] =   { 1u, { SDL_SCANCODE_5 } };
-    mKeyBoardConfig[Actions::eGameSpeak6] =   { 1u, { SDL_SCANCODE_6 } };
-    mKeyBoardConfig[Actions::eGameSpeak7] =   { 1u, { SDL_SCANCODE_7 } };
-    mKeyBoardConfig[Actions::eGameSpeak8] =   { 1u, { SDL_SCANCODE_8 } };
-    mKeyBoardConfig[Actions::eBack] =         { 1u, { SDL_SCANCODE_ESCAPE } };
-
-    // Game pad
-    mGamePadConfig[Actions::eLeft] =          { 1u, { SDL_CONTROLLER_BUTTON_DPAD_LEFT } };
-    mGamePadConfig[Actions::eRight] =         { 1u, { SDL_CONTROLLER_BUTTON_DPAD_RIGHT } };
-    mGamePadConfig[Actions::eUp] =            { 1u, { SDL_CONTROLLER_BUTTON_DPAD_UP } };
-    mGamePadConfig[Actions::eDown] =          { 1u, { SDL_CONTROLLER_BUTTON_DPAD_DOWN } };
-
-    // TODO: Should actually be the trigger axes!
-    mGamePadConfig[Actions::eChant] =         { 2u, {
-                                                SDL_CONTROLLER_BUTTON_LEFTSHOULDER,
-                                                SDL_CONTROLLER_BUTTON_RIGHTSHOULDER,
-                                                SDL_CONTROLLER_BUTTON_LEFTSTICK,
-                                                SDL_CONTROLLER_BUTTON_RIGHTSTICK } };
-
-    mGamePadConfig[Actions::eRun] =           { 1u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER } };
-
-    // TODO: Should actually be the trigger axes!
-    mGamePadConfig[Actions::eSneak] =         { 1u, { SDL_CONTROLLER_BUTTON_RIGHTSTICK } };
-
-    mGamePadConfig[Actions::eJump] =          { 1u, { SDL_CONTROLLER_BUTTON_Y } };
-    mGamePadConfig[Actions::eThrow] =         { 1u, { SDL_CONTROLLER_BUTTON_B } };
-    mGamePadConfig[Actions::eAction] =        { 1u, { SDL_CONTROLLER_BUTTON_X } };
-    mGamePadConfig[Actions::eRollOrFart] =    { 1u, { SDL_CONTROLLER_BUTTON_A } };
-    mGamePadConfig[Actions::eGameSpeak1] =    { 2u, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER,  SDL_CONTROLLER_BUTTON_Y } };
-    mGamePadConfig[Actions::eGameSpeak2] =    { 2u, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER,  SDL_CONTROLLER_BUTTON_B } };
-    mGamePadConfig[Actions::eGameSpeak3] =    { 2u, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER,  SDL_CONTROLLER_BUTTON_A } };
-    mGamePadConfig[Actions::eGameSpeak4] =    { 2u, { SDL_CONTROLLER_BUTTON_LEFTSHOULDER,  SDL_CONTROLLER_BUTTON_X } };
-    mGamePadConfig[Actions::eGameSpeak5] =    { 2u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER ,SDL_CONTROLLER_BUTTON_Y } };
-    mGamePadConfig[Actions::eGameSpeak6] =    { 2u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, SDL_CONTROLLER_BUTTON_B } };
-    mGamePadConfig[Actions::eGameSpeak7] =    { 2u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, SDL_CONTROLLER_BUTTON_A } };
-    mGamePadConfig[Actions::eGameSpeak8] =    { 2u, { SDL_CONTROLLER_BUTTON_RIGHTSHOULDER, SDL_CONTROLLER_BUTTON_X } };
-    mGamePadConfig[Actions::eBack] =          { 1u, { SDL_CONTROLLER_BUTTON_START } };
-}
-
-void InputMapping::Update(const InputState& input)
-{
-    for (const auto& cfg : mKeyBoardConfig)
-    {
-        u32 numDowns = 0;
-        for (const auto& key : cfg.second.mKeys)
-        {
-            if (input.mKeys[key].RawDownState())
-            {
-                numDowns++;
-            }
-        }
-        mActions.SetRawDownState(cfg.first, numDowns >= cfg.second.mNumberOfKeysRequired);
-    }
-
-    if (input.ActiveController())
-    {
-        for (const auto& cfg : mGamePadConfig)
-        {
-            // The keyboard key isn't pressed so take the controller key state
-            if (mActions.RawDownState(cfg.first) == false)
-            {
-                u32 numDowns = 0;
-                for (const auto& key : cfg.second.mButtons)
-                {
-                    if (input.ActiveController()->mGamePadButtons[key].RawDownState())
-                    {
-                        numDowns++;
-                    }
-                }
-                mActions.SetRawDownState(cfg.first, numDowns >= cfg.second.mNumberOfKeysRequired);
-            }
-        }
-    }
-
-    mActions.UpdateStates();
-}
-
-/*static*/ void Actions::RegisterScriptBindings()
-{
-    Sqrat::Class<Actions> c(Sqrat::DefaultVM::Get(), "Actions");
-    c
-        .StaticFunc("Left", &Actions::Left)
-        .StaticFunc("Right", &Actions::Right)
-        .StaticFunc("Up", &Actions::Up)
-        .StaticFunc("Down", &Actions::Down)
-        .StaticFunc("Chant", &Actions::Chant)
-        .StaticFunc("Run", &Actions::Run)
-        .StaticFunc("Sneak", &Actions::Sneak)
-        .StaticFunc("Jump", &Actions::Jump)
-        .StaticFunc("Throw", &Actions::Throw)
-        .StaticFunc("Action", &Actions::Action)
-        .StaticFunc("RollOrFart", &Actions::RollOrFart)
-        .StaticFunc("GameSpeak1", &Actions::GameSpeak1)
-        .StaticFunc("GameSpeak2", &Actions::GameSpeak2)
-        .StaticFunc("GameSpeak3", &Actions::GameSpeak3)
-        .StaticFunc("GameSpeak4", &Actions::GameSpeak4)
-        .StaticFunc("GameSpeak5", &Actions::GameSpeak5)
-        .StaticFunc("GameSpeak6", &Actions::GameSpeak6)
-        .StaticFunc("GameSpeak7", &Actions::GameSpeak7)
-        .StaticFunc("GameSpeak8", &Actions::GameSpeak8)
-        .StaticFunc("Back", &Actions::Back)
-        .Var("IsPressed", &Actions::mIsPressed)
-        .Var("IsReleased", &Actions::mIsReleased)
-        .Var("IsHeld", &Actions::mIsDown)
-        .Ctor();
-
-    Sqrat::RootTable().Bind("Actions", c);
-}
-
 Engine::Engine(const std::vector<std::string>& commandLineArguments)
     : mAudioHandler(1024, 44100)
 {
@@ -226,7 +98,8 @@ Engine::~Engine()
     ImGui::Shutdown();
 
     mSound.reset();
-    mRunGameState.reset();
+    mWorld.reset();
+
     if (mRenderer)
     {
         mRenderer->ShutDown();
@@ -239,7 +112,6 @@ Engine::~Engine()
 
 bool Engine::Init()
 {
-
     // load the list of data paths (if any) and discover what they are
     mFileSystem = std::make_unique<GameFileSystem>();
     if (!mFileSystem->Init())
@@ -247,8 +119,6 @@ bool Engine::Init()
         LOG_ERROR("File system init failure");
         return false;
     }
-
-    //InitResources();
 
     if (!InitSDL())
     {
@@ -260,7 +130,10 @@ bool Engine::Init()
 
     Debugging().mInput = &mInputState;
 
-    mState = EngineStates::eEngineInit;
+    mState = EngineStates::ePreEngineInit;
+
+    mLoadingIcon = std::make_unique<LoadingIcon>(*mFileSystem);
+    mLoadingIcon->SetEnabled(true);
 
     return true;
 }
@@ -284,13 +157,6 @@ void Engine::BindScriptTypes()
 
     Sqrat::Class<Engine, Sqrat::NoConstructor<Engine>> engine(Sqrat::DefaultVM::Get(), "Engine");
     engine.Func("include", &Engine::Include);
-    engine.Func("PlayFmv", &Engine::PlayFmv);
-    engine.Func("LoadMap", &Engine::LoadMap);
-    engine.Func("HandleMusicEvent", &Engine::HandleMusicEvent);
-    engine.Func("SetMusicTheme", &Engine::SetMusicTheme);
-    engine.Func("PlaySoundEffect", &Engine::PlaySoundEffect);
-    engine.Func("StopSoundEffect", &Engine::StopSoundEffect);
-    engine.Func("GlobalFrameCounter", &Engine::GlobalFrameCounter);
 
     Sqrat::RootTable().Bind("Engine", engine);
     // TODO: Use InstanceBinder
@@ -321,27 +187,6 @@ void Engine::InitSubSystems()
     InitImGui();
 
     mInputState.AddControllers();
-}
-
-void Engine::StartASyncJob(std::function<void()> job)
-{
-    if (!mASyncJob)
-    {
-        mASyncJob = std::make_unique<std::future<void>>(std::async(std::launch::async, job));
-    }
-}
-
-bool Engine::ASyncJobCompleted()
-{
-    if (!mASyncJob || FutureIsDone(mASyncJob))
-    {
-        if (mASyncJob)
-        {
-            mASyncJob->get(); // Will re-throw any exceptions that happened in the async task
-        }
-        return true;
-    }
-    return false;
 }
 
 void Engine::RunInitScript()
@@ -560,38 +405,6 @@ void Engine::ImGui_WindowResize()
     //    io.PixelCenterOffset = 0.0f;                        // Align OpenGL texels
 }
 
-void Engine::PlayFmv(const char* fmvName)
-{
-    mPlayFmvState->Play(fmvName);
-    mState = EngineStates::ePlayFmv;
-}
-
-void Engine::LoadMap(const char* mapName)
-{
-    mRunGameState->LoadMap(mapName);
-    mState = EngineStates::eRunGameState;
-}
-
-void Engine::HandleMusicEvent(const char* eventName)
-{
-    mSound->HandleMusicEvent(eventName);
-}
-
-void Engine::SetMusicTheme(const char* themeName)
-{
-    mSound->SetMusicTheme(themeName);
-}
-
-SoundId Engine::PlaySoundEffect(const char* soundName)
-{
-    return mSound->PlaySoundEffect(soundName);
-}
-
-void Engine::StopSoundEffect(SoundId id)
-{
-    mSound->StopSoundEffect(id);
-}
-
 void Engine::Update()
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -706,67 +519,43 @@ void Engine::Update()
 
     ImGui::NewFrame();
 
-    if (mState == EngineStates::eRunGameState && !mASyncJob)
-    {
-        Debugging().Update(mInputState);
-    }
-
     UpdateImGuiMouseInput();
+
+    mJobSystem.Update();
+    mLoadingIcon->Update(*mRenderer);
 
     switch (mState)
     {
-    case EngineStates::eRunGameState:
-     
-        if (ASyncJobCompleted())
+    case EngineStates::eRunSelectedGame:
+        if (!mWorld)
         {
-            mASyncJob = nullptr;
+            // TODO: Pass in infos from mGameSelectionScreen
+            mWorld = std::make_unique<World>(mAudioHandler, *mResourceLocator,
+                *mRenderer,
+                *mRenderer,
+                mGameSelectionScreen->SelectedGame(),
+                *mSound,
+                *mLoadingIcon);
         }
-        
-        if (!mASyncJob)
-        {
-            mState = mRunGameState->Update(mInputState, *mRenderer);
-        }
+        mState = mWorld->Update(mInputState, *mRenderer);
+
+        // TODO: Allow returning to eSelectGame
         break;
-    case EngineStates::eGameSelection:
+
+    case EngineStates::eSelectGame:
+        // eQuit or eRunSelectedGame
         mState = mGameSelectionScreen->Update(mInputState, *mRenderer);
-        if (mState == EngineStates::eRunGameState)
-        {
-            mRunGameState->OnStartASync(mGameSelectionScreen->SelectedGame().GameScriptName(), mSound.get());
-        }
         break;
-    case EngineStates::ePlayFmv:
-        mState = mPlayFmvState->Update(mInputState);
+
+    case EngineStates::ePreEngineInit:
+        mJobSystem.StartJob(std::make_shared<EngineJob>(*this, EngineJob::eJobTypes::eInitResources));
+        mState = EngineStates::eEngineInit;
         break;
+
     case EngineStates::eEngineInit:
-        {
-            if (!mASyncJob)
-            {
-                StartASyncJob([&]
-                {
-                    // At this point nothing else is reading the things this thread is writing, so
-                    // should be thread safe.
-                    InitResources();
-                });
-            }
-            else
-            {
-                if (ASyncJobCompleted())
-                {
-                    mASyncJob = nullptr;
-
-                    mState = EngineStates::eGameSelection;
-
-                    mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, *mFileSystem);
-
-                    mRunGameState = std::make_unique<RunGameState>(*mResourceLocator, *mRenderer);
-                    mGameSelectionScreen = std::make_unique<GameSelectionState>(mGameDefinitions, *mResourceLocator, *mFileSystem);
-                    mPlayFmvState = std::make_unique<PlayFmvState>(mAudioHandler, *mResourceLocator);
-
-                    RunInitScript();
-                }
-            }
-        }
+        // Waiting for OnJobFinished
         break;
+
     case EngineStates::eQuit:
         break;
     }
@@ -785,79 +574,33 @@ void Engine::Render()
 
     switch (mState)
     {
-    case EngineStates::eRunGameState:
-        if (mASyncJob)
+    case EngineStates::eRunSelectedGame:
+        if (mWorld)
         {
-            mRenderer->Clear(0.0f, 0.0f, 0.0f);
+            mWorld->Render(*mRenderer);
         }
         else
         {
-            mRunGameState->Render();
+            mRenderer->Clear(0.0f, 0.0f, 0.0f);
         }
         break;
 
-    case EngineStates::eGameSelection:
+    case EngineStates::eSelectGame:
         mGameSelectionScreen->Render(*mRenderer);
         break;
 
-    case EngineStates::ePlayFmv:
-        mPlayFmvState->Render(*mRenderer);
-        break;
-
+    case EngineStates::ePreEngineInit:
     case EngineStates::eEngineInit:
     case EngineStates::eQuit:
         mRenderer->Clear(0.0f, 0.0f, 0.0f);
         break;
     }
 
-    if (mState == EngineStates::eRunGameState)
-    {
-        Debugging().Render(*mRenderer);
-    }
-
-    if (mASyncJob || (mState == EngineStates::eRunGameState && mRunGameState->IsLoading()))
-    {
-        RenderLoadingIcon();
-    }
+    mLoadingIcon->Render(*mRenderer);
 
     mRenderer->EndFrame();
 }
 
-void Engine::RenderLoadingIcon()
-{
-    if (!mLoadingIcon)
-    {
-        std::unique_ptr<Oddlib::IStream> pngStream = mFileSystem->Open("{GameDir}/data/images/loading.png");
-        if (pngStream)
-        {
-            mLoadingIcon = SDLHelpers::LoadPng(*pngStream, true);
-        }
-
-        if (!mLoadingIcon)
-        {
-            throw Oddlib::Exception("Failed to load {GameDir}/data/images/loading.png");
-        }
-    }
-
-    TextureHandle hTexture = mRenderer->CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, mLoadingIcon->w, mLoadingIcon->h, AbstractRenderer::eTextureFormats::eRGBA, mLoadingIcon->pixels, true);
-
-    const f32 imagew = static_cast<f32>(mLoadingIcon->w);
-    const f32 imageh = static_cast<f32>(mLoadingIcon->h);
-
-    const f32 padding = 30.0f;
-
-    const f32 xpos = static_cast<f32>(mRenderer->Width()) - imagew - padding;
-    const f32 ypos = static_cast<f32>(mRenderer->Height()) - imageh - padding;
-
-    mRenderer->TexturedQuad(hTexture,
-        xpos,
-        ypos,
-        imagew,
-        imageh,
-        AbstractRenderer::eLayers::eFmv + 5, { 255, 255, 255, 255 }, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
-
-    mRenderer->DestroyTexture(hTexture);
-}
 
 bool Engine::InitSDL()
 {
@@ -975,6 +718,26 @@ void Engine::InitResources()
     // also add in any extra maps for resources defined by the mod @ game selection screen
 }
 
+void Engine::OnJobStart(EngineJob::eJobTypes jobType, const CancelFlag& /*quitFlag*/)
+{
+    if (jobType == EngineJob::eJobTypes::eInitResources)
+    {
+        InitResources();
+    }
+}
+
+void Engine::OnJobFinished(EngineJob::eJobTypes jobType)
+{
+    if (jobType == EngineJob::eJobTypes::eInitResources)
+    {
+        mLoadingIcon->SetEnabled(false);
+        mState = EngineStates::eSelectGame;
+        mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, *mFileSystem, mJobSystem);
+        mGameSelectionScreen = std::make_unique<GameSelectionState>(mGameDefinitions, *mResourceLocator, *mFileSystem);
+        RunInitScript();
+    }
+}
+
 void SquirrelVm::CompileAndRun(ResourceLocator& resourceLocator, const std::string& scriptName)
 {
     TRACE_ENTRYEXIT;
@@ -997,4 +760,69 @@ void SquirrelVm::CompileAndRun(const std::string& scriptName, const std::string&
 
     script.Run();
     CheckError();
+}
+
+EngineJob::EngineJob(Engine& e, eJobTypes jobType) 
+    : mJobType(jobType), mEngine(e)
+{
+
+}
+
+void EngineJob::OnExecute(const CancelFlag& quitFlag)
+{
+    mEngine.OnJobStart(mJobType, quitFlag);
+}
+
+void EngineJob::OnFinished()
+{
+    mEngine.OnJobFinished(mJobType);
+}
+
+LoadingIcon::LoadingIcon(IFileSystem& fileSystem)
+{
+    std::unique_ptr<Oddlib::IStream> pngStream = fileSystem.Open("{GameDir}/data/images/loading.png");
+    if (pngStream)
+    {
+        mLoadingIcon = SDLHelpers::LoadPng(*pngStream, true);
+    }
+
+    if (!mLoadingIcon)
+    {
+        throw Oddlib::Exception("Failed to load {GameDir}/data/images/loading.png");
+    }
+}
+
+void LoadingIcon::Update(CoordinateSpace& /*coords*/)
+{
+
+}
+
+void LoadingIcon::Render(AbstractRenderer& renderer)
+{
+    if (mEnabled)
+    {
+        TextureHandle hTexture = renderer.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, mLoadingIcon->w, mLoadingIcon->h, AbstractRenderer::eTextureFormats::eRGBA, mLoadingIcon->pixels, true);
+
+        const f32 imagew = static_cast<f32>(mLoadingIcon->w);
+        const f32 imageh = static_cast<f32>(mLoadingIcon->h);
+
+        const f32 padding = 30.0f;
+
+        const f32 xpos = static_cast<f32>(renderer.Width()) - imagew - padding;
+        const f32 ypos = static_cast<f32>(renderer.Height()) - imageh - padding;
+
+        renderer.TexturedQuad(hTexture,
+            xpos,
+            ypos,
+            imagew,
+            imageh,
+            AbstractRenderer::eLayers::eFmv + 5, { 255, 255, 255, 255 }, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
+
+        renderer.DestroyTexture(hTexture);
+    }
+}
+
+void LoadingIcon::SetEnabled(bool enabled)
+{
+    mEnabled = enabled;
 }

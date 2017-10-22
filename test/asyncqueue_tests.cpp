@@ -1,18 +1,38 @@
 #include <gmock/gmock.h>
 #include "asyncqueue.hpp"
 
+class TestJob
+{
+public:
+    void OnExecute(std::atomic_bool&)
+    {
+
+    }
+
+    void OnFinished()
+    {
+        mNumComplete++;
+    }
+
+    static int mNumComplete;
+};
+
+int TestJob::mNumComplete = 0;
+
 TEST(ASyncQueue, QueueWork)
 {
     std::mutex outputMutex;
-    ASyncQueue<std::unique_ptr<int>> q([&](std::unique_ptr<int> v, std::atomic<bool>&) 
-    {
-        std::unique_lock<std::mutex> lock(outputMutex);
-        std::cout << "V: " << *v << std::endl;
-    });
+    ASyncQueue<TestJob> q;
     q.Start();
 
     for (int i = 0; i < 100; i++)
     {
-        q.Add(std::make_unique<int>(i));
+        q.Add(TestJob{});
     }
+
+    while (!q.IsIdle()) {};
+
+    q.Update();
+
+    ASSERT_EQ(TestJob::mNumComplete, 100);
 }

@@ -7,21 +7,6 @@
 #include "soxr.h"
 #include "engine.hpp"
 
-class AutoMouseCursorHide
-{
-public:
-    AutoMouseCursorHide()
-    {
-        SDL_ShowCursor(0);
-    }
-
-    ~AutoMouseCursorHide()
-    {
-        SDL_ShowCursor(1);
-    }
-};
-
-
 static f32 Percent(f32 max, f32 percent)
 {
     return (max / 100.0f) * percent;
@@ -580,7 +565,7 @@ private:
 Fmv::Fmv(IAudioController& audioController, ResourceLocator& resourceLocator)
     : mResourceLocator(resourceLocator), mAudioController(audioController)
 {
-    Debugging().AddSection([&]() {DebugUi(); });
+
 }
 
 Fmv::~Fmv()
@@ -588,7 +573,7 @@ Fmv::~Fmv()
     Stop();
 }
 
-void Fmv::Play(const std::string& name)
+void Fmv::Play(const std::string& name, const ResourceMapper::FmvFileLocation* fmvFileLocation)
 {
     if (mFmvName != name)
     {
@@ -598,7 +583,7 @@ void Fmv::Play(const std::string& name)
             mFmv->Stop();
         }
 
-        mFmv = mResourceLocator.LocateFmv(mAudioController, name, mDebugMapping).get();
+        mFmv = mResourceLocator.LocateFmv(mAudioController, name, fmvFileLocation).get();
         
         if (mFmv)
         {
@@ -635,39 +620,94 @@ void Fmv::Update()
     }
 }
 
-void Fmv::Render(AbstractRenderer& rend)
+void Fmv::RenderDebugSubsAndFontAtlas(AbstractRenderer& rend)
 {
+    char buffer[2048] = {};
     if (Debugging().mSubtitleTestRegular)
     {
-        RenderSubtitles(rend, "Regular subtitle test", 0.0f, 0.0f, static_cast<f32>(rend.Width()), static_cast<f32>(rend.Height()));
+        sprintf(buffer, "%s", Debugging().mSubtitle);
     }
 
     if (Debugging().mSubtitleTestItalic)
     {
-        RenderSubtitles(rend, "<i>Italic subtitle test</i>", 0.0f, 0.0f, static_cast<f32>(rend.Width()), static_cast<f32>(rend.Height()));
+        sprintf(buffer, "<i>%s</i>", Debugging().mSubtitle);
     }
 
     if (Debugging().mSubtitleTestBold)
     {
-        RenderSubtitles(rend, "<b>Bold subtitle test</b>", 0.0f, 0.0f, static_cast<f32>(rend.Width()), static_cast<f32>(rend.Height()));
+        sprintf(buffer, "<b>%s</b>", Debugging().mSubtitle);
+    }
+
+    if (buffer[0])
+    {
+        RenderSubtitles(rend, buffer, 0.0f, 0.0f, static_cast<f32>(rend.Width()), static_cast<f32>(rend.Height()));
     }
 
     if (Debugging().mDrawFontAtlas)
     {
         rend.FontStashTextureDebug(10.0f, 10.0f);
     }
+}
 
+void Fmv::Render(AbstractRenderer& rend)
+{
     if (mFmv)
     {
         mFmv->OnRenderFrame(rend);
     }
 }
 
-void Fmv::DebugUi()
+
+PlayFmvState::PlayFmvState(IAudioController& audioController, ResourceLocator& locator)
 {
-    static char mFilterString[64] = {};
-    static std::vector<std::pair<std::string, ResourceMapper::FmvMapping>> mListBoxItems;
-    static int mListBoxSelectedItem = -1;
+    mFmv = std::make_unique<Fmv>(audioController, locator);
+}
+
+void PlayFmvState::RenderDebugSubsAndFontAtlas(AbstractRenderer& renderer)
+{
+    mFmv->RenderDebugSubsAndFontAtlas(renderer);
+}
+
+void PlayFmvState::Render(AbstractRenderer& renderer)
+{
+    renderer.Clear(0.0f, 0.0f, 0.0f);
+    mFmv->Render(renderer);
+}
+
+bool PlayFmvState::Update(const InputState& input)
+{
+    mFmv->Update();
+
+    if (mFmv->IsPlaying())
+    {
+        if (input.Mapping().GetActions().mIsPressed)
+        {
+            LOG_INFO("Stopping FMV due to key press");
+            mFmv->Stop();
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+void PlayFmvState::Play(const char* fmvName, const ResourceMapper::FmvFileLocation* fmvFileLocation)
+{
+    mFmv->Play(fmvName, fmvFileLocation);
+}
+
+FmvDebugUi::FmvDebugUi(ResourceLocator& resourceLocator)
+    : mResourceLocator(resourceLocator)
+{
+
+}
+
+bool FmvDebugUi::Ui()
+{
+    static char sFilterString[64] = {};
+    static std::vector<std::pair<std::string, ResourceMapper::FmvMapping>> sListBoxItems;
+    static int sListBoxSelectedItem = -1;
+    bool playClicked = false;
 
     if (ImGui::CollapsingHeader("Video player"))
     {
@@ -675,31 +715,31 @@ void Fmv::DebugUi()
         ImGui::BeginChild("left pane 2", ImVec2(250, 200), true);
         {
             bool rebuild = false;
-            if (ImGui::InputText("Filter", mFilterString, sizeof(mFilterString)))
+            if (ImGui::InputText("Filter", sFilterString, sizeof(sFilterString)))
             {
                 rebuild = true;
-                mListBoxSelectedItem = -1;
+                sListBoxSelectedItem = -1;
             }
 
-            if (rebuild || mListBoxItems.empty())
+            if (rebuild || sListBoxItems.empty())
             {
-                mListBoxItems.clear();
-                mListBoxItems.reserve(mResourceLocator.mResMapper.mFmvMaps.size());
+                sListBoxItems.clear();
+                sListBoxItems.reserve(mResourceLocator.mResMapper.mFmvMaps.size());
 
                 for (const auto& fmv : mResourceLocator.mResMapper.mFmvMaps)
                 {
-                    if (string_util::StringFilter(fmv.first.c_str(), mFilterString))
+                    if (string_util::StringFilter(fmv.first.c_str(), sFilterString))
                     {
-                        mListBoxItems.emplace_back(fmv);
+                        sListBoxItems.emplace_back(fmv);
                     }
                 }
             }
 
-            for (size_t i = 0; i < mListBoxItems.size(); i++)
+            for (size_t i = 0; i < sListBoxItems.size(); i++)
             {
-                if (ImGui::Selectable(mListBoxItems[i].first.c_str(), static_cast<int>(i) == mListBoxSelectedItem))
+                if (ImGui::Selectable(sListBoxItems[i].first.c_str(), static_cast<int>(i) == sListBoxSelectedItem))
                 {
-                    mListBoxSelectedItem = static_cast<int>(i);
+                    sListBoxSelectedItem = static_cast<int>(i);
                 }
             }
             ImGui::EndChild();
@@ -711,14 +751,14 @@ void Fmv::DebugUi()
         {
             ImGui::BeginChild("item view 2", ImVec2(0, 200));
             {
-                if (mListBoxSelectedItem > 0)
+                if (sListBoxSelectedItem >= 0)
                 {
-                    ImGui::TextWrapped("Resource name: %s", mListBoxItems[mListBoxSelectedItem].first.c_str());
+                    ImGui::TextWrapped("Resource name: %s", sListBoxItems[sListBoxSelectedItem].first.c_str());
 
                     if (ImGui::CollapsingHeader("Locations"))
                     {
                         
-                        for (const ResourceMapper::FmvFileLocation& mapping : mListBoxItems[mListBoxSelectedItem].second.mLocations)
+                        for (const ResourceMapper::FmvFileLocation& mapping : sListBoxItems[sListBoxSelectedItem].second.mLocations)
                         {
                             std::string name = mapping.mDataSetName + "_" + mapping.mFileName;
                             if (mapping.mStartSector || mapping.mEndSector)
@@ -728,21 +768,20 @@ void Fmv::DebugUi()
 
                             if (ImGui::Selectable(name.c_str()))
                             {
-                                const std::string fmvName = mListBoxItems[mListBoxSelectedItem].first;
+                                mFmvName = sListBoxItems[sListBoxSelectedItem].first;
                                 mDebugMapping = &mapping;
-                                SquirrelVm::CompileAndRun("DebugPlayMovie.nut", "gEngine.PlayFmv(\"" + fmvName + "\");");
-                                mDebugMapping = nullptr;
+                                playClicked = true;
                             }
                         }
                     }
          
                     if (ImGui::Button("Play (default)"))
                     {
-                        if (mListBoxSelectedItem >= 0 && mListBoxSelectedItem < static_cast<int>(mListBoxItems.size()))
+                        if (sListBoxSelectedItem >= 0 && sListBoxSelectedItem < static_cast<int>(sListBoxItems.size()))
                         {
-                            const std::string fmvName = mListBoxItems[mListBoxSelectedItem].first;
-                            SquirrelVm::CompileAndRun("DebugPlayMovie.nut", "gEngine.PlayFmv(\"" + fmvName + "\");");
+                            mFmvName = sListBoxItems[sListBoxSelectedItem].first;
                             mDebugMapping = nullptr;
+                            playClicked = true;
                         }
                     }
                 }
@@ -755,4 +794,5 @@ void Fmv::DebugUi()
         }
         ImGui::EndGroup();
     }
+    return playClicked;
 }

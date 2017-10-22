@@ -1,16 +1,17 @@
 #pragma once
 
-#include "gridmap.hpp"
+class WorldState;
+class InputState;
+class CoordinateSpace;
+class AbstractRenderer;
 
 class GameMode
 {
 public:
-    NO_MOVE_OR_MOVE_ASSIGN(GameMode);
-
-    GameMode(GridMapState& mapState);
+    GameMode(WorldState& mapState);
 
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend) const;
 private:
-    GridMapState& mMapState;
+    WorldState& mWorldState;
 };

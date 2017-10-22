@@ -18,9 +18,12 @@ struct Debug
     bool mSubtitleTestItalic = false;
     bool mSubtitleTestBold = false;
     bool mDrawFontAtlas = false;
+    char mSubtitle[1024] = {};
     bool mVsync = true;
     bool mShowDebugUi = true;
     bool mChangeVSync = false;
+
+    Debug();
 
     struct BrowserUi
     {
@@ -50,7 +53,7 @@ struct Debug
     std::function<void()> mFnNextPath;
     std::function<void(const char*)> fnLoadPath;
 
-    void Update(class InputState& input);
+    void Update(const class InputState& input);
     void Render(class AbstractRenderer& renderer);
 
     void AddSection(std::function<void()> fnSection)

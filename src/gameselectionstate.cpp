@@ -42,7 +42,7 @@ EngineStates GameSelectionState::Update(const InputState& /*input*/, CoordinateS
     case GameSelectionStates::eSelectGame:
         return RenderSelectGame();
     }
-    return EngineStates::eGameSelection;
+    return EngineStates::eSelectGame;
 }
 
 void GameSelectionState::LoadGameDefinition()
@@ -115,7 +115,7 @@ void GameSelectionState::RenderFindDataSets()
 
 EngineStates GameSelectionState::RenderSelectGame()
 {
-    EngineStates nextState = EngineStates::eGameSelection;
+    EngineStates nextState = EngineStates::eSelectGame;
     ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiSetCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(300, 440), ImGuiSetCond_FirstUseEver);
     if (ImGui::Begin("Select game", nullptr, ImGuiWindowFlags_NoSavedSettings))
@@ -186,7 +186,7 @@ EngineStates GameSelectionState::RenderSelectGame()
                         else
                         {
                             LoadGameDefinition();
-                            nextState = EngineStates::eRunGameState;
+                            nextState = EngineStates::eRunSelectedGame;
                         }
                     }
                     else

@@ -5,8 +5,8 @@
 
 std::atomic<SoundId> Sound::mSoundId(99);
 
-Sound::Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs)
-    : mAudioController(audioController), mLocator(locator), mCache(fs)
+Sound::Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs, JobSystem& jobSystem)
+    : mAudioController(audioController), mLocator(locator), mCache(fs, jobSystem)
 {
     mAudioController.AddPlayer(this);
 
@@ -337,7 +337,7 @@ void Sound::SoundBrowserUi()
         std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
         if (!mSoundPlayers.empty())
         {
-            mSoundPlayers[0]->DebugUi();
+            mSoundPlayers.begin()->second->DebugUi();
         }
 
         if (ImGui::CollapsingHeader("Active SEQs"))
@@ -365,10 +365,7 @@ void Sound::SoundBrowserUi()
             {
                 if (ImGui::Button((std::to_string(i) + player.second->Name()).c_str()))
                 {
-                    if (player.second.get() == mSoundPlayers[i].get())
-                    {
-                        player.second->Stop();
-                    }
+                    player.second->Stop();
                 }
                 i++;
             }

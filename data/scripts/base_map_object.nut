@@ -65,7 +65,7 @@ class BaseMapObject
     function PlaySoundEffect(soundFx)
     {
         log_info("PlaySoundEffect: " + soundFx);
-        gEngine.PlaySoundEffect(soundFx);
+        //gEngine.PlaySoundEffect(soundFx);
     }
 
     function FrameNumber()

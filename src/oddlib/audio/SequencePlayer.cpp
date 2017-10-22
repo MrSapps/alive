@@ -114,7 +114,7 @@ bool SequencePlayer::AtEnd() const
 {
     std::lock_guard<std::mutex> lock(mMutex);
 
-    return m_PlayerState == ALIVE_SEQUENCER_FINISHED && mAliveAudio.NumberOfActiveVoices() == 0;
+    return (m_PlayerState == ALIVE_SEQUENCER_FINISHED || m_PlayerState == ALIVE_SEQUENCER_STOPPED) && mAliveAudio.NumberOfActiveVoices() == 0;
 }
 
 void SequencePlayer::Play(f32* stream, u32 len)
@@ -137,7 +137,7 @@ void SequencePlayer::StopSequence()
 
     SDL_LockAudio();
 
-    mAliveAudio.ClearAllTrackVoices();
+    mAliveAudio.ClearAllTrackVoices(true);
 
     m_PlayerState = ALIVE_SEQUENCER_STOPPED;
     m_PrevBar = 0;

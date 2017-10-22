@@ -365,15 +365,18 @@ SET(alivelib_src
     src/openglrenderer.cpp
     include/engine.hpp
     src/engine.cpp
-    include/engine.hpp
+    include/jobsystem.hpp
+    src/jobsystem.cpp
+    include/input.hpp
+    src/input.cpp
     src/animationbrowser.cpp
     include/animationbrowser.hpp
     src/gameselectionstate.cpp
     include/gameselectionstate.hpp
-    src/rungamestate.cpp
-    include/rungamestate.hpp
     include/gridmap.hpp
     src/gridmap.cpp
+    include/world.hpp
+    src/world.cpp
     include/rendererfactory.hpp
     src/rendererfactory.cpp
     include/gamemode.hpp
@@ -664,7 +667,7 @@ if (APPLE)
                    COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change /usr/local/lib/libSDL2-2.0.0.dylib @executable_path/../Frameworks/libSDL2-2.0.0.dylib $<TARGET_FILE:Alive>
                    COMMENT "Fixing up libSDL2-2.0.0.dylib rpath")
 
-    INSTALL(FILES "/usr/local/Cellar/sdl2/2.0.5/lib/libSDL2-2.0.0.dylib" DESTINATION "Alive.app/Contents/Frameworks")
+    INSTALL(FILES "/usr/local/Cellar/sdl2/2.0.6/lib/libSDL2-2.0.0.dylib" DESTINATION "Alive.app/Contents/Frameworks")
 
 endif()
 
