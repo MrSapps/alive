@@ -397,7 +397,7 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
                         ImGui::Separator();
                     }
                     isFirstSeperator = false;
-                    ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), contributor.mName.c_str());
+                    ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), "%s", contributor.mName.c_str());
                 }
                 else
                 {
