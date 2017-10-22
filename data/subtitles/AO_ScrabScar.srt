@@ -1,0 +1,20 @@
+1
+00:00:00,234 --> 00:00:04,125
+My test was completed. I expected to rest
+
+2
+00:00:04,240 --> 00:00:07,897
+Then the Bigface revealed the intent of my quest.
+
+3
+00:00:07,925 --> 00:00:11,154
+With two scars together, on the back of each hand,
+
+4
+00:00:11,257 --> 00:00:13,554
+they could shut down RuptureFarms
+
+5
+00:00:13,554 --> 00:00:15,550
+and restore the lost land.
+
