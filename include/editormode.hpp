@@ -156,4 +156,5 @@ private:
     };
     eSelectionState mSelectionState = eSelectionState::eNone;
     WorldState& mWorldState;
+    bool mShowAbout = false;
 };

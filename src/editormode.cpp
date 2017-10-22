@@ -2,6 +2,67 @@
 #include "engine.hpp"
 #include "debug.hpp"
 #include "world.hpp"
+#include "alive_version.h"
+
+#include "CONTRIBUTORS.md.g.h"
+
+struct Contributor
+{
+public:
+    Contributor(u32 flags, std::string name)
+        : mFlags(flags), mName(name)
+    {
+
+    }
+
+    enum Flags
+    {
+        eTitle = 0x1,
+    };
+    u32 mFlags = 0;
+    std::string mName;
+};
+
+static std::vector<Contributor> GenerateContributors()
+{
+    static std::vector<Contributor> contributors;
+    if (contributors.empty())
+    {
+        // Load the CONTRIBUTORS.MD byte array
+        std::vector<unsigned char> rawData = get_CONTRIBUTORS();
+
+        // Convert it to a std::string
+        std::string rawDataStr(reinterpret_cast<const char*>(rawData.data()), rawData.size());
+
+        // Split at line breaks
+        std::deque<std::string> parts = string_util::split(rawDataStr, '\n');
+
+        contributors.reserve(parts.size());
+
+        // Flag mark down H5 headers as eTitle
+        for (auto& part : parts)
+        {
+            bool hadHash = false;
+            if (!part.empty() && part[0] == '#')
+            {
+                // Convert ### Blah to Blah
+                auto spacePos = part.find_first_of(' ');
+                if (spacePos != std::string::npos)
+                {
+                    part = part.substr(spacePos + 1);
+                    hadHash = true;
+                }
+            }
+
+            // We split at \n and are left with some empty lines of \r, ignore those
+            if (part.size() > 1)
+            {
+                contributors.emplace_back(Contributor(hadHash ? Contributor::eTitle : 0, part));
+            }
+        }
+    }
+    return contributors;
+}
 
 class CommandSelectOrDeselectLine : public ICommandWithId<CommandSelectOrDeselectLine>
 {
@@ -313,12 +374,39 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
 
             if (ImGui::MenuItem("About", nullptr))
             {
-                // TODO
+                mShowAbout = !mShowAbout;
             }
             ImGui::EndMenu();
         }
 
         ImGui::EndMainMenuBar();
+    }
+
+    if (mShowAbout)
+    {
+        if (ImGui::Begin(ALIVE_VERSION))
+        {
+            bool isFirstSeperator = true;
+            const auto& contributors = GenerateContributors();
+            for (const auto& contributor : contributors)
+            {
+                if (contributor.mFlags & Contributor::eTitle)
+                {
+                    if (!isFirstSeperator)
+                    {
+                        ImGui::Separator();
+                    }
+                    isFirstSeperator = false;
+                    ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), contributor.mName.c_str());
+                }
+                else
+                {
+                    ImGui::TextUnformatted(contributor.mName.c_str());
+                }
+            }
+
+        }
+        ImGui::End();
     }
 
     if (menuItemHandled)

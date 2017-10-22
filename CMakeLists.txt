@@ -554,6 +554,8 @@ endfunction()
 
 SET(samples_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files)
 
+to_vec(${samples_dir}/../../CONTRIBUTORS.md CONTRIBUTORS.md)
+
 to_vec(${samples_dir}/zips/MaxECDRComment.zip MaxECDRComment.zip)
 to_vec(${samples_dir}/zips/SimpleNoComp.zip SimpleNoComp.zip)
 to_vec(${samples_dir}/test.bin test.bin)
