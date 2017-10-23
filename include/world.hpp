@@ -25,7 +25,7 @@ class WorldState
 public:
     WorldState(const WorldState&) = delete;
     WorldState& operator = (const WorldState&) = delete;
-    WorldState() {} 
+    WorldState(IAudioController& audioController, ResourceLocator& locator);
 
     glm::vec2 kVirtualScreenSize;
     glm::vec2 kCameraBlockSize;
@@ -65,8 +65,17 @@ public:
 
     void RenderDebug(AbstractRenderer& rend) const;
     void DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
+    void SetCurrentCamera(const char* cameraName);
+    void SetGameCameraToCameraAt(u32 x, u32 y);
+    u32 CurrentCameraX() const { return mCurrentCameraX; }
+    u32 CurrentCameraY() const { return mCurrentCameraY; }
+
+    std::unique_ptr<PlayFmvState> mPlayFmvState;
+    u32 mGlobalFrameCounter = 0;
 private:
     void RenderGrid(AbstractRenderer& rend) const;
+    u32 mCurrentCameraX = 0;
+    u32 mCurrentCameraY = 0;
 };
 
 class World
@@ -95,7 +104,6 @@ private:
     void RenderDebugFmvSelection();
 
     std::unique_ptr<GridMap> mGridMap;
-    std::unique_ptr<PlayFmvState> mPlayFmvState;
     std::unique_ptr<FmvDebugUi> mFmvDebugUi;
     std::unique_ptr<class EditorMode> mEditorMode;
     std::unique_ptr<class GameMode> mGameMode;
@@ -103,10 +111,11 @@ private:
     up_future_UP_Path mLocatePathFuture;
     Oddlib::UP_Path mPathBeingLoaded;
 
-    WorldState mWorldState;
 
     ResourceLocator& mLocator;
     Sound& mSound;
     AbstractRenderer& mRenderer;
     LoadingIcon& mLoadingIcon;
+    WorldState mWorldState;
+
 };

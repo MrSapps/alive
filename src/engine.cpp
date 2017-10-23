@@ -538,7 +538,6 @@ void Engine::Update()
                 *mLoadingIcon);
         }
         mState = mWorld->Update(mInputState, *mRenderer);
-
         // TODO: Allow returning to eSelectGame
         break;
 
@@ -559,8 +558,6 @@ void Engine::Update()
     case EngineStates::eQuit:
         break;
     }
-
-    mGlobalFrameCounter++;
 }
 
 void Engine::Render()

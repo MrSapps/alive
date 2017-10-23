@@ -24,28 +24,28 @@ GridScreen::GridScreen(const Oddlib::Path::Camera& camera, ResourceLocator& loca
 
 GridScreen::~GridScreen()
 {
-    assert(mTexHandle.IsValid() == false);
-    assert(mTexHandle2.IsValid() == false);
+    assert(mCameraTexture.IsValid() == false);
+    assert(mFG1Texture.IsValid() == false);
 }
 
 void GridScreen::LoadTextures(AbstractRenderer& rend)
 {
-    if (!mTexHandle.IsValid())
+    if (!mCameraTexture.IsValid())
     {
         mCam = mLocator.LocateCamera(mFileName).get();
         if (mCam) // One path trys to load BRP08C10.CAM which exists in no data sets anywhere!
         {
             SDL_Surface* surf = mCam->GetSurface();
-            mTexHandle = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGB, surf->w, surf->h, AbstractRenderer::eTextureFormats::eRGB, surf->pixels, true);
+            mCameraTexture = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGB, surf->w, surf->h, AbstractRenderer::eTextureFormats::eRGB, surf->pixels, true);
 
-            if (!mTexHandle2.IsValid())
+            if (!mFG1Texture.IsValid())
             {
                 if (mCam->GetFg1())
                 {
                     SDL_Surface* fg1Surf = mCam->GetFg1()->GetSurface();
                     if (fg1Surf)
                     {
-                        mTexHandle2 = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->w, fg1Surf->h, AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->pixels, true);
+                        mFG1Texture = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->w, fg1Surf->h, AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->pixels, true);
                     }
                 }
             }
@@ -55,15 +55,15 @@ void GridScreen::LoadTextures(AbstractRenderer& rend)
 
 void GridScreen::UnLoadTextures(AbstractRenderer& rend)
 {
-    if (mTexHandle.IsValid())
+    if (mCameraTexture.IsValid())
     {
-        rend.DestroyTexture(mTexHandle);
-        mTexHandle.mData = nullptr;
+        rend.DestroyTexture(mCameraTexture);
+        mCameraTexture.mData = nullptr;
     }
-    if (mTexHandle2.IsValid())
+    if (mFG1Texture.IsValid())
     {
-        rend.DestroyTexture(mTexHandle2);
-        mTexHandle2.mData = nullptr;
+        rend.DestroyTexture(mFG1Texture);
+        mFG1Texture.mData = nullptr;
     }
 }
 
@@ -84,14 +84,15 @@ bool GridScreen::hasTexture() const
 void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float h)
 {
     LoadTextures(rend);
-    if (mTexHandle.IsValid())
+
+    if (mCameraTexture.IsValid())
     {
-        rend.TexturedQuad(mTexHandle, x, y, w, h, AbstractRenderer::eForegroundLayer0, ColourU8{ 255, 255, 255, 255 });
+        rend.TexturedQuad(mCameraTexture, x, y, w, h, AbstractRenderer::eForegroundLayer0, ColourU8{ 255, 255, 255, 255 });
     }
 
-    if (mTexHandle2.IsValid())
+    if (mFG1Texture.IsValid())
     {
-        rend.TexturedQuad(mTexHandle2, x, y, w, h, AbstractRenderer::eForegroundLayer1, ColourU8{ 255, 255, 255, 255 });
+        rend.TexturedQuad(mFG1Texture, x, y, w, h, AbstractRenderer::eForegroundLayer1, ColourU8{ 255, 255, 255, 255 });
     }
 }
 

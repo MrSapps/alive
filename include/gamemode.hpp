@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.hpp"
+
 class WorldState;
 class InputState;
 class CoordinateSpace;
@@ -19,6 +21,17 @@ public:
     };
     GameModeStates State() const { return mState; }
 private:
+    enum class MenuStates
+    {
+        eInit,
+        eCameraRoll,
+        eFmv,
+        eUserMenu,
+    };
+    MenuStates mMenuState = MenuStates::eInit;
+
+    void UpdateMenu(const InputState& input, CoordinateSpace& coords);
+
     GameModeStates mState = eRunning;
     WorldState& mWorldState;
 };

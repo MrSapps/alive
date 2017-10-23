@@ -27,6 +27,11 @@ void WorldState::RenderGrid(AbstractRenderer& rend) const
     }
 }
 
+WorldState::WorldState(IAudioController& audioController, ResourceLocator& locator)
+{
+    mPlayFmvState = std::make_unique<PlayFmvState>(audioController, locator);
+}
+
 void WorldState::RenderDebug(AbstractRenderer& rend) const
 {
     //rend.SetActiveLayer(AbstractRenderer::eEditor);
@@ -98,6 +103,32 @@ void WorldState::DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, con
     }
 }
 
+void WorldState::SetCurrentCamera(const char* cameraName)
+{
+    for (auto x = 0u; x < mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mScreens[x].size(); y++)
+        {
+            if (mScreens[x][y]->FileName() == cameraName)
+            {
+                mCurrentCameraX = x;
+                mCurrentCameraY = y;
+                return;
+            }
+        }
+    }
+}
+
+void WorldState::SetGameCameraToCameraAt(u32 x, u32 y)
+{
+    const glm::vec2 camPos = glm::vec2(
+        (x * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
+        (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y) 
+        + glm::vec2(kVirtualScreenSize.x / 2, kVirtualScreenSize.y / 2);
+
+    mCameraPosition = camPos;
+}
+
 template<class T>
 static inline bool FutureIsDone(T& future)
 {
@@ -115,14 +146,14 @@ World::World(
   : mLocator(locator),
     mSound(sound),
     mRenderer(renderer),
-    mLoadingIcon(loadingIcon)
+    mLoadingIcon(loadingIcon),
+    mWorldState(audioController, locator)
 {
     mGridMap = std::make_unique<GridMap>(coords, mWorldState);
     
     mEditorMode = std::make_unique<EditorMode>(mWorldState);
     mGameMode = std::make_unique<GameMode>(mWorldState);
 
-    mPlayFmvState = std::make_unique<PlayFmvState>(audioController, locator);
     mFmvDebugUi = std::make_unique<FmvDebugUi>(locator);
 
     Debugging().AddSection([&]()
@@ -170,7 +201,8 @@ World::World(
     // TODO: Can be removed ?
     //const std::string gameScript = mResourceLocator.LocateScript(initScriptName).get();
 
-    LoadMap("BAPATH_1");
+//    LoadMap("BAPATH_1");
+    LoadMap("STPATH_1");
 }
 
 World::~World()
@@ -206,6 +238,8 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
     case WorldState::States::eInGame:
     case WorldState::States::eInEditor:
     {
+        mWorldState.mGlobalFrameCounter++;
+
         // Don't show debug UI if we're in game and the game is paused
         bool hideDebug = false;
         if (mWorldState.mState == WorldState::States::eInGame && mGameMode->State() == GameMode::ePaused)
@@ -253,7 +287,7 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
     break;
 
     case WorldState::States::ePlayFmv:
-        if (!mPlayFmvState->Update(input))
+        if (!mWorldState.mPlayFmvState->Update(input))
         {
             mWorldState.mState = mWorldState.mReturnToState;
         }
@@ -311,8 +345,6 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
 
 void World::Render(AbstractRenderer& /*rend*/)
 {
-   
-
     switch (mWorldState.mState)
     {
     case WorldState::States::eInGame:
@@ -322,7 +354,7 @@ void World::Render(AbstractRenderer& /*rend*/)
         mRenderer.Clear(0.4f, 0.4f, 0.4f);
 
         Debugging().Render(mRenderer);
-        mPlayFmvState->RenderDebugSubsAndFontAtlas(mRenderer);
+        mWorldState.mPlayFmvState->RenderDebugSubsAndFontAtlas(mRenderer);
 
         if (mGridMap)
         {
@@ -342,7 +374,7 @@ void World::Render(AbstractRenderer& /*rend*/)
         break;
 
     case WorldState::States::ePlayFmv:
-        mPlayFmvState->Render(mRenderer);
+        mWorldState.mPlayFmvState->Render(mRenderer);
         break;
 
     case WorldState::States::eQuit:
@@ -381,7 +413,7 @@ void World::RenderDebugFmvSelection()
 {
     if (mFmvDebugUi->Ui())
     {
-        mPlayFmvState->Play(mFmvDebugUi->FmvName().c_str(), mFmvDebugUi->FmvFileLocation());
+        mWorldState.mPlayFmvState->Play(mFmvDebugUi->FmvName().c_str(), mFmvDebugUi->FmvFileLocation());
         mWorldState.mReturnToState = mWorldState.mState;
         mWorldState.mState = WorldState::States::ePlayFmv;
     }

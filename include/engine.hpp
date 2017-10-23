@@ -166,7 +166,6 @@ public:
     ~Engine();
     bool Init();
     int Run();
-    u32 GlobalFrameCounter() const { return mGlobalFrameCounter; }
     void OnJobStart(EngineJob::eJobTypes jobType, const CancelFlag& quitFlag);
     void OnJobFinished(EngineJob::eJobTypes jobType);
 private:
@@ -210,8 +209,6 @@ protected:
     EngineStates mState = EngineStates::ePreEngineInit;
     std::unique_ptr<World> mWorld;
     std::unique_ptr<class GameSelectionState> mGameSelectionScreen;
-
-    u32 mGlobalFrameCounter = 0;
 
     std::unique_ptr<LoadingIcon> mLoadingIcon;
 };

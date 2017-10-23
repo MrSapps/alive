@@ -52,8 +52,8 @@ public:
     void Render(AbstractRenderer& rend, float x, float y, float w, float h);
 private:
     std::string mFileName;
-    TextureHandle mTexHandle;
-    TextureHandle mTexHandle2;
+    TextureHandle mCameraTexture;
+    TextureHandle mFG1Texture;
 
     // TODO: This is not the in-game format
     Oddlib::Path::Camera mCamera;

@@ -3,29 +3,57 @@
 #include "debug.hpp"
 #include "world.hpp"
 #include "gridmap.hpp"
+#include "fmv.hpp"
 
 GameMode::GameMode(WorldState& mapState)
     : mWorldState(mapState)
 {
+    // hack/wip/test
+    mState = eMenu;
+
+}
+
+void GameMode::UpdateMenu(const InputState& /*input*/, CoordinateSpace& /*coords*/)
+{
+    switch (mMenuState)
+    {
+    case GameMode::MenuStates::eInit:
+        mMenuState = MenuStates::eCameraRoll;
+        mWorldState.SetCurrentCamera("STP01C25.CAM");
+        mWorldState.SetGameCameraToCameraAt(mWorldState.CurrentCameraX(), mWorldState.CurrentCameraY());
+        break;
+
+    case GameMode::MenuStates::eCameraRoll:
+        if ((mWorldState.mGlobalFrameCounter % 100) == 0)
+        {
+            mWorldState.mPlayFmvState->Play("AE_Intro");
+            mWorldState.mReturnToState = mWorldState.mState;
+            mWorldState.mState = WorldState::States::ePlayFmv;
+        }
+        break;
+
+    case GameMode::MenuStates::eFmv:
+        break;
+
+    case GameMode::MenuStates::eUserMenu:
+        break;
+
+    default:
+        break;
+    }
 
 }
 
 void GameMode::Update(const InputState& input, CoordinateSpace& coords)
 {
-    /*
-    if (Debugging().mShowDebugUi)
+    coords.SetScreenSize(mWorldState.kVirtualScreenSize);
+
+    if (mState == eMenu)
     {
-        // Debug ui
-        if (ImGui::Begin("Script debug"))
-        {
-            if (ImGui::Button("Reload abe script"))
-            {
-                // TODO: Debug hack
-                //const_cast<MapObject&>(mPlayer).ReloadScript();
-            }
-        }
-        ImGui::End();
-    }*/
+        UpdateMenu(input, coords);
+        coords.SetCameraPosition(mWorldState.mCameraPosition);
+        return;
+    }
 
     if (mState == eRunning)
     {
@@ -53,8 +81,6 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
         //mCameraPosition.x = mPlayer.mXPos;
         //mCameraPosition.y = mPlayer.mYPos;
     }
-
-    coords.SetScreenSize(mWorldState.kVirtualScreenSize);
 
 
     if (mState == eRunning)
@@ -95,12 +121,9 @@ void GameMode::Render(AbstractRenderer& rend) const
 {
     if (mWorldState.mCameraSubject && Debugging().mDrawCameras)
     {
-        const s32 camX = static_cast<s32>(mWorldState.mCameraSubject->mXPos / mWorldState.kCameraBlockSize.x);
-        const s32 camY = static_cast<s32>(mWorldState.mCameraSubject->mYPos / mWorldState.kCameraBlockSize.y);
+        const s32 camX = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraX()) : static_cast<s32>(mWorldState.mCameraSubject->mXPos / mWorldState.kCameraBlockSize.x);
+        const s32 camY = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraY()) : static_cast<s32>(mWorldState.mCameraSubject->mYPos / mWorldState.kCameraBlockSize.y);
 
-
-        // Culling is disabled until proper camera position updating order is fixed
-        // ^ not sure what this means, but rendering things at negative cam index seems to go wrong
         if (camX >= 0 && camY >= 0 &&
             camX < static_cast<s32>(mWorldState.mScreens.size()) &&
             camY < static_cast<s32>(mWorldState.mScreens[camX].size()))
