@@ -205,7 +205,19 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
     case WorldState::States::eToGame:
     case WorldState::States::eInGame:
     case WorldState::States::eInEditor:
-        Debugging().Update(input);
+    {
+        // Don't show debug UI if we're in game and the game is paused
+        bool hideDebug = false;
+        if (mWorldState.mState == WorldState::States::eInGame && mGameMode->State() == GameMode::ePaused)
+        {
+            hideDebug = true;
+        }
+
+        if (!hideDebug)
+        {
+            Debugging().Update(input);
+        }
+
         if (mGridMap)
         {
             if (mWorldState.mState == WorldState::States::eInEditor)
@@ -237,7 +249,8 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                 coords.SetCameraPosition(mWorldState.mCameraPosition);
             }
         }
-        break;
+    }
+    break;
 
     case WorldState::States::ePlayFmv:
         if (!mPlayFmvState->Update(input))

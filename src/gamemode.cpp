@@ -27,7 +27,23 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
         ImGui::End();
     }*/
 
-    if (input.mKeys[SDL_SCANCODE_E].IsPressed())
+    if (mState == eRunning)
+    {
+        if (input.mKeys[SDL_SCANCODE_ESCAPE].IsPressed())
+        {
+            // TODO: Stop or pause music? Check what real game does
+            mState = ePaused;
+        }
+    }
+    else if (mState == ePaused)
+    {
+        if (input.mKeys[SDL_SCANCODE_ESCAPE].IsPressed())
+        {
+            mState = eRunning;
+        }
+    }
+
+    if (input.mKeys[SDL_SCANCODE_E].IsPressed() && mState != ePaused)
     {
         mWorldState.mState = WorldState::States::eToEditor;
         coords.mSmoothCameraPosition = true;
@@ -41,11 +57,13 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
     coords.SetScreenSize(mWorldState.kVirtualScreenSize);
 
 
-    for (auto& obj : mWorldState.mObjs)
+    if (mState == eRunning)
     {
-        obj->Update(input);
+        for (auto& obj : mWorldState.mObjs)
+        {
+            obj->Update(input);
+        }
     }
-
 
     if (mWorldState.mCameraSubject)
     {
@@ -67,6 +85,11 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
     }
 }
 
+// TODO: Add to common header with same func from fmv.cpp
+static f32 Percent2(f32 max, f32 percent)
+{
+    return (max / 100.0f) * percent;
+}
 
 void GameMode::Render(AbstractRenderer& rend) const
 {
@@ -141,5 +164,26 @@ void GameMode::Render(AbstractRenderer& rend) const
                 glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 50),
                 glm::vec2(mWorldState.mCameraSubject->mXPos + 25, mWorldState.mCameraSubject->mYPos - 50), 2);
         }
+    }
+
+    if (mState == ePaused)
+    {
+        rend.PathBegin();
+        f32 w = static_cast<f32>(rend.Width());
+        f32 h = static_cast<f32>(rend.Height());
+
+        rend.PathLineTo(0.0f, 0.0f);
+        rend.PathLineTo(0.0f, h);
+        rend.PathLineTo(w, h);
+        rend.PathLineTo(w, 0.0f);
+        rend.PathFill(ColourU8{ 0, 0, 0, 200 }, AbstractRenderer::eLayers::ePauseMenu, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
+
+        f32 textSize = Percent2(h, 8.0f);
+        f32 bounds[4] = {};
+        rend.TextBounds((w / 2.0f), (h / 2.0f), textSize, "Paused", bounds);
+        rend.Text(
+            (w / 2.0f) - ((bounds[2] - bounds[0]) / 2.0f),
+            (h / 2.0f) - ((bounds[3] - bounds[1]) / 2.0f),
+            textSize, "Paused", ColourU8{ 255, 255, 255, 255 }, AbstractRenderer::eLayers::ePauseMenu, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
     }
 }
