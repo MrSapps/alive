@@ -79,8 +79,6 @@ public:
     GridMap(CoordinateSpace& coords, WorldState& state);
     ~GridMap();
     bool LoadMap(const Oddlib::Path& path, ResourceLocator& locator);
-    void Update(const InputState& input, CoordinateSpace& coords);
-    void Render(AbstractRenderer& rend) const;
     static void RegisterScriptBindings();
 private:
     class Loader
@@ -120,15 +118,11 @@ private:
 
     MapObject* GetMapObject(s32 x, s32 y, const char* type);
     
-    void UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& coords);
-    void RenderToEditorOrToGame(AbstractRenderer& rend) const;
-
     virtual const CollisionLines& Lines() const override final;
 
     void ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items);
 
-    std::unique_ptr<class EditorMode> mEditorMode;
-    std::unique_ptr<class GameMode> mGameMode;
+
     InstanceBinder<class GridMap> mScriptInstance;
 public:
     void UnloadMap(AbstractRenderer& renderer);

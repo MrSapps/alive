@@ -621,7 +621,7 @@ void EditorMode::Render(AbstractRenderer& rend) const
     mWorldState.RenderDebug(rend);
 }
 
-void EditorMode::OnMapChanged()
+void EditorMode::ClearUndoStack()
 {
     mUndoStack.Clear();
 }

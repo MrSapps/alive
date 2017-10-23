@@ -10,8 +10,6 @@
 #include <cmath>
 #include "resourcemapper.hpp"
 #include "engine.hpp"
-#include "gamemode.hpp"
-#include "editormode.hpp"
 #include "fmv.hpp"
 #include "sound.hpp"
 #include "world.hpp"
@@ -112,8 +110,7 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
 GridMap::GridMap(CoordinateSpace& coords, WorldState& state)
     : mLoader(*this), mScriptInstance("gMap", this), mWorldState(state)
 {
-    mEditorMode = std::make_unique<EditorMode>(mWorldState);
-    mGameMode = std::make_unique<GameMode>(mWorldState);
+
 
     // Set up the screen size and camera pos so that the grid is drawn correctly during init
     mWorldState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
@@ -145,7 +142,6 @@ void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
     // Clear out existing objects from previous map
     mGm.mWorldState.mObjs.clear();
     mGm.mWorldState.mCollisionItems.clear();
-    mGm.mEditorMode->OnMapChanged();
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
     mGm.mWorldState.kCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
@@ -346,44 +342,6 @@ GridMap::~GridMap()
     TRACE_ENTRYEXIT;
 }
 
-void GridMap::Update(const InputState& input, CoordinateSpace& coords)
-{
-    if (mWorldState.mState == WorldState::States::eInEditor)
-    {
-        mEditorMode->Update(input, coords);
-    }
-    else if (mWorldState.mState == WorldState::States::eInGame)
-    {
-        mGameMode->Update(input, coords);
-    }
-    else
-    {
-        UpdateToEditorOrToGame(input, coords);
-    }
-}
-
-void GridMap::UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& coords)
-{
-    std::ignore = input;
-
-    if (mWorldState.mState == WorldState::States::eToEditor)
-    {
-        coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorMode->mEditorCamZoom);
-        if (SDL_TICKS_PASSED(SDL_GetTicks(), mWorldState.mModeSwitchTimeout))
-        {
-            mWorldState.mState = WorldState::States::eInEditor;
-        }
-    }
-    else if (mWorldState.mState == WorldState::States::eToGame)
-    {
-        coords.SetScreenSize(mWorldState.kVirtualScreenSize);
-        if (SDL_TICKS_PASSED(SDL_GetTicks(), mWorldState.mModeSwitchTimeout))
-        {
-            mWorldState.mState = WorldState::States::eInGame;
-        }
-    }
-    coords.SetCameraPosition(mWorldState.mCameraPosition);
-}
 
 MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
 {
@@ -398,14 +356,6 @@ MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
         }
     }
     return nullptr;
-}
-
-
-void GridMap::RenderToEditorOrToGame(AbstractRenderer& rend) const
-{
-    // TODO: Better transition
-    // Keep everything rendered for now
-    mEditorMode->Render(rend);
 }
 
 
@@ -503,20 +453,4 @@ void GridMap::UnloadMap(AbstractRenderer& renderer)
     mWorldState.mObjs.clear();
     mWorldState.mCollisionItems.clear();
     mWorldState.mScreens.clear();
-}
-
-void GridMap::Render(AbstractRenderer& rend) const
-{
-    if (mWorldState.mState == WorldState::States::eInEditor)
-    {
-        mEditorMode->Render(rend);
-    }
-    else if (mWorldState.mState == WorldState::States::eInGame)
-    {
-        mGameMode->Render(rend);
-    }
-    else
-    {
-        RenderToEditorOrToGame(rend);
-    }
 }

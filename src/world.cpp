@@ -6,7 +6,8 @@
 #include "fmv.hpp"
 #include "input.hpp"
 #include "sound.hpp"
-
+#include "editormode.hpp"
+#include "gamemode.hpp"
 
 void WorldState::RenderGrid(AbstractRenderer& rend) const
 {
@@ -117,6 +118,9 @@ World::World(
     mLoadingIcon(loadingIcon)
 {
     mGridMap = std::make_unique<GridMap>(coords, mWorldState);
+    
+    mEditorMode = std::make_unique<EditorMode>(mWorldState);
+    mGameMode = std::make_unique<GameMode>(mWorldState);
 
     mPlayFmvState = std::make_unique<PlayFmvState>(audioController, locator);
     mFmvDebugUi = std::make_unique<FmvDebugUi>(locator);
@@ -182,9 +186,10 @@ void World::LoadMap(const std::string& mapName)
 
     mLocatePathFuture = mLocator.LocatePath(mapName.c_str());
 
-    mWorldState.mState = WorldState::States::eLoadingMap;
+    mEditorMode->ClearUndoStack();
     mSound.StopAllMusic();
     mLoadingIcon.SetEnabled(true);
+    mWorldState.mState = WorldState::States::eLoadingMap;
 }
 
 bool World::LoadMap(const Oddlib::Path& path)
@@ -203,7 +208,34 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
         Debugging().Update(input);
         if (mGridMap)
         {
-            mGridMap->Update(input, coords);
+            if (mWorldState.mState == WorldState::States::eInEditor)
+            {
+                mEditorMode->Update(input, coords);
+            }
+            else if (mWorldState.mState == WorldState::States::eInGame)
+            {
+                mGameMode->Update(input, coords);
+            }
+            else
+            {
+                if (mWorldState.mState == WorldState::States::eToEditor)
+                {
+                    coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorMode->mEditorCamZoom);
+                    if (SDL_TICKS_PASSED(SDL_GetTicks(), mWorldState.mModeSwitchTimeout))
+                    {
+                        mWorldState.mState = WorldState::States::eInEditor;
+                    }
+                }
+                else if (mWorldState.mState == WorldState::States::eToGame)
+                {
+                    coords.SetScreenSize(mWorldState.kVirtualScreenSize);
+                    if (SDL_TICKS_PASSED(SDL_GetTicks(), mWorldState.mModeSwitchTimeout))
+                    {
+                        mWorldState.mState = WorldState::States::eInGame;
+                    }
+                }
+                coords.SetCameraPosition(mWorldState.mCameraPosition);
+            }
         }
         break;
 
@@ -266,6 +298,8 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
 
 void World::Render(AbstractRenderer& /*rend*/)
 {
+   
+
     switch (mWorldState.mState)
     {
     case WorldState::States::eInGame:
@@ -279,7 +313,18 @@ void World::Render(AbstractRenderer& /*rend*/)
 
         if (mGridMap)
         {
-            mGridMap->Render(mRenderer);
+            if (mWorldState.mState == WorldState::States::eInEditor)
+            {
+                mEditorMode->Render(mRenderer);
+            }
+            else if (mWorldState.mState == WorldState::States::eInGame)
+            {
+                mGameMode->Render(mRenderer);
+            }
+            else
+            {
+                mEditorMode->Render(mRenderer);
+            }
         }
         break;
 

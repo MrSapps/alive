@@ -97,7 +97,9 @@ private:
     std::unique_ptr<GridMap> mGridMap;
     std::unique_ptr<PlayFmvState> mPlayFmvState;
     std::unique_ptr<FmvDebugUi> mFmvDebugUi;
- 
+    std::unique_ptr<class EditorMode> mEditorMode;
+    std::unique_ptr<class GameMode> mGameMode;
+
     up_future_UP_Path mLocatePathFuture;
     Oddlib::UP_Path mPathBeingLoaded;
 
