@@ -349,6 +349,8 @@ if (WIN32 AND MSVC)
     cotire(oddlib)
 endif()
 
+SET(generated_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers)
+
 SET(alivelib_src
     include/core/audiobuffer.hpp
     src/core/audiobuffer.cpp
@@ -410,6 +412,7 @@ SET(alivelib_src
     src/audioconverter.cpp
     include/cdromfilesystem.hpp
     include/directorylimitedfilesystem.hpp
+    ${generated_headers_dir}/CONTRIBUTORS.md.g.h
 )
 
 if(WIN32)
@@ -537,8 +540,6 @@ function(make_header src dst targetname varname)
     SET_PROPERTY(TARGET Generate_${targetname} PROPERTY FOLDER "Header generators")
 
 endfunction()
-
-SET(generated_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers)
 
 # Helper to take file foo.dat in any path and place it in generated headers as foo.dat.g.h with
 # var name of foo
