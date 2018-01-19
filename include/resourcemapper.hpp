@@ -257,7 +257,7 @@ private:
     SoundResources mSoundResources;
 
     friend class Sound; // TODO: Temp debug ui
-    friend class Fmv; // TODO: Temp debug ui
+    friend class FmvDebugUi; // TODO: Temp debug ui
     friend class AnimLogger; // TODO: Hook access
 
     void ParseDataSetContentsJson(const std::string& json)
@@ -757,8 +757,8 @@ private:
     ResourceMapper mResMapper;
     DataPaths mDataPaths;
 
-    friend class Fmv; // TODO: Temp debug ui
-    friend class Level; // TODO: Temp debug ui
+    friend class FmvDebugUi; // TODO: Temp debug ui
+    friend class World; // TODO: Temp debug ui
     friend class Sound; // TODO: Temp debug ui
 
     std::mutex mMutex;

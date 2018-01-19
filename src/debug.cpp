@@ -21,7 +21,12 @@ Debug& Debugging()
     return d;
 }
 
-void Debug::Update(class InputState& input)
+Debug::Debug()
+{
+    strcpy(mSubtitle, "Subtitle test");
+}
+
+void Debug::Update(const InputState& input)
 {
     if (input.mKeys[SDL_SCANCODE_F1].IsPressed())
     {
@@ -49,7 +54,6 @@ void Debug::Update(class InputState& input)
                 ImGui::Checkbox("Grid", &mGrid);
                 ImGui::Checkbox("Object bounding boxes", &mObjectBoundingBoxes);
                 ImGui::Checkbox("Ray casts", &mRayCasts);
-                ImGui::Checkbox("Display font atlas", &mDrawFontAtlas);
                 if (ImGui::Checkbox("VSync", &mVsync))
                 {
                     mChangeVSync = true;
@@ -61,6 +65,8 @@ void Debug::Update(class InputState& input)
                 ImGui::Checkbox("Regular", &mSubtitleTestRegular);
                 ImGui::Checkbox("Italic", &mSubtitleTestItalic);
                 ImGui::Checkbox("Bold", &mSubtitleTestBold);
+                ImGui::Checkbox("Display font atlas", &mDrawFontAtlas);
+                ImGui::InputText("Subtitle", mSubtitle, sizeof(mSubtitle));
             }
 
             if (ImGui::CollapsingHeader("Browsers"))

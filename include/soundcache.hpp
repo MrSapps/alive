@@ -2,19 +2,31 @@
 
 #include <memory>
 #include <string>
-#include "asyncqueue.hpp"
+#include <map>
+#include <vector>
+#include <mutex>
+#include "jobsystem.hpp"
+#include "types.hpp"
 
 class ResourceLocator;
 class OSBaseFileSystem;
 class ISound;
 class SoundCache;
 
-class BaseSoundCacheJob
+class BaseSoundCacheJob : public IJob
 {
 public:
-    BaseSoundCacheJob(SoundCache& soundCache, ResourceLocator& locator) : mSoundCache(soundCache), mLocator(locator) {  }
+    BaseSoundCacheJob(SoundCache& soundCache, ResourceLocator& locator) : mSoundCache(soundCache), mLocator(locator) 
+    {
+
+    }
+
     virtual ~BaseSoundCacheJob() {}
-    virtual void Execute(std::atomic<bool>& quitFlag) = 0;
+
+    virtual void OnFinished() override
+    {
+
+    }
 protected:
     SoundCache& mSoundCache;
     ResourceLocator& mLocator;
@@ -27,7 +39,7 @@ public:
     SoundAddToCacheJob(SoundCache& soundCache, ResourceLocator& locator, const std::string& name)
         : BaseSoundCacheJob(soundCache, locator), mName(name)  {  }
     
-    virtual void Execute(std::atomic<bool>& quitFlag) override;
+    virtual void OnExecute(const CancelFlag& quitFlag) override;
 
 private:
     std::string mName;
@@ -39,14 +51,14 @@ public:
     CacheAllSoundEffectsJob(SoundCache& soundCache, ResourceLocator& locator)
         : BaseSoundCacheJob(soundCache, locator) { }
 
-    virtual void Execute(std::atomic<bool>& quitFlag) override;
+    virtual void OnExecute(const CancelFlag& quitFlag) override;
 };
 
 // Thread safe
 class SoundCache
 {
 public:
-    explicit SoundCache(OSBaseFileSystem& fs);
+    SoundCache(OSBaseFileSystem& fs, JobSystem& jobSystem);
     ~SoundCache();
     void Sync();
     bool ExistsInMemoryCache(const std::string& name) const;
@@ -56,24 +68,25 @@ public:
     void CacheSound(ResourceLocator& locator, const std::string& name);
     void CacheAllSoundEffects(ResourceLocator& locator);
 private:
-    void CacheAllSoundEffectsImp(ResourceLocator& locator, std::atomic<bool>& quitFlag);
+    void CacheAllSoundEffectsImp(ResourceLocator& locator, const CancelFlag& quitFlag);
 
     void DeleteAll();
-    void CacheSoundImpl(ResourceLocator& locator, const std::string& name, std::atomic<bool>& quitFlag);
+    void CacheSoundImpl(ResourceLocator& locator, const std::string& name, const CancelFlag& quitFlag);
 
-    void AddToMemoryAndDiskCache(std::unique_ptr<ISound> sound, std::atomic<bool>& quitFlag);
+    void AddToMemoryAndDiskCache(std::unique_ptr<ISound> sound, const CancelFlag& quitFlag);
     bool AddToMemoryCacheFromDiskCache(const std::string& name);
-    void AsyncQueueWorkerFunction(UP_BaseSoundCacheJob item, std::atomic<bool>& quitFlag);
+    void AsyncQueueWorkerFunction(UP_BaseSoundCacheJob item, const CancelFlag& quitFlag);
     void DeleteFromDiskCache(const std::string& filter);
 
 
     OSBaseFileSystem& mFs;
+    JobSystem& mJobSystem;
+    JobTracker mJobTracker;
     std::map<std::string, std::shared_ptr<std::vector<u8>>> mSoundDataCache;
     mutable std::recursive_mutex mCacheMutex;
 public:
     void RemoveFromMemoryCache(const std::string& name);
-    ASyncQueue<UP_BaseSoundCacheJob> mLoaderQueue;
-    std::atomic<bool> mSyncDone{ false };
+    std::atomic_bool mSyncDone{ false };
 
     friend class SoundAddToCacheJob;
     friend class CacheAllSoundEffectsJob;

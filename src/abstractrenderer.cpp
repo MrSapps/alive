@@ -10,7 +10,9 @@
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
+#ifndef __clang__
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif
 #pragma GCC diagnostic ignored "-Wunused-result"
 #endif
 #ifdef _MSC_VER

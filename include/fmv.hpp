@@ -16,6 +16,20 @@ class GameData;
 class IAudioController;
 class AbstractRenderer;
 
+class AutoMouseCursorHide
+{
+public:
+    AutoMouseCursorHide()
+    {
+        SDL_ShowCursor(0);
+    }
+
+    ~AutoMouseCursorHide()
+    {
+        SDL_ShowCursor(1);
+    }
+};
+
 class IMovie : public IAudioPlayer
 {
 public:
@@ -69,7 +83,7 @@ protected:
 
 private:
     bool mPlaying = false;
-    //AutoMouseCursorHide mHideMouseCursor;
+    AutoMouseCursorHide mHideMouseCursor;
 };
 
 
@@ -80,19 +94,42 @@ public:
     Fmv& operator = (const Fmv&) = delete;
     Fmv(IAudioController& audioController, class ResourceLocator& resourceLocator);
     ~Fmv();
-    void Play(const std::string& name);
+    void Play(const std::string& name, const ResourceMapper::FmvFileLocation* fmvFileLocation = nullptr);
     bool IsPlaying() const;
     void Stop();
     void Update();
+    void RenderDebugSubsAndFontAtlas(AbstractRenderer& rend);
     void Render(AbstractRenderer& rend);
 protected:
-    void DebugUi();
-
     ResourceLocator& mResourceLocator;
     IAudioController& mAudioController;
     std::unique_ptr<class IMovie> mFmv;
     std::string mFmvName;
+};
 
-    // To play an FMV from a specfic location for debugging
+class PlayFmvState
+{
+public:
+    PlayFmvState(IAudioController& audioController, ResourceLocator& locator);
+    void Render(AbstractRenderer& renderer);
+    void RenderDebugSubsAndFontAtlas(AbstractRenderer& renderer);
+    bool Update(const InputState& input);
+private:
+    std::unique_ptr<Fmv> mFmv;
+public:
+    void Play(const char* fmvName, const ResourceMapper::FmvFileLocation* fmvFileLocation = nullptr);
+};
+
+class FmvDebugUi
+{
+public:
+    FmvDebugUi(ResourceLocator& resourceLocator);
+    bool Ui();
+    const std::string& FmvName() const { return mFmvName; }
+    const ResourceMapper::FmvFileLocation* FmvFileLocation() const { return mDebugMapping; }
+private:
+    // To play an FMV from a specific location for debugging
     const ResourceMapper::FmvFileLocation* mDebugMapping = nullptr;
+    std::string mFmvName;
+    ResourceLocator& mResourceLocator;
 };

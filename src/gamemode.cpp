@@ -1,143 +1,210 @@
 #include "gamemode.hpp"
 #include "engine.hpp"
 #include "debug.hpp"
+#include "world.hpp"
+#include "gridmap.hpp"
+#include "fmv.hpp"
 
-GameMode::GameMode(GridMapState& mapState)
-    : mMapState(mapState)
+GameMode::GameMode(WorldState& mapState)
+    : mWorldState(mapState)
 {
+
+}
+
+void GameMode::UpdateMenu(const InputState& /*input*/, CoordinateSpace& /*coords*/)
+{
+    switch (mMenuState)
+    {
+    case GameMode::MenuStates::eInit:
+        mMenuState = MenuStates::eCameraRoll;
+        mWorldState.SetCurrentCamera("STP01C25.CAM");
+        mWorldState.SetGameCameraToCameraAt(mWorldState.CurrentCameraX(), mWorldState.CurrentCameraY());
+        break;
+
+    case GameMode::MenuStates::eCameraRoll:
+        if ((mWorldState.mGlobalFrameCounter % 100) == 0)
+        {
+            mWorldState.mPlayFmvState->Play("AE_Intro");
+            mWorldState.mReturnToState = mWorldState.mState;
+            mWorldState.mState = WorldState::States::ePlayFmv;
+        }
+        break;
+
+    case GameMode::MenuStates::eFmv:
+        break;
+
+    case GameMode::MenuStates::eUserMenu:
+        break;
+
+    default:
+        break;
+    }
 
 }
 
 void GameMode::Update(const InputState& input, CoordinateSpace& coords)
 {
-    /*
-    if (Debugging().mShowDebugUi)
-    {
-        // Debug ui
-        if (ImGui::Begin("Script debug"))
-        {
-            if (ImGui::Button("Reload abe script"))
-            {
-                // TODO: Debug hack
-                //const_cast<MapObject&>(mPlayer).ReloadScript();
-            }
-        }
-        ImGui::End();
-    }*/
+    coords.SetScreenSize(mWorldState.kVirtualScreenSize);
 
-    if (input.mKeys[SDL_SCANCODE_E].IsPressed())
+    if (mState == eMenu)
     {
-        mMapState.mState = GridMapState::eStates::eToEditor;
+        UpdateMenu(input, coords);
+        coords.SetCameraPosition(mWorldState.mCameraPosition);
+        return;
+    }
+
+    if (mState == eRunning)
+    {
+        if (input.mKeys[SDL_SCANCODE_ESCAPE].IsPressed())
+        {
+            // TODO: Stop or pause music? Check what real game does
+            mState = ePaused;
+        }
+    }
+    else if (mState == ePaused)
+    {
+        if (input.mKeys[SDL_SCANCODE_ESCAPE].IsPressed())
+        {
+            mState = eRunning;
+        }
+    }
+
+    if (input.mKeys[SDL_SCANCODE_E].IsPressed() && mState != ePaused)
+    {
+        mWorldState.mState = WorldState::States::eToEditor;
         coords.mSmoothCameraPosition = true;
 
-        mMapState.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
+        mWorldState.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
 
         //mCameraPosition.x = mPlayer.mXPos;
         //mCameraPosition.y = mPlayer.mYPos;
     }
 
-    coords.SetScreenSize(mMapState.kVirtualScreenSize);
 
-
-    for (auto& obj : mMapState.mObjs)
+    if (mState == eRunning)
     {
-        obj->Update(input);
+        for (auto& obj : mWorldState.mObjs)
+        {
+            obj->Update(input);
+        }
     }
 
-
-    if (mMapState.mCameraSubject)
+    if (mWorldState.mCameraSubject)
     {
-        const s32 camX = static_cast<s32>(mMapState.mCameraSubject->mXPos / mMapState.kCameraBlockSize.x);
-        const s32 camY = static_cast<s32>(mMapState.mCameraSubject->mYPos / mMapState.kCameraBlockSize.y);
+        const s32 camX = static_cast<s32>(mWorldState.mCameraSubject->mXPos / mWorldState.kCameraBlockSize.x);
+        const s32 camY = static_cast<s32>(mWorldState.mCameraSubject->mYPos / mWorldState.kCameraBlockSize.y);
 
         const glm::vec2 camPos = glm::vec2(
-            (camX * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
-            (camY * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y) + glm::vec2(mMapState.kVirtualScreenSize.x / 2, mMapState.kVirtualScreenSize.y / 2);
+            (camX * mWorldState.kCameraBlockSize.x) + mWorldState.kCameraBlockImageOffset.x,
+            (camY * mWorldState.kCameraBlockSize.y) + mWorldState.kCameraBlockImageOffset.y) + glm::vec2(mWorldState.kVirtualScreenSize.x / 2, mWorldState.kVirtualScreenSize.y / 2);
 
-        if (mMapState.mCameraPosition != camPos)
+        if (mWorldState.mCameraPosition != camPos)
         {
             LOG_INFO("TODO: Screen change");
             coords.mSmoothCameraPosition = false;
-            mMapState.mCameraPosition = camPos;
+            mWorldState.mCameraPosition = camPos;
         }
 
-        coords.SetCameraPosition(mMapState.mCameraPosition);
+        coords.SetCameraPosition(mWorldState.mCameraPosition);
     }
 }
 
+// TODO: Add to common header with same func from fmv.cpp
+static f32 Percent2(f32 max, f32 percent)
+{
+    return (max / 100.0f) * percent;
+}
 
 void GameMode::Render(AbstractRenderer& rend) const
 {
-    if (mMapState.mCameraSubject && Debugging().mDrawCameras)
+    if (mWorldState.mCameraSubject && Debugging().mDrawCameras)
     {
-        const s32 camX = static_cast<s32>(mMapState.mCameraSubject->mXPos / mMapState.kCameraBlockSize.x);
-        const s32 camY = static_cast<s32>(mMapState.mCameraSubject->mYPos / mMapState.kCameraBlockSize.y);
+        const s32 camX = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraX()) : static_cast<s32>(mWorldState.mCameraSubject->mXPos / mWorldState.kCameraBlockSize.x);
+        const s32 camY = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraY()) : static_cast<s32>(mWorldState.mCameraSubject->mYPos / mWorldState.kCameraBlockSize.y);
 
-
-        // Culling is disabled until proper camera position updating order is fixed
-        // ^ not sure what this means, but rendering things at negative cam index seems to go wrong
         if (camX >= 0 && camY >= 0 &&
-            camX < static_cast<s32>(mMapState.mScreens.size()) &&
-            camY < static_cast<s32>(mMapState.mScreens[camX].size()))
+            camX < static_cast<s32>(mWorldState.mScreens.size()) &&
+            camY < static_cast<s32>(mWorldState.mScreens[camX].size()))
         {
-            GridScreen* screen = mMapState.mScreens[camX][camY].get();
+            GridScreen* screen = mWorldState.mScreens[camX][camY].get();
             if (screen)
             {
                 if (screen->hasTexture())
                 {
                     screen->Render(rend,
-                        (camX * mMapState.kCameraBlockSize.x) + mMapState.kCameraBlockImageOffset.x,
-                        (camY * mMapState.kCameraBlockSize.y) + mMapState.kCameraBlockImageOffset.y,
-                        mMapState.kVirtualScreenSize.x, mMapState.kVirtualScreenSize.y);
+                        (camX * mWorldState.kCameraBlockSize.x) + mWorldState.kCameraBlockImageOffset.x,
+                        (camY * mWorldState.kCameraBlockSize.y) + mWorldState.kCameraBlockImageOffset.y,
+                        mWorldState.kVirtualScreenSize.x, mWorldState.kVirtualScreenSize.y);
                 }
             }
         }
     }
 
-    mMapState.RenderDebug(rend);
+    mWorldState.RenderDebug(rend);
 
     if (Debugging().mDrawObjects)
     {
-        for (const auto& obj : mMapState.mObjs)
+        for (const auto& obj : mWorldState.mObjs)
         {
             obj->Render(rend, 0, 0, 1.0f, AbstractRenderer::eForegroundLayer0);
         }
     }
 
-    if (mMapState.mCameraSubject)
+    if (mWorldState.mCameraSubject)
     {
         // Test raycasting for shadows
-        mMapState.DebugRayCast(rend,
-            glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos),
-            glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos + 500),
+        mWorldState.DebugRayCast(rend,
+            glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos),
+            glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos + 500),
             0,
             glm::vec2(0, -10)); // -10 so when we are *ON* a line you can see something
 
-        mMapState.DebugRayCast(rend,
-            glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 2),
-            glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 60),
+        mWorldState.DebugRayCast(rend,
+            glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 2),
+            glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 60),
             3,
             glm::vec2(0, 0));
 
-        if (mMapState.mCameraSubject->mFlipX)
+        if (mWorldState.mCameraSubject->mFlipX)
         {
-            mMapState.DebugRayCast(rend,
-                glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 20),
-                glm::vec2(mMapState.mCameraSubject->mXPos - 25, mMapState.mCameraSubject->mYPos - 20), 1);
+            mWorldState.DebugRayCast(rend,
+                glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 20),
+                glm::vec2(mWorldState.mCameraSubject->mXPos - 25, mWorldState.mCameraSubject->mYPos - 20), 1);
 
-            mMapState.DebugRayCast(rend,
-                glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 50),
-                glm::vec2(mMapState.mCameraSubject->mXPos - 25, mMapState.mCameraSubject->mYPos - 50), 1);
+            mWorldState.DebugRayCast(rend,
+                glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 50),
+                glm::vec2(mWorldState.mCameraSubject->mXPos - 25, mWorldState.mCameraSubject->mYPos - 50), 1);
         }
         else
         {
-            mMapState.DebugRayCast(rend,
-                glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 20),
-                glm::vec2(mMapState.mCameraSubject->mXPos + 25, mMapState.mCameraSubject->mYPos - 20), 2);
+            mWorldState.DebugRayCast(rend,
+                glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 20),
+                glm::vec2(mWorldState.mCameraSubject->mXPos + 25, mWorldState.mCameraSubject->mYPos - 20), 2);
 
-            mMapState.DebugRayCast(rend,
-                glm::vec2(mMapState.mCameraSubject->mXPos, mMapState.mCameraSubject->mYPos - 50),
-                glm::vec2(mMapState.mCameraSubject->mXPos + 25, mMapState.mCameraSubject->mYPos - 50), 2);
+            mWorldState.DebugRayCast(rend,
+                glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 50),
+                glm::vec2(mWorldState.mCameraSubject->mXPos + 25, mWorldState.mCameraSubject->mYPos - 50), 2);
         }
+    }
+
+    if (mState == ePaused)
+    {
+        rend.PathBegin();
+        f32 w = static_cast<f32>(rend.Width());
+        f32 h = static_cast<f32>(rend.Height());
+
+        rend.PathLineTo(0.0f, 0.0f);
+        rend.PathLineTo(0.0f, h);
+        rend.PathLineTo(w, h);
+        rend.PathLineTo(w, 0.0f);
+        rend.PathFill(ColourU8{ 0, 0, 0, 200 }, AbstractRenderer::eLayers::ePauseMenu, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
+
+        f32 textSize = Percent2(h, 8.0f);
+        f32 bounds[4] = {};
+        rend.TextBounds((w / 2.0f), (h / 2.0f), textSize, "Paused", bounds);
+        rend.Text(
+            (w / 2.0f) - ((bounds[2] - bounds[0]) / 2.0f),
+            (h / 2.0f) - ((bounds[3] - bounds[1]) / 2.0f),
+            textSize, "Paused", ColourU8{ 255, 255, 255, 255 }, AbstractRenderer::eLayers::ePauseMenu, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
     }
 }

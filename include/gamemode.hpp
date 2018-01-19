@@ -1,16 +1,37 @@
 #pragma once
 
-#include "gridmap.hpp"
+#include "types.hpp"
+
+class WorldState;
+class InputState;
+class CoordinateSpace;
+class AbstractRenderer;
 
 class GameMode
 {
 public:
-    NO_MOVE_OR_MOVE_ASSIGN(GameMode);
-
-    GameMode(GridMapState& mapState);
-
+    GameMode(WorldState& mapState);
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend) const;
+    enum GameModeStates
+    {
+        eRunning,
+        eMenu,
+        ePaused
+    };
+    GameModeStates State() const { return mState; }
 private:
-    GridMapState& mMapState;
+    enum class MenuStates
+    {
+        eInit,
+        eCameraRoll,
+        eFmv,
+        eUserMenu,
+    };
+    MenuStates mMenuState = MenuStates::eInit;
+
+    void UpdateMenu(const InputState& input, CoordinateSpace& coords);
+
+    GameModeStates mState = eRunning;
+    WorldState& mWorldState;
 };

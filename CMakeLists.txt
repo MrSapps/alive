@@ -349,6 +349,8 @@ if (WIN32 AND MSVC)
     cotire(oddlib)
 endif()
 
+SET(generated_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers)
+
 SET(alivelib_src
     include/core/audiobuffer.hpp
     src/core/audiobuffer.cpp
@@ -365,15 +367,18 @@ SET(alivelib_src
     src/openglrenderer.cpp
     include/engine.hpp
     src/engine.cpp
-    include/engine.hpp
+    include/jobsystem.hpp
+    src/jobsystem.cpp
+    include/input.hpp
+    src/input.cpp
     src/animationbrowser.cpp
     include/animationbrowser.hpp
     src/gameselectionstate.cpp
     include/gameselectionstate.hpp
-    src/rungamestate.cpp
-    include/rungamestate.hpp
     include/gridmap.hpp
     src/gridmap.cpp
+    include/world.hpp
+    src/world.cpp
     include/rendererfactory.hpp
     src/rendererfactory.cpp
     include/gamemode.hpp
@@ -407,6 +412,7 @@ SET(alivelib_src
     src/audioconverter.cpp
     include/cdromfilesystem.hpp
     include/directorylimitedfilesystem.hpp
+    ${generated_headers_dir}/CONTRIBUTORS.md.g.h
 )
 
 if(WIN32)
@@ -535,8 +541,6 @@ function(make_header src dst targetname varname)
 
 endfunction()
 
-SET(generated_headers_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files/generated_headers)
-
 # Helper to take file foo.dat in any path and place it in generated headers as foo.dat.g.h with
 # var name of foo
 function(to_vec src_file out_file_name)
@@ -550,6 +554,8 @@ function(to_vec src_file out_file_name)
 endfunction()
 
 SET(samples_dir ${CMAKE_CURRENT_SOURCE_DIR}/test/sample_files)
+
+to_vec(${samples_dir}/../../CONTRIBUTORS.md CONTRIBUTORS.md)
 
 to_vec(${samples_dir}/zips/MaxECDRComment.zip MaxECDRComment.zip)
 to_vec(${samples_dir}/zips/SimpleNoComp.zip SimpleNoComp.zip)
@@ -664,7 +670,7 @@ if (APPLE)
                    COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change /usr/local/lib/libSDL2-2.0.0.dylib @executable_path/../Frameworks/libSDL2-2.0.0.dylib $<TARGET_FILE:Alive>
                    COMMENT "Fixing up libSDL2-2.0.0.dylib rpath")
 
-    INSTALL(FILES "/usr/local/Cellar/sdl2/2.0.5/lib/libSDL2-2.0.0.dylib" DESTINATION "Alive.app/Contents/Frameworks")
+    INSTALL(FILES "/usr/local/Cellar/sdl2/2.0.6/lib/libSDL2-2.0.0.dylib" DESTINATION "Alive.app/Contents/Frameworks")
 
 endif()
 
@@ -685,8 +691,36 @@ INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/paths.json" DESTINATION "${DATA_
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/fmvs.json" DESTINATION "${DATA_DIR}")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/images/loading.png" DESTINATION "${DATA_DIR}/images")
 
-
-INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/INGRDNT_DDV_AePc.SRT" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_AbeGainsHealingPower.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_AslikExplodes.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_Backstory.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_BadEnding.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_BWMoM.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_DripikExplodes.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_FeeCoMoM1.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_FeeCoMoM2.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_GlukkonTriumvirate.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_GoodEnding.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_InfiltratingNecrumMines.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_NecrumMinesIntro.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_PhlegExplodes.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_SBarracksMoM.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_SSBMoM.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_TearExtractor.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_TheBigDoorOpens.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AE_ZeBoilah.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AO_BadEnding.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AO_DraggedToMolluck.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AO_GoodEnding.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AO_GuardianAngel.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AO_Intro.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AO_MachineryHalts.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AO_Moon.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AO_ParamiteScar.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AO_ParamoniaWell.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AO_ScrabaniaWell.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AO_ScrabScar.srt" DESTINATION "${DATA_DIR}/subtitles")
+INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/subtitles/AO_ShrykullIntro.srt" DESTINATION "${DATA_DIR}/subtitles")
 
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/map.nut" DESTINATION "${DATA_DIR}/scripts")
 INSTALL(FILES "${CMAKE_CURRENT_SOURCE_DIR}/data/scripts/main.nut" DESTINATION "${DATA_DIR}/scripts")

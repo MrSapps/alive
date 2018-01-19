@@ -176,6 +176,8 @@ public:
         eDebugUi,
 
         eFmv = 7000,
+
+        ePauseMenu = 8000
     };
 
     enum eBlendModes

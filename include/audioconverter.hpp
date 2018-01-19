@@ -13,13 +13,15 @@ public:
 
 };
 
+class CancelFlag;
+
 class AudioConverter
 {
 public:
     AudioConverter() = delete;
 
     template<class EncoderAlgorithm>
-    static void Convert(ISound& sound, const char* outputName, std::atomic<bool>& quitFlag);
+    static void Convert(ISound& sound, const char* outputName, const CancelFlag& quitFlag);
 };
 
 class WavHeader

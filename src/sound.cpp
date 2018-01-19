@@ -5,8 +5,8 @@
 
 std::atomic<SoundId> Sound::mSoundId(99);
 
-Sound::Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs)
-    : mAudioController(audioController), mLocator(locator), mCache(fs)
+Sound::Sound(IAudioController& audioController, ResourceLocator& locator, OSBaseFileSystem& fs, JobSystem& jobSystem)
+    : mAudioController(audioController), mLocator(locator), mCache(fs, jobSystem)
 {
     mAudioController.AddPlayer(this);
 
@@ -47,7 +47,11 @@ void Sound::SetMusicTheme(const char* themeName, const char* eventOnLoad)
     }
     else
     {
-        LOG_ERROR("Music theme " << themeName << " was not found");
+        if (mState == eSoundStates::eIdle)
+        {
+            SetState(eSoundStates::eUnloadingActiveSoundTheme);
+        }
+        LOG_ERROR("Music theme " << themeName << " was not found.");
     }
 }
 
@@ -85,6 +89,12 @@ std::unique_ptr<ISound> Sound::PlaySound(const std::string& soundName, const std
         }
         return pSound;
     }
+}
+
+void Sound::StopAllMusic()
+{
+    mAmbiance = nullptr;
+    mMusicTrack = nullptr;
 }
 
 void Sound::HandleMusicEvent(const char* eventName)
@@ -337,7 +347,7 @@ void Sound::SoundBrowserUi()
         std::lock_guard<std::mutex> lock(mSoundPlayersMutex);
         if (!mSoundPlayers.empty())
         {
-            mSoundPlayers[0]->DebugUi();
+            mSoundPlayers.begin()->second->DebugUi();
         }
 
         if (ImGui::CollapsingHeader("Active SEQs"))
@@ -365,10 +375,7 @@ void Sound::SoundBrowserUi()
             {
                 if (ImGui::Button((std::to_string(i) + player.second->Name()).c_str()))
                 {
-                    if (player.second.get() == mSoundPlayers[i].get())
-                    {
-                        player.second->Stop();
-                    }
+                    player.second->Stop();
                 }
                 i++;
             }

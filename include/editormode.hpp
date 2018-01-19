@@ -2,6 +2,8 @@
 
 #include "gridmap.hpp"
 
+class WorldState;
+
 class ICommand
 {
 public:
@@ -118,7 +120,7 @@ class EditorMode
 public:
     NO_MOVE_OR_MOVE_ASSIGN(EditorMode);
 
-    EditorMode(GridMapState& mapState);
+    EditorMode(WorldState& mapState);
    
 
     /* TODO: Set correct cursors
@@ -133,7 +135,7 @@ public:
 
     void Update(const InputState& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend) const;
-    void OnMapChanged();
+    void ClearUndoStack();
 
     f32 mEditorCamZoom = 1.0f;
 
@@ -153,5 +155,6 @@ private:
         eMoveSelected
     };
     eSelectionState mSelectionState = eSelectionState::eNone;
-    GridMapState& mMapState;
+    WorldState& mWorldState;
+    bool mShowAbout = false;
 };

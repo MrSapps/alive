@@ -20,7 +20,11 @@ class AbstractRenderer;
 class ResourceLocator;
 class InputState;
 
-namespace Oddlib { class LvlArchive; class IBits; }
+namespace Oddlib
+{ 
+    class LvlArchive; 
+    class IBits;
+}
 
 class Animation;
 
@@ -32,27 +36,6 @@ public:
 };
 
 class Sound;
-
-class Level
-{
-public:
-    Level(Level&&) = delete;
-    Level& operator = (Level&&) = delete;
-    ~Level()
-    {
-        TRACE_ENTRYEXIT;
-    }
-    Level(ResourceLocator& locator);
-    bool LoadMap(const Oddlib::Path& path);
-    void Update(const InputState& input, CoordinateSpace& coords);
-    void Render(AbstractRenderer& rend);
-private:
-    void RenderDebugPathSelection();
-    std::unique_ptr<class GridMap> mMap;
-    ResourceLocator& mLocator;
-public:
-    void UnloadMap(AbstractRenderer& renderer);
-};
 
 class GridScreen
 {
@@ -69,8 +52,8 @@ public:
     void Render(AbstractRenderer& rend, float x, float y, float w, float h);
 private:
     std::string mFileName;
-    TextureHandle mTexHandle;
-    TextureHandle mTexHandle2;
+    TextureHandle mCameraTexture;
+    TextureHandle mFG1Texture;
 
     // TODO: This is not the in-game format
     Oddlib::Path::Camera mCamera;
@@ -84,60 +67,18 @@ private:
 
 #define NO_MOVE_OR_MOVE_ASSIGN(x)  x(x&&) = delete; x& operator = (x&&) = delete
 
-
-class GridMapState
-{
-public:
-    GridMapState() = default;
-    NO_MOVE_OR_MOVE_ASSIGN(GridMapState);
-
-    glm::vec2 kVirtualScreenSize;
-    glm::vec2 kCameraBlockSize;
-    glm::vec2 kCamGapSize;
-    glm::vec2 kCameraBlockImageOffset;
-
-    const int mEditorGridSizeX = 25;
-    const int mEditorGridSizeY = 20;
-
-    glm::vec2 mCameraPosition;
-    MapObject* mCameraSubject = nullptr;
-
-    std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
-
-    // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
-    // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
-    CollisionLines mCollisionItems;
-    std::vector<std::unique_ptr<MapObject>> mObjs;
-
-    enum class eStates
-    {
-        eInGame,
-        eToEditor,
-        eEditor,
-        eToGame
-    };
-
-    eStates mState = eStates::eInGame;
-    u32 mModeSwitchTimeout = 0;
-
-    void RenderDebug(AbstractRenderer& rend) const;
-    void DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
-private:
-    void RenderGrid(AbstractRenderer& rend) const;
-};
-
 constexpr u32 kSwitchTimeMs = 300;
+
+class WorldState;
 
 class GridMap : public IMap
 {
 public:
     GridMap(const GridMap&) = delete;
     GridMap& operator = (const GridMap&) = delete;
-    GridMap();
+    GridMap(CoordinateSpace& coords, WorldState& state);
     ~GridMap();
     bool LoadMap(const Oddlib::Path& path, ResourceLocator& locator);
-    void Update(const InputState& input, CoordinateSpace& coords);
-    void Render(AbstractRenderer& rend) const;
     static void RegisterScriptBindings();
 private:
     class Loader
@@ -177,17 +118,14 @@ private:
 
     MapObject* GetMapObject(s32 x, s32 y, const char* type);
     
-    void UpdateToEditorOrToGame(const InputState& input, CoordinateSpace& coords);
-    void RenderToEditorOrToGame(AbstractRenderer& rend) const;
-
-    virtual const CollisionLines& Lines() const override final { return mMapState.mCollisionItems; }
+    virtual const CollisionLines& Lines() const override final;
 
     void ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items);
 
-    GridMapState mMapState;
-    std::unique_ptr<class EditorMode> mEditorMode;
-    std::unique_ptr<class GameMode> mGameMode;
+
     InstanceBinder<class GridMap> mScriptInstance;
 public:
     void UnloadMap(AbstractRenderer& renderer);
+private:
+    WorldState& mWorldState;
 };

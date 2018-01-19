@@ -1,11 +1,12 @@
 #include "audioconverter.hpp"
 #include "resourcemapper.hpp"
+#include "jobsystem.hpp"
 
-template void AudioConverter::Convert<OggEncoder>(ISound& sound, const char* outputName, std::atomic<bool>& quitFlag);
-template void AudioConverter::Convert<WavEncoder>(ISound& sound, const char* outputName, std::atomic<bool>& quitFlag);
+template void AudioConverter::Convert<OggEncoder>(ISound& sound, const char* outputName, const CancelFlag& quitFlag);
+template void AudioConverter::Convert<WavEncoder>(ISound& sound, const char* outputName, const CancelFlag& quitFlag);
 
 template<class EncoderAlgorithm>
-void AudioConverter::Convert(ISound& sound, const char* outputName, std::atomic<bool>& quitFlag)
+void AudioConverter::Convert(ISound& sound, const char* outputName, const CancelFlag& quitFlag)
 {
     TRACE_ENTRYEXIT;
 
@@ -35,7 +36,7 @@ void AudioConverter::Convert(ISound& sound, const char* outputName, std::atomic<
 
         encoder.Consume(buffer, numSamplesToUse * sizeof(f32));
 
-        if (endOfAudio || quitFlag)
+        if (endOfAudio || quitFlag.IsCancelled())
         {
             break;
         }
