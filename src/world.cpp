@@ -282,6 +282,11 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                 }
                 coords.SetCameraPosition(mWorldState.mCameraPosition);
             }
+
+            if (mGridMap->mPawn)
+            {
+                mGridMap->mPawn->Update();
+            }
         }
     }
     break;
@@ -369,6 +374,11 @@ void World::Render(AbstractRenderer& /*rend*/)
             else
             {
                 mEditorMode->Render(mRenderer);
+            }
+
+            if (mGridMap->mPawn)
+            {
+                mGridMap->mPawn->Render(mRenderer);
             }
         }
         break;

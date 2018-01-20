@@ -413,6 +413,8 @@ SET(alivelib_src
     include/cdromfilesystem.hpp
     include/directorylimitedfilesystem.hpp
     ${generated_headers_dir}/CONTRIBUTORS.md.g.h
+    include/core/entity.hpp
+    src/core/entity.cpp
 )
 
 if(WIN32)

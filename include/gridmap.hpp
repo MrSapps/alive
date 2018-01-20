@@ -15,6 +15,7 @@
 #include "mapobject.hpp"
 #include "imgui/imgui.h"
 #include "iterativeforloop.hpp"
+#include "core/entity.hpp"
 
 class AbstractRenderer;
 class ResourceLocator;
@@ -124,8 +125,11 @@ private:
 
 
     InstanceBinder<class GridMap> mScriptInstance;
+
+   
 public:
     void UnloadMap(AbstractRenderer& renderer);
+    std::unique_ptr<class Pawn> mPawn;
 private:
     WorldState& mWorldState;
 };
