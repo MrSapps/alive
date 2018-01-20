@@ -1,5 +1,13 @@
 #include "core/entity.hpp"
 
+void Component::SetId(ComponentIdentifier id) {
+    _id = id;
+}
+
+ComponentIdentifier Component::GetId() const {
+    return _id;
+}
+
 AnimationComponent::AnimationComponent()
 {
 
@@ -50,31 +58,26 @@ void PhysicsComponent::Update()
     }
 }
 
+Pawn::Pawn(ResourceLocator& resLoc) : mResourceLocator(resLoc)
+{
+    mPhysicsComponent = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
+    mAnimationComponent = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
+
+    mAnimationComponent->Load(mResourceLocator, "AbeStandIdle");
+}
 
 void Pawn::Update()
 {
-	for (auto &component : mComponents) {
-		component->Update();
-	}
+    for (auto &component : mComponents)
+    {
+        component->Update();
+    }
 }
 
 void Pawn::Render(AbstractRenderer& rend) const
 {
-	for (auto const &component : mComponents) {
-		component->Render(rend);
-	}
-}
-
-Pawn::Pawn(ResourceLocator& resLoc) : mResourceLocator(resLoc)
-{
-    
-}
-
-void Pawn::Init() {
-	mAnimationComponent->Load(mResourceLocator, "AbeStandIdle");
-}
-
-Pawn::~Pawn()
-{
-
+    for (auto const &component : mComponents)
+    {
+        component->Render(rend);
+    }
 }

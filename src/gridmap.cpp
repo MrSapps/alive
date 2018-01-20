@@ -336,10 +336,6 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
 bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator)
 {
     mPawn = CreateTestPawn(locator);
-	mPawn->AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
-	mPawn->AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
-	mPawn->mAnimationComponent = static_cast<AnimationComponent *>(mPawn->mComponents.at(0).get());
-	mPawn->Init();
     return mLoader.Load(path, locator);
 }
 

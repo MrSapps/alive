@@ -16,6 +16,11 @@ public:
 public:
 	virtual void Update() {};
 	virtual void Render(AbstractRenderer&) const {};
+public:
+    void SetId(ComponentIdentifier);
+    ComponentIdentifier GetId() const;
+private:
+    ComponentIdentifier _id;
 };
 
 class AnimationComponent : public Component
@@ -52,19 +57,21 @@ class Pawn
 {
 public:
     Pawn(ResourceLocator& resLoc);
-    ~Pawn();
+
 public:
-	void Init();
     void Update();
     void Render(AbstractRenderer& rend) const;
 
 public:
 	template<typename T>
-	void AddComponent(ComponentIdentifier id); // TODO: component identifier
+	T* AddComponent(ComponentIdentifier id);
 
 public:
-	std::vector<std::unique_ptr<Component>> mComponents;
+	PhysicsComponent *mPhysicsComponent;
 	AnimationComponent *mAnimationComponent;
+
+private:
+	std::vector<std::unique_ptr<Component>> mComponents;
 
 private:
 	ResourceLocator &mResourceLocator;
@@ -76,7 +83,11 @@ inline std::unique_ptr<Pawn> CreateTestPawn(ResourceLocator& resLoc)
 }
 
 template<typename T>
-inline void Pawn::AddComponent(ComponentIdentifier)
+inline T* Pawn::AddComponent(ComponentIdentifier id)
 {
-	mComponents.emplace_back(std::move(std::make_unique<T>())); // TODO: forward arguments?
+    auto comp = std::make_unique<T>();
+    auto compPtr = comp.get();
+    compPtr->SetId(id);
+	mComponents.emplace_back(std::move(comp)); // TODO: forward arguments?
+	return compPtr;
 }
