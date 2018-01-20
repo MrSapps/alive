@@ -1,14 +1,27 @@
 #include "core/entity.hpp"
 
-void Component::SetEntity(class Entity *entity) {
+void Component::Update()
+{
+
+}
+
+void Component::Render(AbstractRenderer&) const
+{
+
+}
+
+void Component::SetEntity(class Entity* entity)
+{
     mEntity = entity;
 }
 
-void Component::SetId(ComponentIdentifier id) {
+void Component::SetId(ComponentIdentifier id)
+{
     mId = id;
 }
 
-ComponentIdentifier Component::GetId() const {
+ComponentIdentifier Component::GetId() const
+{
     return mId;
 }
 
@@ -27,7 +40,8 @@ void AnimationComponent::Update()
     mAnimation->Update();
 }
 
-void PhysicsComponent::Load() {
+void PhysicsComponent::Load()
+{
     mAnimationComponent = mEntity->GetComponent<AnimationComponent>(ComponentIdentifier::Animation);
 }
 
@@ -41,19 +55,16 @@ void PhysicsComponent::Update()
             if (mInvertX)
             {
                 mXPos = mXPos + mXSpeed;
-            }
-            else
+            } else
             {
                 mXPos = mXPos - mXSpeed;
             }
-        }
-        else
+        } else
         {
             if (mInvertX)
             {
                 mXPos = mXPos - mXSpeed;
-            }
-            else
+            } else
             {
                 mXPos = mXPos + mXSpeed;
             }
@@ -63,19 +74,23 @@ void PhysicsComponent::Update()
     mAnimationComponent->mAnimation->SetYPos(static_cast<s32>(mYPos));
 }
 
-void PhysicsComponent::SetX(float xPos) {
+void PhysicsComponent::SetX(float xPos)
+{
     mXPos = xPos;
 }
 
-void PhysicsComponent::SetY(float yPos) {
+void PhysicsComponent::SetY(float yPos)
+{
     mYPos = yPos;
 }
 
-void AbeControllerComponent::Load() {
+void AbeControllerComponent::Load()
+{
     mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>(ComponentIdentifier::Physics);
 }
 
-void AbeControllerComponent::Update() {
+void AbeControllerComponent::Update()
+{
 
 }
 
@@ -86,11 +101,11 @@ void Entity::AddChild(Entity::UPtr child)
 
 void Entity::Update()
 {
-    for (auto &component : mComponents)
+    for (auto& component : mComponents)
     {
         component->Update();
     }
-    for (auto &child : mChildren)
+    for (auto& child : mChildren)
     {
         child->Update();
     }
@@ -98,11 +113,11 @@ void Entity::Update()
 
 void Entity::Render(AbstractRenderer& rend) const
 {
-    for (auto const &component : mComponents)
+    for (auto const& component : mComponents)
     {
         component->Render(rend);
     }
-    for (auto const &child : mChildren)
+    for (auto const& child : mChildren)
     {
         child->Render(rend);
     }
