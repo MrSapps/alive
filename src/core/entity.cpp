@@ -53,18 +53,25 @@ void PhysicsComponent::Update()
 
 void Pawn::Update()
 {
-    mPhysics.Update();
-    mAnimation.Update();
+	for (auto &component : mComponents) {
+		component->Update();
+	}
 }
 
 void Pawn::Render(AbstractRenderer& rend) const
 {
-    mAnimation.Render(rend);
+	for (auto const &component : mComponents) {
+		component->Render(rend);
+	}
 }
 
-Pawn::Pawn(ResourceLocator& resLoc)
+Pawn::Pawn(ResourceLocator& resLoc) : mResourceLocator(resLoc)
 {
-    mAnimation.Load(resLoc, "AbeStandIdle");
+    
+}
+
+void Pawn::Init() {
+	mAnimationComponent->Load(mResourceLocator, "AbeStandIdle");
 }
 
 Pawn::~Pawn()
