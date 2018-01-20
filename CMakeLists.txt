@@ -414,6 +414,22 @@ SET(alivelib_src
     include/directorylimitedfilesystem.hpp
     ${generated_headers_dir}/CONTRIBUTORS.md.g.h
 )
+SET(alivecorelib_src
+  include/core/actor_system.hpp
+  src/core/actor_system.cpp
+  include/core/actor.hpp
+  src/core/actor.cpp
+  include/core/actor_gamedaemon.hpp
+  src/core/actor_gamedaemon.cpp
+  include/core/actor_gamedaemon.hpp
+  src/core/actor_loader.cpp
+  include/core/actor_loader.hpp
+  src/core/actor_mudokon.cpp
+  include/core/actor_mudokon.hpp
+)
+add_library(AliveCoreLib STATIC
+    ${alivecorelib_src}
+)
 
 if(WIN32)
     SET(alivelib_src
@@ -425,7 +441,7 @@ endif()
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
-TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib jsonxx sqstdlib_static squirrel_static stk nativefiledialog libdeflate imgui soxr)
+TARGET_LINK_LIBRARIES(AliveLib AliveCoreLib gl3w_lib oddlib jsonxx sqstdlib_static squirrel_static stk nativefiledialog libdeflate imgui soxr)
 
 if (WIN32 AND MSVC)
     set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
