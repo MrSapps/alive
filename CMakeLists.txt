@@ -415,7 +415,10 @@ SET(alivelib_src
     ${generated_headers_dir}/CONTRIBUTORS.md.g.h
     include/core/entity.hpp
     src/core/entity.cpp
-)
+    include/core/component.hpp
+    src/core/component.cpp
+    include/core/components/animation.h
+    src/core/components/animation.cpp)
 
 if(WIN32)
     SET(alivelib_src
