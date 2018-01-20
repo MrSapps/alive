@@ -1,101 +1,5 @@
 #include "core/entity.hpp"
-
-void Component::Update()
-{
-
-}
-
-void Component::Render(AbstractRenderer&) const
-{
-
-}
-
-void Component::SetEntity(class Entity* entity)
-{
-    mEntity = entity;
-}
-
-void Component::SetId(ComponentIdentifier id)
-{
-    mId = id;
-}
-
-ComponentIdentifier Component::GetId() const
-{
-    return mId;
-}
-
-void AnimationComponent::Load(ResourceLocator& resLoc, const char* animationName)
-{
-    mAnimation = resLoc.LocateAnimation(animationName).get();
-}
-
-void AnimationComponent::Render(AbstractRenderer& rend) const
-{
-    mAnimation->Render(rend, false, AbstractRenderer::eLayers::eForegroundLayer1);
-}
-
-void AnimationComponent::Update()
-{
-    mAnimation->Update();
-}
-
-void PhysicsComponent::Load()
-{
-    mAnimationComponent = mEntity->GetComponent<AnimationComponent>(ComponentIdentifier::Animation);
-}
-
-void PhysicsComponent::Update()
-{
-    if (mXSpeed > 0)
-    {
-        mXSpeed = mXSpeed - mXVelocity;
-        if (FacingLeft())
-        {
-            if (mInvertX)
-            {
-                mXPos = mXPos + mXSpeed;
-            }
-            else
-            {
-                mXPos = mXPos - mXSpeed;
-            }
-        }
-        else
-        {
-            if (mInvertX)
-            {
-                mXPos = mXPos - mXSpeed;
-            }
-            else
-            {
-                mXPos = mXPos + mXSpeed;
-            }
-        }
-    }
-    mAnimationComponent->mAnimation->SetXPos(static_cast<s32>(mXPos));
-    mAnimationComponent->mAnimation->SetYPos(static_cast<s32>(mYPos));
-}
-
-void PhysicsComponent::SetX(float xPos)
-{
-    mXPos = xPos;
-}
-
-void PhysicsComponent::SetY(float yPos)
-{
-    mYPos = yPos;
-}
-
-void AbeControllerComponent::Load()
-{
-    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>(ComponentIdentifier::Physics);
-}
-
-void AbeControllerComponent::Update()
-{
-
-}
+#include "core/components/animation.h"
 
 void Entity::AddChild(Entity::UPtr child)
 {
@@ -128,20 +32,20 @@ void Entity::Render(AbstractRenderer& rend) const
 
 AbeEntity::AbeEntity(ResourceLocator& resLoc)
 {
-    mPhysicsComponent = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
-    mAnimationComponent = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
+    auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
+    auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
 
-    mPhysicsComponent->Load();
-    mAnimationComponent->Load(resLoc, "AbeStandIdle");
+    physics->Load();
+    animation->Load(resLoc, "AbeStandIdle");
 }
 
 SligEntity::SligEntity(ResourceLocator& resLoc)
 {
-    mPhysicsComponent = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
-    mAnimationComponent = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
+    auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
+    auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
 
-    mPhysicsComponent->Load();
-    mAnimationComponent->Load(resLoc, "AbeStandIdle");
+    physics->Load();
+    animation->Load(resLoc, "AbeStandIdle");
 
-    mPhysicsComponent->SetX(32.0f);
+    physics->SetX(32.0f);
 }
