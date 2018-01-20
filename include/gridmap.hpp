@@ -129,7 +129,7 @@ private:
    
 public:
     void UnloadMap(AbstractRenderer& renderer);
-    std::unique_ptr<class Pawn> mPawn;
+    std::unique_ptr<class Entity> mRoot;
 private:
     WorldState& mWorldState;
 };

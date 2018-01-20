@@ -1,16 +1,15 @@
 #include "core/entity.hpp"
 
+void Component::SetEntity(class Entity *entity) {
+    mEntity = entity;
+}
+
 void Component::SetId(ComponentIdentifier id) {
-    _id = id;
+    mId = id;
 }
 
 ComponentIdentifier Component::GetId() const {
-    return _id;
-}
-
-AnimationComponent::AnimationComponent()
-{
-
+    return mId;
 }
 
 void AnimationComponent::Load(ResourceLocator& resLoc, const char* animationName)
@@ -58,26 +57,64 @@ void PhysicsComponent::Update()
     }
 }
 
-Pawn::Pawn(ResourceLocator& resLoc) : mResourceLocator(resLoc)
-{
-    mPhysicsComponent = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
-    mAnimationComponent = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
-
-    mAnimationComponent->Load(mResourceLocator, "AbeStandIdle");
+void PhysicsComponent::SetX(float xPos) {
+    mXPos = xPos;
 }
 
-void Pawn::Update()
+void PhysicsComponent::SetY(float yPos) {
+    mYPos = yPos;
+}
+
+void AbeControllerComponent::Load() {
+    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>(ComponentIdentifier::Physics);
+}
+
+void AbeControllerComponent::Update() {
+
+}
+
+void Entity::AddChild(Entity::UPtr child)
+{
+    mChildren.emplace_back(std::move(child));
+}
+
+void Entity::Update()
 {
     for (auto &component : mComponents)
     {
         component->Update();
     }
+    for (auto &child : mChildren)
+    {
+        child->Update();
+    }
 }
 
-void Pawn::Render(AbstractRenderer& rend) const
+void Entity::Render(AbstractRenderer& rend) const
 {
     for (auto const &component : mComponents)
     {
         component->Render(rend);
     }
+    for (auto const &child : mChildren)
+    {
+        child->Render(rend);
+    }
+}
+
+AbeEntity::AbeEntity(ResourceLocator& resLoc)
+{
+    mPhysicsComponent = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
+    mAnimationComponent = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
+
+    mAnimationComponent->Load(resLoc, "AbeStandIdle");
+}
+
+SligEntity::SligEntity(ResourceLocator& resLoc)
+{
+    mPhysicsComponent = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
+    mAnimationComponent = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
+
+    mPhysicsComponent->SetX(32.0f);
+    mAnimationComponent->Load(resLoc, "AbeStandIdle");
 }

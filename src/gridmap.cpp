@@ -335,7 +335,9 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
 
 bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator)
 {
-    mPawn = CreateTestPawn(locator);
+    mRoot = std::make_unique<Entity>();
+    mRoot->AddChild(std::make_unique<AbeEntity>(locator));
+    mRoot->AddChild(std::make_unique<SligEntity>(locator));
     return mLoader.Load(path, locator);
 }
 

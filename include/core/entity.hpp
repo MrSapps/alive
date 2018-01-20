@@ -10,25 +10,29 @@ enum class ComponentIdentifier {
 	Physics
 };
 
+class Entity;
+
 class Component {
 public:
-	virtual ~Component() {};
+	using UPtr = std::unique_ptr<Component>;
+public:
+	virtual ~Component() = default;
 public:
 	virtual void Update() {};
 	virtual void Render(AbstractRenderer&) const {};
 public:
+    void SetEntity(Entity *);
     void SetId(ComponentIdentifier);
     ComponentIdentifier GetId() const;
-private:
-    ComponentIdentifier _id;
+protected:
+	Entity *mEntity;
+	ComponentIdentifier mId;
 };
 
 class AnimationComponent : public Component
 {
 public:
-    AnimationComponent();
-public:
-    void Update() final;
+	void Update() final;
     void Load(ResourceLocator& resLoc, const char* animationName);
     void Render(AbstractRenderer& rend) const final;
 private:
@@ -38,10 +42,13 @@ private:
 class PhysicsComponent : public Component
 {
 public:
-    void Update() final;
+	void Update() final;
 public:
     void SnapXToGrid() { }
     void SnapYToGrid() { }
+public:
+	void SetX(float xPos);
+	void SetY(float yPos);
 private:
     bool FacingLeft() { return false; }
     float mXPos = 0.0f;
@@ -53,41 +60,71 @@ private:
     float mYVelocity = 0.0f;
 };
 
-class Pawn
-{
+class AbeControllerComponent : public Component {
 public:
-    Pawn(ResourceLocator& resLoc);
+	void Load();
+	void Update() override;
+private:
+	PhysicsComponent *mPhysicsComponent;
+};
 
+class Entity {
 public:
-    void Update();
-    void Render(AbstractRenderer& rend) const;
-
+	using UPtr = std::unique_ptr<Entity>;
+public:
+	Entity() = default;
+	virtual ~Entity() = default;
+public:
+	void Update();
+	void Render(AbstractRenderer&) const;
+public:
+	void AddChild(UPtr child);
 public:
 	template<typename T>
 	T* AddComponent(ComponentIdentifier id);
+	template<typename T>
+	T* GetComponent(ComponentIdentifier id);
+private:
+	std::vector<UPtr> mChildren;
+	std::vector<Component::UPtr> mComponents;
+};
 
+class AbeEntity : public Entity
+{
+public:
+    explicit AbeEntity(ResourceLocator& resLoc);
 public:
 	PhysicsComponent *mPhysicsComponent;
 	AnimationComponent *mAnimationComponent;
-
-private:
-	std::vector<std::unique_ptr<Component>> mComponents;
-
-private:
-	ResourceLocator &mResourceLocator;
 };
 
-inline std::unique_ptr<Pawn> CreateTestPawn(ResourceLocator& resLoc)
+class SligEntity : public Entity {
+public:
+	explicit SligEntity(ResourceLocator& resLoc);
+public:
+	PhysicsComponent *mPhysicsComponent;
+	AnimationComponent *mAnimationComponent;
+};
+
+template<typename T>
+inline T* Entity::AddComponent(ComponentIdentifier id)
 {
-    return std::make_unique<Pawn>(resLoc);
+    auto comp = std::make_unique<T>(); // TODO: forward arguments?
+    auto compPtr = comp.get();
+	compPtr->SetEntity(this);
+    compPtr->SetId(id);
+	mComponents.emplace_back(std::move(comp));
+	return compPtr;
 }
 
 template<typename T>
-inline T* Pawn::AddComponent(ComponentIdentifier id)
+inline T* Entity::GetComponent(ComponentIdentifier id)
 {
-    auto comp = std::make_unique<T>();
-    auto compPtr = comp.get();
-    compPtr->SetId(id);
-	mComponents.emplace_back(std::move(comp)); // TODO: forward arguments?
-	return compPtr;
+	auto found = std::find_if(mComponents.begin(), mComponents.end(), [id](Component::UPtr const &comp) -> bool {
+		return comp->GetId() == id;
+	});
+    if (found != mComponents.end()) {
+        return static_cast<T *>(found->get());
+    }
+	return nullptr;
 }
