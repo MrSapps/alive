@@ -282,9 +282,9 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                 coords.SetCameraPosition(mWorldState.mCameraPosition);
             }
 
-            if (mGridMap->mPawn)
+            if (mGridMap->mRoot)
             {
-                mGridMap->mPawn->Update();
+                mGridMap->mRoot->Update();
             }
         }
     }
@@ -375,9 +375,9 @@ void World::Render(AbstractRenderer& /*rend*/)
                 mEditorMode->Render(mRenderer);
             }
 
-            if (mGridMap->mPawn)
+            if (mGridMap->mRoot)
             {
-                mGridMap->mPawn->Render(mRenderer);
+                mGridMap->mRoot->Render(mRenderer);
             }
         }
         break;

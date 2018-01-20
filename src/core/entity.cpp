@@ -1,8 +1,28 @@
 #include "core/entity.hpp"
 
-AnimationComponent::AnimationComponent()
+void Component::Update()
 {
 
+}
+
+void Component::Render(AbstractRenderer&) const
+{
+
+}
+
+void Component::SetEntity(class Entity* entity)
+{
+    mEntity = entity;
+}
+
+void Component::SetId(ComponentIdentifier id)
+{
+    mId = id;
+}
+
+ComponentIdentifier Component::GetId() const
+{
+    return mId;
 }
 
 void AnimationComponent::Load(ResourceLocator& resLoc, const char* animationName)
@@ -18,6 +38,11 @@ void AnimationComponent::Render(AbstractRenderer& rend) const
 void AnimationComponent::Update()
 {
     mAnimation->Update();
+}
+
+void PhysicsComponent::Load()
+{
+    mAnimationComponent = mEntity->GetComponent<AnimationComponent>(ComponentIdentifier::Animation);
 }
 
 void PhysicsComponent::Update()
@@ -48,26 +73,75 @@ void PhysicsComponent::Update()
             }
         }
     }
+    mAnimationComponent->mAnimation->SetXPos(static_cast<s32>(mXPos));
+    mAnimationComponent->mAnimation->SetYPos(static_cast<s32>(mYPos));
 }
 
-
-void Pawn::Update()
+void PhysicsComponent::SetX(float xPos)
 {
-    mPhysics.Update();
-    mAnimation.Update();
+    mXPos = xPos;
 }
 
-void Pawn::Render(AbstractRenderer& rend) const
+void PhysicsComponent::SetY(float yPos)
 {
-    mAnimation.Render(rend);
+    mYPos = yPos;
 }
 
-Pawn::Pawn(ResourceLocator& resLoc)
+void AbeControllerComponent::Load()
 {
-    mAnimation.Load(resLoc, "AbeStandIdle");
+    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>(ComponentIdentifier::Physics);
 }
 
-Pawn::~Pawn()
+void AbeControllerComponent::Update()
 {
 
+}
+
+void Entity::AddChild(Entity::UPtr child)
+{
+    mChildren.emplace_back(std::move(child));
+}
+
+void Entity::Update()
+{
+    for (auto& component : mComponents)
+    {
+        component->Update();
+    }
+    for (auto& child : mChildren)
+    {
+        child->Update();
+    }
+}
+
+void Entity::Render(AbstractRenderer& rend) const
+{
+    for (auto const& component : mComponents)
+    {
+        component->Render(rend);
+    }
+    for (auto const& child : mChildren)
+    {
+        child->Render(rend);
+    }
+}
+
+AbeEntity::AbeEntity(ResourceLocator& resLoc)
+{
+    mPhysicsComponent = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
+    mAnimationComponent = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
+
+    mPhysicsComponent->Load();
+    mAnimationComponent->Load(resLoc, "AbeStandIdle");
+}
+
+SligEntity::SligEntity(ResourceLocator& resLoc)
+{
+    mPhysicsComponent = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
+    mAnimationComponent = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
+
+    mPhysicsComponent->Load();
+    mAnimationComponent->Load(resLoc, "AbeStandIdle");
+
+    mPhysicsComponent->SetX(32.0f);
 }
