@@ -201,8 +201,7 @@ World::World(
     // TODO: Can be removed ?
     //const std::string gameScript = mResourceLocator.LocateScript(initScriptName).get();
 
-//    LoadMap("BAPATH_1");
-    LoadMap("STPATH_1");
+    LoadMap("BAPATH_1");
 }
 
 World::~World()
