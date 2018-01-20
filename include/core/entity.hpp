@@ -35,13 +35,14 @@ public:
 	void Update() final;
     void Load(ResourceLocator& resLoc, const char* animationName);
     void Render(AbstractRenderer& rend) const final;
-private:
+public:
     std::unique_ptr<Animation> mAnimation;
 };
 
 class PhysicsComponent : public Component
 {
 public:
+	void Load();
 	void Update() final;
 public:
     void SnapXToGrid() { }
@@ -58,6 +59,7 @@ private:
     float mXVelocity = 0.0f;
     float mYSpeed = 0.0f;
     float mYVelocity = 0.0f;
+	AnimationComponent *mAnimationComponent;
 };
 
 class AbeControllerComponent : public Component {

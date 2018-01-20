@@ -27,6 +27,10 @@ void AnimationComponent::Update()
     mAnimation->Update();
 }
 
+void PhysicsComponent::Load() {
+    mAnimationComponent = mEntity->GetComponent<AnimationComponent>(ComponentIdentifier::Animation);
+}
+
 void PhysicsComponent::Update()
 {
     if (mXSpeed > 0)
@@ -55,6 +59,8 @@ void PhysicsComponent::Update()
             }
         }
     }
+    mAnimationComponent->mAnimation->SetXPos(static_cast<s32>(mXPos));
+    mAnimationComponent->mAnimation->SetYPos(static_cast<s32>(mYPos));
 }
 
 void PhysicsComponent::SetX(float xPos) {
@@ -107,6 +113,7 @@ AbeEntity::AbeEntity(ResourceLocator& resLoc)
     mPhysicsComponent = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     mAnimationComponent = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
 
+    mPhysicsComponent->Load();
     mAnimationComponent->Load(resLoc, "AbeStandIdle");
 }
 
@@ -115,6 +122,8 @@ SligEntity::SligEntity(ResourceLocator& resLoc)
     mPhysicsComponent = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     mAnimationComponent = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
 
-    mPhysicsComponent->SetX(32.0f);
+    mPhysicsComponent->Load();
     mAnimationComponent->Load(resLoc, "AbeStandIdle");
+
+    mPhysicsComponent->SetX(32.0f);
 }
