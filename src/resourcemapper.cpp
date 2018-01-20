@@ -88,28 +88,26 @@ bool Animation::IsComplete() const
     return mCompleted;
 }
 
+void Animation::Render(AbstractRenderer& rend, bool flipX, int layer, s32 xpos, s32 ypos, AbstractRenderer::eCoordinateSystem coordinateSystem /*= AbstractRenderer::eWorld*/) const
+{
+    RenderImpl(rend, flipX, layer, xpos, ypos, coordinateSystem);
+}
+
 void Animation::Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRenderer::eCoordinateSystem coordinateSystem /*= AbstractRenderer::eWorld*/) const
 {
+    RenderImpl(rend, flipX, layer, mXPos, mYPos, coordinateSystem);
+}
+
+void Animation::RenderImpl(AbstractRenderer& rend, bool flipX, int layer, s32 xpos, s32 ypos, AbstractRenderer::eCoordinateSystem coordinateSystem) const
+{
     // TODO: Position calculation should be refactored
-
-    /*
-    static std::string msg;
-    std::stringstream s;
-    s << "Render frame number: " << mFrameNum;
-    if (s.str() != msg)
-    {
-        LOG_INFO(s.str());
-    }
-    msg = s.str();
-    */
-
     const Oddlib::Animation::Frame& frame = mAnim.Animation().GetFrame(mFrameNum == -1 ? 0 : mFrameNum);
 
     f32 xFrameOffset = (mScaleFrameOffsets ? static_cast<f32>(frame.mOffX / kPcToPsxScaleFactor) : static_cast<f32>(frame.mOffX)) * mScale;
     const f32 yFrameOffset = static_cast<f32>(frame.mOffY) * mScale;
 
-    const f32 xpos = static_cast<f32>(mXPos);
-    const f32 ypos = static_cast<f32>(mYPos);
+    const f32 f32Xpos = static_cast<f32>(xpos);
+    const f32 f32YPos = static_cast<f32>(ypos);
 
     if (flipX)
     {
@@ -119,8 +117,8 @@ void Animation::Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRe
     const TextureHandle textureId = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, frame.mFrame->w, frame.mFrame->h, AbstractRenderer::eTextureFormats::eRGBA, frame.mFrame->pixels, true);
     rend.TexturedQuad(
         textureId,
-        xpos + xFrameOffset,
-        ypos + yFrameOffset,
+        f32Xpos + xFrameOffset,
+        f32YPos + yFrameOffset,
         static_cast<f32>(frame.mFrame->w) * (flipX ? -ScaleX() : ScaleX()),
         static_cast<f32>(frame.mFrame->h) * mScale,
         layer,
@@ -136,8 +134,8 @@ void Animation::Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRe
         const ColourU8 boundingBoxColour{ 255, 0, 255, 255 };
         const f32 width = static_cast<f32>(std::abs(frame.mTopLeft.x - frame.mBottomRight.x)) * mScale;
 
-        const glm::vec4 rectScreen(rend.WorldToScreenRect(xpos + (static_cast<f32>(flipX ? -frame.mTopLeft.x : frame.mTopLeft.x) * mScale),
-            ypos + (static_cast<f32>(frame.mTopLeft.y) * mScale),
+        const glm::vec4 rectScreen(rend.WorldToScreenRect(f32Xpos + (static_cast<f32>(flipX ? -frame.mTopLeft.x : frame.mTopLeft.x) * mScale),
+            f32YPos + (static_cast<f32>(frame.mTopLeft.y) * mScale),
             flipX ? -width : width,
             static_cast<f32>(std::abs(frame.mTopLeft.y - frame.mBottomRight.y)) * mScale));
 
@@ -151,12 +149,12 @@ void Animation::Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRe
     if (Debugging().mAnimDebugStrings)
     {
         // Render frame pos and frame number
-        const glm::vec2 xyposScreen(rend.WorldToScreen(glm::vec2(xpos, ypos)));
+        const glm::vec2 xyposScreen(rend.WorldToScreen(glm::vec2(f32Xpos, f32YPos)));
         rend.Text(xyposScreen.x, xyposScreen.y,
             24.0f,
             (mSourceDataSet
-                + " x: " + std::to_string(xpos)
-                + " y: " + std::to_string(ypos)
+                + " x: " + std::to_string(f32Xpos)
+                + " y: " + std::to_string(f32YPos)
                 + " f: " + std::to_string(FrameNumber())
                 ).c_str(),
             ColourU8{ 255,255,255,255 },

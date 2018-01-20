@@ -526,6 +526,7 @@ public:
     bool Update();
     bool IsLastFrame() const;
     bool IsComplete() const;
+    void Render(AbstractRenderer& rend, bool flipX, int layer, s32 xpos, s32 ypos, AbstractRenderer::eCoordinateSystem coordinateSystem = AbstractRenderer::eWorld) const;
     void Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRenderer::eCoordinateSystem coordinateSystem = AbstractRenderer::eWorld) const;
     void SetFrame(u32 frame);
     void Restart();
@@ -540,6 +541,7 @@ public:
     u32 NumberOfFrames() const;
     void SetScale(f32 scale);
 private:
+    void RenderImpl(AbstractRenderer& rend, bool flipX, int layer, s32 xpos, s32 ypos, AbstractRenderer::eCoordinateSystem coordinateSystem) const;
 
     // 640 (pc xres) / 368 (psx xres) = 1.73913043478 scale factor
     const static f32 kPcToPsxScaleFactor;
