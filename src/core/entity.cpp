@@ -55,16 +55,19 @@ void PhysicsComponent::Update()
             if (mInvertX)
             {
                 mXPos = mXPos + mXSpeed;
-            } else
+            }
+            else
             {
                 mXPos = mXPos - mXSpeed;
             }
-        } else
+        }
+        else
         {
             if (mInvertX)
             {
                 mXPos = mXPos - mXSpeed;
-            } else
+            }
+            else
             {
                 mXPos = mXPos + mXSpeed;
             }

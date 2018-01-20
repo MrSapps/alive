@@ -130,7 +130,7 @@ inline T* Entity::AddComponent(ComponentIdentifier id)
 template<typename T>
 inline T* Entity::GetComponent(ComponentIdentifier id)
 {
-    auto found = std::find_if(mComponents.begin(), mComponents.end(), [id](Component::UPtr const& comp) -> bool
+    auto found = std::find_if(mComponents.begin(), mComponents.end(), [id](auto const& comp)
     {
         return comp->GetId() == id;
     });
