@@ -4,6 +4,7 @@
 #include "core/component.hpp"
 
 class PhysicsComponent;
+class AnimationComponent;
 
 class AbeMovementComponent final : public Component
 {
@@ -16,6 +17,7 @@ public:
 private:
     const Actions* mInputMappingActions = nullptr;
     PhysicsComponent* mPhysicsComponent = nullptr;
+    AnimationComponent* mAnimationComponent = nullptr;
 };
 
 class PlayerControllerComponent final : public Component

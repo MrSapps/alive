@@ -5,18 +5,23 @@
 void AnimationComponent::Load(ResourceLocator& resLoc, const char* animationName)
 {
     mAnimation = resLoc.LocateAnimation(animationName).get();
+    mResourceLocator = &resLoc;
     mTransformComponent = mEntity->GetComponent<TransformComponent>(ComponentIdentifier::Transform);
+}
+
+void AnimationComponent::Change(const char* animationName)
+{
+    mAnimation = mResourceLocator->LocateAnimation(animationName).get();
 }
 
 void AnimationComponent::Render(AbstractRenderer& rend) const
 {
     mAnimation->Render(rend,
-                       false,
+                       mFlipX,
                        AbstractRenderer::eLayers::eForegroundLayer1,
                        static_cast<s32>(mTransformComponent->GetX()),
                        static_cast<s32>(mTransformComponent->GetY()));
 }
-
 void AnimationComponent::Update()
 {
     mAnimation->Update();

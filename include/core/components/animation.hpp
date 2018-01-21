@@ -9,10 +9,13 @@ class AnimationComponent final : public Component
 {
 public:
     void Load(ResourceLocator& resLoc, const char* animationName);
+    void Change(const char* animationName);
     void Update() final;
     void Render(AbstractRenderer& rend) const final;
-private:
+public:
+    bool mFlipX = false;
     std::unique_ptr<Animation> mAnimation;
 private:
+    ResourceLocator *mResourceLocator = nullptr;
     TransformComponent* mTransformComponent = nullptr;
 };
