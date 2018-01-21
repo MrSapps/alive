@@ -3,7 +3,16 @@
 #include "core/components/animation.hpp"
 #include "core/components/abemovement.hpp"
 
-const f32 kWalkSpeed = 2.777771f;
+
+void AbeMovementComponent::SetTransistionData(const TransistionData* data)
+{
+    if (mNextTransistionData != data)
+    {
+        mAnimationComponent->Change(data->mAnimation);
+        SetXSpeed(data->mXSpeed);
+        mNextTransistionData = data;
+    }
+}
 
 void AbeMovementComponent::Load()
 {
@@ -16,14 +25,11 @@ void AbeMovementComponent::Load()
         {
             if (!mAnimationComponent->mFlipX)
             {
-                mAnimationComponent->Change("AbeStandTurnAround");
-                mState = States::eStandingTurnAround;
+                SetTransistionData(&kTurnAround);
             }
             else
             {
-                mAnimationComponent->Change("AbeWalkToStand");
-                mState = States::eStandingToWalking;
-                SetXSpeed(kWalkSpeed);
+                SetTransistionData(&kStandToWalk);
             }
         };
 
@@ -31,14 +37,11 @@ void AbeMovementComponent::Load()
         {
             if (mAnimationComponent->mFlipX)
             {
-                mAnimationComponent->Change("AbeStandTurnAround");
-                mState = States::eStandingTurnAround;
+                SetTransistionData(&kTurnAround);
             }
             else
             {
-                mAnimationComponent->Change("AbeWalkToStand");
-                mState = States::eStandingToWalking;
-                SetXSpeed(kWalkSpeed);
+                SetTransistionData(&kStandToWalk);
             }
         };
 
@@ -52,16 +55,6 @@ void AbeMovementComponent::Load()
         if (it != std::end(mStateGoalFnMap[mState]))
         {
             mStateGoalFnMap[mState][mGoal]();
-        }
-    };
-
-    mStateFnMap[States::eStandingTurnAround] = [&]()
-    {
-        if (mAnimationComponent->Complete())
-        {
-            mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
-            mAnimationComponent->Change("AbeStandIdle");
-            mState = States::eStanding;
         }
     };
 
@@ -101,19 +94,9 @@ void AbeMovementComponent::Load()
         }
     };
 
-    mStateFnMap[States::eStandingToWalking] = [&]()
-    {
-        if (mAnimationComponent->Complete())
-        {
-            mAnimationComponent->Change("AbeWalking");
-            SetXSpeed(kWalkSpeed);
-            mState = States::eWalking;
-        }
-    };
-
     mStateFnMap[States::eWalking] = [&]()
     {
-        if (mAnimationComponent->FrameNumber() == 6-1 || mAnimationComponent->FrameNumber() == 15 - 1)
+        if (mAnimationComponent->FrameNumber() == 5+1 || mAnimationComponent->FrameNumber() == 14+1)
         {
             LOG_INFO("SNAP ABE");
             mPhysicsComponent->SnapXToGrid();
@@ -149,6 +132,22 @@ void AbeMovementComponent::Load()
 
 void AbeMovementComponent::Update()
 {
+    if (mNextTransistionData && mAnimationComponent->Complete())
+    {
+        if (mNextTransistionData->mFlipDirection)
+        {
+            mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
+        }
+        
+        if (mNextTransistionData->mNextAnimation)
+        {
+            mAnimationComponent->Change(mNextTransistionData->mNextAnimation);
+        }
+
+        mState = mNextTransistionData->mNextState;
+        mNextTransistionData = nullptr;
+    }
+
     mStateFnMap[mState]();
 }
 
@@ -163,6 +162,7 @@ void AbeMovementComponent::SetXSpeed(f32 speed)
         mPhysicsComponent->xSpeed = speed;
     }
 }
+
 
 void AbePlayerControllerComponent::Load(const InputState& state)
 {

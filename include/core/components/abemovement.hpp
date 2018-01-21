@@ -8,6 +8,8 @@
 class PhysicsComponent;
 class AnimationComponent;
 
+const f32 kWalkSpeed = 2.777771f;
+
 class AbeMovementComponent final : public Component
 {
 public:
@@ -30,10 +32,8 @@ private:
     enum class States
     {
         eStanding,
-        eStandingTurnAround,
         eChanting,
         eChantToStand,
-        eStandingToWalking,
         eWalkingToStanding,
         eWalking,
     };
@@ -43,6 +43,22 @@ private:
     States mState = States::eStanding;
 
     void SetXSpeed(f32 speed);
+    
+    struct TransistionData
+    {
+        const char* mAnimation;
+        const char* mNextAnimation;
+        f32 mXSpeed;
+        bool mFlipDirection;
+        States mNextState;
+    };
+
+    const TransistionData kTurnAround = { "AbeStandTurnAround", "AbeStandIdle", 0.0f, true, States::eStanding };
+    const TransistionData kStandToWalk = { "AbeStandToWalk", "AbeWalking", kWalkSpeed, false, States::eWalking };
+
+    void SetTransistionData(const TransistionData* data);
+
+    const TransistionData* mNextTransistionData = nullptr;
 };
 
 class AbePlayerControllerComponent final : public Component

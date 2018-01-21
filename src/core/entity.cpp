@@ -61,7 +61,7 @@ AbeEntity::AbeEntity(ResourceLocator& resLoc, InputState const& input) // TODO: 
     auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
 
-    pos->Set(60.0f, 380.0f);
+    pos->Set(125.0f, 380.0f+(80.0f));
     physics->Load();
     animation->Load(resLoc, "AbeStandIdle");
     movement->Load();

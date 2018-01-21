@@ -10,7 +10,7 @@ struct Debug
     bool mDrawObjects = true;
     bool mAnimBoundingBoxes = false;
     bool mAnimDebugStrings = false;
-    bool mCollisionLines = true;
+    bool mCollisionLines = false;
     bool mGrid = true;
     bool mObjectBoundingBoxes = false;
     bool mRayCasts = true;
@@ -20,7 +20,7 @@ struct Debug
     bool mDrawFontAtlas = false;
     char mSubtitle[1024] = {};
     bool mVsync = true;
-    bool mShowDebugUi = true;
+    bool mShowDebugUi = false;
     bool mChangeVSync = false;
 
     Debug();
