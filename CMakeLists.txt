@@ -424,7 +424,9 @@ SET(alivelib_src
     include/core/components/physics.hpp
     src/core/components/physics.cpp
     include/core/components/abemovement.hpp
-    src/core/components/abemovement.cpp)
+    src/core/components/abemovement.cpp
+    include/core/components/sligmovement.hpp
+    src/core/components/sligmovement.cpp)
 
 if(WIN32)
     SET(alivelib_src

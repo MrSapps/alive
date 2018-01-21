@@ -24,7 +24,11 @@ public:
     T* AddComponent(ComponentIdentifier id);
     template<typename T>
     T* GetComponent(ComponentIdentifier id);
+public:
+    Entity* GetParent() const;
+    std::vector<Entity*> FindChildrenByComponent(ComponentIdentifier id);
 private:
+    Entity* mParent = nullptr;
     std::vector<UPtr> mChildren;
     std::vector<Component::UPtr> mComponents;
 };
@@ -32,19 +36,19 @@ private:
 class AbeEntity final : public Entity
 {
 public:
-    explicit AbeEntity(ResourceLocator& resLoc, const InputState &input);
+    explicit AbeEntity(ResourceLocator& resLoc, const InputState& input); // TODO: input is wired here
 };
 
 class SligEntity final : public Entity
 {
 public:
-    explicit SligEntity(ResourceLocator& resLoc);
+    explicit SligEntity(ResourceLocator& resLoc, const InputState& input); // TODO: input is wired here
 };
 
 template<typename T>
 inline T* Entity::AddComponent(ComponentIdentifier id)
 {
-    auto comp = std::make_unique<T>(); // TODO: forward arguments?
+    auto comp = std::make_unique<T>();
     auto compPtr = comp.get();
     compPtr->SetEntity(this);
     compPtr->SetId(id);

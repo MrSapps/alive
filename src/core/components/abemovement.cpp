@@ -38,16 +38,31 @@ void AbeMovementComponent::Update()
         }
         mPhysicsComponent->xSpeed = 0.0f;
     }
+
+    if (mChant)
+    {
+        auto sligs = mEntity->GetParent()->FindChildrenByComponent(ComponentIdentifier::SligMovementController);
+        for (auto const& slig : sligs)
+        {
+            // auto controller = slig->GetComponent(ComponentIdentifier::PlayerController);
+            // controller.mActive = true; or controller.possess(this);
+            LOG_INFO("Found a slig to possess");
+            (void) slig;
+            break;
+        }
+    }
+
 }
 
-void PlayerControllerComponent::Load(const InputState& state)
+void AbePlayerControllerComponent::Load(const InputState& state)
 {
     mInputMappingActions = &state.Mapping().GetActions(); // TODO: Input is wired here
     mAbeMovement = mEntity->GetComponent<AbeMovementComponent>(ComponentIdentifier::AbeMovementController);
 }
 
-void PlayerControllerComponent::Update()
+void AbePlayerControllerComponent::Update()
 {
     mAbeMovement->mLeft = mInputMappingActions->Left(mInputMappingActions->mIsDown);
     mAbeMovement->mRight = mInputMappingActions->Right(mInputMappingActions->mIsDown);
+    mAbeMovement->mChant = mInputMappingActions->Chant(mInputMappingActions->mIsDown);
 }

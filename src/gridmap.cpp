@@ -1,14 +1,5 @@
 #include "gridmap.hpp"
-#include "oddlib/lvlarchive.hpp"
-#include "abstractrenderer.hpp"
-#include "oddlib/path.hpp"
 #include "oddlib/bits_factory.hpp"
-#include "logger.hpp"
-#include <cassert>
-#include "oddlib/sdl_raii.hpp"
-#include <algorithm> // min/max
-#include <cmath>
-#include "resourcemapper.hpp"
 #include "engine.hpp"
 #include "fmv.hpp"
 #include "sound.hpp"
@@ -337,7 +328,7 @@ bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const 
 {
     mRoot = std::make_unique<Entity>();
     mRoot->AddChild(std::make_unique<AbeEntity>(locator, input));
-    mRoot->AddChild(std::make_unique<SligEntity>(locator));
+    mRoot->AddChild(std::make_unique<SligEntity>(locator, input));
     return mLoader.Load(path, locator);
 }
 
