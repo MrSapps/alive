@@ -4,11 +4,16 @@
 void AnimationComponent::Load(ResourceLocator& resLoc, const char* animationName)
 {
     mAnimation = resLoc.LocateAnimation(animationName).get();
+    mTransformComponent = mEntity->GetComponent<TransformComponent>(ComponentIdentifier::Transform);
 }
 
 void AnimationComponent::Render(AbstractRenderer& rend) const
 {
-    mAnimation->Render(rend, false, AbstractRenderer::eLayers::eForegroundLayer1);
+    mAnimation->Render(rend,
+                       false,
+                       static_cast<s32>(mTransformComponent->xPos),
+                       static_cast<s32>(mTransformComponent->yPos),
+                       AbstractRenderer::eLayers::eForegroundLayer1);
 }
 
 void AnimationComponent::Update()
@@ -18,49 +23,13 @@ void AnimationComponent::Update()
 
 void PhysicsComponent::Load()
 {
-    mAnimationComponent = mEntity->GetComponent<AnimationComponent>(ComponentIdentifier::Animation);
+    mTransformComponent = mEntity->GetComponent<TransformComponent>(ComponentIdentifier::Transform);
 }
 
 void PhysicsComponent::Update()
 {
-    if (mXSpeed > 0)
-    {
-        mXSpeed = mXSpeed - mXVelocity;
-        if (FacingLeft())
-        {
-            if (mInvertX)
-            {
-                mXPos = mXPos + mXSpeed;
-            }
-            else
-            {
-                mXPos = mXPos - mXSpeed;
-            }
-        }
-        else
-        {
-            if (mInvertX)
-            {
-                mXPos = mXPos - mXSpeed;
-            }
-            else
-            {
-                mXPos = mXPos + mXSpeed;
-            }
-        }
-    }
-    mAnimationComponent->mAnimation->SetXPos(static_cast<s32>(mXPos));
-    mAnimationComponent->mAnimation->SetYPos(static_cast<s32>(mYPos));
-}
-
-void PhysicsComponent::SetX(float xPos)
-{
-    mXPos = xPos;
-}
-
-void PhysicsComponent::SetY(float yPos)
-{
-    mYPos = yPos;
+    mTransformComponent->xPos += xSpeed;
+    mTransformComponent->yPos += ySpeed;
 }
 
 void AbeControllerComponent::Load()

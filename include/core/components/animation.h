@@ -3,14 +3,23 @@
 #include "core/component.hpp"
 #include "resourcemapper.hpp"
 
+class TransformComponent : public Component
+{
+public:
+    float xPos;
+    float yPos;
+};
+
 class AnimationComponent : public Component
 {
 public:
-    void Update() final;
     void Load(ResourceLocator& resLoc, const char* animationName);
+    void Update() final;
     void Render(AbstractRenderer& rend) const final;
-public:
+private:
     std::unique_ptr<Animation> mAnimation;
+private:
+    TransformComponent* mTransformComponent = nullptr;
 };
 
 class PhysicsComponent : public Component
@@ -19,24 +28,10 @@ public:
     void Load();
     void Update() final;
 public:
-    void SnapXToGrid()
-    {}
-    void SnapYToGrid()
-    {}
-public:
-    void SetX(float xPos);
-    void SetY(float yPos);
+    float xSpeed = 0.0f;
+    float ySpeed = 0.0f;
 private:
-    bool FacingLeft()
-    { return false; }
-    float mXPos = 0.0f;
-    float mYPos = 0.0f;
-    bool mInvertX = false;
-    float mXSpeed = 0.0f;
-    float mXVelocity = 0.0f;
-    float mYSpeed = 0.0f;
-    float mYVelocity = 0.0f;
-    AnimationComponent* mAnimationComponent;
+    TransformComponent* mTransformComponent = nullptr;
 };
 
 class AbeControllerComponent : public Component
@@ -45,5 +40,5 @@ public:
     void Load();
     void Update() override;
 private:
-    PhysicsComponent* mPhysicsComponent;
+    PhysicsComponent* mPhysicsComponent = nullptr;
 };

@@ -32,20 +32,25 @@ void Entity::Render(AbstractRenderer& rend) const
 
 AbeEntity::AbeEntity(ResourceLocator& resLoc)
 {
+    auto pos = AddComponent<TransformComponent>(ComponentIdentifier::Transform);
     auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
 
+    pos->xPos = 0.0f;
+    pos->yPos = 0.0f;
     physics->Load();
     animation->Load(resLoc, "AbeStandIdle");
 }
 
 SligEntity::SligEntity(ResourceLocator& resLoc)
 {
+    auto pos =AddComponent<TransformComponent>(ComponentIdentifier::Transform);
     auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
 
+	pos->xPos = 0.0f;
+    pos->yPos = 0.0f;
     physics->Load();
+    physics->xSpeed = 0.1f;
     animation->Load(resLoc, "AbeStandIdle");
-
-    physics->SetX(32.0f);
 }

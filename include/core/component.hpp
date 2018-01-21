@@ -10,6 +10,7 @@ class Entity;
 enum class ComponentIdentifier
 {
     None,
+    Transform,
     Animation,
     Physics
 };
@@ -28,6 +29,6 @@ public:
     void SetId(ComponentIdentifier);
     ComponentIdentifier GetId() const;
 protected:
-    Entity* mEntity;
-    ComponentIdentifier mId;
+    Entity* mEntity = nullptr;
+    ComponentIdentifier mId = ComponentIdentifier::None;
 };
