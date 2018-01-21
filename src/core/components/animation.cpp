@@ -5,6 +5,7 @@
 void AnimationComponent::Load(ResourceLocator& resLoc, const char* animationName)
 {
     mAnimation = resLoc.LocateAnimation(animationName).get();
+    mAnimation->SetFrame(0);
     mResourceLocator = &resLoc;
     mTransformComponent = mEntity->GetComponent<TransformComponent>(ComponentIdentifier::Transform);
 }
@@ -12,6 +13,7 @@ void AnimationComponent::Load(ResourceLocator& resLoc, const char* animationName
 void AnimationComponent::Change(const char* animationName)
 {
     mAnimation = mResourceLocator->LocateAnimation(animationName).get();
+    mAnimation->SetFrame(0);
 }
 
 bool AnimationComponent::Complete() const
