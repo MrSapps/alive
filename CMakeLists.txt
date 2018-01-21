@@ -417,8 +417,14 @@ SET(alivelib_src
     src/core/entity.cpp
     include/core/component.hpp
     src/core/component.cpp
-        include/core/components/animation.hpp
-    src/core/components/animation.cpp)
+    include/core/components/animation.hpp
+    src/core/components/animation.cpp
+    include/core/components/transform.hpp
+    src/core/components/transform.cpp
+    include/core/components/physics.hpp
+    src/core/components/physics.cpp
+    include/core/components/abemovement.hpp
+    src/core/components/abemovement.cpp)
 
 if(WIN32)
     SET(alivelib_src

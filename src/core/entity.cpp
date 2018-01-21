@@ -1,5 +1,8 @@
 #include "core/entity.hpp"
+#include "core/components/physics.hpp"
+#include "core/components/transform.hpp"
 #include "core/components/animation.hpp"
+#include "core/components/abemovement.hpp"
 
 void Entity::AddChild(Entity::UPtr child)
 {
@@ -38,8 +41,7 @@ AbeEntity::AbeEntity(ResourceLocator& resLoc, InputState const &input) // TODO: 
     auto movement = AddComponent<AbeMovementComponent>(ComponentIdentifier::AbeMovementController);
     auto controller = AddComponent<PlayerControllerComponent>(ComponentIdentifier::PlayerController);
 
-    pos->xPos = 20.0f;
-    pos->yPos = 380.0f;
+	pos->Set(20.0f, 380.0f);
     physics->Load();
     animation->Load(resLoc, "AbeStandIdle");
     movement->Load();
@@ -52,8 +54,7 @@ SligEntity::SligEntity(ResourceLocator& resLoc)
     auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
 
-    pos->xPos = 0.0f;
-    pos->yPos = 380.0f;
+	pos->Set(0.0f, 380.0f);
     physics->Load();
     physics->xSpeed = 0.1f;
     animation->Load(resLoc, "SLIG.BND_412_AePc_11");
