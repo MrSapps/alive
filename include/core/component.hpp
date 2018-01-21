@@ -12,7 +12,8 @@ enum class ComponentIdentifier
     None,
     Transform,
     Animation,
-    Physics
+    Physics,
+    AbeMovementController
 };
 
 class Component

@@ -1,5 +1,5 @@
 #include "core/entity.hpp"
-#include "core/components/animation.h"
+#include "core/components/animation.hpp"
 
 void Entity::AddChild(Entity::UPtr child)
 {
@@ -35,11 +35,14 @@ AbeEntity::AbeEntity(ResourceLocator& resLoc)
     auto pos = AddComponent<TransformComponent>(ComponentIdentifier::Transform);
     auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
+    auto movement = AddComponent<AbeMovementControllerComponent>(ComponentIdentifier::AbeMovementController);
 
     pos->xPos = 20.0f;
     pos->yPos = 380.0f;
     physics->Load();
     animation->Load(resLoc, "AbeStandIdle");
+    movement->Load();
+    movement->right = true;
 }
 
 SligEntity::SligEntity(ResourceLocator& resLoc)
@@ -52,5 +55,5 @@ SligEntity::SligEntity(ResourceLocator& resLoc)
     pos->yPos = 380.0f;
     physics->Load();
     physics->xSpeed = 0.1f;
-    animation->Load(resLoc, "AbeStandIdle");
+    animation->Load(resLoc, "SLIG.BND_412_AePc_11");
 }

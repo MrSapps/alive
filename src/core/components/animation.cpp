@@ -1,5 +1,5 @@
 #include "core/entity.hpp"
-#include "core/components/animation.h"
+#include "core/components/animation.hpp"
 
 void AnimationComponent::Load(ResourceLocator& resLoc, const char* animationName)
 {
@@ -32,12 +32,19 @@ void PhysicsComponent::Update()
     mTransformComponent->yPos += ySpeed;
 }
 
-void AbeControllerComponent::Load()
+void AbeMovementControllerComponent::Load()
 {
     mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>(ComponentIdentifier::Physics);
 }
 
-void AbeControllerComponent::Update()
+void AbeMovementControllerComponent::Update()
 {
-
+    if (left)
+    {
+        mPhysicsComponent->xSpeed = -0.5f;
+    }
+    else if (right)
+    {
+        mPhysicsComponent->xSpeed = +0.5f;
+    }
 }

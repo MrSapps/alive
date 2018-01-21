@@ -417,7 +417,7 @@ SET(alivelib_src
     src/core/entity.cpp
     include/core/component.hpp
     src/core/component.cpp
-    include/core/components/animation.h
+        include/core/components/animation.hpp
     src/core/components/animation.cpp)
 
 if(WIN32)

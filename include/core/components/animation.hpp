@@ -34,11 +34,14 @@ private:
     TransformComponent* mTransformComponent = nullptr;
 };
 
-class AbeControllerComponent : public Component
+class AbeMovementControllerComponent : public Component
 {
 public:
     void Load();
     void Update() override;
+public:
+    bool left = false;
+    bool right = false;
 private:
     PhysicsComponent* mPhysicsComponent = nullptr;
 };
