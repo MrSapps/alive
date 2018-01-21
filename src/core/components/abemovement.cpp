@@ -96,6 +96,7 @@ void AbeMovementComponent::Load()
 
     mStateFnMap[States::eWalking] = [&]()
     {
+        LOG_INFO("SNAP CHECK FRAME " << mAnimationComponent->FrameNumber());
         if (mAnimationComponent->FrameNumber() == 5+1 || mAnimationComponent->FrameNumber() == 14+1)
         {
             LOG_INFO("SNAP ABE");
@@ -104,10 +105,10 @@ void AbeMovementComponent::Load()
 
         if (mGoal != Goal::eGoLeft && mGoal != Goal::eGoRight)
         {
-            if (mAnimationComponent->FrameNumber() == 3 - 1 || mAnimationComponent->FrameNumber() == 12 - 1)
+            if (mAnimationComponent->FrameNumber() == 2 + 1 || mAnimationComponent->FrameNumber() == 11 + 1)
             {
                 mState = States::eWalkingToStanding;
-                if (mAnimationComponent->FrameNumber() == 3)
+                if (mAnimationComponent->FrameNumber() == 2 +1)
                 {
                     mAnimationComponent->Change("AbeWalkToStand");
                 }
