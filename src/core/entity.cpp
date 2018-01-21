@@ -73,13 +73,13 @@ SligEntity::SligEntity(ResourceLocator& resLoc, InputState const& input) // TODO
     auto pos = AddComponent<TransformComponent>(ComponentIdentifier::Transform);
     auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
-	auto movement = AddComponent<SligMovementComponent>(ComponentIdentifier::SligMovementController);
-	auto controller = AddComponent<SligPlayerControllerComponent>(ComponentIdentifier::PlayerController);
+    auto movement = AddComponent<SligMovementComponent>(ComponentIdentifier::SligMovementController);
+    auto controller = AddComponent<SligPlayerControllerComponent>(ComponentIdentifier::PlayerController);
 
     pos->Set(0.0f, 380.0f);
     physics->Load();
     physics->xSpeed = 0.1f;
-    animation->Load(resLoc, "SLIG.BND_412_AePc_11");
-	movement->Load();
-	controller->Load(input);
+    animation->Load(resLoc, "SLIG.BND_412_AePc_1");
+    movement->Load();
+    controller->Load(input);
 }
