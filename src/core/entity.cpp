@@ -36,13 +36,14 @@ AbeEntity::AbeEntity(ResourceLocator& resLoc, InputState const &input) // TODO: 
     auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
     auto movement = AddComponent<AbeMovementControllerComponent>(ComponentIdentifier::AbeMovementController);
+    auto controller = AddComponent<PlayerControllerComponent>(ComponentIdentifier::PlayerController);
 
     pos->xPos = 20.0f;
     pos->yPos = 380.0f;
     physics->Load();
     animation->Load(resLoc, "AbeStandIdle");
-    movement->Load(input);
-    movement->right = true;
+    movement->Load();
+    controller->Load(input);
 }
 
 SligEntity::SligEntity(ResourceLocator& resLoc)

@@ -37,7 +37,7 @@ private:
 class AbeMovementControllerComponent : public Component
 {
 public:
-    void Load(const InputState& state);
+    void Load();
     void Update() override;
 public:
     bool left = false;
@@ -45,4 +45,13 @@ public:
 private:
     const Actions* mInputMappingActions = nullptr;
     PhysicsComponent* mPhysicsComponent = nullptr;
+};
+
+class PlayerControllerComponent : public Component {
+public:
+    void Load(const InputState& state);
+    void Update() override;
+private:
+    const Actions* mInputMappingActions = nullptr;
+    AbeMovementControllerComponent *mAbeMovement = nullptr;
 };
