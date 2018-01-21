@@ -118,4 +118,5 @@ private:
     LoadingIcon& mLoadingIcon;
     WorldState mWorldState;
 
+    std::unique_ptr<class AnimationBrowser> mDebugAnimationBrowser;
 };

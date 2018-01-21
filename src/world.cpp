@@ -8,6 +8,7 @@
 #include "sound.hpp"
 #include "editormode.hpp"
 #include "gamemode.hpp"
+#include "animationbrowser.hpp"
 
 void WorldState::RenderGrid(AbstractRenderer& rend) const
 {
@@ -166,6 +167,9 @@ World::World(
         RenderDebugFmvSelection();
     });
 
+
+    mDebugAnimationBrowser = std::make_unique<AnimationBrowser>(locator);
+
     // Debugging - reload path and load next path
     static std::string currentPathName;
     static s32 nextPathIndex;
@@ -249,6 +253,10 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
         if (!hideDebug)
         {
             Debugging().Update(input);
+            if (Debugging().mBrowserUi.animationBrowserOpen)
+            {
+                mDebugAnimationBrowser->Update(input, coords);
+            }
         }
 
         if (mGridMap)
@@ -358,6 +366,11 @@ void World::Render(AbstractRenderer& /*rend*/)
         mRenderer.Clear(0.4f, 0.4f, 0.4f);
 
         Debugging().Render(mRenderer);
+        if (Debugging().mBrowserUi.animationBrowserOpen)
+        {
+            mDebugAnimationBrowser->Render(mRenderer);
+        }
+
         mWorldState.mPlayFmvState->RenderDebugSubsAndFontAtlas(mRenderer);
 
         if (mGridMap)
