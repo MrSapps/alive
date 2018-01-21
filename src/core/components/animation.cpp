@@ -32,13 +32,16 @@ void PhysicsComponent::Update()
     mTransformComponent->yPos += ySpeed;
 }
 
-void AbeMovementControllerComponent::Load()
+void AbeMovementControllerComponent::Load(const InputState& state)
 {
+    mInputMappingActions = &state.Mapping().GetActions(); // TODO: Input is wired here
     mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>(ComponentIdentifier::Physics);
 }
 
 void AbeMovementControllerComponent::Update()
 {
+    left = mInputMappingActions->Left(mInputMappingActions->mIsDown);
+    right = mInputMappingActions->Right(mInputMappingActions->mIsDown);
     if (left)
     {
         mPhysicsComponent->xSpeed = -0.5f;
@@ -46,5 +49,9 @@ void AbeMovementControllerComponent::Update()
     else if (right)
     {
         mPhysicsComponent->xSpeed = +0.5f;
+    }
+    else
+    {
+        mPhysicsComponent->xSpeed = 0.0f;
     }
 }

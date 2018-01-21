@@ -30,7 +30,7 @@ void Entity::Render(AbstractRenderer& rend) const
     }
 }
 
-AbeEntity::AbeEntity(ResourceLocator& resLoc)
+AbeEntity::AbeEntity(ResourceLocator& resLoc, InputState const &input) // TODO: Input wired here
 {
     auto pos = AddComponent<TransformComponent>(ComponentIdentifier::Transform);
     auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
@@ -41,7 +41,7 @@ AbeEntity::AbeEntity(ResourceLocator& resLoc)
     pos->yPos = 380.0f;
     physics->Load();
     animation->Load(resLoc, "AbeStandIdle");
-    movement->Load();
+    movement->Load(input);
     movement->right = true;
 }
 

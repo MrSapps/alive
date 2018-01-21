@@ -223,9 +223,9 @@ void World::LoadMap(const std::string& mapName)
     mWorldState.mState = WorldState::States::eLoadingMap;
 }
 
-bool World::LoadMap(const Oddlib::Path& path)
+bool World::LoadMap(const Oddlib::Path& path, const InputState& input) // TODO: Input wired here
 {
-    return mGridMap->LoadMap(path, mLocator);
+    return mGridMap->LoadMap(path, mLocator, input);
 }
 
 EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
@@ -309,7 +309,7 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
             if (mPathBeingLoaded)
             {
                 // Note: This is iterative loading which happens in the main thread
-                if (LoadMap(*mPathBeingLoaded))
+                if (LoadMap(*mPathBeingLoaded, input))
                 {
                     mWorldState.mState = WorldState::States::eSoundsLoading;
                     mSound.SetMusicTheme(mPathBeingLoaded->MusicThemeName().c_str());

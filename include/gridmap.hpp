@@ -79,7 +79,7 @@ public:
     GridMap& operator = (const GridMap&) = delete;
     GridMap(CoordinateSpace& coords, WorldState& state);
     ~GridMap();
-    bool LoadMap(const Oddlib::Path& path, ResourceLocator& locator);
+    bool LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& state); // TODO: Input wired here
     static void RegisterScriptBindings();
 private:
     class Loader

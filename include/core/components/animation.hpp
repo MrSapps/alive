@@ -37,11 +37,12 @@ private:
 class AbeMovementControllerComponent : public Component
 {
 public:
-    void Load();
+    void Load(const InputState& state);
     void Update() override;
 public:
     bool left = false;
     bool right = false;
 private:
+    const Actions* mInputMappingActions = nullptr;
     PhysicsComponent* mPhysicsComponent = nullptr;
 };

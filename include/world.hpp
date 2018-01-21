@@ -97,7 +97,7 @@ public:
     void Render(AbstractRenderer& rend);
 private:
     void LoadMap(const std::string& mapName);
-    bool LoadMap(const Oddlib::Path& path);
+    bool LoadMap(const Oddlib::Path& path, const InputState& input); // TODO: Input wired here
     void UnloadMap(AbstractRenderer& renderer);
 
     void RenderDebugPathSelection();

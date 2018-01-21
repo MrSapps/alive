@@ -3,8 +3,9 @@
 #include <memory>
 #include <vector>
 
-#include "core/component.hpp"
+#include "input.hpp"
 #include "resourcemapper.hpp"
+#include "core/component.hpp"
 
 class Entity
 {
@@ -31,7 +32,7 @@ private:
 class AbeEntity final : public Entity
 {
 public:
-    explicit AbeEntity(ResourceLocator& resLoc);
+    explicit AbeEntity(ResourceLocator& resLoc, const InputState &input);
 };
 
 class SligEntity final : public Entity
