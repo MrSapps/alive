@@ -36,20 +36,20 @@ AbeEntity::AbeEntity(ResourceLocator& resLoc)
     auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
 
-    pos->xPos = 0.0f;
-    pos->yPos = 0.0f;
+    pos->xPos = 20.0f;
+    pos->yPos = 380.0f;
     physics->Load();
     animation->Load(resLoc, "AbeStandIdle");
 }
 
 SligEntity::SligEntity(ResourceLocator& resLoc)
 {
-    auto pos =AddComponent<TransformComponent>(ComponentIdentifier::Transform);
+    auto pos = AddComponent<TransformComponent>(ComponentIdentifier::Transform);
     auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
 
-	pos->xPos = 0.0f;
-    pos->yPos = 0.0f;
+    pos->xPos = 0.0f;
+    pos->yPos = 380.0f;
     physics->Load();
     physics->xSpeed = 0.1f;
     animation->Load(resLoc, "AbeStandIdle");

@@ -11,9 +11,9 @@ void AnimationComponent::Render(AbstractRenderer& rend) const
 {
     mAnimation->Render(rend,
                        false,
+                       AbstractRenderer::eLayers::eForegroundLayer1,
                        static_cast<s32>(mTransformComponent->xPos),
-                       static_cast<s32>(mTransformComponent->yPos),
-                       AbstractRenderer::eLayers::eForegroundLayer1);
+                       static_cast<s32>(mTransformComponent->yPos));
 }
 
 void AnimationComponent::Update()
