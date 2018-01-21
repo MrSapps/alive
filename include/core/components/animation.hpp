@@ -34,14 +34,14 @@ private:
     TransformComponent* mTransformComponent = nullptr;
 };
 
-class AbeMovementControllerComponent : public Component
+class AbeMovementComponent : public Component
 {
 public:
     void Load();
     void Update() override;
 public:
-    bool left = false;
-    bool right = false;
+    bool mLeft = false;
+    bool mRight = false;
 private:
     const Actions* mInputMappingActions = nullptr;
     PhysicsComponent* mPhysicsComponent = nullptr;
@@ -53,5 +53,5 @@ public:
     void Update() override;
 private:
     const Actions* mInputMappingActions = nullptr;
-    AbeMovementControllerComponent *mAbeMovement = nullptr;
+    AbeMovementComponent *mAbeMovement = nullptr;
 };

@@ -35,7 +35,7 @@ AbeEntity::AbeEntity(ResourceLocator& resLoc, InputState const &input) // TODO: 
     auto pos = AddComponent<TransformComponent>(ComponentIdentifier::Transform);
     auto physics = AddComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
-    auto movement = AddComponent<AbeMovementControllerComponent>(ComponentIdentifier::AbeMovementController);
+    auto movement = AddComponent<AbeMovementComponent>(ComponentIdentifier::AbeMovementController);
     auto controller = AddComponent<PlayerControllerComponent>(ComponentIdentifier::PlayerController);
 
     pos->xPos = 20.0f;
