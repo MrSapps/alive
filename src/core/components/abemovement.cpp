@@ -3,19 +3,15 @@
 #include "core/components/animation.hpp"
 #include "core/components/abemovement.hpp"
 
+const f32 kWalkSpeed = 2.777771f;
+
 void AbeMovementComponent::Load()
 {
     mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>(ComponentIdentifier::Physics);
     mAnimationComponent = mEntity->GetComponent<AnimationComponent>(ComponentIdentifier::Animation);
-}
 
-const f32 kWalkSpeed = 2.777771f;
-
-void AbeMovementComponent::Update()
-{
-    switch (mState)
+    mStateFnMap[States::eStanding] = [&]() 
     {
-    case States::eStanding:
         switch (mGoal)
         {
         case AbeMovementComponent::Goal::eGoLeft:
@@ -65,18 +61,20 @@ void AbeMovementComponent::Update()
         default:
             break;
         }
-        break;
+    };
 
-    case States::eStandingTurnAround:
+    mStateFnMap[States::eStandingTurnAround] = [&]()
+    {
         if (mAnimationComponent->Complete())
         {
             mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
             mAnimationComponent->Change("AbeStandIdle");
             mState = States::eStanding;
         }
-        break;
+    };
 
-    case States::eChanting:
+    mStateFnMap[States::eChanting] = [&]()
+    {
         switch (mGoal)
         {
         case Goal::eStand:
@@ -85,38 +83,41 @@ void AbeMovementComponent::Update()
             break;
 
         default:
-            {
-                auto sligs = mEntity->GetParent()->FindChildrenByComponent(ComponentIdentifier::SligMovementController);
-                if (!sligs.empty())
+        {
+            auto sligs = mEntity->GetParent()->FindChildrenByComponent(ComponentIdentifier::SligMovementController);
+            if (!sligs.empty())
                 //for (auto const& slig : sligs)
-                {
-                    // auto controller = slig->GetComponent(ComponentIdentifier::PlayerController);
-                    // controller.mActive = true; or controller.possess(this);
-                    LOG_INFO("Found a slig to possess");
-                    break;
-                }
+            {
+                // auto controller = slig->GetComponent(ComponentIdentifier::PlayerController);
+                // controller.mActive = true; or controller.possess(this);
+                LOG_INFO("Found a slig to possess");
+                break;
             }
-            break;
         }
         break;
+        }
+    };
 
-    case States::eChantToStand:
+    mStateFnMap[States::eChantToStand] = [&]()
+    {
         if (mAnimationComponent->Complete())
         {
             mAnimationComponent->Change("AbeStandIdle");
             mState = States::eStanding;
         }
-        break;
+    };
 
-    case States::eStandingToWalking:
+    mStateFnMap[States::eStandingToWalking] = [&]()
+    {
         if (mAnimationComponent->Complete())
         {
             mAnimationComponent->Change("AbeWalking");
             mState = States::eWalking;
         }
-        break;
+    };
 
-    case States::eWalking:
+    mStateFnMap[States::eWalking] = [&]()
+    {
         switch (mGoal)
         {
         case Goal::eStand:
@@ -145,23 +146,29 @@ void AbeMovementComponent::Update()
             }
             break;
         }
-        break;
+    };
 
-    case States::eWalkingToStanding:
+    mStateFnMap[States::eWalking] = [&]()
+    {
         if (mAnimationComponent->Complete())
         {
             mAnimationComponent->Change("AbeStandIdle");
             mPhysicsComponent->xSpeed = 0.0f;
             mState = States::eStanding;
         }
-        break;
-    }
+    };
+}
+
+void AbeMovementComponent::Update()
+{
+    mStateFnMap[mState]();
 }
 
 void AbePlayerControllerComponent::Load(const InputState& state)
 {
     mInputMappingActions = &state.Mapping().GetActions(); // TODO: Input is wired here
     mAbeMovement = mEntity->GetComponent<AbeMovementComponent>(ComponentIdentifier::AbeMovementController);
+
 }
 
 void AbePlayerControllerComponent::Update()

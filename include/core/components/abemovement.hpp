@@ -2,6 +2,8 @@
 
 #include "input.hpp"
 #include "core/component.hpp"
+#include <map>
+#include <functional>
 
 class PhysicsComponent;
 class AnimationComponent;
@@ -35,6 +37,8 @@ private:
         eWalkingToStanding,
         eWalking,
     };
+
+    std::map<States, std::function<void()>> mStateFnMap;
     States mState = States::eStanding;
 };
 
