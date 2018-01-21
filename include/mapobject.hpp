@@ -6,6 +6,8 @@
 #include "logger.hpp"
 #include "iterativeforloop.hpp"
 
+float SnapXToGrid(float toSnap);
+
 struct ObjRect
 {
     s32 x;

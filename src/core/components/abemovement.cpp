@@ -77,7 +77,7 @@ void AbeMovementComponent::Load()
         {
             auto sligs = mEntity->GetParent()->FindChildrenByComponent(ComponentIdentifier::SligMovementController);
             if (!sligs.empty())
-                //for (auto const& slig : sligs)
+            //for (auto const& slig : sligs)
             {
                 // auto controller = slig->GetComponent(ComponentIdentifier::PlayerController);
                 // controller.mActive = true; or controller.possess(this);
@@ -106,15 +106,22 @@ void AbeMovementComponent::Load()
         if (mAnimationComponent->Complete())
         {
             mAnimationComponent->Change("AbeWalking");
+            SetXSpeed(kWalkSpeed);
             mState = States::eWalking;
         }
     };
 
     mStateFnMap[States::eWalking] = [&]()
     {
-        mStateGoalFnMap[States::eStanding][Goal::eStand] = [&]()
+        if (mAnimationComponent->FrameNumber() == 6-1 || mAnimationComponent->FrameNumber() == 15 - 1)
         {
-            if (mAnimationComponent->FrameNumber() == 3 || mAnimationComponent->FrameNumber() == 12)
+            LOG_INFO("SNAP ABE");
+            mPhysicsComponent->SnapXToGrid();
+        }
+
+        if (mGoal != Goal::eGoLeft && mGoal != Goal::eGoRight)
+        {
+            if (mAnimationComponent->FrameNumber() == 3 - 1 || mAnimationComponent->FrameNumber() == 12 - 1)
             {
                 mState = States::eWalkingToStanding;
                 if (mAnimationComponent->FrameNumber() == 3)
@@ -126,20 +133,10 @@ void AbeMovementComponent::Load()
                     mAnimationComponent->Change("AbeWalkToStandMidGrid");
                 }
             }
-        };
-
-        auto it = mStateGoalFnMap[mState].find(mGoal);
-        if (it != std::end(mStateGoalFnMap[mState]))
-        {
-            mStateGoalFnMap[mState][mGoal]();
-        }
-        else
-        {
-            SetXSpeed(kWalkSpeed);
         }
     };
 
-    mStateFnMap[States::eWalking] = [&]()
+    mStateFnMap[States::eWalkingToStanding] = [&]()
     {
         if (mAnimationComponent->Complete())
         {

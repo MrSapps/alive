@@ -431,20 +431,26 @@ bool MapObject::ContainsPoint(s32 x, s32 y) const
     return mAnim->Collision(x, y);
 }
 
-void MapObject::SnapXToGrid()
+float SnapXToGrid(float toSnap)
 {
     //25x20 grid hack
-    const float oldX = mXPos;
-    const s32 xpos = static_cast<s32>(mXPos);
+    const float oldX = toSnap;
+    const s32 xpos = static_cast<s32>(toSnap);
     const s32 gridPos = (xpos - 12) % 25;
     if (gridPos >= 13)
     {
-        mXPos = static_cast<float>(xpos - gridPos + 25);
+        toSnap = static_cast<float>(xpos - gridPos + 25);
     }
     else
     {
-        mXPos = static_cast<float>(xpos - gridPos);
+        toSnap = static_cast<float>(xpos - gridPos);
     }
 
-    LOG_INFO("SnapX: " << oldX << " to " << mXPos);
+    LOG_INFO("SnapX: " << oldX << " to " << toSnap);
+    return toSnap;
+}
+
+void MapObject::SnapXToGrid()
+{
+    mXPos = ::SnapXToGrid(mXPos);
 }

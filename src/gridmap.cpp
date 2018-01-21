@@ -309,7 +309,14 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
         break;
 
     case LoaderStates::eLoadObjects:
+#ifdef _DEBUG
+        while (mState == LoaderStates::eLoadObjects)
+        {
+            HandleLoadObjects(path, locator);
+        }
+#else
         RunForAtLeast(kMaxExecutionTimeMs, [&]() { if (mState == LoaderStates::eLoadObjects) { HandleLoadObjects(path, locator); } });
+#endif
         break;
 
     case LoaderStates::eHackToPlaceAbeInValidCamera:
