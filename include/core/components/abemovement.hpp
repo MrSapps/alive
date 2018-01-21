@@ -12,13 +12,30 @@ public:
     void Load();
     void Update() override;
 public:
-    bool mLeft = false;
-    bool mRight = false;
-    bool mChant = false;
+    enum class Goal
+    {
+        eStand,
+        eGoLeft,
+        eGoRight,
+        eChant
+    };
+    Goal mGoal = Goal::eStand;
 private:
     const Actions* mInputMappingActions = nullptr;
     PhysicsComponent* mPhysicsComponent = nullptr;
     AnimationComponent* mAnimationComponent = nullptr;
+
+    enum class States
+    {
+        eStanding,
+        eStandingTurnAround,
+        eChanting,
+        eChantToStand,
+        eStandingToWalking,
+        eWalkingToStanding,
+        eWalking,
+    };
+    States mState = States::eStanding;
 };
 
 class AbePlayerControllerComponent final : public Component

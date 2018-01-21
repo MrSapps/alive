@@ -9,49 +9,153 @@ void AbeMovementComponent::Load()
     mAnimationComponent = mEntity->GetComponent<AnimationComponent>(ComponentIdentifier::Animation);
 }
 
+const f32 kWalkSpeed = 2.777771f;
+
 void AbeMovementComponent::Update()
 {
-    if (mLeft)
+    switch (mState)
     {
-        if (mPhysicsComponent->xSpeed == 0.0f)
+    case States::eStanding:
+        switch (mGoal)
         {
-            mAnimationComponent->mFlipX = true;
-            mAnimationComponent->Change("AbeWalking");
-        }
-        mPhysicsComponent->xSpeed = -2.5f;
-    }
-    else if (mRight)
-    {
-        if (mPhysicsComponent->xSpeed == 0.0f)
-        {
-            mAnimationComponent->mFlipX = false;
-
-            mAnimationComponent->Change("AbeWalking");
-        }
-        mPhysicsComponent->xSpeed = +2.5f;
-    }
-    else
-    {
-        if (mPhysicsComponent->xSpeed != 0.0f)
-        {
-            mAnimationComponent->Change("AbeStandIdle");
-        }
-        mPhysicsComponent->xSpeed = 0.0f;
-    }
-
-    if (mChant)
-    {
-        auto sligs = mEntity->GetParent()->FindChildrenByComponent(ComponentIdentifier::SligMovementController);
-        for (auto const& slig : sligs)
-        {
-            // auto controller = slig->GetComponent(ComponentIdentifier::PlayerController);
-            // controller.mActive = true; or controller.possess(this);
-            LOG_INFO("Found a slig to possess");
-            (void) slig;
+        case AbeMovementComponent::Goal::eGoLeft:
+            if (!mAnimationComponent->mFlipX)
+            {
+                mAnimationComponent->Change("AbeStandTurnAround");
+                mState = States::eStandingTurnAround;
+            }
+            else
+            {
+                mAnimationComponent->Change("AbeWalkToStand");
+                mState = States::eStandingToWalking;
+                if (mAnimationComponent->mFlipX)
+                {
+                    mPhysicsComponent->xSpeed = -kWalkSpeed;
+                }
+                else
+                {
+                    mPhysicsComponent->xSpeed = kWalkSpeed;
+                }
+            }
+            break;
+        case AbeMovementComponent::Goal::eGoRight:
+            if (mAnimationComponent->mFlipX)
+            {
+                mAnimationComponent->Change("AbeStandTurnAround");
+                mState = States::eStandingTurnAround;
+            }
+            else
+            {
+                mAnimationComponent->Change("AbeWalkToStand");
+                mState = States::eStandingToWalking;
+                if (mAnimationComponent->mFlipX)
+                {
+                    mPhysicsComponent->xSpeed = -kWalkSpeed;
+                }
+                else
+                {
+                    mPhysicsComponent->xSpeed = kWalkSpeed;
+                }
+            }
+            break;
+        case AbeMovementComponent::Goal::eChant:
+            mState = States::eChanting;
+            mAnimationComponent->Change("AbeStandToChant");
+            break;
+        default:
             break;
         }
-    }
+        break;
 
+    case States::eStandingTurnAround:
+        if (mAnimationComponent->Complete())
+        {
+            mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
+            mAnimationComponent->Change("AbeStandIdle");
+            mState = States::eStanding;
+        }
+        break;
+
+    case States::eChanting:
+        switch (mGoal)
+        {
+        case Goal::eStand:
+            mAnimationComponent->Change("AbeChantToStand");
+            mState = States::eChantToStand;
+            break;
+
+        default:
+            {
+                auto sligs = mEntity->GetParent()->FindChildrenByComponent(ComponentIdentifier::SligMovementController);
+                if (!sligs.empty())
+                //for (auto const& slig : sligs)
+                {
+                    // auto controller = slig->GetComponent(ComponentIdentifier::PlayerController);
+                    // controller.mActive = true; or controller.possess(this);
+                    LOG_INFO("Found a slig to possess");
+                    break;
+                }
+            }
+            break;
+        }
+        break;
+
+    case States::eChantToStand:
+        if (mAnimationComponent->Complete())
+        {
+            mAnimationComponent->Change("AbeStandIdle");
+            mState = States::eStanding;
+        }
+        break;
+
+    case States::eStandingToWalking:
+        if (mAnimationComponent->Complete())
+        {
+            mAnimationComponent->Change("AbeWalking");
+            mState = States::eWalking;
+        }
+        break;
+
+    case States::eWalking:
+        switch (mGoal)
+        {
+        case Goal::eStand:
+            if (mAnimationComponent->FrameNumber() == 3 || mAnimationComponent->FrameNumber() == 12)
+            {
+                mState = States::eWalkingToStanding;
+                if (mAnimationComponent->FrameNumber() == 3)
+                {
+                    mAnimationComponent->Change("AbeWalkToStand");
+                }
+                else
+                {
+                    mAnimationComponent->Change("AbeWalkToStandMidGrid");
+                }
+            }
+            break;
+
+        default:
+            if (mAnimationComponent->mFlipX)
+            {
+                mPhysicsComponent->xSpeed = -kWalkSpeed;
+            }
+            else
+            {
+                mPhysicsComponent->xSpeed = kWalkSpeed;
+            }
+            break;
+        }
+        break;
+
+    case States::eWalkingToStanding:
+        if (mAnimationComponent->Complete())
+        {
+            mAnimationComponent->Change("AbeStandIdle");
+            mPhysicsComponent->xSpeed = 0.0f;
+            mState = States::eStanding;
+        }
+        break;
+    }
 }
 
 void AbePlayerControllerComponent::Load(const InputState& state)
@@ -62,7 +166,20 @@ void AbePlayerControllerComponent::Load(const InputState& state)
 
 void AbePlayerControllerComponent::Update()
 {
-    mAbeMovement->mLeft = mInputMappingActions->Left(mInputMappingActions->mIsDown);
-    mAbeMovement->mRight = mInputMappingActions->Right(mInputMappingActions->mIsDown);
-    mAbeMovement->mChant = mInputMappingActions->Chant(mInputMappingActions->mIsDown);
+    if (mInputMappingActions->Left(mInputMappingActions->mIsDown))
+    {
+        mAbeMovement->mGoal = AbeMovementComponent::Goal::eGoLeft;
+    }
+    else if (mInputMappingActions->Right(mInputMappingActions->mIsDown))
+    {
+        mAbeMovement->mGoal = AbeMovementComponent::Goal::eGoRight;
+    }
+    else if (mInputMappingActions->Chant(mInputMappingActions->mIsDown))
+    {
+        mAbeMovement->mGoal = AbeMovementComponent::Goal::eChant;
+    }
+    else
+    {
+        mAbeMovement->mGoal = AbeMovementComponent::Goal::eStand;
+    }
 }

@@ -14,6 +14,16 @@ void AnimationComponent::Change(const char* animationName)
     mAnimation = mResourceLocator->LocateAnimation(animationName).get();
 }
 
+bool AnimationComponent::Complete() const
+{
+    return mAnimation->IsComplete();
+}
+
+s32 AnimationComponent::FrameNumber() const
+{
+    return mAnimation->FrameNumber();
+}
+
 void AnimationComponent::Render(AbstractRenderer& rend) const
 {
     mAnimation->Render(rend,
