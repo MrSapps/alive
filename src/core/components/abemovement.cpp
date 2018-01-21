@@ -12,9 +12,8 @@ void AbeMovementComponent::Load()
 
     mStateFnMap[States::eStanding] = [&]() 
     {
-        switch (mGoal)
+        mStateGoalFnMap[States::eStanding][Goal::eGoLeft] = [&]()
         {
-        case AbeMovementComponent::Goal::eGoLeft:
             if (!mAnimationComponent->mFlipX)
             {
                 mAnimationComponent->Change("AbeStandTurnAround");
@@ -24,17 +23,12 @@ void AbeMovementComponent::Load()
             {
                 mAnimationComponent->Change("AbeWalkToStand");
                 mState = States::eStandingToWalking;
-                if (mAnimationComponent->mFlipX)
-                {
-                    mPhysicsComponent->xSpeed = -kWalkSpeed;
-                }
-                else
-                {
-                    mPhysicsComponent->xSpeed = kWalkSpeed;
-                }
+                SetXSpeed(kWalkSpeed);
             }
-            break;
-        case AbeMovementComponent::Goal::eGoRight:
+        };
+
+        mStateGoalFnMap[States::eStanding][Goal::eGoRight] = [&]()
+        {
             if (mAnimationComponent->mFlipX)
             {
                 mAnimationComponent->Change("AbeStandTurnAround");
@@ -44,22 +38,20 @@ void AbeMovementComponent::Load()
             {
                 mAnimationComponent->Change("AbeWalkToStand");
                 mState = States::eStandingToWalking;
-                if (mAnimationComponent->mFlipX)
-                {
-                    mPhysicsComponent->xSpeed = -kWalkSpeed;
-                }
-                else
-                {
-                    mPhysicsComponent->xSpeed = kWalkSpeed;
-                }
+                SetXSpeed(kWalkSpeed);
             }
-            break;
-        case AbeMovementComponent::Goal::eChant:
+        };
+
+        mStateGoalFnMap[States::eStanding][Goal::eChant] = [&]()
+        {
             mState = States::eChanting;
             mAnimationComponent->Change("AbeStandToChant");
-            break;
-        default:
-            break;
+        };
+
+        auto it = mStateGoalFnMap[mState].find(mGoal);
+        if (it != std::end(mStateGoalFnMap[mState]))
+        {
+            mStateGoalFnMap[mState][mGoal]();
         }
     };
 
@@ -75,14 +67,13 @@ void AbeMovementComponent::Load()
 
     mStateFnMap[States::eChanting] = [&]()
     {
-        switch (mGoal)
+        mStateGoalFnMap[States::eStanding][Goal::eStand] = [&]()
         {
-        case Goal::eStand:
             mAnimationComponent->Change("AbeChantToStand");
             mState = States::eChantToStand;
-            break;
+        };
 
-        default:
+        mStateGoalFnMap[States::eStanding][Goal::eChant] = [&]()
         {
             auto sligs = mEntity->GetParent()->FindChildrenByComponent(ComponentIdentifier::SligMovementController);
             if (!sligs.empty())
@@ -91,10 +82,13 @@ void AbeMovementComponent::Load()
                 // auto controller = slig->GetComponent(ComponentIdentifier::PlayerController);
                 // controller.mActive = true; or controller.possess(this);
                 LOG_INFO("Found a slig to possess");
-                break;
             }
-        }
-        break;
+        };
+        
+        auto it = mStateGoalFnMap[mState].find(mGoal);
+        if (it != std::end(mStateGoalFnMap[mState]))
+        {
+            mStateGoalFnMap[mState][mGoal]();
         }
     };
 
@@ -118,9 +112,8 @@ void AbeMovementComponent::Load()
 
     mStateFnMap[States::eWalking] = [&]()
     {
-        switch (mGoal)
+        mStateGoalFnMap[States::eStanding][Goal::eStand] = [&]()
         {
-        case Goal::eStand:
             if (mAnimationComponent->FrameNumber() == 3 || mAnimationComponent->FrameNumber() == 12)
             {
                 mState = States::eWalkingToStanding;
@@ -133,18 +126,16 @@ void AbeMovementComponent::Load()
                     mAnimationComponent->Change("AbeWalkToStandMidGrid");
                 }
             }
-            break;
+        };
 
-        default:
-            if (mAnimationComponent->mFlipX)
-            {
-                mPhysicsComponent->xSpeed = -kWalkSpeed;
-            }
-            else
-            {
-                mPhysicsComponent->xSpeed = kWalkSpeed;
-            }
-            break;
+        auto it = mStateGoalFnMap[mState].find(mGoal);
+        if (it != std::end(mStateGoalFnMap[mState]))
+        {
+            mStateGoalFnMap[mState][mGoal]();
+        }
+        else
+        {
+            SetXSpeed(kWalkSpeed);
         }
     };
 
@@ -162,6 +153,18 @@ void AbeMovementComponent::Load()
 void AbeMovementComponent::Update()
 {
     mStateFnMap[mState]();
+}
+
+void AbeMovementComponent::SetXSpeed(f32 speed)
+{
+    if (mAnimationComponent->mFlipX)
+    {
+        mPhysicsComponent->xSpeed = -speed;
+    }
+    else
+    {
+        mPhysicsComponent->xSpeed = speed;
+    }
 }
 
 void AbePlayerControllerComponent::Load(const InputState& state)
