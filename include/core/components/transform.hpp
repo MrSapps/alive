@@ -5,7 +5,7 @@
 class TransformComponent final : public Component
 {
 public:
-    DECLARE_COMPONENT(TransformComponent)
+    DECLARE_COMPONENT(TransformComponent);
 public:
     void Set(float xPos, float yPos);
     void SetX(float xPos);

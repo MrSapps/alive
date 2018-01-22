@@ -14,7 +14,7 @@ const f32 kWalkSpeed = 2.777771f;
 class AbeMovementComponent final : public Component
 {
 public:
-    DECLARE_COMPONENT(AbeMovementComponent)
+    DECLARE_COMPONENT(AbeMovementComponent);
 public:
     void Load();
     void Update();

@@ -3,7 +3,7 @@
 #include "core/components/animation.hpp"
 #include "core/components/sligmovement.hpp"
 
-DEFINE_COMPONENT(SligMovementComponent)
+DEFINE_COMPONENT(SligMovementComponent);
 
 void SligMovementComponent::Load()
 {

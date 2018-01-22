@@ -5,11 +5,12 @@
 
 class TransformComponent;
 
-class AnimationComponent final : public Component
+class AnimationComponent  : public Component
 {
 public:
-    DECLARE_COMPONENT(AnimationComponent)
+    DECLARE_COMPONENT(AnimationComponent);
 public:
+    virtual ~AnimationComponent() = default;
     void Load(ResourceLocator& resLoc, const char* animationName);
     void Change(const char* animationName);
     bool Complete() const;
@@ -22,4 +23,10 @@ public:
 private:
     ResourceLocator *mResourceLocator = nullptr;
     TransformComponent* mTransformComponent = nullptr;
+}; 
+
+class AnimationComponentWithMeta : public Component
+{
+public:
+    DECLARE_COMPONENT(AnimationComponentWithMeta);
 };

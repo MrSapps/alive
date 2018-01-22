@@ -9,7 +9,7 @@ class AnimationComponent;
 class SligMovementComponent : public Component
 {
 public:
-    DECLARE_COMPONENT(SligMovementComponent)
+    DECLARE_COMPONENT(SligMovementComponent);
 public:
     void Load();
 public:

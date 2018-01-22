@@ -2,7 +2,7 @@
 #include "core/components/transform.hpp"
 #include "core/components/animation.hpp"
 
-DEFINE_COMPONENT(AnimationComponent)
+DEFINE_COMPONENT(AnimationComponent);
 
 void AnimationComponent::Load(ResourceLocator& resLoc, const char* animationName)
 {
@@ -40,3 +40,5 @@ void AnimationComponent::Update()
 {
     mAnimation->Update();
 }
+
+DEFINE_COMPONENT(AnimationComponentWithMeta);

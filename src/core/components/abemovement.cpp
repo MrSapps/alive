@@ -6,7 +6,7 @@
 #include "core/components/abemovement.hpp"
 #include "core/components/sligmovement.hpp"
 
-DEFINE_COMPONENT(AbeMovementComponent)
+DEFINE_COMPONENT(AbeMovementComponent);
 
 void AbeMovementComponent::SetTransistionData(const TransistionData* data)
 {

@@ -1,7 +1,7 @@
 #include "mapobject.hpp"
 #include "core/components/transform.hpp"
 
-DEFINE_COMPONENT(TransformComponent)
+DEFINE_COMPONENT(TransformComponent);
 
 void TransformComponent::Set(float xPos, float yPos)
 {
