@@ -15,6 +15,8 @@ public:
 public:
     void AddX(float xAmount);
     void AddY(float yAmount);
+public:
+    void SnapXToGrid();
 private:
     float mXPos = 0.0f;
     float mYPos = 0.0f;

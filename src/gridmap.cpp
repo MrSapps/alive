@@ -332,21 +332,18 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
 
 bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input) // TODO: Input wired here
 {
-
     auto abe = mRoot.Create();
     auto pos = abe->AddComponent<TransformComponent>();
     auto controller = abe->AddComponent<AbePlayerControllerComponent>();
     auto movement = abe->AddComponent<AbeMovementComponent>();
-    auto physics = abe->AddComponent<PhysicsComponent>();
+    abe->AddComponent<PhysicsComponent>();
     auto animation = abe->AddComponent<AnimationComponent>();
 
     pos->Set(125.0f, 380.0f + (80.0f));
-    physics->Load();
-    physics->SnapXToGrid();
+    pos->SnapXToGrid();
     animation->Load(locator, "AbeStandIdle");
     movement->Load();
     controller->Load(input);
-
 
 #ifdef _DEBUG
     while (!mLoader.Load(path, locator))

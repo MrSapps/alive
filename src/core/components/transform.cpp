@@ -1,3 +1,4 @@
+#include "mapobject.hpp"
 #include "core/components/transform.hpp"
 
 DEFINE_COMPONENT(TransformComponent)
@@ -34,4 +35,9 @@ void TransformComponent::AddX(float xAmount)
 void TransformComponent::AddY(float yAmount)
 {
     mYPos += yAmount;
+}
+
+void TransformComponent::SnapXToGrid()
+{
+    mXPos = ::SnapXToGrid(mXPos);
 }

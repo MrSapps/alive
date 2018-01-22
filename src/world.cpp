@@ -295,16 +295,22 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                 coords.SetCameraPosition(mWorldState.mCameraPosition);
             }
 
+            // Physics System
+            mGridMap->mRoot.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform) {
+                transform->AddX(physics->xSpeed);
+                transform->AddY(physics->ySpeed);
+            });
+            // Animation System
+            mGridMap->mRoot.With<AnimationComponent>([](auto, auto animation) {
+                animation->Update();
+            });
+            // Abe system
             mGridMap->mRoot.With<AbePlayerControllerComponent,
-                                 AbeMovementComponent,
-                                 PhysicsComponent,
-                                 AnimationComponent>([](auto, auto controller, auto abe, auto physics, auto animation)
-                                                     {
-                                                         controller->Update();
-                                                         abe->Update();
-                                                         physics->Update();
-                                                         animation->Update();
-                                                     });
+                                 AbeMovementComponent>([](auto, auto controller, auto abe)
+                                                       {
+                                                           controller->Update();
+                                                           abe->Update();
+                                                       });
         }
     }
     break;

@@ -1,5 +1,6 @@
 #include "core/entity.hpp"
 #include "core/components/physics.hpp"
+#include "core/components/transform.hpp"
 #include "core/components/animation.hpp"
 #include "core/components/abemovement.hpp"
 
@@ -103,7 +104,7 @@ void AbeMovementComponent::Load()
         if (mAnimationComponent->FrameNumber() == 5+1 || mAnimationComponent->FrameNumber() == 14+1)
         {
             LOG_INFO("SNAP ABE");
-            mPhysicsComponent->SnapXToGrid();
+			mEntity->GetComponent<TransformComponent>()->SnapXToGrid();
         }
 
         if (mGoal != Goal::eGoLeft && mGoal != Goal::eGoRight)
