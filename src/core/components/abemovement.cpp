@@ -25,9 +25,9 @@ void AbeMovementComponent::Load()
 
     mStateFnMap[States::eStanding] = [&]() 
     {
-        mStateGoalFnMap[States::eStanding][Goal::eGoLeft] = [&]()
+        if (mGoal == Goal::eGoLeft || mGoal == Goal::eGoRight)
         {
-            if (!mAnimationComponent->mFlipX)
+            if ((!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight))
             {
                 SetTransistionData(&kTurnAround);
             }
@@ -35,56 +35,27 @@ void AbeMovementComponent::Load()
             {
                 SetTransistionData(&kStandToWalk);
             }
-        };
-
-        mStateGoalFnMap[States::eStanding][Goal::eGoRight] = [&]()
-        {
-            if (mAnimationComponent->mFlipX)
-            {
-                SetTransistionData(&kTurnAround);
-            }
-            else
-            {
-                SetTransistionData(&kStandToWalk);
-            }
-        };
-
-        mStateGoalFnMap[States::eStanding][Goal::eChant] = [&]()
+        }
+        else if (mGoal == Goal::eChant)
         {
             mState = States::eChanting;
             mAnimationComponent->Change("AbeStandToChant");
-        };
-
-        auto it = mStateGoalFnMap[mState].find(mGoal);
-        if (it != std::end(mStateGoalFnMap[mState]))
-        {
-            mStateGoalFnMap[mState][mGoal]();
         }
     };
 
     mStateFnMap[States::eChanting] = [&]()
     {
-        mStateGoalFnMap[States::eChanting][Goal::eStand] = [&]()
+        if (mGoal == Goal::eStand)
         {
             SetTransistionData(&kChantToStand);
-        };
-
-        mStateGoalFnMap[States::eChanting][Goal::eChant] = [&]()
+        }
+        else if (mGoal == Goal::eChant)
         {
             auto sligs = mEntity->GetManager()->With<SligMovementComponent>();
             if (!sligs.empty())
-            //for (auto const& slig : sligs)
             {
-                // auto controller = slig->GetComponent<SligMovementComponent>(r);
-                // controller.mActive = true; or controller.possess(this);
                 LOG_INFO("Found a slig to possess");
             }
-        };
-        
-        auto it = mStateGoalFnMap[mState].find(mGoal);
-        if (it != std::end(mStateGoalFnMap[mState]))
-        {
-            mStateGoalFnMap[mState][mGoal]();
         }
     };
 
@@ -94,7 +65,7 @@ void AbeMovementComponent::Load()
         if (mAnimationComponent->FrameNumber() == 5+1 || mAnimationComponent->FrameNumber() == 14+1)
         {
             LOG_INFO("SNAP ABE");
-			mEntity->GetComponent<TransformComponent>()->SnapXToGrid();
+            mEntity->GetComponent<TransformComponent>()->SnapXToGrid();
         }
 
         if (!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft)

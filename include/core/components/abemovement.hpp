@@ -41,7 +41,6 @@ private:
     };
 
     std::map<States, std::function<void()>> mStateFnMap;
-    std::map<States, std::map<Goal, std::function<void()>>> mStateGoalFnMap;
     States mState = States::eStanding;
 
     void SetXSpeed(f32 speed);
