@@ -12,8 +12,8 @@ void AbeMovementComponent::SetTransistionData(const TransistionData* data)
 {
     if (mNextTransistionData != data)
     {
-        mAnimationComponent->Change(data->mAnimation.mName);
-        mAnimationComponent->SetSnapXFrames(data->mAnimation.mSnapXFrames);
+        mAnimationComponent->Change(data->mAnimation->mName);
+        mAnimationComponent->SetSnapXFrames(data->mAnimation->mSnapXFrames);
         SetXSpeed(data->mXSpeed);
         mNextTransistionData = data;
     }
@@ -26,8 +26,10 @@ void AbeMovementComponent::Load()
 
     mStateFnMap[States::eStanding] = [&]() 
     {
+        // Trying to walk?
         if (mGoal == Goal::eGoLeft || mGoal == Goal::eGoRight)
         {
+            // Changed standing direction?
             if ((!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight))
             {
                 SetTransistionData(&kTurnAround);
@@ -37,6 +39,7 @@ void AbeMovementComponent::Load()
                 SetTransistionData(&kStandToWalk);
             }
         }
+        // Trying to chant?
         else if (mGoal == Goal::eChant)
         {
             mState = States::eChanting;
@@ -46,10 +49,12 @@ void AbeMovementComponent::Load()
 
     mStateFnMap[States::eChanting] = [&]()
     {
+        // Stop chanting?
         if (mGoal == Goal::eStand)
         {
             SetTransistionData(&kChantToStand);
         }
+        // Still chanting?
         else if (mGoal == Goal::eChant)
         {
             auto sligs = mEntity->GetManager()->With<SligMovementComponent>();
@@ -62,14 +67,12 @@ void AbeMovementComponent::Load()
 
     mStateFnMap[States::eWalking] = [&]()
     {
-        if (!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft)
+        // Changed direction?
+        if ((!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight))
         {
-            // Invert direction
+            SetTransistionData(&kTurnAround);
         }
-        else if (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight)
-        {
-            // Invert direction
-        }
+        // Stopped walking?
         else if (mGoal != Goal::eGoLeft && mGoal != Goal::eGoRight)
         {
             if (mAnimationComponent->FrameNumber() == 2 + 1 || mAnimationComponent->FrameNumber() == 11 + 1)
@@ -107,10 +110,10 @@ void AbeMovementComponent::Update()
             mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
         }
         
-        if (mNextTransistionData->mNextAnimation.mName)
+        if (mNextTransistionData->mNextAnimation->mName)
         {
-            mAnimationComponent->Change(mNextTransistionData->mNextAnimation.mName);
-            mAnimationComponent->SetSnapXFrames(mNextTransistionData->mNextAnimation.mSnapXFrames);
+            mAnimationComponent->Change(mNextTransistionData->mNextAnimation->mName);
+            mAnimationComponent->SetSnapXFrames(mNextTransistionData->mNextAnimation->mSnapXFrames);
         }
 
         mState = mNextTransistionData->mNextState;

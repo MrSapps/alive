@@ -53,17 +53,24 @@ private:
 
     struct TransistionData
     {
-        AnimationData mAnimation;
-        AnimationData mNextAnimation;
+        const AnimationData* mAnimation;
+        const AnimationData* mNextAnimation;
         f32 mXSpeed;
         bool mFlipDirection;
         States mNextState;
     };
 
-    const std::vector<u32> kAbeStandIdleSnapXFrames = { 5 + 1, 14 + 1};
-    const TransistionData kTurnAround = { {"AbeStandTurnAround", nullptr }, {"AbeStandIdle", nullptr }, 0.0f, true, States::eStanding };
-    const TransistionData kStandToWalk = { {"AbeStandToWalk", nullptr }, {"AbeWalking", &kAbeStandIdleSnapXFrames }, kWalkSpeed, false, States::eWalking };
-    const TransistionData kChantToStand = { {"AbeChantToStand", nullptr }, {"AbeStandIdle", nullptr }, 0.0f, false, States::eStanding };
+    const std::vector<u32> kAbeStandIdleSnapXFrames =       { 5 + 1, 14 + 1 };
+
+    const AnimationData kAbeStandTurnAroundAnim =           { "AbeStandTurnAround",           nullptr };
+    const AnimationData kAbeStandIdleAnim =                 { "AbeStandIdle",                 nullptr };
+    const AnimationData kAbeStandToWalkAnim =               { "AbeStandToWalk",               nullptr };
+    const AnimationData kAbeWalkingAnim =                   { "AbeWalking",                   &kAbeStandIdleSnapXFrames };
+    const AnimationData kAbeChantToStandAnim =              { "AbeChantToStand",              nullptr };
+
+    const TransistionData kTurnAround =     { &kAbeStandTurnAroundAnim, &kAbeStandIdleAnim,     0.0f,       true,       States::eStanding };
+    const TransistionData kStandToWalk =    { &kAbeStandToWalkAnim,     &kAbeWalkingAnim,       kWalkSpeed, false,      States::eWalking  };
+    const TransistionData kChantToStand =   { &kAbeChantToStandAnim,    &kAbeStandIdleAnim,     0.0f,       false,      States::eStanding };
 
     void SetTransistionData(const TransistionData* data);
 
