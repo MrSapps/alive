@@ -174,11 +174,11 @@ void AbePlayerControllerComponent::Load(const InputState& state)
 
 void AbePlayerControllerComponent::Update()
 {
-    if (mInputMappingActions->Left(mInputMappingActions->mIsDown))
+    if (mInputMappingActions->Left(mInputMappingActions->mIsDown) && !mInputMappingActions->Right(mInputMappingActions->mIsDown))
     {
         mAbeMovement->mGoal = AbeMovementComponent::Goal::eGoLeft;
     }
-    else if (mInputMappingActions->Right(mInputMappingActions->mIsDown))
+    else if (mInputMappingActions->Right(mInputMappingActions->mIsDown) && !mInputMappingActions->Left(mInputMappingActions->mIsDown))
     {
         mAbeMovement->mGoal = AbeMovementComponent::Goal::eGoRight;
     }
