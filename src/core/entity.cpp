@@ -55,6 +55,7 @@ void Entity::Render(AbstractRenderer& rend) const
 
 AbeEntity::AbeEntity(ResourceLocator& resLoc, InputState const& input) // TODO: Input wired here
 {
+    //auto animation = AddComponent<AnimationComponent>(ComponentIdentifier::Animation);
     auto pos = AddComponent<TransformComponent>(ComponentIdentifier::Transform);
     auto controller = AddComponent<AbePlayerControllerComponent>(ComponentIdentifier::PlayerController);
     auto movement = AddComponent<AbeMovementComponent>(ComponentIdentifier::AbeMovementController);
