@@ -36,7 +36,6 @@ private:
     {
         eStanding,
         eChanting,
-        eChantToStand,
         eWalkingToStanding,
         eWalking,
     };
@@ -58,6 +57,7 @@ private:
 
     const TransistionData kTurnAround = { "AbeStandTurnAround", "AbeStandIdle", 0.0f, true, States::eStanding };
     const TransistionData kStandToWalk = { "AbeStandToWalk", "AbeWalking", kWalkSpeed, false, States::eWalking };
+    const TransistionData kChantToStand = { "AbeChantToStand", "AbeStandIdle", 0.0f, false, States::eStanding };
 
     void SetTransistionData(const TransistionData* data);
 

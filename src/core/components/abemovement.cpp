@@ -66,8 +66,7 @@ void AbeMovementComponent::Load()
     {
         mStateGoalFnMap[States::eChanting][Goal::eStand] = [&]()
         {
-            mAnimationComponent->Change("AbeChantToStand");
-            mState = States::eChantToStand;
+            SetTransistionData(&kChantToStand);
         };
 
         mStateGoalFnMap[States::eChanting][Goal::eChant] = [&]()
@@ -89,15 +88,6 @@ void AbeMovementComponent::Load()
         }
     };
 
-    mStateFnMap[States::eChantToStand] = [&]()
-    {
-        if (mAnimationComponent->Complete())
-        {
-            mAnimationComponent->Change("AbeStandIdle");
-            mState = States::eStanding;
-        }
-    };
-
     mStateFnMap[States::eWalking] = [&]()
     {
         LOG_INFO("SNAP CHECK FRAME " << mAnimationComponent->FrameNumber());
@@ -107,12 +97,20 @@ void AbeMovementComponent::Load()
 			mEntity->GetComponent<TransformComponent>()->SnapXToGrid();
         }
 
-        if (mGoal != Goal::eGoLeft && mGoal != Goal::eGoRight)
+        if (!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft)
+        {
+            // Invert direction
+        }
+        else if (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight)
+        {
+            // Invert direction
+        }
+        else if (mGoal != Goal::eGoLeft && mGoal != Goal::eGoRight)
         {
             if (mAnimationComponent->FrameNumber() == 2 + 1 || mAnimationComponent->FrameNumber() == 11 + 1)
             {
                 mState = States::eWalkingToStanding;
-                if (mAnimationComponent->FrameNumber() == 2 +1)
+                if (mAnimationComponent->FrameNumber() == 2 + 1)
                 {
                     mAnimationComponent->Change("AbeWalkToStand");
                 }
