@@ -75,7 +75,7 @@ static std::string W32CreateDirectory(const wchar_t* dirName)
                 LOG_ERROR("Create CreateDirectoryA failed with Win32 error: " << error);
             }
         }
-        return "";
+        return string_util::wstring_to_utf8(userPathW);
     }
     else
     {
