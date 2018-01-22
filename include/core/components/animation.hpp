@@ -12,21 +12,28 @@ public:
 public:
     virtual ~AnimationComponent() = default;
     void Load(ResourceLocator& resLoc, const char* animationName);
-    void Change(const char* animationName);
+    virtual void Change(const char* animationName);
     bool Complete() const;
     s32 FrameNumber() const;
-    void Update();
+    virtual void Update();
     void Render(AbstractRenderer& rend) const;
 public:
     bool mFlipX = false;
     std::unique_ptr<Animation> mAnimation;
 private:
-    ResourceLocator *mResourceLocator = nullptr;
+    ResourceLocator* mResourceLocator = nullptr;
+protected:
     TransformComponent* mTransformComponent = nullptr;
 }; 
 
-class AnimationComponentWithMeta : public Component
+class AnimationComponentWithMeta : public AnimationComponent
 {
 public:
     DECLARE_COMPONENT(AnimationComponentWithMeta);
+
+    void SetSnapXFrames(const std::vector<u32>* frames);
+    virtual void Change(const char* animationName) override;
+    virtual void Update() override;
+private:
+    const std::vector<u32>* mSnapXFrames = nullptr;
 };

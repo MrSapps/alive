@@ -303,6 +303,11 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
             mGridMap->mRoot.With<AnimationComponent>([](auto, auto animation) {
                 animation->Update();
             });
+            mGridMap->mRoot.With<AnimationComponentWithMeta>([](auto, auto animation) {
+                animation->Update();
+            });
+            
+
             // Abe system
             mGridMap->mRoot.With<AbePlayerControllerComponent,
                                  AbeMovementComponent>([](auto, auto controller, auto abe)
@@ -405,6 +410,9 @@ void World::Render(AbstractRenderer& /*rend*/)
             }
 
             mGridMap->mRoot.With<AnimationComponent>([this](auto, auto animation) {
+                animation->Render(mRenderer);
+            });
+            mGridMap->mRoot.With<AnimationComponentWithMeta>([this](auto, auto animation) {
                 animation->Render(mRenderer);
             });
         }

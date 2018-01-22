@@ -36,9 +36,39 @@ void AnimationComponent::Render(AbstractRenderer& rend) const
                        static_cast<s32>(mTransformComponent->GetX()),
                        static_cast<s32>(mTransformComponent->GetY()));
 }
+
 void AnimationComponent::Update()
 {
     mAnimation->Update();
 }
 
 DEFINE_COMPONENT(AnimationComponentWithMeta);
+
+
+void AnimationComponentWithMeta::SetSnapXFrames(const std::vector<u32>* frames)
+{
+    mSnapXFrames = frames;
+}
+
+void AnimationComponentWithMeta::Change(const char* animationName)
+{
+    AnimationComponent::Change(animationName);
+    SetSnapXFrames(nullptr);
+}
+
+void AnimationComponentWithMeta::Update()
+{
+    mAnimation->Update();
+
+    if (mSnapXFrames)
+    {
+        if (std::find_if(mSnapXFrames->begin(), mSnapXFrames->end(),
+            [&](u32 idx)
+        {
+            return static_cast<s32>(idx) == mAnimation->FrameNumber();
+        }) != std::end(*mSnapXFrames))
+        {
+            mTransformComponent->SnapXToGrid();
+        }
+    }
+}

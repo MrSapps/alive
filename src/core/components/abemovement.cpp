@@ -12,7 +12,8 @@ void AbeMovementComponent::SetTransistionData(const TransistionData* data)
 {
     if (mNextTransistionData != data)
     {
-        mAnimationComponent->Change(data->mAnimation);
+        mAnimationComponent->Change(data->mAnimation.mName);
+        mAnimationComponent->SetSnapXFrames(data->mAnimation.mSnapXFrames);
         SetXSpeed(data->mXSpeed);
         mNextTransistionData = data;
     }
@@ -21,7 +22,7 @@ void AbeMovementComponent::SetTransistionData(const TransistionData* data)
 void AbeMovementComponent::Load()
 {
     mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
-    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
+    mAnimationComponent = mEntity->GetComponent<AnimationComponentWithMeta>();
 
     mStateFnMap[States::eStanding] = [&]() 
     {
@@ -61,13 +62,6 @@ void AbeMovementComponent::Load()
 
     mStateFnMap[States::eWalking] = [&]()
     {
-        LOG_INFO("SNAP CHECK FRAME " << mAnimationComponent->FrameNumber());
-        if (mAnimationComponent->FrameNumber() == 5+1 || mAnimationComponent->FrameNumber() == 14+1)
-        {
-            LOG_INFO("SNAP ABE");
-            mEntity->GetComponent<TransformComponent>()->SnapXToGrid();
-        }
-
         if (!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft)
         {
             // Invert direction
@@ -113,9 +107,10 @@ void AbeMovementComponent::Update()
             mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
         }
         
-        if (mNextTransistionData->mNextAnimation)
+        if (mNextTransistionData->mNextAnimation.mName)
         {
-            mAnimationComponent->Change(mNextTransistionData->mNextAnimation);
+            mAnimationComponent->Change(mNextTransistionData->mNextAnimation.mName);
+            mAnimationComponent->SetSnapXFrames(mNextTransistionData->mNextAnimation.mSnapXFrames);
         }
 
         mState = mNextTransistionData->mNextState;

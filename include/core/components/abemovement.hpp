@@ -7,7 +7,7 @@
 #include "core/component.hpp"
 
 class PhysicsComponent;
-class AnimationComponent;
+class AnimationComponentWithMeta;
 
 const f32 kWalkSpeed = 2.777771f;
 
@@ -30,7 +30,7 @@ public:
 private:
     const Actions* mInputMappingActions = nullptr;
     PhysicsComponent* mPhysicsComponent = nullptr;
-    AnimationComponent* mAnimationComponent = nullptr;
+    AnimationComponentWithMeta* mAnimationComponent = nullptr;
 
     enum class States
     {
@@ -45,18 +45,25 @@ private:
 
     void SetXSpeed(f32 speed);
     
+    struct AnimationData
+    {
+        const char* mName;
+        const std::vector<u32>* mSnapXFrames;
+    };
+
     struct TransistionData
     {
-        const char* mAnimation;
-        const char* mNextAnimation;
+        AnimationData mAnimation;
+        AnimationData mNextAnimation;
         f32 mXSpeed;
         bool mFlipDirection;
         States mNextState;
     };
 
-    const TransistionData kTurnAround = { "AbeStandTurnAround", "AbeStandIdle", 0.0f, true, States::eStanding };
-    const TransistionData kStandToWalk = { "AbeStandToWalk", "AbeWalking", kWalkSpeed, false, States::eWalking };
-    const TransistionData kChantToStand = { "AbeChantToStand", "AbeStandIdle", 0.0f, false, States::eStanding };
+    const std::vector<u32> kAbeStandIdleSnapXFrames = { 5 + 1, 14 + 1};
+    const TransistionData kTurnAround = { {"AbeStandTurnAround", nullptr }, {"AbeStandIdle", nullptr }, 0.0f, true, States::eStanding };
+    const TransistionData kStandToWalk = { {"AbeStandToWalk", nullptr }, {"AbeWalking", &kAbeStandIdleSnapXFrames }, kWalkSpeed, false, States::eWalking };
+    const TransistionData kChantToStand = { {"AbeChantToStand", nullptr }, {"AbeStandIdle", nullptr }, 0.0f, false, States::eStanding };
 
     void SetTransistionData(const TransistionData* data);
 
