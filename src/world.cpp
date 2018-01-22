@@ -129,7 +129,7 @@ void WorldState::SetGameCameraToCameraAt(u32 x, u32 y)
 {
     const glm::vec2 camPos = glm::vec2(
         (x * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
-        (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y) 
+        (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y)
         + glm::vec2(kVirtualScreenSize.x / 2, kVirtualScreenSize.y / 2);
 
     mCameraPosition = camPos;
@@ -156,7 +156,7 @@ World::World(
     mWorldState(audioController, locator)
 {
     mGridMap = std::make_unique<GridMap>(coords, mWorldState);
-    
+
     mEditorMode = std::make_unique<EditorMode>(mWorldState);
     mGameMode = std::make_unique<GameMode>(mWorldState);
 
@@ -295,11 +295,16 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                 coords.SetCameraPosition(mWorldState.mCameraPosition);
             }
 
-            mGridMap->mRoot.With<AbeMovementComponent, PhysicsComponent, TransformComponent, AnimationComponent>([](auto e, auto a, auto p, auto t, auto an) {
-                a->Update();
-                p->Update();
-                an->Update();
-            });
+            mGridMap->mRoot.With<AbePlayerControllerComponent,
+                                 AbeMovementComponent,
+                                 PhysicsComponent,
+                                 AnimationComponent>([](auto, auto controller, auto abe, auto physics, auto animation)
+                                                     {
+                                                         controller->Update();
+                                                         abe->Update();
+                                                         physics->Update();
+                                                         animation->Update();
+                                                     });
         }
     }
     break;
@@ -394,8 +399,8 @@ void World::Render(AbstractRenderer& /*rend*/)
                 mEditorMode->Render(mRenderer);
             }
 
-            mGridMap->mRoot.With<AnimationComponent>([this](auto e, auto an) {
-                an->Render(mRenderer);
+            mGridMap->mRoot.With<AnimationComponent>([this](auto, auto animation) {
+                animation->Render(mRenderer);
             });
         }
         break;

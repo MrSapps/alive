@@ -334,8 +334,6 @@ bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const 
 {
 
     auto abe = mRoot.Create();
-    abe->AddComponent<AbeMovementComponent>();
-
     auto pos = abe->AddComponent<TransformComponent>();
     auto controller = abe->AddComponent<AbePlayerControllerComponent>();
     auto movement = abe->AddComponent<AbeMovementComponent>();
