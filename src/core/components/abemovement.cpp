@@ -60,13 +60,13 @@ void AbeMovementComponent::Load()
 
     mStateFnMap[States::eChanting] = [&]()
     {
-        mStateGoalFnMap[States::eStanding][Goal::eStand] = [&]()
+        mStateGoalFnMap[States::eChanting][Goal::eStand] = [&]()
         {
             mAnimationComponent->Change("AbeChantToStand");
             mState = States::eChantToStand;
         };
 
-        mStateGoalFnMap[States::eStanding][Goal::eChant] = [&]()
+        mStateGoalFnMap[States::eChanting][Goal::eChant] = [&]()
         {
             auto sligs = mEntity->GetParent()->FindChildrenByComponent(ComponentIdentifier::SligMovementController);
             if (!sligs.empty())

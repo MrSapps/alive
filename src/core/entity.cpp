@@ -64,6 +64,7 @@ AbeEntity::AbeEntity(ResourceLocator& resLoc, InputState const& input) // TODO: 
 
     pos->Set(125.0f, 380.0f+(80.0f));
     physics->Load();
+    physics->SnapXToGrid();
     animation->Load(resLoc, "AbeStandIdle");
     movement->Load();
     controller->Load(input);

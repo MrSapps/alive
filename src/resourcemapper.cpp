@@ -171,6 +171,7 @@ void Animation::SetFrame(u32 frame)
     mFrameNum = frame;
     mIsLastFrame = false;
     mCompleted = false;
+    mFrameDelay = mAnim.Animation().Fps();
 }
 
 void Animation::Restart()
@@ -180,6 +181,7 @@ void Animation::Restart()
     mFrameNum = -1;
     mIsLastFrame = false;
     mCompleted = false;
+    mFrameDelay = mAnim.Animation().Fps();
 }
 
 bool Animation::Collision(s32 x, s32 y) const
