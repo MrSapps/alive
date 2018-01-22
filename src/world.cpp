@@ -297,8 +297,7 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
 
             // Physics System
             mGridMap->mRoot.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform) {
-                transform->AddX(physics->xSpeed);
-                transform->AddY(physics->ySpeed);
+                transform->Add(physics->xSpeed, physics->ySpeed);
             });
             // Animation System
             mGridMap->mRoot.With<AnimationComponent>([](auto, auto animation) {

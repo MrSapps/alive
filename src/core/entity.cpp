@@ -6,6 +6,11 @@ Entity::Entity(EntityManager* manager) : mManager(manager)
 
 }
 
+EntityManager* Entity::GetManager() const
+{
+    return mManager;
+}
+
 void Entity::Destroy()
 {
     mManager->Destroy(this);

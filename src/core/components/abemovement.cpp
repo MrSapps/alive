@@ -1,8 +1,10 @@
 #include "core/entity.hpp"
+#include "core/entitymanager.hpp"
 #include "core/components/physics.hpp"
 #include "core/components/transform.hpp"
 #include "core/components/animation.hpp"
 #include "core/components/abemovement.hpp"
+#include "core/components/sligmovement.hpp"
 
 DEFINE_COMPONENT(AbeMovementComponent)
 
@@ -70,16 +72,14 @@ void AbeMovementComponent::Load()
 
         mStateGoalFnMap[States::eChanting][Goal::eChant] = [&]()
         {
-            /*
-            auto sligs = mEntity->GetParent()->FindChildrenByComponent(ComponentIdentifier::SligMovementController);
+            auto sligs = mEntity->GetManager()->With<SligMovementComponent>();
             if (!sligs.empty())
             //for (auto const& slig : sligs)
             {
-                // auto controller = slig->GetComponent(ComponentIdentifier::PlayerController);
+                // auto controller = slig->GetComponent<SligMovementComponent>(r);
                 // controller.mActive = true; or controller.possess(this);
                 LOG_INFO("Found a slig to possess");
             }
-             */
         };
         
         auto it = mStateGoalFnMap[mState].find(mGoal);

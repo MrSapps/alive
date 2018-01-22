@@ -27,6 +27,12 @@ float TransformComponent::GetY() const
     return mYPos;
 }
 
+void TransformComponent::Add(float xAmount, float yAmount)
+{
+    mXPos += xAmount;
+    mYPos += yAmount;
+}
+
 void TransformComponent::AddX(float xAmount)
 {
     mXPos += xAmount;

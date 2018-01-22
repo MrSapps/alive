@@ -332,18 +332,35 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
 
 bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input) // TODO: Input wired here
 {
-    auto abe = mRoot.Create();
-    auto pos = abe->AddComponent<TransformComponent>();
-    auto controller = abe->AddComponent<AbePlayerControllerComponent>();
-    auto movement = abe->AddComponent<AbeMovementComponent>();
-    abe->AddComponent<PhysicsComponent>();
-    auto animation = abe->AddComponent<AnimationComponent>();
+    {
+        auto abe = mRoot.Create();
+        auto pos = abe->AddComponent<TransformComponent>();
+        auto controller = abe->AddComponent<AbePlayerControllerComponent>();
+        auto movement = abe->AddComponent<AbeMovementComponent>();
+        abe->AddComponent<PhysicsComponent>();
+        auto animation = abe->AddComponent<AnimationComponent>();
 
-    pos->Set(125.0f, 380.0f + (80.0f));
-    pos->SnapXToGrid();
-    animation->Load(locator, "AbeStandIdle");
-    movement->Load();
-    controller->Load(input);
+        pos->Set(125.0f, 380.0f + (80.0f));
+        pos->SnapXToGrid();
+        animation->Load(locator, "AbeStandIdle");
+        movement->Load();
+        controller->Load(input);
+    }
+    {
+        auto slig = mRoot.Create();
+        auto pos = slig->AddComponent<TransformComponent>();
+        auto controller = slig->AddComponent<SligPlayerControllerComponent>();
+        auto movement = slig->AddComponent<SligMovementComponent>();
+        auto physics = slig->AddComponent<PhysicsComponent>();
+        auto animation = slig->AddComponent<AnimationComponent>();
+
+        pos->Set(125.0f, 380.0f + (80.0f));
+        pos->SnapXToGrid();
+        animation->Load(locator, "SLIG.BND_412_AePc_11");
+        movement->Load();
+        physics->xSpeed = 0.1f;
+        controller->Load(input);
+    }
 
 #ifdef _DEBUG
     while (!mLoader.Load(path, locator))

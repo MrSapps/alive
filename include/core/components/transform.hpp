@@ -13,6 +13,7 @@ public:
     float GetX() const;
     float GetY() const;
 public:
+    void Add(float xAmount, float yAmount);
     void AddX(float xAmount);
     void AddY(float yAmount);
 public:
