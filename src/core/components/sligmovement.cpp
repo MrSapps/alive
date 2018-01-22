@@ -3,16 +3,18 @@
 #include "core/components/animation.hpp"
 #include "core/components/sligmovement.hpp"
 
+DEFINE_COMPONENT(SligMovementComponent)
+
 void SligMovementComponent::Load()
 {
-    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>(ComponentIdentifier::Physics);
-    mAnimationComponent = mEntity->GetComponent<AnimationComponent>(ComponentIdentifier::Animation);
+    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
+    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
 }
 
 void SligPlayerControllerComponent::Load(const InputState& state)
 {
     mInputMappingActions = &state.Mapping().GetActions(); // TODO: Input is wired here
-    mSligMovement = mEntity->GetComponent<SligMovementComponent>(ComponentIdentifier::SligMovementController);
+    mSligMovement = mEntity->GetComponent<SligMovementComponent>();
 }
 
 void SligPlayerControllerComponent::Update()

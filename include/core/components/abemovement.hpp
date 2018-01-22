@@ -1,9 +1,10 @@
 #pragma once
 
-#include "input.hpp"
-#include "core/component.hpp"
 #include <map>
 #include <functional>
+
+#include "input.hpp"
+#include "core/component.hpp"
 
 class PhysicsComponent;
 class AnimationComponent;
@@ -13,8 +14,10 @@ const f32 kWalkSpeed = 2.777771f;
 class AbeMovementComponent final : public Component
 {
 public:
+    DECLARE_COMPONENT(AbeMovementComponent)
+public:
     void Load();
-    void Update() override;
+    void Update();
 public:
     enum class Goal
     {
@@ -65,7 +68,7 @@ class AbePlayerControllerComponent final : public Component
 {
 public:
     void Load(const InputState& state); // TODO: Input is wired here
-    void Update() override;
+    void Update();
 private:
     const Actions* mInputMappingActions = nullptr;
     AbeMovementComponent* mAbeMovement = nullptr;

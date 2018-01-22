@@ -2,12 +2,14 @@
 #include "core/components/transform.hpp"
 #include "core/components/animation.hpp"
 
+DEFINE_COMPONENT(AnimationComponent)
+
 void AnimationComponent::Load(ResourceLocator& resLoc, const char* animationName)
 {
     mAnimation = resLoc.LocateAnimation(animationName).get();
     mAnimation->SetFrame(0);
     mResourceLocator = &resLoc;
-    mTransformComponent = mEntity->GetComponent<TransformComponent>(ComponentIdentifier::Transform);
+    mTransformComponent = mEntity->GetComponent<TransformComponent>();
 }
 
 void AnimationComponent::Change(const char* animationName)

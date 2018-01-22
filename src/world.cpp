@@ -10,6 +10,11 @@
 #include "gamemode.hpp"
 #include "animationbrowser.hpp"
 
+#include "core/components/abemovement.hpp"
+#include "core/components/animation.hpp"
+#include "core/components/transform.hpp"
+#include "core/components/physics.hpp"
+
 void WorldState::RenderGrid(AbstractRenderer& rend) const
 {
     const int gridLineCountX = static_cast<int>((rend.ScreenSize().x / mEditorGridSizeX));
@@ -290,10 +295,11 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                 coords.SetCameraPosition(mWorldState.mCameraPosition);
             }
 
-            if (mGridMap->mRoot)
-            {
-                mGridMap->mRoot->Update();
-            }
+            mGridMap->mRoot.With<AbeMovementComponent, PhysicsComponent, TransformComponent, AnimationComponent>([](auto e, auto a, auto p, auto t, auto an) {
+                a->Update();
+                p->Update();
+                an->Update();
+            });
         }
     }
     break;
@@ -388,10 +394,9 @@ void World::Render(AbstractRenderer& /*rend*/)
                 mEditorMode->Render(mRenderer);
             }
 
-            if (mGridMap->mRoot)
-            {
-                mGridMap->mRoot->Render(mRenderer);
-            }
+            mGridMap->mRoot.With<AnimationComponent>([this](auto e, auto an) {
+                an->Render(mRenderer);
+            });
         }
         break;
 

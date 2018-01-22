@@ -1,9 +1,15 @@
 #pragma once
 
+#include "input.hpp"
 #include "core/component.hpp"
+
+class PhysicsComponent;
+class AnimationComponent;
 
 class SligMovementComponent : public Component
 {
+public:
+    DECLARE_COMPONENT(SligMovementComponent)
 public:
     void Load();
 public:
@@ -18,7 +24,7 @@ class SligPlayerControllerComponent final : public Component
 {
 public:
     void Load(const InputState& state); // TODO: Input is wired here
-    void Update() override;
+    void Update();
 private:
     const Actions* mInputMappingActions = nullptr;
     SligMovementComponent* mSligMovement = nullptr;

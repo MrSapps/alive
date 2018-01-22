@@ -1,5 +1,7 @@
 #include "core/components/transform.hpp"
 
+DEFINE_COMPONENT(TransformComponent)
+
 void TransformComponent::Set(float xPos, float yPos)
 {
     mXPos = xPos;

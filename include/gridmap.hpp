@@ -15,7 +15,7 @@
 #include "mapobject.hpp"
 #include "imgui/imgui.h"
 #include "iterativeforloop.hpp"
-#include "core/entity.hpp"
+#include "core/entitymanager.hpp"
 
 class AbstractRenderer;
 class ResourceLocator;
@@ -129,7 +129,7 @@ private:
    
 public:
     void UnloadMap(AbstractRenderer& renderer);
-    std::unique_ptr<class Entity> mRoot;
+    EntityManager mRoot;
 private:
     WorldState& mWorldState;
 };

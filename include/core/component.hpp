@@ -1,37 +1,23 @@
 #pragma once
 
-#include <memory>
-#include <vector>
+#include <cstdint>
 
-#include "../abstractrenderer.hpp"
+#define DEFINE_COMPONENT(NAME) constexpr const char* NAME::ComponentName;
+#define DECLARE_COMPONENT(NAME) static constexpr const char* ComponentName{#NAME};
 
 class Entity;
-
-enum class ComponentIdentifier
-{
-    None,
-    Transform,
-    Animation,
-    Physics,
-    AbeMovementController,
-    SligMovementController,
-    PlayerController,
-};
 
 class Component
 {
 public:
-    using UPtr = std::unique_ptr<Component>;
+    DECLARE_COMPONENT(Component)
+
 public:
-    virtual ~Component() = default;
+    friend Entity;
+
 public:
-    virtual void Update();
-    virtual void Render(AbstractRenderer&) const;
-public:
-    void SetEntity(Entity*);
-    void SetId(ComponentIdentifier);
-    ComponentIdentifier GetId() const;
+    virtual ~Component() = 0;
+
 protected:
     Entity* mEntity = nullptr;
-    ComponentIdentifier mId = ComponentIdentifier::None;
 };

@@ -3,9 +3,11 @@
 #include "core/components/physics.hpp"
 #include "mapobject.hpp"
 
+DEFINE_COMPONENT(PhysicsComponent)
+
 void PhysicsComponent::Load()
 {
-    mTransformComponent = mEntity->GetComponent<TransformComponent>(ComponentIdentifier::Transform);
+    mTransformComponent = mEntity->GetComponent<TransformComponent>();
 }
 
 void PhysicsComponent::Update()

@@ -1,71 +1,131 @@
 #pragma once
 
+#include <map>
 #include <memory>
-#include <vector>
+#include <functional>
 
-#include "input.hpp"
-#include "resourcemapper.hpp"
-#include "core/component.hpp"
+#include "component.hpp"
 
-class Entity
+class EntityManager;
+
+class Entity final
 {
 public:
-    using UPtr = std::unique_ptr<Entity>;
+    explicit Entity(EntityManager* manager);
+
 public:
-    Entity() = default;
-    virtual ~Entity() = default;
+    Entity(Entity&&) = delete;
+    Entity(Entity const&) = delete;
+    Entity& operator=(Entity const&) = delete;
+
 public:
-    void Update();
-    void Render(AbstractRenderer&) const;
+    template<typename C>
+    C* GetComponent();
+    template<typename C, typename ...Args>
+    C* AddComponent(Args&& ...args);
+    template<typename C>
+    void RemoveComponent();
+
 public:
-    void AddChild(UPtr child);
+    template<typename C>
+    bool HasComponent() const;
+    template<typename C1, typename C2, typename ...C>
+    bool HasComponent() const;
+    template<typename C>
+    bool HasAnyComponent() const;
+    template<typename C1, typename C2, typename ...C>
+    bool HasAnyComponent() const;
+
 public:
-    template<typename T>
-    T* AddComponent(ComponentIdentifier id);
-    template<typename T>
-    T* GetComponent(ComponentIdentifier id);
+    template<typename ...C>
+    bool Any(typename std::common_type<std::function<void(C* ...)>>::type view);
+    template<typename ...C>
+    bool With(typename std::common_type<std::function<void(C* ...)>>::type view);
+
 public:
-    Entity* GetParent() const;
-    std::vector<Entity*> FindChildrenByComponent(ComponentIdentifier id);
+    void Destroy();
+
 private:
-    Entity* mParent = nullptr;
-    std::vector<UPtr> mChildren;
-    std::vector<Component::UPtr> mComponents;
+    EntityManager* mManager;
+    std::map<const char*, std::unique_ptr<Component>> mComponents;
 };
 
-class AbeEntity final : public Entity
+template<typename C, typename ...Args>
+C* Entity::AddComponent(Args&& ...args)
 {
-public:
-    explicit AbeEntity(ResourceLocator& resLoc, const InputState& input); // TODO: input is wired here
-};
-
-class SligEntity final : public Entity
-{
-public:
-    explicit SligEntity(ResourceLocator& resLoc, const InputState& input); // TODO: input is wired here
-};
-
-template<typename T>
-inline T* Entity::AddComponent(ComponentIdentifier id)
-{
-    auto comp = std::make_unique<T>();
-    auto compPtr = comp.get();
-    compPtr->SetEntity(this);
-    compPtr->SetId(id);
-    mComponents.emplace_back(std::move(comp));
-    return compPtr;
+    auto component = std::make_unique<C>(std::forward<Args>(args)...);
+    auto componentPtr = component.get();
+    componentPtr->mEntity = this;
+    mComponents[C::ComponentName] = std::move(component);
+    return componentPtr;
 }
 
-template<typename T>
-inline T* Entity::GetComponent(ComponentIdentifier id)
+template<typename C>
+C* Entity::GetComponent()
 {
-    auto found = std::find_if(mComponents.begin(), mComponents.end(), [id](auto const& comp)
-    {
-        return comp->GetId() == id;
-    });
+    auto found = mComponents.find(C::ComponentName);
     if (found != mComponents.end())
     {
-        return static_cast<T*>(found->get());
+        return static_cast<C*>(found->second.get());
     }
     return nullptr;
+}
+
+template<typename C>
+void Entity::RemoveComponent()
+{
+    auto found = mComponents.find(C::ComponentName);
+    if (found != mComponents.end())
+    {
+        mComponents.erase(found);
+    }
+}
+
+template<typename C>
+bool Entity::HasComponent() const
+{
+    return mComponents.find(C::ComponentName) != mComponents.end();
+}
+
+template<typename C1, typename C2, typename ...C>
+bool Entity::HasComponent() const
+{
+    return HasComponent<C1>() && HasComponent<C2, C...>();
+}
+
+template<typename C>
+bool Entity::HasAnyComponent() const
+{
+    return mComponents.find(C::ComponentName) != mComponents.end();
+}
+
+template<typename C1, typename C2, typename ...C>
+bool Entity::HasAnyComponent() const
+{
+    if (HasComponent<C1>()) {
+        return true;
+    }
+    return HasComponent<C2, C...>();
+}
+
+template<typename ...C>
+bool Entity::Any(typename std::common_type<std::function<void(C* ...)>>::type view)
+{
+    if (HasAnyComponent<C...>())
+    {
+        view(GetComponent<C>()...);
+        return true;
+    }
+    return false;
+}
+
+template<typename ...C>
+bool Entity::With(typename std::common_type<std::function<void(C* ...)>>::type view)
+{
+    if (HasComponent<C...>())
+    {
+        view(GetComponent<C>()...);
+        return true;
+    }
+    return false;
 }

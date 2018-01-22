@@ -3,6 +3,7 @@
 #include "core/components/animation.hpp"
 #include "core/components/abemovement.hpp"
 
+DEFINE_COMPONENT(AbeMovementComponent)
 
 void AbeMovementComponent::SetTransistionData(const TransistionData* data)
 {
@@ -16,8 +17,8 @@ void AbeMovementComponent::SetTransistionData(const TransistionData* data)
 
 void AbeMovementComponent::Load()
 {
-    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>(ComponentIdentifier::Physics);
-    mAnimationComponent = mEntity->GetComponent<AnimationComponent>(ComponentIdentifier::Animation);
+    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
+    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
 
     mStateFnMap[States::eStanding] = [&]() 
     {
@@ -68,6 +69,7 @@ void AbeMovementComponent::Load()
 
         mStateGoalFnMap[States::eChanting][Goal::eChant] = [&]()
         {
+            /*
             auto sligs = mEntity->GetParent()->FindChildrenByComponent(ComponentIdentifier::SligMovementController);
             if (!sligs.empty())
             //for (auto const& slig : sligs)
@@ -76,6 +78,7 @@ void AbeMovementComponent::Load()
                 // controller.mActive = true; or controller.possess(this);
                 LOG_INFO("Found a slig to possess");
             }
+             */
         };
         
         auto it = mStateGoalFnMap[mState].find(mGoal);
@@ -168,7 +171,7 @@ void AbeMovementComponent::SetXSpeed(f32 speed)
 void AbePlayerControllerComponent::Load(const InputState& state)
 {
     mInputMappingActions = &state.Mapping().GetActions(); // TODO: Input is wired here
-    mAbeMovement = mEntity->GetComponent<AbeMovementComponent>(ComponentIdentifier::AbeMovementController);
+    mAbeMovement = mEntity->GetComponent<AbeMovementComponent>();
 
 }
 

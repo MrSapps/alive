@@ -1,3 +1,9 @@
+#include "core/components/sligmovement.hpp"
+#include "core/components/abemovement.hpp"
+#include "core/components/transform.hpp"
+#include "core/components/animation.hpp"
+#include "core/components/physics.hpp"
+
 #include "gridmap.hpp"
 #include "oddlib/bits_factory.hpp"
 #include "engine.hpp"
@@ -326,9 +332,24 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
 
 bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input) // TODO: Input wired here
 {
-    mRoot = std::make_unique<Entity>();
-    mRoot->AddChild(std::make_unique<AbeEntity>(locator, input));
-    mRoot->AddChild(std::make_unique<SligEntity>(locator, input));
+
+    auto abe = mRoot.Create();
+    abe->AddComponent<AbeMovementComponent>();
+
+    auto pos = abe->AddComponent<TransformComponent>();
+    auto controller = abe->AddComponent<AbePlayerControllerComponent>();
+    auto movement = abe->AddComponent<AbeMovementComponent>();
+    auto physics = abe->AddComponent<PhysicsComponent>();
+    auto animation = abe->AddComponent<AnimationComponent>();
+
+    pos->Set(125.0f, 380.0f + (80.0f));
+    physics->Load();
+    physics->SnapXToGrid();
+    animation->Load(locator, "AbeStandIdle");
+    movement->Load();
+    controller->Load(input);
+
+
 #ifdef _DEBUG
     while (!mLoader.Load(path, locator))
     {
