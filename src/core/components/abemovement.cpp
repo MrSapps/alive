@@ -128,7 +128,7 @@ void AbeMovementComponent::StandTurnAround()
 void AbeMovementComponent::Load()
 {
     mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
-    mAnimationComponent = mEntity->GetComponent<AnimationComponentWithMeta>();
+    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
     mTransformComponent = mEntity->GetComponent<TransformComponent>();
 
     mStateFnMap[States::eStanding] =            { &AbeMovementComponent::PreStanding,  &AbeMovementComponent::Standing          };

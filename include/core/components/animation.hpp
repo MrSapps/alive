@@ -5,17 +5,17 @@
 
 class TransformComponent;
 
-class AnimationComponent  : public Component
+class AnimationComponent final : public Component
 {
 public:
     DECLARE_COMPONENT(AnimationComponent);
 public:
     virtual ~AnimationComponent() = default;
     void Load(ResourceLocator& resLoc, const char* animationName);
-    virtual void Change(const char* animationName);
+    void Change(const char* animationName);
     bool Complete() const;
     s32 FrameNumber() const;
-    virtual void Update();
+    void Update();
     void Render(AbstractRenderer& rend) const;
 public:
     bool mFlipX = false;
@@ -25,15 +25,3 @@ private:
 protected:
     TransformComponent* mTransformComponent = nullptr;
 }; 
-
-class AnimationComponentWithMeta : public AnimationComponent
-{
-public:
-    DECLARE_COMPONENT(AnimationComponentWithMeta);
-
-    void SetSnapXFrames(const std::vector<u32>* frames);
-    virtual void Change(const char* animationName) override;
-    virtual void Update() override;
-private:
-    const std::vector<u32>* mSnapXFrames = nullptr;
-};

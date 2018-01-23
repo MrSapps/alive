@@ -7,7 +7,7 @@
 #include "core/component.hpp"
 
 class PhysicsComponent;
-class AnimationComponentWithMeta;
+class AnimationComponent;
 class TransformComponent;
 
 const f32 kWalkSpeed = 2.777771f;
@@ -32,7 +32,7 @@ private:
     const Actions* mInputMappingActions = nullptr;
     PhysicsComponent* mPhysicsComponent = nullptr;
     TransformComponent* mTransformComponent = nullptr;
-    AnimationComponentWithMeta* mAnimationComponent = nullptr;
+    AnimationComponent* mAnimationComponent = nullptr;
 
     enum class States
     {

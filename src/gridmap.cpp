@@ -338,7 +338,7 @@ bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const 
         auto controller = abe->AddComponent<AbePlayerControllerComponent>();
         auto movement = abe->AddComponent<AbeMovementComponent>();
         abe->AddComponent<PhysicsComponent>();
-        auto animation = abe->AddComponent<AnimationComponentWithMeta>();
+        auto animation = abe->AddComponent<AnimationComponent>();
 
         pos->Set(125.0f, 380.0f + (80.0f));
         pos->SnapXToGrid();
