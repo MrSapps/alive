@@ -351,14 +351,13 @@ bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const 
         auto pos = slig->AddComponent<TransformComponent>();
         auto controller = slig->AddComponent<SligPlayerControllerComponent>();
         auto movement = slig->AddComponent<SligMovementComponent>();
-        auto physics = slig->AddComponent<PhysicsComponent>();
+        slig->AddComponent<PhysicsComponent>();
         auto animation = slig->AddComponent<AnimationComponent>();
 
-        pos->Set(125.0f, 380.0f + (80.0f));
+        pos->Set(125.0f + (25.0f), 380.0f + (80.0f));
         pos->SnapXToGrid();
-        animation->Load(locator, "SLIG.BND_412_AePc_11");
+        animation->Load(locator, "AbeStandIdle");
         movement->Load();
-        physics->xSpeed = 0.1f;
         controller->Load(input);
     }
 

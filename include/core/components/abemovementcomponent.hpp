@@ -10,7 +10,7 @@ class PhysicsComponent;
 class AnimationComponent;
 class TransformComponent;
 
-const f32 kWalkSpeed = 2.777771f;
+const f32 kAbeWalkSpeed = 2.777771f;
 
 class AbeMovementComponent final : public Component
 {
@@ -29,7 +29,6 @@ public:
     };
     Goal mGoal = Goal::eStand;
 private:
-    const Actions* mInputMappingActions = nullptr;
     PhysicsComponent* mPhysicsComponent = nullptr;
     TransformComponent* mTransformComponent = nullptr;
     AnimationComponent* mAnimationComponent = nullptr;
@@ -82,7 +81,7 @@ private:
 
     void StandTurnAround();
 
-    void ASyncTransistion();
+    void ASyncTransition();
 
     bool DirectionChanged() const;
     bool TryMoveLeftOrRight() const;

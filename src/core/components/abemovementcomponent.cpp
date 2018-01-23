@@ -58,7 +58,7 @@ void AbeMovementComponent::Standing()
         {
             SetAnimation(kAbeStandToWalkAnim);
             mNextState = States::eWalking;
-            SetXSpeed(kWalkSpeed);
+            SetXSpeed(kAbeWalkSpeed);
             SetState(States::eStandToWalking);
         }
     }
@@ -99,7 +99,7 @@ void AbeMovementComponent::Chanting()
 void AbeMovementComponent::PreWalking(AbeMovementComponent::States /*previous*/)
 {
     SetAnimation(kAbeWalkingAnim);
-    SetXSpeed(kWalkSpeed);
+    SetXSpeed(kAbeWalkSpeed);
 }
 
 void AbeMovementComponent::Walking()
@@ -141,7 +141,7 @@ void AbeMovementComponent::Load()
     mStateFnMap[States::eStandTurningAround] =  { nullptr,                             &AbeMovementComponent::StandTurnAround   };
 }
 
-void AbeMovementComponent::ASyncTransistion()
+void AbeMovementComponent::ASyncTransition()
 {
     if (mAnimationComponent->Complete())
     {
@@ -158,7 +158,7 @@ void AbeMovementComponent::Update()
     }
     else
     {
-        ASyncTransistion();
+        ASyncTransition();
     }
 }
 
@@ -179,7 +179,6 @@ void AbePlayerControllerComponent::Load(const InputState& state)
 {
     mInputMappingActions = &state.Mapping().GetActions(); // TODO: Input is wired here
     mAbeMovement = mEntity->GetComponent<AbeMovementComponent>();
-
 }
 
 void AbePlayerControllerComponent::Update()

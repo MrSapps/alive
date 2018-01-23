@@ -10,6 +10,7 @@
 #include "gamemode.hpp"
 #include "animationbrowser.hpp"
 
+#include "core/components/sligmovementcomponent.hpp"
 #include "core/components/abemovementcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
 #include "core/components/transformcomponent.hpp"
@@ -78,9 +79,9 @@ void WorldState::RenderDebug(AbstractRenderer& rend) const
                     glm::vec2 objSize = rend.WorldToScreen(glm::vec2(bottomRight.x, bottomRight.y)) - objPos;
 
                     rend.Rect(
-                        objPos.x, objPos.y,
-                        objSize.x, objSize.y,
-                        AbstractRenderer::eLayers::eEditor, ColourU8{ 255, 255, 255, 255 }, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
+                            objPos.x, objPos.y,
+                            objSize.x, objSize.y,
+                            AbstractRenderer::eLayers::eEditor, ColourU8{ 255, 255, 255, 255 }, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
 
                 }
             }
@@ -99,12 +100,12 @@ void WorldState::DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, con
             const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);
 
             rend.Line(ColourU8{ 255, 0, 255, 255 },
-                fromDrawPos.x, fromDrawPos.y,
-                hitPos.x, hitPos.y,
-                2.0f,
-                AbstractRenderer::eLayers::eEditor,
-                AbstractRenderer::eBlendModes::eNormal,
-                AbstractRenderer::eCoordinateSystem::eScreen);
+                      fromDrawPos.x, fromDrawPos.y,
+                      hitPos.x, hitPos.y,
+                      2.0f,
+                      AbstractRenderer::eLayers::eEditor,
+                      AbstractRenderer::eBlendModes::eNormal,
+                      AbstractRenderer::eCoordinateSystem::eScreen);
         }
     }
 }
@@ -128,9 +129,9 @@ void WorldState::SetCurrentCamera(const char* cameraName)
 void WorldState::SetGameCameraToCameraAt(u32 x, u32 y)
 {
     const glm::vec2 camPos = glm::vec2(
-        (x * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
-        (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y)
-        + glm::vec2(kVirtualScreenSize.x / 2, kVirtualScreenSize.y / 2);
+            (x * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
+            (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y)
+                             + glm::vec2(kVirtualScreenSize.x / 2, kVirtualScreenSize.y / 2);
 
     mCameraPosition = camPos;
 }
@@ -142,18 +143,18 @@ static inline bool FutureIsDone(T& future)
 }
 
 World::World(
-    IAudioController& audioController,
-    ResourceLocator& locator,
-    CoordinateSpace& coords,
-    AbstractRenderer& renderer,
-    const GameDefinition& selectedGame,
-    Sound& sound,
-    LoadingIcon& loadingIcon)
-  : mLocator(locator),
-    mSound(sound),
-    mRenderer(renderer),
-    mLoadingIcon(loadingIcon),
-    mWorldState(audioController, locator)
+        IAudioController& audioController,
+        ResourceLocator& locator,
+        CoordinateSpace& coords,
+        AbstractRenderer& renderer,
+        const GameDefinition& selectedGame,
+        Sound& sound,
+        LoadingIcon& loadingIcon)
+        : mLocator(locator),
+          mSound(sound),
+          mRenderer(renderer),
+          mLoadingIcon(loadingIcon),
+          mWorldState(audioController, locator)
 {
     mGridMap = std::make_unique<GridMap>(coords, mWorldState);
 
@@ -163,15 +164,14 @@ World::World(
     mFmvDebugUi = std::make_unique<FmvDebugUi>(locator);
 
     Debugging().AddSection([&]()
-    {
-        RenderDebugPathSelection();
-    });
+                           {
+                               RenderDebugPathSelection();
+                           });
 
     Debugging().AddSection([&]()
-    {
-        RenderDebugFmvSelection();
-    });
-
+                           {
+                               RenderDebugFmvSelection();
+                           });
 
     mDebugAnimationBrowser = std::make_unique<AnimationBrowser>(locator);
 
@@ -296,27 +296,34 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
             }
 
             // Physics System
-            mGridMap->mRoot.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform) {
-                transform->Add(physics->xSpeed, physics->ySpeed);
-            });
+            mGridMap->mRoot.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform)
+                                                                       {
+                                                                           transform->Add(physics->xSpeed, physics->ySpeed);
+                                                                       });
             // Animation System
-            mGridMap->mRoot.With<AnimationComponent>([](auto, auto animation) {
-                animation->Update();
-            });
-            
-
+            mGridMap->mRoot.With<AnimationComponent>([](auto, auto animation)
+                                                     {
+                                                         animation->Update();
+                                                     });
             // Abe system
             mGridMap->mRoot.With<AbePlayerControllerComponent,
-                                 AbeMovementComponent>([](auto, auto controller, auto abe)
-                                                       {
-                                                           controller->Update();
-                                                           abe->Update();
-                                                       });
+                    AbeMovementComponent>([](auto, auto controller, auto abe)
+                                          {
+                                              controller->Update();
+                                              abe->Update();
+                                          });
+            // Slig system
+            mGridMap->mRoot.With<SligPlayerControllerComponent,
+                    SligMovementComponent>([](auto, auto controller, auto slig)
+                                           {
+                                               controller->Update();
+                                               slig->Update();
+                                           });
             // Destroy entities
             mGridMap->mRoot.DestroyEntities();
         }
     }
-    break;
+        break;
 
     case WorldState::States::ePlayFmv:
         if (!mWorldState.mPlayFmvState->Update(input))
@@ -408,9 +415,10 @@ void World::Render(AbstractRenderer& /*rend*/)
                 mEditorMode->Render(mRenderer);
             }
 
-            mGridMap->mRoot.With<AnimationComponent>([this](auto, auto animation) {
-                animation->Render(mRenderer);
-            });
+            mGridMap->mRoot.With<AnimationComponent>([this](auto, auto animation)
+                                                     {
+                                                         animation->Render(mRenderer);
+                                                     });
         }
         break;
 
