@@ -774,7 +774,7 @@ if (MSVC)
 
     # Warnings added in VS2017 and later or existing warnings that have started to appear in SDK headers
     if(MSVC_VERSION GREATER 1800)
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027 /wd4774 /wd4623 /wd4987 /wd5039")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027 /wd4774 /wd4623 /wd4987 /wd5039 /wd4768")
     endif()
     set_source_files_properties(${test_src} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027")
 

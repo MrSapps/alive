@@ -7,7 +7,6 @@
 #pragma warning(push)
 #pragma warning(disable:4917)
 #pragma warning(disable:4091) //  'typedef ': ignored on left of 'tagGPFIDL_FLAGS' when no variable is declared 
-#pragma warning(disable:4768)
 #include <shlobj.h>
 #pragma warning(pop)
 #else
