@@ -3394,7 +3394,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_4"
+                "name": "SligShooting"
             },
             {
                 "blend_mode": "normal",
@@ -3524,7 +3524,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_9"
+                "name": "SligStandToShoot"
             },
             {
                 "blend_mode": "normal",
@@ -3920,7 +3920,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_319_AePc_0"
+                "name": "SligShootingFlareEffect"
             },
             {
                 "blend_mode": "normal",
@@ -3956,7 +3956,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_360_AePc_0"
+                "name": "SligShootingShellParticle "
             },
             {
                 "blend_mode": "normal",
