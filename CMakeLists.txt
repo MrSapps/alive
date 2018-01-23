@@ -419,16 +419,16 @@ SET(alivelib_src
     src/core/entity.cpp
     include/core/component.hpp
     src/core/component.cpp
-    include/core/components/animation.hpp
-    src/core/components/animation.cpp
-    include/core/components/transform.hpp
-    src/core/components/transform.cpp
-    include/core/components/physics.hpp
-    src/core/components/physics.cpp
-    include/core/components/abemovement.hpp
-    src/core/components/abemovement.cpp
-    include/core/components/sligmovement.hpp
-    src/core/components/sligmovement.cpp)
+    include/core/components/animationcomponent.hpp
+    src/core/components/animationcomponent.cpp
+    include/core/components/transformcomponent.hpp
+    src/core/components/transformcomponent.cpp
+    include/core/components/physicscomponent.hpp
+    src/core/components/physicscomponent.cpp
+    include/core/components/abemovementcomponent.hpp
+    src/core/components/abemovementcomponent.cpp
+    include/core/components/sligmovementcomponent.hpp
+    src/core/components/sligmovementcomponent.cpp)
 
 if(WIN32)
     SET(alivelib_src

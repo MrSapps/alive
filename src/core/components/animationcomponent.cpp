@@ -1,6 +1,6 @@
 #include "core/entity.hpp"
-#include "core/components/transform.hpp"
-#include "core/components/animation.hpp"
+#include "core/components/transformcomponent.hpp"
+#include "core/components/animationcomponent.hpp"
 
 DEFINE_COMPONENT(AnimationComponent);
 

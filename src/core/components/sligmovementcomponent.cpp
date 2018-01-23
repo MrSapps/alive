@@ -1,7 +1,7 @@
 #include "core/entity.hpp"
-#include "core/components/physics.hpp"
-#include "core/components/animation.hpp"
-#include "core/components/sligmovement.hpp"
+#include "core/components/physicscomponent.hpp"
+#include "core/components/animationcomponent.hpp"
+#include "core/components/sligmovementcomponent.hpp"
 
 DEFINE_COMPONENT(SligMovementComponent);
 

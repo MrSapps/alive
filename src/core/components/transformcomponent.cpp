@@ -1,5 +1,5 @@
 #include "mapobject.hpp"
-#include "core/components/transform.hpp"
+#include "core/components/transformcomponent.hpp"
 
 DEFINE_COMPONENT(TransformComponent);
 

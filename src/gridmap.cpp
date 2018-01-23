@@ -1,8 +1,8 @@
-#include "core/components/sligmovement.hpp"
-#include "core/components/abemovement.hpp"
-#include "core/components/transform.hpp"
-#include "core/components/animation.hpp"
-#include "core/components/physics.hpp"
+#include "core/components/sligmovementcomponent.hpp"
+#include "core/components/abemovementcomponent.hpp"
+#include "core/components/transformcomponent.hpp"
+#include "core/components/animationcomponent.hpp"
+#include "core/components/physicscomponent.hpp"
 
 #include "gridmap.hpp"
 #include "oddlib/bits_factory.hpp"
