@@ -6,12 +6,9 @@ Coverage  | [![Coverage Status](https://coveralls.io/repos/paulsapps/alive/badge
 Coverity  | [![Coverity status](https://scan.coverity.com/projects/5367/badge.svg)](https://scan.coverity.com/projects/5367)
 
 
-Open source implementation of ALIVE engine that powers Oddworld Abes Oddysee and Oddworld Abes Exoddus. 
+Open source implementation of ALIVE engine that powers Oddworld: Abe's Oddysee and Oddworld: Abe's Exoddus.
 
 This engine will be designed to allow easier modding than the orignal engine and for more extensive and complex AI. For example it should be possible to allow Sligs to use lifts and have interaction between Scrabs and Paramites.
-
-You can find the CI build outputs here:
-www.mlgthatsme.com/alive_builds
 
 Youtube playlist here:
 https://www.youtube.com/playlist?list=PLZysgmpXqKgSCUuU9S2ccQq0Sdrai3UQY
@@ -22,7 +19,7 @@ https://www.patreon.com/alive
 IRC channel is #oddworld on irc.esper.net
 
 
-[![Video player](https://raw.githubusercontent.com/paulsapps/alive/dev/doc/screenshots/alive1.png)]
+[![Alive Screenshot](https://raw.githubusercontent.com/paulsapps/alive/dev/doc/screenshots/alive1.png)]
 
 Build instructions.
 
