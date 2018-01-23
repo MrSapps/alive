@@ -3316,7 +3316,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_1"
+                "name": "SligWalking2"
             },
             {
                 "blend_mode": "normal",
@@ -3368,7 +3368,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_3"
+                "name": "SligStandIdle"
             },
             {
                 "blend_mode": "normal",
@@ -3576,7 +3576,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_11"
+                "name": "SligWalking1"
             },
             {
                 "blend_mode": "normal",
@@ -3628,7 +3628,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_13"
+                "name": "SligWalkToStandMidGrid"
             },
             {
                 "blend_mode": "normal",
@@ -3654,7 +3654,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_14"
+                "name": "SligStandToWalk"
             },
             {
                 "blend_mode": "normal",
@@ -3680,7 +3680,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_15"
+                "name": "SligWalkToStand"
             },
             {
                 "blend_mode": "normal",
@@ -3836,7 +3836,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_21"
+                "name": "SligStandTurnAround"
             },
             {
                 "blend_mode": "normal",

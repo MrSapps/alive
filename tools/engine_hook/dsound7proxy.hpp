@@ -38,7 +38,7 @@ public:
 
     STDMETHOD_(ULONG, Release)       (THIS)
     {
-        TRACE_ENTRYEXIT;
+        //TRACE_ENTRYEXIT;
         mRefCount--;
         HRESULT ret = mRealSnd.Release();
         if (mRefCount <= 0)
@@ -100,7 +100,7 @@ public:
 
     STDMETHOD(Play)                 (THIS_ DWORD dwReserved1, DWORD dwPriority, DWORD dwFlags)
     {
-        TRACE_ENTRYEXIT;
+        //TRACE_ENTRYEXIT;
         HRESULT ret = mRealSnd.Play(dwReserved1, dwPriority, dwFlags);
         switch (ret)
         {
@@ -157,7 +157,7 @@ public:
         */
 
         //a = 22100;
-        LOG_INFO("Freq: " << a);
+        //LOG_INFO("Freq: " << a);
         return mRealSnd.SetFrequency(a);
     }
 
@@ -173,7 +173,7 @@ public:
 
     STDMETHOD(Restore)              (THIS)
     {
-        TRACE_ENTRYEXIT;
+        //TRACE_ENTRYEXIT;
         return mRealSnd.Restore();
     }
 
