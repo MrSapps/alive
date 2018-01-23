@@ -8,6 +8,7 @@
 
 class PhysicsComponent;
 class AnimationComponentWithMeta;
+class TransformComponent;
 
 const f32 kWalkSpeed = 2.777771f;
 
@@ -30,51 +31,64 @@ public:
 private:
     const Actions* mInputMappingActions = nullptr;
     PhysicsComponent* mPhysicsComponent = nullptr;
+    TransformComponent* mTransformComponent = nullptr;
     AnimationComponentWithMeta* mAnimationComponent = nullptr;
 
     enum class States
     {
         eStanding,
-        eChanting,
+        eStandToWalking,
+        eStandTurningAround,
         eWalkingToStanding,
         eWalking,
+        eChanting,
+        eChantToStand,
     };
 
-    std::map<States, std::function<void()>> mStateFnMap;
-    States mState = States::eStanding;
+    struct StateData
+    {
+        std::function<void(AbeMovementComponent*, States)> mPreHandler;
+        std::function<void(AbeMovementComponent*)> mHandler;
+    };
 
     void SetXSpeed(f32 speed);
     
     struct AnimationData
     {
         const char* mName;
-        const std::vector<u32>* mSnapXFrames;
     };
 
-    struct TransistionData
-    {
-        const AnimationData* mAnimation;
-        const AnimationData* mNextAnimation;
-        f32 mXSpeed;
-        bool mFlipDirection;
-        States mNextState;
-    };
+    const AnimationData kAbeStandTurnAroundAnim =           { "AbeStandTurnAround" };
+    const AnimationData kAbeStandIdleAnim =                 { "AbeStandIdle" };
+    const AnimationData kAbeStandToWalkAnim =               { "AbeStandToWalk"};
+    const AnimationData kAbeWalkingAnim =                   { "AbeWalking" };
+    const AnimationData kAbeChantToStandAnim =              { "AbeChantToStand" };
+    const AnimationData kAbeStandToChantAnim =              { "AbeStandToChant" };
+    const AnimationData kAbeWalkToStandAnim1 =              { "AbeWalkToStand" };
+    const AnimationData kAbeWalkToStandAnim2 =              { "AbeWalkToStandMidGrid" };
 
-    const std::vector<u32> kAbeStandIdleSnapXFrames =       { 5 + 1, 14 + 1 };
+    std::map<States, StateData> mStateFnMap;
+    States mState = States::eStanding;
+    States mNextState = States::eStanding;
 
-    const AnimationData kAbeStandTurnAroundAnim =           { "AbeStandTurnAround",           nullptr };
-    const AnimationData kAbeStandIdleAnim =                 { "AbeStandIdle",                 nullptr };
-    const AnimationData kAbeStandToWalkAnim =               { "AbeStandToWalk",               nullptr };
-    const AnimationData kAbeWalkingAnim =                   { "AbeWalking",                   &kAbeStandIdleSnapXFrames };
-    const AnimationData kAbeChantToStandAnim =              { "AbeChantToStand",              nullptr };
+    void PreStanding(States previous);
+    void Standing();
 
-    const TransistionData kTurnAround =     { &kAbeStandTurnAroundAnim, &kAbeStandIdleAnim,     0.0f,       true,       States::eStanding };
-    const TransistionData kStandToWalk =    { &kAbeStandToWalkAnim,     &kAbeWalkingAnim,       kWalkSpeed, false,      States::eWalking  };
-    const TransistionData kChantToStand =   { &kAbeChantToStandAnim,    &kAbeStandIdleAnim,     0.0f,       false,      States::eStanding };
+    void PreChanting(States previous);
+    void Chanting();
 
-    void SetTransistionData(const TransistionData* data);
+    void PreWalking(States previous);
+    void Walking();
 
-    const TransistionData* mNextTransistionData = nullptr;
+    void StandTurnAround();
+
+    void ASyncTransistion();
+
+    bool DirectionChanged() const;
+    bool TryMoveLeftOrRight() const;
+
+    void SetAnimation(const AnimationData& anim);
+    void SetState(States state);
 };
 
 class AbePlayerControllerComponent final : public Component

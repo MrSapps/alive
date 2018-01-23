@@ -8,14 +8,120 @@
 
 DEFINE_COMPONENT(AbeMovementComponent);
 
-void AbeMovementComponent::SetTransistionData(const TransistionData* data)
+bool AbeMovementComponent::DirectionChanged() const
 {
-    if (mNextTransistionData != data)
+    return !mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft || mAnimationComponent->mFlipX && mGoal == Goal::eGoRight;
+}
+
+bool AbeMovementComponent::TryMoveLeftOrRight() const
+{
+    return mGoal == Goal::eGoLeft || mGoal == Goal::eGoRight;
+}
+
+void AbeMovementComponent::SetAnimation(const AnimationData& anim)
+{
+    mAnimationComponent->Change(anim.mName);
+}
+
+void AbeMovementComponent::SetState(AbeMovementComponent::States state)
+{
+    auto prevState = mState;
+    mState = state;
+    auto it = mStateFnMap.find(mState);
+    if (it != std::end(mStateFnMap))
     {
-        mAnimationComponent->Change(data->mAnimation->mName);
-        mAnimationComponent->SetSnapXFrames(data->mAnimation->mSnapXFrames);
-        SetXSpeed(data->mXSpeed);
-        mNextTransistionData = data;
+        if (it->second.mPreHandler)
+        {
+            it->second.mPreHandler(this, prevState);
+        }
+    }
+}
+
+void AbeMovementComponent::PreStanding(AbeMovementComponent::States /*previous*/)
+{
+    SetAnimation(kAbeStandIdleAnim);
+    mPhysicsComponent->xSpeed = 0.0f;
+    mPhysicsComponent->ySpeed = 0.0f;
+}
+
+void AbeMovementComponent::Standing()
+{
+    if (TryMoveLeftOrRight())
+    {
+        if (DirectionChanged())
+        {
+            SetAnimation(kAbeStandTurnAroundAnim);
+            SetState(States::eStandTurningAround);
+            mNextState = States::eStanding;
+        }
+        else
+        {
+            SetAnimation(kAbeStandToWalkAnim);
+            mNextState = States::eWalking;
+            SetXSpeed(kWalkSpeed);
+            SetState(States::eStandToWalking);
+        }
+    }
+    else if (mGoal == Goal::eChant)
+    {
+        SetState(States::eChanting);
+    }
+}
+
+void AbeMovementComponent::PreChanting(AbeMovementComponent::States /*previous*/)
+{
+    SetAnimation(kAbeStandToChantAnim);
+}
+
+void AbeMovementComponent::Chanting()
+{
+    if (mGoal == Goal::eStand)
+    {
+        SetAnimation(kAbeChantToStandAnim);
+        mNextState = States::eStanding;
+        SetState(States::eChantToStand);
+    }
+    // Still chanting?
+    else if (mGoal == Goal::eChant)
+    {
+        auto sligs = mEntity->GetManager()->With<SligMovementComponent>();
+        if (!sligs.empty())
+        {
+            LOG_INFO("Found a Slig to possess");
+        }
+    }
+}
+
+void AbeMovementComponent::PreWalking(AbeMovementComponent::States /*previous*/)
+{
+    SetAnimation(kAbeWalkingAnim);
+    SetXSpeed(kWalkSpeed);
+}
+
+void AbeMovementComponent::Walking()
+{
+    if (mAnimationComponent->FrameNumber() == 5 + 1 || mAnimationComponent->FrameNumber() == 14 + 1)
+    {
+        mTransformComponent->SnapXToGrid();
+    }
+
+    if (DirectionChanged() || !TryMoveLeftOrRight())
+    {
+        if (mAnimationComponent->FrameNumber() == 2 + 1 || mAnimationComponent->FrameNumber() == 11 + 1)
+        {
+            SetState(States::eWalkingToStanding);
+            mNextState = States::eStanding;
+            SetAnimation(mAnimationComponent->FrameNumber() == 2 + 1 ? kAbeWalkToStandAnim1 : kAbeWalkToStandAnim2);
+        }
+    }
+}
+
+void AbeMovementComponent::StandTurnAround()
+{
+    if (mAnimationComponent->Complete())
+    {
+        mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
+        SetState(States::eStanding);
     }
 }
 
@@ -23,104 +129,33 @@ void AbeMovementComponent::Load()
 {
     mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
     mAnimationComponent = mEntity->GetComponent<AnimationComponentWithMeta>();
+    mTransformComponent = mEntity->GetComponent<TransformComponent>();
 
-    mStateFnMap[States::eStanding] = [&]() 
-    {
-        // Trying to walk?
-        if (mGoal == Goal::eGoLeft || mGoal == Goal::eGoRight)
-        {
-            // Changed standing direction?
-            if ((!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight))
-            {
-                SetTransistionData(&kTurnAround);
-            }
-            else
-            {
-                SetTransistionData(&kStandToWalk);
-            }
-        }
-        // Trying to chant?
-        else if (mGoal == Goal::eChant)
-        {
-            mState = States::eChanting;
-            mAnimationComponent->Change("AbeStandToChant");
-        }
-    };
+    mStateFnMap[States::eStanding] =            { &AbeMovementComponent::PreStanding,  &AbeMovementComponent::Standing          };
+    mStateFnMap[States::eChanting] =            { &AbeMovementComponent::PreChanting,  &AbeMovementComponent::Chanting          };
+    mStateFnMap[States::eWalking] =             { &AbeMovementComponent::PreWalking,   &AbeMovementComponent::Walking           };
+    mStateFnMap[States::eStandTurningAround] =  { nullptr,                             &AbeMovementComponent::StandTurnAround   };
+}
 
-    mStateFnMap[States::eChanting] = [&]()
+void AbeMovementComponent::ASyncTransistion()
+{
+    if (mAnimationComponent->Complete())
     {
-        // Stop chanting?
-        if (mGoal == Goal::eStand)
-        {
-            SetTransistionData(&kChantToStand);
-        }
-        // Still chanting?
-        else if (mGoal == Goal::eChant)
-        {
-            auto sligs = mEntity->GetManager()->With<SligMovementComponent>();
-            if (!sligs.empty())
-            {
-                LOG_INFO("Found a slig to possess");
-            }
-        }
-    };
-
-    mStateFnMap[States::eWalking] = [&]()
-    {
-        // Changed direction?
-        if ((!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight))
-        {
-            SetTransistionData(&kTurnAround);
-        }
-        // Stopped walking?
-        else if (mGoal != Goal::eGoLeft && mGoal != Goal::eGoRight)
-        {
-            if (mAnimationComponent->FrameNumber() == 2 + 1 || mAnimationComponent->FrameNumber() == 11 + 1)
-            {
-                mState = States::eWalkingToStanding;
-                if (mAnimationComponent->FrameNumber() == 2 + 1)
-                {
-                    mAnimationComponent->Change("AbeWalkToStand");
-                }
-                else
-                {
-                    mAnimationComponent->Change("AbeWalkToStandMidGrid");
-                }
-            }
-        }
-    };
-
-    mStateFnMap[States::eWalkingToStanding] = [&]()
-    {
-        if (mAnimationComponent->Complete())
-        {
-            mAnimationComponent->Change("AbeStandIdle");
-            mPhysicsComponent->xSpeed = 0.0f;
-            mState = States::eStanding;
-        }
-    };
+        SetState(mNextState);
+    }
 }
 
 void AbeMovementComponent::Update()
 {
-    if (mNextTransistionData && mAnimationComponent->Complete())
+    auto it = mStateFnMap.find(mState);
+    if (it != std::end(mStateFnMap) && it->second.mHandler)
     {
-        if (mNextTransistionData->mFlipDirection)
-        {
-            mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
-        }
-        
-        if (mNextTransistionData->mNextAnimation->mName)
-        {
-            mAnimationComponent->Change(mNextTransistionData->mNextAnimation->mName);
-            mAnimationComponent->SetSnapXFrames(mNextTransistionData->mNextAnimation->mSnapXFrames);
-        }
-
-        mState = mNextTransistionData->mNextState;
-        mNextTransistionData = nullptr;
+        it->second.mHandler(this);
     }
-
-    mStateFnMap[mState]();
+    else
+    {
+        ASyncTransistion();
+    }
 }
 
 void AbeMovementComponent::SetXSpeed(f32 speed)
