@@ -11,6 +11,9 @@ class EntityManager;
 class Entity final
 {
 public:
+    friend EntityManager;
+
+public:
     explicit Entity(EntityManager* manager);
 
 public:
@@ -19,7 +22,7 @@ public:
     Entity& operator=(Entity const&) = delete;
 
 public:
-    EntityManager *GetManager() const;
+    EntityManager* GetManager();
 
 public:
     template<typename C>
@@ -47,9 +50,11 @@ public:
 
 public:
     void Destroy();
+    bool IsDestroyed() const;
 
 private:
-    EntityManager* mManager;
+    bool mDestroyed = false;
+    EntityManager* mManager = nullptr;
     std::map<const char*, std::unique_ptr<Component>> mComponents;
 };
 
@@ -105,7 +110,8 @@ bool Entity::HasAnyComponent() const
 template<typename C1, typename C2, typename ...C>
 bool Entity::HasAnyComponent() const
 {
-    if (HasComponent<C1>()) {
+    if (HasComponent<C1>())
+    {
         return true;
     }
     return HasComponent<C2, C...>();

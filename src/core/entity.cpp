@@ -6,7 +6,7 @@ Entity::Entity(EntityManager* manager) : mManager(manager)
 
 }
 
-EntityManager* Entity::GetManager() const
+EntityManager* Entity::GetManager()
 {
     return mManager;
 }
@@ -14,4 +14,9 @@ EntityManager* Entity::GetManager() const
 void Entity::Destroy()
 {
     mManager->Destroy(this);
+}
+
+bool Entity::IsDestroyed() const
+{
+    return mDestroyed;
 }

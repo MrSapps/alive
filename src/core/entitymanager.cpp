@@ -1,4 +1,5 @@
 #include <algorithm>
+
 #include "core/entitymanager.hpp"
 
 Entity* EntityManager::Create()
@@ -11,12 +12,13 @@ Entity* EntityManager::Create()
 
 void EntityManager::Destroy(Entity* entity)
 {
-    auto found = std::find_if(mEntities.begin(), mEntities.end(), [&entity](auto const& e)
+    entity->mDestroyed = true;
+}
+
+void EntityManager::DestroyEntities()
+{
+    mEntities.erase(std::remove_if(mEntities.begin(), mEntities.end(), [](auto const& e)
     {
-        return e.get() == entity;
-    });
-    if (found != mEntities.end())
-    {
-        mEntities.erase(found);
-    }
+        return e.get()->mDestroyed;
+    }), mEntities.end());
 }

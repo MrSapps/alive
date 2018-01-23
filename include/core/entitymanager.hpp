@@ -10,6 +10,7 @@ class EntityManager final
 public:
     Entity* Create();
     void Destroy(Entity* entity);
+    void DestroyEntities();
 
 public:
     template<typename ...C>
