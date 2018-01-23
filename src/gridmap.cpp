@@ -356,7 +356,7 @@ bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const 
 
         pos->Set(125.0f + (25.0f), 380.0f + (80.0f));
         pos->SnapXToGrid();
-        animation->Load(locator, "AbeStandIdle");
+        animation->Load(locator, "SligStandIdle");
         movement->Load();
         controller->Load(input);
     }

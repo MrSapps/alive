@@ -56,12 +56,12 @@ private:
         const char* mName;
     };
 
-    const AnimationData kSligStandTurnAroundAnim =           { "AbeStandTurnAround" };
-    const AnimationData kSligStandIdleAnim =                 { "SLIG.BND_412_AePc_11" };
-    const AnimationData kSligStandToWalkAnim =               { "AbeStandToWalk"};
-    const AnimationData kSligWalkingAnim =                   { "AbeWalking" };
-    const AnimationData kSligWalkToStandAnim1 =              { "AbeWalkToStand" };
-    const AnimationData kSligWalkToStandAnim2 =              { "AbeWalkToStandMidGrid" };
+    const AnimationData kSligStandTurnAroundAnim =           { "SligStandTurnAround" };
+    const AnimationData kSligStandIdleAnim =                 { "SligStandIdle" };
+    const AnimationData kSligStandToWalkAnim =               { "SligStandToWalk"};
+    const AnimationData kSligWalkingAnim =                   { "SligWalking2" };
+    const AnimationData kSligWalkToStandAnim1 =              { "SligWalkToStand" };
+    const AnimationData kSligWalkToStandAnim2 =              { "SligWalkToStandMidGrid" };
 
     std::map<States, StateData> mStateFnMap;
     States mState = States::eStanding;
