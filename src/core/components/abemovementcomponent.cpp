@@ -87,7 +87,11 @@ void AbeMovementComponent::Chanting()
         auto sligs = mEntity->GetManager()->With<SligMovementComponent>();
         if (!sligs.empty())
         {
-            LOG_INFO("Found a Slig to possess");
+            for (auto &slig : sligs)
+            {
+                LOG_INFO("Found a Slig to possess");
+                slig->Destroy();
+            }
         }
     }
 }

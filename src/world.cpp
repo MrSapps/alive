@@ -312,6 +312,8 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                                                            controller->Update();
                                                            abe->Update();
                                                        });
+            // Destroy entities
+            mGridMap->mRoot.DestroyEntities();
         }
     }
     break;
