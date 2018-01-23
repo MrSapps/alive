@@ -10,7 +10,7 @@ DEFINE_COMPONENT(AbeMovementComponent);
 
 bool AbeMovementComponent::DirectionChanged() const
 {
-    return !mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft || mAnimationComponent->mFlipX && mGoal == Goal::eGoRight;
+    return (!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight);
 }
 
 bool AbeMovementComponent::TryMoveLeftOrRight() const

@@ -9,7 +9,7 @@ DEFINE_COMPONENT(SligMovementComponent);
 
 bool SligMovementComponent::DirectionChanged() const
 {
-    return !mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft || mAnimationComponent->mFlipX && mGoal == Goal::eGoRight;
+    return (!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight);
 }
 
 bool SligMovementComponent::TryMoveLeftOrRight() const
