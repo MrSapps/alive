@@ -1431,7 +1431,7 @@
                         ]
                     }
                 ],
-                "name": "AbeCrouchFallBack"
+                "name": "AbeFallBackToStand"
             },
             {
                 "blend_mode": "normal",
@@ -3342,7 +3342,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_2"
+                "name": "SligRunning"
             },
             {
                 "blend_mode": "normal",
@@ -3602,7 +3602,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_12"
+                "name": "SligStandToRun"
             },
             {
                 "blend_mode": "normal",
@@ -3852,7 +3852,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_414_AePc_0"
+                "name": "SligPossessedExploding"
             },
             {
                 "blend_mode": "normal",
@@ -3868,7 +3868,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_414_AePc_1"
+                "name": "SligFallBackStanding"
             },
             {
                 "blend_mode": "normal",
@@ -3884,7 +3884,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_414_AePc_2"
+                "name": "SligFallBackToStand"
             },
             {
                 "blend_mode": "normal",
@@ -90183,5 +90183,4 @@
             }
         ]
     }
-] 
-
+]
