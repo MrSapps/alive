@@ -7,6 +7,38 @@
 
 DEFINE_COMPONENT(SligMovementComponent);
 
+void SligMovementComponent::Load()
+{
+    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
+    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
+    mTransformComponent = mEntity->GetComponent<TransformComponent>();
+
+    mStateFnMap[States::eStanding] =            { &SligMovementComponent::PreStanding,  &SligMovementComponent::Standing          };
+    mStateFnMap[States::eWalking] =             { &SligMovementComponent::PreWalking,   &SligMovementComponent::Walking           };
+    mStateFnMap[States::eStandTurningAround] =  { nullptr,                              &SligMovementComponent::StandTurnAround   };
+}
+
+void SligMovementComponent::Update()
+{
+    auto it = mStateFnMap.find(mState);
+    if (it != std::end(mStateFnMap) && it->second.mHandler)
+    {
+        it->second.mHandler(this);
+    }
+    else
+    {
+        ASyncTransition();
+    }
+}
+
+void SligMovementComponent::ASyncTransition()
+{
+    if (mAnimationComponent->Complete())
+    {
+        SetState(mNextState);
+    }
+}
+
 bool SligMovementComponent::DirectionChanged() const
 {
     return (!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight);
@@ -95,40 +127,9 @@ void SligMovementComponent::StandTurnAround()
 {
     if (mAnimationComponent->Complete())
     {
+        mTransformComponent->SnapXToGrid();
         mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
         SetState(States::eStanding);
-    }
-}
-
-void SligMovementComponent::Load()
-{
-    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
-    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
-    mTransformComponent = mEntity->GetComponent<TransformComponent>();
-
-    mStateFnMap[States::eStanding] =            { &SligMovementComponent::PreStanding,  &SligMovementComponent::Standing          };
-    mStateFnMap[States::eWalking] =             { &SligMovementComponent::PreWalking,   &SligMovementComponent::Walking           };
-    mStateFnMap[States::eStandTurningAround] =  { nullptr,                              &SligMovementComponent::StandTurnAround   };
-}
-
-void SligMovementComponent::ASyncTransition()
-{
-    if (mAnimationComponent->Complete())
-    {
-        SetState(mNextState);
-    }
-}
-
-void SligMovementComponent::Update()
-{
-    auto it = mStateFnMap.find(mState);
-    if (it != std::end(mStateFnMap) && it->second.mHandler)
-    {
-        it->second.mHandler(this);
-    }
-    else
-    {
-        ASyncTransition();
     }
 }
 
