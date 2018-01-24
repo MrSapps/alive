@@ -1,5 +1,6 @@
 #include "core/entity.hpp"
 #include "core/entitymanager.hpp"
+#include "core/systems/inputsystem.hpp"
 #include "core/components/physicscomponent.hpp"
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
@@ -146,10 +147,12 @@ void SligMovementComponent::SetXSpeed(f32 speed)
 }
 
 
-void SligPlayerControllerComponent::Load(const InputState& state)
+void SligPlayerControllerComponent::Load()
 {
-    mInputMappingActions = &state.Mapping().GetActions(); // TODO: Input is wired here
-    mSligMovement = mEntity->GetComponent<SligMovementComponent>();
+    mEntity->GetManager()->With<InputSystem>([this](auto, auto inputSystem)
+                                             {
+                                                 mInputMappingActions = inputSystem->GetActions();
+                                             });    mSligMovement = mEntity->GetComponent<SligMovementComponent>();
 }
 
 void SligPlayerControllerComponent::Update()

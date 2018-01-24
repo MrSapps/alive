@@ -1,5 +1,6 @@
 #include "core/entity.hpp"
 #include "core/entitymanager.hpp"
+#include "core/systems/inputsystem.hpp"
 #include "core/components/physicscomponent.hpp"
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
@@ -175,9 +176,13 @@ void AbeMovementComponent::SetXSpeed(f32 speed)
 }
 
 
-void AbePlayerControllerComponent::Load(const InputState& state)
+void AbePlayerControllerComponent::Load()
 {
-    mInputMappingActions = &state.Mapping().GetActions(); // TODO: Input is wired here
+
+    mEntity->GetManager()->With<InputSystem>([this](auto, auto inputSystem)
+                                             {
+                                                 mInputMappingActions = inputSystem->GetActions();
+                                             });
     mAbeMovement = mEntity->GetComponent<AbeMovementComponent>();
 }
 

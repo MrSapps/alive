@@ -428,7 +428,11 @@ SET(alivelib_src
     include/core/components/abemovementcomponent.hpp
     src/core/components/abemovementcomponent.cpp
     include/core/components/sligmovementcomponent.hpp
-    src/core/components/sligmovementcomponent.cpp)
+    src/core/components/sligmovementcomponent.cpp
+    include/core/systems/collisionsystem.hpp
+    src/core/systems/collisionsystem.cpp
+    include/core/systems/inputsystem.hpp
+    src/core/systems/inputsystem.cpp)
 
 if(WIN32)
     SET(alivelib_src

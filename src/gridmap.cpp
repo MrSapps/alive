@@ -1,8 +1,10 @@
-#include "core/components/sligmovementcomponent.hpp"
-#include "core/components/abemovementcomponent.hpp"
+#include "core/systems/inputsystem.hpp"
+#include "core/systems/collisionsystem.hpp"
+#include "core/components/physicscomponent.hpp"
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
-#include "core/components/physicscomponent.hpp"
+#include "core/components/abemovementcomponent.hpp"
+#include "core/components/sligmovementcomponent.hpp"
 
 #include "gridmap.hpp"
 #include "oddlib/bits_factory.hpp"
@@ -333,6 +335,13 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
 bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input) // TODO: Input wired here
 {
     {
+        auto systems = mRoot.Create();
+        auto inputSystem = systems->AddComponent<InputSystem>();
+        systems->AddComponent<CollisionSystem>();
+
+        inputSystem->Load(input);
+    }
+    {
         auto abe = mRoot.Create();
         auto pos = abe->AddComponent<TransformComponent>();
         auto controller = abe->AddComponent<AbePlayerControllerComponent>();
@@ -344,7 +353,7 @@ bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const 
         pos->SnapXToGrid();
         animation->Load(locator, "AbeStandIdle");
         movement->Load();
-        controller->Load(input);
+        controller->Load();
     }
     {
         auto slig = mRoot.Create();
@@ -358,7 +367,7 @@ bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const 
         pos->SnapXToGrid();
         animation->Load(locator, "SligStandIdle");
         movement->Load();
-        controller->Load(input);
+        controller->Load();
     }
 
 #ifdef _DEBUG

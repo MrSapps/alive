@@ -93,7 +93,7 @@ private:
 class AbePlayerControllerComponent final : public Component
 {
 public:
-    void Load(const InputState& state); // TODO: Input is wired here
+    void Load();
     void Update();
 private:
     const Actions* mInputMappingActions = nullptr;
