@@ -3,7 +3,6 @@
 #include <map>
 #include <functional>
 
-#include "input.hpp"
 #include "core/component.hpp"
 
 class PhysicsComponent;
