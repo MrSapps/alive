@@ -55,20 +55,6 @@ private:
 
     void SetXSpeed(f32 speed);
     
-    struct AnimationData
-    {
-        const char* mName;
-    };
-
-    const AnimationData kAbeStandTurnAroundAnim =           { "AbeStandTurnAround" };
-    const AnimationData kAbeStandIdleAnim =                 { "AbeStandIdle" };
-    const AnimationData kAbeStandToWalkAnim =               { "AbeStandToWalk"};
-    const AnimationData kAbeWalkingAnim =                   { "AbeWalking" };
-    const AnimationData kAbeChantToStandAnim =              { "AbeChantToStand" };
-    const AnimationData kAbeStandToChantAnim =              { "AbeStandToChant" };
-    const AnimationData kAbeWalkToStandAnim1 =              { "AbeWalkToStand" };
-    const AnimationData kAbeWalkToStandAnim2 =              { "AbeWalkToStandMidGrid" };
-
     std::map<States, StateData> mStateFnMap;
     States mState = States::eStanding;
     States mNextState = States::eStanding;
@@ -89,7 +75,7 @@ private:
     bool DirectionChanged() const;
     bool TryMoveLeftOrRight() const;
 
-    void SetAnimation(const AnimationData& anim);
+    void SetAnimation(const std::string& anim);
     void SetState(States state);
 };
 

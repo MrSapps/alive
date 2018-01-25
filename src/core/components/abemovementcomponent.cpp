@@ -38,9 +38,9 @@ bool AbeMovementComponent::TryMoveLeftOrRight() const
     return mGoal == Goal::eGoLeft || mGoal == Goal::eGoRight;
 }
 
-void AbeMovementComponent::SetAnimation(const AnimationData& anim)
+void AbeMovementComponent::SetAnimation(const std::string& anim)
 {
-    mAnimationComponent->Change(anim.mName);
+    mAnimationComponent->Change(anim.c_str());
 }
 
 void AbeMovementComponent::SetState(AbeMovementComponent::States state)
@@ -59,7 +59,7 @@ void AbeMovementComponent::SetState(AbeMovementComponent::States state)
 
 void AbeMovementComponent::PreStanding(AbeMovementComponent::States /*previous*/)
 {
-    SetAnimation(kAbeStandIdleAnim);
+    SetAnimation(kAbeStandIdle);
     mPhysicsComponent->xSpeed = 0.0f;
     mPhysicsComponent->ySpeed = 0.0f;
 }
@@ -70,13 +70,13 @@ void AbeMovementComponent::Standing()
     {
         if (DirectionChanged())
         {
-            SetAnimation(kAbeStandTurnAroundAnim);
+            SetAnimation(kAbeStandTurnAround);
             SetState(States::eStandTurningAround);
             mNextState = States::eStanding;
         }
         else
         {
-            SetAnimation(kAbeStandToWalkAnim);
+            SetAnimation(kAbeStandToWalk);
             mNextState = States::eWalking;
             SetXSpeed(kAbeWalkSpeed);
             SetState(States::eStandToWalking);
@@ -90,14 +90,14 @@ void AbeMovementComponent::Standing()
 
 void AbeMovementComponent::PreChanting(AbeMovementComponent::States /*previous*/)
 {
-    SetAnimation(kAbeStandToChantAnim);
+    SetAnimation(kAbeStandToChant);
 }
 
 void AbeMovementComponent::Chanting()
 {
     if (mGoal == Goal::eStand)
     {
-        SetAnimation(kAbeChantToStandAnim);
+        SetAnimation(kAbeChantToStand);
         mNextState = States::eStanding;
         SetState(States::eChantToStand);
     }
@@ -118,7 +118,7 @@ void AbeMovementComponent::Chanting()
 
 void AbeMovementComponent::PreWalking(AbeMovementComponent::States /*previous*/)
 {
-    SetAnimation(kAbeWalkingAnim);
+    SetAnimation(kAbeWalking);
     SetXSpeed(kAbeWalkSpeed);
 }
 
@@ -135,7 +135,7 @@ void AbeMovementComponent::Walking()
         {
             SetState(States::eWalkingToStanding);
             mNextState = States::eStanding;
-            SetAnimation(mAnimationComponent->FrameNumber() == 2 + 1 ? kAbeWalkToStandAnim1 : kAbeWalkToStandAnim2);
+            SetAnimation(mAnimationComponent->FrameNumber() == 2 + 1 ? kAbeWalkToStand : kAbeWalkToStandMidGrid);
         }
     }
 }
