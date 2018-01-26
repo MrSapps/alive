@@ -9,6 +9,11 @@ Component::~Component() // NOLINT
 
 }
 
+void Component::OnLoad()
+{
+    OnResolveDependencies();
+}
+
 void Component::Serialize(std::ostream&) const
 {
 
@@ -16,10 +21,10 @@ void Component::Serialize(std::ostream&) const
 
 void Component::Deserialize(std::istream&)
 {
-	Load();
+
 }
 
-void Component::Load()
+void Component::OnResolveDependencies()
 {
 
 }

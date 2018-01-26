@@ -5,17 +5,18 @@
 
 DEFINE_COMPONENT(AnimationComponent);
 
-void AnimationComponent::Deserialize(std::istream&)
+void AnimationComponent::OnLoad()
 {
-    Load();
-}
+    Component::OnLoad(); // calls OnResolveDependencies
 
-void AnimationComponent::Load()
-{
     mEntity->GetManager()->With<ResourceLocatorSystem>([this](auto, auto resLoc)
                                                        {
                                                            mResourceLocator = resLoc->GetResourceLocator();
                                                        });
+}
+
+void AnimationComponent::OnResolveDependencies()
+{
     mTransformComponent = mEntity->GetComponent<TransformComponent>();
 }
 

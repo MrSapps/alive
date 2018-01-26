@@ -8,17 +8,22 @@
 
 DEFINE_COMPONENT(SligMovementComponent);
 
-void SligMovementComponent::Load()
+void SligMovementComponent::OnLoad()
 {
-    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
-    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
-    mTransformComponent = mEntity->GetComponent<TransformComponent>();
+    Component::OnLoad(); // calls OnResolveDependencies
 
     mStateFnMap[States::eStanding] =            { &SligMovementComponent::PreStanding,  &SligMovementComponent::Standing          };
     mStateFnMap[States::eWalking] =             { &SligMovementComponent::PreWalking,   &SligMovementComponent::Walking           };
     mStateFnMap[States::eStandTurningAround] =  { nullptr,                              &SligMovementComponent::StandTurnAround   };
 
     SetAnimation(kSligStandIdleAnim);
+}
+
+void SligMovementComponent::OnResolveDependencies()
+{
+    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
+    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
+    mTransformComponent = mEntity->GetComponent<TransformComponent>();
 }
 
 void SligMovementComponent::Update()
@@ -150,7 +155,7 @@ void SligMovementComponent::SetXSpeed(f32 speed)
 
 DEFINE_COMPONENT(SligPlayerControllerComponent);
 
-void SligPlayerControllerComponent::Load()
+void SligPlayerControllerComponent::OnResolveDependencies()
 {
     mEntity->GetManager()->With<InputSystem>([this](auto, auto inputSystem)
                                              {

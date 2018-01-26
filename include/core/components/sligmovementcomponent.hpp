@@ -17,8 +17,12 @@ public:
     DECLARE_COMPONENT(SligMovementComponent);
 
 public:
-    void Load() final;
+    void OnLoad() final;
+    void OnResolveDependencies() final;
+
+public:
     void Update();
+
 public:
     enum class Goal
     {
@@ -90,7 +94,9 @@ public:
     DECLARE_COMPONENT(SligPlayerControllerComponent);
 
 public:
-    void Load() final;
+    void OnResolveDependencies() final;
+
+public:
     void Update();
 
 private:

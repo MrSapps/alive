@@ -17,6 +17,14 @@ EntityManager* Entity::GetManager()
     return mManager;
 }
 
+void Entity::ResolveComponentDependencies()
+{
+    for (auto &component : mComponents)
+    {
+        component->OnResolveDependencies();
+    }
+}
+
 void Entity::Destroy()
 {
     mManager->Destroy(this);
@@ -27,12 +35,18 @@ bool Entity::IsDestroyed() const
     return mDestroyed;
 }
 
+void Entity::ConstructComponent(Component& component)
+{
+    component.mEntity = this;
+    component.OnLoad();
+}
+
 #if defined(_DEBUG)
-void Entity::AssertComponentRegistered(const char* componentName) const
+void Entity::AssertComponentRegistered(const std::string& componentName) const
 {
     if (!mManager->IsComponentRegistered(componentName))
     {
-        throw std::logic_error(std::string{ "The component " } + componentName + std::string{ " is not registered" });
+        throw std::logic_error(std::string{ "Entity::AssertComponentRegistered: Component " } + componentName + std::string{ " not registered in EntityManager" });
     }
 }
 #endif

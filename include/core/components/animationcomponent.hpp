@@ -11,10 +11,10 @@ public:
     DECLARE_COMPONENT(AnimationComponent);
 
 public:
-    void Deserialize(std::istream& is) override;
+    void OnLoad() final;
+    void OnResolveDependencies() final;
 
 public:
-    void Load() final;
     void Update();
     void Render(AbstractRenderer& rend) const;
 

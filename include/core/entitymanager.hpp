@@ -1,9 +1,7 @@
+#include <map>
 #include <memory>
 #include <vector>
 #include <string>
-#include <cstring>
-#include <fstream>
-#include <algorithm>
 #include <functional>
 
 #include "entity.hpp"
@@ -12,6 +10,16 @@ class EntityManager final
 {
 public:
     Entity* Create();
+    template<typename ...C>
+    Entity* CreateWith();
+
+private:
+    template<typename C>
+    void DispatchCreateWith(Entity *entity);
+    template<typename C1, typename C2, typename ...C>
+    void DispatchCreateWith(Entity *entity);
+
+public:
     void Destroy(Entity* entity);
     void DestroyEntities();
 
@@ -29,7 +37,7 @@ public:
     template<typename C>
     void RegisterComponent();
 #if defined(_DEBUG)
-    bool IsComponentRegistered(const char *componentName) const;
+    bool IsComponentRegistered(const std::string& componentName) const;
 #endif
 
 public:
@@ -39,6 +47,28 @@ public:
 private:
     std::vector<std::unique_ptr<Entity>> mEntities;
     std::map<std::string, std::function<std::unique_ptr<Component>()>> mRegisteredComponents;
+};
+
+template<typename ...C>
+Entity* EntityManager::CreateWith()
+{
+    auto entity = Create();
+    DispatchCreateWith<C...>(entity);
+    entity->ResolveComponentDependencies();
+    return entity;
+}
+
+template<typename C>
+void EntityManager::DispatchCreateWith(Entity *entity)
+{
+    entity->AddComponent<C>();
+}
+
+template<typename C1, typename C2, typename ...C>
+void EntityManager::DispatchCreateWith(Entity *entity)
+{
+    DispatchCreateWith<C1>(entity);
+    DispatchCreateWith<C2, C...>(entity);
 };
 
 template<typename... C>

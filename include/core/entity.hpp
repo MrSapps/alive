@@ -1,6 +1,5 @@
 #pragma once
 
-#include <map>
 #include <vector>
 #include <memory>
 #include <string>
@@ -30,10 +29,15 @@ public:
 public:
     template<typename C>
     C* GetComponent();
+    template<typename C>
+    const C* GetComponent() const;
     template<typename C, typename ...Args>
     C* AddComponent(Args&& ...args);
     template<typename C>
     void RemoveComponent();
+
+public:
+    void ResolveComponentDependencies();
 
 public:
     template<typename C>
@@ -55,9 +59,12 @@ public:
     void Destroy();
     bool IsDestroyed() const;
 
-public:
+private:
+    void ConstructComponent(Component& component);
+
+private:
 #if defined(_DEBUG)
-    void AssertComponentRegistered(const char *componentName) const;
+    void AssertComponentRegistered(const std::string& componentName) const;
 #endif
 
 private:
@@ -69,11 +76,15 @@ private:
 template<typename C>
 C* Entity::GetComponent()
 {
-    auto found = std::find_if(mComponents.begin(), mComponents.end(), [](auto& c)
+    return const_cast<C*>(static_cast<const Entity*>(this)->GetComponent<C>());
+}
+
+template<typename C>
+const C* Entity::GetComponent() const
+{
+    auto found = std::find_if(mComponents.begin(), mComponents.end(), [](const auto& c)
     {
-        auto a = std::string{ C::ComponentName };
-        auto b = std::string{ c->GetComponentName() };
-        return a == b;
+        return c->GetComponentName() == C::ComponentName;
     });
     if (found != mComponents.end())
     {
@@ -88,22 +99,30 @@ C* Entity::AddComponent(Args&& ...args)
 #if defined(_DEBUG)
     AssertComponentRegistered(C::ComponentName);
 #endif
+    if (HasComponent<C>())
+    {
+        throw std::logic_error(std::string{ "Entity::AddComponent: Component " } + C::ComponentName + std::string{ " already exists" });
+    }
     auto component = std::make_unique<C>(std::forward<Args>(args)...);
     auto componentPtr = component.get();
-    componentPtr->mEntity = this;
-    componentPtr->Load();
     mComponents.emplace_back(std::move(component));
+    ConstructComponent(*componentPtr);
     return componentPtr;
 }
 
 template<typename C>
 void Entity::RemoveComponent()
 {
-    auto found = std::find_if(mComponents.begin(), mComponents.end(), [](auto& c)
+#if defined(_DEBUG)
+    AssertComponentRegistered(C::ComponentName);
+#endif
+    if (!HasComponent<C>())
     {
-        auto a = std::string{ C::ComponentName };
-        auto b = std::string{ c->GetComponentName() };
-        return a == b;
+        throw std::logic_error(std::string{ "Entity::RemoveComponent: Component " } + C::ComponentName + std::string{ " not found" });
+    }
+    auto found = std::find_if(mComponents.begin(), mComponents.end(), [](const auto& c)
+    {
+        return std::string{ C::ComponentName } == std::string{ c->GetComponentName() };
     });
     if (found != mComponents.end())
     {
@@ -114,12 +133,7 @@ void Entity::RemoveComponent()
 template<typename C>
 bool Entity::HasComponent() const
 {
-    return std::find_if(mComponents.begin(), mComponents.end(), [](auto& c)
-    {
-        auto a = std::string{ C::ComponentName };
-        auto b = std::string{ c->GetComponentName() };
-        return a == b;
-    }) != mComponents.end();
+    return GetComponent<C>() != nullptr;
 }
 
 template<typename C1, typename C2, typename ...C>
@@ -131,12 +145,7 @@ bool Entity::HasComponent() const
 template<typename C>
 bool Entity::HasAnyComponent() const
 {
-    return std::find_if(mComponents.begin(), mComponents.end(), [](auto& c)
-    {
-        auto a = std::string{ C::ComponentName };
-        auto b = std::string{ c->GetComponentName() };
-        return a == b;
-    }) != mComponents.end();
+    return GetComponent<C>() != nullptr;
 }
 
 template<typename C1, typename C2, typename ...C>

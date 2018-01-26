@@ -26,18 +26,18 @@ void EntityManager::DestroyEntities()
 
 void EntityManager::Serialize(std::ostream& os) const
 {
-    auto skipFirst = true;
+    auto skip = true;
     for (auto const& entity : mEntities)
     {
-        if (skipFirst)
+        if (skip)
         {
-            skipFirst = false; // TODO: Ugly hack to avoid the systems from being saved...
+            skip = false;
             continue;
         }
         os.write("{", 1);
         for (auto const& component : entity->mComponents)
         {
-            os.write(component->GetComponentName(), 1 + std::strlen(component->GetComponentName()));
+            os.write(component->GetComponentName().c_str(), 1 + component->GetComponentName().size());
             component->Serialize(os);
         }
         os.write("}", 1);
@@ -46,10 +46,7 @@ void EntityManager::Serialize(std::ostream& os) const
 
 void EntityManager::Deserialize(std::istream& is)
 {
-    if (mEntities.size() > 1)
-    {
-        mEntities.erase(mEntities.begin() + 1, mEntities.end()); // TODO: ... and removed upon loading
-    }
+	mEntities.erase(mEntities.begin() + 1, mEntities.end());
     enum class mode_e
     {
         entity_create, component_name
@@ -67,7 +64,7 @@ void EntityManager::Deserialize(std::istream& is)
             {
                 break;
             }
-            else if (token == '{')
+            else if(token == '{')
             {
                 entity = Create();
                 mode = mode_e::component_name;
@@ -77,6 +74,7 @@ void EntityManager::Deserialize(std::istream& is)
         {
             if (token == '}')
             {
+                entity->ResolveComponentDependencies();
                 mode = mode_e::entity_create;
             }
             else if (token == '\0')
@@ -89,8 +87,8 @@ void EntityManager::Deserialize(std::istream& is)
                 auto component = componentCreator->second();
                 auto componentPtr = component.get();
                 entity->mComponents.emplace_back(std::move(component));
-				componentPtr->mEntity = entity;
                 componentPtr->Deserialize(is);
+                entity->ConstructComponent(*componentPtr);
                 componentName.clear();
                 mode = mode_e::component_name;
             }
@@ -103,7 +101,7 @@ void EntityManager::Deserialize(std::istream& is)
 }
 
 #if defined(_DEBUG)
-bool EntityManager::IsComponentRegistered(const char* componentName) const
+bool EntityManager::IsComponentRegistered(const std::string& componentName) const
 {
     return mRegisteredComponents.find(componentName) != mRegisteredComponents.end();
 }

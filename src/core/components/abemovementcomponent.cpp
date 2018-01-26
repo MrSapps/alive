@@ -68,16 +68,9 @@ static const std::string kAbeRolling = "AbeRolling";
 static const std::string kAbeStandToChant = "AbeStandToChant";
 static const std::string kAbeChantToStand = "AbeChantToStand";
 
-void AbeMovementComponent::Deserialize(std::istream&)
+void AbeMovementComponent::OnLoad()
 {
-    Load();
-}
-
-void AbeMovementComponent::Load()
-{
-    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
-    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
-    mTransformComponent = mEntity->GetComponent<TransformComponent>();
+    Component::OnLoad(); // calls OnResolveDependencies
 
     mStateFnMap[States::eStanding] =            { &AbeMovementComponent::PreStanding,  &AbeMovementComponent::Standing          };
     mStateFnMap[States::eChanting] =            { &AbeMovementComponent::PreChanting,  &AbeMovementComponent::Chanting          };
@@ -85,6 +78,13 @@ void AbeMovementComponent::Load()
     mStateFnMap[States::eStandTurningAround] =  { nullptr,                             &AbeMovementComponent::StandTurnAround   };
 
 	SetAnimation(kAbeStandIdle);
+}
+
+void AbeMovementComponent::OnResolveDependencies()
+{
+    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
+    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
+    mTransformComponent = mEntity->GetComponent<TransformComponent>();
 }
 
 void AbeMovementComponent::Update()
@@ -243,12 +243,7 @@ void AbeMovementComponent::SetXSpeed(f32 speed)
 
 DEFINE_COMPONENT(AbePlayerControllerComponent);
 
-void AbePlayerControllerComponent::Deserialize(std::istream&)
-{
-    Load();
-}
-
-void AbePlayerControllerComponent::Load()
+void AbePlayerControllerComponent::OnResolveDependencies()
 {
 
     mEntity->GetManager()->With<InputSystem>([this](auto, auto inputSystem)

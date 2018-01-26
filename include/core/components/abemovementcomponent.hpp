@@ -17,10 +17,10 @@ public:
     DECLARE_COMPONENT(AbeMovementComponent);
 
 public:
-    void Deserialize(std::istream& is) override;
+    void OnLoad() final;
+    void OnResolveDependencies() final;
 
 public:
-    void Load() final;
     void Update();
 public:
     enum class Goal
@@ -85,10 +85,9 @@ public:
     DECLARE_COMPONENT(AbePlayerControllerComponent);
 
 public:
-    void Deserialize(std::istream& is) override;
+    void OnResolveDependencies() final;
 
 public:
-    void Load() final;
     void Update();
 
 private:

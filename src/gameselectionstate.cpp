@@ -132,7 +132,7 @@ EngineStates GameSelectionState::RenderSelectGame()
         ImGui::EndChild();
 
         // Select developer mode by default
-        static bool setFirstIndex = false;
+        static bool setFirstIndex = true;
         if (!setFirstIndex)
         {
             if (!mVisibleGameDefinitions.empty())
@@ -152,7 +152,7 @@ EngineStates GameSelectionState::RenderSelectGame()
 
         ImGui::BeginGroup();
             ImGui::BeginChild("buttons");
-                if (ImGui::Button("Start game"))
+                if (ImGui::Button("Start game") || true)
                 {
                     const GameDefinition& userSelectedGameDef = *mVisibleGameDefinitions[mSelectedGameDefintionIndex];
 
