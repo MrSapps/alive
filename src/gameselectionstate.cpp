@@ -132,7 +132,7 @@ EngineStates GameSelectionState::RenderSelectGame()
         ImGui::EndChild();
 
         // Select developer mode by default
-        static bool setFirstIndex = true;
+        static bool setFirstIndex = false;
         if (!setFirstIndex)
         {
             if (!mVisibleGameDefinitions.empty())
@@ -140,7 +140,7 @@ EngineStates GameSelectionState::RenderSelectGame()
                 for (size_t idx = 0; idx < mVisibleGameDefinitions.size(); idx++)
                 {
                     const GameDefinition& gd = *mVisibleGameDefinitions[idx];
-                    if (gd.Name() == "Developer mode")
+                    if (gd.Name() == "Oddworld Abe's Exoddus PC")
                     {
                         mSelectedGameDefintionIndex = idx;
                         break;
@@ -150,10 +150,22 @@ EngineStates GameSelectionState::RenderSelectGame()
             setFirstIndex = true;
         }
 
+
         ImGui::BeginGroup();
             ImGui::BeginChild("buttons");
-                if (ImGui::Button("Start game") || true)
+#ifdef _DEBUG
+            // Hack to force auto start the selected game definition in a debug build
+            static bool attemptAutoStart = true;
+            if (ImGui::Button("Start game") || attemptAutoStart)
+#else
+            if (ImGui::Button("Start game"))
+#endif
                 {
+
+#ifdef _DEBUG
+                    attemptAutoStart = false;
+#endif
+
                     const GameDefinition& userSelectedGameDef = *mVisibleGameDefinitions[mSelectedGameDefintionIndex];
 
                     std::set<std::string> missingDataSets;
