@@ -3,47 +3,59 @@
 
 DEFINE_COMPONENT(TransformComponent);
 
+void TransformComponent::Serialize(std::ostream &os) const
+{
+    os.write((char *) &mData, sizeof(decltype(mData)));
+}
+
+void TransformComponent::Deserialize(std::istream &is)
+{
+    is.read((char *) &mData, sizeof(decltype(mData)));
+}
+
 void TransformComponent::Set(float xPos, float yPos)
 {
-    mXPos = xPos;
-    mYPos = yPos;
+    mData.mXPos = xPos;
+    mData.mYPos = yPos;
 }
 
 void TransformComponent::SetX(float xPos)
 {
-    mXPos = xPos;
+    mData.mXPos = xPos;
 }
 
 void TransformComponent::SetY(float yPos)
 {
-    mYPos = yPos;
+    mData.mYPos = yPos;
 }
+
 float TransformComponent::GetX() const
 {
-    return mXPos;
+    return mData.mXPos;
 }
+
 float TransformComponent::GetY() const
 {
-    return mYPos;
+    return mData.mYPos;
 }
 
 void TransformComponent::Add(float xAmount, float yAmount)
 {
-    mXPos += xAmount;
-    mYPos += yAmount;
+    mData.mXPos += xAmount;
+    mData.mYPos += yAmount;
 }
 
 void TransformComponent::AddX(float xAmount)
 {
-    mXPos += xAmount;
+    mData.mXPos += xAmount;
 }
 
 void TransformComponent::AddY(float yAmount)
 {
-    mYPos += yAmount;
+    mData.mYPos += yAmount;
 }
 
 void TransformComponent::SnapXToGrid()
 {
-    mXPos = ::SnapXToGrid(mXPos);
+    mData.mXPos = ::SnapXToGrid(mData.mXPos);
 }

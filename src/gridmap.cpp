@@ -334,6 +334,18 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
 
 bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input) // TODO: Input wired here
 {
+
+	mRoot.RegisterComponent<AbeMovementComponent>();
+	mRoot.RegisterComponent<AbePlayerControllerComponent>();
+	mRoot.RegisterComponent<AnimationComponent>();
+	mRoot.RegisterComponent<PhysicsComponent>();
+	mRoot.RegisterComponent<SligMovementComponent>();
+	mRoot.RegisterComponent<SligPlayerControllerComponent>();
+	mRoot.RegisterComponent<TransformComponent>();
+
+	mRoot.RegisterComponent<CollisionSystem>();
+	mRoot.RegisterComponent<InputSystem>();
+
     {
         auto systems = mRoot.Create();
         auto inputSystem = systems->AddComponent<InputSystem>();

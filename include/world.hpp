@@ -111,6 +111,7 @@ private:
     up_future_UP_Path mLocatePathFuture;
     Oddlib::UP_Path mPathBeingLoaded;
 
+    bool mQuickLoad = false;
 
     ResourceLocator& mLocator;
     Sound& mSound;

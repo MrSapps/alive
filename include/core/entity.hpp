@@ -2,6 +2,7 @@
 
 #include <map>
 #include <memory>
+#include <string>
 #include <functional>
 
 #include "component.hpp"
@@ -52,21 +53,16 @@ public:
     void Destroy();
     bool IsDestroyed() const;
 
+public:
+#if defined(_DEBUG)
+    void AssertComponentRegistered(const char *componentName) const;
+#endif
+
 private:
     bool mDestroyed = false;
     EntityManager* mManager = nullptr;
-    std::map<const char*, std::unique_ptr<Component>> mComponents;
+    std::map<std::string, std::unique_ptr<Component>> mComponents;
 };
-
-template<typename C, typename ...Args>
-C* Entity::AddComponent(Args&& ...args)
-{
-    auto component = std::make_unique<C>(std::forward<Args>(args)...);
-    auto componentPtr = component.get();
-    componentPtr->mEntity = this;
-    mComponents[C::ComponentName] = std::move(component);
-    return componentPtr;
-}
 
 template<typename C>
 C* Entity::GetComponent()
@@ -77,6 +73,19 @@ C* Entity::GetComponent()
         return static_cast<C*>(found->second.get());
     }
     return nullptr;
+}
+
+template<typename C, typename ...Args>
+C* Entity::AddComponent(Args&& ...args)
+{
+#if defined(_DEBUG)
+    AssertComponentRegistered(C::ComponentName);
+#endif
+    auto component = std::make_unique<C>(std::forward<Args>(args)...);
+    auto componentPtr = component.get();
+    componentPtr->mEntity = this;
+    mComponents[C::ComponentName] = std::move(component);
+    return componentPtr;
 }
 
 template<typename C>

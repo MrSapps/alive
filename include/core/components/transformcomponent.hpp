@@ -6,6 +6,11 @@ class TransformComponent final : public Component
 {
 public:
     DECLARE_COMPONENT(TransformComponent);
+
+public:
+    void Serialize(std::ostream &os) const final;
+    void Deserialize(std::istream &is) final;
+
 public:
     void Set(float xPos, float yPos);
     void SetX(float xPos);
@@ -19,6 +24,8 @@ public:
 public:
     void SnapXToGrid();
 private:
-    float mXPos = 0.0f;
-    float mYPos = 0.0f;
+    struct {
+        float mXPos;
+        float mYPos;
+    } mData = {};
 };

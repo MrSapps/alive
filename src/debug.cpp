@@ -60,6 +60,20 @@ void Debug::Update(const InputState& input)
                 }
             }
 
+            if (ImGui::CollapsingHeader("Save / Load"))
+            {
+                if (ImGui::Button("Quick save"))
+                {
+                    LOG_INFO("Quick save requested");
+                    mFnQuickSave();
+                }
+                if (ImGui::Button("Quick load"))
+                {
+                    LOG_INFO("Quick load requested");
+                    mFnQuickLoad();
+                }
+            }
+
             if (ImGui::CollapsingHeader("Subtitle test"))
             {
                 ImGui::Checkbox("Regular", &mSubtitleTestRegular);

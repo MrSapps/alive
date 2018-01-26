@@ -51,7 +51,9 @@ struct Debug
 
     std::function<void()> mFnReloadPath;
     std::function<void()> mFnNextPath;
-    std::function<void(const char*)> fnLoadPath;
+    std::function<void(const char*)> mFnLoadPath;
+    std::function<void()> mFnQuickSave;
+    std::function<void()> mFnQuickLoad;
 
     void Update(const class InputState& input);
     void Render(class AbstractRenderer& renderer);

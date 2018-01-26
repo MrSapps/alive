@@ -179,7 +179,7 @@ World::World(
     static std::string currentPathName;
     static s32 nextPathIndex;
 
-    Debugging().fnLoadPath = [&](const char* name)
+    Debugging().mFnLoadPath = [&](const char* name)
     {
         LoadMap(name);
     };
@@ -202,6 +202,22 @@ World::World(
     {
         // TODO: Fix me
         //LoadMap(mLevel->MapName());
+    };
+
+
+    // TODO: Implement
+    Debugging().mFnQuickSave = [&]()
+    {
+        std::filebuf f;
+        std::ostream os(&f);
+        f.open("save.bin", std::ios::out | std::ios::binary);
+		mGridMap->mRoot.Serialize(os);
+    };
+
+    // TODO: Implement
+    Debugging().mFnQuickLoad = [&]()
+    {
+        mQuickLoad = true;
     };
 
     // TODO: Get the starting map from selectedGame
@@ -321,6 +337,15 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                                            });
             // Destroy entities
             mGridMap->mRoot.DestroyEntities();
+
+            if (mQuickLoad)
+            {
+                std::filebuf f;
+                std::istream is(&f);
+                f.open("save.bin", std::ios::in | std::ios::binary);
+                mGridMap->mRoot.Deserialize(is);
+                mQuickLoad = false;
+            }
         }
     }
         break;
@@ -452,7 +477,7 @@ void World::RenderDebugPathSelection()
         {
             if (ImGui::Button(pathMap.first.c_str()))
             {
-                Debugging().fnLoadPath(pathMap.first.c_str());
+                Debugging().mFnLoadPath(pathMap.first.c_str());
             }
         }
     }
