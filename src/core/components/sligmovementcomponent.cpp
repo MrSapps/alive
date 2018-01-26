@@ -8,6 +8,13 @@
 
 DEFINE_COMPONENT(SligMovementComponent);
 
+static const std::string kSligStandTurnAround = "SligStandTurnAround";
+static const std::string kSligStandIdle = "SligStandIdle";
+static const std::string kSligStandToWalk = "SligStandToWalk";
+static const std::string kSligWalking = "SligWalking2";
+static const std::string kSligWalkToStand1 = "SligWalkToStand";
+static const std::string kSligWalkToStand2 = "SligWalkToStandMidGrid";
+
 void SligMovementComponent::OnLoad()
 {
     Component::OnLoad(); // calls OnResolveDependencies
@@ -16,7 +23,7 @@ void SligMovementComponent::OnLoad()
     mStateFnMap[States::eWalking] =             { &SligMovementComponent::PreWalking,   &SligMovementComponent::Walking           };
     mStateFnMap[States::eStandTurningAround] =  { nullptr,                              &SligMovementComponent::StandTurnAround   };
 
-    SetAnimation(kSligStandIdleAnim);
+    SetAnimation(kSligStandIdle);
 }
 
 void SligMovementComponent::OnResolveDependencies()
@@ -28,7 +35,7 @@ void SligMovementComponent::OnResolveDependencies()
 
 void SligMovementComponent::Update()
 {
-    auto it = mStateFnMap.find(mState);
+    auto it = mStateFnMap.find(mData.mState);
     if (it != std::end(mStateFnMap) && it->second.mHandler)
     {
         it->second.mHandler(this);
@@ -39,34 +46,46 @@ void SligMovementComponent::Update()
     }
 }
 
+void SligMovementComponent::Serialize(std::ostream &os) const
+{
+    // static_assert(std::is_pod<decltype(mData)>::value);
+	os.write(static_cast<const char*>(static_cast<const void*>(&mData)), sizeof(decltype(mData)));
+}
+
+void SligMovementComponent::Deserialize(std::istream &is)
+{
+    // static_assert(std::is_pod<decltype(mData)>::value);
+	is.read(static_cast<char*>(static_cast<void*>(&mData)), sizeof(decltype(mData)));
+}
+
 void SligMovementComponent::ASyncTransition()
 {
     if (mAnimationComponent->Complete())
     {
-        SetState(mNextState);
+        SetState(mData.mNextState);
     }
 }
 
 bool SligMovementComponent::DirectionChanged() const
 {
-    return (!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight);
+    return (!mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoRight);
 }
 
 bool SligMovementComponent::TryMoveLeftOrRight() const
 {
-    return mGoal == Goal::eGoLeft || mGoal == Goal::eGoRight;
+    return mData.mGoal == Goal::eGoLeft || mData.mGoal == Goal::eGoRight;
 }
 
-void SligMovementComponent::SetAnimation(const AnimationData& anim)
+void SligMovementComponent::SetAnimation(const std::string& anim)
 {
-    mAnimationComponent->Change(anim.mName);
+    mAnimationComponent->Change(anim.c_str());
 }
 
 void SligMovementComponent::SetState(SligMovementComponent::States state)
 {
-    auto prevState = mState;
-    mState = state;
-    auto it = mStateFnMap.find(mState);
+    auto prevState = mData.mState;
+    mData.mState = state;
+    auto it = mStateFnMap.find(mData.mState);
     if (it != std::end(mStateFnMap))
     {
         if (it->second.mPreHandler)
@@ -78,7 +97,7 @@ void SligMovementComponent::SetState(SligMovementComponent::States state)
 
 void SligMovementComponent::PreStanding(SligMovementComponent::States /*previous*/)
 {
-    SetAnimation(kSligStandIdleAnim);
+    SetAnimation(kSligStandIdle);
     mPhysicsComponent->xSpeed = 0.0f;
     mPhysicsComponent->ySpeed = 0.0f;
 }
@@ -89,19 +108,19 @@ void SligMovementComponent::Standing()
     {
         if (DirectionChanged())
         {
-            SetAnimation(kSligStandTurnAroundAnim);
+            SetAnimation(kSligStandTurnAround);
             SetState(States::eStandTurningAround);
-            mNextState = States::eStanding;
+            mData.mNextState = States::eStanding;
         }
         else
         {
-            SetAnimation(kSligStandToWalkAnim);
-            mNextState = States::eWalking;
+            SetAnimation(kSligStandToWalk);
+            mData.mNextState = States::eWalking;
             SetXSpeed(kSligWalkSpeed);
             SetState(States::eStandToWalking);
         }
     }
-    else if (mGoal == Goal::eChant)
+    else if (mData.mGoal == Goal::eChant)
     {
         SetState(States::eChanting);
     }
@@ -109,7 +128,7 @@ void SligMovementComponent::Standing()
 
 void SligMovementComponent::PreWalking(SligMovementComponent::States /*previous*/)
 {
-    SetAnimation(kSligWalkingAnim);
+    SetAnimation(kSligWalking);
     SetXSpeed(kSligWalkSpeed);
 }
 
@@ -125,8 +144,8 @@ void SligMovementComponent::Walking()
         if (mAnimationComponent->FrameNumber() == 2 + 1 || mAnimationComponent->FrameNumber() == 11 + 1)
         {
             SetState(States::eWalkingToStanding);
-            mNextState = States::eStanding;
-            SetAnimation(mAnimationComponent->FrameNumber() == 2 + 1 ? kSligWalkToStandAnim1 : kSligWalkToStandAnim2);
+            mData.mNextState = States::eStanding;
+            SetAnimation(mAnimationComponent->FrameNumber() == 2 + 1 ? kSligWalkToStand1 : kSligWalkToStand2);
         }
     }
 }
@@ -168,18 +187,18 @@ void SligPlayerControllerComponent::Update()
 {
     if (mInputMappingActions->Left(mInputMappingActions->mIsDown) && !mInputMappingActions->Right(mInputMappingActions->mIsDown))
     {
-        mSligMovement->mGoal = SligMovementComponent::Goal::eGoLeft;
+        mSligMovement->mData.mGoal = SligMovementComponent::Goal::eGoLeft;
     }
     else if (mInputMappingActions->Right(mInputMappingActions->mIsDown) && !mInputMappingActions->Left(mInputMappingActions->mIsDown))
     {
-        mSligMovement->mGoal = SligMovementComponent::Goal::eGoRight;
+        mSligMovement->mData.mGoal = SligMovementComponent::Goal::eGoRight;
     }
     else if (mInputMappingActions->Chant(mInputMappingActions->mIsDown))
     {
-        mSligMovement->mGoal = SligMovementComponent::Goal::eChant;
+        mSligMovement->mData.mGoal = SligMovementComponent::Goal::eChant;
     }
     else
     {
-        mSligMovement->mGoal = SligMovementComponent::Goal::eStand;
+        mSligMovement->mData.mGoal = SligMovementComponent::Goal::eStand;
     }
 }

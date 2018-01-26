@@ -14,6 +14,9 @@ const f32 kSligWalkSpeed = 2.777771f;
 class SligMovementComponent final : public Component
 {
 public:
+	friend class SligPlayerControllerComponent;
+
+public:
     DECLARE_COMPONENT(SligMovementComponent);
 
 public:
@@ -21,7 +24,8 @@ public:
     void OnResolveDependencies() final;
 
 public:
-    void Update();
+    void Serialize(std::ostream &os) const final;
+    void Deserialize(std::istream &is) final;
 
 public:
     enum class Goal
@@ -31,11 +35,6 @@ public:
         eGoRight,
         eChant
     };
-    Goal mGoal = Goal::eStand;
-private:
-    PhysicsComponent* mPhysicsComponent = nullptr;
-    TransformComponent* mTransformComponent = nullptr;
-    AnimationComponent* mAnimationComponent = nullptr;
 
     enum class States
     {
@@ -53,23 +52,22 @@ private:
         std::function<void(SligMovementComponent*)> mHandler;
     };
 
-    void SetXSpeed(f32 speed);
-
     struct AnimationData
     {
         const char* mName;
     };
 
-    const AnimationData kSligStandTurnAroundAnim =           { "SligStandTurnAround" };
-    const AnimationData kSligStandIdleAnim =                 { "SligStandIdle" };
-    const AnimationData kSligStandToWalkAnim =               { "SligStandToWalk"};
-    const AnimationData kSligWalkingAnim =                   { "SligWalking2" };
-    const AnimationData kSligWalkToStandAnim1 =              { "SligWalkToStand" };
-    const AnimationData kSligWalkToStandAnim2 =              { "SligWalkToStandMidGrid" };
+    const AnimationData kSligStandTurnAroundAnim = { "SligStandTurnAround" };
+    const AnimationData kSligStandIdleAnim = { "SligStandIdle" };
+    const AnimationData kSligStandToWalkAnim = { "SligStandToWalk" };
+    const AnimationData kSligWalkingAnim = { "SligWalking2" };
+    const AnimationData kSligWalkToStandAnim1 = { "SligWalkToStand" };
+    const AnimationData kSligWalkToStandAnim2 = { "SligWalkToStandMidGrid" };
 
-    std::map<States, StateData> mStateFnMap;
-    States mState = States::eStanding;
-    States mNextState = States::eStanding;
+public:
+    void Update();
+
+    void SetXSpeed(f32 speed);
 
     void PreStanding(States previous);
     void Standing();
@@ -84,8 +82,21 @@ private:
     bool DirectionChanged() const;
     bool TryMoveLeftOrRight() const;
 
-    void SetAnimation(const AnimationData& anim);
+    void SetAnimation(const std::string& anim);
     void SetState(States state);
+
+private:
+    std::map<States, StateData> mStateFnMap;
+    PhysicsComponent* mPhysicsComponent = nullptr;
+    TransformComponent* mTransformComponent = nullptr;
+    AnimationComponent* mAnimationComponent = nullptr;
+
+private:
+    struct {
+        Goal mGoal;
+        States mState = States::eStanding;
+        States mNextState = States::eStanding;
+    } mData;
 };
 
 class SligPlayerControllerComponent final : public Component

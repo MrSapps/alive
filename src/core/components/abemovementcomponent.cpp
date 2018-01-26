@@ -87,9 +87,21 @@ void AbeMovementComponent::OnResolveDependencies()
     mTransformComponent = mEntity->GetComponent<TransformComponent>();
 }
 
+void AbeMovementComponent::Serialize(std::ostream &os) const
+{
+    // static_assert(std::is_pod<decltype(mData)>::value);
+    os.write(static_cast<const char *>(static_cast<const void*>(&mData)), sizeof(decltype(mData)));
+}
+
+void AbeMovementComponent::Deserialize(std::istream &is)
+{
+    // static_assert(std::is_pod<decltype(mData)>::value);
+	is.read(static_cast<char *>(static_cast<void*>(&mData)), sizeof(decltype(mData)));
+}
+
 void AbeMovementComponent::Update()
 {
-    auto it = mStateFnMap.find(mState);
+    auto it = mStateFnMap.find(mData.mState);
     if (it != std::end(mStateFnMap) && it->second.mHandler)
     {
         it->second.mHandler(this);
@@ -104,18 +116,18 @@ void AbeMovementComponent::ASyncTransition()
 {
     if (mAnimationComponent->Complete())
     {
-        SetState(mNextState);
+        SetState(mData.mNextState);
     }
 }
 
 bool AbeMovementComponent::DirectionChanged() const
 {
-    return (!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight);
+    return (!mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoRight);
 }
 
 bool AbeMovementComponent::TryMoveLeftOrRight() const
 {
-    return mGoal == Goal::eGoLeft || mGoal == Goal::eGoRight;
+    return mData.mGoal == Goal::eGoLeft || mData.mGoal == Goal::eGoRight;
 }
 
 void AbeMovementComponent::SetAnimation(const std::string& anim)
@@ -125,9 +137,9 @@ void AbeMovementComponent::SetAnimation(const std::string& anim)
 
 void AbeMovementComponent::SetState(AbeMovementComponent::States state)
 {
-    auto prevState = mState;
-    mState = state;
-    auto it = mStateFnMap.find(mState);
+    auto prevState = mData.mState;
+    mData.mState = state;
+    auto it = mStateFnMap.find(mData.mState);
     if (it != std::end(mStateFnMap))
     {
         if (it->second.mPreHandler)
@@ -152,17 +164,17 @@ void AbeMovementComponent::Standing()
         {
             SetAnimation(kAbeStandTurnAround);
             SetState(States::eStandTurningAround);
-            mNextState = States::eStanding;
+            mData.mNextState = States::eStanding;
         }
         else
         {
             SetAnimation(kAbeStandToWalk);
-            mNextState = States::eWalking;
+            mData.mNextState = States::eWalking;
             SetXSpeed(kAbeWalkSpeed);
             SetState(States::eStandToWalking);
         }
     }
-    else if (mGoal == Goal::eChant)
+    else if (mData.mGoal == Goal::eChant)
     {
         SetState(States::eChanting);
     }
@@ -175,14 +187,14 @@ void AbeMovementComponent::PreChanting(AbeMovementComponent::States /*previous*/
 
 void AbeMovementComponent::Chanting()
 {
-    if (mGoal == Goal::eStand)
+    if (mData.mGoal == Goal::eStand)
     {
         SetAnimation(kAbeChantToStand);
-        mNextState = States::eStanding;
+        mData.mNextState = States::eStanding;
         SetState(States::eChantToStand);
     }
     // Still chanting?
-    else if (mGoal == Goal::eChant)
+    else if (mData.mGoal == Goal::eChant)
     {
         auto sligs = mEntity->GetManager()->With<SligMovementComponent>();
         if (!sligs.empty())
@@ -214,7 +226,7 @@ void AbeMovementComponent::Walking()
         if (mAnimationComponent->FrameNumber() == 2 + 1 || mAnimationComponent->FrameNumber() == 11 + 1)
         {
             SetState(States::eWalkingToStanding);
-            mNextState = States::eStanding;
+            mData.mNextState = States::eStanding;
             SetAnimation(mAnimationComponent->FrameNumber() == 2 + 1 ? kAbeWalkToStand : kAbeWalkToStandMidGrid);
         }
     }
@@ -257,18 +269,18 @@ void AbePlayerControllerComponent::Update()
 {
     if (mInputMappingActions->Left(mInputMappingActions->mIsDown) && !mInputMappingActions->Right(mInputMappingActions->mIsDown))
     {
-        mAbeMovement->mGoal = AbeMovementComponent::Goal::eGoLeft;
+        mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoLeft;
     }
     else if (mInputMappingActions->Right(mInputMappingActions->mIsDown) && !mInputMappingActions->Left(mInputMappingActions->mIsDown))
     {
-        mAbeMovement->mGoal = AbeMovementComponent::Goal::eGoRight;
+        mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoRight;
     }
     else if (mInputMappingActions->Chant(mInputMappingActions->mIsDown))
     {
-        mAbeMovement->mGoal = AbeMovementComponent::Goal::eChant;
+        mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eChant;
     }
     else
     {
-        mAbeMovement->mGoal = AbeMovementComponent::Goal::eStand;
+        mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eStand;
     }
 }

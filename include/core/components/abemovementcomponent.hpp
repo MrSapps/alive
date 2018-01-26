@@ -14,6 +14,9 @@ const f32 kAbeWalkSpeed = 2.777771f;
 class AbeMovementComponent final : public Component
 {
 public:
+    friend class AbePlayerControllerComponent;
+
+public:
     DECLARE_COMPONENT(AbeMovementComponent);
 
 public:
@@ -21,7 +24,9 @@ public:
     void OnResolveDependencies() final;
 
 public:
-    void Update();
+    void Serialize(std::ostream &os) const final;
+    void Deserialize(std::istream &is) final;
+
 public:
     enum class Goal
     {
@@ -30,11 +35,6 @@ public:
         eGoRight,
         eChant
     };
-    Goal mGoal = Goal::eStand;
-private:
-    PhysicsComponent* mPhysicsComponent = nullptr;
-    TransformComponent* mTransformComponent = nullptr;
-    AnimationComponent* mAnimationComponent = nullptr;
 
     enum class States
     {
@@ -53,14 +53,14 @@ private:
         std::function<void(AbeMovementComponent*)> mHandler;
     };
 
+public:
+    void Update();
+
+private:
     void ASyncTransition();
 
     void SetXSpeed(f32 speed);
     
-    std::map<States, StateData> mStateFnMap;
-    States mState = States::eStanding;
-    States mNextState = States::eStanding;
-
     void PreStanding(States previous);
     void Standing();
 
@@ -77,6 +77,19 @@ private:
 
     void SetAnimation(const std::string& anim);
     void SetState(States state);
+
+private:
+    std::map<States, StateData> mStateFnMap;
+    PhysicsComponent* mPhysicsComponent = nullptr;
+    TransformComponent* mTransformComponent = nullptr;
+    AnimationComponent* mAnimationComponent = nullptr;
+
+private:
+    struct {
+        Goal mGoal;
+        States mState;
+        States mNextState;
+    } mData;
 };
 
 class AbePlayerControllerComponent final : public Component

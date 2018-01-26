@@ -1,3 +1,5 @@
+#include <type_traits>
+
 #include "mapobject.hpp"
 #include "core/components/transformcomponent.hpp"
 
@@ -5,12 +7,14 @@ DEFINE_COMPONENT(TransformComponent);
 
 void TransformComponent::Serialize(std::ostream &os) const
 {
-    os.write((char *) &mData, sizeof(decltype(mData)));
+	// static_assert(std::is_pod<decltype(mData)>::value);
+	os.write(static_cast<const char*>(static_cast<const void*>(&mData)), sizeof(decltype(mData)));
 }
 
 void TransformComponent::Deserialize(std::istream &is)
 {
-    is.read((char *) &mData, sizeof(decltype(mData)));
+    // static_assert(std::is_pod<decltype(mData)>::value);
+	is.read(static_cast<char*>(static_cast<void*>(&mData)), sizeof(decltype(mData)));
 }
 
 void TransformComponent::Set(float xPos, float yPos)
