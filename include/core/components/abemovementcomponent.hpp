@@ -15,8 +15,12 @@ class AbeMovementComponent final : public Component
 {
 public:
     DECLARE_COMPONENT(AbeMovementComponent);
+
 public:
-    void Load();
+    void Deserialize(std::istream& is) override;
+
+public:
+    void Load() final;
     void Update();
 public:
     enum class Goal
@@ -92,8 +96,15 @@ private:
 class AbePlayerControllerComponent final : public Component
 {
 public:
+    DECLARE_COMPONENT(AbePlayerControllerComponent);
+
+public:
+    void Deserialize(std::istream& is) override;
+
+public:
     void Load();
     void Update();
+
 private:
     const Actions* mInputMappingActions = nullptr;
     AbeMovementComponent* mAbeMovement = nullptr;

@@ -17,12 +17,15 @@ public:
     void SetY(float yPos);
     float GetX() const;
     float GetY() const;
+
 public:
     void Add(float xAmount, float yAmount);
     void AddX(float xAmount);
     void AddY(float yAmount);
+
 public:
     void SnapXToGrid();
+
 private:
     struct {
         float mXPos;

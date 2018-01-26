@@ -432,7 +432,9 @@ SET(alivelib_src
     include/core/systems/collisionsystem.hpp
     src/core/systems/collisionsystem.cpp
     include/core/systems/inputsystem.hpp
-    src/core/systems/inputsystem.cpp)
+    src/core/systems/inputsystem.cpp
+    include/core/systems/resourcelocatorsystem.hpp
+    src/core/systems/resourcelocatorsystem.cpp)
 
 if(WIN32)
     SET(alivelib_src

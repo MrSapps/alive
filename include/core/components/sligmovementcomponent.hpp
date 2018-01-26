@@ -15,8 +15,9 @@ class SligMovementComponent final : public Component
 {
 public:
     DECLARE_COMPONENT(SligMovementComponent);
+
 public:
-    void Load();
+    void Load() final;
     void Update();
 public:
     enum class Goal
@@ -86,8 +87,12 @@ private:
 class SligPlayerControllerComponent final : public Component
 {
 public:
-    void Load();
+    DECLARE_COMPONENT(SligPlayerControllerComponent);
+
+public:
+    void Load() final;
     void Update();
+
 private:
     const Actions* mInputMappingActions = nullptr;
     SligMovementComponent* mSligMovement = nullptr;

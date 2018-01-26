@@ -17,6 +17,8 @@ void SligMovementComponent::Load()
     mStateFnMap[States::eStanding] =            { &SligMovementComponent::PreStanding,  &SligMovementComponent::Standing          };
     mStateFnMap[States::eWalking] =             { &SligMovementComponent::PreWalking,   &SligMovementComponent::Walking           };
     mStateFnMap[States::eStandTurningAround] =  { nullptr,                              &SligMovementComponent::StandTurnAround   };
+
+    SetAnimation(kSligStandIdleAnim);
 }
 
 void SligMovementComponent::Update()
@@ -146,13 +148,15 @@ void SligMovementComponent::SetXSpeed(f32 speed)
     }
 }
 
+DEFINE_COMPONENT(SligPlayerControllerComponent);
 
 void SligPlayerControllerComponent::Load()
 {
     mEntity->GetManager()->With<InputSystem>([this](auto, auto inputSystem)
                                              {
                                                  mInputMappingActions = inputSystem->GetActions();
-                                             });    mSligMovement = mEntity->GetComponent<SligMovementComponent>();
+                                             });
+	mSligMovement = mEntity->GetComponent<SligMovementComponent>();
 }
 
 void SligPlayerControllerComponent::Update()

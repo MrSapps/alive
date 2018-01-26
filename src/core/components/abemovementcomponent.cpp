@@ -9,6 +9,25 @@
 
 DEFINE_COMPONENT(AbeMovementComponent);
 
+void AbeMovementComponent::Deserialize(std::istream&)
+{
+    Load();
+}
+
+void AbeMovementComponent::Load()
+{
+    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
+    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
+    mTransformComponent = mEntity->GetComponent<TransformComponent>();
+
+    mStateFnMap[States::eStanding] = { &AbeMovementComponent::PreStanding, &AbeMovementComponent::Standing };
+    mStateFnMap[States::eChanting] = { &AbeMovementComponent::PreChanting, &AbeMovementComponent::Chanting };
+    mStateFnMap[States::eWalking] = { &AbeMovementComponent::PreWalking, &AbeMovementComponent::Walking };
+    mStateFnMap[States::eStandTurningAround] = { nullptr, &AbeMovementComponent::StandTurnAround };
+
+    SetAnimation(kAbeStandIdleAnim);
+}
+
 bool AbeMovementComponent::DirectionChanged() const
 {
     return (!mAnimationComponent->mFlipX && mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mGoal == Goal::eGoRight);
@@ -82,13 +101,13 @@ void AbeMovementComponent::Chanting()
         mNextState = States::eStanding;
         SetState(States::eChantToStand);
     }
-    // Still chanting?
+        // Still chanting?
     else if (mGoal == Goal::eChant)
     {
         auto sligs = mEntity->GetManager()->With<SligMovementComponent>();
         if (!sligs.empty())
         {
-            for (auto &slig : sligs)
+            for (auto& slig : sligs)
             {
                 LOG_INFO("Found a Slig to possess");
                 slig->Destroy();
@@ -130,18 +149,6 @@ void AbeMovementComponent::StandTurnAround()
     }
 }
 
-void AbeMovementComponent::Load()
-{
-    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
-    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
-    mTransformComponent = mEntity->GetComponent<TransformComponent>();
-
-    mStateFnMap[States::eStanding] =            { &AbeMovementComponent::PreStanding,  &AbeMovementComponent::Standing          };
-    mStateFnMap[States::eChanting] =            { &AbeMovementComponent::PreChanting,  &AbeMovementComponent::Chanting          };
-    mStateFnMap[States::eWalking] =             { &AbeMovementComponent::PreWalking,   &AbeMovementComponent::Walking           };
-    mStateFnMap[States::eStandTurningAround] =  { nullptr,                             &AbeMovementComponent::StandTurnAround   };
-}
-
 void AbeMovementComponent::ASyncTransition()
 {
     if (mAnimationComponent->Complete())
@@ -175,6 +182,12 @@ void AbeMovementComponent::SetXSpeed(f32 speed)
     }
 }
 
+void AbePlayerControllerComponent::Deserialize(std::istream&)
+{
+    Load();
+}
+
+DEFINE_COMPONENT(AbePlayerControllerComponent);
 
 void AbePlayerControllerComponent::Load()
 {

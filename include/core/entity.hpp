@@ -1,9 +1,11 @@
 #pragma once
 
 #include <map>
+#include <vector>
 #include <memory>
 #include <string>
 #include <functional>
+#include <algorithm>
 
 #include "component.hpp"
 
@@ -61,16 +63,21 @@ public:
 private:
     bool mDestroyed = false;
     EntityManager* mManager = nullptr;
-    std::map<std::string, std::unique_ptr<Component>> mComponents;
+    std::vector<std::unique_ptr<Component>> mComponents;
 };
 
 template<typename C>
 C* Entity::GetComponent()
 {
-    auto found = mComponents.find(C::ComponentName);
+    auto found = std::find_if(mComponents.begin(), mComponents.end(), [](auto& c)
+    {
+        auto a = std::string{ C::ComponentName };
+        auto b = std::string{ c->GetComponentName() };
+        return a == b;
+    });
     if (found != mComponents.end())
     {
-        return static_cast<C*>(found->second.get());
+        return static_cast<C*>(found->get());
     }
     return nullptr;
 }
@@ -84,14 +91,20 @@ C* Entity::AddComponent(Args&& ...args)
     auto component = std::make_unique<C>(std::forward<Args>(args)...);
     auto componentPtr = component.get();
     componentPtr->mEntity = this;
-    mComponents[C::ComponentName] = std::move(component);
+    componentPtr->Load();
+    mComponents.emplace_back(std::move(component));
     return componentPtr;
 }
 
 template<typename C>
 void Entity::RemoveComponent()
 {
-    auto found = mComponents.find(C::ComponentName);
+    auto found = std::find_if(mComponents.begin(), mComponents.end(), [](auto& c)
+    {
+        auto a = std::string{ C::ComponentName };
+        auto b = std::string{ c->GetComponentName() };
+        return a == b;
+    });
     if (found != mComponents.end())
     {
         mComponents.erase(found);
@@ -101,7 +114,12 @@ void Entity::RemoveComponent()
 template<typename C>
 bool Entity::HasComponent() const
 {
-    return mComponents.find(C::ComponentName) != mComponents.end();
+    return std::find_if(mComponents.begin(), mComponents.end(), [](auto& c)
+    {
+        auto a = std::string{ C::ComponentName };
+        auto b = std::string{ c->GetComponentName() };
+        return a == b;
+    }) != mComponents.end();
 }
 
 template<typename C1, typename C2, typename ...C>
@@ -113,7 +131,12 @@ bool Entity::HasComponent() const
 template<typename C>
 bool Entity::HasAnyComponent() const
 {
-    return mComponents.find(C::ComponentName) != mComponents.end();
+    return std::find_if(mComponents.begin(), mComponents.end(), [](auto& c)
+    {
+        auto a = std::string{ C::ComponentName };
+        auto b = std::string{ c->GetComponentName() };
+        return a == b;
+    }) != mComponents.end();
 }
 
 template<typename C1, typename C2, typename ...C>

@@ -1,14 +1,21 @@
-#include "core/entity.hpp"
+#include "core/entitymanager.hpp"
+#include "core/systems/resourcelocatorsystem.hpp"
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
 
 DEFINE_COMPONENT(AnimationComponent);
 
-void AnimationComponent::Load(ResourceLocator& resLoc, const char* animationName)
+void AnimationComponent::Deserialize(std::istream&)
 {
-    mAnimation = resLoc.LocateAnimation(animationName).get();
-    mAnimation->SetFrame(0);
-    mResourceLocator = &resLoc;
+    Load();
+}
+
+void AnimationComponent::Load()
+{
+    mEntity->GetManager()->With<ResourceLocatorSystem>([this](auto, auto resLoc)
+                                                       {
+                                                           mResourceLocator = resLoc->GetResourceLocator();
+                                                       });
     mTransformComponent = mEntity->GetComponent<TransformComponent>();
 }
 
@@ -16,6 +23,7 @@ void AnimationComponent::Change(const char* animationName)
 {
     mAnimation = mResourceLocator->LocateAnimation(animationName).get();
     mAnimation->SetFrame(0);
+    mLoaded = true;
 }
 
 bool AnimationComponent::Complete() const
@@ -28,16 +36,22 @@ s32 AnimationComponent::FrameNumber() const
     return mAnimation->FrameNumber();
 }
 
-void AnimationComponent::Render(AbstractRenderer& rend) const
-{
-    mAnimation->Render(rend,
-                       mFlipX,
-                       AbstractRenderer::eLayers::eForegroundLayer1,
-                       static_cast<s32>(mTransformComponent->GetX()),
-                       static_cast<s32>(mTransformComponent->GetY()));
-}
-
 void AnimationComponent::Update()
 {
-    mAnimation->Update();
+    if (mLoaded)
+    {
+        mAnimation->Update();
+    }
+}
+
+void AnimationComponent::Render(AbstractRenderer& rend) const
+{
+    if (mLoaded)
+    {
+        mAnimation->Render(rend,
+                           mFlipX,
+                           AbstractRenderer::eLayers::eForegroundLayer1,
+                           static_cast<s32>(mTransformComponent->GetX()),
+                           static_cast<s32>(mTransformComponent->GetY()));
+    }
 }

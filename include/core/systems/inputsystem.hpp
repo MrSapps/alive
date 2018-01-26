@@ -9,7 +9,7 @@ public:
     DECLARE_COMPONENT(InputSystem);
 
 public:
-    void Load(const InputState& state);
+    void Initialize(const InputState& state);
 
 public:
     const Actions* GetActions() const;

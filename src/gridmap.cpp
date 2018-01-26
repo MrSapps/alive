@@ -1,5 +1,6 @@
 #include "core/systems/inputsystem.hpp"
 #include "core/systems/collisionsystem.hpp"
+#include "core/systems/resourcelocatorsystem.hpp"
 #include "core/components/physicscomponent.hpp"
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
@@ -343,43 +344,41 @@ bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const 
 	mRoot.RegisterComponent<SligPlayerControllerComponent>();
 	mRoot.RegisterComponent<TransformComponent>();
 
+	mRoot.RegisterComponent<ResourceLocatorSystem>();
 	mRoot.RegisterComponent<CollisionSystem>();
 	mRoot.RegisterComponent<InputSystem>();
 
     {
-        auto systems = mRoot.Create();
+        auto systems = mRoot.Create(); // TODO: Hacked: this entity is never serialized/deserialized, move to real system
         auto inputSystem = systems->AddComponent<InputSystem>();
+        auto resourceLocatorSystem = systems->AddComponent<ResourceLocatorSystem>();
         systems->AddComponent<CollisionSystem>();
 
-        inputSystem->Load(input);
+        inputSystem->Initialize(input);
+        resourceLocatorSystem->Initialize(locator);
     }
+
     {
-        auto abe = mRoot.Create();
+		auto abe = mRoot.Create();
         auto pos = abe->AddComponent<TransformComponent>();
-        auto controller = abe->AddComponent<AbePlayerControllerComponent>();
-        auto movement = abe->AddComponent<AbeMovementComponent>();
         abe->AddComponent<PhysicsComponent>();
-        auto animation = abe->AddComponent<AnimationComponent>();
+        abe->AddComponent<AnimationComponent>();
+        abe->AddComponent<AbeMovementComponent>();
+        abe->AddComponent<AbePlayerControllerComponent>();
 
         pos->Set(125.0f, 380.0f + (80.0f));
         pos->SnapXToGrid();
-        animation->Load(locator, "AbeStandIdle");
-        movement->Load();
-        controller->Load();
     }
     {
         auto slig = mRoot.Create();
         auto pos = slig->AddComponent<TransformComponent>();
-        auto controller = slig->AddComponent<SligPlayerControllerComponent>();
-        auto movement = slig->AddComponent<SligMovementComponent>();
+        slig->AddComponent<AnimationComponent>();
         slig->AddComponent<PhysicsComponent>();
-        auto animation = slig->AddComponent<AnimationComponent>();
+        slig->AddComponent<SligMovementComponent>();
+        slig->AddComponent<SligPlayerControllerComponent>();
 
         pos->Set(125.0f + (25.0f), 380.0f + (80.0f));
         pos->SnapXToGrid();
-        animation->Load(locator, "SligStandIdle");
-        movement->Load();
-        controller->Load();
     }
 
 #ifdef _DEBUG

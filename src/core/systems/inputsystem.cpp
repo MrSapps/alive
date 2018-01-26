@@ -2,7 +2,7 @@
 
 DEFINE_COMPONENT(InputSystem);
 
-void InputSystem::Load(const InputState& state)
+void InputSystem::Initialize(const InputState& state)
 {
     mActions = &state.Mapping().GetActions();
 }
