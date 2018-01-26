@@ -349,34 +349,19 @@ bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const 
 	mRoot.RegisterComponent<InputSystem>();
 
     {
-        auto systems = mRoot.Create(); // TODO: Hacked: this entity is never serialized/deserialized, move to real system
-        auto inputSystem = systems->AddComponent<InputSystem>();
-        auto resourceLocatorSystem = systems->AddComponent<ResourceLocatorSystem>();
-        systems->AddComponent<CollisionSystem>();
-
-        inputSystem->Initialize(input);
-        resourceLocatorSystem->Initialize(locator);
+        auto systems = mRoot.CreateWith<InputSystem, ResourceLocatorSystem, CollisionSystem>(); // TODO: Hacked: this entity is never serialized/deserialized, move to real system
+        systems->GetComponent<InputSystem>()->Initialize(input);
+        systems->GetComponent<ResourceLocatorSystem>()->Initialize(locator);
     }
-
     {
-		auto abe = mRoot.Create();
-        auto pos = abe->AddComponent<TransformComponent>();
-        abe->AddComponent<PhysicsComponent>();
-        abe->AddComponent<AnimationComponent>();
-        abe->AddComponent<AbeMovementComponent>();
-        abe->AddComponent<AbePlayerControllerComponent>();
-
+		auto abe = mRoot.CreateWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent>();
+        auto pos = abe->GetComponent<TransformComponent>();
         pos->Set(125.0f, 380.0f + (80.0f));
         pos->SnapXToGrid();
     }
     {
-        auto slig = mRoot.Create();
-        auto pos = slig->AddComponent<TransformComponent>();
-        slig->AddComponent<AnimationComponent>();
-        slig->AddComponent<PhysicsComponent>();
-        slig->AddComponent<SligMovementComponent>();
-        slig->AddComponent<SligPlayerControllerComponent>();
-
+        auto slig = mRoot.CreateWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
+        auto pos = slig->GetComponent<TransformComponent>();
         pos->Set(125.0f + (25.0f), 380.0f + (80.0f));
         pos->SnapXToGrid();
     }

@@ -90,13 +90,13 @@ void AbeMovementComponent::OnResolveDependencies()
 void AbeMovementComponent::Serialize(std::ostream &os) const
 {
     // static_assert(std::is_pod<decltype(mData)>::value);
-    os.write(static_cast<const char *>(static_cast<const void*>(&mData)), sizeof(decltype(mData)));
+    os.write(static_cast<const char*>(static_cast<const void*>(&mData)), sizeof(decltype(mData)));
 }
 
 void AbeMovementComponent::Deserialize(std::istream &is)
 {
     // static_assert(std::is_pod<decltype(mData)>::value);
-	is.read(static_cast<char *>(static_cast<void*>(&mData)), sizeof(decltype(mData)));
+	is.read(static_cast<char*>(static_cast<void*>(&mData)), sizeof(decltype(mData)));
 }
 
 void AbeMovementComponent::Update()
