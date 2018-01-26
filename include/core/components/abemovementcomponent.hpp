@@ -53,6 +53,8 @@ private:
         std::function<void(AbeMovementComponent*)> mHandler;
     };
 
+    void ASyncTransition();
+
     void SetXSpeed(f32 speed);
     
     std::map<States, StateData> mStateFnMap;
@@ -70,8 +72,6 @@ private:
 
     void StandTurnAround();
 
-    void ASyncTransition();
-
     bool DirectionChanged() const;
     bool TryMoveLeftOrRight() const;
 
@@ -88,7 +88,7 @@ public:
     void Deserialize(std::istream& is) override;
 
 public:
-    void Load();
+    void Load() final;
     void Update();
 
 private:
