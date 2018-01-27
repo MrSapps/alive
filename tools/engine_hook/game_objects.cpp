@@ -88,7 +88,7 @@ void GameObjectList::LogObjects()
             BaseObj* objPtr = p->mPointerToObjects[i];
             if (objPtr)
             {
-                LOG_INFO("Ptr is " << AeTypeToString(objPtr->mTypeId));
+                LOG_INFO("Ptr is " << AeTypeToString(objPtr->field_4_typeId));
             }
         }
     }
@@ -108,7 +108,7 @@ BaseObj* GameObjectList::HeroPtr()
     Objs* ptrs = GetObjectsPtr();
     for (int i = 0; i < ptrs->mCount; i++)
     {
-        if (ptrs->mPointerToObjects[i]->mTypeId == heroId)
+        if (ptrs->mPointerToObjects[i]->field_4_typeId == heroId)
         {
             return ptrs->mPointerToObjects[i];
         }

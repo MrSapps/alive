@@ -85,7 +85,7 @@ BOOL DebugDialog::CreateControls()
         {
             DWORD ptrValue = reinterpret_cast<DWORD>(pObjs->mPointerToObjects[i]);
 
-            std::string typeString = GameObjectList::AeTypeToString(pObjs->mPointerToObjects[i]->mTypeId);
+            std::string typeString = GameObjectList::AeTypeToString(pObjs->mPointerToObjects[i]->field_4_typeId);
 
             std::string name = std::to_string(ptrValue) + "_" + typeString;
 
