@@ -101,22 +101,28 @@ struct BaseObj
     DWORD field_AC;
     DWORD field_B0;
     DWORD field_B4;
+
+    // Start sub class ?
+
     DWORD field_B8_xpos;
     DWORD field_BC_ypos;
-    WORD field_C0;
-    WORD field_C2;
+    WORD field_C0_path_number;
+    WORD field_C2_lvl_number; // e.g BR is 9
     DWORD field_C4_velx;
     DWORD field_C8_vely;
-    DWORD field_CC;
-    WORD field_D0_127;
-    WORD field_D2_127;
-    WORD field_D4_127;
-    WORD field_D6;
-    WORD field_D8;
-    WORD field_DA;
-    WORD field_DC;
-    WORD field_DE;
-    DWORD field_E0_176_ptr;
+    HalfFloat field_CC_sprite_scale; // The actual scale of the sprite, e.g when abe blows up and "flys" into the screen his meat chunks are huge
+    WORD field_D0_r;
+    WORD field_D2_g;
+    WORD field_D4_b;
+    WORD field_D6_scale; // 1 = "normal" 0 = background, 2/others = normal but can't interact with objects ?? Changing this will not resize the sprite
+    WORD field_D8_yOffset; // These offset abes pos by this amount
+    WORD field_DA_xOffset;
+    WORD field_DC_bApplyShadows; // false = shadows zones have no effect
+    WORD field_DE_pad; // No effect, padding?
+    DWORD field_E0_176_ptr; // shadow pointer, nullptr = crash ?
+
+    // End class  ?
+
     DWORD field_E4;
     DWORD field_E8;
     DWORD field_EC;
