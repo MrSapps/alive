@@ -32,9 +32,14 @@ bool AnimationComponent::Complete() const
     return mAnimation->IsComplete();
 }
 
-s32 AnimationComponent::FrameNumber() const
+u32 AnimationComponent::FrameNumber() const
 {
-    return mAnimation->FrameNumber();
+    return static_cast<u32>(mAnimation->FrameNumber());
+}
+
+void AnimationComponent::SetFrame(u32 frame)
+{
+    mAnimation->SetFrame(frame);
 }
 
 void AnimationComponent::Update()

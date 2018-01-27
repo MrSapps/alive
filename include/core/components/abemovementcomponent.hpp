@@ -9,8 +9,6 @@ class PhysicsComponent;
 class AnimationComponent;
 class TransformComponent;
 
-const f32 kAbeWalkSpeed = 2.777771f;
-
 class AbeMovementComponent final : public Component
 {
 public:
@@ -59,8 +57,6 @@ public:
 private:
     void ASyncTransition();
 
-    void SetXSpeed(f32 speed);
-    
     void PreStanding(States previous);
     void Standing();
 
@@ -69,14 +65,24 @@ private:
 
     void PreWalking(States previous);
     void Walking();
+    void WalkToStand();
 
     void StandTurnAround();
+
+    // Helpers
+
+    void SnapXToGrid();
+    void SetXSpeed(f32 speed);
+    bool FrameIs(u32 frame) const;
+    void SetFrame(u32 frame);
+    void PlaySoundEffect(const char* fxName);
 
     bool DirectionChanged() const;
     bool TryMoveLeftOrRight() const;
 
     void SetAnimation(const std::string& anim);
     void SetState(States state);
+    void SetCurrentAndNextState(States current, States next);
 
 private:
     std::map<States, StateData> mStateFnMap;
@@ -85,11 +91,18 @@ private:
     AnimationComponent* mAnimationComponent = nullptr;
 
 private:
-    struct {
+    struct
+    {
         Goal mGoal;
         States mState;
         States mNextState;
-    } mData;
+    }
+    mData =
+    {
+        Goal::eStand,
+        States::eStanding,
+        States::eStanding
+    };
 };
 
 class AbePlayerControllerComponent final : public Component

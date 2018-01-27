@@ -21,8 +21,8 @@ public:
 public:
     void Change(const char* animationName);
     bool Complete() const;
-    s32 FrameNumber() const;
-
+    u32 FrameNumber() const;
+    void SetFrame(u32 frame);
 public:
     bool mFlipX = false;
     bool mLoaded = false;
