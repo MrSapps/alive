@@ -35,6 +35,7 @@
 HINSTANCE gDllInstance = NULL;
 
 static int __cdecl gdi_draw_hook(DWORD * hdc);
+static void __cdecl j_AnimateAllAnimations_40AC20_Hook(GameObjectList::Objs<Animation2*>* pAnims);
 
 static int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
 typedef int(__thiscall* set_first_camera_thiscall)(void *thisPtr, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
@@ -106,6 +107,7 @@ namespace Hooks
     Hook<decltype(&::sub_418930_hook), sub_418930_thiscall> sub_418930(Addrs().sub_418930());
     Hook<decltype(&::set_first_camera_hook), set_first_camera_thiscall> set_first_camera(Addrs().set_first_camera());
     Hook<decltype(&::gdi_draw_hook)> gdi_draw(Funcs().gdi_draw.mAddr);
+    Hook<decltype(&::j_AnimateAllAnimations_40AC20_Hook)> j_AnimateAllAnimations_40AC20(Funcs().j_AnimateAllAnimations_40AC20.mAddr);
     Hook<decltype(&::anim_decode_hook), anim_decode_thiscall> anim_decode(Addrs().anim_decode());
     Hook<decltype(&::get_anim_frame_hook)> get_anim_frame(Addrs().get_anim_frame());
 }
@@ -559,6 +561,41 @@ void GdiLoop(HDC hdc)
     DeleteObject(hLinePen);
 }
 
+struct gVtbl_animation_2a_544290
+{
+    // Note: These actually take AnimationEx*'s but since this is hand made vtable it has to use the base type
+    void (__thiscall* jAnimation_decode_frame_4039D1)(Animation2 *pthis);
+    char (__thiscall* Animation_403F7B)(Animation2 *pthis, int a2, int a3, int a4, __int16 a5, int a6);
+    signed __int16 (__thiscall* Animation_4029E1)(Animation2 *a1);
+    __int16 (__thiscall* Animation_4032BF)(Animation2 *a1, int a2);
+    char (__thiscall* Animation_4030FD)(Animation2 *pthis, int a1, int a2, int a3, int a4, int a5);
+};
+
+static void __cdecl j_AnimateAllAnimations_40AC20_Hook(GameObjectList::Objs<Animation2*>* pAnims)
+{
+    for (u16 i = 0; i < pAnims->mCount; i++)
+    {
+        Animation2* pAnim = pAnims->mArray[i];
+        if (!pAnim)
+        {
+            break;
+        }
+
+        if (pAnim->field_4_flags & 2)
+        {
+            if (pAnim->field_E_frame_change_counter > 0)
+            {
+                pAnim->field_E_frame_change_counter--;
+                if (pAnim->field_E_frame_change_counter == 0)
+                {
+                    gVtbl_animation_2a_544290* pVTbl = reinterpret_cast<gVtbl_animation_2a_544290*>(pAnim->field_0_VTable);
+                    pVTbl->jAnimation_decode_frame_4039D1(pAnim);
+                }
+            }
+        }
+    }
+}
+
 static int __cdecl gdi_draw_hook(DWORD * hdcPtr)
 {
     HDC hdc = Funcs().ConvertAbeHdcHandle(hdcPtr);
@@ -619,6 +656,11 @@ void HookMain()
     Hooks::anim_decode.Install(anim_decode_hook);
     //Hooks::get_anim_frame.Install(get_anim_frame_hook);
     Hooks::sub_418930.Install(sub_418930_hook);
+
+    if (Utils::IsAe())
+    {
+        Hooks::j_AnimateAllAnimations_40AC20.Install(j_AnimateAllAnimations_40AC20_Hook);
+    }
 
    // Hooks::AbeSnap_sub_449930.Install(AbeSnap_sub_449930_hook);
     InstallSoundHooks();
