@@ -66,7 +66,7 @@ struct Rect16
 };
 ALIVE_ASSERT_SIZEOF(Rect16, 8);
 
-struct Animation
+struct Animation2
 {
     void* field_0_VTable;
     DWORD field_4_flags;
@@ -77,72 +77,53 @@ struct Animation
     WORD field_C_render_layer;
     WORD field_E_frame_change_counter;
 };
-ALIVE_ASSERT_SIZEOF(Animation, 0x10);
+ALIVE_ASSERT_SIZEOF(Animation2, 0x10);
 
-struct AnimationEx
+#pragma pack(push)
+#pragma pack(2)
+struct AnimationEx : public Animation2
 {
-    Animation field_0_mBase;
-    DWORD field_10_frame_delay;
-    DWORD field_14_scale;
-    DWORD field_18;
+    WORD field_10_frame_delay;
+    DWORD field_12_scale;
+    DWORD field_16_dataOffset;
+    WORD field_1A;
     DWORD field_1C;
-    DWORD field_20;
-    DWORD field_24_dBuf;
-    DWORD field_28;
-    // TODO: More fields
-};
-ALIVE_ASSERT_SIZEOF(AnimationEx, 0x2C);
+    DWORD field_20_ppBlock;
+    DWORD field_24_dbuf;
+    WORD field_28_dbuf_size;
 
-struct BaseObj
+    BYTE field_2A[38];
+    BYTE field_50[38];
+    DWORD field_76_pad;
+
+    Rect16 field_7A;
+    Rect16 field_82;
+
+    WORD field_8A_x;
+    WORD field_8C_y;
+    WORD field_8E_num_cols;
+    WORD field_90_pad; // padding ??
+    WORD field_92_current_frame;
+    DWORD field_94_unknown_pointer; // Pointer to something
+};
+ALIVE_ASSERT_SIZEOF(AnimationEx, 0x98);
+#pragma pack(pop)
+
+struct BaseGameObject
 {
-    void* field_0_vtbl;
+    void* mVTbl;
     u16 field_4_typeId;
-    FlagsUnion field_6_flags2;
-    u32 field_8;
+    FlagsUnion field_6_flags;
+    u32 field_8_flagsEx;
     u32 field_C;
     GameObjectList::Objs field_10_resources_object_list;
-    DWORD field_1C;
-    Abe_1BC_20_sub_object field_20_obj;
-    void* field_3C_vtbl; // pointer to array of function pointers
-   
-    DWORD** field_40_ppAnims; // Array of pointers to Anim resource blocks
-    DWORD field_44; // Always 0?
+    DWORD field_1C_update_delay;
+};
+ALIVE_ASSERT_SIZEOF(BaseGameObject, 0x20);
 
-    DWORD field_48; // layer / frame delay ?
-    DWORD** field_4C; // pointer to 0x5c1234, some sort of scratch buffer ? pointers to.. more pointers??
-    DWORD field_50; // size?
-
-    DWORD field_54;
-    DWORD field_58;
-    DWORD field_5C;
-    DWORD field_60;
-    DWORD field_64;
-    DWORD field_68;
-    DWORD field_6C;
-    DWORD field_70;
-    DWORD field_74;
-
-    DWORD field_78;
-    DWORD field_7C;
-    DWORD field_80; // 
-    DWORD field_84; // 
-    DWORD field_88; // 
-    DWORD field_8C; // 
-    DWORD field_90; //
-    DWORD field_94; //
-
-    Rect16 field_98_rect;
-    Rect16 field_A0_rect;
-
-    WORD field_A8_pal_x;
-    WORD field_AC_pal_y;
-    WORD field_AE_num_pal_entries;
-    WORD field_B0; // padding ??
-    WORD field_B2_current_frame;
-    DWORD field_B4; // Pointer to something
-
-    // Start sub class ?
-
+struct BaseAnimatedWithPhysicsGameObject : public BaseGameObject
+{
+    AnimationEx field_20_animation;
     DWORD field_B8_xpos;
     DWORD field_BC_ypos;
     WORD field_C0_path_number;
@@ -159,9 +140,13 @@ struct BaseObj
     WORD field_DC_bApplyShadows; // false = shadows zones have no effect
     WORD field_DE_pad; // No effect, padding?
     DWORD field_E0_176_ptr; // shadow pointer, nullptr = crash ?
+};
+ALIVE_ASSERT_SIZEOF(BaseAnimatedWithPhysicsGameObject, 0xE4);
 
-    // End class  ?
-
+#pragma pack(push)
+#pragma pack(1)
+struct BaseAliveGameObject : public BaseAnimatedWithPhysicsGameObject
+{
     DWORD field_E4;
     DWORD field_E8;
     DWORD field_EC;
@@ -169,20 +154,26 @@ struct BaseObj
     WORD field_F4;
     WORD field_F6;
     DWORD field_F8;
-    DWORD field_FC;
-    DWORD field_100;
+    DWORD* field_FC_pPathTLV;
+    DWORD* field_100_pCollisionLine;
     WORD field_104;
-    WORD field_106;
-    WORD field_108;
+    WORD field_106_animation_num;
+    WORD field_108; // something to do with the turning state
     WORD field_10A;
-    DWORD field_10C;
+    DWORD field_10C_health;
     DWORD field_110;
     BYTE field_114_flags;
-    BYTE field_115;
+    BYTE field_115_flags;
+};
+#pragma pack(pop)
+ALIVE_ASSERT_SIZEOF(BaseAliveGameObject, 0x116);
+
+struct Abe : public BaseAliveGameObject
+{
     WORD field_116;
     WORD field_118;
     WORD field_11A;
-    WORD field_11C;
+    WORD field_11C; // 1 = abe dies when rolling off an edge by splatting
     WORD field_11E;
     WORD field_120;
     WORD field_122;
@@ -215,8 +206,8 @@ struct BaseObj
     WORD field_19A;
     DWORD field_19C;
     WORD field_1A0;
-    BYTE field_1A2;
-    BYTE field_1A3;
+    BYTE field_1A2_rock_or_bone_count;
+    BYTE field_1A3_throw_direction;
     DWORD field_1A4;
     DWORD field_1A8;
     WORD field_1AC;
@@ -224,10 +215,15 @@ struct BaseObj
     DWORD field_1B0;
     DWORD field_1B4;
     DWORD field_1B8;
+};
+ALIVE_ASSERT_SIZEOF(Abe, 0x1BC);
+
+struct BaseObj // Aka BaseAnimatedWithPhysicsGameObject
+{
+    Abe mAbe;
 
     HalfFloat xpos();
     HalfFloat ypos();
     HalfFloat velocity_x();
     HalfFloat velocity_y();
 };
-ALIVE_ASSERT_SIZEOF(BaseObj, 0x1BC);
