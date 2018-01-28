@@ -8,6 +8,8 @@
 #include "w32controls.hpp"
 #include "half_float.hpp"
 
+struct BaseAnimatedWithPhysicsGameObject;
+
 struct AnimPriorityData
 {
     std::string mName;
@@ -106,5 +108,5 @@ private:
     std::vector<DeltaRecord> mDeltas;
     void SyncDeltaListBoxData();
 private:
-    void RecordObjectDeltas(BaseObj& selected);
+    void RecordObjectDeltas(BaseAnimatedWithPhysicsGameObject& selected);
 };

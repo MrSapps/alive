@@ -8,25 +8,27 @@
 #define ALIVE_ASSERT_SIZEOF(structureName, expectedSize) static_assert(sizeof(structureName) == expectedSize, "sizeof(" #structureName ") must be " #expectedSize)
 
 struct BaseObj;
+struct BaseAnimatedWithPhysicsGameObject;
 
 class GameObjectList
 {
 public:
     static std::string AeTypeToString(u16 type);
 
+    template<class T>
     struct Objs
     {
-        BaseObj** mPointerToObjects; // This can actually be a pointer to any type depending on what the list is used for
+        T* mArray;
         u16 mCount;
         u16 mMaxCount;
         u16 mExpandSize;
         u16 mFreeCount;
     };
-    ALIVE_ASSERT_SIZEOF(Objs, 0xc);
+    ALIVE_ASSERT_SIZEOF(Objs<int*>, 0xc);
 
     static void LogObjects();
-    static Objs* GetObjectsPtr();
-    static BaseObj* HeroPtr();
+    static Objs<BaseAnimatedWithPhysicsGameObject*>* GetObjectsPtr(); // TODO: Type is probably too far down the tree
+    static BaseAnimatedWithPhysicsGameObject* HeroPtr();
 };
 
 struct Abe_1BC_20_sub_object
@@ -116,7 +118,7 @@ struct BaseGameObject
     FlagsUnion field_6_flags;
     u32 field_8_flagsEx;
     u32 field_C;
-    GameObjectList::Objs field_10_resources_object_list;
+    GameObjectList::Objs<void*> field_10_resources_object_list;
     DWORD field_1C_update_delay;
 };
 ALIVE_ASSERT_SIZEOF(BaseGameObject, 0x20);
@@ -140,6 +142,13 @@ struct BaseAnimatedWithPhysicsGameObject : public BaseGameObject
     WORD field_DC_bApplyShadows; // false = shadows zones have no effect
     WORD field_DE_pad; // No effect, padding?
     DWORD field_E0_176_ptr; // shadow pointer, nullptr = crash ?
+
+    // Helpers - not part of actual object in real games
+    HalfFloat xpos();
+    HalfFloat ypos();
+    HalfFloat velocity_x();
+    HalfFloat velocity_y();
+
 };
 ALIVE_ASSERT_SIZEOF(BaseAnimatedWithPhysicsGameObject, 0xE4);
 
@@ -217,13 +226,3 @@ struct Abe : public BaseAliveGameObject
     DWORD field_1B8;
 };
 ALIVE_ASSERT_SIZEOF(Abe, 0x1BC);
-
-struct BaseObj // Aka BaseAnimatedWithPhysicsGameObject
-{
-    Abe mAbe;
-
-    HalfFloat xpos();
-    HalfFloat ypos();
-    HalfFloat velocity_x();
-    HalfFloat velocity_y();
-};

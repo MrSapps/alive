@@ -80,12 +80,12 @@ BOOL DebugDialog::CreateControls()
     {
         mObjectsListBox->Clear();
 
-        GameObjectList::Objs* pObjs = GameObjectList::GetObjectsPtr();
+        auto pObjs = GameObjectList::GetObjectsPtr();
         for (int i = 0; i < pObjs->mCount; i++)
         {
-            DWORD ptrValue = reinterpret_cast<DWORD>(pObjs->mPointerToObjects[i]);
+            DWORD ptrValue = reinterpret_cast<DWORD>(pObjs->mArray[i]);
 
-            std::string typeString = GameObjectList::AeTypeToString(pObjs->mPointerToObjects[i]->mAbe.field_4_typeId);
+            std::string typeString = GameObjectList::AeTypeToString(pObjs->mArray[i]->field_4_typeId);
 
             std::string name = std::to_string(ptrValue) + "_" + typeString;
 
@@ -143,11 +143,11 @@ void DebugDialog::OnFrameEnd()
 {
     if (mSelectedPointer)
     {
-        BaseObj* pSelected = reinterpret_cast<BaseObj*>(mSelectedPointer);
-        GameObjectList::Objs* pObjs = GameObjectList::GetObjectsPtr();
+        auto pSelected = reinterpret_cast<BaseAnimatedWithPhysicsGameObject*>(mSelectedPointer);
+        auto pObjs = GameObjectList::GetObjectsPtr();
         for (int i = 0; i < pObjs->mCount; i++)
         {
-            if (pSelected == pObjs->mPointerToObjects[i])
+            if (pSelected == pObjs->mArray[i])
             {
                 RecordObjectDeltas(*pSelected);
                 return;
@@ -262,7 +262,7 @@ void DebugDialog::SyncDeltaListBoxData()
     mObjectDeltasListBox->SetSelectedIndex(selected);
 }
 
-void DebugDialog::RecordObjectDeltas(BaseObj& obj)
+void DebugDialog::RecordObjectDeltas(BaseAnimatedWithPhysicsGameObject& obj)
 {
     if (mDeltaInfo.prevX != obj.xpos() ||
         mDeltaInfo.prevY != obj.ypos() ||
