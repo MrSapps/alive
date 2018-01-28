@@ -1,3 +1,6 @@
+#include <map>
+#include <string>
+
 #include "core/entity.hpp"
 #include "core/entitymanager.hpp"
 #include "core/systems/inputsystem.hpp"
@@ -9,78 +12,77 @@
 
 DEFINE_COMPONENT(AbeMovementComponent);
 
-static const std::string kAbeWalkToStand = "AbeWalkToStand";
-static const std::string kAbeWalkToStandMidGrid = "AbeWalkToStandMidGrid";
-static const std::string kAbeWalkingToRunning = "AbeWalkingToRunning";
-static const std::string kAbeWalkingToRunningMidGrid = "AbeWalkingToRunningMidGrid";
-static const std::string kAbeWalkingToSneaking = "AbeWalkingToSneaking";
-static const std::string kAbeWalkingToSneakingMidGrid = "AbeWalkingToSneakingMidGrid";
-static const std::string kAbeStandToRun = "AbeStandToRun";
-static const std::string kAbeRunningToSkidTurn = "AbeRunningToSkidTurn";
-static const std::string kAbeRunningTurnAround = "AbeRunningTurnAround";
-static const std::string kAbeRunningTurnAroundToWalk = "AbeRunningTurnAroundToWalk";
-static const std::string kAbeRunningToRoll = "AbeRunningToRoll";
-static const std::string kAbeRunningToJump = "AbeRunningToJump";
-static const std::string kAbeRunningJumpInAir = "AbeRunningJumpInAir";
-static const std::string kAbeLandToRunning = "AbeLandToRunning";
-static const std::string kAbeLandToWalking = "AbeLandToWalking";
-static const std::string kAbeFallingToLand = "AbeFallingToLand";
-static const std::string kRunToSkidStop = "RunToSkidStop";
-static const std::string kAbeRunningSkidStop = "AbeRunningSkidStop";
-static const std::string kAbeRunningToWalk = "AbeRunningToWalk";
-static const std::string kAbeRunningToWalkingMidGrid = "AbeRunningToWalkingMidGrid";
-static const std::string kAbeStandToSneak = "AbeStandToSneak";
-static const std::string kAbeSneakToStand = "AbeSneakToStand";
-static const std::string kAbeSneakToStandMidGrid = "AbeSneakToStandMidGrid";
-static const std::string kAbeSneakingToWalking = "AbeSneakingToWalking";
-static const std::string kAbeSneakingToWalkingMidGrid = "AbeSneakingToWalkingMidGrid";
-static const std::string kAbeStandPushWall = "AbeStandPushWall";
-static const std::string kAbeHitGroundToStand = "AbeHitGroundToStand";
-static const std::string kAbeStandToWalk = "AbeStandToWalk";
-static const std::string kAbeStandToCrouch = "AbeStandToCrouch";
-static const std::string kAbeCrouchToStand = "AbeCrouchToStand";
-static const std::string kAbeStandTurnAround = "AbeStandTurnAround";
-static const std::string kAbeStandTurnAroundToRunning = "AbeStandTurnAroundToRunning";
-static const std::string kAbeCrouchTurnAround = "AbeCrouchTurnAround";
-static const std::string kAbeCrouchToRoll = "AbeCrouchToRoll";
-static const std::string kAbeStandSpeak1 = "AbeStandSpeak1";
-static const std::string kAbeStandSpeak2 = "AbeStandSpeak2";
-static const std::string kAbeStandSpeak3 = "AbeStandSpeak3";
-static const std::string kAbeStandingSpeak4 = "AbeStandingSpeak4";
-static const std::string kAbeStandSpeak5 = "AbeStandSpeak5";
-static const std::string kAbeCrouchSpeak1 = "AbeCrouchSpeak1";
-static const std::string kAbeCrouchSpeak2 = "AbeCrouchSpeak2";
-static const std::string kAbeStandIdle = "AbeStandIdle";
-static const std::string kAbeCrouchIdle = "AbeCrouchIdle";
-static const std::string kAbeStandToHop = "AbeStandToHop";
-static const std::string kAbeHopping = "AbeHopping";
-static const std::string kAbeHoppingToStand = "AbeHoppingToStand";
-static const std::string kAbeHoistDangling = "AbeHoistDangling";
-static const std::string kAbeHoistPullSelfUp = "AbeHoistPullSelfUp";
-static const std::string kAbeStandToJump = "AbeStandToJump";
-static const std::string kAbeJumpUpFalling = "AbeJumpUpFalling";
-static const std::string kAbeWalking = "AbeWalking";
-static const std::string kAbeRunning = "AbeRunning";
-static const std::string kAbeSneaking = "AbeSneaking";
-static const std::string kAbeStandToFallingFromTrapDoor = "AbeStandToFallingFromTrapDoor";
-static const std::string kAbeHoistDropDown = "AbeHoistDropDown";
-static const std::string kAbeRolling = "AbeRolling";
-static const std::string kAbeStandToChant = "AbeStandToChant";
-static const std::string kAbeChantToStand = "AbeChantToStand";
-static const std::string kAbeGassed = "AbeGassed";
-
-const f32 kAbeWalkSpeed = 2.777771f;
-
+static const f32 kAbeWalkSpeed = 2.777771f;
+static const std::map<AbeMovementComponent::AbeAnimation, std::string> kAbeAnimations = {
+    { AbeMovementComponent::AbeAnimation::eAbeWalkToStand, std::string{ "AbeWalkToStand" }},
+    { AbeMovementComponent::AbeAnimation::eAbeWalkToStandMidGrid, std::string{ "AbeWalkToStandMidGrid" }},
+    { AbeMovementComponent::AbeAnimation::eAbeWalkingToRunning, std::string{ "AbeWalkingToRunning" }},
+    { AbeMovementComponent::AbeAnimation::eAbeWalkingToRunningMidGrid, std::string{ "AbeWalkingToRunningMidGrid" }},
+    { AbeMovementComponent::AbeAnimation::eAbeWalkingToSneaking, std::string{ "AbeWalkingToSneaking" }},
+    { AbeMovementComponent::AbeAnimation::eAbeWalkingToSneakingMidGrid, std::string{ "AbeWalkingToSneakingMidGrid" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandToRun, std::string{ "AbeStandToRun" }},
+    { AbeMovementComponent::AbeAnimation::eAbeRunningToSkidTurn, std::string{ "AbeRunningToSkidTurn" }},
+    { AbeMovementComponent::AbeAnimation::eAbeRunningTurnAround, std::string{ "AbeRunningTurnAround" }},
+    { AbeMovementComponent::AbeAnimation::eAbeRunningTurnAroundToWalk, std::string{ "AbeRunningTurnAroundToWalk" }},
+    { AbeMovementComponent::AbeAnimation::eAbeRunningToRoll, std::string{ "AbeRunningToRoll" }},
+    { AbeMovementComponent::AbeAnimation::eAbeRunningToJump, std::string{ "AbeRunningToJump" }},
+    { AbeMovementComponent::AbeAnimation::eAbeRunningJumpInAir, std::string{ "AbeRunningJumpInAir" }},
+    { AbeMovementComponent::AbeAnimation::eAbeLandToRunning, std::string{ "AbeLandToRunning" }},
+    { AbeMovementComponent::AbeAnimation::eAbeLandToWalking, std::string{ "AbeLandToWalking" }},
+    { AbeMovementComponent::AbeAnimation::eAbeFallingToLand, std::string{ "AbeFallingToLand" }},
+    { AbeMovementComponent::AbeAnimation::eAbeRunningSkidStop, std::string{ "AbeRunningSkidStop" }},
+    { AbeMovementComponent::AbeAnimation::eAbeRunningToWalk, std::string{ "AbeRunningToWalk" }},
+    { AbeMovementComponent::AbeAnimation::eAbeRunningToWalkingMidGrid, std::string{ "AbeRunningToWalkingMidGrid" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandToSneak, std::string{ "AbeStandToSneak" }},
+    { AbeMovementComponent::AbeAnimation::eAbeSneakToStand, std::string{ "AbeSneakToStand" }},
+    { AbeMovementComponent::AbeAnimation::eAbeSneakToStandMidGrid, std::string{ "AbeSneakToStandMidGrid" }},
+    { AbeMovementComponent::AbeAnimation::eAbeSneakingToWalking, std::string{ "AbeSneakingToWalking" }},
+    { AbeMovementComponent::AbeAnimation::eAbeSneakingToWalkingMidGrid, std::string{ "AbeSneakingToWalkingMidGrid" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandPushWall, std::string{ "AbeStandPushWall" }},
+    { AbeMovementComponent::AbeAnimation::eAbeHitGroundToStand, std::string{ "AbeHitGroundToStand" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandToWalk, std::string{ "AbeStandToWalk" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandToCrouch, std::string{ "AbeStandToCrouch" }},
+    { AbeMovementComponent::AbeAnimation::eAbeCrouchToStand, std::string{ "AbeCrouchToStand" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandTurnAround, std::string{ "AbeStandTurnAround" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandTurnAroundToRunning, std::string{ "AbeStandTurnAroundToRunning" }},
+    { AbeMovementComponent::AbeAnimation::eAbeCrouchTurnAround, std::string{ "AbeCrouchTurnAround" }},
+    { AbeMovementComponent::AbeAnimation::eAbeCrouchToRoll, std::string{ "AbeCrouchToRoll" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandSpeak1, std::string{ "AbeStandSpeak1" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandSpeak2, std::string{ "AbeStandSpeak2" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandSpeak3, std::string{ "AbeStandSpeak3" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandingSpeak4, std::string{ "AbeStandingSpeak4" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandSpeak5, std::string{ "AbeStandSpeak5" }},
+    { AbeMovementComponent::AbeAnimation::eAbeCrouchSpeak1, std::string{ "AbeCrouchSpeak1" }},
+    { AbeMovementComponent::AbeAnimation::eAbeCrouchSpeak2, std::string{ "AbeCrouchSpeak2" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandIdle, std::string{ "AbeStandIdle" }},
+    { AbeMovementComponent::AbeAnimation::eAbeCrouchIdle, std::string{ "AbeCrouchIdle" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandToHop, std::string{ "AbeStandToHop" }},
+    { AbeMovementComponent::AbeAnimation::eAbeHopping, std::string{ "AbeHopping" }},
+    { AbeMovementComponent::AbeAnimation::eAbeHoppingToStand, std::string{ "AbeHoppingToStand" }},
+    { AbeMovementComponent::AbeAnimation::eAbeHoistDangling, std::string{ "AbeHoistDangling" }},
+    { AbeMovementComponent::AbeAnimation::eAbeHoistPullSelfUp, std::string{ "AbeHoistPullSelfUp" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandToJump, std::string{ "AbeStandToJump" }},
+    { AbeMovementComponent::AbeAnimation::eAbeJumpUpFalling, std::string{ "AbeJumpUpFalling" }},
+    { AbeMovementComponent::AbeAnimation::eAbeWalking, std::string{ "AbeWalking" }},
+    { AbeMovementComponent::AbeAnimation::eAbeRunning, std::string{ "AbeRunning" }},
+    { AbeMovementComponent::AbeAnimation::eAbeSneaking, std::string{ "AbeSneaking" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandToFallingFromTrapDoor, std::string{ "AbeStandToFallingFromTrapDoor" }},
+    { AbeMovementComponent::AbeAnimation::eAbeHoistDropDown, std::string{ "AbeHoistDropDown" }},
+    { AbeMovementComponent::AbeAnimation::eAbeRolling, std::string{ "AbeRolling" }},
+    { AbeMovementComponent::AbeAnimation::eAbeStandToChant, std::string{ "AbeStandToChant" }},
+    { AbeMovementComponent::AbeAnimation::eAbeChantToStand, std::string{ "AbeChantToStand" }},
+    { AbeMovementComponent::AbeAnimation::eAbeGassed, std::string{ "AbeGassed" }}
+};
 
 void AbeMovementComponent::OnLoad()
 {
     Component::OnLoad(); // calls OnResolveDependencies
 
-    mStateFnMap[States::eStanding] =            { &AbeMovementComponent::PreStanding,  &AbeMovementComponent::Standing          };
-    mStateFnMap[States::eChanting] =            { &AbeMovementComponent::PreChanting,  &AbeMovementComponent::Chanting          };
-    mStateFnMap[States::eWalking] =             { &AbeMovementComponent::PreWalking,   &AbeMovementComponent::Walking           };
-    mStateFnMap[States::eStandTurningAround] =  { nullptr,                             &AbeMovementComponent::StandTurnAround   };
-    mStateFnMap[States::eWalkingToStanding] =   { nullptr,                             &AbeMovementComponent::WalkToStand };
+    mStateFnMap[States::eStanding] = { &AbeMovementComponent::PreStanding, &AbeMovementComponent::Standing };
+    mStateFnMap[States::eChanting] = { &AbeMovementComponent::PreChanting, &AbeMovementComponent::Chanting };
+    mStateFnMap[States::eWalking] = { &AbeMovementComponent::PreWalking, &AbeMovementComponent::Walking };
+    mStateFnMap[States::eStandTurningAround] = { nullptr, &AbeMovementComponent::StandTurnAround };
+    mStateFnMap[States::eWalkingToStanding] = { nullptr, &AbeMovementComponent::WalkToStand };
 
     SetState(States::eStanding);
 }
@@ -92,16 +94,16 @@ void AbeMovementComponent::OnResolveDependencies()
     mTransformComponent = mEntity->GetComponent<TransformComponent>();
 }
 
-void AbeMovementComponent::Serialize(std::ostream &os) const
+void AbeMovementComponent::Serialize(std::ostream& os) const
 {
     // static_assert(std::is_pod<decltype(mData)>::value);
     os.write(static_cast<const char*>(static_cast<const void*>(&mData)), sizeof(decltype(mData)));
 }
 
-void AbeMovementComponent::Deserialize(std::istream &is)
+void AbeMovementComponent::Deserialize(std::istream& is)
 {
     // static_assert(std::is_pod<decltype(mData)>::value);
-	is.read(static_cast<char*>(static_cast<void*>(&mData)), sizeof(decltype(mData)));
+    is.read(static_cast<char*>(static_cast<void*>(&mData)), sizeof(decltype(mData)));
 }
 
 void AbeMovementComponent::Update()
@@ -137,7 +139,6 @@ void AbeMovementComponent::WalkToStand()
         SetState(mData.mNextState);
     }
 }
-
 
 bool AbeMovementComponent::DirectionChanged() const
 {
@@ -176,7 +177,7 @@ void AbeMovementComponent::SetCurrentAndNextState(AbeMovementComponent::States c
 
 void AbeMovementComponent::PreStanding(AbeMovementComponent::States /*previous*/)
 {
-    SetAnimation(kAbeStandIdle);
+    SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeStandIdle));
     mPhysicsComponent->xSpeed = 0.0f;
     mPhysicsComponent->ySpeed = 0.0f;
 }
@@ -187,12 +188,12 @@ void AbeMovementComponent::Standing()
     {
         if (DirectionChanged())
         {
-            SetAnimation(kAbeStandTurnAround);
+            SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeStandTurnAround));
             SetCurrentAndNextState(States::eStandTurningAround, States::eStanding);
         }
         else
         {
-            SetAnimation(kAbeStandToWalk);
+            SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeStandToWalk));
             SetXSpeed(kAbeWalkSpeed);
             SetCurrentAndNextState(States::eWalking, States::eStandToWalking);
         }
@@ -205,14 +206,14 @@ void AbeMovementComponent::Standing()
 
 void AbeMovementComponent::PreChanting(AbeMovementComponent::States /*previous*/)
 {
-    SetAnimation(kAbeStandToChant);
+    SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeStandToChant));
 }
 
 void AbeMovementComponent::Chanting()
 {
     if (mData.mGoal == Goal::eStand)
     {
-        SetAnimation(kAbeChantToStand);
+        SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeChantToStand));
         SetCurrentAndNextState(States::eChantToStand, States::eStanding);
     }
     // Still chanting?
@@ -221,7 +222,7 @@ void AbeMovementComponent::Chanting()
         auto sligs = mEntity->GetManager()->With<SligMovementComponent>();
         if (!sligs.empty())
         {
-            for (auto &slig : sligs)
+            for (auto& slig : sligs)
             {
                 LOG_INFO("Found a Slig to possess");
                 slig->Destroy();
@@ -232,7 +233,7 @@ void AbeMovementComponent::Chanting()
 
 void AbeMovementComponent::PreWalking(AbeMovementComponent::States /*previous*/)
 {
-    SetAnimation(kAbeWalking);
+    SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeWalking));
     SetXSpeed(kAbeWalkSpeed);
 }
 
@@ -248,7 +249,7 @@ void AbeMovementComponent::Walking()
         if (FrameIs(2 + 1) || FrameIs(11 + 1))
         {
             SetCurrentAndNextState(States::eWalkingToStanding, States::eStanding);
-            SetAnimation(FrameIs(2 + 1) ? kAbeWalkToStand : kAbeWalkToStandMidGrid);
+            SetAnimation(FrameIs(2 + 1) ? kAbeAnimations.at(AbeAnimation::eAbeWalkToStand) : kAbeAnimations.at(AbeAnimation::eAbeWalkToStandMidGrid));
         }
     }
 }
