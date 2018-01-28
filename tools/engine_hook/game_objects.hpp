@@ -60,6 +60,39 @@ union FlagsUnion
 };
 ALIVE_ASSERT_SIZEOF(FlagsUnion, 0x2);
 
+struct Rect16
+{
+    WORD x, y, w, h;
+};
+ALIVE_ASSERT_SIZEOF(Rect16, 8);
+
+struct Animation
+{
+    void* field_0_VTable;
+    DWORD field_4_flags;
+    BYTE field_8_r;
+    BYTE field_9_g;
+    BYTE field_A_b;
+    BYTE field_B_render_mode;
+    WORD field_C_render_layer;
+    WORD field_E_frame_change_counter;
+};
+ALIVE_ASSERT_SIZEOF(Animation, 0x10);
+
+struct AnimationEx
+{
+    Animation field_0_mBase;
+    DWORD field_10_frame_delay;
+    DWORD field_14_scale;
+    DWORD field_18;
+    DWORD field_1C;
+    DWORD field_20;
+    DWORD field_24_dBuf;
+    DWORD field_28;
+    // TODO: More fields
+};
+ALIVE_ASSERT_SIZEOF(AnimationEx, 0x2C);
+
 struct BaseObj
 {
     void* field_0_vtbl;
@@ -70,12 +103,15 @@ struct BaseObj
     GameObjectList::Objs field_10_resources_object_list;
     DWORD field_1C;
     Abe_1BC_20_sub_object field_20_obj;
-    void* field_3C_vtbl;
-    DWORD field_40;
-    DWORD field_44;
-    DWORD field_48;
-    DWORD field_4C;
-    DWORD field_50;
+    void* field_3C_vtbl; // pointer to array of function pointers
+   
+    DWORD** field_40_ppAnims; // Array of pointers to Anim resource blocks
+    DWORD field_44; // Always 0?
+
+    DWORD field_48; // layer / frame delay ?
+    DWORD** field_4C; // pointer to 0x5c1234, some sort of scratch buffer ? pointers to.. more pointers??
+    DWORD field_50; // size?
+
     DWORD field_54;
     DWORD field_58;
     DWORD field_5C;
@@ -85,22 +121,25 @@ struct BaseObj
     DWORD field_6C;
     DWORD field_70;
     DWORD field_74;
+
     DWORD field_78;
     DWORD field_7C;
-    DWORD field_80;
-    DWORD field_84;
-    DWORD field_88;
-    DWORD field_8C;
-    DWORD field_90;
-    DWORD field_94;
-    DWORD field_98;
-    DWORD field_9C;
-    DWORD field_A0;
-    DWORD field_A4;
-    DWORD field_A8;
-    DWORD field_AC;
-    DWORD field_B0;
-    DWORD field_B4;
+    DWORD field_80; // 
+    DWORD field_84; // 
+    DWORD field_88; // 
+    DWORD field_8C; // 
+    DWORD field_90; //
+    DWORD field_94; //
+
+    Rect16 field_98_rect;
+    Rect16 field_A0_rect;
+
+    WORD field_A8_pal_x;
+    WORD field_AC_pal_y;
+    WORD field_AE_num_pal_entries;
+    WORD field_B0; // padding ??
+    WORD field_B2_current_frame;
+    DWORD field_B4; // Pointer to something
 
     // Start sub class ?
 
