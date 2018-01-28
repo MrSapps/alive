@@ -67,6 +67,7 @@ static const std::string kAbeHoistDropDown = "AbeHoistDropDown";
 static const std::string kAbeRolling = "AbeRolling";
 static const std::string kAbeStandToChant = "AbeStandToChant";
 static const std::string kAbeChantToStand = "AbeChantToStand";
+static const std::string kAbeGassed = "AbeGassed";
 
 const f32 kAbeWalkSpeed = 2.777771f;
 
