@@ -75,6 +75,10 @@ struct GameVars
     Address<DWORD*> dword_BBBD38 = { Addrs().dword_BBBD38() };
 
     Address<DWORD> ddCheatOn = { Addrs().ddCheatOn() };
+
+    // AE only
+    Address<DWORD> gb_ddNoSkip_5CA4D1 = { 0x5CA4D1 };
+
     Address<DWORD> alwaysDrawDebugText = { Addrs().alwaysDrawDebugText() };
 
     Address<struct PathRootData*> gPathData = { Addrs().gPathData() };

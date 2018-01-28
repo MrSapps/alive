@@ -571,6 +571,11 @@ struct gVtbl_animation_2a_544290
     char (__thiscall* Animation_4030FD)(Animation2 *pthis, int a1, int a2, int a3, int a4, int a5);
 };
 
+static void BeforeRender()
+{
+
+}
+
 static void __cdecl j_AnimateAllAnimations_40AC20_Hook(GameObjectList::Objs<Animation2*>* pAnims)
 {
     for (u16 i = 0; i < pAnims->mCount; i++)
@@ -594,6 +599,7 @@ static void __cdecl j_AnimateAllAnimations_40AC20_Hook(GameObjectList::Objs<Anim
             }
         }
     }
+    BeforeRender();
 }
 
 static int __cdecl gdi_draw_hook(DWORD * hdcPtr)
@@ -671,6 +677,14 @@ void HookMain()
     GetPathArray();
 
     Vars().ddCheatOn.Set(1);
+
+    if (Utils::IsAe())
+    {
+        // Otherwise every other rendered frame is skipped which makes per frame comparison of
+        // real engine vs alive rather tricky indeed.
+        Vars().gb_ddNoSkip_5CA4D1.Set(1);
+    }
+
     Vars().alwaysDrawDebugText.Set(1);
 }
 
