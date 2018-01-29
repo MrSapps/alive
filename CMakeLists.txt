@@ -415,6 +415,8 @@ SET(alivelib_src
     ${generated_headers_dir}/CONTRIBUTORS.md.g.h
     include/core/entitymanager.hpp
     src/core/entitymanager.cpp
+    include/core/system.hpp
+    src/core/system.cpp
     include/core/entity.hpp
     src/core/entity.cpp
     include/core/component.hpp

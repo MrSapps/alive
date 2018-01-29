@@ -176,11 +176,8 @@ DEFINE_COMPONENT(SligPlayerControllerComponent);
 
 void SligPlayerControllerComponent::OnResolveDependencies()
 {
-    mEntity->GetManager()->With<InputSystem>([this](auto, auto inputSystem)
-                                             {
-                                                 mInputMappingActions = inputSystem->GetActions();
-                                             });
-	mSligMovement = mEntity->GetComponent<SligMovementComponent>();
+    mInputMappingActions = mEntity->GetManager()->GetSystem<InputSystem>()->GetActions();
+    mSligMovement = mEntity->GetComponent<SligMovementComponent>();
 }
 
 void SligPlayerControllerComponent::Update()

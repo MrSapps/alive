@@ -9,10 +9,7 @@ void AnimationComponent::OnLoad()
 {
     Component::OnLoad(); // calls OnResolveDependencies
 
-    mEntity->GetManager()->With<ResourceLocatorSystem>([this](auto, auto resLoc)
-                                                       {
-                                                           mResourceLocator = resLoc->GetResourceLocator();
-                                                       });
+    mResourceLocator = mEntity->GetManager()->GetSystem<ResourceLocatorSystem>()->GetResourceLocator();
 }
 
 void AnimationComponent::OnResolveDependencies()

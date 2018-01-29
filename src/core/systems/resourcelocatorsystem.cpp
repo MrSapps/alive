@@ -1,13 +1,18 @@
 #include "core/systems/resourcelocatorsystem.hpp"
 
-DEFINE_COMPONENT(ResourceLocatorSystem);
+DEFINE_SYSTEM(ResourceLocatorSystem);
 
-void ResourceLocatorSystem::Initialize(ResourceLocator& resLoc)
+ResourceLocatorSystem::ResourceLocatorSystem(ResourceLocator& resLoc) : mResourceLocator(&resLoc)
 {
-    mResourceLocator = &resLoc;
+
 }
 
 ResourceLocator* ResourceLocatorSystem::GetResourceLocator() const
 {
     return mResourceLocator;
+}
+
+void ResourceLocatorSystem::Update()
+{
+
 }

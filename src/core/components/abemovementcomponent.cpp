@@ -301,11 +301,7 @@ DEFINE_COMPONENT(AbePlayerControllerComponent);
 
 void AbePlayerControllerComponent::OnResolveDependencies()
 {
-
-    mEntity->GetManager()->With<InputSystem>([this](auto, auto inputSystem)
-                                             {
-                                                 mInputMappingActions = inputSystem->GetActions();
-                                             });
+    mInputMappingActions = mEntity->GetManager()->GetSystem<InputSystem>()->GetActions();
     mAbeMovement = mEntity->GetComponent<AbeMovementComponent>();
 }
 

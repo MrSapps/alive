@@ -344,23 +344,18 @@ bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const 
 	mRoot.RegisterComponent<SligPlayerControllerComponent>();
 	mRoot.RegisterComponent<TransformComponent>();
 
-	mRoot.RegisterComponent<ResourceLocatorSystem>();
-	mRoot.RegisterComponent<CollisionSystem>();
-	mRoot.RegisterComponent<InputSystem>();
-
     {
-        auto systems = mRoot.CreateWith<InputSystem, ResourceLocatorSystem, CollisionSystem>(); // TODO: Hacked: this entity is never serialized/deserialized, move to real system
-        systems->GetComponent<InputSystem>()->Initialize(input);
-        systems->GetComponent<ResourceLocatorSystem>()->Initialize(locator);
+        mRoot.AddSystem<InputSystem>(input);
+        mRoot.AddSystem<ResourceLocatorSystem>(locator);
     }
     {
-		auto abe = mRoot.CreateWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent>();
+		auto abe = mRoot.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent>();
         auto pos = abe->GetComponent<TransformComponent>();
         pos->Set(125.0f, 380.0f + (80.0f));
         pos->SnapXToGrid();
     }
     {
-        auto slig = mRoot.CreateWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
+        auto slig = mRoot.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
         auto pos = slig->GetComponent<TransformComponent>();
         pos->Set(125.0f + (25.0f), 380.0f + (80.0f));
         pos->SnapXToGrid();

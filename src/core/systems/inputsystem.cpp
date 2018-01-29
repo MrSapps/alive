@@ -1,13 +1,18 @@
 #include "core/systems/inputsystem.hpp"
 
-DEFINE_COMPONENT(InputSystem);
+DEFINE_SYSTEM(InputSystem);
 
-void InputSystem::Initialize(const InputState& state)
+InputSystem::InputSystem(const InputState& state) : mActions(&state.Mapping().GetActions())
 {
-    mActions = &state.Mapping().GetActions();
+
 }
 
 const Actions* InputSystem::GetActions() const
 {
     return mActions;
+}
+
+void InputSystem::Update()
+{
+
 }

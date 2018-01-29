@@ -3,7 +3,7 @@
 
 #include "core/entitymanager.hpp"
 
-Entity* EntityManager::Create()
+Entity* EntityManager::CreateEntity()
 {
     auto entity = std::make_unique<Entity>(this);
     auto entityPtr = entity.get();
@@ -11,7 +11,7 @@ Entity* EntityManager::Create()
     return entityPtr;
 }
 
-void EntityManager::Destroy(Entity* entity)
+void EntityManager::DestroyEntity(Entity* entity)
 {
     entity->mDestroyed = true;
 }
@@ -24,16 +24,30 @@ void EntityManager::DestroyEntities()
     }), mEntities.end());
 }
 
+void EntityManager::ConstructSystem(System& system)
+{
+	system.mManager = this;
+	system.OnLoad();
+}
+
+bool EntityManager::IsComponentRegistered(const std::string& componentName) const
+{
+    return mRegisteredComponents.find(componentName) != mRegisteredComponents.end();
+}
+
+void EntityManager::Update()
+{
+    for (auto& system : mSystems)
+    {
+        system->Update();
+    }
+    DestroyEntities();
+}
+
 void EntityManager::Serialize(std::ostream& os) const
 {
-    auto skip = true;
     for (auto const& entity : mEntities)
     {
-        if (skip)
-        {
-            skip = false;
-            continue;
-        }
         os.write("{", 1);
         for (auto const& component : entity->mComponents)
         {
@@ -46,7 +60,7 @@ void EntityManager::Serialize(std::ostream& os) const
 
 void EntityManager::Deserialize(std::istream& is)
 {
-	mEntities.erase(mEntities.begin() + 1, mEntities.end());
+    mEntities.clear();
     enum class mode_e
     {
         entity_create, component_name
@@ -64,9 +78,9 @@ void EntityManager::Deserialize(std::istream& is)
             {
                 break;
             }
-            else if(token == '{')
+            else if (token == '{')
             {
-                entity = Create();
+                entity = CreateEntity();
                 mode = mode_e::component_name;
             }
         }
@@ -99,10 +113,3 @@ void EntityManager::Deserialize(std::istream& is)
         }
     }
 }
-
-#if defined(_DEBUG)
-bool EntityManager::IsComponentRegistered(const std::string& componentName) const
-{
-    return mRegisteredComponents.find(componentName) != mRegisteredComponents.end();
-}
-#endif

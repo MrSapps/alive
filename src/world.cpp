@@ -312,25 +312,25 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
             }
 
             // Physics System
-            mGridMap->mRoot.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform)
+            mGridMap->mRoot.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform) // TODO: should be a system
                                                                        {
                                                                            transform->Add(physics->xSpeed, physics->ySpeed);
                                                                        });
             // Animation System
-            mGridMap->mRoot.With<AnimationComponent>([](auto, auto animation)
+            mGridMap->mRoot.With<AnimationComponent>([](auto, auto animation) // TODO: should be a system
                                                      {
                                                          animation->Update();
                                                      });
             // Abe system
             mGridMap->mRoot.With<AbePlayerControllerComponent,
-                    AbeMovementComponent>([](auto, auto controller, auto abe)
+                    AbeMovementComponent>([](auto, auto controller, auto abe) // TODO: should be a system
                                           {
                                               controller->Update();
                                               abe->Update();
                                           });
             // Slig system
             mGridMap->mRoot.With<SligPlayerControllerComponent,
-                    SligMovementComponent>([](auto, auto controller, auto slig)
+                    SligMovementComponent>([](auto, auto controller, auto slig) // TODO: should be a system
                                            {
                                                controller->Update();
                                                slig->Update();
@@ -440,7 +440,7 @@ void World::Render(AbstractRenderer& /*rend*/)
                 mEditorMode->Render(mRenderer);
             }
 
-            mGridMap->mRoot.With<AnimationComponent>([this](auto, auto animation)
+            mGridMap->mRoot.With<AnimationComponent>([this](auto, auto animation) // TODO: should be a system
                                                      {
                                                          animation->Render(mRenderer);
                                                      });

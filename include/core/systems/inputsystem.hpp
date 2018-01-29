@@ -1,15 +1,18 @@
 #pragma once
 
 #include "input.hpp"
-#include "core/component.hpp"
+#include "core/system.hpp"
 
-class InputSystem : public Component
+class InputSystem final : public System
 {
 public:
-    DECLARE_COMPONENT(InputSystem);
+    DECLARE_SYSTEM(InputSystem);
 
 public:
-    void Initialize(const InputState& state);
+    explicit InputSystem(const InputState& state);
+
+public:
+    void Update() final;
 
 public:
     const Actions* GetActions() const;

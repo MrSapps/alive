@@ -1,8 +1,6 @@
-#include <cstring>
-
 #include "core/component.hpp"
 
-DEFINE_COMPONENT(Component);
+DEFINE_ROOT_COMPONENT(Component);
 
 Component::~Component() // NOLINT
 {
@@ -12,6 +10,11 @@ Component::~Component() // NOLINT
 void Component::OnLoad()
 {
     OnResolveDependencies();
+}
+
+void Component::OnResolveDependencies()
+{
+
 }
 
 void Component::Serialize(std::ostream&) const
@@ -24,7 +27,4 @@ void Component::Deserialize(std::istream&)
 
 }
 
-void Component::OnResolveDependencies()
-{
-
-}
+#undef DEFINE_ROOT_COMPONENT

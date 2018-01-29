@@ -1,15 +1,18 @@
 #pragma once
 
 #include "resourcemapper.hpp"
-#include "core/component.hpp"
+#include "core/system.hpp"
 
-class ResourceLocatorSystem : public Component
+class ResourceLocatorSystem : public System
 {
 public:
-    DECLARE_COMPONENT(ResourceLocatorSystem);
+    DECLARE_SYSTEM(ResourceLocatorSystem);
 
 public:
-    void Initialize(ResourceLocator& state);
+    explicit ResourceLocatorSystem(ResourceLocator& state);
+
+public:
+    void Update() final;
 
 public:
     ResourceLocator* GetResourceLocator() const;
