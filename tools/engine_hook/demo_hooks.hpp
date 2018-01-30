@@ -4,14 +4,14 @@
 
 struct InputPadObject
 {
-    DWORD field_0;
-    BYTE field_4;
+    DWORD field_0_pressed;
+    BYTE field_4_dir;
     BYTE field_5;
-    WORD field_6;
-    DWORD field_8;
-    DWORD field_C;
-    DWORD field_10;
-    DWORD field_14;
+    WORD field_6_padding; // Not confirmed
+    DWORD field_8_previous;
+    DWORD field_C_held;
+    DWORD field_10_released;
+    DWORD field_14_padding; // Not confirmed
 };
 ALIVE_ASSERT_SIZEOF(InputPadObject, 0x18);
 
