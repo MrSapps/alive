@@ -526,6 +526,8 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         tools/engine_hook/window_hooks.cpp
         tools/engine_hook/hook_utils.hpp
         tools/engine_hook/hook_utils.cpp
+        tools/engine_hook/demo_hooks.hpp
+        tools/engine_hook/demo_hooks.cpp
         tools/engine_hook/anim_logger.hpp
         tools/engine_hook/anim_logger.cpp
         tools/engine_hook/debug_dialog.hpp

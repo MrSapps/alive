@@ -22,6 +22,7 @@
 #include "debug_dialog.hpp"
 #include "addresses.hpp"
 #include "game_objects.hpp"
+#include "demo_hooks.hpp"
 
 #define private public
 #include "gridmap.hpp"
@@ -704,6 +705,8 @@ HMODULE gDllHandle = NULL;
 void HookMain()
 {
     TRACE_ENTRYEXIT;
+
+    DemoHooksForceLink();
 
     Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
     Hooks::gdi_draw.Install(gdi_draw_hook);
