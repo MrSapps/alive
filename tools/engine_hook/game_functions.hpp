@@ -19,8 +19,6 @@ public:
     virtual void Apply() = 0;
     static std::map<DWORD, BaseFunction*>& FunctionTable();
     static void HookAll();
-private:
-    static std::map<DWORD, BaseFunction*> mFunctionTable;
 };
 
 enum CallingConvention
@@ -45,8 +43,8 @@ public:
         return kAoGameFunctionAddress;
     }
 
-    explicit AliveFunctionImpl(const char* fnName)
-        : mFnName(fnName)
+    AliveFunctionImpl(const char* fnName, bool isImplemented)
+        : mFnName(fnName), mImplemented(isImplemented)
     {
         auto it = FunctionTable().find(Address());
         if (it != std::end(FunctionTable()))
@@ -134,7 +132,10 @@ protected:
         #pragma warning(push)
         #pragma warning(disable:4127) // conditional expression is constant
         // Redirect internal game function to our reimpl
-        ApplyImpl(reinterpret_cast<void*>(Address()), kReplacementFunctionAddress);
+        if (mImplemented && Address())
+        {
+            ApplyImpl(reinterpret_cast<void*>(Address()), kReplacementFunctionAddress);
+        }
         #pragma warning(pop)
     }
 
@@ -147,7 +148,7 @@ private:
 
         LONG err = 0;
         #pragma warning(push)
-#       pragma warning(disable:4127) // conditional expression is constant
+        #pragma warning(disable:4127) // conditional expression is constant
         if (convention == eCDecl)
         {
             err = DetourAttach(&(PVOID&)mRealFuncPtr, Cdecl_Static_Hook_Impl);
@@ -176,6 +177,7 @@ private:
 
     TFuncType mRealFuncPtr = nullptr;
     const char* mFnName = nullptr;
+    bool mImplemented = false;
 };
 
 template<DWORD kAoGameFunctionAddress, DWORD kAeGameFunctionAddress, void* kReplacementFunctionAddress, class ReturnType>
@@ -187,7 +189,7 @@ class AliveFunction    <kAoGameFunctionAddress, kAeGameFunctionAddress, kReplace
       AliveFunctionImpl<kAoGameFunctionAddress, kAeGameFunctionAddress, kReplacementFunctionAddress, eCDecl,  ReturnType __cdecl(Args...), ReturnType, Args...>
 {
 public:
-    explicit AliveFunction(const char* name) : AliveFunctionImpl(name) { }
+    explicit AliveFunction(const char* name, bool isImplemented = true) : AliveFunctionImpl(name, isImplemented) { }
 };
 
 // __stdcall partial specialization
@@ -196,7 +198,7 @@ class AliveFunction    <kAoGameFunctionAddress, kAeGameFunctionAddress, kReplace
       AliveFunctionImpl<kAoGameFunctionAddress, kAeGameFunctionAddress, kReplacementFunctionAddress, eStdCall, ReturnType __stdcall(Args...), ReturnType, Args...>
 {
 public:
-    explicit AliveFunction(const char* name) : AliveFunctionImpl(name) { }
+    explicit AliveFunction(const char* name, bool isImplemented = true) : AliveFunctionImpl(name, isImplemented) { }
 };
 
 // __fastcall partial specialization
@@ -205,12 +207,12 @@ class AliveFunction    <kAoGameFunctionAddress, kAeGameFunctionAddress, kReplace
       AliveFunctionImpl<kAoGameFunctionAddress, kAeGameFunctionAddress, kReplacementFunctionAddress, eFastCall, ReturnType __fastcall(Args...), ReturnType, Args...>
 {
 public:
-    explicit AliveFunction(const char* name) : AliveFunctionImpl(name) { }
+    explicit AliveFunction(const char* name, bool isImplemented = true) : AliveFunctionImpl(name, isImplemented) { }
 };
 
 #define ALIVE_FUNC_NOT_IMPL(aoAddr, aeAddr, signature, name) AliveFunction<aoAddr, aeAddr, nullptr, signature> name(#name);
 #define ALIVE_EXTERN_FUNC_NOT_IMPL(aoAddr, aeAddr, signature, name) extern AliveFunction<aoAddr, aeAddr, nullptr, signature> name;
-#define ALIVE_FUNC_IMPLEX(aoAddr, aeAddr, funcName, isImplemented) AliveFunction<aoAddr, aeAddr, isImplemented ? funcName : nullptr, decltype(funcName)> funcName##_(#funcName);
+#define ALIVE_FUNC_IMPLEX(aoAddr, aeAddr, funcName, isImplemented) AliveFunction<aoAddr, aeAddr, funcName, decltype(funcName)> funcName##_(#funcName, isImplemented);
 
 #define ALIVE_VAR(AddrAo, AddrAe, TypeName, VarName) TypeName& VarName = *reinterpret_cast<TypeName*>(Utils::IsAe() ? AddrAe : AddrAo);
 #define ALIVE_VAR_EXTERN(TypeName, VarName) extern TypeName& VarName;

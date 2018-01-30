@@ -40,6 +40,61 @@ static void __cdecl j_AnimateAllAnimations_40AC20_Hook(GameObjectList::Objs<Anim
 static int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
 typedef int(__thiscall* set_first_camera_thiscall)(void *thisPtr, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
 
+ALIVE_VAR(0x0, 0x5D1E10, BYTE, gRandomIndex_dword_5D1E10);
+const BYTE gRandomTable_546744[256]
+{
+    53, 133,  73,  226, 167,  66, 223,  11,  45,  35,
+    221, 222,  31,  23, 187, 207,  78, 163,  25,   4,
+    113,  18, 181,  80,  67, 100, 160,  21, 219,  34,
+    176, 131,  57, 234, 175, 195, 208, 206, 119,  20,
+    173,  86, 128,  95, 110, 210, 217, 192, 230, 246,
+    112, 249,   5,  90,  51, 197, 140, 115, 203, 250,
+    129,  62, 216, 158,  38, 214,  12, 186, 170, 205,
+    126, 157, 255,  29,   6, 196, 237, 242, 244,  91,
+    148, 155, 161,  94, 184,  55, 193, 241,  87, 123,
+    215, 251,  37, 204, 145, 240,  98, 127, 252,  26,
+    150, 114,  47, 218,  56, 162,  58, 191, 180, 177,
+    232, 189,  15, 247, 174, 166, 136, 116,  44, 125,
+    1,   236,   7,  36,  64,  52,  93,  89, 156, 122,
+    154, 238, 231,  70, 159,  97,  99,  48, 178, 151,
+    239, 172, 118, 142, 117, 228, 211, 169,  42,  65,
+    0,   165, 188, 102,  81, 202,  27, 183, 124,  14,
+    24,  107, 199, 120, 132, 106, 108, 130,  96, 213,
+    28,   19,  85,  82, 185,  83,  50,  30, 182,  40,
+    75,  143,  17, 141, 139, 253,  16, 103,  63, 209,
+    54,   69, 134, 201,  74,  84,  79, 248, 121,  41,
+    105,   8, 233, 137,  32, 171, 109, 227, 198, 152,
+    153, 229, 147,  72,   9, 225, 243,  71,  76, 254,
+    138, 149,  60, 235,  43,   3, 245, 168,  88,  61,
+    194,  49, 101, 220,  39, 190,  33, 104, 224, 179,
+    200, 164,   2,  46, 212,  59, 111,  92, 135,  10,
+    146,  13,  77,  22,  68, 144
+};
+
+signed __int16 __cdecl RangedRandom_496AB0(signed __int16 from, signed __int16 to)
+{
+    if (to < from)
+    {
+        std::swap(to, from);
+    }
+    else if (to == from)
+    {
+        return from;
+    }
+
+    if (to - from < 256)
+    {
+        return (gRandomTable_546744[gRandomIndex_dword_5D1E10++] % (to - from + 1)) + from;
+    }
+    else
+    {
+        const signed __int16 tableValue = 257 * gRandomTable_546744[gRandomIndex_dword_5D1E10];
+        gRandomIndex_dword_5D1E10 += 2;
+        return (tableValue % (to - from + 1)) + from;
+    }
+}
+ALIVE_FUNC_IMPLEX(0x0, 0x496AB0, RangedRandom_496AB0, true); // TODO: This function isn't yet tested and might be wrong
+
 
 #pragma pack(push)
 #pragma pack(1)

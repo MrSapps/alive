@@ -2,7 +2,8 @@
 
 std::map<DWORD, BaseFunction*>& BaseFunction::FunctionTable()
 {
-    return mFunctionTable;
+    static std::map<DWORD, BaseFunction*> funcTable;
+    return funcTable;
 }
 
 void BaseFunction::HookAll()
@@ -21,7 +22,7 @@ void BaseFunction::HookAll()
         ALIVE_HOOK_FATAL("DetourUpdateThread failed");
     }
 
-    for (auto& fn : mFunctionTable)
+    for (auto& fn : FunctionTable())
     {
         fn.second->Apply();
     }
@@ -32,8 +33,6 @@ void BaseFunction::HookAll()
         ALIVE_HOOK_FATAL("DetourTransactionCommit failed");
     }
 }
-
-std::map<DWORD, BaseFunction*> BaseFunction::mFunctionTable;
 
 // Called by SND_PlayEx - appears to not exist in AO
 ALIVE_FUNC_NOT_IMPL(0x0, 0x004EF970, IDirectSoundBuffer*__cdecl(int soundIndex, int a2), sub_4EF970);
