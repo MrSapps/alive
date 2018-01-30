@@ -11,84 +11,124 @@ ALIVE_VAR(0x0, 0x5C1B9A, WORD, word_5C1B9A);
 ALIVE_VAR(0x0, 0x5C1B84, DWORD, gnFrame_dword_5C1B84);
 
 
-/*
-DWORD __cdecl Input_Command_Convert_404354(int cmd)
+DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
 {
-    unsigned int v1 = 0;
+    unsigned int count = 0;
     if (cmd & 8)
     {
-        v1 = 1;
+        count = 1;
     }
 
     if (cmd & 2)
     {
-        ++v1;
+        ++count;
     }
 
     if (cmd & 4)
     {
-        ++v1;
+        ++count;
     }
 
     if (cmd & 1)
     {
-        ++v1;
+        ++count;
     }
 
-    if (v1 > 1)
+    if (count > 1)
     {
-        return 0;
+        return 0x40000;
     }
 
-    unsigned char result = 0;
+    WORD flags = 0;
     if (cmd & 0x1000)
     {
-        result = 1;
+        flags = 1;
     }
 
     if (cmd & 0x4000)
     {
-        result |= 2u;
+        flags = flags | 2;
     }
 
-    if (cmd < 0)
+    if ((cmd & 0x8000) != 0)
     {
-        result |= 4u;
+        flags = flags | 4;
     }
 
     if (cmd & 0x2000)
     {
-        result |= 8u;
+        flags = flags | 8;
     }
 
     if (cmd & 8)
     {
-        result |= 0x10u;
+        flags = flags | 0x10;
     }
 
     if (cmd & 2)
     {
-        result |= 0x40u;
+        flags = flags | 0x40;
     }
 
-    if (!(cmd & 4) && !(cmd & 1))
+    if (cmd & 4)
     {
+        if (cmd & 0x10)
+        {
+            flags |= 0x400u;
+        }
+    
         if ((cmd & 0x80u) != 0)
         {
-            result |= 0x20u;
+            flags |= 0x800u;
+        }
+
+        if (cmd & 0x40)
+        {
+            flags |= 0x1000u;
         }
 
         if (cmd & 0x20)
         {
-            result |= 0x80u;
+            flags |= 0x2000u;
         }
     }
-    return result;
+    else if (cmd & 1)
+    {
+        if (cmd & 0x40)
+        {
+            flags |= 0x4000u;
+        }
+
+        if (cmd & 0x10)
+        {
+            flags |= 0x8000u;
+        }
+    }
+    else
+    {
+        if (cmd & 0x10)
+        {
+            flags |= 0x100u;
+        }
+
+        if ((cmd & 0x80u) != 0)
+        {
+            flags = flags | 0x20;
+        }
+
+        if (cmd & 0x20)
+        {
+            flags = flags | 0x80;
+        }
+
+        if (cmd & 0x40)
+        {
+            flags |= 0x200u;
+        }
+    }
+    return flags;
 }
 ALIVE_FUNC_IMPLEX(0x0, 0x404354, Input_Command_Convert_404354, false);
-*/
-
-ALIVE_FUNC_NOT_IMPL(0x0, 0x404354, DWORD(int), Input_Command_Convert_404354);
 
 const unsigned char byte_545A4C[20] =
 {
@@ -113,12 +153,6 @@ const unsigned char byte_545A4C[20] =
     0,
     0
 };
-
-char __fastcall Input_update_45F040(InputObject* pThis, void*);
-ALIVE_FUNC_IMPLEX(0x0, 0x45F040, Input_update_45F040, true);
-
-static DWORD checkIndex = 0;
-std::vector<DWORD> gLoggedInputs;
 
 static char UpdateImpl(InputObject* pThis)
 {
@@ -170,39 +204,6 @@ static char UpdateImpl(InputObject* pThis)
 
 char __fastcall Input_update_45F040(InputObject* pThis, void* )
 {
-    static bool loaded = false;
-    if (!loaded)
-    {
-        Oddlib::FileStream fs("Frames.dat", Oddlib::IStream::ReadMode::ReadOnly);
-        auto data = fs.ReadAll(fs);
-        auto numDWords = data.size() / sizeof(DWORD);
-        gLoggedInputs.resize(numDWords);
-        memcpy((u8*)gLoggedInputs.data(), data.data(), data.size());
-        loaded = true;
-    }
-
-    //gLoggedInputs.push_back(pThis->field_0_pads[0].field_0_pressed);
- 
-
-    if (gnFrame_dword_5C1B84 == 2000)
-    {
-        //Oddlib::FileStream fs("Frames.dat", Oddlib::IStream::ReadMode::ReadWrite);
-        //fs.WriteBytes((u8*)gLoggedInputs.data(), gLoggedInputs.size() * 4);
-    }
-
-    char ret = UpdateImpl(pThis);
-
-    if (gnFrame_dword_5C1B84 < 2000)
-    {
-        const DWORD expected = gLoggedInputs[checkIndex];
-        if (expected != pThis->field_0_pads[0].field_0_pressed)
-        {
-            abort();
-        }
-        checkIndex++;
-    }
-
-    return ret;
-   
+    return UpdateImpl(pThis);
 }
-
+ALIVE_FUNC_IMPLEX(0x0, 0x45F040, Input_update_45F040, true);
