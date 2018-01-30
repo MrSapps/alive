@@ -20,7 +20,6 @@ public:
     u32 currentLevelId() const;
     u32 currentPath() const;
     u32 currentCam() const;
-    u32 set_first_camera() const;
     u32 sub_418930() const;
     u32 anim_decode() const;
     u32 get_anim_frame() const;

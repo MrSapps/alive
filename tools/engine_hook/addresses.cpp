@@ -84,11 +84,6 @@ u32 Addresses::currentCam() const
     return Utils::IsAe() ? 0x5C3034 : 0x507BAC;
 }
 
-u32 Addresses::set_first_camera() const
-{
-    return Utils::IsAe() ? 0x00401415 : 0x443EE0;
-}
-
 u32 Addresses::sub_418930() const // Collision line loader
 {
     return Utils::IsAe() ? 0x00418930 : 0x40CF30;

@@ -35,10 +35,6 @@
 HINSTANCE gDllInstance = NULL;
 
 static int __cdecl gdi_draw_hook(DWORD * hdc);
-static void __cdecl j_AnimateAllAnimations_40AC20_Hook(GameObjectList::Objs<Animation2*>* pAnims);
-
-static int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
-typedef int(__thiscall* set_first_camera_thiscall)(void *thisPtr, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
 
 ALIVE_VAR(0x0, 0x5D1E10, BYTE, gRandomIndex_dword_5D1E10);
 const BYTE gRandomTable_546744[256]
@@ -160,16 +156,17 @@ static int __fastcall sub_418930_hook(void* thisPtr, void*, const CollisionInfo*
 namespace Hooks
 {
     Hook<decltype(&::sub_418930_hook), sub_418930_thiscall> sub_418930(Addrs().sub_418930());
-    Hook<decltype(&::set_first_camera_hook), set_first_camera_thiscall> set_first_camera(Addrs().set_first_camera());
     Hook<decltype(&::gdi_draw_hook)> gdi_draw(Funcs().gdi_draw.mAddr);
-    Hook<decltype(&::j_AnimateAllAnimations_40AC20_Hook)> j_AnimateAllAnimations_40AC20(Funcs().j_AnimateAllAnimations_40AC20.mAddr);
     Hook<decltype(&::anim_decode_hook), anim_decode_thiscall> anim_decode(Addrs().anim_decode());
     Hook<decltype(&::get_anim_frame_hook)> get_anim_frame(Addrs().get_anim_frame());
 }
 
 static StartDialog::StartMode gStartMode = StartDialog::eNormal;
 
-static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
+int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7);
+ALIVE_FUNC_IMPLEX(0x443EE0, 0x00401415, set_first_camera_hook, true);
+
+int __fastcall set_first_camera_hook(void *thisPtr, void* edx , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
 {
     TRACE_ENTRYEXIT;
 
@@ -200,7 +197,7 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
         break;
     }
 
-    return Hooks::set_first_camera.Real()(thisPtr, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
+    return set_first_camera_hook_.Ptr()(thisPtr, edx, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
 }
 
 void DumpDeltas(anim_struct* thisPtr)
@@ -631,7 +628,7 @@ static void BeforeRender()
 
 }
 
-static void __cdecl j_AnimateAllAnimations_40AC20_Hook(GameObjectList::Objs<Animation2*>* pAnims)
+void __cdecl j_AnimateAllAnimations_40AC20_Hook(GameObjectList::Objs<Animation2*>* pAnims)
 {
     for (u16 i = 0; i < pAnims->mCount; i++)
     {
@@ -656,6 +653,7 @@ static void __cdecl j_AnimateAllAnimations_40AC20_Hook(GameObjectList::Objs<Anim
     }
     BeforeRender();
 }
+ALIVE_FUNC_IMPLEX(0x0, 0x40AC20, j_AnimateAllAnimations_40AC20_Hook, true);
 
 static int __cdecl gdi_draw_hook(DWORD * hdcPtr)
 {
@@ -708,20 +706,12 @@ void HookMain()
     TRACE_ENTRYEXIT;
 
     Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
-    Hooks::set_first_camera.Install(set_first_camera_hook);
     Hooks::gdi_draw.Install(gdi_draw_hook);
     Hooks::anim_decode.Install(anim_decode_hook);
-    //Hooks::get_anim_frame.Install(get_anim_frame_hook);
     Hooks::sub_418930.Install(sub_418930_hook);
-
-    if (Utils::IsAe())
-    {
-        Hooks::j_AnimateAllAnimations_40AC20.Install(j_AnimateAllAnimations_40AC20_Hook);
-    }
 
     BaseFunction::HookAll();
 
-   // Hooks::AbeSnap_sub_449930.Install(AbeSnap_sub_449930_hook);
     InstallSoundHooks();
 
     SubClassWindow();

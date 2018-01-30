@@ -277,9 +277,6 @@ struct GameFunctions
     AddressFunction<HDC(__cdecl)(DWORD* hdc)> ConvertAbeHdcHandle = { Addrs().ConvertAbeHdcHandle() };
 
     AddressFunction<DWORD(__cdecl)(DWORD* hdc, int hdc2)> ConvertAbeHdcHandle2 = { Addrs().ConvertAbeHdcHandle2() };
-    
-    AddressFunction<void(__cdecl)(GameObjectList::Objs<Animation2*>* pAnims)> j_AnimateAllAnimations_40AC20 = { 0x40AC20 };
-
 };
 
 struct GameVars
