@@ -109,11 +109,6 @@ u32 Addresses::end_Frame() const
     return Utils::IsAe() ? 0x004950F0 : 0x004505D0;
 }
 
-u32 Addresses::AbeSnap_sub_449930() const
-{
-    return Utils::IsAe() ? 0x00449930 : 0x0; // TODO
-}
-
 u32 Addresses::ObjectList() const
 {
     return Utils::IsAe() ? 0x00BB47C4 : 0x009F2DF0;

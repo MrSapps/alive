@@ -25,7 +25,6 @@ public:
     u32 anim_decode() const;
     u32 get_anim_frame() const;
     u32 end_Frame() const;
-    u32 AbeSnap_sub_449930() const;
     u32 ObjectList() const;
     u32 SND_PlayEx() const;
     u32 SND_seq_play_q() const;

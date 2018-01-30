@@ -699,11 +699,7 @@ int __cdecl AbeSnap_sub_449930_hook(int scale, const signed int xpos)
     }
     return result;
 }
-
-namespace Hooks
-{
-    Hook<decltype(&::AbeSnap_sub_449930_hook)> AbeSnap_sub_449930(Addrs().AbeSnap_sub_449930());
-}
+ALIVE_FUNC_IMPLEX(0x0, 0x00449930, AbeSnap_sub_449930_hook, true);
 
 HMODULE gDllHandle = NULL;
 
