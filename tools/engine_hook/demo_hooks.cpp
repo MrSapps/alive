@@ -207,3 +207,13 @@ char __fastcall Input_update_45F040(InputObject* pThis, void* )
     return UpdateImpl(pThis);
 }
 ALIVE_FUNC_IMPLEX(0x0, 0x45F040, Input_update_45F040, true);
+
+signed int __fastcall Input_SetDemo_45F1E0(InputObject* pThis, void*, DWORD **pDemoRes)
+{
+    pThis->field_34_demo_command_index = 2; // First 2 dwords are some sort of header?
+    pThis->field_30_pDemoRes = pDemoRes;
+    pThis->field_38_bDemoPlaying |= 1u;
+    pThis->field_40_command_duration = 0;
+    return 1;
+}
+ALIVE_FUNC_IMPLEX(0x0, 0x45F1E0, Input_SetDemo_45F1E0, true);
