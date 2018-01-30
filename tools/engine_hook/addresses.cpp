@@ -18,12 +18,6 @@ u32 Addresses::error_msgbox() const
     return Utils::IsAe() ? 0x004F2920 : 0x0048DDC0;
 }
 
-u32 Addresses::sub_4EF970() const
-{
-    // Called by SND_PlayEx - appears to not exist in AO
-    return Utils::IsAe() ? 0x004EF970 : 0x0;
-}
-
 u32 Addresses::gdi_draw() const
 {
     // In AO ConvertAbeHdcHandle and ConvertAbeHdcHandle2 functions are in-lined into this one

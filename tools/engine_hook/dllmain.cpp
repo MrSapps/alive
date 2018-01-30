@@ -668,6 +668,8 @@ void HookMain()
         Hooks::j_AnimateAllAnimations_40AC20.Install(j_AnimateAllAnimations_40AC20_Hook);
     }
 
+    BaseFunction::HookAll();
+
    // Hooks::AbeSnap_sub_449930.Install(AbeSnap_sub_449930_hook);
     InstallSoundHooks();
 

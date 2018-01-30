@@ -7,7 +7,6 @@ class Addresses
 public:
     u32 GetWindowHandle() const;
     u32 error_msgbox() const;
-    u32 sub_4EF970() const;
     u32 gdi_draw() const;
     u32 ConvertAbeHdcHandle() const;
     u32 ConvertAbeHdcHandle2() const;

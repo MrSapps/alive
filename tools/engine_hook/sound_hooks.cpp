@@ -181,7 +181,7 @@ signed int __cdecl SND_PlayEx(AliveSoundBuffer* pSound, unsigned int volL, unsig
     }
     else
     {
-        IDirectSoundBuffer* pDuplicate = Funcs().sub_4EF970(pSound->mIndex, volumeRelated + unknown2);
+        IDirectSoundBuffer* pDuplicate = sub_4EF970(pSound->mIndex, volumeRelated + unknown2);
         if (!pDuplicate)
         {
             return -1;
