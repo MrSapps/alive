@@ -377,8 +377,6 @@ SET(alivelib_src
     src/gamemode.cpp
     include/editormode.hpp
     src/editormode.cpp
-    include/mapobject.hpp
-    src/mapobject.cpp
     include/fsm.hpp
     src/fsm.cpp
     include/subtitles.hpp

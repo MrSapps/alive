@@ -44,7 +44,6 @@ public:
     // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
     // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
     CollisionLines mCollisionItems;
-    std::vector<std::unique_ptr<MapObject>> mObjs;
 
     enum class States
     {

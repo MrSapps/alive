@@ -11,7 +11,6 @@
 #include "fsm.hpp"
 #include "abstractrenderer.hpp"
 #include "collisionline.hpp"
-#include "mapobject.hpp"
 #include "imgui/imgui.h"
 #include "iterativeforloop.hpp"
 #include "core/entitymanager.hpp"
@@ -90,9 +89,7 @@ private:
         void SetupAndConvertCollisionItems(const Oddlib::Path& path);
         void HandleAllocateCameraMemory(const Oddlib::Path& path);
         void HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& locator);
-        void HandleLoadObjects(const Oddlib::Path& path, ResourceLocator& locator);
-        void HandleLoadEntities();
-        void HandleHackAbeIntoValidCamera(ResourceLocator& locator);
+        void HandleLoadEntities(const Oddlib::Path& path);
 
         GridMap& mGm;
         enum class LoaderStates
@@ -102,9 +99,7 @@ private:
             eSetupAndConvertCollisionItems,
             eAllocateCameraMemory,
             eLoadCameras,
-            eLoadObjects,
             eLoadEntities,
-            eHackToPlaceAbeInValidCamera,
         };
 
         enum ObjectTypesAe : u8
@@ -122,14 +117,11 @@ private:
         IterativeForLoopU32 mXForLoop;
         IterativeForLoopU32 mYForLoop;
         IterativeForLoopU32 mIForLoop;
-        UP_MapObject mMapObjectBeingLoaded;
 
         void SetState(LoaderStates state);
     };
     Loader mLoader;
-
-    MapObject* GetMapObject(s32 x, s32 y, const char* type);
-    
+   
     virtual const CollisionLines& Lines() const override final;
 
     void ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items);

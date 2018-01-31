@@ -1,6 +1,4 @@
-#include <type_traits>
-
-#include "mapobject.hpp"
+#include "types.hpp"
 #include "core/components/transformcomponent.hpp"
 
 DEFINE_COMPONENT(TransformComponent)

@@ -85,10 +85,12 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
 
     if (mState == eRunning)
     {
+		/*
         for (auto& obj : mWorldState.mObjs)
         {
             obj->Update(input);
         }
+		*/
     }
 
     if (mWorldState.mCameraSubject)
@@ -145,14 +147,6 @@ void GameMode::Render(AbstractRenderer& rend) const
     }
 
     mWorldState.RenderDebug(rend);
-
-    if (Debugging().mDrawObjects)
-    {
-        for (const auto& obj : mWorldState.mObjs)
-        {
-            obj->Render(rend, 0, 0, 1.0f, AbstractRenderer::eForegroundLayer0);
-        }
-    }
 
     if (mWorldState.mCameraSubject)
     {

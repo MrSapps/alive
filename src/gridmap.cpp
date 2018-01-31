@@ -143,8 +143,7 @@ void GridMap::Loader::SetupSystems(ResourceLocator& locator, const InputState& s
 
 void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
 {
-    // Clear out existing objects from previous map
-    mGm.mWorldState.mObjs.clear();
+    // Clear out existing collisions from previous map
     mGm.mWorldState.mCollisionItems.clear();
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
@@ -180,214 +179,146 @@ void GridMap::Loader::HandleLoadCameras(const Oddlib::Path& path, ResourceLocato
         });
     }))
     {
-        SetState(LoaderStates::eLoadObjects);
-    }
-}
-
-void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocator&)
-{
-    if (mMapObjectBeingLoaded)
-    {
-        if (mMapObjectBeingLoaded->Init())
-        {
-            mGm.mWorldState.mObjs.push_back(std::move(mMapObjectBeingLoaded));
-        }
-        return;
-    }
-
-    if (mXForLoop.IterateIf(path.XSize(), [&]()
-    {
-        return mYForLoop.IterateIf(path.YSize(), [&]()
-        {
-            GridScreen* screen = mGm.mWorldState.mScreens[mXForLoop.Value()][mYForLoop.Value()].get();
-            const Oddlib::Path::Camera& cam = screen->getCamera();
-            return mIForLoop.Iterate(static_cast<u32>(cam.mObjects.size()), [&]()
-            {
-                const auto& object = cam.mObjects[mIForLoop.Value()];
-                Oddlib::MemoryStream ms(std::vector<u8>(object.mData.data(), object.mData.data() + object.mData.size()));
-                const ObjRect rect =
-                    {
-                        object.mRectTopLeft.mX,
-                        object.mRectTopLeft.mY,
-                        object.mRectBottomRight.mX - object.mRectTopLeft.mX,
-                        object.mRectBottomRight.mY - object.mRectTopLeft.mY
-                    };
-                switch (object.mType)
-                {
-                case ObjectTypesAe::eHoist:
-                {
-                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
-                    ReadU16(ms); // hoistType
-                    ReadU16(ms); // edgeType
-                    ReadU16(ms); // id
-                    ReadU16(ms); // scale
-                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x), static_cast<float>(rect.y));
-                    break;
-                }
-                case ObjectTypesAe::eDoor:
-                {
-                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
-                    ReadU16(ms); // level
-                    ReadU16(ms); // path
-                    ReadU16(ms); // camera
-                    ReadU16(ms); // scale
-                    ReadU16(ms); // doorNumber
-                    ReadU16(ms); // id
-                    ReadU16(ms); // targetDoorNumber
-                    ReadU16(ms); // skin
-                    ReadU16(ms); // startOpen
-                    ReadU16(ms); // hubId1
-                    ReadU16(ms); // hubId2
-                    ReadU16(ms); // hubId3
-                    ReadU16(ms); // hubId4
-                    ReadU16(ms); // hubId5
-                    ReadU16(ms); // hubId6
-                    ReadU16(ms); // hubId7
-                    ReadU16(ms); // hubId8
-                    ReadU16(ms); // wipeEffect
-                    auto xoffset = ReadU16(ms); // xoffset
-                    auto yoffset = ReadU16(ms); // yoffset
-                    ReadU16(ms); // wipeXStart
-                    ReadU16(ms); // wipeYStart
-                    ReadU16(ms); // abeFaceLeft
-                    ReadU16(ms); // closeAfterUse
-                    ReadU16(ms); // removeThrowables
-                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x) + xoffset + 5, static_cast<float>(rect.y) + rect.h + yoffset);
-                    entity->GetComponent<AnimationComponent>()->Change("DoorClosed_Barracks");
-                    break;
-                }
-                case ObjectTypesAe::eBackgroundAnimation:
-                {
-                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
-                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x), static_cast<float>(rect.y));
-                    auto animId = ReadU32(ms);
-                    switch (animId)
-                    {
-                    case 1201:
-                        entity->GetComponent<AnimationComponent>()->Change("BAP01C06.CAM_1201_AePc_0");
-                        entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x) + 5, static_cast<float>(rect.y) + 3);
-                        break;
-                    case 1202:
-                        entity->GetComponent<AnimationComponent>()->Change("FARTFAN.BAN_1202_AePc_0");
-                        break;
-                    default:
-                        entity->GetComponent<AnimationComponent>()->Change("AbeStandSpeak1");
-                    }
-                    break;
-                }
-                case ObjectTypesAe::eSwitch:
-                {
-                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
-                    ReadU32(ms); // scale
-                    ReadU16(ms); // onSound
-                    ReadU16(ms); // offSound
-                    ReadU16(ms); // soundDirection
-                    ReadU16(ms); // id
-                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x) + 37, static_cast<float>(rect.y) + rect.h - 5);
-                    entity->GetComponent<AnimationComponent>()->Change("SwitchIdle");
-                    break;
-                }
-                case ObjectTypesAe::eMine:
-                {
-                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
-                    ReadU32(ms); // Skip unused "num patterns"
-                    ReadU32(ms); // Skip unused "patterns"
-                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x) + 10, static_cast<float>(rect.y) + 22);
-                    entity->GetComponent<AnimationComponent>()->Change("LANDMINE.BAN_1036_AePc_0");
-                    break;
-                }
-                case ObjectTypesAe::eElectricWall:
-                {
-                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
-                    ReadU16(ms); // scale
-                    ReadU16(ms); // id
-                    ReadU16(ms); // enabled
-                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x), static_cast<float>(rect.y));
-                    entity->GetComponent<AnimationComponent>()->Change("ELECWALL.BAN_6000_AePc_0");
-                    break;
-                }
-                case ObjectTypesAe::eSlamDoor:
-                {
-                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
-                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x) + 13, static_cast<float>(rect.y) + 18);
-                    entity->GetComponent<AnimationComponent>()->Change("SLAM.BAN_2020_AePc_1");
-                    ReadU16(ms); // closed
-                    ReadU16(ms); // scale
-                    ReadU16(ms); // id
-                    ReadU16(ms); // inverted
-                    ReadU32(ms); // delete
-                    break;
-                }
-                }
-            });
-        });
-    }))
-    {
         SetState(LoaderStates::eLoadEntities);
     }
 }
 
-void GridMap::Loader::HandleLoadEntities()
+void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
 {
-    auto abe = mGm.mRoot.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent>();
-    auto pos = abe->GetComponent<TransformComponent>();
-    pos->Set(125.0f, 380.0f + (80.0f));
-    pos->SnapXToGrid();
+	if (mXForLoop.IterateIf(path.XSize(), [&]()
+	{
+		return mYForLoop.IterateIf(path.YSize(), [&]()
+		{
+			GridScreen* screen = mGm.mWorldState.mScreens[mXForLoop.Value()][mYForLoop.Value()].get();
+			const Oddlib::Path::Camera& cam = screen->getCamera();
+			return mIForLoop.Iterate(static_cast<u32>(cam.mObjects.size()), [&]()
+			{
+				const auto& object = cam.mObjects[mIForLoop.Value()];
+				Oddlib::MemoryStream ms(std::vector<u8>(object.mData.data(), object.mData.data() + object.mData.size()));
+				switch (object.mType)
+				{
+				case ObjectTypesAe::eHoist:
+				{
+					auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+					ReadU16(ms); // hoistType
+					ReadU16(ms); // edgeType
+					ReadU16(ms); // id
+					ReadU16(ms); // scale
+					entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+					break;
+				}
+				case ObjectTypesAe::eDoor:
+				{
+					auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+					ReadU16(ms); // level
+					ReadU16(ms); // path
+					ReadU16(ms); // camera
+					ReadU16(ms); // scale
+					ReadU16(ms); // doorNumber
+					ReadU16(ms); // id
+					ReadU16(ms); // targetDoorNumber
+					ReadU16(ms); // skin
+					ReadU16(ms); // startOpen
+					ReadU16(ms); // hubId1
+					ReadU16(ms); // hubId2
+					ReadU16(ms); // hubId3
+					ReadU16(ms); // hubId4
+					ReadU16(ms); // hubId5
+					ReadU16(ms); // hubId6
+					ReadU16(ms); // hubId7
+					ReadU16(ms); // hubId8
+					ReadU16(ms); // wipeEffect
+					auto xoffset = ReadU16(ms); // xoffset
+					auto yoffset = ReadU16(ms); // yoffset
+					ReadU16(ms); // wipeXStart
+					ReadU16(ms); // wipeYStart
+					ReadU16(ms); // abeFaceLeft
+					ReadU16(ms); // closeAfterUse
+					ReadU16(ms); // removeThrowables
+					entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX) + xoffset + 5, static_cast<float>(object.mRectTopLeft.mY) + object.mRectBottomRight.mY - static_cast<float>(object.mRectTopLeft.mY) + yoffset);
+					entity->GetComponent<AnimationComponent>()->Change("DoorClosed_Barracks");
+					break;
+				}
+				case ObjectTypesAe::eBackgroundAnimation:
+				{
+					auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+					entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+					auto animId = ReadU32(ms);
+					switch (animId)
+					{
+					case 1201:
+						entity->GetComponent<AnimationComponent>()->Change("BAP01C06.CAM_1201_AePc_0");
+						entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX) + 5, static_cast<float>(object.mRectTopLeft.mY) + 3);
+						break;
+					case 1202:
+						entity->GetComponent<AnimationComponent>()->Change("FARTFAN.BAN_1202_AePc_0");
+						break;
+					default:
+						entity->GetComponent<AnimationComponent>()->Change("AbeStandSpeak1");
+					}
+					break;
+				}
+				case ObjectTypesAe::eSwitch:
+				{
+					auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+					ReadU32(ms); // scale
+					ReadU16(ms); // onSound
+					ReadU16(ms); // offSound
+					ReadU16(ms); // soundDirection
+					ReadU16(ms); // id
+					entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX) + 37, static_cast<float>(object.mRectTopLeft.mY) + object.mRectBottomRight.mY - static_cast<float>(object.mRectTopLeft.mY) - 5);
+					entity->GetComponent<AnimationComponent>()->Change("SwitchIdle");
+					break;
+				}
+				case ObjectTypesAe::eMine:
+				{
+					auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+					ReadU32(ms); // Skip unused "num patterns"
+					ReadU32(ms); // Skip unused "patterns"
+					entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX) + 10, static_cast<float>(object.mRectTopLeft.mY) + 22);
+					entity->GetComponent<AnimationComponent>()->Change("LANDMINE.BAN_1036_AePc_0");
+					break;
+				}
+				case ObjectTypesAe::eElectricWall:
+				{
+					auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+					ReadU16(ms); // scale
+					ReadU16(ms); // id
+					ReadU16(ms); // enabled
+					entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+					entity->GetComponent<AnimationComponent>()->Change("ELECWALL.BAN_6000_AePc_0");
+					break;
+				}
+				case ObjectTypesAe::eSlamDoor:
+				{
+					auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+					entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX) + 13, static_cast<float>(object.mRectTopLeft.mY) + 18);
+					entity->GetComponent<AnimationComponent>()->Change("SLAM.BAN_2020_AePc_1");
+					ReadU16(ms); // closed
+					ReadU16(ms); // scale
+					ReadU16(ms); // id
+					ReadU16(ms); // inverted
+					ReadU32(ms); // delete
+					break;
+				}
+				}
+			});
+		});
+	}))
+	{
+		auto abe = mGm.mRoot.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent>();
+		auto pos = abe->GetComponent<TransformComponent>();
+		pos->Set(125.0f, 380.0f + (80.0f));
+		pos->SnapXToGrid();
+		mGm.mWorldState.mCameraSubject = abe;
 
-    mGm.mWorldState.mCameraSubject = abe;
+		auto slig = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
+		auto pos2 = slig->GetComponent<TransformComponent>();
+		pos2->Set(125.0f + (25.0f), 380.0f + (80.0f));
+		pos2->SnapXToGrid();
 
-    auto slig = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
-    auto pos2 = slig->GetComponent<TransformComponent>();
-    pos2->Set(125.0f + (25.0f), 380.0f + (80.0f));
-    pos2->SnapXToGrid();
-    SetState(LoaderStates::eHackToPlaceAbeInValidCamera);
-}
-
-void GridMap::Loader::HandleHackAbeIntoValidCamera(ResourceLocator&)
-{
-	// TODO: remove HACK and load abe 
-	SetState(LoaderStates::eInit);
-	/*
-    if (mMapObjectBeingLoaded)
-    {
-        if (mMapObjectBeingLoaded->Init())
-        {
-            mMapObjectBeingLoaded->SnapXToGrid(); // Ensure player is locked to grid
-            mGm.mWorldState.mCameraSubject = mMapObjectBeingLoaded.get();
-            mGm.mWorldState.mObjs.push_back(std::move(mMapObjectBeingLoaded));
-            SetState(LoaderStates::eInit);
-        }
-    }
-    else
-    {
-        // TODO: Need to figure out what the right way to figure out where abe goes is
-        // HACK: Place the player in the first screen that isn't blank
-        for (auto x = 0u; x < mGm.mWorldState.mScreens.size(); x++)
-        {
-            for (auto y = 0u; y < mGm.mWorldState.mScreens[x].size(); y++)
-            {
-                GridScreen* screen = mGm.mWorldState.mScreens[x][y].get();
-                if (screen->hasTexture())
-                {
-					
-                    auto xPos = (x * mGm.mWorldState.kCamGapSize.x) + 100.0f;
-                    auto yPos = (y * mGm.mWorldState.kCamGapSize.y) + 100.0f;
-
-                    auto tmp = std::make_unique<MapObject>(locator, ObjRect{});
-                    Sqrat::Function onInitMap(Sqrat::RootTable(), "on_init_map");
-                    Sqrat::SharedPtr<bool> ret = onInitMap.Evaluate<bool>(tmp.get(), &mGm, xPos, yPos);
-                    SquirrelVm::CheckError();
-                    // TODO: Handle error case
-                    if (ret.get() && *ret)
-                    {
-                        mMapObjectBeingLoaded = std::move(tmp);
-                        return;
-                    }
-                }
-            }
-        }
-    }
-	*/
+		SetState(LoaderStates::eInit);
+	}
 }
 
 void GridMap::Loader::SetState(GridMap::Loader::LoaderStates state)
@@ -400,46 +331,37 @@ void GridMap::Loader::SetState(GridMap::Loader::LoaderStates state)
 
 bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input)
 {
-    switch (mState)
-    {
-    case LoaderStates::eInit:
-        mState = LoaderStates::eSetupSystems;
-        break;
+	switch (mState)
+	{
+	case LoaderStates::eInit:
+		mState = LoaderStates::eSetupSystems;
+		break;
 
-    case LoaderStates::eSetupSystems:
-        SetupSystems(locator, input);
-        break;
+	case LoaderStates::eSetupSystems:
+		SetupSystems(locator, input);
+		break;
 
-    case LoaderStates::eSetupAndConvertCollisionItems:
-        SetupAndConvertCollisionItems(path);
-        break;
+	case LoaderStates::eSetupAndConvertCollisionItems:
+		SetupAndConvertCollisionItems(path);
+		break;
 
-    case LoaderStates::eAllocateCameraMemory:
-        HandleAllocateCameraMemory(path);
-        break;
+	case LoaderStates::eAllocateCameraMemory:
+		HandleAllocateCameraMemory(path);
+		break;
 
-    case LoaderStates::eLoadCameras:
-        HandleLoadCameras(path, locator);
-        break;
+	case LoaderStates::eLoadCameras:
+		HandleLoadCameras(path, locator);
+		break;
 
-    case LoaderStates::eLoadObjects:
-        RunForAtLeast(kMaxExecutionTimeMs, [&]() { if (mState == LoaderStates::eLoadObjects) { HandleLoadObjects(path, locator); } });
-        break;
-
-    case LoaderStates::eLoadEntities:
-        HandleLoadEntities();
-        break;
-
-    case LoaderStates::eHackToPlaceAbeInValidCamera:
-        HandleHackAbeIntoValidCamera(locator);
-    }
-
-    if (mState == LoaderStates::eInit)
-    {
-        return true;
-    }
-
-    return false;
+	case LoaderStates::eLoadEntities:
+		RunForAtLeast(kMaxExecutionTimeMs, [&]() { if (mState == LoaderStates::eLoadEntities) { HandleLoadEntities(path); } });
+		break;
+	}
+	if (mState == LoaderStates::eInit)
+	{
+		return true;
+	}
+	return false;
 }
 
 bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input) // TODO: Input wired here
@@ -458,21 +380,6 @@ bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const 
 GridMap::~GridMap()
 {
     TRACE_ENTRYEXIT;
-}
-
-MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
-{
-    for (auto& obj : mWorldState.mObjs)
-    {
-        if (obj->Name() == type)
-        {
-            if (obj->ContainsPoint(x, y))
-            {
-                return obj.get();
-            }
-        }
-    }
-    return nullptr;
 }
 
 const CollisionLines& GridMap::Lines() const
@@ -568,7 +475,6 @@ void GridMap::UnloadMap(AbstractRenderer& renderer)
         }
     }
 
-    mWorldState.mObjs.clear();
     mWorldState.mCollisionItems.clear();
     mWorldState.mScreens.clear();
 }
