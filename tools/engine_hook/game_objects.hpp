@@ -90,7 +90,7 @@ struct AnimationEx : public Animation2
     DWORD field_16_dataOffset;
     WORD field_1A;
     DWORD field_1C;
-    DWORD field_20_ppBlock;
+    DWORD field_20_pAnimChunkPtrs; // // pointer to a pointer which points to anim data
     DWORD field_24_dbuf;
     WORD field_28_dbuf_size;
 

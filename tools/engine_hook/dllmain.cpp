@@ -37,62 +37,6 @@ HINSTANCE gDllInstance = NULL;
 
 static int __cdecl gdi_draw_hook(DWORD * hdc);
 
-ALIVE_VAR(0x0, 0x5D1E10, BYTE, gRandomIndex_dword_5D1E10);
-const BYTE gRandomTable_546744[256]
-{
-    53, 133,  73,  226, 167,  66, 223,  11,  45,  35,
-    221, 222,  31,  23, 187, 207,  78, 163,  25,   4,
-    113,  18, 181,  80,  67, 100, 160,  21, 219,  34,
-    176, 131,  57, 234, 175, 195, 208, 206, 119,  20,
-    173,  86, 128,  95, 110, 210, 217, 192, 230, 246,
-    112, 249,   5,  90,  51, 197, 140, 115, 203, 250,
-    129,  62, 216, 158,  38, 214,  12, 186, 170, 205,
-    126, 157, 255,  29,   6, 196, 237, 242, 244,  91,
-    148, 155, 161,  94, 184,  55, 193, 241,  87, 123,
-    215, 251,  37, 204, 145, 240,  98, 127, 252,  26,
-    150, 114,  47, 218,  56, 162,  58, 191, 180, 177,
-    232, 189,  15, 247, 174, 166, 136, 116,  44, 125,
-    1,   236,   7,  36,  64,  52,  93,  89, 156, 122,
-    154, 238, 231,  70, 159,  97,  99,  48, 178, 151,
-    239, 172, 118, 142, 117, 228, 211, 169,  42,  65,
-    0,   165, 188, 102,  81, 202,  27, 183, 124,  14,
-    24,  107, 199, 120, 132, 106, 108, 130,  96, 213,
-    28,   19,  85,  82, 185,  83,  50,  30, 182,  40,
-    75,  143,  17, 141, 139, 253,  16, 103,  63, 209,
-    54,   69, 134, 201,  74,  84,  79, 248, 121,  41,
-    105,   8, 233, 137,  32, 171, 109, 227, 198, 152,
-    153, 229, 147,  72,   9, 225, 243,  71,  76, 254,
-    138, 149,  60, 235,  43,   3, 245, 168,  88,  61,
-    194,  49, 101, 220,  39, 190,  33, 104, 224, 179,
-    200, 164,   2,  46, 212,  59, 111,  92, 135,  10,
-    146,  13,  77,  22,  68, 144
-};
-
-signed __int16 __cdecl RangedRandom_496AB0(signed __int16 from, signed __int16 to)
-{
-    if (to < from)
-    {
-        std::swap(to, from);
-    }
-    else if (to == from)
-    {
-        return from;
-    }
-
-    if (to - from < 256)
-    {
-        return (gRandomTable_546744[gRandomIndex_dword_5D1E10++] % (to - from + 1)) + from;
-    }
-    else
-    {
-        const signed __int16 tableValue = 257 * gRandomTable_546744[gRandomIndex_dword_5D1E10];
-        gRandomIndex_dword_5D1E10 += 2;
-        return (tableValue % (to - from + 1)) + from;
-    }
-}
-ALIVE_FUNC_IMPLEX(0x0, 0x496AB0, RangedRandom_496AB0, true); // TODO: This function isn't yet tested and might be wrong
-
-
 #pragma pack(push)
 #pragma pack(1)
 struct anim_struct
@@ -108,7 +52,7 @@ struct anim_struct
     DWORD field_14;
     DWORD mAnimationHeaderOffset; // offset to frame table from anim data header
     DWORD field_1C;
-    BYTE** mAnimChunkPtrs; // pointer to a pointer which points to anim data?
+    BYTE** mAnimChunkPtrs;
     DWORD iDbufPtr;
     DWORD iAnimSize;
     DWORD field_2C;
@@ -614,47 +558,6 @@ void GdiLoop(HDC hdc)
     DeleteObject(hLinePen);
 }
 
-struct gVtbl_animation_2a_544290
-{
-    // Note: These actually take AnimationEx*'s but since this is hand made vtable it has to use the base type
-    void (__thiscall* jAnimation_decode_frame_4039D1)(Animation2 *pthis);
-    char (__thiscall* Animation_403F7B)(Animation2 *pthis, int a2, int a3, int a4, __int16 a5, int a6);
-    signed __int16 (__thiscall* Animation_4029E1)(Animation2 *a1);
-    __int16 (__thiscall* Animation_4032BF)(Animation2 *a1, int a2);
-    char (__thiscall* Animation_4030FD)(Animation2 *pthis, int a1, int a2, int a3, int a4, int a5);
-};
-
-static void BeforeRender()
-{
-
-}
-
-void __cdecl j_AnimateAllAnimations_40AC20_Hook(GameObjectList::Objs<Animation2*>* pAnims)
-{
-    for (u16 i = 0; i < pAnims->mCount; i++)
-    {
-        Animation2* pAnim = pAnims->mArray[i];
-        if (!pAnim)
-        {
-            break;
-        }
-
-        if (pAnim->field_4_flags & 2)
-        {
-            if (pAnim->field_E_frame_change_counter > 0)
-            {
-                pAnim->field_E_frame_change_counter--;
-                if (pAnim->field_E_frame_change_counter == 0)
-                {
-                    gVtbl_animation_2a_544290* pVTbl = reinterpret_cast<gVtbl_animation_2a_544290*>(pAnim->field_0_VTable);
-                    pVTbl->jAnimation_decode_frame_4039D1(pAnim);
-                }
-            }
-        }
-    }
-    BeforeRender();
-}
-ALIVE_FUNC_IMPLEX(0x0, 0x40AC20, j_AnimateAllAnimations_40AC20_Hook, true);
 
 static int __cdecl gdi_draw_hook(DWORD * hdcPtr)
 {
@@ -664,41 +567,6 @@ static int __cdecl gdi_draw_hook(DWORD * hdcPtr)
     
     return Hooks::gdi_draw.Real()(hdcPtr);
 }
-
-int __cdecl AbeSnap_sub_449930_hook(int scale, const signed int xpos)
-{
-    int result = 0;
-    int v3 = 0;
-    int v4 = 0;
-
-    if (scale == 32768)
-    {
-        v4 = (xpos % 375 - 6) % 13;
-        if (v4 >= 7)
-            result = xpos - v4 + 13;
-        else
-            result = xpos - v4;
-    }
-    else
-    {
-        if (scale == 65536)
-        {
-            v3 = (xpos - 12) % 25;
-            if (v3 >= 13)
-                result = xpos - v3 + 25;
-            else
-                result = xpos - v3;
-
-            LOG_INFO("SNAP: " << xpos << " to " << result);
-        }
-        else
-        {
-            result = xpos;
-        }
-    }
-    return result;
-}
-ALIVE_FUNC_IMPLEX(0x0, 0x00449930, AbeSnap_sub_449930_hook, true);
 
 HMODULE gDllHandle = NULL;
 
