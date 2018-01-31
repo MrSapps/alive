@@ -110,6 +110,17 @@ private:
             eLoadEntities,
             eHackToPlaceAbeInValidCamera,
         };
+
+        enum ObjectTypesAe : u8
+        {
+            eHoist = 2,
+            eDoor = 5,
+            eBackgroundAnimation = 13,
+            eSwitch = 17,
+            eMine = 24,
+            eElectricWall = 38,
+            eSlamDoor = 85
+        };
         
         LoaderStates mState = LoaderStates::eInit;
         IterativeForLoopU32 mXForLoop;

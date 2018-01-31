@@ -138,9 +138,18 @@ GridMap::Loader::Loader(GridMap& gm)
 
 void GridMap::Loader::SetupSystems(ResourceLocator& locator, const InputState& state)
 {
+    mGm.mRoot.RegisterComponent<AbeMovementComponent>();
+    mGm.mRoot.RegisterComponent<AbePlayerControllerComponent>();
+    mGm.mRoot.RegisterComponent<AnimationComponent>();
+    mGm.mRoot.RegisterComponent<PhysicsComponent>();
+    mGm.mRoot.RegisterComponent<SligMovementComponent>();
+    mGm.mRoot.RegisterComponent<SligPlayerControllerComponent>();
+    mGm.mRoot.RegisterComponent<TransformComponent>();
+
     mGm.mRoot.AddSystem<InputSystem>(state);
     mGm.mRoot.AddSystem<CollisionSystem>();
     mGm.mRoot.AddSystem<ResourceLocatorSystem>(locator);
+
     SetState(LoaderStates::eSetupAndConvertCollisionItems);
 }
 
@@ -218,26 +227,129 @@ void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocato
             const Oddlib::Path::Camera& cam = screen->getCamera();
             return mIForLoop.Iterate(static_cast<u32>(cam.mObjects.size()), [&]()
             {
-                const Oddlib::Path::MapObject& obj = cam.mObjects[mIForLoop.Value()];
-                Oddlib::MemoryStream ms(std::vector<u8>(obj.mData.data(), obj.mData.data() + obj.mData.size()));
+                const auto& object = cam.mObjects[mIForLoop.Value()];
+                Oddlib::MemoryStream ms(std::vector<u8>(object.mData.data(), object.mData.data() + object.mData.size()));
                 const ObjRect rect =
                     {
-                        obj.mRectTopLeft.mX,
-                        obj.mRectTopLeft.mY,
-                        obj.mRectBottomRight.mX - obj.mRectTopLeft.mX,
-                        obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
+                        object.mRectTopLeft.mX,
+                        object.mRectTopLeft.mY,
+                        object.mRectBottomRight.mX - object.mRectTopLeft.mX,
+                        object.mRectBottomRight.mY - object.mRectTopLeft.mY
                     };
-
-                auto mapObj = std::make_unique<MapObject>(locator, rect);
-
-                Sqrat::Function objFactory(Sqrat::RootTable(), "object_factory");
-                Oddlib::IStream* s = &ms; // Script only knows about IStream, not the derived types
-                Sqrat::SharedPtr<bool> ret = objFactory.Evaluate<bool>(mapObj.get(), &mGm, path.IsAo(), obj.mType, rect, s); // TODO: Don't need to pass rect?
-                SquirrelVm::CheckError();
-                // TODO: Handle error case
-                if (ret.get() && *ret)
+                switch (object.mType)
                 {
-                    mMapObjectBeingLoaded = std::move(mapObj);
+                case ObjectTypesAe::eHoist:
+                {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    ReadU16(ms); // hoistType
+                    ReadU16(ms); // edgeType
+                    ReadU16(ms); // id
+                    ReadU16(ms); // scale
+                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x), static_cast<float>(rect.y));
+                    break;
+                }
+                case ObjectTypesAe::eDoor:
+                {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+					ReadU16(ms); // level
+					ReadU16(ms); // path
+					ReadU16(ms); // camera
+					ReadU16(ms); // scale
+                    ReadU16(ms); // doorNumber
+                    ReadU16(ms); // id
+                    ReadU16(ms); // targetDoorNumber
+                    ReadU16(ms); // skin
+                    ReadU16(ms); // startOpen
+                    ReadU16(ms); // hubId1
+                    ReadU16(ms); // hubId2
+                    ReadU16(ms); // hubId3
+                    ReadU16(ms); // hubId4
+                    ReadU16(ms); // hubId5
+                    ReadU16(ms); // hubId6
+                    ReadU16(ms); // hubId7
+                    ReadU16(ms); // hubId8
+                    ReadU16(ms); // wipeEffect
+                    auto xoffset = ReadU16(ms);
+					auto yoffset = ReadU16(ms);
+                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x) + xoffset + 5, static_cast<float>(rect.y) + rect.h + yoffset);
+                    entity->GetComponent<AnimationComponent>()->Change("DoorClosed_Barracks");
+                    break;
+                }
+                case ObjectTypesAe::eBackgroundAnimation:
+                {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x), static_cast<float>(rect.y));
+                    auto animId = ReadU32(ms);
+                    switch (animId)
+                    {
+                    case 1201:
+                        entity->GetComponent<AnimationComponent>()->Change("BAP01C06.CAM_1201_AePc_0");
+                        entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x) + 5, static_cast<float>(rect.y) + 3);
+                        break;
+                    case 1202:
+                        entity->GetComponent<AnimationComponent>()->Change("FARTFAN.BAN_1202_AePc_0");
+                        break;
+                    default:
+                        entity->GetComponent<AnimationComponent>()->Change("AbeStandSpeak1");
+                    }
+                    break;
+                }
+                case ObjectTypesAe::eSwitch:
+                {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    ReadU32(ms); // scale
+                    ReadU16(ms); // onSound
+                    ReadU16(ms); // offSound
+                    ReadU16(ms); // soundDirection
+                    ReadU16(ms); // id
+                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x) + 37, static_cast<float>(rect.y) + rect.h - 5);
+                    entity->GetComponent<AnimationComponent>()->Change("SwitchIdle");
+                    break;
+                }
+                case ObjectTypesAe::eMine:
+                {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    ReadU32(ms); // Skip unused "num patterns"
+                    ReadU32(ms); // Skip unused "patterns"
+                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x) + 10, static_cast<float>(rect.y) + 22);
+                    entity->GetComponent<AnimationComponent>()->Change("LANDMINE.BAN_1036_AePc_0");
+                    break;
+                }
+                case ObjectTypesAe::eElectricWall:
+                {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    ReadU16(ms); // scale
+                    ReadU16(ms); // id
+                    ReadU16(ms); // enabled
+                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x), static_cast<float>(rect.y));
+                    entity->GetComponent<AnimationComponent>()->Change("ELECWALL.BAN_6000_AePc_0");
+                    break;
+                }
+                case ObjectTypesAe::eSlamDoor:
+                {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x) + 13, static_cast<float>(rect.y) + 18);
+                    entity->GetComponent<AnimationComponent>()->Change("SLAM.BAN_2020_AePc_1");
+                    ReadU16(ms); // closed
+                    ReadU16(ms); // scale
+                    ReadU16(ms); // id
+                    ReadU16(ms); // inverted
+                    ReadU32(ms); // delete
+                    break;
+                }
+                default:
+                {
+                    auto mapObj = std::make_unique<MapObject>(locator, rect);
+                    Oddlib::IStream* s = &ms; // Script only knows about IStream, not the derived types
+                    Sqrat::Function objFactory(Sqrat::RootTable(), "object_factory");
+                    Sqrat::SharedPtr<bool> ret = objFactory.Evaluate<bool>(mapObj.get(), &mGm, path.IsAo(), object.mType, rect, s); // TODO: Don't need to pass rect?
+                    SquirrelVm::CheckError();
+                    // TODO: Handle error case
+                    if (ret.get() && *ret)
+                    {
+                        mMapObjectBeingLoaded = std::move(mapObj);
+                    }
+                }
                 }
             });
         });
@@ -249,14 +361,6 @@ void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocato
 
 void GridMap::Loader::HandleLoadEntities()
 {
-    mGm.mRoot.RegisterComponent<AbeMovementComponent>();
-    mGm.mRoot.RegisterComponent<AbePlayerControllerComponent>();
-    mGm.mRoot.RegisterComponent<AnimationComponent>();
-    mGm.mRoot.RegisterComponent<PhysicsComponent>();
-    mGm.mRoot.RegisterComponent<SligMovementComponent>();
-    mGm.mRoot.RegisterComponent<SligPlayerControllerComponent>();
-    mGm.mRoot.RegisterComponent<TransformComponent>();
-
     auto abe = mGm.mRoot.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent>();
     auto pos = abe->GetComponent<TransformComponent>();
     pos->Set(125.0f, 380.0f + (80.0f));
