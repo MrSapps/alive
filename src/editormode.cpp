@@ -430,8 +430,8 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
 
         if (mWorldState.mCameraSubject)
         {
-            mWorldState.mCameraSubject->mXPos = mWorldState.mCameraPosition.x;
-            mWorldState.mCameraSubject->mYPos = mWorldState.mCameraPosition.y;
+            // mWorldState.mCameraSubject->mXPos = mWorldState.mCameraPosition.x;
+            // mWorldState.mCameraSubject->mYPos = mWorldState.mCameraPosition.y;
         }
     }
 

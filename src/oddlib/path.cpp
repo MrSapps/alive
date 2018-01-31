@@ -1,7 +1,9 @@
+#include <array>
+#include <cassert>
+
+#include "logger.hpp"
 #include "oddlib/path.hpp"
 #include "oddlib/stream.hpp"
-#include "logger.hpp"
-#include <array>
 
 namespace Oddlib
 {

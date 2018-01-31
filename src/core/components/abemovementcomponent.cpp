@@ -10,7 +10,7 @@
 #include "core/components/abemovementcomponent.hpp"
 #include "core/components/sligmovementcomponent.hpp"
 
-DEFINE_COMPONENT(AbeMovementComponent);
+DEFINE_COMPONENT(AbeMovementComponent)
 
 static const f32 kAbeWalkSpeed = 2.777771f;
 static const std::map<AbeMovementComponent::AbeAnimation, std::string> kAbeAnimations = {
@@ -297,7 +297,7 @@ void AbeMovementComponent::PlaySoundEffect(const char* fxName)
     LOG_WARNING("TODO: Play: " << fxName);
 }
 
-DEFINE_COMPONENT(AbePlayerControllerComponent);
+DEFINE_COMPONENT(AbePlayerControllerComponent)
 
 void AbePlayerControllerComponent::OnResolveDependencies()
 {

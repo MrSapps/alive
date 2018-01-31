@@ -6,7 +6,7 @@
 #include "core/components/animationcomponent.hpp"
 #include "core/components/sligmovementcomponent.hpp"
 
-DEFINE_COMPONENT(SligMovementComponent);
+DEFINE_COMPONENT(SligMovementComponent)
 
 static const std::string kSligStandTurnAround = "SligStandTurnAround";
 static const std::string kSligStandIdle = "SligStandIdle";
@@ -172,7 +172,7 @@ void SligMovementComponent::SetXSpeed(f32 speed)
     }
 }
 
-DEFINE_COMPONENT(SligPlayerControllerComponent);
+DEFINE_COMPONENT(SligPlayerControllerComponent)
 
 void SligPlayerControllerComponent::OnResolveDependencies()
 {

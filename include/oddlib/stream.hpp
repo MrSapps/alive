@@ -7,7 +7,6 @@
 #include <fstream>
 #include <sstream>
 #include "SDL.h"
-#include "proxy_sqrat.hpp"
 #include "types.hpp"
 
 namespace Oddlib
@@ -142,15 +141,6 @@ namespace Oddlib
         u32 ret = 0;
         stream.Read(ret);
         return ret;
-    }
-
-    /*static*/ inline void IStream::RegisterScriptBindings()
-    {
-        Sqrat::Class<IStream, Sqrat::NoConstructor<IStream>> c(Sqrat::DefaultVM::Get(), "IStream");
-        c.StaticFunc("ReadU8", &ReadU8);
-        c.StaticFunc("ReadU16", &ReadU16);
-        c.StaticFunc("ReadU32", &ReadU32);
-        Sqrat::RootTable().Bind("IStream", c);
     }
 
 

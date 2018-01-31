@@ -1,5 +1,4 @@
 #include "input.hpp"
-#include "proxy_sqrat.hpp"
 
 
 InputMapping::InputMapping()
@@ -95,36 +94,4 @@ void InputMapping::Update(const InputState& input)
     }
 
     mActions.UpdateStates();
-}
-
-/*static*/ void Actions::RegisterScriptBindings()
-{
-    Sqrat::Class<Actions> c(Sqrat::DefaultVM::Get(), "Actions");
-    c
-        .StaticFunc("Left", &Actions::Left)
-        .StaticFunc("Right", &Actions::Right)
-        .StaticFunc("Up", &Actions::Up)
-        .StaticFunc("Down", &Actions::Down)
-        .StaticFunc("Chant", &Actions::Chant)
-        .StaticFunc("Run", &Actions::Run)
-        .StaticFunc("Sneak", &Actions::Sneak)
-        .StaticFunc("Jump", &Actions::Jump)
-        .StaticFunc("Throw", &Actions::Throw)
-        .StaticFunc("Action", &Actions::Action)
-        .StaticFunc("RollOrFart", &Actions::RollOrFart)
-        .StaticFunc("GameSpeak1", &Actions::GameSpeak1)
-        .StaticFunc("GameSpeak2", &Actions::GameSpeak2)
-        .StaticFunc("GameSpeak3", &Actions::GameSpeak3)
-        .StaticFunc("GameSpeak4", &Actions::GameSpeak4)
-        .StaticFunc("GameSpeak5", &Actions::GameSpeak5)
-        .StaticFunc("GameSpeak6", &Actions::GameSpeak6)
-        .StaticFunc("GameSpeak7", &Actions::GameSpeak7)
-        .StaticFunc("GameSpeak8", &Actions::GameSpeak8)
-        .StaticFunc("Back", &Actions::Back)
-        .Var("IsPressed", &Actions::mIsPressed)
-        .Var("IsReleased", &Actions::mIsReleased)
-        .Var("IsHeld", &Actions::mIsDown)
-        .Ctor();
-
-    Sqrat::RootTable().Bind("Actions", c);
 }

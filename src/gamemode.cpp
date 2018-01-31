@@ -4,6 +4,8 @@
 #include "world.hpp"
 #include "gridmap.hpp"
 #include "fmv.hpp"
+#include "core/components/transformcomponent.hpp"
+#include "core/components/animationcomponent.hpp"
 
 GameMode::GameMode(WorldState& mapState)
     : mWorldState(mapState)
@@ -91,8 +93,9 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
 
     if (mWorldState.mCameraSubject)
     {
-        const s32 camX = static_cast<s32>(mWorldState.mCameraSubject->mXPos / mWorldState.kCameraBlockSize.x);
-        const s32 camY = static_cast<s32>(mWorldState.mCameraSubject->mYPos / mWorldState.kCameraBlockSize.y);
+        auto pos = mWorldState.mCameraSubject->GetComponent<TransformComponent>();
+        const s32 camX = static_cast<s32>(pos->GetX() / mWorldState.kCameraBlockSize.x);
+        const s32 camY = static_cast<s32>(pos->GetY() / mWorldState.kCameraBlockSize.y);
 
         const glm::vec2 camPos = glm::vec2(
             (camX * mWorldState.kCameraBlockSize.x) + mWorldState.kCameraBlockImageOffset.x,
@@ -119,8 +122,9 @@ void GameMode::Render(AbstractRenderer& rend) const
 {
     if (mWorldState.mCameraSubject && Debugging().mDrawCameras)
     {
-        const s32 camX = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraX()) : static_cast<s32>(mWorldState.mCameraSubject->mXPos / mWorldState.kCameraBlockSize.x);
-        const s32 camY = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraY()) : static_cast<s32>(mWorldState.mCameraSubject->mYPos / mWorldState.kCameraBlockSize.y);
+        auto pos = mWorldState.mCameraSubject->GetComponent<TransformComponent>();
+        const s32 camX = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraX()) : static_cast<s32>(pos->GetX() / mWorldState.kCameraBlockSize.x);
+        const s32 camY = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraY()) : static_cast<s32>(pos->GetY() / mWorldState.kCameraBlockSize.y);
 
         if (camX >= 0 && camY >= 0 &&
             camX < static_cast<s32>(mWorldState.mScreens.size()) &&
@@ -152,38 +156,41 @@ void GameMode::Render(AbstractRenderer& rend) const
 
     if (mWorldState.mCameraSubject)
     {
+        auto pos = mWorldState.mCameraSubject->GetComponent<TransformComponent>();
+        auto anim = mWorldState.mCameraSubject->GetComponent<AnimationComponent>();
+
         // Test raycasting for shadows
         mWorldState.DebugRayCast(rend,
-            glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos),
-            glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos + 500),
-            0,
-            glm::vec2(0, -10)); // -10 so when we are *ON* a line you can see something
+                                 glm::vec2(pos->GetX(), pos->GetY()),
+                                 glm::vec2(pos->GetX(), pos->GetY() + 500),
+                                 0,
+                                 glm::vec2(0, -10)); // -10 so when we are *ON* a line you can see something
 
         mWorldState.DebugRayCast(rend,
-            glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 2),
-            glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 60),
-            3,
-            glm::vec2(0, 0));
+                                 glm::vec2(pos->GetX(), pos->GetY() - 2),
+                                 glm::vec2(pos->GetX(), pos->GetY() - 60),
+                                 3,
+                                 glm::vec2(0, 0));
 
-        if (mWorldState.mCameraSubject->mFlipX)
+        if (anim->mFlipX)
         {
             mWorldState.DebugRayCast(rend,
-                glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 20),
-                glm::vec2(mWorldState.mCameraSubject->mXPos - 25, mWorldState.mCameraSubject->mYPos - 20), 1);
+                                     glm::vec2(pos->GetX(), pos->GetY() - 20),
+                                     glm::vec2(pos->GetX() - 25, pos->GetY() - 20), 1);
 
             mWorldState.DebugRayCast(rend,
-                glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 50),
-                glm::vec2(mWorldState.mCameraSubject->mXPos - 25, mWorldState.mCameraSubject->mYPos - 50), 1);
+                                     glm::vec2(pos->GetX(), pos->GetY() - 50),
+                                     glm::vec2(pos->GetX() - 25, pos->GetY() - 50), 1);
         }
         else
         {
             mWorldState.DebugRayCast(rend,
-                glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 20),
-                glm::vec2(mWorldState.mCameraSubject->mXPos + 25, mWorldState.mCameraSubject->mYPos - 20), 2);
+                                     glm::vec2(pos->GetX(), pos->GetY() - 20),
+                                     glm::vec2(pos->GetX() + 25, pos->GetY() - 20), 2);
 
             mWorldState.DebugRayCast(rend,
-                glm::vec2(mWorldState.mCameraSubject->mXPos, mWorldState.mCameraSubject->mYPos - 50),
-                glm::vec2(mWorldState.mCameraSubject->mXPos + 25, mWorldState.mCameraSubject->mYPos - 50), 2);
+                                     glm::vec2(pos->GetX(), pos->GetY() - 50),
+                                     glm::vec2(pos->GetX() + 25, pos->GetY() - 50), 2);
         }
     }
 

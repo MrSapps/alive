@@ -4,6 +4,7 @@
 #include "engine.hpp"
 #include "resourcemapper.hpp"
 #include "collisionline.hpp"
+#include "core/entity.hpp"
 
 namespace Oddlib
 {
@@ -36,7 +37,7 @@ public:
     const int mEditorGridSizeY = 20;
 
     glm::vec2 mCameraPosition;
-    MapObject* mCameraSubject = nullptr;
+    Entity* mCameraSubject = nullptr;
 
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
 

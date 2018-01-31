@@ -1,6 +1,6 @@
 #include "core/system.hpp"
 
-DEFINE_ROOT_SYSTEM(System);
+DEFINE_ROOT_SYSTEM(System)
 
 System::~System() // NOLINT
 {

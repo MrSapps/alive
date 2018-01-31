@@ -3,17 +3,21 @@
 #include <regex>
 
 #ifdef _WIN32
-#include <windows.h>
-#pragma warning(push)
-#pragma warning(disable:4917)
-#pragma warning(disable:4091) //  'typedef ': ignored on left of 'tagGPFIDL_FLAGS' when no variable is declared 
-#include <shlobj.h>
-#pragma warning(pop)
+#   include <windows.h>
+#   if !defined(__MINGW32__)
+#       pragma warning(push)
+#       pragma warning(disable:4917)
+#       pragma warning(disable:4091) //  'typedef ': ignored on left of 'tagGPFIDL_FLAGS' when no variable is declared
+#   endif
+#   include <shlobj.h>
+#   if !defined(__MINGW32__)
+#       pragma warning(pop)
+#   endif
 #else
-#include <dirent.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+#   include <dirent.h>
+#   include <unistd.h>
+#   include <sys/stat.h>
+#   include <sys/types.h>
 #endif
 
 #include "string_util.hpp"

@@ -11,7 +11,6 @@
 #include "fsm.hpp"
 #include "abstractrenderer.hpp"
 #include "collisionline.hpp"
-#include "proxy_sqrat.hpp"
 #include "mapobject.hpp"
 #include "imgui/imgui.h"
 #include "iterativeforloop.hpp"
@@ -80,7 +79,6 @@ public:
     GridMap(CoordinateSpace& coords, WorldState& state);
     ~GridMap();
     bool LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input); // TODO: Input wired here
-    static void RegisterScriptBindings();
 private:
     class Loader
     {
@@ -92,7 +90,6 @@ private:
         void SetupAndConvertCollisionItems(const Oddlib::Path& path);
         void HandleAllocateCameraMemory(const Oddlib::Path& path);
         void HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& locator);
-        void HandleObjectLoaderScripts(ResourceLocator& locator);
         void HandleLoadObjects(const Oddlib::Path& path, ResourceLocator& locator);
         void HandleLoadEntities();
         void HandleHackAbeIntoValidCamera(ResourceLocator& locator);
@@ -105,7 +102,6 @@ private:
             eSetupAndConvertCollisionItems,
             eAllocateCameraMemory,
             eLoadCameras,
-            eObjectLoaderScripts,
             eLoadObjects,
             eLoadEntities,
             eHackToPlaceAbeInValidCamera,
@@ -137,10 +133,6 @@ private:
     virtual const CollisionLines& Lines() const override final;
 
     void ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items);
-
-
-    InstanceBinder<class GridMap> mScriptInstance;
-
    
 public:
     void UnloadMap(AbstractRenderer& renderer);

@@ -88,7 +88,7 @@ void EntityManager::CreateEntityWith(Entity* entity)
 {
     CreateEntityWith<C1>(entity);
     CreateEntityWith<C2, C...>(entity);
-};
+}
 
 template<typename... C>
 void EntityManager::Any(typename std::common_type<std::function<void(Entity*, C* ...)>>::type view)

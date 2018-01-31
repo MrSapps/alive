@@ -76,7 +76,6 @@ include_directories(
     ${SDL2_INCLUDE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/packaging
     ${OPENGL_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squirrel/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/sqrat/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/boost_1_63_mini
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/include
@@ -123,12 +122,6 @@ SET_PROPERTY(TARGET soxr PROPERTY FOLDER "3rdparty")
 
 SET(SQ_DISABLE_INSTALLER 1)
 SET(DISABLE_DYNAMIC 1)
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squirrel)
-SET_PROPERTY(TARGET sq_static PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET sqstdlib_static PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET squirrel_static PROPERTY FOLDER "3rdparty")
-
 
 SET(imgui_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_rect_pack.h
@@ -274,7 +267,6 @@ SET(oddlib_src
     include/types.hpp
     include/bitutils.hpp
     include/proxy_rapidjson.hpp
-    include/proxy_sqrat.hpp
     include/msvc_sdl_link.hpp
     include/stdthread.h
     include/iterativeforloop.hpp
@@ -448,7 +440,7 @@ endif()
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
-TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib jsonxx sqstdlib_static squirrel_static stk nativefiledialog libdeflate imgui soxr)
+TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib jsonxx stk nativefiledialog libdeflate imgui soxr)
 
 if (WIN32 AND MSVC)
     set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")

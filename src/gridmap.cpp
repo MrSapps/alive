@@ -94,20 +94,8 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
     }
 }
 
-/*static*/ void GridMap::RegisterScriptBindings()
-{
-    Sqrat::Class<IMap, Sqrat::NoConstructor<IMap>> im(Sqrat::DefaultVM::Get(), "IMap");
-    Sqrat::RootTable().Bind("IMap", im);
-
-    Sqrat::DerivedClass<GridMap, IMap, Sqrat::NoConstructor<GridMap>> gm(Sqrat::DefaultVM::Get(), "GridMap");
-
-    gm.Func("GetMapObject", &GridMap::GetMapObject);
-
-    Sqrat::RootTable().Bind("GridMap", gm);
-}
-
 GridMap::GridMap(CoordinateSpace& coords, WorldState& state)
-    : mLoader(*this), mScriptInstance("gMap", this), mWorldState(state)
+    : mLoader(*this), mWorldState(state)
 {
 
 
@@ -192,23 +180,11 @@ void GridMap::Loader::HandleLoadCameras(const Oddlib::Path& path, ResourceLocato
         });
     }))
     {
-        SetState(LoaderStates::eObjectLoaderScripts);
+        SetState(LoaderStates::eLoadObjects);
     }
 }
 
-void GridMap::Loader::HandleObjectLoaderScripts(ResourceLocator& locator)
-{
-    SquirrelVm::CompileAndRun(locator, "object_factory.nut");
-    Sqrat::Function objFactoryInit(Sqrat::RootTable(), "init_object_factory");
-    objFactoryInit.Execute();
-    SquirrelVm::CheckError();
-
-    SquirrelVm::CompileAndRun(locator, "map.nut");
-
-    SetState(LoaderStates::eLoadObjects);
-}
-
-void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocator& locator)
+void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocator&)
 {
     if (mMapObjectBeingLoaded)
     {
@@ -342,19 +318,6 @@ void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocato
                     ReadU32(ms); // delete
                     break;
                 }
-                default:
-                {
-                    auto mapObj = std::make_unique<MapObject>(locator, rect);
-                    Oddlib::IStream* s = &ms; // Script only knows about IStream, not the derived types
-                    Sqrat::Function objFactory(Sqrat::RootTable(), "object_factory");
-                    Sqrat::SharedPtr<bool> ret = objFactory.Evaluate<bool>(mapObj.get(), &mGm, path.IsAo(), object.mType, rect, s); // TODO: Don't need to pass rect?
-                    SquirrelVm::CheckError();
-                    // TODO: Handle error case
-                    if (ret.get() && *ret)
-                    {
-                        mMapObjectBeingLoaded = std::move(mapObj);
-                    }
-                }
                 }
             });
         });
@@ -371,6 +334,8 @@ void GridMap::Loader::HandleLoadEntities()
     pos->Set(125.0f, 380.0f + (80.0f));
     pos->SnapXToGrid();
 
+    mGm.mWorldState.mCameraSubject = abe;
+
     auto slig = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
     auto pos2 = slig->GetComponent<TransformComponent>();
     pos2->Set(125.0f + (25.0f), 380.0f + (80.0f));
@@ -378,8 +343,11 @@ void GridMap::Loader::HandleLoadEntities()
     SetState(LoaderStates::eHackToPlaceAbeInValidCamera);
 }
 
-void GridMap::Loader::HandleHackAbeIntoValidCamera(ResourceLocator& locator)
+void GridMap::Loader::HandleHackAbeIntoValidCamera(ResourceLocator&)
 {
+	// TODO: remove HACK and load abe 
+	SetState(LoaderStates::eInit);
+	/*
     if (mMapObjectBeingLoaded)
     {
         if (mMapObjectBeingLoaded->Init())
@@ -401,12 +369,11 @@ void GridMap::Loader::HandleHackAbeIntoValidCamera(ResourceLocator& locator)
                 GridScreen* screen = mGm.mWorldState.mScreens[x][y].get();
                 if (screen->hasTexture())
                 {
-
+					
                     auto xPos = (x * mGm.mWorldState.kCamGapSize.x) + 100.0f;
                     auto yPos = (y * mGm.mWorldState.kCamGapSize.y) + 100.0f;
 
                     auto tmp = std::make_unique<MapObject>(locator, ObjRect{});
-
                     Sqrat::Function onInitMap(Sqrat::RootTable(), "on_init_map");
                     Sqrat::SharedPtr<bool> ret = onInitMap.Evaluate<bool>(tmp.get(), &mGm, xPos, yPos);
                     SquirrelVm::CheckError();
@@ -420,6 +387,7 @@ void GridMap::Loader::HandleHackAbeIntoValidCamera(ResourceLocator& locator)
             }
         }
     }
+	*/
 }
 
 void GridMap::Loader::SetState(GridMap::Loader::LoaderStates state)
@@ -452,10 +420,6 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator, c
 
     case LoaderStates::eLoadCameras:
         HandleLoadCameras(path, locator);
-        break;
-
-    case LoaderStates::eObjectLoaderScripts:
-        HandleObjectLoaderScripts(locator);
         break;
 
     case LoaderStates::eLoadObjects:

@@ -1,6 +1,6 @@
 #include "core/systems/inputsystem.hpp"
 
-DEFINE_SYSTEM(InputSystem);
+DEFINE_SYSTEM(InputSystem)
 
 InputSystem::InputSystem(const InputState& state) : mActions(&state.Mapping().GetActions())
 {
