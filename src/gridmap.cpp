@@ -15,11 +15,9 @@
 #include "world.hpp"
 
 GridScreen::GridScreen(const Oddlib::Path::Camera& camera, ResourceLocator& locator)
-    : mFileName(camera.mName)
-    , mCamera(camera)
-    , mLocator(locator)
+    : mFileName(camera.mName), mCamera(camera), mLocator(locator)
 {
-   
+
 }
 
 GridScreen::~GridScreen()
@@ -70,7 +68,7 @@ void GridScreen::UnLoadTextures(AbstractRenderer& rend)
 bool GridScreen::hasTexture() const
 {
     bool onlySpaces = true;
-    for (size_t i = 0; i < mFileName.size(); ++i) 
+    for (size_t i = 0; i < mFileName.size(); ++i)
     {
         if (mFileName[i] != ' ' && mFileName[i] != '\0')
         {
@@ -115,7 +113,7 @@ GridMap::GridMap(CoordinateSpace& coords, WorldState& state)
 
     // Set up the screen size and camera pos so that the grid is drawn correctly during init
     mWorldState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
-    mWorldState.kCameraBlockSize =  glm::vec2(375, 260);
+    mWorldState.kCameraBlockSize = glm::vec2(375, 260);
     mWorldState.kCamGapSize = glm::vec2(375, 260);
     mWorldState.kCameraBlockImageOffset = glm::vec2(0, 0);
 
@@ -136,6 +134,14 @@ GridMap::Loader::Loader(GridMap& gm)
     : mGm(gm)
 {
 
+}
+
+void GridMap::Loader::SetupSystems(ResourceLocator& locator, const InputState& state)
+{
+    mGm.mRoot.AddSystem<InputSystem>(state);
+    mGm.mRoot.AddSystem<CollisionSystem>();
+    mGm.mRoot.AddSystem<ResourceLocatorSystem>(locator);
+    SetState(LoaderStates::eSetupAndConvertCollisionItems);
 }
 
 void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
@@ -215,12 +221,12 @@ void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocato
                 const Oddlib::Path::MapObject& obj = cam.mObjects[mIForLoop.Value()];
                 Oddlib::MemoryStream ms(std::vector<u8>(obj.mData.data(), obj.mData.data() + obj.mData.size()));
                 const ObjRect rect =
-                {
-                    obj.mRectTopLeft.mX,
-                    obj.mRectTopLeft.mY,
-                    obj.mRectBottomRight.mX - obj.mRectTopLeft.mX,
-                    obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
-                };
+                    {
+                        obj.mRectTopLeft.mX,
+                        obj.mRectTopLeft.mY,
+                        obj.mRectBottomRight.mX - obj.mRectTopLeft.mX,
+                        obj.mRectBottomRight.mY - obj.mRectTopLeft.mY
+                    };
 
                 auto mapObj = std::make_unique<MapObject>(locator, rect);
 
@@ -237,8 +243,30 @@ void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocato
         });
     }))
     {
-        SetState(LoaderStates::eHackToPlaceAbeInValidCamera);
+        SetState(LoaderStates::eLoadEntities);
     }
+}
+
+void GridMap::Loader::HandleLoadEntities()
+{
+    mGm.mRoot.RegisterComponent<AbeMovementComponent>();
+    mGm.mRoot.RegisterComponent<AbePlayerControllerComponent>();
+    mGm.mRoot.RegisterComponent<AnimationComponent>();
+    mGm.mRoot.RegisterComponent<PhysicsComponent>();
+    mGm.mRoot.RegisterComponent<SligMovementComponent>();
+    mGm.mRoot.RegisterComponent<SligPlayerControllerComponent>();
+    mGm.mRoot.RegisterComponent<TransformComponent>();
+
+    auto abe = mGm.mRoot.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent>();
+    auto pos = abe->GetComponent<TransformComponent>();
+    pos->Set(125.0f, 380.0f + (80.0f));
+    pos->SnapXToGrid();
+
+    auto slig = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
+    auto pos2 = slig->GetComponent<TransformComponent>();
+    pos2->Set(125.0f + (25.0f), 380.0f + (80.0f));
+    pos2->SnapXToGrid();
+    SetState(LoaderStates::eHackToPlaceAbeInValidCamera);
 }
 
 void GridMap::Loader::HandleHackAbeIntoValidCamera(ResourceLocator& locator)
@@ -261,7 +289,7 @@ void GridMap::Loader::HandleHackAbeIntoValidCamera(ResourceLocator& locator)
         {
             for (auto y = 0u; y < mGm.mWorldState.mScreens[x].size(); y++)
             {
-                GridScreen *screen = mGm.mWorldState.mScreens[x][y].get();
+                GridScreen* screen = mGm.mWorldState.mScreens[x][y].get();
                 if (screen->hasTexture())
                 {
 
@@ -293,12 +321,16 @@ void GridMap::Loader::SetState(GridMap::Loader::LoaderStates state)
     }
 }
 
-bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
+bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input)
 {
     switch (mState)
     {
     case LoaderStates::eInit:
-        mState = LoaderStates::eSetupAndConvertCollisionItems;
+        mState = LoaderStates::eSetupSystems;
+        break;
+
+    case LoaderStates::eSetupSystems:
+        SetupSystems(locator, input);
         break;
 
     case LoaderStates::eSetupAndConvertCollisionItems:
@@ -321,6 +353,10 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
         RunForAtLeast(kMaxExecutionTimeMs, [&]() { if (mState == LoaderStates::eLoadObjects) { HandleLoadObjects(path, locator); } });
         break;
 
+    case LoaderStates::eLoadEntities:
+        HandleLoadEntities();
+        break;
+
     case LoaderStates::eHackToPlaceAbeInValidCamera:
         HandleHackAbeIntoValidCamera(locator);
     }
@@ -335,40 +371,14 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
 
 bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input) // TODO: Input wired here
 {
-
-	mRoot.RegisterComponent<AbeMovementComponent>();
-	mRoot.RegisterComponent<AbePlayerControllerComponent>();
-	mRoot.RegisterComponent<AnimationComponent>();
-	mRoot.RegisterComponent<PhysicsComponent>();
-	mRoot.RegisterComponent<SligMovementComponent>();
-	mRoot.RegisterComponent<SligPlayerControllerComponent>();
-	mRoot.RegisterComponent<TransformComponent>();
-
-    {
-        mRoot.AddSystem<InputSystem>(input);
-        mRoot.AddSystem<ResourceLocatorSystem>(locator);
-    }
-    {
-		auto abe = mRoot.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent>();
-        auto pos = abe->GetComponent<TransformComponent>();
-        pos->Set(125.0f, 380.0f + (80.0f));
-        pos->SnapXToGrid();
-    }
-    {
-        auto slig = mRoot.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
-        auto pos = slig->GetComponent<TransformComponent>();
-        pos->Set(125.0f + (25.0f), 380.0f + (80.0f));
-        pos->SnapXToGrid();
-    }
-
 #ifdef _DEBUG
-    while (!mLoader.Load(path, locator))
+    while (!mLoader.Load(path, locator, input))
     {
-        
+
     }
     return true;
 #else
-    return mLoader.Load(path, locator);
+    return mLoader.Load(path, locator, input);
 #endif
 }
 
@@ -376,7 +386,6 @@ GridMap::~GridMap()
 {
     TRACE_ENTRYEXIT;
 }
-
 
 MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
 {
@@ -392,7 +401,6 @@ MapObject* GridMap::GetMapObject(s32 x, s32 y, const char* type)
     }
     return nullptr;
 }
-
 
 const CollisionLines& GridMap::Lines() const
 {
@@ -465,6 +473,8 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
         {
             mWorldState.mCollisionItems[i]->mLine.mP2 = mWorldState.mCollisionItems[i]->mLink.mNext->mLine.mP1;
         }
+        // TODO: Move collisions in CollisionSystem
+        // mRoot.GetSystem<CollisionSystem>()->AddCollisionLine(mWorldState.mCollisionItems[i].get());
     }
 
     // TODO: Render connected segments as one with control points

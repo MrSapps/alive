@@ -79,31 +79,35 @@ public:
     GridMap& operator = (const GridMap&) = delete;
     GridMap(CoordinateSpace& coords, WorldState& state);
     ~GridMap();
-    bool LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& state); // TODO: Input wired here
+    bool LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input); // TODO: Input wired here
     static void RegisterScriptBindings();
 private:
     class Loader
     {
     public:
         Loader(GridMap& gm);
-        bool Load(const Oddlib::Path& path, ResourceLocator& locator);
+        bool Load(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input); // TODO: Input wired here
     private:
+        void SetupSystems(ResourceLocator& locator, const InputState& state);
         void SetupAndConvertCollisionItems(const Oddlib::Path& path);
         void HandleAllocateCameraMemory(const Oddlib::Path& path);
         void HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& locator);
         void HandleObjectLoaderScripts(ResourceLocator& locator);
         void HandleLoadObjects(const Oddlib::Path& path, ResourceLocator& locator);
+        void HandleLoadEntities();
         void HandleHackAbeIntoValidCamera(ResourceLocator& locator);
 
         GridMap& mGm;
         enum class LoaderStates
         {
             eInit,
+            eSetupSystems,
             eSetupAndConvertCollisionItems,
             eAllocateCameraMemory,
             eLoadCameras,
             eObjectLoaderScripts,
             eLoadObjects,
+            eLoadEntities,
             eHackToPlaceAbeInValidCamera,
         };
         
