@@ -145,23 +145,9 @@ bool MapObject::ContainsPoint(s32, s32) const
 	return false;
 }
 
-float SnapXToGrid(float toSnap)
+float SnapXToGrid(float)
 {
-    //25x20 grid hack
-    const float oldX = toSnap;
-    const s32 xpos = static_cast<s32>(toSnap);
-    const s32 gridPos = (xpos - 12) % 25;
-    if (gridPos >= 13)
-    {
-        toSnap = static_cast<float>(xpos - gridPos + 25);
-    }
-    else
-    {
-        toSnap = static_cast<float>(xpos - gridPos);
-    }
-
-    LOG_INFO("SnapX: " << oldX << " to " << toSnap);
-    return toSnap;
+   return 0;
 }
 
 void MapObject::SnapXToGrid()

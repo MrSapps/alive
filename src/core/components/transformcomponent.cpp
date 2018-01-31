@@ -61,5 +61,8 @@ void TransformComponent::AddY(float yAmount)
 
 void TransformComponent::SnapXToGrid()
 {
-    mData.mXPos = ::SnapXToGrid(mData.mXPos);
+    //25x20 grid hack
+    const auto posX = static_cast<s32>(mData.mXPos);
+    const auto gridPos = (posX - 12) % 25;
+    mData.mXPos = static_cast<float>((gridPos >= 13 ? posX - gridPos + 25 : posX - gridPos));
 }
