@@ -251,10 +251,10 @@ void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocato
                 case ObjectTypesAe::eDoor:
                 {
                     auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
-					ReadU16(ms); // level
-					ReadU16(ms); // path
-					ReadU16(ms); // camera
-					ReadU16(ms); // scale
+                    ReadU16(ms); // level
+                    ReadU16(ms); // path
+                    ReadU16(ms); // camera
+                    ReadU16(ms); // scale
                     ReadU16(ms); // doorNumber
                     ReadU16(ms); // id
                     ReadU16(ms); // targetDoorNumber
@@ -269,8 +269,13 @@ void GridMap::Loader::HandleLoadObjects(const Oddlib::Path& path, ResourceLocato
                     ReadU16(ms); // hubId7
                     ReadU16(ms); // hubId8
                     ReadU16(ms); // wipeEffect
-                    auto xoffset = ReadU16(ms);
-					auto yoffset = ReadU16(ms);
+                    auto xoffset = ReadU16(ms); // xoffset
+                    auto yoffset = ReadU16(ms); // yoffset
+                    ReadU16(ms); // wipeXStart
+                    ReadU16(ms); // wipeYStart
+                    ReadU16(ms); // abeFaceLeft
+                    ReadU16(ms); // closeAfterUse
+                    ReadU16(ms); // removeThrowables
                     entity->GetComponent<TransformComponent>()->Set(static_cast<float>(rect.x) + xoffset + 5, static_cast<float>(rect.y) + rect.h + yoffset);
                     entity->GetComponent<AnimationComponent>()->Change("DoorClosed_Barracks");
                     break;
