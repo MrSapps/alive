@@ -10,6 +10,9 @@ ALIVE_VAR(0x0, 0x5C1BBE, WORD, word_5C1BBE);
 ALIVE_VAR(0x0, 0x5C1B9A, WORD, word_5C1B9A);
 ALIVE_VAR(0x0, 0x5C1B84, DWORD, gnFrame_dword_5C1B84);
 
+ALIVE_VAR(0x0, 0x5C3030, DWORD, gLevelObject_dword_5C3030); // Actually a class instance pointer or global object
+ALIVE_FUNC_NOT_IMPL(0x0, 0x4047E1, signed __int16 __fastcall(void* pThis, void*, __int16 a1, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6), MapChange_4047E1);
+
 
 DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
 {
@@ -158,6 +161,21 @@ static char UpdateImpl(InputObject* pThis)
 {
     pThis->field_0_pads[0].field_8_previous = pThis->field_0_pads[0].field_0_pressed;
     pThis->field_0_pads[0].field_0_pressed = sub_4FA9C0(0);
+    
+    /*
+    if (gnFrame_dword_5C1B84 == 8000)
+    {
+        // This will crash if called from main menu, has to be "in game"
+        // this function doesn't seem to change abes position which can be bad
+        MapChange_4047E1(&gLevelObject_dword_5C3030, 
+            0,  // edx
+            1,  // level
+            1,  // path
+            4, // camera
+            0, // ??
+            0, // ??
+            1); // Change even if already there 
+    }*/
 
     if (pThis->field_38_bDemoPlaying & 1)
     {
