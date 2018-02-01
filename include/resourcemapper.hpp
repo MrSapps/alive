@@ -17,7 +17,7 @@
 #include "proxy_rapidjson.hpp"
 #include "filesystem.hpp"
 #include "sound_resources.hpp"
-
+#include "paths_json.hpp"
 #include "gamedefinition.hpp" // DataPaths
 #include "imgui/imgui.h"
 #include <future>
@@ -104,50 +104,11 @@ public:
         return nullptr;
     }
 
-    struct PathLocation
-    {
-        std::string mDataSetName;
-        std::string mDataSetFileName;
-    };
-
-    struct PathMapping
-    {
-        u32 mId;
-        u32 mCollisionOffset;
-        u32 mIndexTableOffset;
-        u32 mObjectOffset;
-        u32 mNumberOfScreensX;
-        u32 mNumberOfScreensY;
-        std::string mMusicTheme;
-        std::vector<PathLocation> mLocations;
-
-        const PathLocation* Find(const std::string& dataSetName) const
-        {
-            for (const PathLocation& location : mLocations)
-            {
-                if (location.mDataSetName == dataSetName)
-                {
-                    return &location;
-                }
-            }
-            return nullptr;
-        }
-    };
-
     const SoundResource* FindSound(const char* resourceName)
     {
         return mSoundResources.FindSound(resourceName);
     }
 
-    const PathMapping* FindPath(const char* resourceName)
-    {
-        const auto it = mPathMaps.find(resourceName);
-        if (it != std::end(mPathMaps))
-        {
-            return &it->second;
-        }
-        return nullptr;
-    }
 
     struct AnimMapping
     {
@@ -247,13 +208,14 @@ public:
     };
     UiContext mUi;
 
-    const std::map<std::string, ResourceMapper::PathMapping>& PathMaps() const { return mPathMaps; }
+    const PathsJson& PathMaps() const { return mPathMaps; }
+    PathsJson& PathMaps() { return mPathMaps; }
 
 private:
-
     std::map<std::string, AnimMapping> mAnimMaps;
     std::map<std::string, FmvMapping> mFmvMaps;
-    std::map<std::string, PathMapping> mPathMaps;
+    PathsJson mPathMaps;
+
     SoundResources mSoundResources;
 
     friend class Sound; // TODO: Temp debug ui
@@ -301,19 +263,7 @@ private:
 
         rapidjson::Document document;
         document.Parse(json.c_str());
-
-        const auto& docRootArray = document.GetArray();
-        for (auto& it : docRootArray)
-        {
-            if (it.HasMember("paths"))
-            {
-                const auto& pathsArray = it["paths"].GetArray();
-                for (auto& obj : pathsArray)
-                {
-                    ParsePathResourceJson(obj);
-                }
-            }
-        }
+        mPathMaps.FromJson(document);
     }
 
     void ParseFmvResourceJson(const std::string& json)
@@ -408,34 +358,6 @@ private:
 
         const auto& name = obj["name"].GetString();
         mFmvMaps[name] = mapping;
-    }
-
-    template<typename JsonObject>
-    void ParsePathResourceJson(const JsonObject& obj)
-    {
-        PathMapping mapping;
-        mapping.mId = obj["id"].GetInt();
-        mapping.mCollisionOffset = obj["collision_offset"].GetInt();
-        mapping.mIndexTableOffset = obj["object_indextable_offset"].GetInt();
-        mapping.mObjectOffset = obj["object_offset"].GetInt();
-        mapping.mNumberOfScreensX = obj["number_of_screens_x"].GetInt();
-        mapping.mNumberOfScreensY = obj["number_of_screens_y"].GetInt();
-
-        if (obj.HasMember("music_theme"))
-        {
-            mapping.mMusicTheme = obj["music_theme"].GetString();
-        }
-
-        const auto& locations = obj["locations"].GetArray();
-        for (auto& locationRecord : locations)
-        {
-            const auto& dataSet = locationRecord["dataset"].GetString();
-            const auto& dataSetFileName = locationRecord["file_name"].GetString();
-            mapping.mLocations.push_back(PathLocation{ dataSet, dataSetFileName });
-        }
-
-        const auto& name = obj["resource_name"].GetString();
-        mPathMaps[name] = mapping;
     }
 
     template<typename JsonObject>
@@ -720,7 +642,8 @@ public:
     }
     
     // Not thread safe - only used by debug path browsers etc
-    const std::map<std::string, ResourceMapper::PathMapping>& PathMaps() const { return mResMapper.PathMaps(); }
+    const PathsJson& PathMaps() const { return mResMapper.PathMaps(); }
+    PathsJson& PathMaps() { return mResMapper.PathMaps(); }
 
     std::future<std::string> LocateScript(const std::string& scriptName);
 

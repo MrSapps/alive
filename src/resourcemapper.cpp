@@ -650,7 +650,7 @@ up_future_UP_Path ResourceLocator::LocatePath(const std::string& resourceName)
     return std::make_unique<future_UP_Path>(std::async(std::launch::async, [=]() -> Oddlib::UP_Path
     {
         std::unique_lock<std::mutex> lock(mMutex);
-        const ResourceMapper::PathMapping* mapping = mResMapper.FindPath(resourceName.c_str());
+        const auto mapping = mResMapper.PathMaps().FindPath(resourceName);
         if (mapping)
         {
             for (const DataPaths::FileSystemInfo& fs : mDataPaths.ActiveDataPaths())
@@ -661,7 +661,7 @@ up_future_UP_Path ResourceLocator::LocatePath(const std::string& resourceName)
                 }
                 else
                 {
-                    const ResourceMapper::PathLocation* pathLocation = mapping->Find(fs.mDataSetName);
+                    const auto pathLocation = mapping->Find(fs.mDataSetName);
                     if (pathLocation)
                     {
                         const std::vector<ResourceMapper::DataSetFileAttributes>* locationsInThisDataSet = mResMapper.FindFileLocation(fs.mDataSetName.c_str(), pathLocation->mDataSetFileName.c_str());

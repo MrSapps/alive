@@ -186,16 +186,8 @@ World::World(
 
     Debugging().mFnNextPath = [&]()
     {
-        s32 idx = 0;
-        for (const auto& pathMap : mLocator.PathMaps())
-        {
-            if (idx == nextPathIndex)
-            {
-                LoadMap(pathMap.first.c_str());
-                return;
-            }
-            idx++;
-        }
+        static s32 idx;
+        LoadMap(mLocator.PathMaps().NextPathName(idx));
     };
 
     Debugging().mFnReloadPath = [&]()
@@ -473,7 +465,7 @@ void World::RenderDebugPathSelection()
 {
     if (ImGui::CollapsingHeader("Maps"))
     {
-        for (const auto& pathMap : mLocator.PathMaps())
+        for (const auto& pathMap : mLocator.PathMaps().Map())
         {
             if (ImGui::Button(pathMap.first.c_str()))
             {

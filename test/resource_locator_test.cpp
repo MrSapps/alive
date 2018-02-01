@@ -308,10 +308,10 @@ TEST(ResourceLocator, ParseResourceMap)
     }
 
     {
-        const ResourceMapper::PathMapping* r0 = mapper.FindPath("I don't exist");
+        const auto r0 = mapper.PathMaps().FindPath("I don't exist");
         ASSERT_EQ(nullptr, r0);
 
-        const ResourceMapper::PathMapping* r1 = mapper.FindPath("BAPATH_1");
+        const auto r1 = mapper.PathMaps().FindPath("BAPATH_1");
         ASSERT_NE(nullptr, r1);
         ASSERT_EQ(88u, r1->mId);
         ASSERT_EQ(400u, r1->mCollisionOffset);

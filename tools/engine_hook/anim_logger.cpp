@@ -147,13 +147,13 @@ std::string AnimLogger::LookUpSoundEffect(const std::string vabName, DWORD progr
     return cacheKey;
 }
 
-const ResourceMapper::PathMapping* AnimLogger::LoadPath(const std::string& name)
+const PathsJson::PathMapping* AnimLogger::LoadPath(const std::string& name)
 {
     if (!mResources)
     {
         ResourcesInit();
     }
-    return mResources->FindPath(name.c_str());
+    return mResources->PathMaps().FindPath(name);
 }
 
 AnimLogger& GetAnimLogger()

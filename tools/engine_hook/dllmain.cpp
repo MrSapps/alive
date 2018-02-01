@@ -392,7 +392,7 @@ static int __fastcall sub_418930_hook(void* thisPtr, void*, const CollisionInfo*
 
                     const std::string resName = lvlName + "PATH_" + pathNumber;
 
-                    const ResourceMapper::PathMapping*  mapping = GetAnimLogger().LoadPath(resName);
+                    const auto mapping = GetAnimLogger().LoadPath(resName);
 
                     gPath = std::make_unique<Oddlib::Path>(
                         "",
