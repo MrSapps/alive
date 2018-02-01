@@ -426,7 +426,11 @@ SET(alivelib_src
     include/core/systems/inputsystem.hpp
     src/core/systems/inputsystem.cpp
     include/core/systems/resourcelocatorsystem.hpp
-    src/core/systems/resourcelocatorsystem.cpp)
+    src/core/systems/resourcelocatorsystem.cpp
+    include/core/components/cameracomponent.hpp
+    src/core/components/cameracomponent.cpp
+    include/core/systems/camerasystem.hpp
+    src/core/systems/camerasystem.cpp)
 
 if(WIN32)
     SET(alivelib_src
