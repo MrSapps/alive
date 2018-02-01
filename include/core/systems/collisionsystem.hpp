@@ -7,8 +7,6 @@
 #include "oddlib/path.hpp"
 #include "core/system.hpp"
 
-class CollisionRaycast;
-
 class CollisionSystem final : public System
 {
 public:
@@ -22,23 +20,24 @@ public:
     void Clear();
 
 public:
-    CollisionRaycast Raycast(glm::vec2 origin, glm::vec2 direction, std::initializer_list<CollisionLine::eLineTypes> lineMask) const;
+    class RaycastHit final
+    {
+    public:
+        RaycastHit() = default;
+        RaycastHit(float mDistance, const glm::vec2& mPoint, const glm::vec2& mOrigin);
+
+    public:
+        explicit operator bool() const;
+
+    private:
+        float mDistance = -1.0f;
+        glm::vec2 mPoint = {0.0f, 0.0f};
+        glm::vec2 mOrigin = {0.0f, 0.0f};
+    };
+
+public:
+    RaycastHit Raycast(glm::vec2 origin, glm::vec2 direction, std::initializer_list<CollisionLine::eLineTypes> lineMask) const;
 
 private:
     std::vector<std::unique_ptr<CollisionLine>> mCollisionLines;  // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
-};
-
-class CollisionRaycast final
-{
-public:
-    CollisionRaycast() = default;
-    CollisionRaycast(float mDistance, const glm::vec2& mPoint, const glm::vec2& mOrigin);
-
-public:
-    explicit operator bool() const;
-
-private:
-    float mDistance = -1.0f;
-    glm::vec2 mPoint = {0.0f, 0.0f};
-    glm::vec2 mOrigin = {0.0f, 0.0f};
 };

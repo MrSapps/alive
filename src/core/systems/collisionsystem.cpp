@@ -83,12 +83,11 @@ void CollisionSystem::Clear()
     mCollisionLines.clear();
 }
 
-CollisionRaycast CollisionSystem::Raycast(glm::vec2 origin, glm::vec2 direction, std::initializer_list<CollisionLine::eLineTypes> lineMask) const
+CollisionSystem::RaycastHit CollisionSystem::Raycast(glm::vec2 origin, glm::vec2 direction, std::initializer_list<CollisionLine::eLineTypes> lineMask) const
 {
     const CollisionLine* nearestLine = nullptr;
     auto nearestDistance = 0.0f;
     glm::vec2 nearestCollision;
-
     for (const auto& line : mCollisionLines)
     {
         auto found = false;
@@ -100,12 +99,10 @@ CollisionRaycast CollisionSystem::Raycast(glm::vec2 origin, glm::vec2 direction,
                 break;
             }
         }
-
         if (!found)
         {
             continue;
         }
-
         const auto line1p1x = origin.x;
         const auto line1p1y = origin.y;
         const auto line1p2x = direction.x;
@@ -151,7 +148,6 @@ CollisionRaycast CollisionSystem::Raycast(glm::vec2 origin, glm::vec2 direction,
             }
         }
     }
-
     if (nearestLine != nullptr)
     {
         return { nearestDistance, nearestCollision, origin };
@@ -159,12 +155,12 @@ CollisionRaycast CollisionSystem::Raycast(glm::vec2 origin, glm::vec2 direction,
     return {};
 }
 
-CollisionRaycast::CollisionRaycast(float mDistance, const glm::vec2& mPoint, const glm::vec2& mOrigin) : mDistance(mDistance), mPoint(mPoint), mOrigin(mOrigin)
+CollisionSystem::RaycastHit::RaycastHit(float mDistance, const glm::vec2& mPoint, const glm::vec2& mOrigin) : mDistance(mDistance), mPoint(mPoint), mOrigin(mOrigin)
 {
 
 }
 
-CollisionRaycast::operator bool() const
+CollisionSystem::RaycastHit::operator bool() const
 {
     return mDistance >= 0;
 }
