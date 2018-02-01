@@ -388,6 +388,8 @@ SET(alivelib_src
     src/zipfilesystem.cpp
     include/debug.hpp
     src/debug.cpp
+    include/paths_json.hpp
+    src/paths_json.cpp
     include/collisionline.hpp
     src/collisionline.cpp
     include/physics.hpp

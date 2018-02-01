@@ -33,6 +33,7 @@ public:
     const PathMapping* FindPath(const std::string& resourceName);
 
     void FromJson(rapidjson::Document& doc);
+    void ToJson(const std::string& fileName);
 
     // For debug UI, hitting next path will keep calling this to loop the whole
     // collection of known paths.

@@ -1,5 +1,7 @@
 #include "paths_json.hpp"
+#include "oddlib/stream.hpp"
 #include "proxy_rapidjson.hpp"
+#include <jsonxx/jsonxx.h>
 
 const PathsJson::PathLocation* PathsJson::PathMapping::Find(const std::string& dataSetName) const
 {
@@ -21,6 +23,47 @@ const PathsJson::PathMapping* PathsJson::FindPath(const std::string& resourceNam
         return &it->second;
     }
     return nullptr;
+}
+
+
+void PathsJson::ToJson(const std::string& fileName)
+{
+    jsonxx::Array pathsArray;
+    for (const auto& path : mPathMaps)
+    {
+        jsonxx::Object pathObject;
+        pathObject << "resource_name" << path.first;
+        pathObject << "id" << path.second.mId;
+        pathObject << "collision_offset" << path.second.mCollisionOffset;
+        pathObject << "object_indextable_offset" << path.second.mIndexTableOffset;
+        pathObject << "object_offset" << path.second.mObjectOffset;
+        pathObject << "number_of_screens_x" << path.second.mNumberOfScreensX;
+        pathObject << "number_of_screens_y" << path.second.mNumberOfScreensY;
+
+        if (!path.second.mMusicTheme.empty())
+        {
+            pathObject << "music_theme" << path.second.mMusicTheme;
+        }
+
+        jsonxx::Array locationsArray;
+        for (const auto& location : path.second.mLocations)
+        {
+            jsonxx::Object locationObject;
+            locationObject << "dataset" << location.mDataSetName;
+            locationObject << "file_name" << location.mDataSetFileName;
+            locationsArray << locationObject;
+        }
+
+        pathObject << "locations" << locationsArray;
+
+        pathsArray << pathObject;
+    }
+
+    jsonxx::Object rootObject;
+    rootObject << "paths" << pathsArray;
+
+    Oddlib::FileStream fs(fileName, Oddlib::IStream::ReadMode::ReadWrite);
+    fs.Write(rootObject.json());
 }
 
 void PathsJson::FromJson(rapidjson::Document& doc)
