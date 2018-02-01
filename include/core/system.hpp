@@ -3,10 +3,10 @@
 #include <string>
 
 #define DECLARE_SYSTEM(NAME) static constexpr const char* SystemName{#NAME}; virtual std::string GetSystemName() const override
-#define DEFINE_SYSTEM(NAME) constexpr const char* NAME::SystemName; std::string NAME::GetSystemName() const { return NAME::SystemName; }
+#define DEFINE_SYSTEM(NAME) std::string NAME::GetSystemName() const { return NAME::SystemName; } constexpr const char* NAME::SystemName
 
 #define DECLARE_ROOT_SYSTEM(NAME) static constexpr const char* SystemName{#NAME}; virtual std::string GetSystemName() const
-#define DEFINE_ROOT_SYSTEM(NAME) constexpr const char* NAME::SystemName; std::string NAME::GetSystemName() const { return NAME::SystemName; }
+#define DEFINE_ROOT_SYSTEM(NAME) std::string NAME::GetSystemName() const { return NAME::SystemName; } constexpr const char* NAME::SystemName
 
 class EntityManager;
 

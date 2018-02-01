@@ -1,7 +1,7 @@
 #include "types.hpp"
 #include "core/components/transformcomponent.hpp"
 
-DEFINE_COMPONENT(TransformComponent)
+DEFINE_COMPONENT(TransformComponent);
 
 void TransformComponent::Serialize(std::ostream &os) const
 {

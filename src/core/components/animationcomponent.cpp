@@ -3,7 +3,7 @@
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
 
-DEFINE_COMPONENT(AnimationComponent)
+DEFINE_COMPONENT(AnimationComponent);
 
 void AnimationComponent::OnLoad()
 {

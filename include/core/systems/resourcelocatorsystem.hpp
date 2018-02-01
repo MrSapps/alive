@@ -3,7 +3,7 @@
 #include "resourcemapper.hpp"
 #include "core/system.hpp"
 
-class ResourceLocatorSystem : public System
+class ResourceLocatorSystem final : public System
 {
 public:
     DECLARE_SYSTEM(ResourceLocatorSystem);

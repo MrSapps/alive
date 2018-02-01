@@ -1,3 +1,3 @@
 #include "core/components/physicscomponent.hpp"
 
-DEFINE_COMPONENT(PhysicsComponent)
+DEFINE_COMPONENT(PhysicsComponent);
