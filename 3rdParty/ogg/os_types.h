@@ -26,7 +26,7 @@
 
 #ifdef _WIN32 
 
-#  ifndef __GNUC__
+#  if !defined(__GNUC__) || defined (__MINGW32__)
    /* MSVC/Borland */
    typedef __int64 ogg_int64_t;
    typedef __int32 ogg_int32_t;
