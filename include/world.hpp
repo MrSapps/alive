@@ -24,27 +24,28 @@ class GridScreen;
 class WorldState
 {
 public:
-    WorldState(const WorldState&) = delete;
-    WorldState& operator = (const WorldState&) = delete;
     WorldState(IAudioController& audioController, ResourceLocator& locator);
+    WorldState(const WorldState&) = delete;
+    WorldState& operator=(const WorldState&) = delete;
 
+public:
     glm::vec2 kVirtualScreenSize;
     glm::vec2 kCameraBlockSize;
     glm::vec2 kCamGapSize;
     glm::vec2 kCameraBlockImageOffset;
 
+public:
     const int mEditorGridSizeX = 25;
     const int mEditorGridSizeY = 20;
 
+public:
     glm::vec2 mCameraPosition;
     Entity* mCameraSubject = nullptr;
 
+public:
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
 
-    // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
-    // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
-    CollisionLines mCollisionItems;
-
+public:
     enum class States
     {
         eNone,
@@ -58,11 +59,14 @@ public:
         eQuit
     };
 
+public:
     States mState = States::eNone;
     States mReturnToState = States::eNone;
 
+public:
     u32 mModeSwitchTimeout = 0;
 
+public:
     void RenderDebug(AbstractRenderer& rend) const;
     void DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
     void SetCurrentCamera(const char* cameraName);
@@ -70,10 +74,14 @@ public:
     u32 CurrentCameraX() const { return mCurrentCameraX; }
     u32 CurrentCameraY() const { return mCurrentCameraY; }
 
-    std::unique_ptr<PlayFmvState> mPlayFmvState;
+public:
     u32 mGlobalFrameCounter = 0;
+    std::unique_ptr<PlayFmvState> mPlayFmvState;
+
 private:
     void RenderGrid(AbstractRenderer& rend) const;
+
+private:
     u32 mCurrentCameraX = 0;
     u32 mCurrentCameraY = 0;
 };

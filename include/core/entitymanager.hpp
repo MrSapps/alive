@@ -62,9 +62,11 @@ public:
     void Serialize(std::ostream& os) const;
     void Deserialize(std::istream& is);
 
+public:
+    std::vector<std::unique_ptr<Entity>> mEntities; // TODO private
+
 private:
     std::vector<std::unique_ptr<System>> mSystems;
-    std::vector<std::unique_ptr<Entity>> mEntities;
     std::map<std::string, std::function<std::unique_ptr<Component>()>> mRegisteredComponents;
 };
 

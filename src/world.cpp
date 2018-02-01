@@ -46,7 +46,8 @@ void WorldState::RenderDebug(AbstractRenderer& rend) const
     // Draw collisions
     if (Debugging().mCollisionLines)
     {
-        CollisionLine::Render(rend, mCollisionItems);
+		// TODO: Wire CollisionSystem here
+        // CollisionLine::Render(rend, mCollisionItems);
     }
 
     // Draw grid
@@ -89,10 +90,12 @@ void WorldState::RenderDebug(AbstractRenderer& rend) const
     }
 }
 
-void WorldState::DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset) const
+void WorldState::DebugRayCast(AbstractRenderer&, const glm::vec2&, const glm::vec2&, u32, const glm::vec2&) const
 {
     if (Debugging().mRayCasts)
     {
+		// TODO: Wire CollisionSystem here
+        /*
         Physics::raycast_collision collision;
         if (CollisionLine::RayCast<1>(mCollisionItems, from, to, { collisionType }, &collision))
         {
@@ -107,6 +110,7 @@ void WorldState::DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, con
                       AbstractRenderer::eBlendModes::eNormal,
                       AbstractRenderer::eCoordinateSystem::eScreen);
         }
+         */
     }
 }
 

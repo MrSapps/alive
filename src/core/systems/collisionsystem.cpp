@@ -9,12 +9,76 @@ void CollisionSystem::Update()
 
 }
 
-void CollisionSystem::AddCollisionLine(std::unique_ptr<CollisionLine> line)
+static CollisionLine* GetCollisionIndexByIndex(CollisionLines& lines, s16 index)
 {
-    mCollisionLines.emplace_back(std::move(line));
+    const s32 count = static_cast<s32>(lines.size());
+    if (index > 0)
+    {
+        if (index < count)
+        {
+            return lines[index].get();
+        }
+        else
+        {
+            LOG_ERROR("Link index is out of bounds: " << index);
+        }
+    }
+    return nullptr;
 }
 
-void CollisionSystem::ClearCollisionLines()
+static void ConvertLink(CollisionLines& lines, const Oddlib::Path::Links& oldLink, CollisionLine::Link& newLink)
+{
+    newLink.mPrevious = GetCollisionIndexByIndex(lines, oldLink.mPrevious);
+    newLink.mNext = GetCollisionIndexByIndex(lines, oldLink.mNext);
+}
+
+void CollisionSystem::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items)
+{
+    const auto count = static_cast<s32>(items.size());
+    mCollisionLines.resize(count);
+
+    // First pass to create/convert from original/"raw" path format
+    for (auto i = 0; i < count; i++)
+    {
+        mCollisionLines[i] = std::make_unique<CollisionLine>();
+        mCollisionLines[i]->mLine.mP1.x = items[i].mP1.mX;
+        mCollisionLines[i]->mLine.mP1.y = items[i].mP1.mY;
+
+        mCollisionLines[i]->mLine.mP2.x = items[i].mP2.mX;
+        mCollisionLines[i]->mLine.mP2.y = items[i].mP2.mY;
+
+        mCollisionLines[i]->mType = CollisionLine::ToType(items[i].mType);
+    }
+
+    // Second pass to set up raw pointers to existing lines for connected segments of 
+    // collision lines
+    for (auto i = 0; i < count; i++)
+    {
+        // TODO: Check if optional link is ever used in conjunction with link
+        ConvertLink(mCollisionLines, items[i].mLinks[0], mCollisionLines[i]->mLink);
+        ConvertLink(mCollisionLines, items[i].mLinks[1], mCollisionLines[i]->mOptionalLink);
+    }
+
+    // Now we can re-order collision items without breaking prev/next links, thus we want to ensure
+    // that anything that either has no links, or only a single prev/next links is placed first
+    // so that we can render connected segments from the start or end.
+    std::sort(std::begin(mCollisionLines), std::end(mCollisionLines), [](std::unique_ptr<CollisionLine>& a, std::unique_ptr<CollisionLine>& b)
+    {
+        return std::tie(a->mLink.mNext, a->mLink.mPrevious) < std::tie(b->mLink.mNext, b->mLink.mPrevious);
+    });
+
+    // Ensure that lines link together physically
+    for (auto i = 0; i < count; i++)
+    {
+        // Some walls have next links, overlapping the walls will break them
+        if (mCollisionLines[i]->mLink.mNext && mCollisionLines[i]->mType == CollisionLine::eTrackLine)
+        {
+            mCollisionLines[i]->mLine.mP2 = mCollisionLines[i]->mLink.mNext->mLine.mP1;
+        }
+    }
+}
+
+void CollisionSystem::Clear()
 {
     mCollisionLines.clear();
 }

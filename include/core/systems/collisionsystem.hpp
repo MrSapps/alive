@@ -1,8 +1,10 @@
 #pragma once
 
-#include <initializer_list>
+#include <memory>
+#include <vector>
 
 #include "collisionline.hpp"
+#include "oddlib/path.hpp"
 #include "core/system.hpp"
 
 class CollisionRaycast;
@@ -16,14 +18,14 @@ public:
     void Update() final;
 
 public:
-    void AddCollisionLine(std::unique_ptr<CollisionLine> line);
-    void ClearCollisionLines();
+    void ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items);
+    void Clear();
 
 public:
     CollisionRaycast Raycast(glm::vec2 origin, glm::vec2 direction, std::initializer_list<CollisionLine::eLineTypes> lineMask) const;
 
 private:
-    std::vector<std::unique_ptr<CollisionLine>> mCollisionLines;
+    std::vector<std::unique_ptr<CollisionLine>> mCollisionLines;  // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
 };
 
 class CollisionRaycast final

@@ -97,8 +97,6 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
 GridMap::GridMap(CoordinateSpace& coords, WorldState& state)
     : mLoader(*this), mWorldState(state)
 {
-
-
     // Set up the screen size and camera pos so that the grid is drawn correctly during init
     mWorldState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
     mWorldState.kCameraBlockSize = glm::vec2(375, 260);
@@ -118,6 +116,52 @@ GridMap::GridMap(CoordinateSpace& coords, WorldState& state)
     coords.SetCameraPosition(mWorldState.mCameraPosition);
 }
 
+GridMap::~GridMap()
+{
+    TRACE_ENTRYEXIT;
+}
+
+bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input) // TODO: Input wired here
+{
+#if defined(_DEBUG)
+    while (!mLoader.Load(path, locator, input))
+    {
+
+    }
+    return true;
+#else
+    return mLoader.Load(path, locator, input);
+#endif
+}
+
+void GridMap::UnloadMap(AbstractRenderer& renderer)
+{
+    for (auto x = 0u; x < mWorldState.mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mWorldState.mScreens[x].size(); y++)
+        {
+            GridScreen* screen = mWorldState.mScreens[x][y].get();
+            if (!screen)
+            {
+                continue;
+            }
+            screen->UnLoadTextures(renderer);
+        }
+    }
+	auto collisionSystem = mRoot.GetSystem<CollisionSystem>();
+	if (collisionSystem)
+	{
+		mWorldState.mCameraSubject = nullptr;
+        for (auto &entity : mRoot.mEntities)
+        {
+            entity->Destroy();
+        }
+        mRoot.DestroyEntities();
+		collisionSystem->Clear();
+	}
+    mWorldState.mScreens.clear();
+}
+
 GridMap::Loader::Loader(GridMap& gm)
     : mGm(gm)
 {
@@ -126,27 +170,29 @@ GridMap::Loader::Loader(GridMap& gm)
 
 void GridMap::Loader::SetupSystems(ResourceLocator& locator, const InputState& state)
 {
-    mGm.mRoot.RegisterComponent<AbeMovementComponent>();
-    mGm.mRoot.RegisterComponent<AbePlayerControllerComponent>();
-    mGm.mRoot.RegisterComponent<AnimationComponent>();
-    mGm.mRoot.RegisterComponent<PhysicsComponent>();
-    mGm.mRoot.RegisterComponent<SligMovementComponent>();
-    mGm.mRoot.RegisterComponent<SligPlayerControllerComponent>();
-    mGm.mRoot.RegisterComponent<TransformComponent>();
+	if (mGm.mRoot.GetSystem<ResourceLocatorSystem>() == nullptr)
+	{
+		mGm.mRoot.RegisterComponent<AbeMovementComponent>();
+		mGm.mRoot.RegisterComponent<AbePlayerControllerComponent>();
+		mGm.mRoot.RegisterComponent<AnimationComponent>();
+		mGm.mRoot.RegisterComponent<PhysicsComponent>();
+		mGm.mRoot.RegisterComponent<SligMovementComponent>();
+		mGm.mRoot.RegisterComponent<SligPlayerControllerComponent>();
+		mGm.mRoot.RegisterComponent<TransformComponent>();
 
-    mGm.mRoot.AddSystem<InputSystem>(state);
-    mGm.mRoot.AddSystem<CollisionSystem>();
-    mGm.mRoot.AddSystem<ResourceLocatorSystem>(locator);
-
+		mGm.mRoot.AddSystem<InputSystem>(state);
+		mGm.mRoot.AddSystem<CollisionSystem>();
+		mGm.mRoot.AddSystem<ResourceLocatorSystem>(locator);
+	}
     SetState(LoaderStates::eSetupAndConvertCollisionItems);
 }
 
 void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
 {
+	auto *collisionSystem = mGm.mRoot.GetSystem<CollisionSystem>();
+
     // Clear out existing collisions from previous map
-    mGm.mWorldState.mCollisionItems.clear();
-    // TODO: Clear collisions in CollisionSystem
-    // mGm.mRoot.GetSystem<CollisionSystem>()->ClearCollisionLines();
+	collisionSystem->Clear();
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
     mGm.mWorldState.kCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
@@ -157,10 +203,9 @@ void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
     mGm.mWorldState.kCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
 
     // Convert collisions items from AO/AE to ALIVE format
-    mGm.ConvertCollisionItems(path.CollisionItems());
-    // TODO: Move collisions in CollisionSystem
-    // mGm.mRoot.GetSystem<CollisionSystem>()->AddCollisionLine(mWorldState.mCollisionItems[i].get());
+	collisionSystem->ConvertCollisionItems(path.CollisionItems());
 
+	// Move to next state
     SetState(LoaderStates::eAllocateCameraMemory);
 }
 
@@ -358,117 +403,4 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator, c
 		break;
 	}
     return mState == LoaderStates::eInit;
-}
-
-bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input) // TODO: Input wired here
-{
-#ifdef _DEBUG
-    while (!mLoader.Load(path, locator, input))
-    {
-
-    }
-    return true;
-#else
-    return mLoader.Load(path, locator, input);
-#endif
-}
-
-GridMap::~GridMap()
-{
-    TRACE_ENTRYEXIT;
-}
-
-const CollisionLines& GridMap::Lines() const
-{
-    return mWorldState.mCollisionItems;
-}
-
-static CollisionLine* GetCollisionIndexByIndex(CollisionLines& lines, s16 index)
-{
-    const s32 count = static_cast<s32>(lines.size());
-    if (index > 0)
-    {
-        if (index < count)
-        {
-            return lines[index].get();
-        }
-        else
-        {
-            LOG_ERROR("Link index is out of bounds: " << index);
-        }
-    }
-    return nullptr;
-}
-
-static void ConvertLink(CollisionLines& lines, const Oddlib::Path::Links& oldLink, CollisionLine::Link& newLink)
-{
-    newLink.mPrevious = GetCollisionIndexByIndex(lines, oldLink.mPrevious);
-    newLink.mNext = GetCollisionIndexByIndex(lines, oldLink.mNext);
-}
-
-void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items)
-{
-    const s32 count = static_cast<s32>(items.size());
-    mWorldState.mCollisionItems.resize(count);
-
-    // First pass to create/convert from original/"raw" path format
-    for (auto i = 0; i < count; i++)
-    {
-        mWorldState.mCollisionItems[i] = std::make_unique<CollisionLine>();
-        mWorldState.mCollisionItems[i]->mLine.mP1.x = items[i].mP1.mX;
-        mWorldState.mCollisionItems[i]->mLine.mP1.y = items[i].mP1.mY;
-
-        mWorldState.mCollisionItems[i]->mLine.mP2.x = items[i].mP2.mX;
-        mWorldState.mCollisionItems[i]->mLine.mP2.y = items[i].mP2.mY;
-
-        mWorldState.mCollisionItems[i]->mType = CollisionLine::ToType(items[i].mType);
-    }
-
-    // Second pass to set up raw pointers to existing lines for connected segments of 
-    // collision lines
-    for (auto i = 0; i < count; i++)
-    {
-        // TODO: Check if optional link is ever used in conjunction with link
-        ConvertLink(mWorldState.mCollisionItems, items[i].mLinks[0], mWorldState.mCollisionItems[i]->mLink);
-        ConvertLink(mWorldState.mCollisionItems, items[i].mLinks[1], mWorldState.mCollisionItems[i]->mOptionalLink);
-    }
-
-    // Now we can re-order collision items without breaking prev/next links, thus we want to ensure
-    // that anything that either has no links, or only a single prev/next links is placed first
-    // so that we can render connected segments from the start or end.
-    std::sort(std::begin(mWorldState.mCollisionItems), std::end(mWorldState.mCollisionItems), [](std::unique_ptr<CollisionLine>& a, std::unique_ptr<CollisionLine>& b)
-    {
-        return std::tie(a->mLink.mNext, a->mLink.mPrevious) < std::tie(b->mLink.mNext, b->mLink.mPrevious);
-    });
-
-    // Ensure that lines link together physically
-    for (auto i = 0; i < count; i++)
-    {
-        // Some walls have next links, overlapping the walls will break them
-        if (mWorldState.mCollisionItems[i]->mLink.mNext && mWorldState.mCollisionItems[i]->mType == CollisionLine::eTrackLine)
-        {
-            mWorldState.mCollisionItems[i]->mLine.mP2 = mWorldState.mCollisionItems[i]->mLink.mNext->mLine.mP1;
-        }
-    }
-
-    // TODO: Render connected segments as one with control points
-}
-
-void GridMap::UnloadMap(AbstractRenderer& renderer)
-{
-    for (auto x = 0u; x < mWorldState.mScreens.size(); x++)
-    {
-        for (auto y = 0u; y < mWorldState.mScreens[x].size(); y++)
-        {
-            GridScreen* screen = mWorldState.mScreens[x][y].get();
-            if (!screen)
-            {
-                continue;
-            }
-            screen->UnLoadTextures(renderer);
-        }
-    }
-
-    mWorldState.mCollisionItems.clear();
-    mWorldState.mScreens.clear();
 }
