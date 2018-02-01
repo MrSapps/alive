@@ -96,8 +96,7 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
     }
 }
 
-GridMap::GridMap(CoordinateSpace& coords, WorldState& state)
-    : mLoader(*this), mWorldState(state)
+GridMap::GridMap(CoordinateSpace& coords, WorldState& state, EntityManager &entityManager) : mLoader(*this), mWorldState(state), mRoot(entityManager)
 {
     // Set up the screen size and camera pos so that the grid is drawn correctly during init
     mWorldState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
@@ -123,16 +122,16 @@ GridMap::~GridMap()
     TRACE_ENTRYEXIT;
 }
 
-bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input) // TODO: Input wired here
+bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator)
 {
 #if defined(_DEBUG)
-    while (!mLoader.Load(path, locator, input))
+    while (!mLoader.Load(path, locator))
     {
 
     }
     return true;
 #else
-    return mLoader.Load(path, locator, input);
+    return mLoader.Load(path, locator);
 #endif
 }
 
@@ -168,26 +167,6 @@ GridMap::Loader::Loader(GridMap& gm)
     : mGm(gm)
 {
 
-}
-
-void GridMap::Loader::SetupSystems(ResourceLocator& locator, const InputState& state)
-{
-	if (mGm.mRoot.GetSystem<ResourceLocatorSystem>() == nullptr)
-	{
-		mGm.mRoot.RegisterComponent<AbeMovementComponent>();
-		mGm.mRoot.RegisterComponent<AbePlayerControllerComponent>();
-		mGm.mRoot.RegisterComponent<AnimationComponent>();
-		mGm.mRoot.RegisterComponent<PhysicsComponent>();
-		mGm.mRoot.RegisterComponent<SligMovementComponent>();
-		mGm.mRoot.RegisterComponent<SligPlayerControllerComponent>();
-		mGm.mRoot.RegisterComponent<TransformComponent>();
-
-		mGm.mRoot.AddSystem<InputSystem>(state);
-		mGm.mRoot.AddSystem<CameraSystem>();
-		mGm.mRoot.AddSystem<CollisionSystem>();
-		mGm.mRoot.AddSystem<ResourceLocatorSystem>(locator);
-	}
-    SetState(LoaderStates::eSetupAndConvertCollisionItems);
 }
 
 void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
@@ -385,15 +364,12 @@ void GridMap::Loader::SetState(GridMap::Loader::LoaderStates state)
     }
 }
 
-bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input)
+bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
 {
 	switch (mState)
 	{
 	case LoaderStates::eInit:
-		mState = LoaderStates::eSetupSystems;
-		break;
-	case LoaderStates::eSetupSystems:
-		SetupSystems(locator, input);
+		mState = LoaderStates::eSetupAndConvertCollisionItems;
 		break;
 	case LoaderStates::eSetupAndConvertCollisionItems:
 		SetupAndConvertCollisionItems(path);

@@ -491,12 +491,14 @@ void Engine::Update()
         if (!mWorld)
         {
             // TODO: Pass in infos from mGameSelectionScreen
-            mWorld = std::make_unique<World>(mAudioHandler, *mResourceLocator,
-                *mRenderer,
-                *mRenderer,
-                mGameSelectionScreen->SelectedGame(),
-                *mSound,
-                *mLoadingIcon);
+            mWorld = std::make_unique<World>(*mSound,
+                                             mInputState,
+                                             *mLoadingIcon,
+                                             *mResourceLocator,
+                                             *mRenderer,
+                                             *mRenderer,
+                                             mAudioHandler,
+                                             mGameSelectionScreen->SelectedGame());
         }
         mState = mWorld->Update(mInputState, *mRenderer);
         // TODO: Allow returning to eSelectGame

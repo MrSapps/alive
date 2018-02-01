@@ -67,30 +67,29 @@ class GridMap
 public:
     GridMap(const GridMap&) = delete;
     GridMap& operator=(const GridMap&) = delete;
-    GridMap(CoordinateSpace& coords, WorldState& state);
+    GridMap(CoordinateSpace& coords, WorldState& state, EntityManager &entityManager);
     ~GridMap();
 
 public:
-    bool LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input); // TODO: Input wired here
+    bool LoadMap(const Oddlib::Path& path, ResourceLocator& locator);
     void UnloadMap(AbstractRenderer& renderer);
 
 public:
-    EntityManager mRoot;
+    EntityManager &mRoot;
 
 private:
     class Loader
     {
     public:
-        Loader(GridMap& gm);
+        explicit Loader(GridMap& gm);
 
     public:
-        bool Load(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input); // TODO: Input wired here
+        bool Load(const Oddlib::Path& path, ResourceLocator& locator);
 
     private:
         enum class LoaderStates
         {
             eInit,
-            eSetupSystems,
             eSetupAndConvertCollisionItems,
             eAllocateCameraMemory,
             eLoadCameras,
@@ -109,7 +108,6 @@ private:
 
     private:
         void SetState(LoaderStates state);
-        void SetupSystems(ResourceLocator& locator, const InputState& state);
         void SetupAndConvertCollisionItems(const Oddlib::Path& path);
         void HandleAllocateCameraMemory(const Oddlib::Path& path);
         void HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& locator);

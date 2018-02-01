@@ -4,11 +4,11 @@
 #include "engine.hpp"
 #include "resourcemapper.hpp"
 #include "collisionline.hpp"
-#include "core/entity.hpp"
+#include "core/entitymanager.hpp"
 
 namespace Oddlib
 {
-class Path;
+    class Path;
 }
 
 class GridMap;
@@ -91,25 +91,30 @@ private:
 class World
 {
 public:
-    World(World&&) = delete;
-    World& operator=(World&&) = delete;
-    ~World();
     World(
-        IAudioController& audioController,
+        Sound& sound,
+        InputState& input,
+        LoadingIcon& loadingIcon,
         ResourceLocator& locator,
         CoordinateSpace& coords,
         AbstractRenderer& renderer,
-        const GameDefinition& selectedGame,
-        Sound& sound,
-        LoadingIcon& loadingIcon);
+        IAudioController& audioController,
+        const GameDefinition& selectedGame);
+    World(World&&) = delete;
+    World& operator=(World&&) = delete;
+    ~World();
 
 public:
     EngineStates Update(const InputState& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend);
 
 private:
+    void LoadSystems();
+    void LoadComponents();
+
+private:
     void LoadMap(const std::string& mapName);
-    bool LoadMap(const Oddlib::Path& path, const InputState& input); // TODO: Input wired here
+    bool LoadMap(const Oddlib::Path& path);
     void UnloadMap(AbstractRenderer& renderer);
 
 private:
@@ -130,8 +135,12 @@ private:
 
 private:
     Sound& mSound;
-    WorldState mWorldState;
+    InputState& mInput;
     LoadingIcon& mLoadingIcon;
     ResourceLocator& mLocator;
     AbstractRenderer& mRenderer;
+
+private:
+    WorldState mWorldState;
+    EntityManager mEntityManager;
 };

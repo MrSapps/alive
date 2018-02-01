@@ -10,11 +10,16 @@
 #include "gamemode.hpp"
 #include "animationbrowser.hpp"
 
-#include "core/components/sligmovementcomponent.hpp"
-#include "core/components/abemovementcomponent.hpp"
-#include "core/components/animationcomponent.hpp"
-#include "core/components/transformcomponent.hpp"
+#include "core/systems/inputsystem.hpp"
+#include "core/systems/camerasystem.hpp"
+#include "core/systems/collisionsystem.hpp"
+#include "core/systems/resourcelocatorsystem.hpp"
+
 #include "core/components/physicscomponent.hpp"
+#include "core/components/transformcomponent.hpp"
+#include "core/components/animationcomponent.hpp"
+#include "core/components/abemovementcomponent.hpp"
+#include "core/components/sligmovementcomponent.hpp"
 
 void WorldState::RenderGrid(AbstractRenderer& rend) const
 {
@@ -46,7 +51,7 @@ void WorldState::RenderDebug(AbstractRenderer& rend) const
     // Draw collisions
     if (Debugging().mCollisionLines)
     {
-		// TODO: Wire CollisionSystem here
+        // TODO: Wire CollisionSystem here
         // CollisionLine::Render(rend, mCollisionItems);
     }
 
@@ -80,9 +85,9 @@ void WorldState::RenderDebug(AbstractRenderer& rend) const
                     glm::vec2 objSize = rend.WorldToScreen(glm::vec2(bottomRight.x, bottomRight.y)) - objPos;
 
                     rend.Rect(
-                            objPos.x, objPos.y,
-                            objSize.x, objSize.y,
-                            AbstractRenderer::eLayers::eEditor, ColourU8{ 255, 255, 255, 255 }, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
+                        objPos.x, objPos.y,
+                        objSize.x, objSize.y,
+                        AbstractRenderer::eLayers::eEditor, ColourU8{ 255, 255, 255, 255 }, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
 
                 }
             }
@@ -94,7 +99,7 @@ void WorldState::DebugRayCast(AbstractRenderer&, const glm::vec2&, const glm::ve
 {
     if (Debugging().mRayCasts)
     {
-		// TODO: Wire CollisionSystem here
+        // TODO: Wire CollisionSystem here
         /*
         Physics::raycast_collision collision;
         if (CollisionLine::RayCast<1>(mCollisionItems, from, to, { collisionType }, &collision))
@@ -133,9 +138,9 @@ void WorldState::SetCurrentCamera(const char* cameraName)
 void WorldState::SetGameCameraToCameraAt(u32 x, u32 y)
 {
     const glm::vec2 camPos = glm::vec2(
-            (x * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
-            (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y)
-                             + glm::vec2(kVirtualScreenSize.x / 2, kVirtualScreenSize.y / 2);
+        (x * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
+        (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y)
+        + glm::vec2(kVirtualScreenSize.x / 2, kVirtualScreenSize.y / 2);
 
     mCameraPosition = camPos;
 }
@@ -147,35 +152,37 @@ static inline bool FutureIsDone(T& future)
 }
 
 World::World(
-        IAudioController& audioController,
-        ResourceLocator& locator,
-        CoordinateSpace& coords,
-        AbstractRenderer& renderer,
-        const GameDefinition& selectedGame,
-        Sound& sound,
-        LoadingIcon& loadingIcon)
-        : mLocator(locator),
-          mSound(sound),
-          mRenderer(renderer),
-          mLoadingIcon(loadingIcon),
-          mWorldState(audioController, locator)
+    Sound& sound,
+    InputState& input,
+    LoadingIcon& loadingIcon,
+    ResourceLocator& locator,
+    CoordinateSpace& coords,
+    AbstractRenderer& renderer,
+    IAudioController& audioController,
+    const GameDefinition& selectedGame) : mSound(sound),
+                                          mInput(input),
+                                          mLoadingIcon(loadingIcon),
+                                          mLocator(locator),
+                                          mRenderer(renderer),
+                                          mWorldState(audioController, locator)
 {
-    mGridMap = std::make_unique<GridMap>(coords, mWorldState);
-
-    mEditorMode = std::make_unique<EditorMode>(mWorldState);
-    mGameMode = std::make_unique<GameMode>(mWorldState);
-
+    mGridMap = std::make_unique<GridMap>(coords, mWorldState, mEntityManager);
     mFmvDebugUi = std::make_unique<FmvDebugUi>(locator);
+    mGameMode = std::make_unique<GameMode>(mWorldState);
+    mEditorMode = std::make_unique<EditorMode>(mWorldState);
+
+    LoadSystems();
+    LoadComponents();
 
     Debugging().AddSection([&]()
-                           {
-                               RenderDebugPathSelection();
-                           });
+    {
+        RenderDebugPathSelection();
+    });
 
     Debugging().AddSection([&]()
-                           {
-                               RenderDebugFmvSelection();
-                           });
+    {
+        RenderDebugFmvSelection();
+    });
 
     mDebugAnimationBrowser = std::make_unique<AnimationBrowser>(locator);
 
@@ -207,7 +214,7 @@ World::World(
         std::filebuf f;
         std::ostream os(&f);
         f.open("save.bin", std::ios::out | std::ios::binary);
-		mGridMap->mRoot.Serialize(os);
+        mEntityManager.Serialize(os);
     };
 
     // TODO: Implement
@@ -232,6 +239,25 @@ World::~World()
     UnloadMap(mRenderer);
 }
 
+void World::LoadSystems()
+{
+    mEntityManager.AddSystem<InputSystem>(mInput);
+    mEntityManager.AddSystem<CameraSystem>();
+    mEntityManager.AddSystem<CollisionSystem>();
+    mEntityManager.AddSystem<ResourceLocatorSystem>(mLocator);
+}
+
+void World::LoadComponents()
+{
+    mEntityManager.RegisterComponent<AbeMovementComponent>();
+    mEntityManager.RegisterComponent<AbePlayerControllerComponent>();
+    mEntityManager.RegisterComponent<AnimationComponent>();
+    mEntityManager.RegisterComponent<PhysicsComponent>();
+    mEntityManager.RegisterComponent<SligMovementComponent>();
+    mEntityManager.RegisterComponent<SligPlayerControllerComponent>();
+    mEntityManager.RegisterComponent<TransformComponent>();
+}
+
 void World::LoadMap(const std::string& mapName)
 {
     UnloadMap(mRenderer);
@@ -244,9 +270,9 @@ void World::LoadMap(const std::string& mapName)
     mWorldState.mState = WorldState::States::eLoadingMap;
 }
 
-bool World::LoadMap(const Oddlib::Path& path, const InputState& input) // TODO: Input wired here
+bool World::LoadMap(const Oddlib::Path& path)
 {
-    return mGridMap->LoadMap(path, mLocator, input);
+    return mGridMap->LoadMap(path, mLocator);
 }
 
 EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
@@ -308,38 +334,36 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
             }
 
             // Physics System
-            mGridMap->mRoot.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform) // TODO: should be a system
-                                                                       {
-                                                                           transform->Add(physics->xSpeed, physics->ySpeed);
-                                                                       });
+            mEntityManager.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform) // TODO: should be a system
+            {
+                transform->Add(physics->xSpeed, physics->ySpeed);
+            });
             // Animation System
-            mGridMap->mRoot.With<AnimationComponent>([](auto, auto animation) // TODO: should be a system
-                                                     {
-                                                         animation->Update();
-                                                     });
+            mEntityManager.With<AnimationComponent>([](auto, auto animation) // TODO: should be a system
+            {
+                animation->Update();
+            });
             // Abe system
-            mGridMap->mRoot.With<AbePlayerControllerComponent,
-                    AbeMovementComponent>([](auto, auto controller, auto abe) // TODO: should be a system
-                                          {
-                                              controller->Update();
-                                              abe->Update();
-                                          });
+            mEntityManager.With<AbePlayerControllerComponent, AbeMovementComponent>([](auto, auto controller, auto abe) // TODO: should be a system
+            {
+                controller->Update();
+                abe->Update();
+            });
             // Slig system
-            mGridMap->mRoot.With<SligPlayerControllerComponent,
-                    SligMovementComponent>([](auto, auto controller, auto slig) // TODO: should be a system
-                                           {
-                                               controller->Update();
-                                               slig->Update();
-                                           });
+            mEntityManager.With<SligPlayerControllerComponent, SligMovementComponent>([](auto, auto controller, auto slig) // TODO: should be a system
+            {
+                controller->Update();
+                slig->Update();
+            });
             // Destroy entities
-            mGridMap->mRoot.DestroyEntities();
+            mEntityManager.DestroyEntities();
 
             if (mQuickLoad)
             {
                 std::filebuf f;
                 std::istream is(&f);
                 f.open("save.bin", std::ios::in | std::ios::binary);
-                mGridMap->mRoot.Deserialize(is);
+                mEntityManager.Deserialize(is);
                 mQuickLoad = false;
             }
         }
@@ -365,7 +389,7 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
             if (mPathBeingLoaded)
             {
                 // Note: This is iterative loading which happens in the main thread
-                if (LoadMap(*mPathBeingLoaded, input))
+                if (LoadMap(*mPathBeingLoaded))
                 {
                     mWorldState.mState = WorldState::States::eSoundsLoading;
                     mSound.SetMusicTheme(mPathBeingLoaded->MusicThemeName().c_str());
@@ -436,10 +460,10 @@ void World::Render(AbstractRenderer& /*rend*/)
                 mEditorMode->Render(mRenderer);
             }
 
-            mGridMap->mRoot.With<AnimationComponent>([this](auto, auto animation) // TODO: should be a system
-                                                     {
-                                                         animation->Render(mRenderer);
-                                                     });
+            mEntityManager.With<AnimationComponent>([this](auto, auto animation) // TODO: should be a system
+            {
+                animation->Render(mRenderer);
+            });
         }
         break;
 
