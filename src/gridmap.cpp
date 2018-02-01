@@ -145,6 +145,8 @@ void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
 {
     // Clear out existing collisions from previous map
     mGm.mWorldState.mCollisionItems.clear();
+    // TODO: Clear collisions in CollisionSystem
+    // mGm.mRoot.GetSystem<CollisionSystem>()->ClearCollisionLines();
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
     mGm.mWorldState.kCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
@@ -154,7 +156,10 @@ void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
     // of the block or else where.
     mGm.mWorldState.kCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
 
+    // Convert collisions items from AO/AE to ALIVE format
     mGm.ConvertCollisionItems(path.CollisionItems());
+    // TODO: Move collisions in CollisionSystem
+    // mGm.mRoot.GetSystem<CollisionSystem>()->AddCollisionLine(mWorldState.mCollisionItems[i].get());
 
     SetState(LoaderStates::eAllocateCameraMemory);
 }
@@ -336,32 +341,23 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator, c
 	case LoaderStates::eInit:
 		mState = LoaderStates::eSetupSystems;
 		break;
-
 	case LoaderStates::eSetupSystems:
 		SetupSystems(locator, input);
 		break;
-
 	case LoaderStates::eSetupAndConvertCollisionItems:
 		SetupAndConvertCollisionItems(path);
 		break;
-
 	case LoaderStates::eAllocateCameraMemory:
 		HandleAllocateCameraMemory(path);
 		break;
-
 	case LoaderStates::eLoadCameras:
 		HandleLoadCameras(path, locator);
 		break;
-
 	case LoaderStates::eLoadEntities:
 		RunForAtLeast(kMaxExecutionTimeMs, [&]() { if (mState == LoaderStates::eLoadEntities) { HandleLoadEntities(path); } });
 		break;
 	}
-	if (mState == LoaderStates::eInit)
-	{
-		return true;
-	}
-	return false;
+    return mState == LoaderStates::eInit;
 }
 
 bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator, const InputState& input) // TODO: Input wired here
@@ -453,8 +449,6 @@ void GridMap::ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionIte
         {
             mWorldState.mCollisionItems[i]->mLine.mP2 = mWorldState.mCollisionItems[i]->mLink.mNext->mLine.mP1;
         }
-        // TODO: Move collisions in CollisionSystem
-        // mRoot.GetSystem<CollisionSystem>()->AddCollisionLine(mWorldState.mCollisionItems[i].get());
     }
 
     // TODO: Render connected segments as one with control points
