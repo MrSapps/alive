@@ -1,7 +1,6 @@
-<code_scheme name="Default" version="173">
+<code_scheme name="ALIVE Code Style" version="173">
   <option name="RIGHT_MARGIN" value="320" />
   <Objective-C>
-    <option name="INDENT_NAMESPACE_MEMBERS" value="0" />
     <option name="KEEP_STRUCTURES_IN_ONE_LINE" value="true" />
     <option name="NAMESPACE_BRACE_PLACEMENT" value="2" />
     <option name="METHOD_BRACE_PLACEMENT" value="5" />
