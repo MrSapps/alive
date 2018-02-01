@@ -8,7 +8,7 @@
 
 namespace Oddlib
 {
-    class Path;
+class Path;
 }
 
 class GridMap;
@@ -71,8 +71,10 @@ public:
     void DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
     void SetCurrentCamera(const char* cameraName);
     void SetGameCameraToCameraAt(u32 x, u32 y);
-    u32 CurrentCameraX() const { return mCurrentCameraX; }
-    u32 CurrentCameraY() const { return mCurrentCameraY; }
+    u32 CurrentCameraX() const
+    { return mCurrentCameraX; }
+    u32 CurrentCameraY() const
+    { return mCurrentCameraY; }
 
 public:
     u32 mGlobalFrameCounter = 0;
@@ -90,7 +92,7 @@ class World
 {
 public:
     World(World&&) = delete;
-    World& operator = (World&&) = delete;
+    World& operator=(World&&) = delete;
     ~World();
     World(
         IAudioController& audioController,
@@ -101,31 +103,35 @@ public:
         Sound& sound,
         LoadingIcon& loadingIcon);
 
+public:
     EngineStates Update(const InputState& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend);
+
 private:
     void LoadMap(const std::string& mapName);
     bool LoadMap(const Oddlib::Path& path, const InputState& input); // TODO: Input wired here
     void UnloadMap(AbstractRenderer& renderer);
 
+private:
     void RenderDebugPathSelection();
     void RenderDebugFmvSelection();
 
-    std::unique_ptr<GridMap> mGridMap;
-    std::unique_ptr<FmvDebugUi> mFmvDebugUi;
-    std::unique_ptr<class EditorMode> mEditorMode;
-    std::unique_ptr<class GameMode> mGameMode;
-
-    up_future_UP_Path mLocatePathFuture;
-    Oddlib::UP_Path mPathBeingLoaded;
-
+private:
     bool mQuickLoad = false;
 
-    ResourceLocator& mLocator;
-    Sound& mSound;
-    AbstractRenderer& mRenderer;
-    LoadingIcon& mLoadingIcon;
-    WorldState mWorldState;
-
+private:
+    std::unique_ptr<GridMap> mGridMap;
+    std::unique_ptr<FmvDebugUi> mFmvDebugUi;
+    std::unique_ptr<class GameMode> mGameMode;
+    std::unique_ptr<class EditorMode> mEditorMode;
     std::unique_ptr<class AnimationBrowser> mDebugAnimationBrowser;
+    Oddlib::UP_Path mPathBeingLoaded;
+    up_future_UP_Path mLocatePathFuture;
+
+private:
+    Sound& mSound;
+    WorldState mWorldState;
+    LoadingIcon& mLoadingIcon;
+    ResourceLocator& mLocator;
+    AbstractRenderer& mRenderer;
 };
