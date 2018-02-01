@@ -6,3 +6,8 @@ void CameraSystem::Update()
 {
 
 }
+
+void CameraSystem::Render() const
+{
+
+}

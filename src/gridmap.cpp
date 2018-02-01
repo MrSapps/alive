@@ -1,18 +1,20 @@
 #include "core/systems/inputsystem.hpp"
+#include "core/systems/camerasystem.hpp"
 #include "core/systems/collisionsystem.hpp"
 #include "core/systems/resourcelocatorsystem.hpp"
+
 #include "core/components/physicscomponent.hpp"
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
 #include "core/components/abemovementcomponent.hpp"
 #include "core/components/sligmovementcomponent.hpp"
 
-#include "gridmap.hpp"
 #include "oddlib/bits_factory.hpp"
+#include "gridmap.hpp"
 #include "engine.hpp"
-#include "fmv.hpp"
 #include "sound.hpp"
 #include "world.hpp"
+#include "fmv.hpp"
 
 GridScreen::GridScreen(const Oddlib::Path::Camera& camera, ResourceLocator& locator)
     : mFileName(camera.mName), mCamera(camera), mLocator(locator)
@@ -181,6 +183,7 @@ void GridMap::Loader::SetupSystems(ResourceLocator& locator, const InputState& s
 		mGm.mRoot.RegisterComponent<TransformComponent>();
 
 		mGm.mRoot.AddSystem<InputSystem>(state);
+		mGm.mRoot.AddSystem<CameraSystem>();
 		mGm.mRoot.AddSystem<CollisionSystem>();
 		mGm.mRoot.AddSystem<ResourceLocatorSystem>(locator);
 	}
@@ -189,20 +192,23 @@ void GridMap::Loader::SetupSystems(ResourceLocator& locator, const InputState& s
 
 void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
 {
+	auto *cameraSystem = mGm.mRoot.GetSystem<CameraSystem>();
 	auto *collisionSystem = mGm.mRoot.GetSystem<CollisionSystem>();
-
-    // Clear out existing collisions from previous map
-	collisionSystem->Clear();
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
     mGm.mWorldState.kCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
     mGm.mWorldState.kCamGapSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+	cameraSystem->kCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+	cameraSystem->kCamGapSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 
     // Since the camera won't fill a block it can be offset so the camera image is in the middle
     // of the block or else where.
     mGm.mWorldState.kCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
+	cameraSystem->kCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
 
-    // Convert collisions items from AO/AE to ALIVE format
+	// Clear out existing collisions from previous map
+	collisionSystem->Clear();
+	// Convert collisions items from AO/AE to ALIVE format
 	collisionSystem->ConvertCollisionItems(path.CollisionItems());
 
 	// Move to next state

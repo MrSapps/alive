@@ -24,7 +24,7 @@ public:
     {
     public:
         RaycastHit() = default;
-        RaycastHit(float mDistance, const glm::vec2& mPoint, const glm::vec2& mOrigin);
+        RaycastHit(float distance, const glm::vec2& point, const glm::vec2& origin);
 
     public:
         explicit operator bool() const;

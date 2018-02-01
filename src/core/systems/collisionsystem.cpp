@@ -155,7 +155,7 @@ CollisionSystem::RaycastHit CollisionSystem::Raycast(glm::vec2 origin, glm::vec2
     return {};
 }
 
-CollisionSystem::RaycastHit::RaycastHit(float mDistance, const glm::vec2& mPoint, const glm::vec2& mOrigin) : mDistance(mDistance), mPoint(mPoint), mOrigin(mOrigin)
+CollisionSystem::RaycastHit::RaycastHit(float distance, const glm::vec2& point, const glm::vec2& origin) : mDistance(distance), mPoint(point), mOrigin(origin)
 {
 
 }
