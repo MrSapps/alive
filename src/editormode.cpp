@@ -4,6 +4,7 @@
 #include "world.hpp"
 #include "alive_version.h"
 #include "core/systems/camerasystem.hpp"
+#include "core/components/transformcomponent.hpp"
 
 #include "CONTRIBUTORS.md.g.h"
 
@@ -11,7 +12,7 @@ struct Contributor
 {
 public:
     Contributor(u32 flags, std::string name)
-        : mFlags(flags), mName(name)
+            : mFlags(flags), mName(name)
     {
 
     }
@@ -71,7 +72,8 @@ public:
     NO_MOVE_OR_MOVE_ASSIGN(CommandSelectOrDeselectLine);
 
     CommandSelectOrDeselectLine(CollisionLines& lines, Selection& selection, s32 idx, bool select)
-        : mLines(lines), mSelection(selection), mIdx(idx), mSelect(select) { }
+            : mLines(lines), mSelection(selection), mIdx(idx), mSelect(select)
+    {}
 
     virtual void Redo() final
     {
@@ -107,7 +109,8 @@ public:
     NO_MOVE_OR_MOVE_ASSIGN(CommandClearSelection);
 
     CommandClearSelection(CollisionLines& lines, Selection& selection)
-        : mLines(lines), mSelection(selection) { }
+            : mLines(lines), mSelection(selection)
+    {}
 
     virtual void Redo() final
     {
@@ -150,7 +153,7 @@ public:
     NO_MOVE_OR_MOVE_ASSIGN(CommandMoveLinePoint);
 
     CommandMoveLinePoint(CollisionLines& lines, Selection& selection, const glm::vec2& newPos, bool moveP1)
-        : mLines(lines), mSelection(selection), mNewPos(newPos), mApplyToP1(moveP1)
+            : mLines(lines), mSelection(selection), mNewPos(newPos), mApplyToP1(moveP1)
     {
         mOldPos = Point();
     }
@@ -170,7 +173,8 @@ public:
         Point() = mOldPos;
     }
 
-    virtual bool CanMerge() const final { return true; }
+    virtual bool CanMerge() const final
+    { return true; }
 
     virtual std::string Message() final
     {
@@ -190,14 +194,13 @@ private:
     bool mApplyToP1;
 };
 
-
 class MoveSelection : public ICommandWithId<MoveSelection>
 {
 public:
     NO_MOVE_OR_MOVE_ASSIGN(MoveSelection);
 
     MoveSelection(CollisionLines& lines, Selection& selection, const glm::vec2& delta)
-        : mLines(lines), mSelection(selection), mDelta(delta)
+            : mLines(lines), mSelection(selection), mDelta(delta)
     {
 
     }
@@ -270,12 +273,12 @@ void Selection::Select(CollisionLines& items, s32 idx, bool select)
 }
 
 UndoStack::UndoStack(s32 stackLimit /*= -1*/)
-    : mStackLimit(stackLimit)
+        : mStackLimit(stackLimit)
 {
     Debugging().AddSection([&]()
-    {
-        DebugRenderCommandList();
-    });
+                           {
+                               DebugRenderCommandList();
+                           });
 }
 
 void UndoStack::DebugRenderCommandList() const
@@ -327,13 +330,14 @@ void UndoStack::Redo()
 }
 
 EditorMode::EditorMode(WorldState& mapState)
-    : mWorldState(mapState)
+        : mWorldState(mapState)
 {
 
 }
 
 void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
 {
+    auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
     bool menuItemHandled = false;
     if (ImGui::BeginMainMenuBar())
     {
@@ -346,7 +350,7 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
             ImGui::MenuItem("Save", nullptr);
             ImGui::MenuItem("Save as", nullptr);
 
-            if (ImGui::MenuItem("Exit", nullptr)) 
+            if (ImGui::MenuItem("Exit", nullptr))
             {
                 mWorldState.mState = WorldState::States::eQuit;
             }
@@ -357,7 +361,7 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
         {
             menuItemHandled = true;
 
-            if (ImGui::MenuItem("Undo", "CTRL+Z")) 
+            if (ImGui::MenuItem("Undo", "CTRL+Z"))
             {
                 mUndoStack.Undo();
             }
@@ -423,30 +427,32 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
         coords.mSmoothCameraPosition = true;
         mWorldState.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
 
-        const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / mWorldState.kCameraBlockSize.x);
-        const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / mWorldState.kCameraBlockSize.y);
+        const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / cameraSystem->mCameraBlockSize.x);
+        const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / cameraSystem->mCameraBlockSize.y);
 
-        mWorldState.mCameraPosition.x = (mouseCamX * mWorldState.kCameraBlockSize.x) + (mWorldState.kVirtualScreenSize.x / 2);
-        mWorldState.mCameraPosition.y = (mouseCamY * mWorldState.kCameraBlockSize.y) + (mWorldState.kVirtualScreenSize.y / 2);
+        mWorldState.mCameraPosition.x = (mouseCamX * cameraSystem->mCameraBlockSize.x) + (cameraSystem->mVirtualScreenSize.x / 2);
+        mWorldState.mCameraPosition.y = (mouseCamY * cameraSystem->mCameraBlockSize.y) + (cameraSystem->mVirtualScreenSize.y / 2);
 
-        if (mWorldState.mEntityManager.GetSystem<CameraSystem>()->mTarget)
+        if (cameraSystem->mTarget)
         {
-            // mWorldState.mCameraSubject->mXPos = mWorldState.mCameraPosition.x;
-            // mWorldState.mCameraSubject->mYPos = mWorldState.mCameraPosition.y;
+            cameraSystem->mTarget->GetComponent<TransformComponent>()->Set(mWorldState.mCameraPosition.x, mWorldState.mCameraPosition.y);
         }
     }
 
     bool bGoFaster = false;
     if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
     {
-        if (input.mKeys[SDL_SCANCODE_W].IsPressed()) { mEditorCamZoom -= 0.1f; }
-        else if (input.mKeys[SDL_SCANCODE_S].IsPressed()) { mEditorCamZoom += 0.1f; }
+        if (input.mKeys[SDL_SCANCODE_W].IsPressed())
+        { mEditorCamZoom -= 0.1f; }
+        else if (input.mKeys[SDL_SCANCODE_S].IsPressed())
+        { mEditorCamZoom += 0.1f; }
 
         mEditorCamZoom = glm::clamp(mEditorCamZoom, 0.1f, 3.0f);
     }
     else
     {
-        if (input.mKeys[SDL_SCANCODE_LSHIFT].IsDown()) { bGoFaster = true; }
+        if (input.mKeys[SDL_SCANCODE_LSHIFT].IsDown())
+        { bGoFaster = true; }
 
         f32 editorCamSpeed = 10.0f * mEditorCamZoom;
         if (bGoFaster)
@@ -454,19 +460,23 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
             editorCamSpeed *= 4.0f;
         }
 
-        if (input.mKeys[SDL_SCANCODE_W].IsDown()) { mWorldState.mCameraPosition.y -= editorCamSpeed; }
-        else if (input.mKeys[SDL_SCANCODE_S].IsDown()) { mWorldState.mCameraPosition.y += editorCamSpeed; }
+        if (input.mKeys[SDL_SCANCODE_W].IsDown())
+        { mWorldState.mCameraPosition.y -= editorCamSpeed; }
+        else if (input.mKeys[SDL_SCANCODE_S].IsDown())
+        { mWorldState.mCameraPosition.y += editorCamSpeed; }
 
-        if (input.mKeys[SDL_SCANCODE_A].IsDown()) { mWorldState.mCameraPosition.x -= editorCamSpeed; }
-        else if (input.mKeys[SDL_SCANCODE_D].IsDown()) { mWorldState.mCameraPosition.x += editorCamSpeed; }
+        if (input.mKeys[SDL_SCANCODE_A].IsDown())
+        { mWorldState.mCameraPosition.x -= editorCamSpeed; }
+        else if (input.mKeys[SDL_SCANCODE_D].IsDown())
+        { mWorldState.mCameraPosition.x += editorCamSpeed; }
     }
 
     coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorCamZoom);
     coords.SetCameraPosition(mWorldState.mCameraPosition);
 
     // Find out what line is under the mouse pos, if any
-	// TODO: Wire CollisionSystem here
-	/*
+    // TODO: Wire CollisionSystem here
+    /*
     const s32 lineIdx = CollisionLine::Pick(mWorldState.mCollisionItems, mousePosWorld, mWorldState.mState == WorldState::States::eInGame ? 1.0f : mEditorCamZoom);
 
     if (lineIdx >= 0)
@@ -477,7 +487,7 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
     {
         SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
     }
-	*/
+    */
 
     if (input.mMouseButtons[0].IsReleased())
     {
@@ -499,8 +509,8 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
     if (input.mMouseButtons[0].IsPressed())
     {
         mMergeCommand = false; // New mouse press/selection, start a new undo command
-		// TODO: Wire CollisionSystem here
-		/*
+        // TODO: Wire CollisionSystem here
+        /*
         if (lineIdx >= 0)
         {
             const bool bGroupSelection = input.mKeys[SDL_SCANCODE_LCTRL].IsDown();
@@ -573,7 +583,7 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
                 mUndoStack.Push<CommandClearSelection>(mWorldState.mCollisionItems, mSelection);
             }
         }
-		*/
+        */
     }
     else if (input.mMouseButtons[0].IsDown() && mSelectionState != eSelectionState::eNone && mLastMousePos != mousePosWorld)
     {
@@ -583,14 +593,14 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
         case eSelectionState::eLineP1Selected:
         case eSelectionState::eLineP2Selected:
             // TODO: Handle dis/connect to other lines when moving end points
-			// TODO: Wire CollisionSystem here
+            // TODO: Wire CollisionSystem here
             // mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mWorldState.mCollisionItems, mSelection, mousePosWorld, mSelectionState == eSelectionState::eLineP1Selected);
             break;
 
         case eSelectionState::eMoveSelected:
         case eSelectionState::eLineMiddleSelected:
             // TODO: Disconnect from other lines if moved away
-			// TODO: Wire CollisionSystem here
+            // TODO: Wire CollisionSystem here
             // mUndoStack.PushMerge<MoveSelection>(mMergeCommand, mWorldState.mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
             break;
 
@@ -603,9 +613,9 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
     }
 }
 
-
 void EditorMode::Render(AbstractRenderer& rend) const
 {
+    auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
     if (Debugging().mDrawCameras)
     {
         // Draw every cam
@@ -618,11 +628,13 @@ void EditorMode::Render(AbstractRenderer& rend) const
                 if (screen)
                 {
                     if (!screen->hasTexture())
+                    {
                         continue;
+                    }
 
-                    screen->Render(rend, (x * mWorldState.kCameraBlockSize.x) + mWorldState.kCameraBlockImageOffset.x,
-                        (y * mWorldState.kCameraBlockSize.y) + mWorldState.kCameraBlockImageOffset.y,
-                        mWorldState.kVirtualScreenSize.x, mWorldState.kVirtualScreenSize.y);
+                    screen->Render(rend, (x * cameraSystem->mCameraBlockSize.x) + cameraSystem->mCameraBlockImageOffset.x,
+                                   (y * cameraSystem->mCameraBlockSize.y) + cameraSystem->mCameraBlockImageOffset.y,
+                                   cameraSystem->mVirtualScreenSize.x, cameraSystem->mVirtualScreenSize.y);
                 }
             }
         }

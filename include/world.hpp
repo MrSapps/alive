@@ -29,12 +29,6 @@ public:
     WorldState& operator=(const WorldState&) = delete;
 
 public:
-    glm::vec2 kVirtualScreenSize;
-    glm::vec2 kCameraBlockSize;
-    glm::vec2 kCamGapSize;
-    glm::vec2 kCameraBlockImageOffset;
-
-public:
     const int mEditorGridSizeX = 25;
     const int mEditorGridSizeY = 20;
 

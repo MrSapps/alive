@@ -53,7 +53,9 @@ void GameMode::UpdateMenu(const InputState& /*input*/, CoordinateSpace& /*coords
 
 void GameMode::Update(const InputState& input, CoordinateSpace& coords)
 {
-    coords.SetScreenSize(mWorldState.kVirtualScreenSize);
+	auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
+
+    coords.SetScreenSize(cameraSystem->mVirtualScreenSize);
 
     if (mState == eMenu)
     {
@@ -99,17 +101,16 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
         */
     }
 
-    auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
     if (cameraSystem->mTarget)
     {
         auto pos = cameraSystem->mTarget->GetComponent<TransformComponent>();
 
-        const s32 camX = static_cast<s32>(pos->GetX() / mWorldState.kCameraBlockSize.x);
-        const s32 camY = static_cast<s32>(pos->GetY() / mWorldState.kCameraBlockSize.y);
+        const s32 camX = static_cast<s32>(pos->GetX() / cameraSystem->mCameraBlockSize.x);
+        const s32 camY = static_cast<s32>(pos->GetY() / cameraSystem->mCameraBlockSize.y);
 
         const glm::vec2 camPos = glm::vec2(
-            (camX * mWorldState.kCameraBlockSize.x) + mWorldState.kCameraBlockImageOffset.x,
-            (camY * mWorldState.kCameraBlockSize.y) + mWorldState.kCameraBlockImageOffset.y) + glm::vec2(mWorldState.kVirtualScreenSize.x / 2, mWorldState.kVirtualScreenSize.y / 2);
+            (camX * cameraSystem->mCameraBlockSize.x) + cameraSystem->mCameraBlockImageOffset.x,
+            (camY * cameraSystem->mCameraBlockSize.y) + cameraSystem->mCameraBlockImageOffset.y) + glm::vec2(cameraSystem->mVirtualScreenSize.x / 2, cameraSystem->mVirtualScreenSize.y / 2);
 
         if (mWorldState.mCameraPosition != camPos)
         {
@@ -129,8 +130,8 @@ void GameMode::Render(AbstractRenderer& rend) const
     {
         auto pos = cameraSystem->mTarget->GetComponent<TransformComponent>();
 
-        const s32 camX = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraX()) : static_cast<s32>(pos->GetX() / mWorldState.kCameraBlockSize.x);
-        const s32 camY = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraY()) : static_cast<s32>(pos->GetY() / mWorldState.kCameraBlockSize.y);
+        const s32 camX = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraX()) : static_cast<s32>(pos->GetX() / cameraSystem->mCameraBlockSize.x);
+        const s32 camY = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraY()) : static_cast<s32>(pos->GetY() / cameraSystem->mCameraBlockSize.y);
 
         if (camX >= 0 && camY >= 0 &&
             camX < static_cast<s32>(mWorldState.mScreens.size()) &&
@@ -142,9 +143,9 @@ void GameMode::Render(AbstractRenderer& rend) const
                 if (screen->hasTexture())
                 {
                     screen->Render(rend,
-                        (camX * mWorldState.kCameraBlockSize.x) + mWorldState.kCameraBlockImageOffset.x,
-                        (camY * mWorldState.kCameraBlockSize.y) + mWorldState.kCameraBlockImageOffset.y,
-                        mWorldState.kVirtualScreenSize.x, mWorldState.kVirtualScreenSize.y);
+                        (camX * cameraSystem->mCameraBlockSize.x) + cameraSystem->mCameraBlockImageOffset.x,
+                        (camY * cameraSystem->mCameraBlockSize.y) + cameraSystem->mCameraBlockImageOffset.y,
+                        cameraSystem->mVirtualScreenSize.x, cameraSystem->mVirtualScreenSize.y);
                 }
             }
         }

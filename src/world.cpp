@@ -138,11 +138,11 @@ void WorldState::SetCurrentCamera(const char* cameraName)
 
 void WorldState::SetGameCameraToCameraAt(u32 x, u32 y)
 {
+	const auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
     const glm::vec2 camPos = glm::vec2(
-        (x * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
-        (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y)
-        + glm::vec2(kVirtualScreenSize.x / 2, kVirtualScreenSize.y / 2);
-
+        (x * cameraSystem->mCameraBlockSize.x) + cameraSystem->mCameraBlockImageOffset.x,
+        (y * cameraSystem->mCameraBlockSize.y) + cameraSystem->mCameraBlockImageOffset.y)
+        + glm::vec2(cameraSystem->mVirtualScreenSize.x / 2, cameraSystem->mVirtualScreenSize.y / 2);
     mCameraPosition = camPos;
 }
 
@@ -326,7 +326,8 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                 }
                 else if (mWorldState.mState == WorldState::States::eToGame)
                 {
-                    coords.SetScreenSize(mWorldState.kVirtualScreenSize);
+					const auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
+                    coords.SetScreenSize(cameraSystem->mVirtualScreenSize);
                     if (SDL_TICKS_PASSED(SDL_GetTicks(), mWorldState.mModeSwitchTimeout))
                     {
                         mWorldState.mState = WorldState::States::eInGame;

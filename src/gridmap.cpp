@@ -103,11 +103,6 @@ GridMap::GridMap(CoordinateSpace& coords, WorldState& state, EntityManager &enti
 	auto *cameraSystem = mRoot.GetSystem<CameraSystem>();
 
     // Set up the screen size and camera pos so that the grid is drawn correctly during init
-    mWorldState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
-    mWorldState.kCameraBlockSize = glm::vec2(375, 260);
-    mWorldState.kCamGapSize = glm::vec2(375, 260);
-    mWorldState.kCameraBlockImageOffset = glm::vec2(0, 0);
-
 	cameraSystem->mVirtualScreenSize = glm::vec2(368.0f, 240.0f);
 	cameraSystem->mCameraBlockSize = glm::vec2(375.0f, 260.0f);
 	cameraSystem->mCamGapSize = glm::vec2(375.0f, 260.0f);
@@ -185,15 +180,12 @@ void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
 	auto *collisionSystem = mGm.mRoot.GetSystem<CollisionSystem>();
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
-    mGm.mWorldState.kCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
-    mGm.mWorldState.kCamGapSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
-	cameraSystem->mCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+    cameraSystem->mCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 	cameraSystem->mCamGapSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 
     // Since the camera won't fill a block it can be offset so the camera image is in the middle
     // of the block or else where.
-    mGm.mWorldState.kCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
-	cameraSystem->mCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
+    cameraSystem->mCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
 
 	// Clear out existing collisions from previous map
 	collisionSystem->Clear();
