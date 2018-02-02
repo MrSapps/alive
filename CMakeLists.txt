@@ -432,7 +432,9 @@ SET(alivelib_src
     include/core/components/cameracomponent.hpp
     src/core/components/cameracomponent.cpp
     include/core/systems/camerasystem.hpp
-    src/core/systems/camerasystem.cpp)
+    src/core/systems/camerasystem.cpp
+    include/core/systems/debugsystem.hpp
+    src/core/systems/debugsystem.cpp)
 
 if(WIN32)
     SET(alivelib_src
