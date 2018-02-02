@@ -56,7 +56,6 @@ public:
     void RenderDebug(AbstractRenderer& rend) const;
     void DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
     void SetCurrentCamera(const char* cameraName);
-    void SetGameCameraToCameraAt(u32 x, u32 y);
     u32 CurrentCameraX() const
     { return mCurrentCameraX; }
     u32 CurrentCameraY() const

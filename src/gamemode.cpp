@@ -22,12 +22,13 @@ GameMode::GameMode(WorldState& mapState)
 
 void GameMode::UpdateMenu(const InputState& /*input*/, CoordinateSpace& /*coords*/)
 {
+    const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
     switch (mMenuState)
     {
     case GameMode::MenuStates::eInit:
         mMenuState = MenuStates::eCameraRoll;
         mWorldState.SetCurrentCamera("STP01C25.CAM");
-        mWorldState.SetGameCameraToCameraAt(mWorldState.CurrentCameraX(), mWorldState.CurrentCameraY());
+        cameraSystem->SetGameCameraToCameraAt(mWorldState.CurrentCameraX(), mWorldState.CurrentCameraY());
         break;
 
     case GameMode::MenuStates::eCameraRoll:

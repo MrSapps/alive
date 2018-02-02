@@ -27,7 +27,7 @@ void WorldState::RenderGrid(AbstractRenderer& rend) const
     const int gridLineCountX = static_cast<int>((rend.ScreenSize().x / CameraSystem::kEditorGridSizeX));
     for (int x = -gridLineCountX; x < gridLineCountX; x++)
     {
-        const glm::vec2 worldPos(rend.CameraPosition().x + (x *  CameraSystem::kEditorGridSizeX) - (static_cast<int>(rend.CameraPosition().x) % CameraSystem::kEditorGridSizeX), 0);
+        const glm::vec2 worldPos(rend.CameraPosition().x + (x * CameraSystem::kEditorGridSizeX) - (static_cast<int>(rend.CameraPosition().x) % CameraSystem::kEditorGridSizeX), 0);
         const glm::vec2 screenPos = rend.WorldToScreen(worldPos);
         rend.Line(ColourU8{ 255, 255, 255, 30 }, screenPos.x, 0, screenPos.x, static_cast<f32>(rend.Height()), 2.0f, AbstractRenderer::eLayers::eEditor, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
     }
@@ -96,27 +96,25 @@ void WorldState::RenderDebug(AbstractRenderer& rend) const
     }
 }
 
-void WorldState::DebugRayCast(AbstractRenderer&, const glm::vec2&, const glm::vec2&, u32, const glm::vec2&) const
+void WorldState::DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset) const
 {
     if (Debugging().mRayCasts)
     {
-        // TODO: Wire CollisionSystem here
-        /*
-        Physics::raycast_collision collision;
-        if (CollisionLine::RayCast<1>(mCollisionItems, from, to, { collisionType }, &collision))
+        auto collisionSystem = mEntityManager.GetSystem<CollisionSystem>();
+        auto hit = collisionSystem->Raycast(from, to, { static_cast<CollisionLine::eLineTypes>(collisionType) });
+        if (hit)
         {
             const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
-            const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);
+            const glm::vec2 hitPos = rend.WorldToScreen(hit.Point());
 
             rend.Line(ColourU8{ 255, 0, 255, 255 },
-                      fromDrawPos.x, fromDrawPos.y,
-                      hitPos.x, hitPos.y,
-                      2.0f,
-                      AbstractRenderer::eLayers::eEditor,
-                      AbstractRenderer::eBlendModes::eNormal,
-                      AbstractRenderer::eCoordinateSystem::eScreen);
+                fromDrawPos.x, fromDrawPos.y,
+                hitPos.x, hitPos.y,
+                2.0f,
+                AbstractRenderer::eLayers::eEditor,
+                AbstractRenderer::eBlendModes::eNormal,
+                AbstractRenderer::eCoordinateSystem::eScreen);
         }
-         */
     }
 }
 
@@ -134,16 +132,6 @@ void WorldState::SetCurrentCamera(const char* cameraName)
             }
         }
     }
-}
-
-void WorldState::SetGameCameraToCameraAt(u32 x, u32 y)
-{
-	const auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
-    const glm::vec2 camPos = glm::vec2(
-        (x * cameraSystem->mCameraBlockSize.x) + cameraSystem->mCameraBlockImageOffset.x,
-        (y * cameraSystem->mCameraBlockSize.y) + cameraSystem->mCameraBlockImageOffset.y)
-        + glm::vec2(cameraSystem->mVirtualScreenSize.x / 2, cameraSystem->mVirtualScreenSize.y / 2);
-    cameraSystem->mCameraPosition = camPos;
 }
 
 template<class T>
@@ -327,7 +315,7 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                 }
                 else if (mWorldState.mState == WorldState::States::eToGame)
                 {
-					const auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
+                    const auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
                     coords.SetScreenSize(cameraSystem->mVirtualScreenSize);
                     if (SDL_TICKS_PASSED(SDL_GetTicks(), mWorldState.mModeSwitchTimeout))
                     {

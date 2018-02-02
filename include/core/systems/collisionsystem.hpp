@@ -29,6 +29,11 @@ public:
     public:
         explicit operator bool() const;
 
+    public:
+        float Distance() const;
+        glm::vec2 Point() const;
+        glm::vec2 Origin() const;
+
     private:
         float mDistance = -1.0f;
         glm::vec2 mPoint = {0.0f, 0.0f};
@@ -38,6 +43,6 @@ public:
 public:
     RaycastHit Raycast(glm::vec2 origin, glm::vec2 direction, std::initializer_list<CollisionLine::eLineTypes> lineMask) const;
 
-private:
+public:
     std::vector<std::unique_ptr<CollisionLine>> mCollisionLines;  // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
 };

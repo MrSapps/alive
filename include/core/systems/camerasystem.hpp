@@ -14,7 +14,7 @@ public:
     void Update() final;
 
 public:
-    void Render() const;
+    void SetGameCameraToCameraAt(u32 x, u32 y);
 
 public:
     Entity* mTarget = nullptr;

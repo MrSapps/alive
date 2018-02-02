@@ -164,3 +164,18 @@ CollisionSystem::RaycastHit::operator bool() const
 {
     return mDistance >= 0;
 }
+
+float CollisionSystem::RaycastHit::Distance() const
+{
+    return mDistance;
+}
+
+glm::vec2 CollisionSystem::RaycastHit::Point() const
+{
+    return mPoint;
+}
+
+glm::vec2 CollisionSystem::RaycastHit::Origin() const
+{
+    return mOrigin;
+}
