@@ -15,6 +15,7 @@
 #include "core/systems/collisionsystem.hpp"
 #include "core/systems/resourcelocatorsystem.hpp"
 
+#include "core/components/cameracomponent.hpp"
 #include "core/components/physicscomponent.hpp"
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
@@ -39,7 +40,7 @@ void WorldState::RenderGrid(AbstractRenderer& rend) const
     }
 }
 
-WorldState::WorldState(IAudioController& audioController, ResourceLocator& locator)
+WorldState::WorldState(IAudioController& audioController, ResourceLocator& locator, EntityManager& entityManager) : mEntityManager(entityManager)
 {
     mPlayFmvState = std::make_unique<PlayFmvState>(audioController, locator);
 }
@@ -164,15 +165,15 @@ World::World(
                                           mLoadingIcon(loadingIcon),
                                           mLocator(locator),
                                           mRenderer(renderer),
-                                          mWorldState(audioController, locator)
+                                          mWorldState(audioController, locator, mEntityManager)
 {
+    LoadSystems();
+    LoadComponents();
+
     mGridMap = std::make_unique<GridMap>(coords, mWorldState, mEntityManager);
     mFmvDebugUi = std::make_unique<FmvDebugUi>(locator);
     mGameMode = std::make_unique<GameMode>(mWorldState);
     mEditorMode = std::make_unique<EditorMode>(mWorldState);
-
-    LoadSystems();
-    LoadComponents();
 
     Debugging().AddSection([&]()
     {
@@ -256,6 +257,7 @@ void World::LoadComponents()
     mEntityManager.RegisterComponent<SligMovementComponent>();
     mEntityManager.RegisterComponent<SligPlayerControllerComponent>();
     mEntityManager.RegisterComponent<TransformComponent>();
+    mEntityManager.RegisterComponent<CameraComponent>();
 }
 
 void World::LoadMap(const std::string& mapName)

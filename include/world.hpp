@@ -24,7 +24,7 @@ class GridScreen;
 class WorldState
 {
 public:
-    WorldState(IAudioController& audioController, ResourceLocator& locator);
+    WorldState(IAudioController& audioController, ResourceLocator& locator, EntityManager& entityManager);
     WorldState(const WorldState&) = delete;
     WorldState& operator=(const WorldState&) = delete;
 
@@ -40,7 +40,6 @@ public:
 
 public:
     glm::vec2 mCameraPosition;
-    Entity* mCameraSubject = nullptr;
 
 public:
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
@@ -78,6 +77,7 @@ public:
 
 public:
     u32 mGlobalFrameCounter = 0;
+    EntityManager& mEntityManager;
     std::unique_ptr<PlayFmvState> mPlayFmvState;
 
 private:

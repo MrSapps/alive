@@ -2,7 +2,9 @@
 #include "core/systems/camerasystem.hpp"
 #include "core/systems/collisionsystem.hpp"
 #include "core/systems/resourcelocatorsystem.hpp"
+#include "core/components/physicscomponent.hpp"
 
+#include "core/components/cameracomponent.hpp"
 #include "core/components/physicscomponent.hpp"
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
@@ -98,23 +100,32 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
 
 GridMap::GridMap(CoordinateSpace& coords, WorldState& state, EntityManager &entityManager) : mLoader(*this), mWorldState(state), mRoot(entityManager)
 {
+	auto *cameraSystem = mRoot.GetSystem<CameraSystem>();
+
     // Set up the screen size and camera pos so that the grid is drawn correctly during init
     mWorldState.kVirtualScreenSize = glm::vec2(368.0f, 240.0f);
     mWorldState.kCameraBlockSize = glm::vec2(375, 260);
     mWorldState.kCamGapSize = glm::vec2(375, 260);
     mWorldState.kCameraBlockImageOffset = glm::vec2(0, 0);
 
-    coords.SetScreenSize(mWorldState.kVirtualScreenSize);
+	cameraSystem->mVirtualScreenSize = glm::vec2(368.0f, 240.0f);
+	cameraSystem->mCameraBlockSize = glm::vec2(375.0f, 260.0f);
+	cameraSystem->mCamGapSize = glm::vec2(375.0f, 260.0f);
+	cameraSystem->mCameraBlockImageOffset = glm::vec2(0.0f, 0.0f);
+
+    coords.SetScreenSize(cameraSystem->mVirtualScreenSize);
 
     const int camX = 0;
     const int camY = 0;
     const glm::vec2 camPos = glm::vec2(
-        (camX * mWorldState.kCameraBlockSize.x) + mWorldState.kCameraBlockImageOffset.x,
-        (camY * mWorldState.kCameraBlockSize.y) + mWorldState.kCameraBlockImageOffset.y) +
-        glm::vec2(mWorldState.kVirtualScreenSize.x / 2, mWorldState.kVirtualScreenSize.y / 2);
+        (camX * cameraSystem->mCameraBlockSize.x) + cameraSystem->mCameraBlockImageOffset.x,
+        (camY * cameraSystem->mCameraBlockSize.y) + cameraSystem->mCameraBlockImageOffset.y) +
+        glm::vec2(cameraSystem->mVirtualScreenSize.x / 2, cameraSystem->mVirtualScreenSize.y / 2);
 
     mWorldState.mCameraPosition = camPos;
-    coords.SetCameraPosition(mWorldState.mCameraPosition);
+	cameraSystem->mCameraPosition = camPos;
+
+    coords.SetCameraPosition(cameraSystem->mCameraPosition);
 }
 
 GridMap::~GridMap()
@@ -152,7 +163,6 @@ void GridMap::UnloadMap(AbstractRenderer& renderer)
 	auto collisionSystem = mRoot.GetSystem<CollisionSystem>();
 	if (collisionSystem)
 	{
-		mWorldState.mCameraSubject = nullptr;
         for (auto &entity : mRoot.mEntities)
         {
             entity->Destroy();
@@ -177,13 +187,13 @@ void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
     // The "block" or grid square that a camera fits into, it never usually fills the grid
     mGm.mWorldState.kCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
     mGm.mWorldState.kCamGapSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
-	cameraSystem->kCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
-	cameraSystem->kCamGapSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+	cameraSystem->mCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
+	cameraSystem->mCamGapSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
 
     // Since the camera won't fill a block it can be offset so the camera image is in the middle
     // of the block or else where.
     mGm.mWorldState.kCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
-	cameraSystem->kCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
+	cameraSystem->mCameraBlockImageOffset = (path.IsAo()) ? glm::vec2(257, 114) : glm::vec2(0, 0);
 
 	// Clear out existing collisions from previous map
 	collisionSystem->Clear();
@@ -341,11 +351,10 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
 		});
 	}))
 	{
-		auto abe = mGm.mRoot.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent>();
+		auto abe = mGm.mRoot.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent, CameraComponent>();
 		auto pos = abe->GetComponent<TransformComponent>();
 		pos->Set(125.0f, 380.0f + (80.0f));
 		pos->SnapXToGrid();
-		mGm.mWorldState.mCameraSubject = abe;
 
 		auto slig = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
 		auto pos2 = slig->GetComponent<TransformComponent>();

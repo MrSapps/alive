@@ -3,6 +3,7 @@
 #include "debug.hpp"
 #include "world.hpp"
 #include "alive_version.h"
+#include "core/systems/camerasystem.hpp"
 
 #include "CONTRIBUTORS.md.g.h"
 
@@ -428,7 +429,7 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
         mWorldState.mCameraPosition.x = (mouseCamX * mWorldState.kCameraBlockSize.x) + (mWorldState.kVirtualScreenSize.x / 2);
         mWorldState.mCameraPosition.y = (mouseCamY * mWorldState.kCameraBlockSize.y) + (mWorldState.kVirtualScreenSize.y / 2);
 
-        if (mWorldState.mCameraSubject)
+        if (mWorldState.mEntityManager.GetSystem<CameraSystem>()->mTarget)
         {
             // mWorldState.mCameraSubject->mXPos = mWorldState.mCameraPosition.x;
             // mWorldState.mCameraSubject->mYPos = mWorldState.mCameraPosition.y;

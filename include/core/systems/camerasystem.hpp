@@ -2,7 +2,9 @@
 
 #include "core/system.hpp"
 
-class CameraSystem : public System
+class Entity;
+
+class CameraSystem final : public System
 {
 public:
     DECLARE_SYSTEM(CameraSystem);
@@ -14,8 +16,14 @@ public:
     void Render() const;
 
 public:
-    glm::vec2 kVirtualScreenSize;
-    glm::vec2 kCameraBlockSize;
-    glm::vec2 kCamGapSize;
-    glm::vec2 kCameraBlockImageOffset;
+    Entity* mTarget = nullptr;
+
+public:
+    glm::vec2 mCameraPosition;
+    glm::vec2 mVirtualScreenSize;
+
+public:
+    glm::vec2 mCamGapSize;
+    glm::vec2 mCameraBlockSize;
+    glm::vec2 mCameraBlockImageOffset;
 };
