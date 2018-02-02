@@ -100,7 +100,7 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
 
 GridMap::GridMap(CoordinateSpace& coords, WorldState& state, EntityManager &entityManager) : mLoader(*this), mWorldState(state), mRoot(entityManager)
 {
-	auto *cameraSystem = mRoot.GetSystem<CameraSystem>();
+	auto cameraSystem = mRoot.GetSystem<CameraSystem>();
 
     // Set up the screen size and camera pos so that the grid is drawn correctly during init
 	cameraSystem->mVirtualScreenSize = glm::vec2(368.0f, 240.0f);
@@ -176,8 +176,8 @@ GridMap::Loader::Loader(GridMap& gm)
 
 void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
 {
-	auto *cameraSystem = mGm.mRoot.GetSystem<CameraSystem>();
-	auto *collisionSystem = mGm.mRoot.GetSystem<CollisionSystem>();
+	auto cameraSystem = mGm.mRoot.GetSystem<CameraSystem>();
+	auto collisionSystem = mGm.mRoot.GetSystem<CollisionSystem>();
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
     cameraSystem->mCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);

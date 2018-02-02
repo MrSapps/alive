@@ -337,7 +337,7 @@ EditorMode::EditorMode(WorldState& mapState)
 
 void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
 {
-    auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
+    const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
     bool menuItemHandled = false;
     if (ImGui::BeginMainMenuBar())
     {
@@ -615,7 +615,7 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
 
 void EditorMode::Render(AbstractRenderer& rend) const
 {
-    auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
+    const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
     if (Debugging().mDrawCameras)
     {
         // Draw every cam

@@ -53,7 +53,7 @@ void GameMode::UpdateMenu(const InputState& /*input*/, CoordinateSpace& /*coords
 
 void GameMode::Update(const InputState& input, CoordinateSpace& coords)
 {
-	auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
+	const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
 
     coords.SetScreenSize(cameraSystem->mVirtualScreenSize);
 
@@ -125,7 +125,7 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
 
 void GameMode::Render(AbstractRenderer& rend) const
 {
-    auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
+    const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
     if (cameraSystem->mTarget && Debugging().mDrawCameras)
     {
         auto pos = cameraSystem->mTarget->GetComponent<TransformComponent>();
