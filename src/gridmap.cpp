@@ -98,7 +98,7 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
     }
 }
 
-GridMap::GridMap(CoordinateSpace& coords, WorldState& state, EntityManager &entityManager) : mLoader(*this), mWorldState(state), mRoot(entityManager)
+GridMap::GridMap(CoordinateSpace& coords, WorldState& state, EntityManager &entityManager) : mRoot(entityManager), mLoader(*this), mWorldState(state)
 {
 	auto cameraSystem = mRoot.GetSystem<CameraSystem>();
 

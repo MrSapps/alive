@@ -226,6 +226,7 @@ World::World(
 
     // TODO: Get the starting map from selectedGame
     std::ignore = selectedGame;
+    std::ignore = nextPathIndex;
 
     // TODO: Can be removed ?
     //const std::string gameScript = mResourceLocator.LocateScript(initScriptName).get();
