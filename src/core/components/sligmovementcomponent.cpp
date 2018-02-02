@@ -48,13 +48,13 @@ void SligMovementComponent::Update()
 
 void SligMovementComponent::Serialize(std::ostream &os) const
 {
-    // static_assert(std::is_pod<decltype(mData)>::value);
+    static_assert(std::is_pod<decltype(mData)>::value, "SligMovementComponent::mData is not a POD type");
 	os.write(static_cast<const char*>(static_cast<const void*>(&mData)), sizeof(decltype(mData)));
 }
 
 void SligMovementComponent::Deserialize(std::istream &is)
 {
-    // static_assert(std::is_pod<decltype(mData)>::value);
+    static_assert(std::is_pod<decltype(mData)>::value, "SligMovementComponent::mData is not a POD type");
 	is.read(static_cast<char*>(static_cast<void*>(&mData)), sizeof(decltype(mData)));
 }
 

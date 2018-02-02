@@ -155,6 +155,21 @@ CollisionSystem::RaycastHit CollisionSystem::Raycast(glm::vec2 origin, glm::vec2
     return {};
 }
 
+CollisionSystem::RaycastHit CollisionSystem::WallCollision(f32 x, f32 y, f32 dx, f32 dy) const
+{
+    return Raycast(glm::vec2(x, y + dy), glm::vec2(x + (y ? -dx : dx), y + dy), { CollisionLine::eLineTypes::eWallLeft, CollisionLine::eLineTypes::eWallRight });
+}
+
+CollisionSystem::RaycastHit CollisionSystem::CeilingCollision(bool mFlipX, f32 x, f32 y, f32 dx, f32 dy) const
+{
+    return Raycast(glm::vec2(x + (mFlipX ? -dx : dx), y - 2), glm::vec2(x + (mFlipX ? -dx : dx), y + dy), { CollisionLine::eLineTypes::eCeiling });
+}
+
+CollisionSystem::RaycastHit CollisionSystem::FloorCollision(f32 x, f32 y) const
+{
+    return Raycast(glm::vec2(x, y), glm::vec2(x, y + 260 * 3), { CollisionLine::eLineTypes::eFloor });
+}
+
 CollisionSystem::RaycastHit::RaycastHit(float distance, const glm::vec2& point, const glm::vec2& origin) : mDistance(distance), mPoint(point), mOrigin(origin)
 {
 

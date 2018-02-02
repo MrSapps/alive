@@ -820,7 +820,7 @@ class Abe extends BaseMapObject
     function IsCellingAbove()
     {
         // If we move up will we smack the celling?
-        if (base.CellingCollision(0, -60)) { return true; }
+        if (base.CeilingCollision(0, -60)) { return true; }
         return false;
     }
 

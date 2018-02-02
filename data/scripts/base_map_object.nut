@@ -95,7 +95,7 @@ class BaseMapObject
 
     function CellingCollision(dx, dy)
     {
-        return mBase.CellingCollision(mMap, dx, dy);
+        return mBase.CeilingCollision(mMap, dx, dy);
     }
 
     function WallCollision(dx, dy)

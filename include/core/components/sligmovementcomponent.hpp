@@ -94,9 +94,13 @@ private:
 private:
     struct {
         Goal mGoal;
-        States mState = States::eStanding;
-        States mNextState = States::eStanding;
-    } mData;
+        States mState;
+        States mNextState;
+    } mData = {
+        Goal::eStand,
+        States::eStanding,
+        States::eStanding
+    };
 };
 
 class SligPlayerControllerComponent final : public Component

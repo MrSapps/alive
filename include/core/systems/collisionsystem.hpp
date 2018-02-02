@@ -44,5 +44,10 @@ public:
     RaycastHit Raycast(glm::vec2 origin, glm::vec2 direction, std::initializer_list<CollisionLine::eLineTypes> lineMask) const;
 
 public:
+    RaycastHit WallCollision(f32 x, f32 y, f32 dx, f32 dy) const;
+    RaycastHit FloorCollision(f32 x, f32 y) const;
+    RaycastHit CeilingCollision(bool mFlipX, f32 x, f32 y, f32 dx, f32 dy) const;
+
+public:
     std::vector<std::unique_ptr<CollisionLine>> mCollisionLines;  // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
 };
