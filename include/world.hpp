@@ -29,13 +29,6 @@ public:
     WorldState& operator=(const WorldState&) = delete;
 
 public:
-    const int mEditorGridSizeX = 25;
-    const int mEditorGridSizeY = 20;
-
-public:
-    glm::vec2 mCameraPosition;
-
-public:
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
 
 public:

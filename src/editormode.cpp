@@ -430,12 +430,12 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
         const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / cameraSystem->mCameraBlockSize.x);
         const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / cameraSystem->mCameraBlockSize.y);
 
-        mWorldState.mCameraPosition.x = (mouseCamX * cameraSystem->mCameraBlockSize.x) + (cameraSystem->mVirtualScreenSize.x / 2);
-        mWorldState.mCameraPosition.y = (mouseCamY * cameraSystem->mCameraBlockSize.y) + (cameraSystem->mVirtualScreenSize.y / 2);
+        cameraSystem->mCameraPosition.x = (mouseCamX * cameraSystem->mCameraBlockSize.x) + (cameraSystem->mVirtualScreenSize.x / 2);
+        cameraSystem->mCameraPosition.y = (mouseCamY * cameraSystem->mCameraBlockSize.y) + (cameraSystem->mVirtualScreenSize.y / 2);
 
         if (cameraSystem->mTarget)
         {
-            cameraSystem->mTarget->GetComponent<TransformComponent>()->Set(mWorldState.mCameraPosition.x, mWorldState.mCameraPosition.y);
+            cameraSystem->mTarget->GetComponent<TransformComponent>()->Set(cameraSystem->mCameraPosition.x, cameraSystem->mCameraPosition.y);
         }
     }
 
@@ -461,18 +461,18 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
         }
 
         if (input.mKeys[SDL_SCANCODE_W].IsDown())
-        { mWorldState.mCameraPosition.y -= editorCamSpeed; }
+        { cameraSystem->mCameraPosition.y -= editorCamSpeed; }
         else if (input.mKeys[SDL_SCANCODE_S].IsDown())
-        { mWorldState.mCameraPosition.y += editorCamSpeed; }
+        { cameraSystem->mCameraPosition.y += editorCamSpeed; }
 
         if (input.mKeys[SDL_SCANCODE_A].IsDown())
-        { mWorldState.mCameraPosition.x -= editorCamSpeed; }
+        { cameraSystem->mCameraPosition.x -= editorCamSpeed; }
         else if (input.mKeys[SDL_SCANCODE_D].IsDown())
-        { mWorldState.mCameraPosition.x += editorCamSpeed; }
+        { cameraSystem->mCameraPosition.x += editorCamSpeed; }
     }
 
     coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorCamZoom);
-    coords.SetCameraPosition(mWorldState.mCameraPosition);
+    coords.SetCameraPosition(cameraSystem->mCameraPosition);
 
     // Find out what line is under the mouse pos, if any
     // TODO: Wire CollisionSystem here

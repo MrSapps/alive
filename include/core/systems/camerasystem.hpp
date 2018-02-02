@@ -1,5 +1,6 @@
 #include <glm/glm/vec2.hpp>
 
+#include "types.hpp"
 #include "core/system.hpp"
 
 class Entity;
@@ -26,4 +27,8 @@ public:
     glm::vec2 mCamGapSize;
     glm::vec2 mCameraBlockSize;
     glm::vec2 mCameraBlockImageOffset;
+
+public:
+    static constexpr u8 kEditorGridSizeX = 25;
+    static constexpr u8 kEditorGridSizeY = 20;
 };

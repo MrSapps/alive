@@ -24,18 +24,18 @@
 
 void WorldState::RenderGrid(AbstractRenderer& rend) const
 {
-    const int gridLineCountX = static_cast<int>((rend.ScreenSize().x / mEditorGridSizeX));
+    const int gridLineCountX = static_cast<int>((rend.ScreenSize().x / CameraSystem::kEditorGridSizeX));
     for (int x = -gridLineCountX; x < gridLineCountX; x++)
     {
-        const glm::vec2 worldPos(rend.CameraPosition().x + (x * mEditorGridSizeX) - (static_cast<int>(rend.CameraPosition().x) % mEditorGridSizeX), 0);
+        const glm::vec2 worldPos(rend.CameraPosition().x + (x *  CameraSystem::kEditorGridSizeX) - (static_cast<int>(rend.CameraPosition().x) % CameraSystem::kEditorGridSizeX), 0);
         const glm::vec2 screenPos = rend.WorldToScreen(worldPos);
         rend.Line(ColourU8{ 255, 255, 255, 30 }, screenPos.x, 0, screenPos.x, static_cast<f32>(rend.Height()), 2.0f, AbstractRenderer::eLayers::eEditor, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
     }
 
-    const int gridLineCountY = static_cast<int>((rend.ScreenSize().y / mEditorGridSizeY));
+    const int gridLineCountY = static_cast<int>((rend.ScreenSize().y / CameraSystem::kEditorGridSizeY));
     for (int y = -gridLineCountY; y < gridLineCountY; y++)
     {
-        const glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(0, rend.CameraPosition().y + (y * mEditorGridSizeY) - (static_cast<int>(rend.CameraPosition().y) % mEditorGridSizeY)));
+        const glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(0, rend.CameraPosition().y + (y * CameraSystem::kEditorGridSizeY) - (static_cast<int>(rend.CameraPosition().y) % CameraSystem::kEditorGridSizeY)));
         rend.Line(ColourU8{ 255, 255, 255, 30 }, 0, screenPos.y, static_cast<f32>(rend.Width()), screenPos.y, 2.0f, AbstractRenderer::eLayers::eEditor, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
     }
 }
@@ -143,7 +143,7 @@ void WorldState::SetGameCameraToCameraAt(u32 x, u32 y)
         (x * cameraSystem->mCameraBlockSize.x) + cameraSystem->mCameraBlockImageOffset.x,
         (y * cameraSystem->mCameraBlockSize.y) + cameraSystem->mCameraBlockImageOffset.y)
         + glm::vec2(cameraSystem->mVirtualScreenSize.x / 2, cameraSystem->mVirtualScreenSize.y / 2);
-    mCameraPosition = camPos;
+    cameraSystem->mCameraPosition = camPos;
 }
 
 template<class T>
@@ -334,7 +334,7 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                         mWorldState.mState = WorldState::States::eInGame;
                     }
                 }
-                coords.SetCameraPosition(mWorldState.mCameraPosition);
+                coords.SetCameraPosition(mEntityManager.GetSystem<CameraSystem>()->mCameraPosition);
             }
 
             // Physics System

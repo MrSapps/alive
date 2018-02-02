@@ -117,10 +117,8 @@ GridMap::GridMap(CoordinateSpace& coords, WorldState& state, EntityManager &enti
         (camY * cameraSystem->mCameraBlockSize.y) + cameraSystem->mCameraBlockImageOffset.y) +
         glm::vec2(cameraSystem->mVirtualScreenSize.x / 2, cameraSystem->mVirtualScreenSize.y / 2);
 
-    mWorldState.mCameraPosition = camPos;
 	cameraSystem->mCameraPosition = camPos;
-
-    coords.SetCameraPosition(cameraSystem->mCameraPosition);
+    coords.SetCameraPosition(camPos);
 }
 
 GridMap::~GridMap()

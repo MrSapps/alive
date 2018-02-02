@@ -60,7 +60,7 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
     if (mState == eMenu)
     {
         UpdateMenu(input, coords);
-        coords.SetCameraPosition(mWorldState.mCameraPosition);
+        coords.SetCameraPosition(cameraSystem->mCameraPosition);
         return;
     }
 
@@ -112,14 +112,14 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
             (camX * cameraSystem->mCameraBlockSize.x) + cameraSystem->mCameraBlockImageOffset.x,
             (camY * cameraSystem->mCameraBlockSize.y) + cameraSystem->mCameraBlockImageOffset.y) + glm::vec2(cameraSystem->mVirtualScreenSize.x / 2, cameraSystem->mVirtualScreenSize.y / 2);
 
-        if (mWorldState.mCameraPosition != camPos)
+        if (cameraSystem->mCameraPosition != camPos)
         {
             LOG_INFO("TODO: Screen change");
             coords.mSmoothCameraPosition = false;
-            mWorldState.mCameraPosition = camPos;
+            cameraSystem->mCameraPosition = camPos;
         }
 
-        coords.SetCameraPosition(mWorldState.mCameraPosition);
+        coords.SetCameraPosition(camPos);
     }
 }
 
