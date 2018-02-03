@@ -14,7 +14,6 @@
 #include "core/systems/camerasystem.hpp"
 #include "core/systems/resourcesystem.hpp"
 #include "core/systems/collisionsystem.hpp"
-#include "core/systems/resourcelocatorsystem.hpp"
 
 #include "core/components/cameracomponent.hpp"
 #include "core/components/physicscomponent.hpp"
@@ -234,9 +233,8 @@ void World::LoadSystems()
 {
     mEntityManager.AddSystem<InputSystem>(mInput);
     mEntityManager.AddSystem<CameraSystem>();
-    mEntityManager.AddSystem<ResourceSystem>();
+    mEntityManager.AddSystem<ResourceSystem>(mLocator);
     mEntityManager.AddSystem<CollisionSystem>();
-    mEntityManager.AddSystem<ResourceLocatorSystem>(mLocator);
 }
 
 void World::LoadComponents()
@@ -328,23 +326,23 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
             }
 
             // Physics System
-            mEntityManager.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform) // TODO: should be a system
+            mEntityManager.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform)
             {
                 transform->Add(physics->xSpeed, physics->ySpeed);
             });
             // Animation System
-            mEntityManager.With<AnimationComponent>([](auto, auto animation) // TODO: should be a system
+            mEntityManager.With<AnimationComponent>([](auto, auto animation)
             {
                 animation->Update();
             });
             // Abe system
-            mEntityManager.With<AbePlayerControllerComponent, AbeMovementComponent>([](auto, auto controller, auto abe) // TODO: should be a system
+            mEntityManager.With<AbePlayerControllerComponent, AbeMovementComponent>([](auto, auto controller, auto abe)
             {
                 controller->Update();
                 abe->Update();
             });
             // Slig system
-            mEntityManager.With<SligPlayerControllerComponent, SligMovementComponent>([](auto, auto controller, auto slig) // TODO: should be a system
+            mEntityManager.With<SligPlayerControllerComponent, SligMovementComponent>([](auto, auto controller, auto slig)
             {
                 controller->Update();
                 slig->Update();

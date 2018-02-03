@@ -1,5 +1,5 @@
 #include "core/entitymanager.hpp"
-#include "core/systems/resourcelocatorsystem.hpp"
+#include "core/systems/resourcesystem.hpp"
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
 
@@ -9,7 +9,7 @@ void AnimationComponent::OnLoad()
 {
     Component::OnLoad(); // calls OnResolveDependencies
 
-    mResourceLocator = mEntity->GetManager()->GetSystem<ResourceLocatorSystem>()->GetResourceLocator();
+    mResourceLocator = mEntity->GetManager()->GetSystem<ResourceSystem>()->GetResourceLocator();
 }
 
 void AnimationComponent::OnResolveDependencies()

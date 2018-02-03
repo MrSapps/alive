@@ -1,7 +1,7 @@
 #include "core/systems/inputsystem.hpp"
 #include "core/systems/camerasystem.hpp"
+#include "core/systems/resourcesystem.hpp"
 #include "core/systems/collisionsystem.hpp"
-#include "core/systems/resourcelocatorsystem.hpp"
 #include "core/components/physicscomponent.hpp"
 
 #include "core/components/cameracomponent.hpp"
