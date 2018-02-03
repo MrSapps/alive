@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include <functional>
 
 #include "core/component.hpp"
@@ -30,22 +31,31 @@ public:
     enum class Goal
     {
         eStand,
+        eGoUp,
+        eGoDown,
         eGoLeft,
         eGoRight,
-        eChant
+        eChant,
     };
 
     enum class States
     {
-        eStanding,
         ePushingWall,
-        ePushingWallToStand,
-        eStandToWalking,
-        eStandTurningAround,
-        eWalkingToStanding,
+        ePushingWallToStanding,
+
+        eStanding,
+        eStandingToWalking,
+        eStandingToCrouching,
+        eStandingTurningAround,
+
         eWalking,
+        eWalkingToStanding,
+
         eChanting,
-        eChantToStand,
+        eChantToStanding,
+
+        eCrouching,
+        eCrouchingToStanding
     };
 
     enum class AbeAnimation : u16
@@ -120,42 +130,46 @@ public:
     void Update();
 
 private:
-    void ASyncTransition();
-
-    // States
+    void PrePushingWall(States previous);
+    void PushingWall();
 
     void PreStanding(States previous);
     void Standing();
-
-    void PushingWall();
+    void StandingTurningAround();
+    void StandingToCrouching();
 
     void PreChanting(States previous);
     void Chanting();
 
     void PreWalking(States previous);
     void Walking();
-    void WalkToStand();
+    void WalkingToStanding();
 
-    void StandTurnAround();
+    void PreCrouching(States previous);
+    void Crouching();
+    void CrouchingToStanding();
 
-    // State switchers
+private:
+    void PushWallOrCrouch();
 
-    void PushWallOrRoll();
+private:
+    void ASyncTransition();
 
-    // Helpers
-
-    void SnapXToGrid();
-    void SetXSpeed(f32 speed);
-    bool FrameIs(u32 frame) const;
-    void SetFrame(u32 frame);
-    void PlaySoundEffect(const char* fxName);
-
+private:
     bool DirectionChanged() const;
-    bool TryMoveLeftOrRight() const;
+    bool IsMovingLeftOrRight() const;
     bool IsMovingTowardsWall() const;
 
-    void SetAnimation(const std::string& anim);
+private:
+    bool FrameIs(u32 frame) const;
+    void SetFrame(u32 frame);
+    void SetXSpeed(f32 speed);
+    void SnapXToGrid();
+
+private:
     void SetState(States state);
+    void SetAnimation(const std::string& anim);
+    void PlaySoundEffect(const char* fxName);
     void SetCurrentAndNextState(States current, States next);
 
 private:

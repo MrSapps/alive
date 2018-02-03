@@ -902,7 +902,7 @@ class Abe extends BaseMapObject
         if (InputNotSameAsDirection())
         {
             log_info("StandTurnAround");
-            return StandTurnAround();
+            return StandingTurningAround();
         }
         else if (InputSameAsDirection())
         {
@@ -925,7 +925,7 @@ class Abe extends BaseMapObject
         }
         else if (Actions.Down(mInput.IsHeld))
         {
-            return StandToCrouch();
+            return StandingToCrouching();
         }
         else if (HandleGameSpeak(1))
         {
