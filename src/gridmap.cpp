@@ -98,7 +98,7 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
     }
 }
 
-GridMap::GridMap(CoordinateSpace& coords, WorldState& state, EntityManager &entityManager) : mRoot(entityManager), mLoader(*this), mWorldState(state)
+GridMap::GridMap(CoordinateSpace& coords, WorldState& state, EntityManager& entityManager) : mRoot(entityManager), mLoader(*this), mWorldState(state)
 {
     auto cameraSystem = mRoot.GetSystem<CameraSystem>();
 
@@ -156,7 +156,7 @@ void GridMap::UnloadMap(AbstractRenderer& renderer)
     auto collisionSystem = mRoot.GetSystem<CollisionSystem>();
     if (collisionSystem)
     {
-        for (auto &entity : mRoot.mEntities)
+        for (auto& entity : mRoot.mEntities)
         {
             entity->Destroy();
         }
@@ -247,6 +247,25 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                     ReadU16(ms); // edgeType
                     ReadU16(ms); // id
                     ReadU16(ms); // scale
+                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+                    break;
+                }
+                {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    ReadU16(ms); // type
+                    ReadU16(ms); // canGrab
+                    ReadU32(ms); // scale
+                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+                    break;
+                }
+                case ObjectTypesAe::eDeathDrop:
+                {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    ReadU16(ms); // animation
+                    ReadU16(ms); // sound
+                    ReadU16(ms); // id
+                    ReadU16(ms); // action
+                    ReadU32(ms); // value
                     entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
@@ -489,12 +508,6 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                     break;
                 }
                 case ObjectTypesAe::eAbeStart:
-                {
-                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
-                    ReadU32(ms); // scale
-                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
-                    break;
-                }
                 case ObjectTypesAe::eWellExpress:
                 {
                     auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
@@ -635,10 +648,12 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eFootSwitch:
                 {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    ReadU16(ms); // id
+                {
                     auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // id
                     ReadU16(ms); // scale
-                    ReadU16(ms); // action
                     ReadU16(ms); // triggerBy
                     entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     entity->GetComponent<AnimationComponent>()->Change("TRIGGER.BAN_2010_AePc_0");
@@ -1460,15 +1475,16 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                     break;
                 }
                 }
-            });
-        });
-    }))
     {
         auto abe = mGm.mRoot.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent, CameraComponent>();
         auto pos = abe->GetComponent<TransformComponent>();
         pos->Set(125.0f, 380.0f + (80.0f));
         pos->SnapXToGrid();
 
+		auto slig = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
+		auto pos2 = slig->GetComponent<TransformComponent>();
+		pos2->Set(125.0f + (25.0f), 380.0f + (80.0f));
+		pos2->SnapXToGrid();
         auto slig = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
         auto pos2 = slig->GetComponent<TransformComponent>();
         pos2->Set(125.0f + (25.0f), 380.0f + (80.0f));
@@ -1503,6 +1519,16 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
         HandleLoadCameras(path, locator);
         break;
     case LoaderStates::eLoadEntities:
+		RunForAtLeast(kMaxExecutionTimeMs, [&]() { if (mState == LoaderStates::eLoadEntities) { HandleLoadEntities(path); } });
+		break;
+	}
+        RunForAtLeast(kMaxExecutionTimeMs, [&]()
+        {
+            if (mState == LoaderStates::eLoadEntities)
+            {
+                HandleLoadEntities(path);
+            }
+        });
         RunForAtLeast(kMaxExecutionTimeMs, [&]() { if (mState == LoaderStates::eLoadEntities) { HandleLoadEntities(path); } });
         break;
     }
