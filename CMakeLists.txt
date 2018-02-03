@@ -429,6 +429,8 @@ SET(alivelib_src
     src/core/systems/inputsystem.cpp
     include/core/systems/resourcelocatorsystem.hpp
     src/core/systems/resourcelocatorsystem.cpp
+    include/core/systems/resourcesystem.hpp
+    src/core/systems/resourcesystem.cpp
     include/core/components/cameracomponent.hpp
     src/core/components/cameracomponent.cpp
     include/core/systems/camerasystem.hpp

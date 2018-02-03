@@ -12,6 +12,7 @@
 
 #include "core/systems/inputsystem.hpp"
 #include "core/systems/camerasystem.hpp"
+#include "core/systems/resourcesystem.hpp"
 #include "core/systems/collisionsystem.hpp"
 #include "core/systems/resourcelocatorsystem.hpp"
 
@@ -233,6 +234,7 @@ void World::LoadSystems()
 {
     mEntityManager.AddSystem<InputSystem>(mInput);
     mEntityManager.AddSystem<CameraSystem>();
+    mEntityManager.AddSystem<ResourceSystem>();
     mEntityManager.AddSystem<CollisionSystem>();
     mEntityManager.AddSystem<ResourceLocatorSystem>(mLocator);
 }

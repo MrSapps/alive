@@ -455,8 +455,8 @@ void AbeMovementComponent::ASyncTransition()
 
 bool AbeMovementComponent::DirectionChanged() const
 {
-    return (!mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoRight ||
-        !mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoLeftRunning) || (mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoRightRunning);
+    return (!mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoRight) ||
+        (!mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoLeftRunning) || (mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoRightRunning);
 }
 
 bool AbeMovementComponent::IsMovingLeftOrRight() const
