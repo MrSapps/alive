@@ -232,6 +232,14 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
 				Oddlib::MemoryStream ms(std::vector<u8>(object.mData.data(), object.mData.data() + object.mData.size()));
 				switch (object.mType)
 				{
+                case ObjectTypesAe::eContinuePoint:
+                {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    ReadU16(ms); // scale
+                    ReadU16(ms); // saveFileId
+                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+                    break;
+                }
 				case ObjectTypesAe::eHoist:
 				{
 					auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
@@ -242,6 +250,26 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
 					entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
 					break;
 				}
+                case ObjectTypesAe::eEdge:
+                {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    ReadU16(ms); // type
+                    ReadU16(ms); // canGrab
+                    ReadU32(ms); // scale
+                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+                    break;
+                }
+                case ObjectTypesAe::eDeathDrop:
+                {
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    ReadU16(ms); // animation
+                    ReadU16(ms); // sound
+                    ReadU16(ms); // id
+                    ReadU16(ms); // action
+                    ReadU32(ms); // value
+                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+                    break;
+                }
 				case ObjectTypesAe::eDoor:
 				{
 					auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
