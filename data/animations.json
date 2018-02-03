@@ -529,7 +529,7 @@
                         ]
                     }
                 ],
-                "name": "AbeRuningToJump"
+                "name": "AbeRunningToJump"
             },
             {
                 "blend_mode": "normal",
@@ -1273,7 +1273,7 @@
                         ]
                     }
                 ],
-                "name": "ABEGAS.BAN_118_AePc_0"
+                "name": "AbeGassed"
             },
             {
                 "blend_mode": "normal",
@@ -1431,7 +1431,7 @@
                         ]
                     }
                 ],
-                "name": "AbeCrouchFallBack"
+                "name": "AbeFallBackToStand"
             },
             {
                 "blend_mode": "normal",
@@ -3316,7 +3316,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_1"
+                "name": "SligWalking2"
             },
             {
                 "blend_mode": "normal",
@@ -3342,7 +3342,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_2"
+                "name": "SligRunning"
             },
             {
                 "blend_mode": "normal",
@@ -3368,7 +3368,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_3"
+                "name": "SligStandIdle"
             },
             {
                 "blend_mode": "normal",
@@ -3394,7 +3394,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_4"
+                "name": "SligShooting"
             },
             {
                 "blend_mode": "normal",
@@ -3524,7 +3524,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_9"
+                "name": "SligStandToShoot"
             },
             {
                 "blend_mode": "normal",
@@ -3576,7 +3576,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_11"
+                "name": "SligWalking1"
             },
             {
                 "blend_mode": "normal",
@@ -3602,7 +3602,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_12"
+                "name": "SligStandToRun"
             },
             {
                 "blend_mode": "normal",
@@ -3628,7 +3628,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_13"
+                "name": "SligWalkToStandMidGrid"
             },
             {
                 "blend_mode": "normal",
@@ -3654,7 +3654,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_14"
+                "name": "SligStandToWalk"
             },
             {
                 "blend_mode": "normal",
@@ -3680,7 +3680,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_15"
+                "name": "SligWalkToStand"
             },
             {
                 "blend_mode": "normal",
@@ -3836,7 +3836,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_412_AePc_21"
+                "name": "SligStandTurnAround"
             },
             {
                 "blend_mode": "normal",
@@ -3852,7 +3852,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_414_AePc_0"
+                "name": "SligPossessedExploding"
             },
             {
                 "blend_mode": "normal",
@@ -3868,7 +3868,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_414_AePc_1"
+                "name": "SligFallBackStanding"
             },
             {
                 "blend_mode": "normal",
@@ -3884,7 +3884,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_414_AePc_2"
+                "name": "SligFallBackToStand"
             },
             {
                 "blend_mode": "normal",
@@ -3920,7 +3920,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_319_AePc_0"
+                "name": "SligShootingFlareEffect"
             },
             {
                 "blend_mode": "normal",
@@ -3956,7 +3956,7 @@
                         ]
                     }
                 ],
-                "name": "SLIG.BND_360_AePc_0"
+                "name": "SligShootingShellParticle "
             },
             {
                 "blend_mode": "normal",
@@ -90183,5 +90183,4 @@
             }
         ]
     }
-] 
-
+]

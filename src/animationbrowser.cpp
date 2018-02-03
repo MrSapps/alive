@@ -79,7 +79,7 @@ void AnimationBrowser::Render(AbstractRenderer& renderer)
         {
             anim->Restart();
         }
-        anim->Render(renderer, false, AbstractRenderer::eForegroundLayer0, AbstractRenderer::eWorld);
+        anim->Render(renderer, false, AbstractRenderer::eEditor, AbstractRenderer::eWorld);
     }
 }
 

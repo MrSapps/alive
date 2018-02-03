@@ -76,7 +76,6 @@ include_directories(
     ${SDL2_INCLUDE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/packaging
     ${OPENGL_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squirrel/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/sqrat/include
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/boost_1_63_mini
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/gl3w/include
@@ -123,12 +122,6 @@ SET_PROPERTY(TARGET soxr PROPERTY FOLDER "3rdparty")
 
 SET(SQ_DISABLE_INSTALLER 1)
 SET(DISABLE_DYNAMIC 1)
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/squirrel)
-SET_PROPERTY(TARGET sq_static PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET sqstdlib_static PROPERTY FOLDER "3rdparty")
-SET_PROPERTY(TARGET squirrel_static PROPERTY FOLDER "3rdparty")
-
 
 SET(imgui_src 
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/stb_rect_pack.h
@@ -274,7 +267,6 @@ SET(oddlib_src
     include/types.hpp
     include/bitutils.hpp
     include/proxy_rapidjson.hpp
-    include/proxy_sqrat.hpp
     include/msvc_sdl_link.hpp
     include/stdthread.h
     include/iterativeforloop.hpp
@@ -385,8 +377,6 @@ SET(alivelib_src
     src/gamemode.cpp
     include/editormode.hpp
     src/editormode.cpp
-    include/mapobject.hpp
-    src/mapobject.cpp
     include/fsm.hpp
     src/fsm.cpp
     include/subtitles.hpp
@@ -398,6 +388,8 @@ SET(alivelib_src
     src/zipfilesystem.cpp
     include/debug.hpp
     src/debug.cpp
+    include/paths_json.hpp
+    src/paths_json.cpp
     include/collisionline.hpp
     src/collisionline.cpp
     include/physics.hpp
@@ -413,7 +405,36 @@ SET(alivelib_src
     include/cdromfilesystem.hpp
     include/directorylimitedfilesystem.hpp
     ${generated_headers_dir}/CONTRIBUTORS.md.g.h
-)
+    include/core/entitymanager.hpp
+    src/core/entitymanager.cpp
+    include/core/system.hpp
+    src/core/system.cpp
+    include/core/entity.hpp
+    src/core/entity.cpp
+    include/core/component.hpp
+    src/core/component.cpp
+    include/core/components/animationcomponent.hpp
+    src/core/components/animationcomponent.cpp
+    include/core/components/transformcomponent.hpp
+    src/core/components/transformcomponent.cpp
+    include/core/components/physicscomponent.hpp
+    src/core/components/physicscomponent.cpp
+    include/core/components/abemovementcomponent.hpp
+    src/core/components/abemovementcomponent.cpp
+    include/core/components/sligmovementcomponent.hpp
+    src/core/components/sligmovementcomponent.cpp
+    include/core/systems/collisionsystem.hpp
+    src/core/systems/collisionsystem.cpp
+    include/core/systems/inputsystem.hpp
+    src/core/systems/inputsystem.cpp
+    include/core/systems/resourcelocatorsystem.hpp
+    src/core/systems/resourcelocatorsystem.cpp
+    include/core/components/cameracomponent.hpp
+    src/core/components/cameracomponent.cpp
+    include/core/systems/camerasystem.hpp
+    src/core/systems/camerasystem.cpp
+    include/core/systems/debugsystem.hpp
+    src/core/systems/debugsystem.cpp)
 
 if(WIN32)
     SET(alivelib_src
@@ -425,7 +446,7 @@ endif()
 add_library(AliveLib STATIC
     src/alivelib_pch.cpp ${alivelib_src}
 )
-TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib jsonxx sqstdlib_static squirrel_static stk nativefiledialog libdeflate imgui soxr)
+TARGET_LINK_LIBRARIES(AliveLib gl3w_lib oddlib jsonxx stk nativefiledialog libdeflate imgui soxr)
 
 if (WIN32 AND MSVC)
     set_target_properties(AliveLib PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "include/alivelib_pch.h")
@@ -503,6 +524,8 @@ if (MSVC AND NOT "${CMAKE_GENERATOR}" MATCHES "(Win64)")
         tools/engine_hook/window_hooks.cpp
         tools/engine_hook/hook_utils.hpp
         tools/engine_hook/hook_utils.cpp
+        tools/engine_hook/demo_hooks.hpp
+        tools/engine_hook/demo_hooks.cpp
         tools/engine_hook/anim_logger.hpp
         tools/engine_hook/anim_logger.cpp
         tools/engine_hook/debug_dialog.hpp
@@ -759,7 +782,7 @@ if (MSVC)
 
     # Warnings added in VS2017 and later or existing warnings that have started to appear in SDK headers
     if(MSVC_VERSION GREATER 1800)
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027 /wd4774 /wd4623 /wd4987")
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027 /wd4774 /wd4623 /wd4987 /wd5039 /wd4768")
     endif()
     set_source_files_properties(${test_src} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} /wd5026 /wd5027")
 

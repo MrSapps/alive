@@ -1,6 +1,6 @@
 class Abe extends BaseMapObject
 {
-    static kAnimationResources = 
+    static kAnimationResources =
     [
         "AbeWalkToStand",
         "AbeWalkToStandMidGrid",
@@ -13,7 +13,7 @@ class Abe extends BaseMapObject
         "AbeRunningTurnAround",
         "AbeRunningTurnAroundToWalk",
         "AbeRunningToRoll",
-        "AbeRuningToJump",
+        "AbeRunningToJump",
         "AbeRunningJumpInAir",
         "AbeLandToRunning",
         "AbeLandToWalking",
@@ -63,13 +63,13 @@ class Abe extends BaseMapObject
 
     function InputNotSameAsDirection()
     {
-        return (Actions.Left(mInput.IsHeld)  && base.FacingRight()) 
+        return (Actions.Left(mInput.IsHeld)  && base.FacingRight())
             || (Actions.Right(mInput.IsHeld) && base.FacingLeft());
     }
 
     function InputSameAsDirection()
     {
-        return (Actions.Left(mInput.IsHeld)  && base.FacingLeft()) 
+        return (Actions.Left(mInput.IsHeld)  && base.FacingLeft())
             || (Actions.Right(mInput.IsHeld) && base.FacingRight());
     }
 
@@ -92,13 +92,13 @@ class Abe extends BaseMapObject
         base.SnapXToGrid();
     }
 
-    function ToStandCommon(anim) 
+    function ToStandCommon(anim)
     {
         SetXSpeed(2.777771);
         SetXVelocity(0);
 
         PlayAnimation(anim,
-        { 
+        {
             onFrame = function(obj)
             {
                 if (obj.FrameIs(2))
@@ -146,9 +146,9 @@ class Abe extends BaseMapObject
     {
         SetXSpeed(6.25);
         SetXVelocity(0.375);
-        PlayAnimation("AbeRunningToSkidTurn", 
-        { 
-            endFrame = 15, 
+        PlayAnimation("AbeRunningToSkidTurn",
+        {
+            endFrame = 15,
             onFrame = function(obj)
             {
                 if (obj.FrameIs(14))
@@ -159,7 +159,7 @@ class Abe extends BaseMapObject
                 }
             }
         });
-    
+
         if (Actions.Run(mInput.IsHeld))
         {
             SetXSpeed(6.25);
@@ -170,7 +170,7 @@ class Abe extends BaseMapObject
             mInvertX = false;
             FlipXDirection();
             //SnapXToGrid();
-     
+
             return GoTo(Run);
         }
         else
@@ -196,8 +196,8 @@ class Abe extends BaseMapObject
 
     function RunToJump()
     {
-        PlayAnimation("AbeRuningToJump",
-        { 
+        PlayAnimation("AbeRunningToJump",
+        {
             onFrame = function(obj)
             {
                 if (obj.FrameIs(2))
@@ -209,8 +209,8 @@ class Abe extends BaseMapObject
 
         SetYVelocity(-1.8);
         SetXSpeed(7.6);
-        PlayAnimation("AbeRunningJumpInAir", 
-        { 
+        PlayAnimation("AbeRunningJumpInAir",
+        {
             onFrame = function(obj)
             {
                 if (obj.FrameIs(10))
@@ -224,7 +224,7 @@ class Abe extends BaseMapObject
         SetYSpeed(0);
         SetYVelocity(0);
         SnapXToGrid();
-    
+
         if (InputSameAsDirection())
         {
             if (Actions.Run(mInput.IsHeld))
@@ -260,7 +260,7 @@ class Abe extends BaseMapObject
         {
             SetXSpeed(6.25);
         }
-    
+
         if (FrameIs(0+1) || FrameIs(8+1))
         {
             SnapXToGrid();
@@ -274,7 +274,7 @@ class Abe extends BaseMapObject
         {
             SnapXToGrid();
             if (InputNotSameAsDirection())
-            { 
+            {
                 return RunToSkidTurnAround();
             }
             else if (InputSameAsDirection())
@@ -347,16 +347,16 @@ class Abe extends BaseMapObject
 
     function Sneak()
     {
-        if (InputSameAsDirection()) 
+        if (InputSameAsDirection())
         {
             if (FrameIs(6+1) || FrameIs(16+1))
             {
                 SnapXToGrid();
-            
+
                 local collision = WillStepIntoWall();
                 if (collision) { return collision; }
 
-                base.PlaySoundEffect("MOVEMENT_MUD_STEP"); 
+                base.PlaySoundEffect("MOVEMENT_MUD_STEP");
                 if (Actions.Sneak(mInput.IsHeld) == false)
                 {
                     if (FrameIs(6+1)) { return SneakToWalk(); } else { return SneakToWalk2(); }
@@ -393,7 +393,7 @@ class Abe extends BaseMapObject
     function CalculateYSpeed()
     {
         local newYSpeed = mYSpeed - mYVelocity;
-        if (newYSpeed > 20) 
+        if (newYSpeed > 20)
         {
             newYSpeed = 20;
         }
@@ -428,14 +428,14 @@ class Abe extends BaseMapObject
                 }
             }
         }
-    
-        //if (mYSpeed < 0) 
+
+        //if (mYSpeed < 0)
         //{
             //log_error("YSpeed from " + mYSpeed + " to " + mYSpeed - mYVelocity);
             mYSpeed = CalculateYSpeed();
             mBase.mYPos += mYSpeed;
         //}
-    
+
     }
 
     function WillStepIntoWall()
@@ -445,7 +445,7 @@ class Abe extends BaseMapObject
         {
             SetXSpeed(0);
             SetXVelocity(0);
-            
+
             // Blocked at knee height?
             if (base.WallCollision(25, -20))
             {
@@ -578,7 +578,7 @@ class Abe extends BaseMapObject
             }
         }
     }
- 
+
     function PlayAnimation(name, params = null)
     {
         base.SetAnimation(name);
@@ -626,7 +626,7 @@ class Abe extends BaseMapObject
             ::suspend();
 
             if (stop)
-            { 
+            {
                 log_info("-PlayAnimation (callback): " + name);
                 return;
             }
@@ -644,7 +644,7 @@ class Abe extends BaseMapObject
             SetXSpeed(data.xspeed);
         }
         SetXVelocity(data.xvel);
-    
+
         if ("yvel" in data)
         {
             SetYVelocity(data.yvel);
@@ -681,16 +681,16 @@ class Abe extends BaseMapObject
         return GoTo(Stand);
     }
 
-    function StandTurnAround() 
+    function StandTurnAround()
     {
         log_info("StandTurnAround");
 
         base.PlaySoundEffect("GRAVEL_SMALL"); // TODO: Add to json
         local toRun = false;
-    
+
         // stop at frame 3 if we want to go to running
-        PlayAnimation("AbeStandTurnAround", 
-        { 
+        PlayAnimation("AbeStandTurnAround",
+        {
             onFrame = function(obj)
             {
                 if (obj.FrameIs(3) && Actions.Run(obj.mInput.IsHeld))
@@ -733,7 +733,7 @@ class Abe extends BaseMapObject
         {
             base.PlaySoundEffect("MOVEMENT_MUD_STEP");
         }
-    
+
         if (FrameIs(0+1) || FrameIs(4+1) || FrameIs(8+1))
         {
             SnapXToGrid();
@@ -755,7 +755,7 @@ class Abe extends BaseMapObject
         }
     }
 
-    static game_speak = 
+    static game_speak =
     {
          GameSpeak1 = { anims = [ "AbeStandSpeak2",    "AbeCrouchSpeak1" ], sound = "GAMESPEAK_MUD_HELLO"},
          GameSpeak2 = { anims = [ "AbeStandSpeak3",    "AbeCrouchSpeak1" ], sound = "GAMESPEAK_MUD_FOLLOWME"},
@@ -859,9 +859,9 @@ class Abe extends BaseMapObject
     function StandToHop()
     {
         PlayAnimation("AbeStandToHop",
-        { 
-            startFrame = 9, 
-            endFrame = 11, 
+        {
+            startFrame = 9,
+            endFrame = 11,
             onFrame = function(obj)
             {
                 if (obj.FrameNumber() == 9)
@@ -878,8 +878,8 @@ class Abe extends BaseMapObject
 
         SetYVelocity(-1.8);
         PlayAnimation("AbeHopping",
-        { 
-            endFrame = 3, 
+        {
+            endFrame = 3,
             onFrame = function(obj)
             {
                 if (obj.FrameIs(3))
@@ -920,7 +920,7 @@ class Abe extends BaseMapObject
             {
                 local collision = WillStepIntoWall();
                 if (collision) { return collision; }
-                return StandToWalk(); 
+                return StandToWalk();
             }
         }
         else if (Actions.Down(mInput.IsHeld))
@@ -983,9 +983,9 @@ class Abe extends BaseMapObject
     function JumpUp()
     {
         local oldY = mBase.mYPos;
-    
+
         PlayAnimation("AbeStandToJump",
-        { 
+        {
             onFrame = function(obj)
             {
                 if (obj.FrameNumber() == 9)
@@ -997,10 +997,10 @@ class Abe extends BaseMapObject
 
         // Look for a hoist at the head pos
         local hoist = mMap.GetMapObject(mBase.mXPos, mBase.mYPos-50, "Hoist");
-    
+
         SetYVelocity(-1.8);
         PlayAnimation("AbeJumpUpFalling",
-        { 
+        {
             onFrame = function(obj)
             {
                 if (obj.FrameNumber() >= 3)
@@ -1019,7 +1019,7 @@ class Abe extends BaseMapObject
 
         SetYSpeed(0);
         SetYVelocity(0);
-    
+
         if (hoist)
         {
             // TODO: Use the next line or hoist ypos!
@@ -1090,7 +1090,7 @@ class Abe extends BaseMapObject
             {
                 log_trace(
                     "XD:"   + string.format("%.6f", deltaX) +
-                    " YD:" + string.format("%.6f", deltaY) + 
+                    " YD:" + string.format("%.6f", deltaY) +
                     " F:"   + base.FrameNumber() +
                     //" X:" + string.format("%.2f", mBase.mXPos) +
                     //" Y:" + string.format("%.2f", mBase.mYPos) +
@@ -1108,7 +1108,7 @@ class Abe extends BaseMapObject
     function Update(actions)
     {
         //log_info("+Update");
-        
+
         mInput = actions;
 
         if (mFirst)
@@ -1121,7 +1121,7 @@ class Abe extends BaseMapObject
             mThread.wakeup(this);
         }
         //log_info("-Update");
-        
+
         // TODO: Fix me
         //DebugPrintPosDeltas();
     }

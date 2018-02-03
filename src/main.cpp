@@ -1,8 +1,5 @@
 #include "SDL.h"
 #include "engine.hpp"
-#include "logger.hpp"
-#include "msvc_sdl_link.hpp"
-#include <vector>
 
 // Don't use SDL main
 #undef main

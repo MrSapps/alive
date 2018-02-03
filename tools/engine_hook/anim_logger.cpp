@@ -82,10 +82,12 @@ void AnimLogger::LogAnim(u32 id, u32 idx)
     std::string resName = Find(id, idx);
     if (resName != mLastResName)
     {
-        //std::string s = "id: " + std::to_string(id) + " idx: " + std::to_string(idx) + " resource name: " + resName;
-        //std::cout << "ANIM: " << s << std::endl; // use cout directly, don't want the function name etc here
-        mLastResName = resName;
-
+        std::string s = "id: " + std::to_string(id) + " idx: " + std::to_string(idx) + " resource name: " + resName;
+        if (strstr(s.c_str(), "SLIG") || strstr(s.c_str(), "Slig"))
+        {
+            std::cout << "ANIM: " << s << std::endl; // use cout directly, don't want the function name etc here
+            mLastResName = resName;
+        }
         gDebugUi->LogAnimation(resName);
     }
 
@@ -145,13 +147,13 @@ std::string AnimLogger::LookUpSoundEffect(const std::string vabName, DWORD progr
     return cacheKey;
 }
 
-const ResourceMapper::PathMapping* AnimLogger::LoadPath(const std::string& name)
+const PathsJson::PathMapping* AnimLogger::LoadPath(const std::string& name)
 {
     if (!mResources)
     {
         ResourcesInit();
     }
-    return mResources->FindPath(name.c_str());
+    return mResources->PathMaps().FindPath(name);
 }
 
 AnimLogger& GetAnimLogger()

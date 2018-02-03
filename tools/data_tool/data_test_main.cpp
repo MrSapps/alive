@@ -456,7 +456,7 @@ public:
                     std::string baseName = file->FileName();
                     string_util::replace_all(baseName, ".BND", "");
                     const std::string genResName = baseName + "_" + std::to_string(chunk->Id());
-                    const ResourceMapper::PathMapping* pathData = mapper.FindPath(genResName.c_str());
+                    const auto pathData = mapper.PathMaps().FindPath(genResName);
                     if (!pathData)
                     {
                         abort();
@@ -464,7 +464,7 @@ public:
 
                     // Check the lvl/data set we have matches whats in the json
                     bool found = false;
-                    for (const ResourceMapper::PathLocation& loc : pathData->mLocations)
+                    for (const auto& loc : pathData->mLocations)
                     {
                         if (loc.mDataSetName == ToString(eType) && loc.mDataSetFileName == file->FileName())
                         {

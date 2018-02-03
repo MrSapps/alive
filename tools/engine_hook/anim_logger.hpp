@@ -22,7 +22,7 @@ public:
     void LogAnim(u32 id, u32 idx);
     void ReloadJson();
     std::string LookUpSoundEffect(const std::string vabName, DWORD program, DWORD note);
-    const ResourceMapper::PathMapping* LoadPath(const std::string& name);
+    const PathsJson::PathMapping* LoadPath(const std::string& name);
 private:
     std::unique_ptr<class IFileSystem> mFileSystem;
     std::unique_ptr<ResourceMapper> mResources;

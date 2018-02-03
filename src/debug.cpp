@@ -1,6 +1,5 @@
 #include "debug.hpp"
 #include "engine.hpp"
-#include "abstractrenderer.hpp"
 
 struct Key
 {
@@ -57,6 +56,20 @@ void Debug::Update(const InputState& input)
                 if (ImGui::Checkbox("VSync", &mVsync))
                 {
                     mChangeVSync = true;
+                }
+            }
+
+            if (ImGui::CollapsingHeader("Save / Load"))
+            {
+                if (ImGui::Button("Quick save"))
+                {
+                    LOG_INFO("Quick save requested");
+                    mFnQuickSave();
+                }
+                if (ImGui::Button("Quick load"))
+                {
+                    LOG_INFO("Quick load requested");
+                    mFnQuickLoad();
                 }
             }
 

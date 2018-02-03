@@ -10,7 +10,7 @@ struct Debug
     bool mDrawObjects = true;
     bool mAnimBoundingBoxes = false;
     bool mAnimDebugStrings = false;
-    bool mCollisionLines = true;
+    bool mCollisionLines = false;
     bool mGrid = true;
     bool mObjectBoundingBoxes = false;
     bool mRayCasts = true;
@@ -20,7 +20,7 @@ struct Debug
     bool mDrawFontAtlas = false;
     char mSubtitle[1024] = {};
     bool mVsync = true;
-    bool mShowDebugUi = true;
+    bool mShowDebugUi = false;
     bool mChangeVSync = false;
 
     Debug();
@@ -51,7 +51,9 @@ struct Debug
 
     std::function<void()> mFnReloadPath;
     std::function<void()> mFnNextPath;
-    std::function<void(const char*)> fnLoadPath;
+    std::function<void(const char*)> mFnLoadPath;
+    std::function<void()> mFnQuickSave;
+    std::function<void()> mFnQuickLoad;
 
     void Update(const class InputState& input);
     void Render(class AbstractRenderer& renderer);

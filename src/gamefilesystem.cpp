@@ -1,19 +1,21 @@
 #include "gamefilesystem.hpp"
 #ifdef _WIN32
-#include <windows.h>
-
-#undef DeleteFile
-
-#pragma warning(push)
-#pragma warning(disable:4917)
-#pragma warning(disable:4091) //  'typedef ': ignored on left of 'tagGPFIDL_FLAGS' when no variable is declared 
-#include <shlobj.h>
-#pragma warning(pop)
+#   include <windows.h>
+#   undef DeleteFile
+#   if !defined(__MINGW32__)
+#       pragma warning(push)
+#       pragma warning(disable:4917)
+#       pragma warning(disable:4091) //  'typedef ': ignored on left of 'tagGPFIDL_FLAGS' when no variable is declared
+#   endif
+#   include <shlobj.h>
+#   if !defined(__MINGW32__)
+#       pragma warning(pop)
+#   endif
 #else
-#include <dirent.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+#   include <dirent.h>
+#   include <unistd.h>
+#   include <sys/stat.h>
+#   include <sys/types.h>
 #endif
 
 #include <SDL.h>
@@ -75,7 +77,11 @@ static std::string W32CreateDirectory(const wchar_t* dirName)
                 LOG_ERROR("Create CreateDirectoryA failed with Win32 error: " << error);
             }
         }
+# if defined(__MINGW32__)
+        return std::string(userPathW.begin(), userPathW.end());
+#else
         return string_util::wstring_to_utf8(userPathW);
+#endif
     }
     else
     {

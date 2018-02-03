@@ -5,7 +5,6 @@
 #include "logger.hpp"
 #include "jsonxx/jsonxx.h"
 #include <fstream>
-#include "proxy_sqrat.hpp"
 #include "alive_version.h"
 #include "core/audiobuffer.hpp"
 #include "sound.hpp"
@@ -143,37 +142,9 @@ void ScriptLogInfo(const char* msg) { if (msg) { LOG_NOFUNC_INFO(msg); } else { 
 void ScriptLogWarning(const char* msg) { if (msg) { LOG_NOFUNC_WARNING(msg); } else { LOG_NOFUNC_WARNING("nil"); } }
 void ScriptLogError(const char* msg) { if (msg) { LOG_NOFUNC_ERROR(msg); } else { LOG_NOFUNC_ERROR("nil"); } }
 
-void Engine::Include(const std::string& scriptName)
-{
-    SquirrelVm::CompileAndRun(*mResourceLocator, scriptName);
-}
-
-void Engine::BindScriptTypes()
-{
-    Sqrat::RootTable().Func("log_info", ScriptLogInfo);
-    Sqrat::RootTable().Func("log_trace", ScriptLogTrace);
-    Sqrat::RootTable().Func("log_warning", ScriptLogWarning);
-    Sqrat::RootTable().Func("log_error", ScriptLogError);
-
-    Sqrat::Class<Engine, Sqrat::NoConstructor<Engine>> engine(Sqrat::DefaultVM::Get(), "Engine");
-    engine.Func("include", &Engine::Include);
-
-    Sqrat::RootTable().Bind("Engine", engine);
-    // TODO: Use InstanceBinder
-    Sqrat::RootTable().SetInstance("gEngine", this);
-
-    Oddlib::IStream::RegisterScriptBindings();
-    Actions::RegisterScriptBindings();
-    MapObject::RegisterScriptBindings();
-    ObjRect::RegisterScriptBindings();
-    GridMap::RegisterScriptBindings();
-}
-
 void Engine::InitSubSystems()
 {
     TRACE_ENTRYEXIT;
-
-    BindScriptTypes();
 
     mRenderer = RendererFactory::Create(mWindow, mTryDirectX9);
 
@@ -187,16 +158,6 @@ void Engine::InitSubSystems()
     InitImGui();
 
     mInputState.AddControllers();
-}
-
-void Engine::RunInitScript()
-{
-    SquirrelVm::CompileAndRun(*mResourceLocator, "main.nut");
-
-    LOG_INFO("Calling script init()");
-    Sqrat::Function initFunc(Sqrat::RootTable(), "init");
-    initFunc.Execute();
-    SquirrelVm::CheckError();
 }
 
 // TODO: Using averaging value or anything that is more accurate than this
@@ -530,12 +491,14 @@ void Engine::Update()
         if (!mWorld)
         {
             // TODO: Pass in infos from mGameSelectionScreen
-            mWorld = std::make_unique<World>(mAudioHandler, *mResourceLocator,
-                *mRenderer,
-                *mRenderer,
-                mGameSelectionScreen->SelectedGame(),
-                *mSound,
-                *mLoadingIcon);
+            mWorld = std::make_unique<World>(*mSound,
+                                             mInputState,
+                                             *mLoadingIcon,
+                                             *mResourceLocator,
+                                             *mRenderer,
+                                             *mRenderer,
+                                             mAudioHandler,
+                                             mGameSelectionScreen->SelectedGame());
         }
         mState = mWorld->Update(mInputState, *mRenderer);
         // TODO: Allow returning to eSelectGame
@@ -731,32 +694,7 @@ void Engine::OnJobFinished(EngineJob::eJobTypes jobType)
         mState = EngineStates::eSelectGame;
         mSound = std::make_unique<Sound>(mAudioHandler, *mResourceLocator, *mFileSystem, mJobSystem);
         mGameSelectionScreen = std::make_unique<GameSelectionState>(mGameDefinitions, *mResourceLocator, *mFileSystem);
-        RunInitScript();
     }
-}
-
-void SquirrelVm::CompileAndRun(ResourceLocator& resourceLocator, const std::string& scriptName)
-{
-    TRACE_ENTRYEXIT;
-
-    Sqrat::Script script;
-    script.CompileString(resourceLocator.LocateScript(scriptName).get(), scriptName);
-    CheckError();
-
-    script.Run();
-    CheckError();
-}
-
-void SquirrelVm::CompileAndRun(const std::string& scriptName, const std::string& scriptSource)
-{
-    TRACE_ENTRYEXIT;
-
-    Sqrat::Script script;
-    script.CompileString(scriptSource, scriptName);
-    CheckError();
-
-    script.Run();
-    CheckError();
 }
 
 EngineJob::EngineJob(Engine& e, eJobTypes jobType) 

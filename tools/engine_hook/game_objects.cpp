@@ -80,37 +80,36 @@ std::string GameObjectList::AeTypeToString(u16 type)
 
 void GameObjectList::LogObjects()
 {
-    Objs* p = GetObjectsPtr();
+    auto p = GetObjectsPtr();
     if (p)
     {
         for (int i = 0; i < p->mCount; i++)
         {
-            BaseObj* objPtr = p->mPointerToObjects[i];
+            auto objPtr = p->mArray[i];
             if (objPtr)
             {
-                LOG_INFO("Ptr is " << AeTypeToString(objPtr->mTypeId));
+                LOG_INFO("Ptr is " << AeTypeToString(objPtr->field_4_typeId));
             }
         }
     }
 }
 
-GameObjectList::Objs* GameObjectList::GetObjectsPtr()
+GameObjectList::Objs<BaseAnimatedWithPhysicsGameObject*>* GameObjectList::GetObjectsPtr()
 {
-    Objs** ppp = (Objs**)Addrs().ObjectList();
-    Objs* p = *ppp;
-    return p;
+    auto p = (Objs<BaseAnimatedWithPhysicsGameObject*>**)Addrs().ObjectList();
+    return *p;
 }
 
-BaseObj* GameObjectList::HeroPtr()
+BaseAnimatedWithPhysicsGameObject* GameObjectList::HeroPtr()
 {
     const u32 heroId = Utils::IsAe() ? 69 : 43;
 
-    Objs* ptrs = GetObjectsPtr();
+    auto ptrs = GetObjectsPtr();
     for (int i = 0; i < ptrs->mCount; i++)
     {
-        if (ptrs->mPointerToObjects[i]->mTypeId == heroId)
+        if (ptrs->mArray[i]->field_4_typeId == heroId)
         {
-            return ptrs->mPointerToObjects[i];
+            return ptrs->mArray[i];
         }
     }
     return nullptr;
@@ -128,26 +127,38 @@ static T OffsetAs(void* ptr, u32 offset)
     return value;
 }
 
-HalfFloat BaseObj::xpos()
+HalfFloat BaseAnimatedWithPhysicsGameObject::xpos()
 {
-    const s32 value = OffsetAs<s32>(this, Utils::IsAe() ? 0xB8 : 0xA8);
-    return HalfFloat(value);
+    if (Utils::IsAe())
+    {
+        return HalfFloat(field_B8_xpos);
+    }
+    return HalfFloat(OffsetAs<s32>(this, 0xA8));
 }
 
-HalfFloat BaseObj::ypos()
+HalfFloat BaseAnimatedWithPhysicsGameObject::ypos()
 {
-    const s32 value = OffsetAs<s32>(this, Utils::IsAe() ? 0xBC : 0xAC);
-    return HalfFloat(value);
+    if (Utils::IsAe())
+    {
+        return HalfFloat(field_BC_ypos);
+    }
+    return HalfFloat(OffsetAs<s32>(this, 0xAC));
 }
 
-HalfFloat BaseObj::velocity_x()
+HalfFloat BaseAnimatedWithPhysicsGameObject::velocity_x()
 {
-    const s32 value = OffsetAs<s32>(this, Utils::IsAe() ? 0xC4 : 0xB4);
-    return HalfFloat(value);
+    if (Utils::IsAe())
+    {
+        return HalfFloat(field_C4_velx);
+    }
+    return HalfFloat(OffsetAs<s32>(this, 0xB4));
 }
 
-HalfFloat BaseObj::velocity_y()
+HalfFloat BaseAnimatedWithPhysicsGameObject::velocity_y()
 {
-    const s32 value = OffsetAs<s32>(this, Utils::IsAe() ? 0xC8 : 0xB8);
-    return HalfFloat(value);
+    if (Utils::IsAe())
+    {
+        return HalfFloat(field_C8_vely);
+    }
+    return HalfFloat(OffsetAs<s32>(this, 0xB8));
 }

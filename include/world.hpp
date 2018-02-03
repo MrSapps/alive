@@ -4,6 +4,7 @@
 #include "engine.hpp"
 #include "resourcemapper.hpp"
 #include "collisionline.hpp"
+#include "core/entitymanager.hpp"
 
 namespace Oddlib
 {
@@ -23,28 +24,14 @@ class GridScreen;
 class WorldState
 {
 public:
+    WorldState(IAudioController& audioController, ResourceLocator& locator, EntityManager& entityManager);
     WorldState(const WorldState&) = delete;
-    WorldState& operator = (const WorldState&) = delete;
-    WorldState(IAudioController& audioController, ResourceLocator& locator);
+    WorldState& operator=(const WorldState&) = delete;
 
-    glm::vec2 kVirtualScreenSize;
-    glm::vec2 kCameraBlockSize;
-    glm::vec2 kCamGapSize;
-    glm::vec2 kCameraBlockImageOffset;
-
-    const int mEditorGridSizeX = 25;
-    const int mEditorGridSizeY = 20;
-
-    glm::vec2 mCameraPosition;
-    MapObject* mCameraSubject = nullptr;
-
+public:
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
 
-    // CollisionLine contains raw pointers to other CollisionLine objects. Hence the vector
-    // has unique_ptrs so that adding or removing to this vector won't cause the raw pointers to dangle.
-    CollisionLines mCollisionItems;
-    std::vector<std::unique_ptr<MapObject>> mObjs;
-
+public:
     enum class States
     {
         eNone,
@@ -58,22 +45,31 @@ public:
         eQuit
     };
 
+public:
     States mState = States::eNone;
     States mReturnToState = States::eNone;
 
+public:
     u32 mModeSwitchTimeout = 0;
 
+public:
     void RenderDebug(AbstractRenderer& rend) const;
     void DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
     void SetCurrentCamera(const char* cameraName);
-    void SetGameCameraToCameraAt(u32 x, u32 y);
-    u32 CurrentCameraX() const { return mCurrentCameraX; }
-    u32 CurrentCameraY() const { return mCurrentCameraY; }
+    u32 CurrentCameraX() const
+    { return mCurrentCameraX; }
+    u32 CurrentCameraY() const
+    { return mCurrentCameraY; }
 
-    std::unique_ptr<PlayFmvState> mPlayFmvState;
+public:
     u32 mGlobalFrameCounter = 0;
+    EntityManager& mEntityManager;
+    std::unique_ptr<PlayFmvState> mPlayFmvState;
+
 private:
     void RenderGrid(AbstractRenderer& rend) const;
+
+private:
     u32 mCurrentCameraX = 0;
     u32 mCurrentCameraY = 0;
 };
@@ -81,41 +77,56 @@ private:
 class World
 {
 public:
-    World(World&&) = delete;
-    World& operator = (World&&) = delete;
-    ~World();
     World(
-        IAudioController& audioController,
+        Sound& sound,
+        InputState& input,
+        LoadingIcon& loadingIcon,
         ResourceLocator& locator,
         CoordinateSpace& coords,
         AbstractRenderer& renderer,
-        const GameDefinition& selectedGame,
-        Sound& sound,
-        LoadingIcon& loadingIcon);
+        IAudioController& audioController,
+        const GameDefinition& selectedGame);
+    World(World&&) = delete;
+    World& operator=(World&&) = delete;
+    ~World();
 
+public:
     EngineStates Update(const InputState& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend);
+
+private:
+    void LoadSystems();
+    void LoadComponents();
+
 private:
     void LoadMap(const std::string& mapName);
     bool LoadMap(const Oddlib::Path& path);
     void UnloadMap(AbstractRenderer& renderer);
 
+private:
     void RenderDebugPathSelection();
     void RenderDebugFmvSelection();
 
+private:
+    bool mQuickLoad = false;
+
+private:
     std::unique_ptr<GridMap> mGridMap;
     std::unique_ptr<FmvDebugUi> mFmvDebugUi;
-    std::unique_ptr<class EditorMode> mEditorMode;
     std::unique_ptr<class GameMode> mGameMode;
-
-    up_future_UP_Path mLocatePathFuture;
+    std::unique_ptr<class EditorMode> mEditorMode;
+    std::unique_ptr<class AnimationBrowser> mDebugAnimationBrowser;
     Oddlib::UP_Path mPathBeingLoaded;
+    up_future_UP_Path mLocatePathFuture;
 
-
-    ResourceLocator& mLocator;
+private:
     Sound& mSound;
-    AbstractRenderer& mRenderer;
+    InputState& mInput;
     LoadingIcon& mLoadingIcon;
-    WorldState mWorldState;
+    ResourceLocator& mLocator;
+    AbstractRenderer& mRenderer;
 
+private:
+    WorldState mWorldState;
+    EntityManager mEntityManager;
 };

@@ -1,8 +1,4 @@
 #include "fmv.hpp"
-#include "logger.hpp"
-#include "stdthread.h"
-#include "abstractrenderer.hpp"
-#include "resourcemapper.hpp"
 #include "cdromfilesystem.hpp"
 #include "soxr.h"
 #include "engine.hpp"

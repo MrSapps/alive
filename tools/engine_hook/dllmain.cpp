@@ -22,6 +22,7 @@
 #include "debug_dialog.hpp"
 #include "addresses.hpp"
 #include "game_objects.hpp"
+#include "demo_hooks.hpp"
 
 #define private public
 #include "gridmap.hpp"
@@ -35,10 +36,6 @@
 HINSTANCE gDllInstance = NULL;
 
 static int __cdecl gdi_draw_hook(DWORD * hdc);
-
-static int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
-typedef int(__thiscall* set_first_camera_thiscall)(void *thisPtr, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6, __int16 a7);
-
 
 #pragma pack(push)
 #pragma pack(1)
@@ -55,7 +52,7 @@ struct anim_struct
     DWORD field_14;
     DWORD mAnimationHeaderOffset; // offset to frame table from anim data header
     DWORD field_1C;
-    BYTE** mAnimChunkPtrs; // pointer to a pointer which points to anim data?
+    BYTE** mAnimChunkPtrs;
     DWORD iDbufPtr;
     DWORD iAnimSize;
     DWORD field_2C;
@@ -104,7 +101,6 @@ static int __fastcall sub_418930_hook(void* thisPtr, void*, const CollisionInfo*
 namespace Hooks
 {
     Hook<decltype(&::sub_418930_hook), sub_418930_thiscall> sub_418930(Addrs().sub_418930());
-    Hook<decltype(&::set_first_camera_hook), set_first_camera_thiscall> set_first_camera(Addrs().set_first_camera());
     Hook<decltype(&::gdi_draw_hook)> gdi_draw(Funcs().gdi_draw.mAddr);
     Hook<decltype(&::anim_decode_hook), anim_decode_thiscall> anim_decode(Addrs().anim_decode());
     Hook<decltype(&::get_anim_frame_hook)> get_anim_frame(Addrs().get_anim_frame());
@@ -112,7 +108,10 @@ namespace Hooks
 
 static StartDialog::StartMode gStartMode = StartDialog::eNormal;
 
-static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
+int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7);
+ALIVE_FUNC_IMPLEX(0x443EE0, 0x00401415, set_first_camera_hook, true);
+
+int __fastcall set_first_camera_hook(void *thisPtr, void* edx , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
 {
     TRACE_ENTRYEXIT;
 
@@ -143,7 +142,7 @@ static int __fastcall set_first_camera_hook(void *thisPtr, void* , __int16 level
         break;
     }
 
-    return Hooks::set_first_camera.Real()(thisPtr, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
+    return set_first_camera_hook_.Ptr()(thisPtr, edx, levelNumber, pathNumber, cameraNumber, screenChangeEffect, a6, a7);
 }
 
 void DumpDeltas(anim_struct* thisPtr)
@@ -153,7 +152,7 @@ void DumpDeltas(anim_struct* thisPtr)
     static HalfFloat preVX = 0;
     static HalfFloat preVY = 0;
 
-    BaseObj* pAbe = GameObjectList::HeroPtr();
+    BaseAnimatedWithPhysicsGameObject* pAbe = GameObjectList::HeroPtr();
     if (!pAbe) return;
 
     if (prevX != pAbe->xpos() ||
@@ -393,7 +392,7 @@ static int __fastcall sub_418930_hook(void* thisPtr, void*, const CollisionInfo*
 
                     const std::string resName = lvlName + "PATH_" + pathNumber;
 
-                    const ResourceMapper::PathMapping*  mapping = GetAnimLogger().LoadPath(resName);
+                    const auto mapping = GetAnimLogger().LoadPath(resName);
 
                     gPath = std::make_unique<Oddlib::Path>(
                         "",
@@ -436,7 +435,7 @@ void GetPathArray()
 
 void GdiLoop(HDC hdc)
 {
-    BaseObj* hero = GameObjectList::HeroPtr();
+    BaseAnimatedWithPhysicsGameObject* hero = GameObjectList::HeroPtr();
 
     std::string text("Abe: X: " + 
         (hero ? std::to_string(hero->xpos().AsDouble()) : "??") +
@@ -559,6 +558,7 @@ void GdiLoop(HDC hdc)
     DeleteObject(hLinePen);
 }
 
+
 static int __cdecl gdi_draw_hook(DWORD * hdcPtr)
 {
     HDC hdc = Funcs().ConvertAbeHdcHandle(hdcPtr);
@@ -568,59 +568,21 @@ static int __cdecl gdi_draw_hook(DWORD * hdcPtr)
     return Hooks::gdi_draw.Real()(hdcPtr);
 }
 
-int __cdecl AbeSnap_sub_449930_hook(int scale, const signed int xpos)
-{
-    int result = 0;
-    int v3 = 0;
-    int v4 = 0;
-
-    if (scale == 32768)
-    {
-        v4 = (xpos % 375 - 6) % 13;
-        if (v4 >= 7)
-            result = xpos - v4 + 13;
-        else
-            result = xpos - v4;
-    }
-    else
-    {
-        if (scale == 65536)
-        {
-            v3 = (xpos - 12) % 25;
-            if (v3 >= 13)
-                result = xpos - v3 + 25;
-            else
-                result = xpos - v3;
-
-            LOG_INFO("SNAP: " << xpos << " to " << result);
-        }
-        else
-        {
-            result = xpos;
-        }
-    }
-    return result;
-}
-
-namespace Hooks
-{
-    Hook<decltype(&::AbeSnap_sub_449930_hook)> AbeSnap_sub_449930(Addrs().AbeSnap_sub_449930());
-}
-
 HMODULE gDllHandle = NULL;
 
 void HookMain()
 {
     TRACE_ENTRYEXIT;
 
+    DemoHooksForceLink();
+
     Hooks::SetWindowLong.Install(Hook_SetWindowLongA);
-    Hooks::set_first_camera.Install(set_first_camera_hook);
     Hooks::gdi_draw.Install(gdi_draw_hook);
     Hooks::anim_decode.Install(anim_decode_hook);
-    //Hooks::get_anim_frame.Install(get_anim_frame_hook);
     Hooks::sub_418930.Install(sub_418930_hook);
 
-   // Hooks::AbeSnap_sub_449930.Install(AbeSnap_sub_449930_hook);
+    BaseFunction::HookAll();
+
     InstallSoundHooks();
 
     SubClassWindow();
@@ -629,6 +591,14 @@ void HookMain()
     GetPathArray();
 
     Vars().ddCheatOn.Set(1);
+
+    if (Utils::IsAe())
+    {
+        // Otherwise every other rendered frame is skipped which makes per frame comparison of
+        // real engine vs alive rather tricky indeed.
+        Vars().gb_ddNoSkip_5CA4D1.Set(1);
+    }
+
     Vars().alwaysDrawDebugText.Set(1);
 }
 

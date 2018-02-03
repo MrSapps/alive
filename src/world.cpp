@@ -8,26 +8,39 @@
 #include "sound.hpp"
 #include "editormode.hpp"
 #include "gamemode.hpp"
+#include "animationbrowser.hpp"
+
+#include "core/systems/inputsystem.hpp"
+#include "core/systems/camerasystem.hpp"
+#include "core/systems/collisionsystem.hpp"
+#include "core/systems/resourcelocatorsystem.hpp"
+
+#include "core/components/cameracomponent.hpp"
+#include "core/components/physicscomponent.hpp"
+#include "core/components/transformcomponent.hpp"
+#include "core/components/animationcomponent.hpp"
+#include "core/components/abemovementcomponent.hpp"
+#include "core/components/sligmovementcomponent.hpp"
 
 void WorldState::RenderGrid(AbstractRenderer& rend) const
 {
-    const int gridLineCountX = static_cast<int>((rend.ScreenSize().x / mEditorGridSizeX));
+    const int gridLineCountX = static_cast<int>((rend.ScreenSize().x / CameraSystem::kEditorGridSizeX));
     for (int x = -gridLineCountX; x < gridLineCountX; x++)
     {
-        const glm::vec2 worldPos(rend.CameraPosition().x + (x * mEditorGridSizeX) - (static_cast<int>(rend.CameraPosition().x) % mEditorGridSizeX), 0);
+        const glm::vec2 worldPos(rend.CameraPosition().x + (x * CameraSystem::kEditorGridSizeX) - (static_cast<int>(rend.CameraPosition().x) % CameraSystem::kEditorGridSizeX), 0);
         const glm::vec2 screenPos = rend.WorldToScreen(worldPos);
         rend.Line(ColourU8{ 255, 255, 255, 30 }, screenPos.x, 0, screenPos.x, static_cast<f32>(rend.Height()), 2.0f, AbstractRenderer::eLayers::eEditor, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
     }
 
-    const int gridLineCountY = static_cast<int>((rend.ScreenSize().y / mEditorGridSizeY));
+    const int gridLineCountY = static_cast<int>((rend.ScreenSize().y / CameraSystem::kEditorGridSizeY));
     for (int y = -gridLineCountY; y < gridLineCountY; y++)
     {
-        const glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(0, rend.CameraPosition().y + (y * mEditorGridSizeY) - (static_cast<int>(rend.CameraPosition().y) % mEditorGridSizeY)));
+        const glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(0, rend.CameraPosition().y + (y * CameraSystem::kEditorGridSizeY) - (static_cast<int>(rend.CameraPosition().y) % CameraSystem::kEditorGridSizeY)));
         rend.Line(ColourU8{ 255, 255, 255, 30 }, 0, screenPos.y, static_cast<f32>(rend.Width()), screenPos.y, 2.0f, AbstractRenderer::eLayers::eEditor, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
     }
 }
 
-WorldState::WorldState(IAudioController& audioController, ResourceLocator& locator)
+WorldState::WorldState(IAudioController& audioController, ResourceLocator& locator, EntityManager& entityManager) : mEntityManager(entityManager)
 {
     mPlayFmvState = std::make_unique<PlayFmvState>(audioController, locator);
 }
@@ -39,7 +52,8 @@ void WorldState::RenderDebug(AbstractRenderer& rend) const
     // Draw collisions
     if (Debugging().mCollisionLines)
     {
-        CollisionLine::Render(rend, mCollisionItems);
+        // TODO: Wire CollisionSystem here
+        // CollisionLine::Render(rend, mCollisionItems);
     }
 
     // Draw grid
@@ -86,11 +100,12 @@ void WorldState::DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, con
 {
     if (Debugging().mRayCasts)
     {
-        Physics::raycast_collision collision;
-        if (CollisionLine::RayCast<1>(mCollisionItems, from, to, { collisionType }, &collision))
+        auto collisionSystem = mEntityManager.GetSystem<CollisionSystem>();
+        auto hit = collisionSystem->Raycast(from, to, { static_cast<CollisionLine::eLineTypes>(collisionType) });
+        if (hit)
         {
             const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
-            const glm::vec2 hitPos = rend.WorldToScreen(collision.intersection);
+            const glm::vec2 hitPos = rend.WorldToScreen(hit.Point());
 
             rend.Line(ColourU8{ 255, 0, 255, 255 },
                 fromDrawPos.x, fromDrawPos.y,
@@ -119,16 +134,6 @@ void WorldState::SetCurrentCamera(const char* cameraName)
     }
 }
 
-void WorldState::SetGameCameraToCameraAt(u32 x, u32 y)
-{
-    const glm::vec2 camPos = glm::vec2(
-        (x * kCameraBlockSize.x) + kCameraBlockImageOffset.x,
-        (y * kCameraBlockSize.y) + kCameraBlockImageOffset.y) 
-        + glm::vec2(kVirtualScreenSize.x / 2, kVirtualScreenSize.y / 2);
-
-    mCameraPosition = camPos;
-}
-
 template<class T>
 static inline bool FutureIsDone(T& future)
 {
@@ -136,25 +141,27 @@ static inline bool FutureIsDone(T& future)
 }
 
 World::World(
-    IAudioController& audioController,
+    Sound& sound,
+    InputState& input,
+    LoadingIcon& loadingIcon,
     ResourceLocator& locator,
     CoordinateSpace& coords,
     AbstractRenderer& renderer,
-    const GameDefinition& selectedGame,
-    Sound& sound,
-    LoadingIcon& loadingIcon)
-  : mLocator(locator),
-    mSound(sound),
-    mRenderer(renderer),
-    mLoadingIcon(loadingIcon),
-    mWorldState(audioController, locator)
+    IAudioController& audioController,
+    const GameDefinition& selectedGame) : mSound(sound),
+                                          mInput(input),
+                                          mLoadingIcon(loadingIcon),
+                                          mLocator(locator),
+                                          mRenderer(renderer),
+                                          mWorldState(audioController, locator, mEntityManager)
 {
-    mGridMap = std::make_unique<GridMap>(coords, mWorldState);
-    
-    mEditorMode = std::make_unique<EditorMode>(mWorldState);
-    mGameMode = std::make_unique<GameMode>(mWorldState);
+    LoadSystems();
+    LoadComponents();
 
+    mGridMap = std::make_unique<GridMap>(coords, mWorldState, mEntityManager);
     mFmvDebugUi = std::make_unique<FmvDebugUi>(locator);
+    mGameMode = std::make_unique<GameMode>(mWorldState);
+    mEditorMode = std::make_unique<EditorMode>(mWorldState);
 
     Debugging().AddSection([&]()
     {
@@ -166,27 +173,21 @@ World::World(
         RenderDebugFmvSelection();
     });
 
+    mDebugAnimationBrowser = std::make_unique<AnimationBrowser>(locator);
+
     // Debugging - reload path and load next path
     static std::string currentPathName;
     static s32 nextPathIndex;
 
-    Debugging().fnLoadPath = [&](const char* name)
+    Debugging().mFnLoadPath = [&](const char* name)
     {
         LoadMap(name);
     };
 
     Debugging().mFnNextPath = [&]()
     {
-        s32 idx = 0;
-        for (const auto& pathMap : mLocator.PathMaps())
-        {
-            if (idx == nextPathIndex)
-            {
-                LoadMap(pathMap.first.c_str());
-                return;
-            }
-            idx++;
-        }
+        static s32 idx;
+        LoadMap(mLocator.PathMaps().NextPathName(idx));
     };
 
     Debugging().mFnReloadPath = [&]()
@@ -195,14 +196,30 @@ World::World(
         //LoadMap(mLevel->MapName());
     };
 
+
+    // TODO: Implement
+    Debugging().mFnQuickSave = [&]()
+    {
+        std::filebuf f;
+        std::ostream os(&f);
+        f.open("save.bin", std::ios::out | std::ios::binary);
+        mEntityManager.Serialize(os);
+    };
+
+    // TODO: Implement
+    Debugging().mFnQuickLoad = [&]()
+    {
+        mQuickLoad = true;
+    };
+
     // TODO: Get the starting map from selectedGame
     std::ignore = selectedGame;
+    std::ignore = nextPathIndex;
 
     // TODO: Can be removed ?
     //const std::string gameScript = mResourceLocator.LocateScript(initScriptName).get();
 
-//    LoadMap("BAPATH_1");
-    LoadMap("STPATH_1");
+    LoadMap("BAPATH_1");
 }
 
 World::~World()
@@ -210,6 +227,26 @@ World::~World()
     TRACE_ENTRYEXIT;
 
     UnloadMap(mRenderer);
+}
+
+void World::LoadSystems()
+{
+    mEntityManager.AddSystem<InputSystem>(mInput);
+    mEntityManager.AddSystem<CameraSystem>();
+    mEntityManager.AddSystem<CollisionSystem>();
+    mEntityManager.AddSystem<ResourceLocatorSystem>(mLocator);
+}
+
+void World::LoadComponents()
+{
+    mEntityManager.RegisterComponent<AbeMovementComponent>();
+    mEntityManager.RegisterComponent<AbePlayerControllerComponent>();
+    mEntityManager.RegisterComponent<AnimationComponent>();
+    mEntityManager.RegisterComponent<PhysicsComponent>();
+    mEntityManager.RegisterComponent<SligMovementComponent>();
+    mEntityManager.RegisterComponent<SligPlayerControllerComponent>();
+    mEntityManager.RegisterComponent<TransformComponent>();
+    mEntityManager.RegisterComponent<CameraComponent>();
 }
 
 void World::LoadMap(const std::string& mapName)
@@ -250,6 +287,10 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
         if (!hideDebug)
         {
             Debugging().Update(input);
+            if (Debugging().mBrowserUi.animationBrowserOpen)
+            {
+                mDebugAnimationBrowser->Update(input, coords);
+            }
         }
 
         if (mGridMap)
@@ -274,17 +315,52 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                 }
                 else if (mWorldState.mState == WorldState::States::eToGame)
                 {
-                    coords.SetScreenSize(mWorldState.kVirtualScreenSize);
+                    const auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
+                    coords.SetScreenSize(cameraSystem->mVirtualScreenSize);
                     if (SDL_TICKS_PASSED(SDL_GetTicks(), mWorldState.mModeSwitchTimeout))
                     {
                         mWorldState.mState = WorldState::States::eInGame;
                     }
                 }
-                coords.SetCameraPosition(mWorldState.mCameraPosition);
+                coords.SetCameraPosition(mEntityManager.GetSystem<CameraSystem>()->mCameraPosition);
+            }
+
+            // Physics System
+            mEntityManager.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform) // TODO: should be a system
+            {
+                transform->Add(physics->xSpeed, physics->ySpeed);
+            });
+            // Animation System
+            mEntityManager.With<AnimationComponent>([](auto, auto animation) // TODO: should be a system
+            {
+                animation->Update();
+            });
+            // Abe system
+            mEntityManager.With<AbePlayerControllerComponent, AbeMovementComponent>([](auto, auto controller, auto abe) // TODO: should be a system
+            {
+                controller->Update();
+                abe->Update();
+            });
+            // Slig system
+            mEntityManager.With<SligPlayerControllerComponent, SligMovementComponent>([](auto, auto controller, auto slig) // TODO: should be a system
+            {
+                controller->Update();
+                slig->Update();
+            });
+            // Destroy entities
+            mEntityManager.DestroyEntities();
+
+            if (mQuickLoad)
+            {
+                std::filebuf f;
+                std::istream is(&f);
+                f.open("save.bin", std::ios::in | std::ios::binary);
+                mEntityManager.Deserialize(is);
+                mQuickLoad = false;
             }
         }
     }
-    break;
+        break;
 
     case WorldState::States::ePlayFmv:
         if (!mWorldState.mPlayFmvState->Update(input))
@@ -354,6 +430,11 @@ void World::Render(AbstractRenderer& /*rend*/)
         mRenderer.Clear(0.4f, 0.4f, 0.4f);
 
         Debugging().Render(mRenderer);
+        if (Debugging().mBrowserUi.animationBrowserOpen)
+        {
+            mDebugAnimationBrowser->Render(mRenderer);
+        }
+
         mWorldState.mPlayFmvState->RenderDebugSubsAndFontAtlas(mRenderer);
 
         if (mGridMap)
@@ -370,6 +451,11 @@ void World::Render(AbstractRenderer& /*rend*/)
             {
                 mEditorMode->Render(mRenderer);
             }
+
+            mEntityManager.With<AnimationComponent>([this](auto, auto animation) // TODO: should be a system
+            {
+                animation->Render(mRenderer);
+            });
         }
         break;
 
@@ -399,11 +485,11 @@ void World::RenderDebugPathSelection()
 {
     if (ImGui::CollapsingHeader("Maps"))
     {
-        for (const auto& pathMap : mLocator.PathMaps())
+        for (const auto& pathMap : mLocator.PathMaps().Map())
         {
             if (ImGui::Button(pathMap.first.c_str()))
             {
-                Debugging().fnLoadPath(pathMap.first.c_str());
+                Debugging().mFnLoadPath(pathMap.first.c_str());
             }
         }
     }

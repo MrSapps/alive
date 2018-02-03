@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include "anim_logger.hpp"
+#include "game_functions.hpp"
 
 bool gCollisionsEnabled = true;
 bool gGridEnabled = false;
