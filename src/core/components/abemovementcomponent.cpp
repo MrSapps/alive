@@ -4,6 +4,7 @@
 #include "core/entity.hpp"
 #include "core/entitymanager.hpp"
 #include "core/systems/inputsystem.hpp"
+#include "core/systems/collisionsystem.hpp"
 #include "core/components/physicscomponent.hpp"
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
@@ -79,6 +80,7 @@ void AbeMovementComponent::OnLoad()
     Component::OnLoad(); // calls OnResolveDependencies
 
     mStateFnMap[States::eStanding] = { &AbeMovementComponent::PreStanding, &AbeMovementComponent::Standing };
+    mStateFnMap[States::ePushingWall] = { nullptr, &AbeMovementComponent::PushingWall };
     mStateFnMap[States::eChanting] = { &AbeMovementComponent::PreChanting, &AbeMovementComponent::Chanting };
     mStateFnMap[States::eWalking] = { &AbeMovementComponent::PreWalking, &AbeMovementComponent::Walking };
     mStateFnMap[States::eStandTurningAround] = { nullptr, &AbeMovementComponent::StandTurnAround };
@@ -89,6 +91,8 @@ void AbeMovementComponent::OnLoad()
 
 void AbeMovementComponent::OnResolveDependencies()
 {
+    mCollisionSystem = mEntity->GetManager()->GetSystem<CollisionSystem>();
+
     mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
     mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
     mTransformComponent = mEntity->GetComponent<TransformComponent>();
@@ -150,6 +154,11 @@ bool AbeMovementComponent::TryMoveLeftOrRight() const
     return mData.mGoal == Goal::eGoLeft || mData.mGoal == Goal::eGoRight;
 }
 
+bool AbeMovementComponent::IsMovingTowardsWall() const
+{
+    return static_cast<bool>(mCollisionSystem->WallCollision(mAnimationComponent->mFlipX, mTransformComponent->GetX(), mTransformComponent->GetY(), 25, -50));
+}
+
 void AbeMovementComponent::SetAnimation(const std::string& anim)
 {
     mAnimationComponent->Change(anim.c_str());
@@ -193,15 +202,28 @@ void AbeMovementComponent::Standing()
         }
         else
         {
-            SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeStandToWalk));
-            SetXSpeed(kAbeWalkSpeed);
-            SetCurrentAndNextState(States::eWalking, States::eStandToWalking);
+            if (IsMovingTowardsWall())
+            {
+                PushWallOrRoll();
+            }
+            else
+            {
+                SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeStandToWalk));
+                SetXSpeed(kAbeWalkSpeed);
+                SetCurrentAndNextState(States::eWalking, States::eStandToWalking);
+            }
         }
     }
     else if (mData.mGoal == Goal::eChant)
     {
         SetState(States::eChanting);
     }
+}
+
+void AbeMovementComponent::PushingWall()
+{
+    SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeStandPushWall));
+    SetCurrentAndNextState(States::ePushingWallToStand, States::eStanding);
 }
 
 void AbeMovementComponent::PreChanting(AbeMovementComponent::States /*previous*/)
@@ -216,7 +238,7 @@ void AbeMovementComponent::Chanting()
         SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeChantToStand));
         SetCurrentAndNextState(States::eChantToStand, States::eStanding);
     }
-    // Still chanting?
+        // Still chanting?
     else if (mData.mGoal == Goal::eChant)
     {
         auto sligs = mEntity->GetManager()->With<SligMovementComponent>();
@@ -239,19 +261,22 @@ void AbeMovementComponent::PreWalking(AbeMovementComponent::States /*previous*/)
 
 void AbeMovementComponent::Walking()
 {
-    if (FrameIs(5 + 1) || FrameIs(14 + 1))
-    {
-        SnapXToGrid();
-    }
-
-    if (DirectionChanged() || !TryMoveLeftOrRight())
-    {
-        if (FrameIs(2 + 1) || FrameIs(11 + 1))
+        if (FrameIs(5 + 1) || FrameIs(14 + 1))
         {
-            SetCurrentAndNextState(States::eWalkingToStanding, States::eStanding);
-            SetAnimation(FrameIs(2 + 1) ? kAbeAnimations.at(AbeAnimation::eAbeWalkToStand) : kAbeAnimations.at(AbeAnimation::eAbeWalkToStandMidGrid));
+            SnapXToGrid();
+            if (IsMovingTowardsWall())
+            {
+                PushWallOrRoll();
+            }
         }
-    }
+        else if (FrameIs(2 + 1) || FrameIs(11 + 1))
+        {
+            if (DirectionChanged() || !TryMoveLeftOrRight())
+            {
+                SetCurrentAndNextState(States::eWalkingToStanding, States::eStanding);
+                SetAnimation(FrameIs(2 + 1) ? kAbeAnimations.at(AbeAnimation::eAbeWalkToStand) : kAbeAnimations.at(AbeAnimation::eAbeWalkToStandMidGrid));
+            }
+        }
 }
 
 void AbeMovementComponent::StandTurnAround()
@@ -260,6 +285,23 @@ void AbeMovementComponent::StandTurnAround()
     {
         mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
         SetState(States::eStanding);
+    }
+}
+
+void AbeMovementComponent::PushWallOrRoll()
+{
+    if (mCollisionSystem->WallCollision(mAnimationComponent->mFlipX, mTransformComponent->GetX(), mTransformComponent->GetY(), 25, -50))
+    {
+        mPhysicsComponent->xSpeed = 0.0f;
+        // Blocked at knee height?
+        if (mCollisionSystem->WallCollision(mAnimationComponent->mFlipX, mTransformComponent->GetX(), mTransformComponent->GetY(), 25, -20))
+        {
+            SetState(States::ePushingWall);
+        }
+        else
+        {
+            // StandToToll
+        }
     }
 }
 

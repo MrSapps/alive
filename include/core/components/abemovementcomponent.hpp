@@ -5,6 +5,7 @@
 
 #include "core/component.hpp"
 
+class CollisionSystem;
 class PhysicsComponent;
 class AnimationComponent;
 class TransformComponent;
@@ -37,6 +38,8 @@ public:
     enum class States
     {
         eStanding,
+        ePushingWall,
+        ePushingWallToStand,
         eStandToWalking,
         eStandTurningAround,
         eWalkingToStanding,
@@ -119,8 +122,12 @@ public:
 private:
     void ASyncTransition();
 
+    // States
+
     void PreStanding(States previous);
     void Standing();
+
+    void PushingWall();
 
     void PreChanting(States previous);
     void Chanting();
@@ -130,6 +137,10 @@ private:
     void WalkToStand();
 
     void StandTurnAround();
+
+    // State switchers
+
+    void PushWallOrRoll();
 
     // Helpers
 
@@ -141,6 +152,7 @@ private:
 
     bool DirectionChanged() const;
     bool TryMoveLeftOrRight() const;
+    bool IsMovingTowardsWall() const;
 
     void SetAnimation(const std::string& anim);
     void SetState(States state);
@@ -148,6 +160,9 @@ private:
 
 private:
     std::map<States, StateData> mStateFnMap;
+
+private:
+    CollisionSystem* mCollisionSystem = nullptr;
     PhysicsComponent* mPhysicsComponent = nullptr;
     TransformComponent* mTransformComponent = nullptr;
     AnimationComponent* mAnimationComponent = nullptr;
