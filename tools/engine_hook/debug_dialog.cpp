@@ -121,6 +121,14 @@ BOOL DebugDialog::CreateControls()
         }
     });
 
+    mDDNoSkip = std::make_unique<CheckBox>(this, IDC_DD_NOSKIP);
+    mDDNoSkip->SetChecked(true);
+    mDDNoSkip->OnCheckChanged([&](bool enable)
+    {
+        Vars().gb_ddNoSkip_5CA4D1.Set(enable ? 1 : 0);
+    });
+    
+
     return TRUE;
 }
 

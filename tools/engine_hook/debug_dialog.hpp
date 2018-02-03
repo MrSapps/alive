@@ -105,6 +105,7 @@ private:
 
     std::unique_ptr<TextBox> mFakeInputEdit;
     std::unique_ptr<CheckBox> mFakeInputCheckBox;
+    std::unique_ptr<CheckBox> mDDNoSkip;
 
     DeltaInfo mDeltaInfo;
 
