@@ -7,6 +7,7 @@
 #include "anim_logger.hpp"
 #include "game_functions.hpp"
 #include "game_objects.hpp"
+#include "demo_hooks.hpp"
 
 DebugDialog::DebugDialog()
 {
@@ -101,6 +102,23 @@ BOOL DebugDialog::CreateControls()
         mSelectedPointer = std::stol(ptrValueStr);
         mSelectedObjectLabel->SetText(ptrValueStr);
         mDeltaInfo = {};
+    });
+
+    mFakeInputEdit = std::make_unique<TextBox>(this, IDC_FAKE_INPUT);
+    mFakeInputEdit->OnTextChanged([&]()
+    {
+
+    });
+
+    mFakeInputCheckBox = std::make_unique<CheckBox>(this, IDC_FAKE_INPUT_ENABLE);
+    mFakeInputCheckBox->OnCheckChanged([&](bool enable)
+    {
+        auto text = mFakeInputEdit->GetText();
+        Demo_SetFakeInputEnabled(enable);
+        if (enable)
+        {
+            Demo_SetFakeInputValue(text);
+        }
     });
 
     return TRUE;

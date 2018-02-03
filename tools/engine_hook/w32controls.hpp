@@ -134,3 +134,15 @@ public:
 private:
     std::function<void()> mOnChanged;
 };
+
+class CheckBox : public BaseControl
+{
+public:
+    using BaseControl::BaseControl;
+    void OnCheckChanged(std::function<void(bool)> onChanged);
+    virtual bool HandleMessage(WPARAM wparam, LPARAM lParam) override;
+    bool GetChecked();
+    void SetChecked(bool checked);
+private:
+    std::function<void(bool)> mOnChanged;
+};

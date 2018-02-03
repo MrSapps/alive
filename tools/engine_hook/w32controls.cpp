@@ -320,3 +320,36 @@ std::string TextBox::GetText()
     }
     return std::string(buffer.data(), buffer.size());
 }
+
+void CheckBox::OnCheckChanged(std::function<void(bool)> onChanged)
+{
+    mOnChanged = onChanged;
+}
+
+bool CheckBox::HandleMessage(WPARAM wparam, LPARAM /*lParam*/)
+{
+    if (LOWORD(wparam) == mId)
+    {
+        switch (HIWORD(wparam))
+        {
+        case BN_CLICKED:
+            if (mOnChanged)
+            {
+                mOnChanged(GetChecked());
+            }
+            return true;
+        }
+        return true;
+    }
+    return false;
+}
+
+bool CheckBox::GetChecked()
+{
+    return SendMessage(mHwnd, BM_GETCHECK, 0, 0) == BST_CHECKED;
+}
+
+void CheckBox::SetChecked(bool checked)
+{
+    SendMessage(mHwnd, BM_SETCHECK, checked ? BST_CHECKED : BST_UNCHECKED, 0);
+}

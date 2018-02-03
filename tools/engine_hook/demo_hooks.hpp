@@ -1,6 +1,10 @@
 #pragma once
 
 #include "game_objects.hpp"
+#include <string>
+
+void Demo_SetFakeInputEnabled(bool enable);
+void Demo_SetFakeInputValue(const std::string& value);
 
 struct InputPadObject
 {

@@ -103,6 +103,9 @@ private:
 
     std::function<void()> mOnReloadJson;
 
+    std::unique_ptr<TextBox> mFakeInputEdit;
+    std::unique_ptr<CheckBox> mFakeInputCheckBox;
+
     DeltaInfo mDeltaInfo;
 
     std::vector<DeltaRecord> mDeltas;

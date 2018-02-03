@@ -6,6 +6,19 @@
 
 void DemoHooksForceLink() {} 
 
+static bool sFakeInputEnabled = false;
+void Demo_SetFakeInputEnabled(bool enable)
+{
+    sFakeInputEnabled = enable;
+}
+
+static DWORD sFakeInputValue = 0;
+void Demo_SetFakeInputValue(const std::string& /*value*/)
+{
+    // TODO
+}
+
+
 ALIVE_FUNC_NOT_IMPL(0x0, 0x4FA9C0, int __cdecl(int controllerNumber), sub_4FA9C0);
 ALIVE_VAR(0x0, 0x5C1BBE, WORD, word_5C1BBE);
 ALIVE_VAR(0x0, 0x5C1B9A, WORD, word_5C1B9A);
@@ -206,6 +219,10 @@ static char UpdateImpl(InputObject* pThis)
         {
             pThis->field_0_pads[0].field_0_pressed = Input_Command_Convert_404354(pThis->field_3C_command);
         }
+    }
+    else if (sFakeInputEnabled)
+    {
+        pThis->field_0_pads[0].field_0_pressed = Input_Command_Convert_404354(sFakeInputValue);
     }
 
     pThis->field_0_pads[0].field_10_released = pThis->field_0_pads[0].field_8_previous & ~pThis->field_0_pads[0].field_0_pressed;
