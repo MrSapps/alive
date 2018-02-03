@@ -55,7 +55,8 @@ public:
         eChantToStanding,
 
         eCrouching,
-        eCrouchingToStanding
+        eCrouchingToStanding,
+        eCrouchingTurningAround,
     };
 
     enum class AbeAnimation : u16
@@ -135,8 +136,8 @@ private:
 
     void PreStanding(States previous);
     void Standing();
-    void StandingTurningAround();
     void StandingToCrouching();
+    void StandingTurningAround();
 
     void PreChanting(States previous);
     void Chanting();
@@ -148,6 +149,7 @@ private:
     void PreCrouching(States previous);
     void Crouching();
     void CrouchingToStanding();
+    void CrouchingTurningAround();
 
 private:
     void PushWallOrCrouch();

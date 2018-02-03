@@ -83,6 +83,7 @@ void AbeMovementComponent::OnLoad()
     mStateFnMap[States::eWalkingToStanding] = { nullptr, &AbeMovementComponent::WalkingToStanding };
     mStateFnMap[States::eChanting] = { &AbeMovementComponent::PreChanting, &AbeMovementComponent::Chanting };
     mStateFnMap[States::eCrouching] = { &AbeMovementComponent::PreCrouching, &AbeMovementComponent::Crouching };
+    mStateFnMap[States::eCrouchingTurningAround] = { nullptr, &AbeMovementComponent::CrouchingTurningAround };
 
     SetState(States::eStanding);
 }
@@ -175,19 +176,19 @@ void AbeMovementComponent::Standing()
     }
 }
 
+void AbeMovementComponent::StandingToCrouching()
+{
+    SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeStandToCrouch));
+    SetCurrentAndNextState(States::eStandingToCrouching, States::eCrouching);
+}
+
 void AbeMovementComponent::StandingTurningAround()
 {
     if (mAnimationComponent->Complete())
     {
         mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
-        SetState(States::eStanding);
+        SetState(mData.mNextState);
     }
-}
-
-void AbeMovementComponent::StandingToCrouching()
-{
-    SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeStandToCrouch));
-    SetCurrentAndNextState(States::eStandingToCrouching, States::eCrouching);
 }
 
 void AbeMovementComponent::PreWalking(AbeMovementComponent::States)
@@ -198,23 +199,23 @@ void AbeMovementComponent::PreWalking(AbeMovementComponent::States)
 
 void AbeMovementComponent::Walking()
 {
-        if (FrameIs(5 + 1) || FrameIs(14 + 1))
+    if (FrameIs(5 + 1) || FrameIs(14 + 1))
+    {
+        SnapXToGrid();
+        if (IsMovingTowardsWall())
         {
-            SnapXToGrid();
-            if (IsMovingTowardsWall())
-            {
-                PushWallOrCrouch();
-            }
+            PushWallOrCrouch();
         }
-        else if (FrameIs(2 + 1) || FrameIs(11 + 1))
+    }
+    else if (FrameIs(2 + 1) || FrameIs(11 + 1))
+    {
+        if (DirectionChanged() || !IsMovingLeftOrRight())
         {
-            if (DirectionChanged() || !IsMovingLeftOrRight())
-            {
-                SetXSpeed(kAbeWalkSpeed);
-                SetAnimation(FrameIs(2 + 1) ? kAbeAnimations.at(AbeAnimation::eAbeWalkToStand) : kAbeAnimations.at(AbeAnimation::eAbeWalkToStandMidGrid));
-                SetCurrentAndNextState(States::eWalkingToStanding, States::eStanding);
-            }
+            SetXSpeed(kAbeWalkSpeed);
+            SetAnimation(FrameIs(2 + 1) ? kAbeAnimations.at(AbeAnimation::eAbeWalkToStand) : kAbeAnimations.at(AbeAnimation::eAbeWalkToStandMidGrid));
+            SetCurrentAndNextState(States::eWalkingToStanding, States::eStanding);
         }
+    }
 }
 
 void AbeMovementComponent::WalkingToStanding()
@@ -263,7 +264,15 @@ void AbeMovementComponent::PreCrouching(AbeMovementComponent::States)
 
 void AbeMovementComponent::Crouching()
 {
-    if (mData.mGoal == Goal::eGoUp)
+    if (IsMovingLeftOrRight())
+    {
+        if (DirectionChanged())
+        {
+            SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeCrouchTurnAround));
+            SetCurrentAndNextState(States::eCrouchingTurningAround, States::eCrouching);
+        }
+    }
+    else if (mData.mGoal == Goal::eGoUp)
     {
         CrouchingToStanding();
     }
@@ -273,6 +282,15 @@ void AbeMovementComponent::CrouchingToStanding()
 {
     SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeCrouchToStand));
     SetCurrentAndNextState(States::eCrouchingToStanding, States::eStanding);
+}
+
+void AbeMovementComponent::CrouchingTurningAround()
+{
+    if (mAnimationComponent->Complete())
+    {
+        mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
+        SetState(mData.mNextState);
+    }
 }
 
 void AbeMovementComponent::PushWallOrCrouch()
@@ -399,11 +417,11 @@ void AbePlayerControllerComponent::Update()
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoRight;
     }
-    else if (mInputMappingActions->Down(mInputMappingActions->mIsDown))
+    else if (mInputMappingActions->Down(mInputMappingActions->mIsDown) && !mInputMappingActions->Up(mInputMappingActions->mIsDown))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoDown;
     }
-    else if (mInputMappingActions->Up(mInputMappingActions->mIsDown))
+    else if (mInputMappingActions->Up(mInputMappingActions->mIsDown) && !mInputMappingActions->Down(mInputMappingActions->mIsDown))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoUp;
     }
