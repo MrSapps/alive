@@ -75,8 +75,6 @@ static const std::map<AbeMovementComponent::AbeAnimation, std::string> kAbeAnima
 
 void AbeMovementComponent::OnLoad()
 {
-    Component::OnLoad(); // calls OnResolveDependencies
-
     mStateFnMap[States::ePushingWall] = { &AbeMovementComponent::PrePushingWall, &AbeMovementComponent::PushingWall };
 
     mStateFnMap[States::eStanding] = { &AbeMovementComponent::PreStanding, &AbeMovementComponent::Standing };
@@ -96,7 +94,7 @@ void AbeMovementComponent::OnLoad()
     mStateFnMap[States::eCrouching] = { &AbeMovementComponent::PreCrouching, &AbeMovementComponent::Crouching };
     mStateFnMap[States::eCrouchingTurningAround] = { nullptr, &AbeMovementComponent::CrouchingTurningAround };
 
-    SetState(States::eStanding);
+    Component::OnLoad(); // calls OnResolveDependencies
 }
 
 void AbeMovementComponent::OnResolveDependencies()
@@ -111,6 +109,8 @@ void AbeMovementComponent::OnResolveDependencies()
     {
         mAnimationComponent->Load(animationName.second.c_str());
     }
+
+    SetState(States::eStanding);
 }
 
 void AbeMovementComponent::Serialize(std::ostream& os) const
