@@ -3,6 +3,9 @@
 #include <vector>
 #include "oddlib/stream.hpp"
 #include "logger.hpp"
+#include <sstream>
+#include <iomanip>
+#include "string_util.hpp"
 
 void DemoHooksForceLink() {} 
 
@@ -13,9 +16,27 @@ void Demo_SetFakeInputEnabled(bool enable)
 }
 
 static DWORD sFakeInputValue = 0;
-void Demo_SetFakeInputValue(const std::string& /*value*/)
+void Demo_SetFakeInputValue(const std::string& value)
 {
-    // TODO
+    try
+    {
+        if (string_util::starts_with(value, "0x"))
+        {
+            std::string hexStr = value.substr(2);
+            std::istringstream converter(hexStr);
+            converter >> std::hex >> sFakeInputValue;
+        }
+        else
+        {
+            std::istringstream converter(value);
+            converter >> std::dec >> sFakeInputValue;
+        }
+    }
+    catch (const std::exception&)
+    {
+        sFakeInputValue = 0;
+    }
+    LOG_INFO("Fake input set to " << sFakeInputValue);
 }
 
 

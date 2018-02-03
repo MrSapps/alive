@@ -104,14 +104,7 @@ BOOL DebugDialog::CreateControls()
         mDeltaInfo = {};
     });
 
-    mFakeInputEdit = std::make_unique<TextBox>(this, IDC_FAKE_INPUT);
-    mFakeInputEdit->OnTextChanged([&]()
-    {
-
-    });
-
-    mFakeInputCheckBox = std::make_unique<CheckBox>(this, IDC_FAKE_INPUT_ENABLE);
-    mFakeInputCheckBox->OnCheckChanged([&](bool enable)
+    mUpdateFakeInput = [&](bool enable)
     {
         auto text = mFakeInputEdit->GetText();
         Demo_SetFakeInputEnabled(enable);
@@ -119,6 +112,18 @@ BOOL DebugDialog::CreateControls()
         {
             Demo_SetFakeInputValue(text);
         }
+    };
+
+    mFakeInputEdit = std::make_unique<TextBox>(this, IDC_FAKE_INPUT);
+    mFakeInputEdit->OnTextChanged([&]()
+    {
+        mUpdateFakeInput(mFakeInputCheckBox->GetChecked());
+    });
+
+    mFakeInputCheckBox = std::make_unique<CheckBox>(this, IDC_FAKE_INPUT_ENABLE);
+    mFakeInputCheckBox->OnCheckChanged([&](bool enable)
+    {
+        mUpdateFakeInput(enable);
     });
 
     mDDNoSkip = std::make_unique<CheckBox>(this, IDC_DD_NOSKIP);

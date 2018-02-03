@@ -312,13 +312,13 @@ bool TextBox::HandleMessage(WPARAM wparam, LPARAM /*lParam*/)
 std::string TextBox::GetText()
 {
     std::vector<char> buffer;
-    buffer.resize(GetWindowTextLength(mHwnd));
+    buffer.resize(GetWindowTextLength(mHwnd)+1);
     GetWindowText(mHwnd, buffer.data(), static_cast<int>(buffer.size()));
     if (buffer.empty())
     {
         return "";
     }
-    return std::string(buffer.data(), buffer.size());
+    return std::string(buffer.data(), buffer.size()-1);
 }
 
 void CheckBox::OnCheckChanged(std::function<void(bool)> onChanged)
