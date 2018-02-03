@@ -33,8 +33,13 @@ public:
         eStand,
         eGoUp,
         eGoDown,
+
         eGoLeft,
         eGoRight,
+
+        eGoLeftRunning,
+        eGoRightRunning,
+
         eChant,
     };
 
@@ -45,11 +50,17 @@ public:
 
         eStanding,
         eStandingToWalking,
+        eStandingToRunning,
         eStandingToCrouching,
         eStandingTurningAround,
 
         eWalking,
+        eWalkingToRunning,
         eWalkingToStanding,
+
+        eRunning,
+        eRunningToStanding,
+        eRunningTurningAround,
 
         eChanting,
         eChantToStanding,
@@ -136,6 +147,7 @@ private:
 
     void PreStanding(States previous);
     void Standing();
+    void StandingToRunning();
     void StandingToCrouching();
     void StandingTurningAround();
 
@@ -144,7 +156,14 @@ private:
 
     void PreWalking(States previous);
     void Walking();
+
+    void PreWalkingToStanding();
     void WalkingToStanding();
+
+    void PreRunning(States previous);
+    void Running();
+    void RunningToStanding();
+    void RunningTurningAround();
 
     void PreCrouching(States previous);
     void Crouching();
@@ -161,6 +180,7 @@ private:
     bool DirectionChanged() const;
     bool IsMovingLeftOrRight() const;
     bool IsMovingTowardsWall() const;
+    bool IsRunningLeftOrRight() const;
 
 private:
     bool FrameIs(u32 frame) const;
