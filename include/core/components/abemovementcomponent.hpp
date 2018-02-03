@@ -59,8 +59,11 @@ public:
         eWalkingToStanding,
 
         eRunning,
+        eRunningToWalking,
         eRunningToStanding,
         eRunningTurningAround,
+        eRunningTurningAroundToWalking,
+        eRunningTurningAroundToRunning,
 
         eChanting,
         eChantToStanding,
@@ -147,6 +150,7 @@ private:
 
     void PreStanding(States previous);
     void Standing();
+    void StandingToWalking();
     void StandingToRunning();
     void StandingToCrouching();
     void StandingTurningAround();
@@ -156,14 +160,14 @@ private:
 
     void PreWalking(States previous);
     void Walking();
-
-    void PreWalkingToStanding();
     void WalkingToStanding();
 
     void PreRunning(States previous);
     void Running();
     void RunningToStanding();
     void RunningTurningAround();
+    void RunningTurningAroundToWalking();
+    void RunningTurningAroundToRunning();
 
     void PreCrouching(States previous);
     void Crouching();
@@ -207,12 +211,14 @@ private:
     struct
     {
         Goal mGoal;
+        bool mInvertX;
         States mState;
         States mNextState;
     }
     mData =
     {
         Goal::eStand,
+        false,
         States::eStanding,
         States::eStanding
     };

@@ -17,9 +17,23 @@ void AnimationComponent::OnResolveDependencies()
     mTransformComponent = mEntity->GetComponent<TransformComponent>();
 }
 
+void AnimationComponent::Load(const char* animationName)
+{
+    mCachedAnimations[animationName] = mResourceLocator->LocateAnimation(animationName).get();
+}
+
 void AnimationComponent::Change(const char* animationName)
 {
-    mAnimation = mResourceLocator->LocateAnimation(animationName).get();
+    auto found = mCachedAnimations.find(animationName);
+    if (found != mCachedAnimations.end())
+    {
+        mAnimation = found->second.get();
+    }
+    else
+    {
+        Load(animationName);
+        mAnimation = mCachedAnimations[animationName].get();
+    }
     mAnimation->SetFrame(0);
     mLoaded = true;
 }

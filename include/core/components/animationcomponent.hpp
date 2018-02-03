@@ -1,5 +1,9 @@
 #pragma once
 
+#include <memory>
+#include <string>
+#include <unordered_map>
+
 #include "resourcemapper.hpp"
 #include "core/component.hpp"
 
@@ -19,14 +23,19 @@ public:
     void Render(AbstractRenderer& rend) const;
 
 public:
+    void Load(const char* animationName);
     void Change(const char* animationName);
     bool Complete() const;
+
+public:
     u32 FrameNumber() const;
     void SetFrame(u32 frame);
+
 public:
     bool mFlipX = false;
     bool mLoaded = false;
-    std::unique_ptr<Animation> mAnimation;
+    Animation* mAnimation = nullptr;
+    std::unordered_map<std::string, std::unique_ptr<Animation>> mCachedAnimations;
 
 private:
     ResourceLocator* mResourceLocator = nullptr;
