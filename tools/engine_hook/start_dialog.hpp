@@ -8,10 +8,12 @@ public:
     {
         eNormal,
         eStartFeeco,
-        eStartMenuDirect
+        eStartMenuDirect,
+        eStartBootToDemo
     };
 
     StartMode GetStartMode() const { return mStartMode; }
+    const std::string& DemoPath() const { return mDemoPath; }
 protected:
     virtual BOOL CreateControls() override;
 private:
@@ -20,6 +22,7 @@ private:
     std::unique_ptr<RadioButton> mStartNormal;
     std::unique_ptr<RadioButton> mStartFeeco;
     std::unique_ptr<RadioButton> mStartMenuDirect;
+    std::unique_ptr<RadioButton> mStartBootToDemo;
 
     std::unique_ptr<RadioButton> mMusicOn;
     std::unique_ptr<RadioButton> mMusicOff;
@@ -29,6 +32,10 @@ private:
     std::unique_ptr<W32Timer> mCoutDownTimer;
     std::unique_ptr<Button> mGoButton;
 
+    std::unique_ptr<TextBox> mDemoPathEdit;
+
     StartMode mStartMode = eNormal;
-    DWORD mCounter = 3;
+    std::string mDemoPath;
+
+    DWORD mCounter = 6;
 };

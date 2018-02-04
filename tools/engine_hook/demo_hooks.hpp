@@ -33,3 +33,4 @@ ALIVE_ASSERT_SIZEOF(InputObject, 0x44);
 
 void DemoHooksForceLink();
 char __fastcall Input_update_45F040(InputObject* pThis, void*);
+

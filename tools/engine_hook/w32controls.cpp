@@ -321,6 +321,11 @@ std::string TextBox::GetText()
     return std::string(buffer.data(), buffer.size()-1);
 }
 
+void TextBox::SetText(const std::string& str)
+{
+    SetWindowText(mHwnd, str.c_str());
+}
+
 void CheckBox::OnCheckChanged(std::function<void(bool)> onChanged)
 {
     mOnChanged = onChanged;

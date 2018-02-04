@@ -107,9 +107,46 @@ namespace Hooks
 }
 
 static StartDialog::StartMode gStartMode = StartDialog::eNormal;
+static std::string gStartDemoPath;
 
 int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7);
 ALIVE_FUNC_IMPLEX(0x443EE0, 0x00401415, set_first_camera_hook, true);
+
+void __cdecl GameLoop_467230();
+ALIVE_FUNC_IMPLEX(0x0, 0x00467230, GameLoop_467230, true);
+
+
+ALIVE_FUNC_NOT_IMPL(0x0, 0x403274, void** __cdecl(const char *pBanName, int a2), LoadResource_403274);
+ALIVE_FUNC_NOT_IMPL(0x0, 0x401AC8, void** __cdecl(unsigned int type, int id, __int16 a3, __int16 a4) , jGetLoadedResource_401AC8);
+ALIVE_FUNC_NOT_IMPL(0x0, 0x4014AB, signed __int16 __cdecl(void* a1), sub_4014AB);
+ALIVE_FUNC_NOT_IMPL(0x0, 0x4C9170, signed __int16 __cdecl(void* a1), j_LoadOrCreateSave_4C9170);
+
+ALIVE_VAR_EXTERN(WORD, word_5C1BA0);
+
+void __cdecl GameLoop_467230()
+{
+    static bool firstCall = true;
+    if (firstCall)
+    {
+        if (gStartMode == StartDialog::eStartBootToDemo)
+        {
+            LoadResource_403274(gStartDemoPath.c_str(), 0);
+            void** pLoadedSaveBlock = jGetLoadedResource_401AC8('PtxN', 0, 1, 0);
+            BYTE* gSaveBuffer_unk_BAF7F8 = reinterpret_cast<BYTE*>(0xBAF7F8);
+            memcpy(gSaveBuffer_unk_BAF7F8, *pLoadedSaveBlock, 8192u);
+            sub_4014AB(pLoadedSaveBlock); // Frees block ?
+            
+            word_5C1BA0 = 1; // Demo ctor will do nothing if this is not set
+            j_LoadOrCreateSave_4C9170(pLoadedSaveBlock);
+
+            LOG_INFO("Demo booted");
+        }
+        firstCall = false;
+    }
+
+    GameLoop_467230_.Ptr()();
+}
+
 
 int __fastcall set_first_camera_hook(void *thisPtr, void* edx , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
 {
@@ -139,6 +176,11 @@ int __fastcall set_first_camera_hook(void *thisPtr, void* edx , __int16 levelNum
     case StartDialog::eStartMenuDirect:
         // Abe "hello" screen when levelNumber is left as the intro level
         cameraNumber = 1;
+        break;
+
+    case StartDialog::eStartBootToDemo:
+        LOG_INFO("Boot to demo will be invoked later");
+        cameraNumber = 1; // Go directly to main menu
         break;
     }
 
@@ -664,6 +706,7 @@ extern "C" BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPV
         StartDialog startDlg;
         startDlg.Create(gDllHandle, MAKEINTRESOURCE(IDD_STARTUP), true);
         gStartMode = startDlg.GetStartMode();
+        gStartDemoPath = startDlg.DemoPath();
     }
 
     if (ul_reason_for_call == DLL_PROCESS_ATTACH)

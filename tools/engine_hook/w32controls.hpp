@@ -131,6 +131,7 @@ public:
     void OnTextChanged(std::function<void()> onChanged);
     virtual bool HandleMessage(WPARAM wparam, LPARAM lParam) override;
     std::string GetText();
+    void SetText(const std::string& str);
 private:
     std::function<void()> mOnChanged;
 };

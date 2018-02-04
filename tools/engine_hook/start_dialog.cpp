@@ -33,6 +33,22 @@ BOOL StartDialog::CreateControls()
         mStartMode = eStartMenuDirect;
     });
 
+    mStartBootToDemo = std::make_unique<RadioButton>(this, IDC_START_DEMO);
+    mStartMenuDirect->OnClicked([&]()
+    {
+        mCoutDownTimer->Stop();
+        mCountDownLabel->SetText("");
+        mStartMode = eStartBootToDemo;
+    });
+
+    mDemoPathEdit = std::make_unique<TextBox>(this, IDC_DEMO_PATH);
+    mDemoPathEdit->OnTextChanged([&]()
+    {
+        mDemoPath = mDemoPathEdit->GetText();
+    });
+    mDemoPath = "ATTR0000.SAV";
+    mDemoPathEdit->SetText(mDemoPath);
+
     mGoButton = std::make_unique<Button>(this, IDC_BUTTON_GO);
     mGoButton->OnClicked([&]()
     {
@@ -48,8 +64,8 @@ BOOL StartDialog::CreateControls()
     mCoutDownTimer->Start(1000);
 
     // Set default selection
-    mStartMenuDirect->SetSelected(true);
-    mStartMode = eStartMenuDirect;
+    mStartBootToDemo->SetSelected(true);
+    mStartMode = eStartBootToDemo;
 
     OnCounter();
 

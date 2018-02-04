@@ -74,7 +74,7 @@ private:
     void ReloadAnimJson();
     void TriggerRefreshTimer();
     void ClearSoundData();
-    void  SyncSoundListBoxData();
+    void SyncSoundListBoxData();
 
     std::unique_ptr<Button> mResetAnimLogsButton;
     std::unique_ptr<Button> mClearSoundLogsButton;
