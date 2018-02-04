@@ -176,7 +176,7 @@ void AbeMovementComponent::Standing()
             }
             else
             {
-                if (IsRunningLeftOrRight())
+                if (mData.mRunning)
                 {
                     StandingToRunning();
                 }
@@ -221,7 +221,7 @@ void AbeMovementComponent::StandingTurningAround()
 {
     if (mAnimationComponent->Complete())
     {
-        mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
+        FlipDirection();
         SetState(mData.mNextState);
     }
 }
@@ -270,7 +270,7 @@ void AbeMovementComponent::Walking()
         }
         else
         {
-            if (!DirectionChanged() && IsRunningLeftOrRight())
+            if (!DirectionChanged() && mData.mRunning && IsMovingLeftOrRight())
             {
                 SetXSpeed(kAbeRunSpeed);
                 SetAnimation(FrameIs(5 + 1) ? kAbeAnimations.at(AbeAnimation::eAbeWalkingToRunning) : kAbeAnimations.at(AbeAnimation::eAbeWalkingToRunningMidGrid));
@@ -315,18 +315,18 @@ void AbeMovementComponent::Running()
     if (FrameIs(4 + 1) || FrameIs(12 + 1))
     {
         SnapXToGrid();
-        if (IsRunningLeftOrRight() && DirectionChanged())
+        if (mData.mRunning && IsMovingLeftOrRight() && DirectionChanged())
         {
             SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeRunningToSkidTurn));
             SetState(States::eRunningTurningAround);
         }
-        else if (!IsRunningLeftOrRight())
+        else if (!mData.mRunning)
         {
             if (IsMovingLeftOrRight())
             {
                 SetXSpeed(kAbeWalkSpeed);
                 SetAnimation(FrameIs(2 + 1) ? kAbeAnimations.at(AbeAnimation::eAbeRunningToWalk) : kAbeAnimations.at(AbeAnimation::eAbeRunningToWalkingMidGrid));
-                SetCurrentAndNextState(States::eRunningToStanding, States::eWalking);
+                SetCurrentAndNextState(States::eRunningToWalking, States::eWalking);
             }
             else
             {
@@ -353,8 +353,7 @@ void AbeMovementComponent::RunningTurningAround()
     if (mAnimationComponent->Complete())
     {
         SnapXToGrid();
-        mData.mInvertX = true;
-        if (IsRunningLeftOrRight())
+        if (mData.mRunning)
         {
             SetXSpeed(kAbeRunSpeed);
             SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeRunningTurnAround));
@@ -373,8 +372,8 @@ void AbeMovementComponent::RunningTurningAroundToWalking()
 {
     if (mAnimationComponent->Complete())
     {
-        mData.mInvertX = false;
-        mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
+        FlipDirection();
+        mData.mDirection = -mData.mDirection;
         SetState(mData.mNextState);
     }
 }
@@ -383,8 +382,8 @@ void AbeMovementComponent::RunningTurningAroundToRunning()
 {
     if (mAnimationComponent->Complete())
     {
-        mData.mInvertX = false;
-        mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
+        FlipDirection();
+        mData.mDirection = -mData.mDirection;
         SetState(mData.mNextState);
     }
 }
@@ -420,7 +419,7 @@ void AbeMovementComponent::CrouchingTurningAround()
 {
     if (mAnimationComponent->Complete())
     {
-        mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
+        FlipDirection();
         SetState(mData.mNextState);
     }
 }
@@ -455,23 +454,17 @@ void AbeMovementComponent::ASyncTransition()
 
 bool AbeMovementComponent::DirectionChanged() const
 {
-    return (!mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoLeft) || (mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoRight) ||
-        (!mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoLeftRunning) || (mAnimationComponent->mFlipX && mData.mGoal == Goal::eGoRightRunning);
+    return (mData.mGoal == Goal::eGoLeft && mData.mDirection == Direction::eRight) || (mData.mGoal == Goal::eGoRight && mData.mDirection == Direction::eLeft);
 }
 
 bool AbeMovementComponent::IsMovingLeftOrRight() const
 {
-    return mData.mGoal == Goal::eGoLeft || mData.mGoal == Goal::eGoRight || mData.mGoal == Goal::eGoLeftRunning || mData.mGoal == Goal::eGoRightRunning;
+    return mData.mGoal == Goal::eGoLeft || mData.mGoal == Goal::eGoRight;
 }
 
 bool AbeMovementComponent::IsMovingTowardsWall() const
 {
-    return static_cast<bool>(mCollisionSystem->WallCollision(mAnimationComponent->mFlipX, mTransformComponent->GetX(), mTransformComponent->GetY(), 25, -50));
-}
-
-bool AbeMovementComponent::IsRunningLeftOrRight() const
-{
-    return mData.mGoal == Goal::eGoLeftRunning || mData.mGoal == Goal::eGoRightRunning;
+    return static_cast<bool>(mCollisionSystem->WallCollision(mData.mDirection == Direction::eRight, mTransformComponent->GetX(), mTransformComponent->GetY(), 25, -50));
 }
 
 bool AbeMovementComponent::FrameIs(u32 frame) const
@@ -486,20 +479,19 @@ void AbeMovementComponent::SetFrame(u32 frame)
 
 void AbeMovementComponent::SetXSpeed(f32 speed)
 {
-    if (mAnimationComponent->mFlipX)
-    {
-        mPhysicsComponent->xSpeed = mData.mInvertX ? speed : -speed;
-    }
-    else
-    {
-        mPhysicsComponent->xSpeed = mData.mInvertX ? -speed : speed;
-    }
+    mPhysicsComponent->xSpeed = mData.mDirection * speed;
 }
 
 void AbeMovementComponent::SnapXToGrid()
 {
     LOG_INFO("SNAP X");
     mTransformComponent->SnapXToGrid();
+}
+
+void AbeMovementComponent::FlipDirection()
+{
+    mData.mDirection = -mData.mDirection;
+    mAnimationComponent->mFlipX = !mAnimationComponent->mFlipX;
 }
 
 void AbeMovementComponent::SetState(AbeMovementComponent::States state)
@@ -547,13 +539,15 @@ void AbePlayerControllerComponent::OnResolveDependencies()
 
 void AbePlayerControllerComponent::Update()
 {
+    mAbeMovement->mData.mRunning = mInputMappingActions->Run(mInputMappingActions->mIsDown);
+    mAbeMovement->mData.mSneaking = mInputMappingActions->Sneak(mInputMappingActions->mIsDown);
     if (mInputMappingActions->Left(mInputMappingActions->mIsDown) && !mInputMappingActions->Right(mInputMappingActions->mIsDown))
     {
-        mAbeMovement->mData.mGoal = !mInputMappingActions->Run(mInputMappingActions->mIsDown) ? AbeMovementComponent::Goal::eGoLeft : AbeMovementComponent::Goal::eGoLeftRunning;
+        mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoLeft;
     }
     else if (mInputMappingActions->Right(mInputMappingActions->mIsDown) && !mInputMappingActions->Left(mInputMappingActions->mIsDown))
     {
-        mAbeMovement->mData.mGoal = !mInputMappingActions->Run(mInputMappingActions->mIsDown) ? AbeMovementComponent::Goal::eGoRight : AbeMovementComponent::Goal::eGoRightRunning;
+        mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoRight;
     }
     else if (mInputMappingActions->Down(mInputMappingActions->mIsDown) && !mInputMappingActions->Up(mInputMappingActions->mIsDown))
     {

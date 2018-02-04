@@ -24,10 +24,15 @@ public:
     void OnResolveDependencies() final;
 
 public:
-    void Serialize(std::ostream &os) const final;
-    void Deserialize(std::istream &is) final;
+    void Serialize(std::ostream& os) const final;
+    void Deserialize(std::istream& is) final;
 
 public:
+    enum Direction : s8
+    {
+        eLeft = -1,
+        eRight = 1
+    };
     enum class Goal
     {
         eStand,
@@ -37,12 +42,8 @@ public:
         eGoLeft,
         eGoRight,
 
-        eGoLeftRunning,
-        eGoRightRunning,
-
         eChant,
     };
-
     enum class States
     {
         ePushingWall,
@@ -72,7 +73,6 @@ public:
         eCrouchingToStanding,
         eCrouchingTurningAround,
     };
-
     enum class AbeAnimation : u16
     {
         eAbeWalkToStand,
@@ -184,13 +184,13 @@ private:
     bool DirectionChanged() const;
     bool IsMovingLeftOrRight() const;
     bool IsMovingTowardsWall() const;
-    bool IsRunningLeftOrRight() const;
 
 private:
     bool FrameIs(u32 frame) const;
     void SetFrame(u32 frame);
     void SetXSpeed(f32 speed);
     void SnapXToGrid();
+    void FlipDirection();
 
 private:
     void SetState(States state);
@@ -210,18 +210,21 @@ private:
 private:
     struct
     {
+        s8 mDirection;
+        bool mRunning;
+        bool mSneaking;
         Goal mGoal;
-        bool mInvertX;
         States mState;
         States mNextState;
-    }
-    mData =
-    {
-        Goal::eStand,
-        false,
-        States::eStanding,
-        States::eStanding
-    };
+    } mData =
+        {
+            Direction::eRight,
+            false,
+            false,
+            Goal::eStand,
+            States::eStanding,
+            States::eStanding
+        };
 };
 
 class AbePlayerControllerComponent final : public Component
