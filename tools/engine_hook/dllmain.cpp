@@ -123,6 +123,24 @@ ALIVE_FUNC_NOT_IMPL(0x0, 0x4C9170, signed __int16 __cdecl(void* a1), j_LoadOrCre
 
 ALIVE_VAR_EXTERN(WORD, word_5C1BA0);
 
+
+static bool sbCreateDemo = false;
+__int16 __cdecl sub_40390E(int a1);
+ALIVE_FUNC_IMPLEX(0x0, 0x40390E, sub_40390E, true);
+__int16 __cdecl sub_40390E(int a1)
+{
+    auto ret = sub_40390E_.Ptr()(a1);
+
+    if (sbCreateDemo)
+    {
+        Demo_ctor_type_98_4D6990(0, 0, 0, 99);
+        sbCreateDemo = false;
+    }
+
+    return ret;
+}
+
+
 void __cdecl GameLoop_467230()
 {
     static bool firstCall = true;
@@ -170,7 +188,11 @@ void __cdecl GameLoop_467230()
             {
                 memcpy(gSaveBuffer_unk_BAF7F8, gDemoData.mSavData.data(), 8192u);
                 j_LoadOrCreateSave_4C9170(gDemoData.mSavData.data());
+
+                // If the demo was created for a "real" map there will not be a demo spawn
+                // point in it. Therefore create the demo manually.
             }
+            sbCreateDemo = true;
 
             LOG_INFO("Demo booted");
         }
@@ -671,7 +693,8 @@ void HookMain()
     {
         // Otherwise every other rendered frame is skipped which makes per frame comparison of
         // real engine vs alive rather tricky indeed.
-        Vars().gb_ddNoSkip_5CA4D1.Set(1);
+
+        //Vars().gb_ddNoSkip_5CA4D1.Set(1);
     }
 
     Vars().alwaysDrawDebugText.Set(1);
