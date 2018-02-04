@@ -94,6 +94,8 @@ void AbeMovementComponent::OnLoad()
     mStateFnMap[States::eCrouching] = { &AbeMovementComponent::PreCrouching, &AbeMovementComponent::Crouching };
     mStateFnMap[States::eCrouchingTurningAround] = { nullptr, &AbeMovementComponent::CrouchingTurningAround };
 
+    mStateFnMap[States::eRolling] = { &AbeMovementComponent::PreRolling, &AbeMovementComponent::Rolling };
+
     Component::OnLoad(); // calls OnResolveDependencies
 }
 
@@ -401,6 +403,12 @@ void AbeMovementComponent::Crouching()
             SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeCrouchTurnAround));
             SetCurrentAndNextState(States::eCrouchingTurningAround, States::eCrouching);
         }
+        else
+        {
+            SetXSpeed(kAbeRunSpeed);
+            SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeCrouchToRoll));
+            SetCurrentAndNextState(States::eCrouchingToRolling, States::eRolling);
+        }
     }
     else if (mData.mGoal == Goal::eGoUp)
     {
@@ -423,12 +431,31 @@ void AbeMovementComponent::CrouchingTurningAround()
     }
 }
 
+void AbeMovementComponent::PreRolling(States)
+{
+    SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeRolling));
+}
+
+void AbeMovementComponent::Rolling()
+{
+    if (FrameIs(0 + 1) || FrameIs(4 + 1) || FrameIs(8 + 1))
+    {
+        SnapXToGrid();
+        if (!IsMovingLeftOrRight() || DirectionChanged())
+        {
+            SetXSpeed(0.0f);
+            SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeCrouchIdle));
+            SetState(States::eCrouching);
+        }
+    }
+}
+
 void AbeMovementComponent::PushWallOrCrouch()
 {
-    if (mCollisionSystem->WallCollision(mAnimationComponent->mFlipX, mTransformComponent->GetX(), mTransformComponent->GetY(), 25, -50))
+    if (mCollisionSystem->WallCollision(mAnimationComponent->mFlipX, mTransformComponent->GetX(), mTransformComponent->GetY(), 25.0f, -50.0f))
     {
-        mPhysicsComponent->xSpeed = 0.0f;
-        if (mCollisionSystem->WallCollision(mAnimationComponent->mFlipX, mTransformComponent->GetX(), mTransformComponent->GetY(), 25, -20))
+        SetXSpeed(0.0f);
+        if (mCollisionSystem->WallCollision(mAnimationComponent->mFlipX, mTransformComponent->GetX(), mTransformComponent->GetY(), 25.0f, -20.0f))
         {
             SetState(States::ePushingWall);
         }
