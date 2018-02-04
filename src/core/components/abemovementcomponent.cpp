@@ -315,31 +315,33 @@ void AbeMovementComponent::Running()
     if (FrameIs(4 + 1) || FrameIs(12 + 1))
     {
         SnapXToGrid();
-        if (mData.mRunning && IsMovingLeftOrRight() && DirectionChanged())
+
+        if (IsMovingLeftOrRight())
         {
-            SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeRunningToSkidTurn));
-            SetState(States::eRunningTurningAround);
-        }
-        else if (!mData.mRunning)
-        {
-            if (IsMovingLeftOrRight())
+            if (DirectionChanged())
+            {
+                SetXSpeed(3.0f); // TODO: approximation, handle velocity SetXVelocity(0.375)
+                SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeRunningToSkidTurn));
+                SetCurrentAndNextState(States::eRunningTurningAround, States::eRunning);
+            }
+            else if (!mData.mRunning)
             {
                 SetXSpeed(kAbeWalkSpeed);
                 SetAnimation(FrameIs(2 + 1) ? kAbeAnimations.at(AbeAnimation::eAbeRunningToWalk) : kAbeAnimations.at(AbeAnimation::eAbeRunningToWalkingMidGrid));
                 SetCurrentAndNextState(States::eRunningToWalking, States::eWalking);
             }
-            else
-            {
-                SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeRunningSkidStop));
-                SetCurrentAndNextState(States::eRunningToStanding, States::eStanding);
-            }
+        }
+        else
+        {
+            SetXSpeed(3.0f); // TODO: approximation, handle velocity SetXVelocity(0.375)
+            SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeRunningSkidStop));
+            SetCurrentAndNextState(States::eRunningToStanding, States::eStanding);
         }
     }
 }
 
 void AbeMovementComponent::RunningToStanding()
 {
-    SetXSpeed(3.0f); // TODO: approximation, handle velocity
     if (mAnimationComponent->Complete())
     {
         SnapXToGrid();
@@ -349,19 +351,18 @@ void AbeMovementComponent::RunningToStanding()
 
 void AbeMovementComponent::RunningTurningAround()
 {
-    SetXSpeed(3.0f); // TODO: approximation, handle velocity
     if (mAnimationComponent->Complete())
     {
         SnapXToGrid();
         if (mData.mRunning)
         {
-            SetXSpeed(kAbeRunSpeed);
+            SetXSpeed(-kAbeRunSpeed);
             SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeRunningTurnAround));
             SetCurrentAndNextState(States::eRunningTurningAroundToRunning, States::eRunning);
         }
         else
         {
-            SetXSpeed(kAbeWalkSpeed);
+            SetXSpeed(-kAbeWalkSpeed);
             SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeRunningTurnAroundToWalk));
             SetCurrentAndNextState(States::eRunningTurningAroundToWalking, States::eWalking);
         }
@@ -373,7 +374,6 @@ void AbeMovementComponent::RunningTurningAroundToWalking()
     if (mAnimationComponent->Complete())
     {
         FlipDirection();
-        mData.mDirection = -mData.mDirection;
         SetState(mData.mNextState);
     }
 }
@@ -383,7 +383,6 @@ void AbeMovementComponent::RunningTurningAroundToRunning()
     if (mAnimationComponent->Complete())
     {
         FlipDirection();
-        mData.mDirection = -mData.mDirection;
         SetState(mData.mNextState);
     }
 }
@@ -464,7 +463,7 @@ bool AbeMovementComponent::IsMovingLeftOrRight() const
 
 bool AbeMovementComponent::IsMovingTowardsWall() const
 {
-    return static_cast<bool>(mCollisionSystem->WallCollision(mData.mDirection == Direction::eRight, mTransformComponent->GetX(), mTransformComponent->GetY(), 25, -50));
+    return static_cast<bool>(mCollisionSystem->WallCollision(mData.mDirection == Direction::eLeft, mTransformComponent->GetX(), mTransformComponent->GetY(), 25, -50));
 }
 
 bool AbeMovementComponent::FrameIs(u32 frame) const
