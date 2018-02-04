@@ -427,7 +427,7 @@ ALIVE_FUNC_NOT_IMPL(0x0, 0x403AB7, DWORD** __fastcall(BaseGameObject* pThis, voi
 
 void __cdecl Demo_ctor_type_98_4D6990(int /*a1*/, int /*a2*/, int /*a3*/, __int16 loadType)
 {
-    if (loadType == 99)
+    if (loadType == 99) // hack so only gets loaded when we want it to be
 //    if (loadType != 1 && loadType != 2)
     {
         if (word_5C1BA0)

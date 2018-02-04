@@ -159,8 +159,21 @@ void __cdecl GameLoop_467230()
                 gDemoData.mJoyData = Oddlib::IStream::ReadAll(joyFile);
 
                 // Erase resource headers
-                gDemoData.mSavData.erase(gDemoData.mSavData.begin(), gDemoData.mSavData.begin() + 0x10);
+                DWORD* savData = reinterpret_cast<DWORD*>(gDemoData.mSavData.data());
+                // Check there is a res header in the save as user created demo saves don't have it
+                if (savData[2] == 'PtxN')
+                {
+                    gDemoData.mSavData.erase(gDemoData.mSavData.begin(), gDemoData.mSavData.begin() + 0x10);
+                }
+
                 gDemoData.mJoyData.erase(gDemoData.mJoyData.begin(), gDemoData.mJoyData.begin() + 0x10);
+                
+                // For reversing purposes also allow omitting of the Demo header
+                DWORD* joyData = reinterpret_cast<DWORD*>(gDemoData.mJoyData.data());
+                if (joyData[2] == 'omeD')
+                {
+                    gDemoData.mSavData.erase(gDemoData.mSavData.begin(), gDemoData.mSavData.begin() + 0x10);
+                }
 
                 loadedExternalDemo = true;
             }
