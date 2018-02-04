@@ -9,6 +9,10 @@
 
 void DemoHooksForceLink() {} 
 
+
+ExternalDemoData gDemoData;
+
+
 static bool sFakeInputEnabled = false;
 void Demo_SetFakeInputEnabled(bool enable)
 {
@@ -444,9 +448,21 @@ void __cdecl Demo_ctor_type_98_4D6990(int /*a1*/, int /*a2*/, int /*a3*/, __int1
                         pDemoObject->field_6_flags.mParts.mHi |= 1u;
                         pDemoObject->field_4_typeId = 98;
 
-                        // This Demo resource is added as a chunk in the Bits/CAM file. The .JOY files
-                        // are a Red Herring!
-                        DWORD** pDemoResourceBlock = jGetLoadedResource_403AB7(pDemoObject, 0, 'omeD', 1);
+                     
+                        DWORD** pDemoResourceBlock = nullptr;
+                        if (gDemoData.mJoyData.empty())
+                        {   
+                            // This Demo resource is added as a chunk in the Bits/CAM file. The .JOY files
+                            // are a Red Herring!
+                            pDemoResourceBlock = jGetLoadedResource_403AB7(pDemoObject, 0, 'omeD', 1);
+                        }
+                        else
+                        {
+                            // Override with external demo file
+                            static DWORD* ptr = (DWORD*)gDemoData.mJoyData.data();
+                            pDemoResourceBlock = &ptr;
+                        }
+
                         pDemoObject->field_1C_update_delay = 1;
 
                         InputObject* gInput_dword_5BD4E0 = reinterpret_cast<InputObject*>(0x5BD4E0);

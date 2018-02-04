@@ -130,14 +130,47 @@ void __cdecl GameLoop_467230()
     {
         if (gStartMode == StartDialog::eStartBootToDemo)
         {
-            LoadResource_403274(gStartDemoPath.c_str(), 0);
-            void** pLoadedSaveBlock = jGetLoadedResource_401AC8('PtxN', 0, 1, 0);
-            BYTE* gSaveBuffer_unk_BAF7F8 = reinterpret_cast<BYTE*>(0xBAF7F8);
-            memcpy(gSaveBuffer_unk_BAF7F8, *pLoadedSaveBlock, 8192u);
-            sub_4014AB(pLoadedSaveBlock); // Frees block ?
-            
+            // Check for external SAV/JOY pair
+            bool loadedExternalDemo = false;
+            try
+            {
+                Oddlib::FileStream savFile(gStartDemoPath + ".SAV", Oddlib::IStream::ReadMode::ReadOnly);
+                Oddlib::FileStream joyFile(gStartDemoPath + ".JOY", Oddlib::IStream::ReadMode::ReadOnly);
+
+                gDemoData.mSavData = Oddlib::IStream::ReadAll(savFile);
+                gDemoData.mJoyData = Oddlib::IStream::ReadAll(joyFile);
+
+                // Erase resource headers
+                gDemoData.mSavData.erase(gDemoData.mSavData.begin(), gDemoData.mSavData.begin() + 0x10);
+                gDemoData.mJoyData.erase(gDemoData.mJoyData.begin(), gDemoData.mJoyData.begin() + 0x10);
+
+                loadedExternalDemo = true;
+            }
+            catch (const std::exception& ex)
+            {
+                LOG_ERROR("Failed to load external demo: " << ex.what() << " falling back to internal demo");
+            }
+
             word_5C1BA0 = 1; // Demo ctor will do nothing if this is not set
-            j_LoadOrCreateSave_4C9170(pLoadedSaveBlock);
+            BYTE* gSaveBuffer_unk_BAF7F8 = reinterpret_cast<BYTE*>(0xBAF7F8);
+
+            if (!loadedExternalDemo)
+            {
+                LoadResource_403274(gStartDemoPath.c_str(), 0); // Will crash here if .SAV is not in the .LVL
+                void** pLoadedSaveBlock = jGetLoadedResource_401AC8('PtxN', 0, 1, 0);
+
+                memcpy(gSaveBuffer_unk_BAF7F8, *pLoadedSaveBlock, 8192u);
+                sub_4014AB(pLoadedSaveBlock); // Frees block ?
+
+                j_LoadOrCreateSave_4C9170(pLoadedSaveBlock);
+
+                gDemoData.mJoyData.clear(); // Make sure demo ctor won't try to use it
+            }
+            else
+            {
+                memcpy(gSaveBuffer_unk_BAF7F8, gDemoData.mSavData.data(), 8192u);
+                j_LoadOrCreateSave_4C9170(gDemoData.mSavData.data());
+            }
 
             LOG_INFO("Demo booted");
         }

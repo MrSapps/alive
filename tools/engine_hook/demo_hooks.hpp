@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game_objects.hpp"
+#include <vector>
 #include <string>
 
 void Demo_SetFakeInputEnabled(bool enable);
@@ -34,3 +35,9 @@ ALIVE_ASSERT_SIZEOF(InputObject, 0x44);
 void DemoHooksForceLink();
 char __fastcall Input_update_45F040(InputObject* pThis, void*);
 
+struct ExternalDemoData
+{
+    std::vector<u8> mSavData;
+    std::vector<u8> mJoyData;
+};
+extern ExternalDemoData gDemoData;

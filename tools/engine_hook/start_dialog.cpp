@@ -44,9 +44,14 @@ BOOL StartDialog::CreateControls()
     mDemoPathEdit = std::make_unique<TextBox>(this, IDC_DEMO_PATH);
     mDemoPathEdit->OnTextChanged([&]()
     {
+        if (mCoutDownTimer)
+        {
+            mCoutDownTimer->Stop();
+            mCountDownLabel->SetText("");
+        }
         mDemoPath = mDemoPathEdit->GetText();
     });
-    mDemoPath = "ATTR0000.SAV";
+    mDemoPath = "TEST";
     mDemoPathEdit->SetText(mDemoPath);
 
     mGoButton = std::make_unique<Button>(this, IDC_BUTTON_GO);

@@ -297,7 +297,13 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                     ReadU16(ms); // abeFaceLeft
                     ReadU16(ms); // closeAfterUse
                     ReadU16(ms); // removeThrowables
-                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX) + xoffset + 5, static_cast<float>(object.mRectTopLeft.mY) + object.mRectBottomRight.mY - static_cast<float>(object.mRectTopLeft.mY) + yoffset);
+                    const auto width = std::abs(object.mRectTopLeft.mX - object.mRectBottomRight.mX);
+                    entity->GetComponent<TransformComponent>()->Set(
+                        static_cast<float>((width) / 2) + object.mRectTopLeft.mX + xoffset,
+                        static_cast<float>(object.mRectTopLeft.mY) + object.mRectBottomRight.mY 
+                      - static_cast<float>(object.mRectTopLeft.mY) + yoffset);
+                    entity->GetComponent<TransformComponent>()->SnapXToGrid();
+
                     entity->GetComponent<AnimationComponent>()->Change("DoorClosed_Barracks");
                     break;
                 }
