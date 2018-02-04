@@ -8,9 +8,57 @@
 #include "string_util.hpp"
 
 void DemoHooksForceLink() {} 
+ALIVE_VAR(0x0, 0x5C1B84, DWORD, gnFrame_dword_5C1B84);
 
 
 ExternalDemoData gDemoData;
+
+static bool sRecording = false;
+static std::vector<DWORD> sRecBuffer;
+static DWORD sRecBufferPos = 0;
+
+static DWORD gLastFrame = 0;
+static DWORD gLastPressed = 0;
+static DWORD gLastReleased = 0;
+
+void StartDemoRecording()
+{
+    sRecording = true;
+    sRecBufferPos = 0;
+    sRecBuffer.clear();
+    sRecBuffer.reserve(1024 * 8);
+    gLastFrame = gnFrame_dword_5C1B84;
+}
+
+void UpdateRecording(InputObject& input)
+{
+    //input.field_3C_command = (command << 16);
+    //input.field_40_command_duration = gnFrame_dword_5C1B84 + command & 0xFFFF;
+    
+    // Has the input state changed?
+    if (gLastPressed != input.field_0_pads[0].field_0_pressed || gLastReleased != input.field_0_pads[0].field_10_released)
+    {
+        // Input value to command value..
+        LOG_INFO("Input state changed");
+
+        // Update last values
+        gLastPressed = input.field_0_pads[0].field_0_pressed;
+        gLastReleased = input.field_0_pads[0].field_10_released;
+        gLastFrame = gnFrame_dword_5C1B84;
+        sRecBufferPos++;
+    }
+}
+
+void EndDemoRecording(const std::string& fileName)
+{
+    sRecording = false;
+    if (!sRecBuffer.empty() && !fileName.empty())
+    {
+        Oddlib::FileStream fs(fileName, Oddlib::IStream::ReadMode::ReadWrite);
+        fs.Write(sRecBuffer);
+        LOG_INFO("Wrote demo JOY (no header) to " << fileName);
+    }
+}
 
 
 static bool sFakeInputEnabled = false;
@@ -47,128 +95,170 @@ void Demo_SetFakeInputValue(const std::string& value)
 ALIVE_FUNC_NOT_IMPL(0x0, 0x4FA9C0, int __cdecl(int controllerNumber), sub_4FA9C0);
 ALIVE_VAR(0x0, 0x5C1BBE, WORD, word_5C1BBE);
 ALIVE_VAR(0x0, 0x5C1B9A, WORD, word_5C1B9A);
-ALIVE_VAR(0x0, 0x5C1B84, DWORD, gnFrame_dword_5C1B84);
 
 ALIVE_VAR(0x0, 0x5C3030, DWORD, gLevelObject_dword_5C3030); // Actually a class instance pointer or global object
 ALIVE_FUNC_NOT_IMPL(0x0, 0x4047E1, signed __int16 __fastcall(void* pThis, void*, __int16 a1, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6), MapChange_4047E1);
 
+enum RawInputBits
+{
+    eUp = 0x1,
+    eDown = 0x2,
+    eLeft = 0x4,
+    eRight = 0x8,
+
+    // 0x10 = ?? used but unknown
+    // 0x20 = ?? used but unknown
+    // 0x40 = ?? used but unknown
+    // 0x80 = ?? used but unknown
+
+    eHop = 0x100,
+    eFart = 0x200,
+    eHello = 0x400,
+    eFollowMe = 0x800,
+    eWait = 0x1000,
+    eWork = 0x2000,
+    eAnger = 0x4000,
+    eAllYa = 0x8000,
+    eChant = 0x40000
+
+    //0x10000 = sorry - not in conversion??
+    //0x20000 = stop it  - not in conversion??
+
+    // Don't think its possible to have these in a demo command
+    // 0x80000 = pause
+    // 0x100000 = unpause
+    // 0x400000 = tab/ddcheat
+
+    // 0x200000 = nothing
+    // 0x800000 = nothing
+    // 0x1000000 = nothing
+    // 0x2000000 = nothing
+    // 0x4000000 = nothing
+    // 0x8000000 = nothing
+    // 0x10000000 = nothing
+    // 0x20000000 = nothing
+    // 0x40000000 = nothing
+    // 0x80000000 = nothing
+
+};
 
 DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
 {
     unsigned int count = 0;
-    if (cmd & 8)
-    {
-        count = 1;
-    }
-
-    if (cmd & 2)
-    {
-        ++count;
-    }
-
-    if (cmd & 4)
-    {
-        ++count;
-    }
 
     if (cmd & 1)
     {
         ++count;
     }
 
-    if (count > 1)
+    if (cmd & 2)
     {
-        return 0x40000;
+        ++count;
     }
 
-    WORD flags = 0;
-    if (cmd & 0x1000)
+    if (cmd & 4)
     {
-        flags = 1;
-    }
-
-    if (cmd & 0x4000)
-    {
-        flags = flags | 2;
-    }
-
-    if ((cmd & 0x8000) != 0)
-    {
-        flags = flags | 4;
-    }
-
-    if (cmd & 0x2000)
-    {
-        flags = flags | 8;
+        ++count;
     }
 
     if (cmd & 8)
     {
-        flags = flags | 0x10;
+        ++count;
+    }
+
+    if (count > 1)
+    {
+        return eChant;
+    }
+
+    WORD rawInput = 0;
+    if (cmd & 0x1000)
+    {
+        rawInput |= eUp;
+    }
+
+    if (cmd & 0x2000)
+    {
+        rawInput |= eRight;
+    }
+
+    if (cmd & 0x4000)
+    {
+        rawInput |= eDown;
+    }
+
+    if ((cmd & 0x8000) != 0)
+    {
+        rawInput |= eLeft;
+    }
+
+    if (cmd & 8)
+    {
+        rawInput |= 0x10; // ??
     }
 
     if (cmd & 2)
     {
-        flags = flags | 0x40;
+        rawInput |= 0x40; // ??
     }
 
     if (cmd & 4)
     {
         if (cmd & 0x10)
         {
-            flags |= 0x400u;
+            rawInput |= eHello;
         }
     
-        if ((cmd & 0x80u) != 0)
+        if (cmd & 0x80u)
         {
-            flags |= 0x800u;
+            rawInput |= eFollowMe;
         }
 
         if (cmd & 0x40)
         {
-            flags |= 0x1000u;
+            rawInput |= eWait;
         }
 
         if (cmd & 0x20)
         {
-            flags |= 0x2000u;
+            rawInput |= eWork;
         }
     }
     else if (cmd & 1)
     {
         if (cmd & 0x40)
         {
-            flags |= 0x4000u;
+            rawInput |= eAnger;
         }
 
         if (cmd & 0x10)
         {
-            flags |= 0x8000u;
+            rawInput |= eAllYa;
         }
     }
     else
     {
         if (cmd & 0x10)
         {
-            flags |= 0x100u;
+            rawInput |= eHop; // triangle ?
         }
 
-        if ((cmd & 0x80u) != 0)
+        if (cmd & 0x80u)
         {
-            flags = flags | 0x20;
+            rawInput |= 0x20; // ??
         }
 
         if (cmd & 0x20)
         {
-            flags = flags | 0x80;
+            rawInput |= 0x80; // ??
         }
 
         if (cmd & 0x40)
         {
-            flags |= 0x200u;
+            rawInput |= eFart; // cross
         }
     }
-    return flags;
+    return rawInput;
 }
 ALIVE_FUNC_IMPLEX(0x0, 0x404354, Input_Command_Convert_404354, false);
 
@@ -247,7 +337,12 @@ static char UpdateImpl(InputObject* pThis)
     }
     else if (sFakeInputEnabled)
     {
-        pThis->field_0_pads[0].field_0_pressed = Input_Command_Convert_404354(sFakeInputValue);
+        pThis->field_0_pads[0].field_0_pressed = sFakeInputValue;// Input_Command_Convert_404354(sFakeInputValue);
+    }
+
+    if (sRecording)
+    {
+        UpdateRecording(*pThis);
     }
 
     pThis->field_0_pads[0].field_10_released = pThis->field_0_pads[0].field_8_previous & ~pThis->field_0_pads[0].field_0_pressed;
@@ -295,8 +390,16 @@ static void BeforeRender()
 
 }
 
+extern bool gForceDemo;
+void HandleDemoLoad();
+
 void __cdecl j_AnimateAllAnimations_40AC20_Hook(GameObjectList::Objs<Animation2*>* pAnims)
 {
+    if (gForceDemo)
+    {
+        HandleDemoLoad();
+    }
+
     for (u16 i = 0; i < pAnims->mCount; i++)
     {
         Animation2* pAnim = pAnims->mArray[i];
@@ -424,6 +527,21 @@ ALIVE_FUNC_NOT_IMPL(0x0, 0x4024AA, void* __cdecl(size_t), Allocate_4024AA);
 ALIVE_FUNC_NOT_IMPL(0x0, 0x4DBFA0, BaseGameObject* __fastcall(BaseGameObject* pThis, void* edx, __int16 bFlag, int bansArraySize), j_BaseGameObject_ctor_4DBFA0);
 ALIVE_FUNC_NOT_IMPL(0x0, 0x403AB7, DWORD** __fastcall(BaseGameObject* pThis, void* edx, unsigned int type, int id), jGetLoadedResource_403AB7);
 
+ALIVE_FUNC_NOT_IMPL(0x0, 0x497880, BaseGameObject* __fastcall (BaseGameObject* pThis, void* edx, char bFree), Demo_V1_497880);
+
+void Demo_Reset()
+{
+    if (gDemoObject_dword_5D1E20)
+    {
+
+        InputObject* gInput_dword_5BD4E0 = reinterpret_cast<InputObject*>(0x5BD4E0);
+        
+        static DWORD* ptr = (DWORD*)gDemoData.mJoyData.data();
+        DWORD** pDemoResourceBlock = &ptr;
+        Input_SetDemo_45F1E0(gInput_dword_5BD4E0, 0, pDemoResourceBlock);
+        word_5C1BA0 = 1;
+    }
+}
 
 void __cdecl Demo_ctor_type_98_4D6990(int /*a1*/, int /*a2*/, int /*a3*/, __int16 loadType)
 {
@@ -464,7 +582,7 @@ void __cdecl Demo_ctor_type_98_4D6990(int /*a1*/, int /*a2*/, int /*a3*/, __int1
                             pDemoResourceBlock = &ptr;
                         }
 
-                        pDemoObject->field_1C_update_delay = 1;
+                        pDemoObject->field_1C_update_delay = 0; // HACK: Real game has it as 1
 
                         InputObject* gInput_dword_5BD4E0 = reinterpret_cast<InputObject*>(0x5BD4E0);
                         Input_SetDemo_45F1E0(gInput_dword_5BD4E0, 0, pDemoResourceBlock);

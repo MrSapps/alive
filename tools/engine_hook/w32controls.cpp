@@ -159,6 +159,16 @@ BaseControl::BaseControl(BaseDialog* parentDialog, DWORD id)
     assert(mHwnd != nullptr);
 }
 
+void BaseControl::SetEnabled(bool enable)
+{
+    EnableWindow(mHwnd, enable ? 1 : 0);
+}
+
+void BaseControl::SetText(const std::string& str)
+{
+    SetWindowText(mHwnd, str.c_str());
+}
+
 void ListBox::AddString(const std::string& str)
 {
     ::SendMessage(mHwnd, LB_ADDSTRING, 0, reinterpret_cast<WPARAM>(str.c_str()));
@@ -222,11 +232,6 @@ bool BaseButton::HandleMessage(WPARAM wparam, LPARAM /*lParam*/)
         return true;
     }
     return false;
-}
-
-void Label::SetText(const std::string& text)
-{
-    ::SetWindowText(mHwnd, text.c_str());
 }
 
 bool Label::HandleMessage(WPARAM /*wparam*/, LPARAM /*lParam*/)
@@ -319,11 +324,6 @@ std::string TextBox::GetText()
         return "";
     }
     return std::string(buffer.data(), buffer.size()-1);
-}
-
-void TextBox::SetText(const std::string& str)
-{
-    SetWindowText(mHwnd, str.c_str());
 }
 
 void CheckBox::OnCheckChanged(std::function<void(bool)> onChanged)

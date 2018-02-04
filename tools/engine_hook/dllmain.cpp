@@ -107,7 +107,7 @@ namespace Hooks
 }
 
 static StartDialog::StartMode gStartMode = StartDialog::eNormal;
-static std::string gStartDemoPath;
+std::string gStartDemoPath;
 
 int __fastcall set_first_camera_hook(void *thisPtr, void*, __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7);
 ALIVE_FUNC_IMPLEX(0x443EE0, 0x00401415, set_first_camera_hook, true);
@@ -125,6 +125,7 @@ ALIVE_VAR_EXTERN(WORD, word_5C1BA0);
 
 
 static bool sbCreateDemo = false;
+bool gForceDemo = false;
 __int16 __cdecl sub_40390E(int a1);
 ALIVE_FUNC_IMPLEX(0x0, 0x40390E, sub_40390E, true);
 __int16 __cdecl sub_40390E(int a1)
@@ -133,6 +134,7 @@ __int16 __cdecl sub_40390E(int a1)
 
     if (sbCreateDemo)
     {
+        Demo_Reset(); // Kill any existing demo
         Demo_ctor_type_98_4D6990(0, 0, 0, 99);
         sbCreateDemo = false;
     }
@@ -140,81 +142,85 @@ __int16 __cdecl sub_40390E(int a1)
     return ret;
 }
 
+void HandleDemoLoad()
+{
+    // Check for external SAV/JOY pair
+    bool loadedExternalDemo = false;
+    try
+    {
+        Oddlib::FileStream savFile(gStartDemoPath + ".SAV", Oddlib::IStream::ReadMode::ReadOnly);
+        Oddlib::FileStream joyFile(gStartDemoPath + ".JOY", Oddlib::IStream::ReadMode::ReadOnly);
+
+        gDemoData.mSavData = Oddlib::IStream::ReadAll(savFile);
+        gDemoData.mJoyData = Oddlib::IStream::ReadAll(joyFile);
+
+        // Erase resource headers
+        DWORD* savData = reinterpret_cast<DWORD*>(gDemoData.mSavData.data());
+        // Check there is a res header in the save as user created demo saves don't have it
+        if (savData[2] == 'PtxN')
+        {
+            gDemoData.mSavData.erase(gDemoData.mSavData.begin(), gDemoData.mSavData.begin() + 0x10);
+        }
+
+        gDemoData.mJoyData.erase(gDemoData.mJoyData.begin(), gDemoData.mJoyData.begin() + 0x10);
+
+        // For reversing purposes also allow omitting of the Demo header
+        DWORD* joyData = reinterpret_cast<DWORD*>(gDemoData.mJoyData.data());
+        if (joyData[2] == 'omeD')
+        {
+            gDemoData.mSavData.erase(gDemoData.mSavData.begin(), gDemoData.mSavData.begin() + 0x10);
+        }
+
+        loadedExternalDemo = true;
+    }
+    catch (const std::exception& ex)
+    {
+        LOG_ERROR("Failed to load external demo: " << ex.what() << " falling back to internal demo");
+    }
+
+    gForceDemo = false;
+
+    word_5C1BA0 = 1; // Demo ctor will do nothing if this is not set
+    BYTE* gSaveBuffer_unk_BAF7F8 = reinterpret_cast<BYTE*>(0xBAF7F8);
+
+    if (!loadedExternalDemo)
+    {
+        LoadResource_403274(gStartDemoPath.c_str(), 0); // Will crash here if .SAV is not in the .LVL
+        void** pLoadedSaveBlock = jGetLoadedResource_401AC8('PtxN', 0, 1, 0);
+
+        memcpy(gSaveBuffer_unk_BAF7F8, *pLoadedSaveBlock, 8192u);
+        sub_4014AB(pLoadedSaveBlock); // Frees block ?
+
+        j_LoadOrCreateSave_4C9170(pLoadedSaveBlock);
+
+        gDemoData.mJoyData.clear(); // Make sure demo ctor won't try to use it
+    }
+    else
+    {
+        memcpy(gSaveBuffer_unk_BAF7F8, gDemoData.mSavData.data(), 8192u);
+        j_LoadOrCreateSave_4C9170(gDemoData.mSavData.data());
+
+        // If the demo was created for a "real" map there will not be a demo spawn
+        // point in it. Therefore create the demo manually.
+    }
+    sbCreateDemo = true;
+
+    LOG_INFO("Demo booted");
+}
 
 void __cdecl GameLoop_467230()
 {
     static bool firstCall = true;
     if (firstCall)
     {
-        if (gStartMode == StartDialog::eStartBootToDemo)
+        if (gStartMode == StartDialog::eStartBootToDemo )
         {
-            // Check for external SAV/JOY pair
-            bool loadedExternalDemo = false;
-            try
-            {
-                Oddlib::FileStream savFile(gStartDemoPath + ".SAV", Oddlib::IStream::ReadMode::ReadOnly);
-                Oddlib::FileStream joyFile(gStartDemoPath + ".JOY", Oddlib::IStream::ReadMode::ReadOnly);
-
-                gDemoData.mSavData = Oddlib::IStream::ReadAll(savFile);
-                gDemoData.mJoyData = Oddlib::IStream::ReadAll(joyFile);
-
-                // Erase resource headers
-                DWORD* savData = reinterpret_cast<DWORD*>(gDemoData.mSavData.data());
-                // Check there is a res header in the save as user created demo saves don't have it
-                if (savData[2] == 'PtxN')
-                {
-                    gDemoData.mSavData.erase(gDemoData.mSavData.begin(), gDemoData.mSavData.begin() + 0x10);
-                }
-
-                gDemoData.mJoyData.erase(gDemoData.mJoyData.begin(), gDemoData.mJoyData.begin() + 0x10);
-                
-                // For reversing purposes also allow omitting of the Demo header
-                DWORD* joyData = reinterpret_cast<DWORD*>(gDemoData.mJoyData.data());
-                if (joyData[2] == 'omeD')
-                {
-                    gDemoData.mSavData.erase(gDemoData.mSavData.begin(), gDemoData.mSavData.begin() + 0x10);
-                }
-
-                loadedExternalDemo = true;
-            }
-            catch (const std::exception& ex)
-            {
-                LOG_ERROR("Failed to load external demo: " << ex.what() << " falling back to internal demo");
-            }
-
-            word_5C1BA0 = 1; // Demo ctor will do nothing if this is not set
-            BYTE* gSaveBuffer_unk_BAF7F8 = reinterpret_cast<BYTE*>(0xBAF7F8);
-
-            if (!loadedExternalDemo)
-            {
-                LoadResource_403274(gStartDemoPath.c_str(), 0); // Will crash here if .SAV is not in the .LVL
-                void** pLoadedSaveBlock = jGetLoadedResource_401AC8('PtxN', 0, 1, 0);
-
-                memcpy(gSaveBuffer_unk_BAF7F8, *pLoadedSaveBlock, 8192u);
-                sub_4014AB(pLoadedSaveBlock); // Frees block ?
-
-                j_LoadOrCreateSave_4C9170(pLoadedSaveBlock);
-
-                gDemoData.mJoyData.clear(); // Make sure demo ctor won't try to use it
-            }
-            else
-            {
-                memcpy(gSaveBuffer_unk_BAF7F8, gDemoData.mSavData.data(), 8192u);
-                j_LoadOrCreateSave_4C9170(gDemoData.mSavData.data());
-
-                // If the demo was created for a "real" map there will not be a demo spawn
-                // point in it. Therefore create the demo manually.
-            }
-            sbCreateDemo = true;
-
-            LOG_INFO("Demo booted");
+            HandleDemoLoad();
         }
         firstCall = false;
     }
-
     GameLoop_467230_.Ptr()();
 }
-
 
 int __fastcall set_first_camera_hook(void *thisPtr, void* edx , __int16 levelNumber, __int16 pathNumber, __int16 cameraNumber, __int16 screenChangeEffect, __int16 a6, __int16 a7)
 {

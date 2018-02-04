@@ -9,6 +9,9 @@
 #include "game_objects.hpp"
 #include "demo_hooks.hpp"
 
+extern std::string gStartDemoPath;
+extern bool gForceDemo;
+
 DebugDialog::DebugDialog()
 {
 
@@ -133,6 +136,35 @@ BOOL DebugDialog::CreateControls()
         Vars().gb_ddNoSkip_5CA4D1.Set(enable ? 1 : 0);
     });
     
+    mDemoPathTextBox = std::make_unique<TextBox>(this, IDC_DEMO_PATH);
+    mDemoPathTextBox->SetText("TEST");
+
+    mPlayDemoButton = std::make_unique<Button>(this, IDC_PLAY_DEMO);
+    mPlayDemoButton->OnClicked([&]()
+    {
+        gStartDemoPath = mDemoPathTextBox->GetText();
+        if (!gStartDemoPath.empty())
+        {
+            gForceDemo = true;
+        }
+    });
+    mPlayDemoButton->SetEnabled(false); // randomly crashes
+
+    mRecordStopButton = std::make_unique<Button>(this, IDC_REC_STOP);
+    mRecordStopButton->OnClicked([&]()
+    {
+        mRecording = !mRecording;
+        if (mRecording)
+        {
+            StartDemoRecording();
+            mRecordStopButton->SetText("Stop recording");
+        }
+        else
+        {
+            mRecordStopButton->SetText("Start recording");
+            EndDemoRecording(mDemoPathTextBox->GetText());
+        }
+    });
 
     return TRUE;
 }

@@ -34,6 +34,8 @@ class BaseControl : public EventSink
 {
 public:
     BaseControl(BaseDialog* parentDialog, DWORD id);
+    void SetEnabled(bool enable);
+    void SetText(const std::string& str);
 protected:
     BaseDialog* mParent = nullptr;
     DWORD mId = 0;
@@ -93,7 +95,6 @@ class Label : public BaseControl
 {
 public:
     using BaseControl::BaseControl;
-    void SetText(const std::string& text);
     virtual bool HandleMessage(WPARAM wparam, LPARAM lParam) override;
 };
 
@@ -131,7 +132,6 @@ public:
     void OnTextChanged(std::function<void()> onChanged);
     virtual bool HandleMessage(WPARAM wparam, LPARAM lParam) override;
     std::string GetText();
-    void SetText(const std::string& str);
 private:
     std::function<void()> mOnChanged;
 };

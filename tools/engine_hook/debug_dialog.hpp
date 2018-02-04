@@ -109,6 +109,11 @@ private:
 
     std::unique_ptr<CheckBox> mDDNoSkip;
 
+    std::unique_ptr<TextBox> mDemoPathTextBox;
+    std::unique_ptr<Button> mRecordStopButton;
+    std::unique_ptr<Button> mPlayDemoButton;
+    bool mRecording = false;
+
     DeltaInfo mDeltaInfo;
 
     std::vector<DeltaRecord> mDeltas;

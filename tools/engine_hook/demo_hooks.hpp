@@ -43,3 +43,6 @@ struct ExternalDemoData
 extern ExternalDemoData gDemoData;
 
 void __cdecl Demo_ctor_type_98_4D6990(int /*a1*/, int /*a2*/, int /*a3*/, __int16 loadType);
+void Demo_Reset();
+void StartDemoRecording();
+void EndDemoRecording(const std::string& fileName);
