@@ -409,3 +409,52 @@ signed __int16 __cdecl RangedRandom_496AB0(signed __int16 from, signed __int16 t
     }
 }
 ALIVE_FUNC_IMPLEX(0x0, 0x496AB0, RangedRandom_496AB0, true); // TODO: This function isn't yet tested and might be wrong
+
+struct FakeVTable { void* mFuncs[1]; };
+
+ALIVE_VAR(0x0, 0x54690C, FakeVTable*, gDemoVtbl_type_98_54690C);
+ALIVE_VAR(0x0, 0x5C1BA0, WORD, word_5C1BA0);
+ALIVE_VAR(0x0, 0x5D1E20, BaseGameObject*, gDemoObject_dword_5D1E20);
+
+ALIVE_FUNC_NOT_IMPL(0x0, 0x4024AA, void* __cdecl(size_t), Allocate_4024AA);
+ALIVE_FUNC_NOT_IMPL(0x0, 0x4DBFA0, BaseGameObject* __fastcall(BaseGameObject* pThis, void* edx, __int16 bFlag, int bansArraySize), j_BaseGameObject_ctor_4DBFA0);
+ALIVE_FUNC_NOT_IMPL(0x0, 0x403AB7, DWORD** __fastcall(BaseGameObject* pThis, void* edx, unsigned int type, int id), jGetLoadedResource_403AB7);
+
+
+void __cdecl Demo_ctor_type_98_4D6990(int /*a1*/, int /*a2*/, int /*a3*/, __int16 loadType)
+{
+    if (loadType != 1 && loadType != 2)
+    {
+        if (word_5C1BA0)
+        {
+            if (!gDemoObject_dword_5D1E20)
+            {
+                BaseGameObject* pDemoObject = (BaseGameObject *)Allocate_4024AA(0x20u);
+                if (pDemoObject)
+                {
+                    j_BaseGameObject_ctor_4DBFA0(pDemoObject, 0, 1, 0);
+                    pDemoObject->mVTbl = &gDemoVtbl_type_98_54690C;
+                    if (gDemoObject_dword_5D1E20)
+                    {
+                        pDemoObject->field_6_flags.mParts.mLo |= 4u;
+                    }
+                    else
+                    {
+                        gDemoObject_dword_5D1E20 = pDemoObject;
+                        pDemoObject->field_6_flags.mParts.mHi |= 1u;
+                        pDemoObject->field_4_typeId = 98;
+
+                        // This Demo resource is added as a chunk in the Bits/CAM file. The .JOY files
+                        // are a Red Herring!
+                        DWORD** pDemoResourceBlock = jGetLoadedResource_403AB7(pDemoObject, 0, 'omeD', 1);
+                        pDemoObject->field_1C_update_delay = 1;
+
+                        InputObject* gInput_dword_5BD4E0 = reinterpret_cast<InputObject*>(0x5BD4E0);
+                        Input_SetDemo_45F1E0(gInput_dword_5BD4E0, 0, pDemoResourceBlock);
+                    }
+                }
+            }
+        }
+    }
+}
+ALIVE_FUNC_IMPLEX(0x0, 0x4D6990, Demo_ctor_type_98_4D6990, true);
