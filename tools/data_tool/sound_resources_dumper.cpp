@@ -1377,6 +1377,8 @@ static std::map<std::string, std::string> gSeqRenames =
     { "WHISTLE1", "Abe_Whistle1" },
     { "WHISTLE2", "Abe_Whistle2" },
     { "STOPIT", "Abe_StopIt" },
+    { "POSITIV1", "SecretArea_1" },
+    { "POSITIV9", "SecretArea_2" },
 };
 
 static std::set<std::string> gForceAsCacheResident =
@@ -1385,6 +1387,8 @@ static std::set<std::string> gForceAsCacheResident =
     "GUN",
     "MUDOHM",
     "Abe_StopIt",
+    "SecretArea_1",
+    "SecretArea_2",
     "SSCRATCH",
     "SLIGBOMB",
     "SLIGBOM2",
