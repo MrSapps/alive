@@ -95,6 +95,7 @@ void AbeMovementComponent::OnLoad()
     mStateFnMap[States::eCrouchingTurningAround] = { nullptr, &AbeMovementComponent::CrouchingTurningAround };
 
     mStateFnMap[States::eRolling] = { &AbeMovementComponent::PreRolling, &AbeMovementComponent::Rolling };
+    mStateFnMap[States::eRollingToWalkingOrRunning] = { nullptr, &AbeMovementComponent::RollingToWalkingOrRunning };
 
     Component::OnLoad(); // calls OnResolveDependencies
 }
@@ -446,6 +447,32 @@ void AbeMovementComponent::Rolling()
             SetXSpeed(0.0f);
             SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeCrouchIdle));
             SetState(States::eCrouching);
+        }
+
+    }
+    else if (FrameIs(1 + 1) || FrameIs(5 + 1) || FrameIs(9 + 1))
+    {
+        if (DirectionChanged() || mData.mRunning) // TODO: check if run input is maybe buffered -here-?
+        {
+            SetXSpeed(kAbeRunSpeed);
+            SetAnimation(kAbeAnimations.at(AbeAnimation::eAbeRunning)); // TODO: get correct animation from hook
+            SetCurrentAndNextState(States::eRollingToWalkingOrRunning, States::eRunning);
+        }
+    }
+}
+
+void AbeMovementComponent::RollingToWalkingOrRunning()
+{
+    if (FrameIs(0 + 1))
+    {
+        if (!mData.mRunning)
+        {
+
+            StandingToWalking();
+        }
+        else
+        {
+            StandingToRunning();
         }
     }
 }

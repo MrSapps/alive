@@ -76,6 +76,7 @@ public:
         eCrouchingTurningAround,
 
         eRolling,
+        eRollingToWalkingOrRunning,
     };
     enum class AbeAnimation : u16
     {
@@ -180,6 +181,7 @@ private:
 
     void PreRolling(States previous);
     void Rolling();
+    void RollingToWalkingOrRunning();
 
 private:
     void PushWallOrCrouch();
