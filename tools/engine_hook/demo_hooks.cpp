@@ -187,31 +187,31 @@ DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
         rawInput |= eDown;
     }
 
-    if ((cmd & 0x8000) != 0)
+    if (cmd & 0x8000)
     {
         rawInput |= eLeft;
     }
 
-    if (cmd & 8)
+    if (cmd & 8) // Shoulder button?
     {
-        rawInput |= 0x10; // ??
+        rawInput |= 0x10; // ?? Run ? Nothing on its own
     }
 
-    if (cmd & 2)
+    if (cmd & 2) // Shoulder button?
     {
-        rawInput |= 0x40; // ??
+        rawInput |= 0x40; // ?? Nothing on its own
     }
 
-    if (cmd & 4)
+    if (cmd & 4) // Shoulder button?
     {
         if (cmd & 0x10)
         {
             rawInput |= eHello;
         }
-    
-        if (cmd & 0x80u)
+
+        if (cmd & 0x20)
         {
-            rawInput |= eFollowMe;
+            rawInput |= eWork;
         }
 
         if (cmd & 0x40)
@@ -219,45 +219,46 @@ DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
             rawInput |= eWait;
         }
 
-        if (cmd & 0x20)
+        if (cmd & 0x80u)
         {
-            rawInput |= eWork;
+            rawInput |= eFollowMe;
         }
     }
-    else if (cmd & 1)
+    else if (cmd & 1) // Shoulder button?
     {
-        if (cmd & 0x40)
-        {
-            rawInput |= eAnger;
-        }
-
         if (cmd & 0x10)
         {
             rawInput |= eAllYa;
         }
+
+        if (cmd & 0x40) // cross with shoulder button ?
+        {
+            rawInput |= eAnger;
+        }
     }
-    else
+    else // No shoulder buttons?
     {
         if (cmd & 0x10)
         {
             rawInput |= eHop; // triangle ?
         }
 
-        if (cmd & 0x80u)
-        {
-            rawInput |= 0x20; // ??
-        }
-
         if (cmd & 0x20)
         {
-            rawInput |= 0x80; // ??
+            rawInput |= 0x80; // ?? Throw or pickup/pull lever?
         }
 
         if (cmd & 0x40)
         {
             rawInput |= eFart; // cross
         }
+
+        if (cmd & 0x80u)
+        {
+            rawInput |= 0x20; // ?? Throw or pickup/pull lever?
+        }
     }
+
     return rawInput;
 }
 ALIVE_FUNC_IMPLEX(0x0, 0x404354, Input_Command_Convert_404354, false);
