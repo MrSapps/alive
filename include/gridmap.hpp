@@ -91,6 +91,15 @@ private:
         bool Load(const Oddlib::Path& path, ResourceLocator& locator);
 
     private:
+        enum GlukkonTypesAe : u16
+        {
+            eNormal1 = 0,
+            eAslik = 1,
+            eDripik = 2,
+            ePhlegg = 3,
+            eNormal2 = 4,
+            eNormal3 = 5
+        };
         enum class LoaderStates
         {
             eInit,

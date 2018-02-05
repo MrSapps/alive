@@ -886,12 +886,13 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eGrenadeMachine:
                 {
-                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Spoutside
                     ReadU16(ms); //Disabledresources
                     ReadU16(ms); //Numberofgrenades
                     entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+                    entity->GetComponent<AnimationComponent>()->Change("BAP01C13.CAM_6008_AePc_1");
                     break;
                 }
                 case ObjectTypesAe::eLcdScreen:
@@ -1015,12 +1016,27 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                     ReadU16(ms); //SpawnId
                     ReadU16(ms); //Spawndirection
                     ReadU16(ms); //Spawndelay
-                    ReadU16(ms); //Glukkontype
+                    u16 glukkonType = ReadU16(ms); //Glukkontype
                     ReadU16(ms); //StartgasId
                     ReadU16(ms); //PlaymovieId
                     ReadU16(ms); //MovieId
                     entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
-                    entity->GetComponent<AnimationComponent>()->Change("GLUKKON.BND_800_AePc_1");
+                    
+                    switch (glukkonType)
+                    {
+                        case GlukkonTypesAe::eNormal1:
+                        {
+                            entity->GetComponent<AnimationComponent>()->Change("GLUKKON.BND_800_AePc_1");
+                            break;
+                        }
+
+                        case GlukkonTypesAe::eDripik:
+                        {
+                            entity->GetComponent<AnimationComponent>()->Change("DRIPIK.BND_804_AePc_1");
+                            break;
+                        }
+                    }
+                    
                     break;
                 }
                 case ObjectTypesAe::eKillUnsavedMuds:
