@@ -146,7 +146,7 @@ DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
 {
     unsigned int count = 0;
 
-    if (cmd & 1)
+    if (cmd & 1) // L2 ?
     {
         ++count;
     }
@@ -156,7 +156,7 @@ DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
         ++count;
     }
 
-    if (cmd & 4)
+    if (cmd & 4) // L1 ?
     {
         ++count;
     }
@@ -199,63 +199,69 @@ DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
 
     if (cmd & 2) // Shoulder button?
     {
-        rawInput |= 0x40; // ?? Nothing on its own
+        rawInput |= 0x40; // ?? Sneak ?? Nothing on its own
     }
 
-    if (cmd & 4) // Shoulder button?
+    rawInput |= 0x40;
+
+    if (cmd & 4) // L1 ?
     {
-        if (cmd & 0x10)
+        if (cmd & 0x10) // Triangle
         {
             rawInput |= eHello;
         }
 
-        if (cmd & 0x20)
+        if (cmd & 0x20) // Circle
         {
             rawInput |= eWork;
         }
 
-        if (cmd & 0x40)
+        if (cmd & 0x40) // Cross
         {
             rawInput |= eWait;
         }
 
-        if (cmd & 0x80u)
+        if (cmd & 0x80u) // Square
         {
             rawInput |= eFollowMe;
         }
     }
-    else if (cmd & 1) // Shoulder button?
+    else if (cmd & 1) // L2
     {
-        if (cmd & 0x10)
+        if (cmd & 0x10) // Triangle
         {
             rawInput |= eAllYa;
         }
 
-        if (cmd & 0x40) // cross with shoulder button ?
+        if (cmd & 0x40) // Cross
         {
             rawInput |= eAnger;
         }
+
+        // Stop it ?? 
+
+        // Sorry ??
     }
     else // No shoulder buttons?
     {
-        if (cmd & 0x10)
+        if (cmd & 0x10) // Triangle
         {
-            rawInput |= eHop; // triangle ?
+            rawInput |= eHop;
         }
 
-        if (cmd & 0x20)
+        if (cmd & 0x20) // Circle
         {
-            rawInput |= 0x80; // ?? Throw or pickup/pull lever?
+            rawInput |= 0x80; // Throw/say I dunno
         }
 
-        if (cmd & 0x40)
+        if (cmd & 0x40) // Cross
         {
-            rawInput |= eFart; // cross
+            rawInput |= eFart;
         }
 
-        if (cmd & 0x80u)
+        if (cmd & 0x80u) // Square
         {
-            rawInput |= 0x20; // ?? Throw or pickup/pull lever?
+            rawInput |= 0x20; // pickup/pull lever?
         }
     }
 
