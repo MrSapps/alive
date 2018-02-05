@@ -21,8 +21,8 @@ class InputState;
 
 namespace Oddlib
 {
-class LvlArchive;
-class IBits;
+    class LvlArchive;
+    class IBits;
 }
 
 class Animation;
@@ -39,12 +39,16 @@ public:
 
 public:
     const std::string& FileName() const
-    { return mFileName; }
+    {
+        return mFileName;
+    }
     void LoadTextures(AbstractRenderer& rend);
     void UnLoadTextures(AbstractRenderer& rend);
     bool hasTexture() const;
     const Oddlib::Path::Camera& getCamera() const
-    { return mCamera; }
+    {
+        return mCamera;
+    }
     void Render(AbstractRenderer& rend, float x, float y, float w, float h);
 
 private:
@@ -75,7 +79,7 @@ public:
     void UnloadMap(AbstractRenderer& renderer);
 
 public:
-    EntityManager &mRoot;
+    EntityManager & mRoot;
 
 private:
     class Loader
@@ -183,7 +187,7 @@ private:
             eExplosionSet = 95,
             eMultiswitchController = 96,
             eRedGreenStatusLight = 97,
-            eSlapLock = 98,
+            eGhostTrap = 98,
             eParamiteNet = 99,
             eAlarm = 100,
             eFartMachine = 101,
@@ -207,7 +211,7 @@ private:
         void HandleLoadEntities(const Oddlib::Path& path);
 
     private:
-        GridMap& mGm;
+        GridMap & mGm;
         LoaderStates mState = LoaderStates::eInit;
         IterativeForLoopU32 mXForLoop;
         IterativeForLoopU32 mYForLoop;
