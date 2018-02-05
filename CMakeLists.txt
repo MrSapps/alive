@@ -693,7 +693,7 @@ if (APPLE)
                    COMMAND ${CMAKE_INSTALL_NAME_TOOL} -change /usr/local/lib/libSDL2-2.0.0.dylib @executable_path/../Frameworks/libSDL2-2.0.0.dylib $<TARGET_FILE:Alive>
                    COMMENT "Fixing up libSDL2-2.0.0.dylib rpath")
 
-    INSTALL(FILES "/usr/local/Cellar/sdl2/2.0.6/lib/libSDL2-2.0.0.dylib" DESTINATION "Alive.app/Contents/Frameworks")
+    INSTALL(FILES "/usr/local/Cellar/sdl2/2.0.7/lib/libSDL2-2.0.0.dylib" DESTINATION "Alive.app/Contents/Frameworks")
 
 endif()
 
