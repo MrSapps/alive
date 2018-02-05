@@ -185,15 +185,20 @@ void HandleDemoLoad()
 
     if (!loadedExternalDemo)
     {
-        LoadResource_403274(gStartDemoPath.c_str(), 0); // Will crash here if .SAV is not in the .LVL
-        void** pLoadedSaveBlock = jGetLoadedResource_401AC8('PtxN', 0, 1, 0);
+        if (!gStartDemoPath.empty())
+        {
+            LoadResource_403274(gStartDemoPath.c_str(), 0); // Will crash here if .SAV is not in the .LVL
+            void** pLoadedSaveBlock = jGetLoadedResource_401AC8('PtxN', 0, 1, 0);
 
-        memcpy(gSaveBuffer_unk_BAF7F8, *pLoadedSaveBlock, 8192u);
-        sub_4014AB(pLoadedSaveBlock); // Frees block ?
+            memcpy(gSaveBuffer_unk_BAF7F8, *pLoadedSaveBlock, 8192u);
+            sub_4014AB(pLoadedSaveBlock); // Frees block ?
 
-        j_LoadOrCreateSave_4C9170(pLoadedSaveBlock);
+            j_LoadOrCreateSave_4C9170(pLoadedSaveBlock);
 
-        gDemoData.mJoyData.clear(); // Make sure demo ctor won't try to use it
+            gDemoData.mJoyData.clear(); // Make sure demo ctor won't try to use it
+
+            sbCreateDemo = true;
+        }
     }
     else
     {
@@ -202,9 +207,10 @@ void HandleDemoLoad()
 
         // If the demo was created for a "real" map there will not be a demo spawn
         // point in it. Therefore create the demo manually.
-    }
-    sbCreateDemo = true;
+        sbCreateDemo = true;
 
+    }
+   
     LOG_INFO("Demo booted");
 }
 

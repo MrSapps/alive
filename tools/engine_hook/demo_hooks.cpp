@@ -99,6 +99,23 @@ ALIVE_VAR(0x0, 0x5C1B9A, WORD, word_5C1B9A);
 ALIVE_VAR(0x0, 0x5C3030, DWORD, gLevelObject_dword_5C3030); // Actually a class instance pointer or global object
 ALIVE_FUNC_NOT_IMPL(0x0, 0x4047E1, signed __int16 __fastcall(void* pThis, void*, __int16 a1, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6), MapChange_4047E1);
 
+enum DemoCommandBits
+{
+    eL2 = 0x1,
+    eR2 = 0x2,
+    eL1 = 0x4,
+    eR1 = 0x8,
+    eDPadUp = 0x1000,
+    eDPadRight = 0x2000,
+    eDPadDown = 0x4000,
+    eDPadLeft = 0x8000,
+    eTriangle = 0x10,
+    eCircle = 0x20,
+    eCross = 0x40,
+    eSquare = 0x80,
+    eEnd = 0x8000, // Ends demo, probably maps to start button or something
+};
+
 enum RawInputBits
 {
     eUp = 0x1,
@@ -136,131 +153,130 @@ enum RawInputBits
     // 0x20000000 = nothing
     // 0x40000000 = nothing
     // 0x80000000 = nothing
-
 };
 
 DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
 {
-    unsigned int count = 0;
+    unsigned int shoulderButtonsPressedCount = 0;
 
-    if (cmd & 1) // L2
+    if (cmd & eL2)
     {
-        ++count;
+        ++shoulderButtonsPressedCount;
     }
 
-    if (cmd & 2) // R2
+    if (cmd & eR2)
     {
-        ++count;
+        ++shoulderButtonsPressedCount;
     }
 
-    if (cmd & 4) // L1
+    if (cmd & eL1)
     {
-        ++count;
+        ++shoulderButtonsPressedCount;
     }
 
-    if (cmd & 8) // R1
+    if (cmd & eR1)
     {
-        ++count;
+        ++shoulderButtonsPressedCount;
     }
 
-    if (count > 1) // Any 2 shoulder button combo = chanting
+    if (shoulderButtonsPressedCount > 1) // Any 2 shoulder button combo = chanting
     {
         return eChant;
     }
 
     DWORD rawInput = 0;
-    if (cmd & 0x1000)
+    if (cmd & eDPadUp)
     {
         rawInput |= eUp;
     }
 
-    if (cmd & 0x2000)
+    if (cmd & eDPadRight)
     {
         rawInput |= eRight;
     }
 
-    if (cmd & 0x4000)
+    if (cmd & eDPadDown)
     {
         rawInput |= eDown;
     }
 
-    if (cmd & 0x8000)
+    if (cmd & eDPadLeft)
     {
         rawInput |= eLeft;
     }
 
-    if (cmd & 8) // R1
+    if (cmd & eR1)
     {
         rawInput |= eRun;
     }
 
-    if (cmd & 2) // R2
+    if (cmd & eR2)
     {
         rawInput |= eSneak;
     }
 
-    if (cmd & 4) // L1
+    if (cmd & eL1)
     {
-        if (cmd & 0x10) // Triangle
+        if (cmd & eTriangle)
         {
             rawInput |= eHello;
         }
 
-        if (cmd & 0x20) // Circle
+        if (cmd & eCircle)
         {
             rawInput |= eWork;
         }
 
-        if (cmd & 0x40) // Cross
+        if (cmd & eCross)
         {
             rawInput |= eWait;
         }
 
-        if (cmd & 0x80) // Square
+        if (cmd & eSquare)
         {
             rawInput |= eFollowMe;
         }
     }
-    else if (cmd & 1) // L2
+    else if (cmd & eL2)
     {
-        if (cmd & 0x10) // Triangle
+        if (cmd & eTriangle)
         {
             rawInput |= eAllYa;
         }
 
-        if (cmd & 0x20) // Circle
+        if (cmd & eCircle)
         {
             rawInput |= eSorry;
         }
 
-        if (cmd & 0x40) // Cross
+        if (cmd & eCross)
         {
             rawInput |= eAnger;
         }
 
-        if (cmd & 0x80) // Square
+        if (cmd & eSquare)
         {
             rawInput |= eStopIt;
         }
     }
     else // No shoulder buttons?
     {
-        if (cmd & 0x10) // Triangle
+        if (cmd & eTriangle)
         {
             rawInput |= eHop;
         }
 
-        if (cmd & 0x20) // Circle
+        if (cmd & eCircle)
         {
             rawInput |= eThrowItem;
         }
 
-        if (cmd & 0x40) // Cross
+        if (cmd & eCross)
         {
             rawInput |= eFart;
         }
 
-        if (cmd & 0x80) // Square
+        if (cmd & eSquare)
         {
             rawInput |= eDoAction;
         }
@@ -331,7 +347,7 @@ static char UpdateImpl(InputObject* pThis)
             pThis->field_40_command_duration = gnFrame_dword_5C1B84 + command & 0xFFFF;
 
             // End demo/quit command
-            if (command & 0x8000)
+            if (command & eEnd)
             {
                 pThis->field_38_bDemoPlaying &= 0xFFFE;
             }
