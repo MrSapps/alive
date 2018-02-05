@@ -480,9 +480,10 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::ePulley:
                 {
-                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU32(ms); // scale
                     entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+                    entity->GetComponent<AnimationComponent>()->Change("BALIFT.BND_1001_AePc_0");
                     break;
                 }
                 case ObjectTypesAe::eAbeStart:
