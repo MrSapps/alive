@@ -105,12 +105,10 @@ enum RawInputBits
     eDown = 0x2,
     eLeft = 0x4,
     eRight = 0x8,
-
-    // 0x10 = ?? used but unknown
-    // 0x20 = ?? used but unknown
-    // 0x40 = ?? used but unknown
-    // 0x80 = ?? used but unknown
-
+    eRun = 0x10,
+    eDoAction = 0x20, // Pick up rock, pull lever etc
+    eSneak = 0x40,
+    eThrowItem = 0x80, // Or I say I dunno if no items
     eHop = 0x100,
     eFart = 0x200,
     eHello = 0x400,
@@ -119,10 +117,9 @@ enum RawInputBits
     eWork = 0x2000,
     eAnger = 0x4000,
     eAllYa = 0x8000,
-    eChant = 0x40000
-
-    //0x10000 = sorry - not in conversion??
-    //0x20000 = stop it  - not in conversion??
+    eChant = 0x40000,
+    eStopIt = 0x20000,
+    eSorry = 0x10000,
 
     // Don't think its possible to have these in a demo command
     // 0x80000 = pause
@@ -146,32 +143,32 @@ DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
 {
     unsigned int count = 0;
 
-    if (cmd & 1) // L2 ?
+    if (cmd & 1) // L2
     {
         ++count;
     }
 
-    if (cmd & 2)
+    if (cmd & 2) // R2
     {
         ++count;
     }
 
-    if (cmd & 4) // L1 ?
+    if (cmd & 4) // L1
     {
         ++count;
     }
 
-    if (cmd & 8)
+    if (cmd & 8) // R1
     {
         ++count;
     }
 
-    if (count > 1)
+    if (count > 1) // Any 2 shoulder button combo = chanting
     {
         return eChant;
     }
 
-    WORD rawInput = 0;
+    DWORD rawInput = 0;
     if (cmd & 0x1000)
     {
         rawInput |= eUp;
@@ -192,19 +189,17 @@ DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
         rawInput |= eLeft;
     }
 
-    if (cmd & 8) // Shoulder button?
+    if (cmd & 8) // R1
     {
-        rawInput |= 0x10; // ?? Run ? Nothing on its own
+        rawInput |= eRun;
     }
 
-    if (cmd & 2) // Shoulder button?
+    if (cmd & 2) // R2
     {
-        rawInput |= 0x40; // ?? Sneak ?? Nothing on its own
+        rawInput |= eSneak;
     }
 
-    rawInput |= 0x40;
-
-    if (cmd & 4) // L1 ?
+    if (cmd & 4) // L1
     {
         if (cmd & 0x10) // Triangle
         {
@@ -221,7 +216,7 @@ DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
             rawInput |= eWait;
         }
 
-        if (cmd & 0x80u) // Square
+        if (cmd & 0x80) // Square
         {
             rawInput |= eFollowMe;
         }
@@ -233,14 +228,20 @@ DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
             rawInput |= eAllYa;
         }
 
+        if (cmd & 0x20) // Circle
+        {
+            rawInput |= eSorry;
+        }
+
         if (cmd & 0x40) // Cross
         {
             rawInput |= eAnger;
         }
 
-        // Stop it ?? 
-
-        // Sorry ??
+        if (cmd & 0x80) // Square
+        {
+            rawInput |= eStopIt;
+        }
     }
     else // No shoulder buttons?
     {
@@ -251,7 +252,7 @@ DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
 
         if (cmd & 0x20) // Circle
         {
-            rawInput |= 0x80; // Throw/say I dunno
+            rawInput |= eThrowItem;
         }
 
         if (cmd & 0x40) // Cross
@@ -259,9 +260,9 @@ DWORD __cdecl Input_Command_Convert_404354(DWORD cmd)
             rawInput |= eFart;
         }
 
-        if (cmd & 0x80u) // Square
+        if (cmd & 0x80) // Square
         {
-            rawInput |= 0x20; // pickup/pull lever?
+            rawInput |= eDoAction;
         }
     }
 
