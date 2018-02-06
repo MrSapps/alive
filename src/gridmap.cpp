@@ -9,6 +9,7 @@
 #include "core/components/sligmovementcomponent.hpp"
 
 #include "oddlib/bits_factory.hpp"
+#include "aeentityfactory.hpp"
 #include "gridmap.hpp"
 #include "engine.hpp"
 #include "sound.hpp"
@@ -227,6 +228,9 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
             {
                 const auto& object = cam.mObjects[mIForLoop.Value()];
                 Oddlib::MemoryStream ms(std::vector<u8>(object.mData.data(), object.mData.data() + object.mData.size()));
+                
+                AeEntityFactory factory;
+
                 switch (object.mType)
                 {
                 case ObjectTypesAe::eContinuePoint:
@@ -592,17 +596,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eTrapDoor:
                 {
-                    auto* entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
-                    ReadU16(ms); // id
-                    ReadU16(ms); // startState
-                    ReadU16(ms); // selfClosing
-                    ReadU16(ms); // scale
-                    ReadU16(ms); // destinationLevel
-                    ReadU16(ms); // direction
-                    ReadU16(ms); // animationOffset
-                    ReadU16(ms); // openDuration
-                    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
-                    entity->GetComponent<AnimationComponent>()->Change("TRAPDOOR.BAN_1004_AePc_1");
+                    factory.Create(object, mGm.mRoot, ms);
                     break;
                 }
                 case ObjectTypesAe::eRollingBall:
@@ -1016,7 +1010,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                     ReadU16(ms); //SpawnId
                     ReadU16(ms); //Spawndirection
                     ReadU16(ms); //Spawndelay
-                    u16 glukkonType = ReadU16(ms); //Glukkontype
+                    ReadU16(ms); //Glukkontype
                     ReadU16(ms); //StartgasId
                     ReadU16(ms); //PlaymovieId
                     ReadU16(ms); //MovieId

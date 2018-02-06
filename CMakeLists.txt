@@ -367,6 +367,8 @@ SET(alivelib_src
     include/animationbrowser.hpp
     src/gameselectionstate.cpp
     include/gameselectionstate.hpp
+    include/aeentityfactory.hpp
+    src/aeentityfactory.cpp
     include/gridmap.hpp
     src/gridmap.cpp
     include/world.hpp
