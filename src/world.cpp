@@ -325,6 +325,9 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                 coords.SetCameraPosition(mEntityManager.GetSystem<CameraSystem>()->mCameraPosition);
             }
 
+            // TODO: This needs to be arranged to match the real game which has an ordering of:
+            // Update all -> Animate all -> Render all ->  LoadResources/SwitchMap -> ReadInput -> update gnFrame value
+
             // Physics System
             mEntityManager.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform)
             {

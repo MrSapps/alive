@@ -93,60 +93,61 @@ ALIVE_VAR(0x0, 0x5C1B9A, WORD, word_5C1B9A);
 ALIVE_VAR(0x0, 0x5C3030, DWORD, gLevelObject_dword_5C3030); // Actually a class instance pointer or global object
 ALIVE_FUNC_NOT_IMPL(0x0, 0x4047E1, signed __int16 __fastcall(void* pThis, void*, __int16 a1, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6), MapChange_4047E1);
 
-enum DemoCommandBits : u32
+enum PsxButtonBits : u32
 {
-    eL2 = 0x1,
-    eR2 = 0x2,
-    eL1 = 0x4,
-    eR1 = 0x8,
-    eDPadUp = 0x1000,
-    eDPadRight = 0x2000,
-    eDPadDown = 0x4000,
-    eDPadLeft = 0x8000,
-    eTriangle = 0x10,
-    eCircle = 0x20,
-    eCross = 0x40,
-    eSquare = 0x80,
-    eEnd = 0x8000, // Ends demo, probably maps to start button or something
+    eL2 =           1 << 0,
+    eR2 =           1 << 1,
+    eL1 =           1 << 2,
+    eR1 =           1 << 3,
+    eTriangle =     1 << 4,
+    eCircle =       1 << 5,
+    eCross =        1 << 6,
+    eSquare =       1 << 7,
+    eSelect =       1 << 8,
+    // As seen in LibEtc.h of PSYQ.. don't think these can ever be used.
+    // PADi 9 ?
+    // PADj 10 ?
+    eStart =        1 << 11,
+    eDPadUp =       1 << 12,
+    eDPadRight =    1 << 13,
+    eDPadDown =     1 << 14,
+    eDPadLeft =     1 << 15,
 };
 
-enum RawInputBits : u32
+enum InputCommands : u32
 {
-    eUp = 0x1,
-    eDown = 0x2,
-    eLeft = 0x4,
-    eRight = 0x8,
-    eRun = 0x10,
-    eDoAction = 0x20, // Pick up rock, pull lever etc
-    eSneak = 0x40,
-    eThrowItem = 0x80, // Or I say I dunno if no items
-    eHop = 0x100,
-    eFart = 0x200,
-    eHello = 0x400,
-    eFollowMe = 0x800,
-    eWait = 0x1000,
-    eWork = 0x2000,
-    eAnger = 0x4000,
-    eAllYa = 0x8000,
-    eChant = 0x40000,
-    eStopIt = 0x20000,
-    eSorry = 0x10000,
-
-    // Don't think its possible to have these in a demo command
-    // 0x80000 = pause
-    // 0x100000 = unpause
-    // 0x400000 = tab/ddcheat
-
-    // 0x200000 = nothing
-    // 0x800000 = nothing
-    // 0x1000000 = nothing
-    // 0x2000000 = nothing
-    // 0x4000000 = nothing
-    // 0x8000000 = nothing
-    // 0x10000000 = nothing
-    // 0x20000000 = nothing
-    // 0x40000000 = nothing
-    // 0x80000000 = nothing
+    eUp =           1 << 0,
+    eDown =         1 << 1,
+    eLeft =         1 << 2,
+    eRight =        1 << 3,
+    eRun =          1 << 4,
+    eDoAction =     1 << 5, // Pick up rock, pull lever etc
+    eSneak =        1 << 6,
+    eThrowItem =    1 << 7, // Or I say I dunno if no items
+    eHop =          1 << 8,
+    eFart =         1 << 9,
+    eHello =        1 << 10,
+    eFollowMe =     1 << 11,
+    eWait =         1 << 12,
+    eWork =         1 << 13,
+    eAnger =        1 << 14,
+    eAllYa =        1 << 15,
+    eSorry =        1 << 16,
+    eStopIt =       1 << 17,
+    eChant =        1 << 18,
+    ePause =        1 << 19,
+    eUnPause =      1 << 20,
+    // 0x200000     = nothing
+    eCheatMode =    1 << 22,
+    // 0x800000     = nothing
+    // 0x1000000    = nothing
+    // 0x2000000    = nothing
+    // 0x4000000    = nothing
+    // 0x8000000    = nothing
+    // 0x10000000   = nothing
+    // 0x20000000   = nothing
+    // 0x40000000   = nothing
+    // 0x80000000   = nothing
 };
 
 WORD Raw_To_InputCommand(DWORD cmd);
@@ -160,6 +161,13 @@ void UpdateRecording(InputObject& input)
     {
         if (!sSaveCreated)
         {
+            if (gnFrame_dword_5C1B84 == ePause ||
+                gnFrame_dword_5C1B84 == eUnPause ||
+                gnFrame_dword_5C1B84 == eCheatMode)
+            {
+                LOG_INFO("haxed");
+            }
+    
             // Create matching save
             std::vector<BYTE> buffer(8192);
             j_Save_restore_4C91A0(buffer.data());
@@ -187,89 +195,89 @@ WORD Raw_To_InputCommand(DWORD cmd)
 {
     WORD ret = 0;
 
-    if (cmd & RawInputBits::eChant)
+    if (cmd & InputCommands::eChant)
     {
         // Can be any combo of the 4 shoulder buttons, these 2 are chosen arbitrary.
-        return DemoCommandBits::eL1 | DemoCommandBits::eR1;
+        return PsxButtonBits::eL1 | PsxButtonBits::eR1;
     }
 
-    if (cmd & RawInputBits::eUp)
+    if (cmd & InputCommands::eUp)
     {
-        ret |= DemoCommandBits::eDPadUp;
+        ret |= PsxButtonBits::eDPadUp;
     }
 
-    if (cmd & RawInputBits::eDown)
+    if (cmd & InputCommands::eDown)
     {
-        ret |= DemoCommandBits::eDPadDown;
+        ret |= PsxButtonBits::eDPadDown;
     }
 
-    if (cmd & RawInputBits::eLeft)
+    if (cmd & InputCommands::eLeft)
     {
-        ret |= DemoCommandBits::eDPadLeft;
+        ret |= PsxButtonBits::eDPadLeft;
     }
 
-    if (cmd & RawInputBits::eRight)
+    if (cmd & InputCommands::eRight)
     {
-        ret |= DemoCommandBits::eDPadRight;
+        ret |= PsxButtonBits::eDPadRight;
     }
 
-    if (cmd & RawInputBits::eRun)
+    if (cmd & InputCommands::eRun)
     {
-        ret |= DemoCommandBits::eR1;
+        ret |= PsxButtonBits::eR1;
     }
 
-    if (cmd & RawInputBits::eSneak)
+    if (cmd & InputCommands::eSneak)
     {
-        ret |= DemoCommandBits::eR2;
+        ret |= PsxButtonBits::eR2;
     }
 
-    if (cmd & RawInputBits::eHello)
+    if (cmd & InputCommands::eHello)
     {
-        ret |= DemoCommandBits::eL1 | DemoCommandBits::eTriangle;
+        ret |= PsxButtonBits::eL1 | PsxButtonBits::eTriangle;
     }
-    else if (cmd & RawInputBits::eWork)
+    else if (cmd & InputCommands::eWork)
     {
-        ret |= DemoCommandBits::eL1 | DemoCommandBits::eCircle;
+        ret |= PsxButtonBits::eL1 | PsxButtonBits::eCircle;
     }
-    else if (cmd & RawInputBits::eWait)
+    else if (cmd & InputCommands::eWait)
     {
-        ret |= DemoCommandBits::eL1 | DemoCommandBits::eCross;
+        ret |= PsxButtonBits::eL1 | PsxButtonBits::eCross;
     }
-    else if (cmd & RawInputBits::eFollowMe)
+    else if (cmd & InputCommands::eFollowMe)
     {
-        ret |= DemoCommandBits::eL1 | DemoCommandBits::eSquare;
+        ret |= PsxButtonBits::eL1 | PsxButtonBits::eSquare;
     }
-    else if (cmd & RawInputBits::eAllYa)
+    else if (cmd & InputCommands::eAllYa)
     {
-        ret |= DemoCommandBits::eL2 | DemoCommandBits::eTriangle;
+        ret |= PsxButtonBits::eL2 | PsxButtonBits::eTriangle;
     }
-    else if (cmd & RawInputBits::eSorry)
+    else if (cmd & InputCommands::eSorry)
     {
-        ret |= DemoCommandBits::eL2 | DemoCommandBits::eCircle;
+        ret |= PsxButtonBits::eL2 | PsxButtonBits::eCircle;
     }
-    else if (cmd & RawInputBits::eAnger)
+    else if (cmd & InputCommands::eAnger)
     {
-        ret |= DemoCommandBits::eL2 | DemoCommandBits::eCross;
+        ret |= PsxButtonBits::eL2 | PsxButtonBits::eCross;
     }
-    else if (cmd & RawInputBits::eStopIt)
+    else if (cmd & InputCommands::eStopIt)
     {
-        ret |= DemoCommandBits::eL2 | DemoCommandBits::eSquare;
+        ret |= PsxButtonBits::eL2 | PsxButtonBits::eSquare;
     }
-    else if (cmd & RawInputBits::eHop)
+    else if (cmd & InputCommands::eHop)
     {
-        ret |= DemoCommandBits::eTriangle;
+        ret |= PsxButtonBits::eTriangle;
     }
-    else if (cmd & RawInputBits::eThrowItem)
+    else if (cmd & InputCommands::eThrowItem)
     {
-        ret |= DemoCommandBits::eCircle;
+        ret |= PsxButtonBits::eCircle;
     }
-    else if (cmd & RawInputBits::eFart)
+    else if (cmd & InputCommands::eFart)
     {
-        ret |= DemoCommandBits::eCross;
+        ret |= PsxButtonBits::eCross;
     }
-    else if (cmd & RawInputBits::eDoAction)
+    else if (cmd & InputCommands::eDoAction)
     {
-        ret |= DemoCommandBits::eSquare;
+        ret |= PsxButtonBits::eSquare;
     }
 
     return ret;
@@ -279,126 +287,126 @@ DWORD __cdecl Input_Command_To_Raw_404354(DWORD cmd)
 {
     unsigned int shoulderButtonsPressedCount = 0;
 
-    if (cmd & DemoCommandBits::eL2)
+    if (cmd & PsxButtonBits::eL2)
     {
         ++shoulderButtonsPressedCount;
     }
 
-    if (cmd & DemoCommandBits::eR2)
+    if (cmd & PsxButtonBits::eR2)
     {
         ++shoulderButtonsPressedCount;
     }
 
-    if (cmd & DemoCommandBits::eL1)
+    if (cmd & PsxButtonBits::eL1)
     {
         ++shoulderButtonsPressedCount;
     }
 
-    if (cmd & DemoCommandBits::eR1)
+    if (cmd & PsxButtonBits::eR1)
     {
         ++shoulderButtonsPressedCount;
     }
 
     if (shoulderButtonsPressedCount > 1) // Any 2 shoulder button combo = chanting
     {
-        return RawInputBits::eChant;
+        return InputCommands::eChant;
     }
 
     DWORD rawInput = 0;
-    if (cmd & DemoCommandBits::eDPadUp)
+    if (cmd & PsxButtonBits::eDPadUp)
     {
-        rawInput |= RawInputBits::eUp;
+        rawInput |= InputCommands::eUp;
     }
 
-    if (cmd & DemoCommandBits::eDPadRight)
+    if (cmd & PsxButtonBits::eDPadRight)
     {
-        rawInput |= RawInputBits::eRight;
+        rawInput |= InputCommands::eRight;
     }
 
-    if (cmd & DemoCommandBits::eDPadDown)
+    if (cmd & PsxButtonBits::eDPadDown)
     {
-        rawInput |= RawInputBits::eDown;
+        rawInput |= InputCommands::eDown;
     }
 
     if (cmd & eDPadLeft)
     {
-        rawInput |= RawInputBits::eLeft;
+        rawInput |= InputCommands::eLeft;
     }
 
-    if (cmd & DemoCommandBits::eR1)
+    if (cmd & PsxButtonBits::eR1)
     {
-        rawInput |= RawInputBits::eRun;
+        rawInput |= InputCommands::eRun;
     }
 
-    if (cmd & DemoCommandBits::eR2)
+    if (cmd & PsxButtonBits::eR2)
     {
-        rawInput |= RawInputBits::eSneak;
+        rawInput |= InputCommands::eSneak;
     }
 
-    if (cmd & DemoCommandBits::eL1)
+    if (cmd & PsxButtonBits::eL1)
     {
-        if (cmd & DemoCommandBits::eTriangle)
+        if (cmd & PsxButtonBits::eTriangle)
         {
-            rawInput |= RawInputBits::eHello;
+            rawInput |= InputCommands::eHello;
         }
 
-        if (cmd & DemoCommandBits::eCircle)
+        if (cmd & PsxButtonBits::eCircle)
         {
-            rawInput |= RawInputBits::eWork;
+            rawInput |= InputCommands::eWork;
         }
 
-        if (cmd & DemoCommandBits::eCross)
+        if (cmd & PsxButtonBits::eCross)
         {
-            rawInput |= RawInputBits::eWait;
+            rawInput |= InputCommands::eWait;
         }
 
-        if (cmd & DemoCommandBits::eSquare)
+        if (cmd & PsxButtonBits::eSquare)
         {
-            rawInput |= RawInputBits::eFollowMe;
+            rawInput |= InputCommands::eFollowMe;
         }
     }
-    else if (cmd & DemoCommandBits::eL2)
+    else if (cmd & PsxButtonBits::eL2)
     {
-        if (cmd & DemoCommandBits::eTriangle)
+        if (cmd & PsxButtonBits::eTriangle)
         {
-            rawInput |= RawInputBits::eAllYa;
+            rawInput |= InputCommands::eAllYa;
         }
 
-        if (cmd & DemoCommandBits::eCircle)
+        if (cmd & PsxButtonBits::eCircle)
         {
-            rawInput |= RawInputBits::eSorry;
+            rawInput |= InputCommands::eSorry;
         }
 
-        if (cmd & DemoCommandBits::eCross)
+        if (cmd & PsxButtonBits::eCross)
         {
-            rawInput |= RawInputBits::eAnger;
+            rawInput |= InputCommands::eAnger;
         }
 
-        if (cmd & DemoCommandBits::eSquare)
+        if (cmd & PsxButtonBits::eSquare)
         {
-            rawInput |= RawInputBits::eStopIt;
+            rawInput |= InputCommands::eStopIt;
         }
     }
     else // No shoulder buttons
     {
-        if (cmd & DemoCommandBits::eTriangle)
+        if (cmd & PsxButtonBits::eTriangle)
         {
-            rawInput |= RawInputBits::eHop;
+            rawInput |= InputCommands::eHop;
         }
 
-        if (cmd & DemoCommandBits::eCircle)
+        if (cmd & PsxButtonBits::eCircle)
         {
-            rawInput |= RawInputBits::eThrowItem;
+            rawInput |= InputCommands::eThrowItem;
         }
 
-        if (cmd & DemoCommandBits::eCross)
+        if (cmd & PsxButtonBits::eCross)
         {
-            rawInput |= RawInputBits::eFart;
+            rawInput |= InputCommands::eFart;
         }
 
-        if (cmd & DemoCommandBits::eSquare)
+        if (cmd & PsxButtonBits::eSquare)
         {
-            rawInput |= RawInputBits::eDoAction;
+            rawInput |= InputCommands::eDoAction;
         }
     }
 
@@ -467,7 +475,7 @@ static char UpdateImpl(InputObject* pThis)
             pThis->field_40_command_duration = gnFrame_dword_5C1B84 + command & 0xFFFF;
 
             // End demo/quit command
-            if (command & eEnd)
+            if (command & 0x8000)
             {
                 pThis->field_38_bDemoPlaying &= 0xFFFE;
             }
