@@ -151,6 +151,8 @@ enum RawInputBits : u32
 
 WORD Raw_To_InputCommand(DWORD cmd);
 
+ALIVE_FUNC_NOT_IMPL(0x0, 0x4C91A0, void* __cdecl(void*), j_Save_restore_4C91A0);
+
 void UpdateRecording(InputObject& input)
 {
     // Has the input state changed?
@@ -158,7 +160,14 @@ void UpdateRecording(InputObject& input)
     {
         if (!sSaveCreated)
         {
-            // TODO: Create matching save
+            // Create matching save
+            std::vector<BYTE> buffer(8192);
+            j_Save_restore_4C91A0(buffer.data());
+
+            Oddlib::FileStream fs(sSaveName, Oddlib::IStream::ReadMode::ReadWrite);
+            fs.Write(buffer);
+            LOG_INFO("Wrote save  to " << sSaveName);
+
             sSaveCreated = true;
         }
 
