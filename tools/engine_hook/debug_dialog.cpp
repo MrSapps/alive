@@ -156,7 +156,7 @@ BOOL DebugDialog::CreateControls()
         mRecording = !mRecording;
         if (mRecording)
         {
-            StartDemoRecording();
+            StartDemoRecording(mDemoPathTextBox->GetText());
             mRecordStopButton->SetText("Stop recording");
         }
         else

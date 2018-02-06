@@ -20,33 +20,20 @@ static DWORD sRecBufferPos = 0;
 static DWORD gLastFrame = 0;
 static DWORD gLastPressed = 0;
 static DWORD gLastReleased = 0;
+static DWORD sLastCommand = 0;
+static bool sSaveCreated = false;
+static std::string sSaveName;
 
-void StartDemoRecording()
+void StartDemoRecording(const std::string& fileName)
 {
+    sSaveName = fileName + ".SAV";
     sRecording = true;
     sRecBufferPos = 0;
+    sLastCommand = 0;
     sRecBuffer.clear();
     sRecBuffer.reserve(1024 * 8);
+    sSaveCreated = false;
     gLastFrame = gnFrame_dword_5C1B84;
-}
-
-void UpdateRecording(InputObject& input)
-{
-    //input.field_3C_command = (command << 16);
-    //input.field_40_command_duration = gnFrame_dword_5C1B84 + command & 0xFFFF;
-    
-    // Has the input state changed?
-    if (gLastPressed != input.field_0_pads[0].field_0_pressed || gLastReleased != input.field_0_pads[0].field_10_released)
-    {
-        // Input value to command value..
-        LOG_INFO("Input state changed");
-
-        // Update last values
-        gLastPressed = input.field_0_pads[0].field_0_pressed;
-        gLastReleased = input.field_0_pads[0].field_10_released;
-        gLastFrame = gnFrame_dword_5C1B84;
-        sRecBufferPos++;
-    }
 }
 
 void EndDemoRecording(const std::string& fileName)
@@ -54,9 +41,16 @@ void EndDemoRecording(const std::string& fileName)
     sRecording = false;
     if (!sRecBuffer.empty() && !fileName.empty())
     {
-        Oddlib::FileStream fs(fileName, Oddlib::IStream::ReadMode::ReadWrite);
+        sRecBuffer.push_back(0x8000);
+        std::string fileNameToUse = fileName;
+        if (!string_util::ends_with(fileNameToUse, ".JOY", true))
+        {
+            fileNameToUse += ".JOY";
+        }
+
+        Oddlib::FileStream fs(fileNameToUse, Oddlib::IStream::ReadMode::ReadWrite);
         fs.Write(sRecBuffer);
-        LOG_INFO("Wrote demo JOY (no header) to " << fileName);
+        LOG_INFO("Wrote demo JOY (no header) to " << fileNameToUse);
     }
 }
 
@@ -154,6 +148,31 @@ enum RawInputBits : u32
     // 0x40000000 = nothing
     // 0x80000000 = nothing
 };
+
+WORD Raw_To_InputCommand(DWORD cmd);
+
+void UpdateRecording(InputObject& input)
+{
+    // Has the input state changed?
+   // if (gLastPressed != input.field_0_pads[0].field_0_pressed /*|| gLastReleased != input.field_0_pads[0].field_10_released*/)
+    {
+        if (!sSaveCreated)
+        {
+            // TODO: Create matching save
+            sSaveCreated = true;
+        }
+
+        // HACK: Simply record all input changes, write out 1 input change per frame
+        sLastCommand = ((WORD)1) | ((DWORD)Raw_To_InputCommand(input.field_0_pads[0].field_0_pressed) << 16);
+        sRecBuffer.push_back(sLastCommand);
+
+        // Update last values
+        gLastPressed = input.field_0_pads[0].field_0_pressed;
+
+        gLastFrame = gnFrame_dword_5C1B84;
+        sRecBufferPos++;
+    }
+}
 
 WORD Raw_To_InputCommand(DWORD cmd)
 {
