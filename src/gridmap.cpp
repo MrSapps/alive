@@ -1021,21 +1021,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                     ReadU16(ms); //PlaymovieId
                     ReadU16(ms); //MovieId
                     entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
-                    
-                    switch (glukkonType)
-                    {
-                        case GlukkonTypesAe::eNormal1:
-                        {
-                            entity->GetComponent<AnimationComponent>()->Change("GLUKKON.BND_800_AePc_1");
-                            break;
-                        }
-
-                        case GlukkonTypesAe::eDripik:
-                        {
-                            entity->GetComponent<AnimationComponent>()->Change("DRIPIK.BND_804_AePc_1");
-                            break;
-                        }
-                    }
+                    entity->GetComponent<AnimationComponent>()->Change("GLUKKON.BND_800_AePc_1");
                     
                     break;
                 }
