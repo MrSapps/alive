@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iomanip>
 #include "string_util.hpp"
+#include "input.hpp"
 
 void DemoHooksForceLink() {} 
 ALIVE_VAR(0x0, 0x5C1B84, DWORD, gnFrame_dword_5C1B84);
@@ -93,63 +94,6 @@ ALIVE_VAR(0x0, 0x5C1B9A, WORD, word_5C1B9A);
 ALIVE_VAR(0x0, 0x5C3030, DWORD, gLevelObject_dword_5C3030); // Actually a class instance pointer or global object
 ALIVE_FUNC_NOT_IMPL(0x0, 0x4047E1, signed __int16 __fastcall(void* pThis, void*, __int16 a1, __int16 a2, __int16 a3, __int16 a4, __int16 a5, __int16 a6), MapChange_4047E1);
 
-enum PsxButtonBits : u32
-{
-    eL2 =           1 << 0,
-    eR2 =           1 << 1,
-    eL1 =           1 << 2,
-    eR1 =           1 << 3,
-    eTriangle =     1 << 4,
-    eCircle =       1 << 5,
-    eCross =        1 << 6,
-    eSquare =       1 << 7,
-    eSelect =       1 << 8,
-    // As seen in LibEtc.h of PSYQ.. don't think these can ever be used.
-    // PADi 9 ?
-    // PADj 10 ?
-    eStart =        1 << 11,
-    eDPadUp =       1 << 12,
-    eDPadRight =    1 << 13,
-    eDPadDown =     1 << 14,
-    eDPadLeft =     1 << 15,
-};
-
-enum InputCommands : u32
-{
-    eUp =           1 << 0,
-    eDown =         1 << 1,
-    eLeft =         1 << 2,
-    eRight =        1 << 3,
-    eRun =          1 << 4,
-    eDoAction =     1 << 5, // Pick up rock, pull lever etc
-    eSneak =        1 << 6,
-    eThrowItem =    1 << 7, // Or I say I dunno if no items
-    eHop =          1 << 8,
-    eFart =         1 << 9,
-    eHello =        1 << 10,
-    eFollowMe =     1 << 11,
-    eWait =         1 << 12,
-    eWork =         1 << 13,
-    eAnger =        1 << 14,
-    eAllYa =        1 << 15,
-    eSorry =        1 << 16,
-    eStopIt =       1 << 17,
-    eChant =        1 << 18,
-    ePause =        1 << 19,
-    eUnPause =      1 << 20,
-    // 0x200000     = nothing
-    eCheatMode =    1 << 22,
-    // 0x800000     = nothing
-    // 0x1000000    = nothing
-    // 0x2000000    = nothing
-    // 0x4000000    = nothing
-    // 0x8000000    = nothing
-    // 0x10000000   = nothing
-    // 0x20000000   = nothing
-    // 0x40000000   = nothing
-    // 0x80000000   = nothing
-};
-
 WORD Raw_To_InputCommand(DWORD cmd);
 
 ALIVE_FUNC_NOT_IMPL(0x0, 0x4C91A0, void* __cdecl(void*), j_Save_restore_4C91A0);
@@ -231,35 +175,35 @@ WORD Raw_To_InputCommand(DWORD cmd)
         ret |= PsxButtonBits::eR2;
     }
 
-    if (cmd & InputCommands::eHello)
+    if (cmd & InputCommands::eGameSpeak1)
     {
         ret |= PsxButtonBits::eL1 | PsxButtonBits::eTriangle;
     }
-    else if (cmd & InputCommands::eWork)
+    else if (cmd & InputCommands::eGameSpeak4)
     {
         ret |= PsxButtonBits::eL1 | PsxButtonBits::eCircle;
     }
-    else if (cmd & InputCommands::eWait)
+    else if (cmd & InputCommands::eGameSpeak3)
     {
         ret |= PsxButtonBits::eL1 | PsxButtonBits::eCross;
     }
-    else if (cmd & InputCommands::eFollowMe)
+    else if (cmd & InputCommands::eGameSpeak2)
     {
         ret |= PsxButtonBits::eL1 | PsxButtonBits::eSquare;
     }
-    else if (cmd & InputCommands::eAllYa)
+    else if (cmd & InputCommands::eGameSpeak6)
     {
         ret |= PsxButtonBits::eL2 | PsxButtonBits::eTriangle;
     }
-    else if (cmd & InputCommands::eSorry)
+    else if (cmd & InputCommands::eGameSpeak7)
     {
         ret |= PsxButtonBits::eL2 | PsxButtonBits::eCircle;
     }
-    else if (cmd & InputCommands::eAnger)
+    else if (cmd & InputCommands::eGameSpeak5)
     {
         ret |= PsxButtonBits::eL2 | PsxButtonBits::eCross;
     }
-    else if (cmd & InputCommands::eStopIt)
+    else if (cmd & InputCommands::eGameSpeak8)
     {
         ret |= PsxButtonBits::eL2 | PsxButtonBits::eSquare;
     }
@@ -271,7 +215,7 @@ WORD Raw_To_InputCommand(DWORD cmd)
     {
         ret |= PsxButtonBits::eCircle;
     }
-    else if (cmd & InputCommands::eFart)
+    else if (cmd & InputCommands::eFartOrRoll)
     {
         ret |= PsxButtonBits::eCross;
     }
@@ -347,44 +291,44 @@ DWORD __cdecl Input_Command_To_Raw_404354(DWORD cmd)
     {
         if (cmd & PsxButtonBits::eTriangle)
         {
-            rawInput |= InputCommands::eHello;
+            rawInput |= InputCommands::eGameSpeak1;
         }
 
         if (cmd & PsxButtonBits::eCircle)
         {
-            rawInput |= InputCommands::eWork;
+            rawInput |= InputCommands::eGameSpeak4;
         }
 
         if (cmd & PsxButtonBits::eCross)
         {
-            rawInput |= InputCommands::eWait;
+            rawInput |= InputCommands::eGameSpeak3;
         }
 
         if (cmd & PsxButtonBits::eSquare)
         {
-            rawInput |= InputCommands::eFollowMe;
+            rawInput |= InputCommands::eGameSpeak2;
         }
     }
     else if (cmd & PsxButtonBits::eL2)
     {
         if (cmd & PsxButtonBits::eTriangle)
         {
-            rawInput |= InputCommands::eAllYa;
+            rawInput |= InputCommands::eGameSpeak6;
         }
 
         if (cmd & PsxButtonBits::eCircle)
         {
-            rawInput |= InputCommands::eSorry;
+            rawInput |= InputCommands::eGameSpeak7;
         }
 
         if (cmd & PsxButtonBits::eCross)
         {
-            rawInput |= InputCommands::eAnger;
+            rawInput |= InputCommands::eGameSpeak5;
         }
 
         if (cmd & PsxButtonBits::eSquare)
         {
-            rawInput |= InputCommands::eStopIt;
+            rawInput |= InputCommands::eGameSpeak8;
         }
     }
     else // No shoulder buttons
@@ -401,7 +345,7 @@ DWORD __cdecl Input_Command_To_Raw_404354(DWORD cmd)
 
         if (cmd & PsxButtonBits::eCross)
         {
-            rawInput |= InputCommands::eFart;
+            rawInput |= InputCommands::eFartOrRoll;
         }
 
         if (cmd & PsxButtonBits::eSquare)
