@@ -20,7 +20,7 @@ GameMode::GameMode(WorldState& mapState)
 
 }
 
-void GameMode::UpdateMenu(const InputState& /*input*/, CoordinateSpace& /*coords*/)
+void GameMode::UpdateMenu(const InputReader& /*input*/, CoordinateSpace& /*coords*/)
 {
     const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
     switch (mMenuState)
@@ -52,7 +52,7 @@ void GameMode::UpdateMenu(const InputState& /*input*/, CoordinateSpace& /*coords
 
 }
 
-void GameMode::Update(const InputState& input, CoordinateSpace& coords)
+void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
 {
 	const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
 
@@ -67,7 +67,7 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
 
     if (mState == eRunning)
     {
-        if (input.mKeys[SDL_SCANCODE_ESCAPE].IsPressed())
+        if (input.mKeyboardKeysPressed[SDL_SCANCODE_ESCAPE])
         {
             // TODO: Stop or pause music? Check what real game does
             mState = ePaused;
@@ -75,13 +75,13 @@ void GameMode::Update(const InputState& input, CoordinateSpace& coords)
     }
     else if (mState == ePaused)
     {
-        if (input.mKeys[SDL_SCANCODE_ESCAPE].IsPressed())
+        if (input.mKeyboardKeysPressed[SDL_SCANCODE_ESCAPE])
         {
             mState = eRunning;
         }
     }
 
-    if (input.mKeys[SDL_SCANCODE_E].IsPressed() && mState != ePaused)
+    if (input.mKeyboardKeysPressed[SDL_SCANCODE_E] && mState != ePaused)
     {
         mWorldState.mState = WorldState::States::eToEditor;
         coords.mSmoothCameraPosition = true;

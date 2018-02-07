@@ -9,14 +9,11 @@ public:
     DECLARE_SYSTEM(InputSystem);
 
 public:
-    explicit InputSystem(const InputState& state);
+    explicit InputSystem(InputReader& state);
 
 public:
     void Update() final;
-
-public:
-    const Actions* GetActions() const;
-
+    const InputMapping& Mapping() const;
 private:
-    const Actions* mActions = nullptr;
+    InputReader& mInput;
 };

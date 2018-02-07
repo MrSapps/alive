@@ -47,7 +47,7 @@ struct Debug
     };
     MapObjectInfo mInfo = {};
 
-    class InputState* mInput = nullptr;
+    class InputReader* mInput = nullptr;
 
     std::function<void()> mFnReloadPath;
     std::function<void()> mFnNextPath;
@@ -55,7 +55,7 @@ struct Debug
     std::function<void()> mFnQuickSave;
     std::function<void()> mFnQuickLoad;
 
-    void Update(const class InputState& input);
+    void Update(const class InputReader& input);
     void Render(class AbstractRenderer& renderer);
 
     void AddSection(std::function<void()> fnSection)

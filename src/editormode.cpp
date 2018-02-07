@@ -335,7 +335,7 @@ EditorMode::EditorMode(WorldState& mapState)
 
 }
 
-void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
+void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 {
     const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
     bool menuItemHandled = false;
@@ -421,7 +421,7 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
 
     const glm::vec2 mousePosWorld = coords.ScreenToWorld({ input.mMousePosition.mX, input.mMousePosition.mY });
 
-    if (input.mKeys[SDL_SCANCODE_E].IsPressed())
+    if (input.mKeyboardKeysPressed[SDL_SCANCODE_E])
     {
         mWorldState.mState = WorldState::States::eToGame;
         coords.mSmoothCameraPosition = true;
@@ -440,18 +440,18 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
     }
 
     bool bGoFaster = false;
-    if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
+    if (input.mKeyboardKeysPressed[SDL_SCANCODE_LCTRL])
     {
-        if (input.mKeys[SDL_SCANCODE_W].IsPressed())
+        if (input.mKeyboardKeysPressed[SDL_SCANCODE_W])
         { mEditorCamZoom -= 0.1f; }
-        else if (input.mKeys[SDL_SCANCODE_S].IsPressed())
+        else if (input.mKeyboardKeysPressed[SDL_SCANCODE_S])
         { mEditorCamZoom += 0.1f; }
 
         mEditorCamZoom = glm::clamp(mEditorCamZoom, 0.1f, 3.0f);
     }
     else
     {
-        if (input.mKeys[SDL_SCANCODE_LSHIFT].IsDown())
+        if (input.mKeyboardKeysPressed[SDL_SCANCODE_LSHIFT])
         { bGoFaster = true; }
 
         f32 editorCamSpeed = 10.0f * mEditorCamZoom;
@@ -460,14 +460,14 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
             editorCamSpeed *= 4.0f;
         }
 
-        if (input.mKeys[SDL_SCANCODE_W].IsDown())
+        if (input.mKeyboardKeysPressed[SDL_SCANCODE_W])
         { cameraSystem->mCameraPosition.y -= editorCamSpeed; }
-        else if (input.mKeys[SDL_SCANCODE_S].IsDown())
+        else if (input.mKeyboardKeysPressed[SDL_SCANCODE_S])
         { cameraSystem->mCameraPosition.y += editorCamSpeed; }
 
-        if (input.mKeys[SDL_SCANCODE_A].IsDown())
+        if (input.mKeyboardKeysPressed[SDL_SCANCODE_A])
         { cameraSystem->mCameraPosition.x -= editorCamSpeed; }
-        else if (input.mKeys[SDL_SCANCODE_D].IsDown())
+        else if (input.mKeyboardKeysPressed[SDL_SCANCODE_D])
         { cameraSystem->mCameraPosition.x += editorCamSpeed; }
     }
 
@@ -489,24 +489,24 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
     }
     */
 
-    if (input.mMouseButtons[0].IsReleased())
+    if (!input.mMouseButtonsPressed[0])
     {
         mSelectionState = eSelectionState::eNone;
     }
 
-    if (input.mKeys[SDL_SCANCODE_LCTRL].IsDown())
+    if (input.mKeyboardKeysPressed[SDL_SCANCODE_LCTRL])
     {
-        if (input.mKeys[SDL_SCANCODE_Z].IsPressed())
+        if (input.mKeyboardKeysPressed[SDL_SCANCODE_Z])
         {
             mUndoStack.Undo();
         }
-        else if (input.mKeys[SDL_SCANCODE_Y].IsPressed())
+        else if (input.mKeyboardKeysPressed[SDL_SCANCODE_Y])
         {
             mUndoStack.Redo();
         }
     }
 
-    if (input.mMouseButtons[0].IsPressed())
+    if (input.mMouseButtonsPressed[0])
     {
         mMergeCommand = false; // New mouse press/selection, start a new undo command
         // TODO: Wire CollisionSystem here
@@ -585,7 +585,7 @@ void EditorMode::Update(const InputState& input, CoordinateSpace& coords)
         }
         */
     }
-    else if (input.mMouseButtons[0].IsDown() && mSelectionState != eSelectionState::eNone && mLastMousePos != mousePosWorld)
+    else if (input.mMouseButtonsPressed[0] && mSelectionState != eSelectionState::eNone && mLastMousePos != mousePosWorld)
     {
         // TODO: Update mouse cursor to reflect action
         switch (mSelectionState)

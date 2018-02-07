@@ -25,14 +25,14 @@ Debug::Debug()
     strcpy(mSubtitle, "Subtitle test");
 }
 
-void Debug::Update(const InputState& input)
+void Debug::Update(const InputReader& input)
 {
-    if (input.mKeys[SDL_SCANCODE_F1].IsPressed())
+    if (input.mKeyboardKeysPressed[SDL_SCANCODE_F1])
     {
         mShowDebugUi = !mShowDebugUi;
     }
 
-    if (input.ActiveController() && input.ActiveController()->mGamePadButtons[SDL_CONTROLLER_BUTTON_GUIDE].IsPressed())
+    if (input.ActiveController() && input.ActiveController()->mGamePadButtonsPressed[SDL_CONTROLLER_BUTTON_GUIDE])
     {
         mFnNextPath();
     }

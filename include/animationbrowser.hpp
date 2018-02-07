@@ -12,7 +12,7 @@ public:
     AnimationBrowser(ResourceLocator& resMapper);
 
     void Render(AbstractRenderer& renderer);
-    void Update(const InputState& input, CoordinateSpace& coords);
+    void Update(const InputReader& input, CoordinateSpace& coords);
 private:
     void RenderAnimationSelector(CoordinateSpace& coords);
 

@@ -8,7 +8,7 @@
 #include "debug.hpp"
 #include "resourcemapper.hpp"
 
-void AnimationBrowser::Update(const InputState& input, CoordinateSpace& coords)
+void AnimationBrowser::Update(const InputReader& input, CoordinateSpace& coords)
 {
     if (Debugging().mBrowserUi.animationBrowserOpen)
     {
@@ -23,7 +23,7 @@ void AnimationBrowser::Update(const InputState& input, CoordinateSpace& coords)
     const glm::vec2 mouseWorldPos = coords.ScreenToWorld(glm::vec2(input.mMousePosition.mX, input.mMousePosition.mY));
 
     // Set the "selected" animation
-    if (!mSelected && input.mMouseButtons[0].IsPressed())
+    if (!mSelected && input.mMouseButtonsPressed[0])
     {
         for (auto& anim : mLoadedAnims)
         {
@@ -38,20 +38,20 @@ void AnimationBrowser::Update(const InputState& input, CoordinateSpace& coords)
     }
 
     // Move the "selected" animation
-    if (mSelected && input.mMouseButtons[0].IsDown())
+    if (mSelected && input.mMouseButtonsPressed[0])
     {
         LOG_INFO("Move selected to " << mouseWorldPos.x+ mXDelta << "," << mouseWorldPos.y+ mYDelta);
         mSelected->SetXPos(static_cast<s32>(mouseWorldPos.x+ mXDelta));
         mSelected->SetYPos(static_cast<s32>(mouseWorldPos.y+ mYDelta));
     }
 
-    if (input.mMouseButtons[0].IsReleased())
+    if (!input.mMouseButtonsPressed[0])
     {
         mSelected = nullptr;
     }
 
     // When the right button is released delete the "selected" animation
-    if (input.mMouseButtons[1].IsPressed())
+    if (input.mMouseButtonsPressed[1])
     {
         for (auto it = mLoadedAnims.begin(); it != mLoadedAnims.end(); it++)
         {

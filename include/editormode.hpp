@@ -138,7 +138,7 @@ public:
     eMouseCursor mMouseCursor = eMouseCursor::eArrow;
     */
 public:
-    void Update(const InputState& input, CoordinateSpace& coords);
+    void Update(const InputReader& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend) const;
     void ClearUndoStack();
 

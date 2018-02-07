@@ -670,13 +670,13 @@ void PlayFmvState::Render(AbstractRenderer& renderer)
     mFmv->Render(renderer);
 }
 
-bool PlayFmvState::Update(const InputState& input)
+bool PlayFmvState::Update(const InputReader& input)
 {
     mFmv->Update();
 
     if (mFmv->IsPlaying())
     {
-        if (input.Mapping().GetActions().mIsPressed)
+        if (input.GameCommands().Pressed())
         {
             LOG_INFO("Stopping FMV due to key press");
             mFmv->Stop();

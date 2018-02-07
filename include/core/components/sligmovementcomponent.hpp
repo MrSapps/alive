@@ -115,6 +115,6 @@ public:
     void Update();
 
 private:
-    const Actions* mInputMappingActions = nullptr;
+    const InputMapping* mGameCommands = nullptr;
     SligMovementComponent* mSligMovement = nullptr;
 };

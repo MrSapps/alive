@@ -142,7 +142,7 @@ static inline bool FutureIsDone(T& future)
 
 World::World(
     Sound& sound,
-    InputState& input,
+    InputReader& input,
     LoadingIcon& loadingIcon,
     ResourceLocator& locator,
     CoordinateSpace& coords,
@@ -266,7 +266,7 @@ bool World::LoadMap(const Oddlib::Path& path)
     return mGridMap->LoadMap(path, mLocator);
 }
 
-EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
+EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
 {
     switch (mWorldState.mState)
     {
@@ -350,6 +350,9 @@ EngineStates World::Update(const InputState& input, CoordinateSpace& coords)
                 controller->Update();
                 slig->Update();
             });
+            // Input system
+            mEntityManager.GetSystem<InputSystem>()->Update();
+
             // Destroy entities
             mEntityManager.DestroyEntities();
 

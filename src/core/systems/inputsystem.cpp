@@ -2,17 +2,17 @@
 
 DEFINE_SYSTEM(InputSystem);
 
-InputSystem::InputSystem(const InputState& state) : mActions(&state.Mapping().GetActions())
+InputSystem::InputSystem(InputReader& state) : mInput(state)
 {
 
-}
-
-const Actions* InputSystem::GetActions() const
-{
-    return mActions;
 }
 
 void InputSystem::Update()
 {
+    mInput.Update();
+}
 
+const InputMapping& InputSystem::Mapping() const
+{
+    return mInput.GameCommands();
 }

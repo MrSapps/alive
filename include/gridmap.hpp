@@ -17,7 +17,7 @@
 
 class AbstractRenderer;
 class ResourceLocator;
-class InputState;
+class InputReader;
 
 namespace Oddlib
 {

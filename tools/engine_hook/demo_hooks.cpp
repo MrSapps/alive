@@ -25,6 +25,27 @@ static DWORD sLastCommand = 0;
 static bool sSaveCreated = false;
 static std::string sSaveName;
 
+enum PsxButtonBits : u32
+{
+    eL2 = 1 << 0,
+    eR2 = 1 << 1,
+    eL1 = 1 << 2,
+    eR1 = 1 << 3,
+    eTriangle = 1 << 4,
+    eCircle = 1 << 5,
+    eCross = 1 << 6,
+    eSquare = 1 << 7,
+    eSelect = 1 << 8,
+    // As seen in LibEtc.h of PSYQ.. don't think these can ever be used.
+    // PADi 9 ?
+    // PADj 10 ?
+    eStart = 1 << 11,
+    eDPadUp = 1 << 12,
+    eDPadRight = 1 << 13,
+    eDPadDown = 1 << 14,
+    eDPadLeft = 1 << 15,
+};
+
 void StartDemoRecording(const std::string& fileName)
 {
     sSaveName = fileName + ".SAV";

@@ -176,21 +176,21 @@ DEFINE_COMPONENT(SligPlayerControllerComponent);
 
 void SligPlayerControllerComponent::OnResolveDependencies()
 {
-    mInputMappingActions = mEntity->GetManager()->GetSystem<InputSystem>()->GetActions();
+    mGameCommands = &mEntity->GetManager()->GetSystem<InputSystem>()->Mapping();
     mSligMovement = mEntity->GetComponent<SligMovementComponent>();
 }
 
 void SligPlayerControllerComponent::Update()
 {
-    if (mInputMappingActions->Left(mInputMappingActions->mIsDown) && !mInputMappingActions->Right(mInputMappingActions->mIsDown))
+    if (mGameCommands->Pressed(InputCommands::eLeft) && !mGameCommands->Pressed(InputCommands::eRight))
     {
         mSligMovement->mData.mGoal = SligMovementComponent::Goal::eGoLeft;
     }
-    else if (mInputMappingActions->Right(mInputMappingActions->mIsDown) && !mInputMappingActions->Left(mInputMappingActions->mIsDown))
+    else if (mGameCommands->Pressed(InputCommands::eRight) && !mGameCommands->Pressed(InputCommands::eLeft))
     {
         mSligMovement->mData.mGoal = SligMovementComponent::Goal::eGoRight;
     }
-    else if (mInputMappingActions->Chant(mInputMappingActions->mIsDown))
+    else if (mGameCommands->Pressed(InputCommands::eChant))
     {
         mSligMovement->mData.mGoal = SligMovementComponent::Goal::eChant;
     }

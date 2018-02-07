@@ -476,8 +476,6 @@ void Engine::Update()
     mInputState.mMousePosition.mX = mouse_x;
     mInputState.mMousePosition.mY = mouse_y;
 
-    mInputState.Update();
-
     ImGui::NewFrame();
 
     UpdateImGuiMouseInput();

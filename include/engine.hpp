@@ -13,7 +13,7 @@
 #include "jobsystem.hpp"
 #include <future>
 
-class InputState;
+class InputReader;
 class ResourceLocator;
 class World;
 
@@ -100,7 +100,7 @@ protected:
 
     std::vector<GameDefinition> mGameDefinitions;
 
-    InputState mInputState;
+    InputReader mInputState;
 
     TextureHandle mGuiFontHandle = {};
     bool mTryDirectX9 = false;

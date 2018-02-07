@@ -113,7 +113,7 @@ public:
     PlayFmvState(IAudioController& audioController, ResourceLocator& locator);
     void Render(AbstractRenderer& renderer);
     void RenderDebugSubsAndFontAtlas(AbstractRenderer& renderer);
-    bool Update(const InputState& input);
+    bool Update(const InputReader& input);
 private:
     std::unique_ptr<Fmv> mFmv;
 public:

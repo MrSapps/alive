@@ -3,7 +3,7 @@
 #include "types.hpp"
 
 class WorldState;
-class InputState;
+class InputReader;
 class CoordinateSpace;
 class AbstractRenderer;
 
@@ -21,7 +21,7 @@ public:
     };
 
 public:
-    void Update(const InputState& input, CoordinateSpace& coords);
+    void Update(const InputReader& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend) const;
 
 public:
@@ -37,7 +37,7 @@ private:
     };
 
 private:
-    void UpdateMenu(const InputState& input, CoordinateSpace& coords);
+    void UpdateMenu(const InputReader& input, CoordinateSpace& coords);
 
 private:
     MenuStates mMenuState = MenuStates::eInit;

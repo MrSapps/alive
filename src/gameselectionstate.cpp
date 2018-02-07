@@ -31,7 +31,7 @@ void GameSelectionState::UpdateVisibleGameDefinitions()
     mVisibleGameDefinitions = GameDefinition::GetVisibleGameDefinitions(mGameDefinitions);
 }
 
-EngineStates GameSelectionState::Update(const InputState& /*input*/, CoordinateSpace& /*coords*/)
+EngineStates GameSelectionState::Update(const InputReader& /*input*/, CoordinateSpace& /*coords*/)
 {
     switch (mState)
     {

@@ -586,31 +586,31 @@ DEFINE_COMPONENT(AbePlayerControllerComponent);
 
 void AbePlayerControllerComponent::OnResolveDependencies()
 {
-    mInputMappingActions = mEntity->GetManager()->GetSystem<InputSystem>()->GetActions();
+    mGameCommands = &mEntity->GetManager()->GetSystem<InputSystem>()->Mapping();
     mAbeMovement = mEntity->GetComponent<AbeMovementComponent>();
 }
 
 void AbePlayerControllerComponent::Update()
 {
-    mAbeMovement->mData.mRunning = mInputMappingActions->Run(mInputMappingActions->mIsDown);
-    mAbeMovement->mData.mSneaking = mInputMappingActions->Sneak(mInputMappingActions->mIsDown);
-    if (mInputMappingActions->Left(mInputMappingActions->mIsDown) && !mInputMappingActions->Right(mInputMappingActions->mIsDown))
+    mAbeMovement->mData.mRunning = !!mGameCommands->Pressed(InputCommands::eRun);
+    mAbeMovement->mData.mSneaking = !!mGameCommands->Pressed(InputCommands::eSneak);
+    if (mGameCommands->Pressed(InputCommands::eLeft) && !mGameCommands->Pressed(InputCommands::eRight))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoLeft;
     }
-    else if (mInputMappingActions->Right(mInputMappingActions->mIsDown) && !mInputMappingActions->Left(mInputMappingActions->mIsDown))
+    else if (mGameCommands->Pressed(InputCommands::eRight) && !mGameCommands->Pressed(InputCommands::eLeft))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoRight;
     }
-    else if (mInputMappingActions->Down(mInputMappingActions->mIsDown) && !mInputMappingActions->Up(mInputMappingActions->mIsDown))
+    else if (mGameCommands->Pressed(InputCommands::eDown) && !mGameCommands->Pressed(InputCommands::eUp))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoDown;
     }
-    else if (mInputMappingActions->Up(mInputMappingActions->mIsDown) && !mInputMappingActions->Down(mInputMappingActions->mIsDown))
+    else if (mGameCommands->Pressed(InputCommands::eUp) && !mGameCommands->Pressed(InputCommands::eDown))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoUp;
     }
-    else if (mInputMappingActions->Chant(mInputMappingActions->mIsDown))
+    else if (mGameCommands->Pressed(InputCommands::eChant))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eChant;
     }

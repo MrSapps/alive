@@ -11,7 +11,7 @@ public:
             ResourceLocator& resLocator,
             IFileSystem& newFs);
     void Render(AbstractRenderer& renderer);
-    EngineStates Update(const InputState& input, CoordinateSpace& coords);
+    EngineStates Update(const InputReader& input, CoordinateSpace& coords);
     const GameDefinition& SelectedGame() const { return *mVisibleGameDefinitions[mSelectedGameDefintionIndex]; }
 private:
     void UpdateVisibleGameDefinitions();

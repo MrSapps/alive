@@ -12,7 +12,7 @@ namespace Oddlib
 }
 
 class GridMap;
-class InputState;
+class InputReader;
 class CoordinateSpace;
 class AbstractRenderer;
 class IAudioController;
@@ -79,7 +79,7 @@ class World
 public:
     World(
         Sound& sound,
-        InputState& input,
+        InputReader& input,
         LoadingIcon& loadingIcon,
         ResourceLocator& locator,
         CoordinateSpace& coords,
@@ -91,7 +91,7 @@ public:
     ~World();
 
 public:
-    EngineStates Update(const InputState& input, CoordinateSpace& coords);
+    EngineStates Update(const InputReader& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend);
 
 private:
@@ -121,7 +121,7 @@ private:
 
 private:
     Sound& mSound;
-    InputState& mInput;
+    InputReader& mInput;
     LoadingIcon& mLoadingIcon;
     ResourceLocator& mLocator;
     AbstractRenderer& mRenderer;
