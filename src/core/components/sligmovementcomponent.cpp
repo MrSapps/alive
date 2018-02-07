@@ -28,9 +28,9 @@ void SligMovementComponent::OnLoad()
 
 void SligMovementComponent::OnResolveDependencies()
 {
-    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
-    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
-    mTransformComponent = mEntity->GetComponent<TransformComponent>();
+    mPhysicsComponent = mEntity.GetComponent<PhysicsComponent>();
+    mAnimationComponent = mEntity.GetComponent<AnimationComponent>();
+    mTransformComponent = mEntity.GetComponent<TransformComponent>();
 }
 
 void SligMovementComponent::Update()
@@ -176,8 +176,8 @@ DEFINE_COMPONENT(SligPlayerControllerComponent);
 
 void SligPlayerControllerComponent::OnResolveDependencies()
 {
-    mGameCommands = &mEntity->GetManager()->GetSystem<InputSystem>()->Mapping();
-    mSligMovement = mEntity->GetComponent<SligMovementComponent>();
+    mGameCommands = &mEntity.GetManager()->GetSystem<InputSystem>()->Mapping();
+    mSligMovement = mEntity.GetComponent<SligMovementComponent>();
 }
 
 void SligPlayerControllerComponent::Update()

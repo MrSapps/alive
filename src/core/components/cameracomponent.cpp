@@ -6,5 +6,5 @@ DEFINE_COMPONENT(CameraComponent);
 
 void CameraComponent::OnLoad()
 {
-    mEntity->GetManager()->GetSystem<CameraSystem>()->mTarget = mEntity;
+    mEntity.GetManager()->GetSystem<CameraSystem>()->mTarget = mEntity;
 }

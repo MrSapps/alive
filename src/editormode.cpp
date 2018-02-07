@@ -435,7 +435,7 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 
         if (cameraSystem->mTarget)
         {
-            cameraSystem->mTarget->GetComponent<TransformComponent>()->Set(cameraSystem->mCameraPosition.x, cameraSystem->mCameraPosition.y);
+            cameraSystem->mTarget.GetComponent<TransformComponent>()->Set(cameraSystem->mCameraPosition.x, cameraSystem->mCameraPosition.y);
         }
     }
 

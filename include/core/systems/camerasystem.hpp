@@ -2,6 +2,7 @@
 
 #include "types.hpp"
 #include "core/system.hpp"
+#include "core/entity.hpp"
 
 class Entity;
 
@@ -17,7 +18,7 @@ public:
     void SetGameCameraToCameraAt(u32 x, u32 y);
 
 public:
-    Entity* mTarget = nullptr;
+    Entity mTarget;
 
 public:
     glm::vec2 mCameraPosition;

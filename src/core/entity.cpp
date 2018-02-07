@@ -1,9 +1,3 @@
-#if defined(_DEBUG)
-#   include <string>
-#   include <cassert>
-#   include <stdexcept>
-#endif
-
 #include "core/entity.hpp"
 #include "core/entitymanager.hpp"
 
@@ -12,41 +6,37 @@ Entity::Entity(EntityManager* manager) : mManager(manager)
 
 }
 
+Entity::Entity(EntityManager* manager, PointerSize index, PointerSize version) : mManager(manager), mIndex(index), mVersion(version)
+{
+
+}
+
+bool Entity::IsValid() const
+{
+    return mManager != nullptr && mManager->IsEntityPointerValid(*this);
+}
+
+Entity::operator bool() const
+{
+    return IsValid();
+}
+
+void Entity::Destroy()
+{
+    mManager->DestroyEntity(*this);
+}
+
+void Entity::ResolveComponentDependencies()
+{
+    mManager->EntityResolveComponentDependencies(*this);
+}
+
 EntityManager* Entity::GetManager()
 {
     return mManager;
 }
 
-void Entity::ResolveComponentDependencies()
+bool operator==(const Entity& a, const Entity& b)
 {
-    for (auto& component : mComponents)
-    {
-        component->OnResolveDependencies();
-    }
+    return a.mIndex == b.mIndex && a.mVersion == b.mVersion;
 }
-
-void Entity::Destroy()
-{
-    mManager->DestroyEntity(this);
-}
-
-bool Entity::IsDestroyed() const
-{
-    return mDestroyed;
-}
-
-void Entity::ConstructComponent(Component& component)
-{
-    component.mEntity = this;
-    component.OnLoad();
-}
-
-#if defined(_DEBUG)
-void Entity::AssertComponentRegistered(const std::string& componentName) const
-{
-    if (!mManager->IsComponentRegistered(componentName))
-    {
-        throw std::logic_error(std::string{ "Entity::AssertComponentRegistered: Component " } + componentName + std::string{ " not registered in EntityManager" });
-    }
-}
-#endif

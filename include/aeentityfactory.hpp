@@ -111,5 +111,5 @@ class Entity;
 class AeEntityFactory
 {
 public:
-    Entity* Create(const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms);
+    Entity Create(const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms);
 };

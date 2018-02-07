@@ -353,9 +353,6 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
             // Input system
             mEntityManager.GetSystem<InputSystem>()->Update();
 
-            // Destroy entities
-            mEntityManager.DestroyEntities();
-
             if (mQuickLoad)
             {
                 std::filebuf f;

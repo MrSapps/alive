@@ -10,9 +10,9 @@
 #include "gridmap.hpp"
 
 
-static Entity* MakeTrapDoor(const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms)
+static Entity MakeTrapDoor(const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms)
 {
-    Entity* entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
+    auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
 
     ReadU16(ms); // id
     u16 startState = ReadU16(ms); // startState
@@ -23,24 +23,24 @@ static Entity* MakeTrapDoor(const Oddlib::Path::MapObject& object, EntityManager
     ReadU16(ms); // animationOffset
     ReadU16(ms); // openDuration
 
-    entity->GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
 
     if (startState == 0) // closed
-        entity->GetComponent<AnimationComponent>()->Change("TRAPDOOR.BAN_1004_AePc_1");
+        entity.GetComponent<AnimationComponent>()->Change("TRAPDOOR.BAN_1004_AePc_1");
     else if (startState == 1) // open
-        entity->GetComponent<AnimationComponent>()->Change("TRAPDOOR.BAN_1004_AePc_2");
+        entity.GetComponent<AnimationComponent>()->Change("TRAPDOOR.BAN_1004_AePc_2");
 
     return entity;
 }
 
 
-static std::map<const u32, std::function<Entity*(const Oddlib::Path::MapObject&, EntityManager&, Oddlib::MemoryStream&)>> sEnumMap =
+static std::map<const u32, std::function<Entity(const Oddlib::Path::MapObject&, EntityManager&, Oddlib::MemoryStream&)>> sEnumMap =
 {
     {ObjectTypesAe::eTrapDoor, MakeTrapDoor}
 };
 
 
-Entity* AeEntityFactory::Create(const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms)
+Entity AeEntityFactory::Create(const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms)
 {
     return sEnumMap[object.mType](object, entityManager, ms);
 }

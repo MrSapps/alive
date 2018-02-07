@@ -104,7 +104,7 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
 
     if (cameraSystem->mTarget)
     {
-        auto pos = cameraSystem->mTarget->GetComponent<TransformComponent>();
+        auto pos = cameraSystem->mTarget.GetComponent<TransformComponent>();
 
         const s32 camX = static_cast<s32>(pos->GetX() / cameraSystem->mCameraBlockSize.x);
         const s32 camY = static_cast<s32>(pos->GetY() / cameraSystem->mCameraBlockSize.y);
@@ -129,7 +129,7 @@ void GameMode::Render(AbstractRenderer& rend) const
     const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
     if (cameraSystem->mTarget && Debugging().mDrawCameras)
     {
-        auto pos = cameraSystem->mTarget->GetComponent<TransformComponent>();
+        auto pos = cameraSystem->mTarget.GetComponent<TransformComponent>();
 
         const s32 camX = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraX()) : static_cast<s32>(pos->GetX() / cameraSystem->mCameraBlockSize.x);
         const s32 camY = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraY()) : static_cast<s32>(pos->GetY() / cameraSystem->mCameraBlockSize.y);
@@ -156,8 +156,8 @@ void GameMode::Render(AbstractRenderer& rend) const
 
     if (cameraSystem->mTarget)
     {
-        auto pos = cameraSystem->mTarget->GetComponent<TransformComponent>();
-        auto anim = cameraSystem->mTarget->GetComponent<AnimationComponent>();
+        auto pos = cameraSystem->mTarget.GetComponent<TransformComponent>();
+        auto anim = cameraSystem->mTarget.GetComponent<AnimationComponent>();
 
         // Test raycasting for shadows
         mWorldState.DebugRayCast(rend,

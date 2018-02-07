@@ -102,17 +102,18 @@ void AbeMovementComponent::OnLoad()
 
 void AbeMovementComponent::OnResolveDependencies()
 {
-    mCollisionSystem = mEntity->GetManager()->GetSystem<CollisionSystem>();
+    mCollisionSystem = mEntity.GetManager()->GetSystem<CollisionSystem>();
 
-    mPhysicsComponent = mEntity->GetComponent<PhysicsComponent>();
-    mAnimationComponent = mEntity->GetComponent<AnimationComponent>();
-    mTransformComponent = mEntity->GetComponent<TransformComponent>();
+    mPhysicsComponent = mEntity.GetComponent<PhysicsComponent>();
+    mAnimationComponent = mEntity.GetComponent<AnimationComponent>();
+    mTransformComponent = mEntity.GetComponent<TransformComponent>();
 
     for (auto const& animationName : kAbeAnimations)
     {
         mAnimationComponent->Load(animationName.second.c_str());
     }
 
+    mAnimationComponent->mFlipX = mData.mDirection == Direction::eLeft;
     SetState(States::eStanding);
 }
 
@@ -239,13 +240,13 @@ void AbeMovementComponent::Chanting()
         // Still chanting?
     else if (mData.mGoal == Goal::eChant)
     {
-        auto sligs = mEntity->GetManager()->With<SligMovementComponent>();
+        auto sligs = mEntity.GetManager()->With<SligMovementComponent>();
         if (!sligs.empty())
         {
             for (auto& slig : sligs)
             {
                 LOG_INFO("Found a Slig to possess");
-                slig->Destroy();
+                slig.Destroy();
             }
         }
     }
@@ -586,8 +587,8 @@ DEFINE_COMPONENT(AbePlayerControllerComponent);
 
 void AbePlayerControllerComponent::OnResolveDependencies()
 {
-    mGameCommands = &mEntity->GetManager()->GetSystem<InputSystem>()->Mapping();
-    mAbeMovement = mEntity->GetComponent<AbeMovementComponent>();
+    mGameCommands = &mEntity.GetManager()->GetSystem<InputSystem>()->Mapping();
+    mAbeMovement = mEntity.GetComponent<AbeMovementComponent>();
 }
 
 void AbePlayerControllerComponent::Update()

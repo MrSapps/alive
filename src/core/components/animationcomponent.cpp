@@ -9,12 +9,12 @@ void AnimationComponent::OnLoad()
 {
     Component::OnLoad(); // calls OnResolveDependencies
 
-    mResourceLocator = mEntity->GetManager()->GetSystem<ResourceSystem>()->GetResourceLocator();
+    mResourceLocator = mEntity.GetManager()->GetSystem<ResourceSystem>()->GetResourceLocator();
 }
 
 void AnimationComponent::OnResolveDependencies()
 {
-    mTransformComponent = mEntity->GetComponent<TransformComponent>();
+    mTransformComponent = mEntity.GetComponent<TransformComponent>();
 }
 
 void AnimationComponent::Load(const char* animationName)
