@@ -10,6 +10,7 @@
 #include "gamemode.hpp"
 #include "animationbrowser.hpp"
 
+#include "core/systems/debugsystem.hpp"
 #include "core/systems/inputsystem.hpp"
 #include "core/systems/camerasystem.hpp"
 #include "core/systems/resourcesystem.hpp"
@@ -22,100 +23,19 @@
 #include "core/components/abemovementcomponent.hpp"
 #include "core/components/sligmovementcomponent.hpp"
 
-void WorldState::RenderGrid(AbstractRenderer& rend) const
-{
-    const int gridLineCountX = static_cast<int>((rend.ScreenSize().x / CameraSystem::kEditorGridSizeX));
-    for (int x = -gridLineCountX; x < gridLineCountX; x++)
-    {
-        const glm::vec2 worldPos(rend.CameraPosition().x + (x * CameraSystem::kEditorGridSizeX) - (static_cast<int>(rend.CameraPosition().x) % CameraSystem::kEditorGridSizeX), 0);
-        const glm::vec2 screenPos = rend.WorldToScreen(worldPos);
-        rend.Line(ColourU8{ 255, 255, 255, 30 }, screenPos.x, 0, screenPos.x, static_cast<f32>(rend.Height()), 2.0f, AbstractRenderer::eLayers::eEditor, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
-    }
-
-    const int gridLineCountY = static_cast<int>((rend.ScreenSize().y / CameraSystem::kEditorGridSizeY));
-    for (int y = -gridLineCountY; y < gridLineCountY; y++)
-    {
-        const glm::vec2 screenPos = rend.WorldToScreen(glm::vec2(0, rend.CameraPosition().y + (y * CameraSystem::kEditorGridSizeY) - (static_cast<int>(rend.CameraPosition().y) % CameraSystem::kEditorGridSizeY)));
-        rend.Line(ColourU8{ 255, 255, 255, 30 }, 0, screenPos.y, static_cast<f32>(rend.Width()), screenPos.y, 2.0f, AbstractRenderer::eLayers::eEditor, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
-    }
-}
-
 WorldState::WorldState(IAudioController& audioController, ResourceLocator& locator, EntityManager& entityManager) : mEntityManager(entityManager)
 {
     mPlayFmvState = std::make_unique<PlayFmvState>(audioController, locator);
 }
 
-void WorldState::RenderDebug(AbstractRenderer& rend) const
+u32 WorldState::CurrentCameraX() const
 {
-    //rend.SetActiveLayer(AbstractRenderer::eEditor);
-
-    // Draw collisions
-    if (Debugging().mCollisionLines)
-    {
-        // TODO: Wire CollisionSystem here
-        // CollisionLine::Render(rend, mCollisionItems);
-    }
-
-    // Draw grid
-    if (Debugging().mGrid)
-    {
-        RenderGrid(rend);
-    }
-
-    // Draw objects
-    if (Debugging().mObjectBoundingBoxes)
-    {
-        for (auto x = 0u; x < mScreens.size(); x++)
-        {
-            for (auto y = 0u; y < mScreens[x].size(); y++)
-            {
-                GridScreen* screen = mScreens[x][y].get();
-                if (!screen)
-                {
-                    continue;
-                }
-                const Oddlib::Path::Camera& cam = screen->getCamera();
-                for (size_t i = 0; i < cam.mObjects.size(); ++i)
-                {
-                    const Oddlib::Path::MapObject& obj = cam.mObjects[i];
-
-                    glm::vec2 topLeft = glm::vec2(obj.mRectTopLeft.mX, obj.mRectTopLeft.mY);
-                    glm::vec2 bottomRight = glm::vec2(obj.mRectBottomRight.mX, obj.mRectBottomRight.mY);
-
-                    glm::vec2 objPos = rend.WorldToScreen(glm::vec2(topLeft.x, topLeft.y));
-                    glm::vec2 objSize = rend.WorldToScreen(glm::vec2(bottomRight.x, bottomRight.y)) - objPos;
-
-                    rend.Rect(
-                        objPos.x, objPos.y,
-                        objSize.x, objSize.y,
-                        AbstractRenderer::eLayers::eEditor, ColourU8{ 255, 255, 255, 255 }, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
-
-                }
-            }
-        }
-    }
+    return mCurrentCameraX;
 }
 
-void WorldState::DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset) const
+u32 WorldState::CurrentCameraY() const
 {
-    if (Debugging().mRayCasts)
-    {
-        auto collisionSystem = mEntityManager.GetSystem<CollisionSystem>();
-        auto hit = collisionSystem->Raycast(from, to, { static_cast<CollisionLine::eLineTypes>(collisionType) });
-        if (hit)
-        {
-            const glm::vec2 fromDrawPos = rend.WorldToScreen(from + fromDrawOffset);
-            const glm::vec2 hitPos = rend.WorldToScreen(hit.Point());
-
-            rend.Line(ColourU8{ 255, 0, 255, 255 },
-                fromDrawPos.x, fromDrawPos.y,
-                hitPos.x, hitPos.y,
-                2.0f,
-                AbstractRenderer::eLayers::eEditor,
-                AbstractRenderer::eBlendModes::eNormal,
-                AbstractRenderer::eCoordinateSystem::eScreen);
-        }
-    }
+    return mCurrentCameraY;
 }
 
 void WorldState::SetCurrentCamera(const char* cameraName)
@@ -231,6 +151,7 @@ World::~World()
 
 void World::LoadSystems()
 {
+    mEntityManager.AddSystem<DebugSystem>();
     mEntityManager.AddSystem<InputSystem>(mInput);
     mEntityManager.AddSystem<CameraSystem>();
     mEntityManager.AddSystem<ResourceSystem>(mLocator);
@@ -239,14 +160,14 @@ void World::LoadSystems()
 
 void World::LoadComponents()
 {
-    mEntityManager.RegisterComponent<AbeMovementComponent>();
-    mEntityManager.RegisterComponent<AbePlayerControllerComponent>();
-    mEntityManager.RegisterComponent<AnimationComponent>();
-    mEntityManager.RegisterComponent<PhysicsComponent>();
-    mEntityManager.RegisterComponent<SligMovementComponent>();
-    mEntityManager.RegisterComponent<SligPlayerControllerComponent>();
-    mEntityManager.RegisterComponent<TransformComponent>();
     mEntityManager.RegisterComponent<CameraComponent>();
+    mEntityManager.RegisterComponent<PhysicsComponent>();
+    mEntityManager.RegisterComponent<TransformComponent>();
+    mEntityManager.RegisterComponent<AnimationComponent>();
+    mEntityManager.RegisterComponent<AbeMovementComponent>();
+    mEntityManager.RegisterComponent<SligMovementComponent>();
+    mEntityManager.RegisterComponent<AbePlayerControllerComponent>();
+    mEntityManager.RegisterComponent<SligPlayerControllerComponent>();
 }
 
 void World::LoadMap(const std::string& mapName)
@@ -455,6 +376,7 @@ void World::Render(AbstractRenderer& /*rend*/)
                 mEditorMode->Render(mRenderer);
             }
 
+            mEntityManager.GetSystem<DebugSystem>()->Render(mRenderer);
             mEntityManager.With<AnimationComponent>([this](auto, auto animation) // TODO: should be a system
             {
                 animation->Render(mRenderer);

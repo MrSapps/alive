@@ -639,7 +639,6 @@ void EditorMode::Render(AbstractRenderer& rend) const
             }
         }
     }
-    mWorldState.RenderDebug(rend);
 }
 
 void EditorMode::ClearUndoStack()

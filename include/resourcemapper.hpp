@@ -432,44 +432,55 @@ public:
     {
     public:
         AnimationSetHolder(std::shared_ptr<Oddlib::LvlArchive> sLvlPtr, std::shared_ptr<Oddlib::AnimationSet> sAnimSetPtr, u32 animIdx);
-        const Oddlib::Animation& Animation() const;
+
+    public:
         u32 MaxW() const;
         u32 MaxH() const;
+        const Oddlib::Animation& Animation() const;
+
     private:
         std::shared_ptr<Oddlib::LvlArchive> mLvlPtr;
         std::shared_ptr<Oddlib::AnimationSet> mAnimSetPtr;
         const Oddlib::Animation* mAnim;
     };
+
+public:
     Animation(const Animation&) = delete;
     Animation& operator = (const Animation&) = delete;
     Animation() = delete;
     Animation(AnimationSetHolder anim, bool isPsx, bool scaleFrameOffsets, u32 defaultBlendingMode, const std::string& sourceDataSet);
-    s32 FrameCounter() const;
+
+public:
     bool Update();
-    bool IsLastFrame() const;
-    bool IsComplete() const;
+    void Restart();
     void Render(AbstractRenderer& rend, bool flipX, int layer, s32 xpos, s32 ypos, AbstractRenderer::eCoordinateSystem coordinateSystem = AbstractRenderer::eWorld) const;
     void Render(AbstractRenderer& rend, bool flipX, int layer, AbstractRenderer::eCoordinateSystem coordinateSystem = AbstractRenderer::eWorld) const;
-    void SetFrame(u32 frame);
-    void Restart();
+
+public:
     bool Collision(s32 x, s32 y) const;
+
+public:
+    void SetFrame(u32 frame);
     void SetXPos(s32 xpos);
     void SetYPos(s32 ypos);
+    void SetScale(f32 scale);
+
+public:
     s32 XPos() const;
     s32 YPos() const;
     u32 MaxW() const;
     u32 MaxH() const;
+    f32 ScaleX() const;
     s32 FrameNumber() const;
+    s32 FrameCounter() const;
     u32 NumberOfFrames() const;
-    void SetScale(f32 scale);
+    bool IsComplete() const;
+    bool IsLastFrame() const;
+
 private:
     void RenderImpl(AbstractRenderer& rend, bool flipX, int layer, s32 xpos, s32 ypos, AbstractRenderer::eCoordinateSystem coordinateSystem) const;
 
-    // 640 (pc xres) / 368 (psx xres) = 1.73913043478 scale factor
-    const static f32 kPcToPsxScaleFactor;
-
-    f32 ScaleX() const;
-
+private:
     AnimationSetHolder mAnim;
     bool mIsPsx = false;
     bool mScaleFrameOffsets = false;
@@ -489,6 +500,9 @@ private:
 
     bool mIsLastFrame = false;
     bool mCompleted = false;
+
+private:
+    const static f32 kPcToPsxScaleFactor; // 640 (pc xres) / 368 (psx xres) = 1.73913043478 scale factor
 };
 
 template<typename KeyType, typename ValueType>

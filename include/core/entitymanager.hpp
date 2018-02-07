@@ -232,13 +232,13 @@ bool Entity::HasAnyComponent() const
 template<typename... C>
 bool Entity::Any(typename std::common_type<std::function<void(C* ...)>>::type view)
 {
-    return mManager->EntityAny(*this, view);
+    return mManager->template EntityAny<C...>(*this, view);
 }
 
 template<typename... C>
 bool Entity::With(typename std::common_type<std::function<void(C* ...)>>::type view)
 {
-    return mManager->EntityWith(*this, view);
+    return mManager->template EntityWith<C...>(*this, view);
 }
 
 template<typename... C>

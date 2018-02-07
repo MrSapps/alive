@@ -29,9 +29,6 @@ public:
     WorldState& operator=(const WorldState&) = delete;
 
 public:
-    std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
-
-public:
     enum class States
     {
         eNone,
@@ -46,28 +43,20 @@ public:
     };
 
 public:
+    u32 CurrentCameraX() const;
+    u32 CurrentCameraY() const;
+    void SetCurrentCamera(const char* cameraName);
+
+public:
     States mState = States::eNone;
     States mReturnToState = States::eNone;
 
 public:
     u32 mModeSwitchTimeout = 0;
-
-public:
-    void RenderDebug(AbstractRenderer& rend) const;
-    void DebugRayCast(AbstractRenderer& rend, const glm::vec2& from, const glm::vec2& to, u32 collisionType, const glm::vec2& fromDrawOffset = glm::vec2()) const;
-    void SetCurrentCamera(const char* cameraName);
-    u32 CurrentCameraX() const
-    { return mCurrentCameraX; }
-    u32 CurrentCameraY() const
-    { return mCurrentCameraY; }
-
-public:
     u32 mGlobalFrameCounter = 0;
     EntityManager& mEntityManager;
     std::unique_ptr<PlayFmvState> mPlayFmvState;
-
-private:
-    void RenderGrid(AbstractRenderer& rend) const;
+    std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
 
 private:
     u32 mCurrentCameraX = 0;

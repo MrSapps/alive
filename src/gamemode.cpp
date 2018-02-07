@@ -152,48 +152,6 @@ void GameMode::Render(AbstractRenderer& rend) const
         }
     }
 
-    mWorldState.RenderDebug(rend);
-
-    if (cameraSystem->mTarget)
-    {
-        auto pos = cameraSystem->mTarget.GetComponent<TransformComponent>();
-        auto anim = cameraSystem->mTarget.GetComponent<AnimationComponent>();
-
-        // Test raycasting for shadows
-        mWorldState.DebugRayCast(rend,
-            glm::vec2(pos->GetX(), pos->GetY()),
-            glm::vec2(pos->GetX(), pos->GetY() + 500),
-            0,
-            glm::vec2(0, -10)); // -10 so when we are *ON* a line you can see something
-
-        mWorldState.DebugRayCast(rend,
-            glm::vec2(pos->GetX(), pos->GetY() - 2),
-            glm::vec2(pos->GetX(), pos->GetY() - 60),
-            3,
-            glm::vec2(0, 0));
-
-        if (anim->mFlipX)
-        {
-            mWorldState.DebugRayCast(rend,
-                glm::vec2(pos->GetX(), pos->GetY() - 20),
-                glm::vec2(pos->GetX() - 25, pos->GetY() - 20), 1);
-
-            mWorldState.DebugRayCast(rend,
-                glm::vec2(pos->GetX(), pos->GetY() - 50),
-                glm::vec2(pos->GetX() - 25, pos->GetY() - 50), 1);
-        }
-        else
-        {
-            mWorldState.DebugRayCast(rend,
-                glm::vec2(pos->GetX(), pos->GetY() - 20),
-                glm::vec2(pos->GetX() + 25, pos->GetY() - 20), 2);
-
-            mWorldState.DebugRayCast(rend,
-                glm::vec2(pos->GetX(), pos->GetY() - 50),
-                glm::vec2(pos->GetX() + 25, pos->GetY() - 50), 2);
-        }
-    }
-
     if (mState == ePaused)
     {
         rend.PathBegin();
