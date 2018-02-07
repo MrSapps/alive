@@ -61,14 +61,14 @@ InputMapping::InputMapping()
     mGamePadConfig[InputCommands::eUnPause] = { 1u,{ SDL_CONTROLLER_BUTTON_BACK } };
 }
 
-template<class T>
-static void DoPressedKeysMatchCommand(const InputReader& input, u32& pressedCommands, T& command)
+template<class T, class FnIsKeyPressed>
+static void DoPressedKeysMatchCommand(FnIsKeyPressed isKeyPressed, u32& pressedCommands, T& command)
 {
     // Check how many keys are down that match the required buttons for the given command
     u32 numDowns = 0;
     for (const auto& key : command.second.mButtonsRequired)
     {
-        if (input.mKeyboardKeysPressed[key])
+        if (isKeyPressed(key))
         {
             numDowns++;
         }
@@ -78,6 +78,7 @@ static void DoPressedKeysMatchCommand(const InputReader& input, u32& pressedComm
     if (numDowns >= command.second.mNumberOfKeysRequired)
     {
         // Then the command is down
+        LOG_INFO("ON Cmd " << command.first);
         pressedCommands |= command.first;
     }
 }
@@ -87,14 +88,20 @@ u32 InputMapping::GetNewPressedState(const InputReader& input)
     u32 pressedCommands = 0;
     for (const auto& keyConfig : mKeyBoardConfig)
     {
-        DoPressedKeysMatchCommand(input, pressedCommands, keyConfig);
+        DoPressedKeysMatchCommand([&](SDL_Scancode key)
+        { 
+            return input.KeyboardKey(key).Pressed();
+        }, pressedCommands, keyConfig);
     }
 
     if (input.ActiveController())
     {
         for (const auto& keyConfig : mGamePadConfig)
         {
-            DoPressedKeysMatchCommand(input, pressedCommands, keyConfig);
+            DoPressedKeysMatchCommand([&](SDL_GameControllerButton button)
+            { 
+                return input.ActiveController()->mGamePadButtonsPressed[button];
+            }, pressedCommands, keyConfig);
         }
     }
     return pressedCommands;
@@ -107,6 +114,22 @@ void InputMapping::Update(const InputReader& input)
     mPressed = GetNewPressedState(input);
     mReleased = ~mPressed;
     mHeld = ~mPrevious;
+
+    /*
+    LOG_INFO(
+        "Pressed: "
+        << Pressed(InputCommands::eLeft)
+        << " Held: "
+        << Held(InputCommands::eLeft)
+        << " Released: "
+        << Released(InputCommands::eLeft));
+    */
+}
+
+void ButtonState::Update()
+{
+    //mOldPressedState = mCurrentPressedState;
+    //mCurrentPressedState = mBufferedPressedState;
 }
 
 Controller::Controller(SDL_GameController* controller, SDL_Joystick* joyStick) : mController(controller)
@@ -172,6 +195,13 @@ void Controller::HapticClose()
 void InputReader::Update()
 {
     mMapping.Update(*this);
+
+    for (ButtonState& button : mKeyboardKeys)
+    {
+        button.Update();
+    }
+
+    mKeyboardKeys[SDL_SCANCODE_W].Debug();
 }
 
 InputReader::~InputReader()
@@ -186,7 +216,7 @@ void InputReader::OnKeyEvent(const SDL_KeyboardEvent& event)
 {
     // Update state from polling loop
     const u32 keyCode = event.keysym.scancode;
-    mKeyboardKeysPressed[keyCode] = event.type == SDL_KEYDOWN;
+    mKeyboardKeys[keyCode].OnPressed(event.type == SDL_KEYDOWN);
 }
 
 void InputReader::OnMouseButtonEvent(const SDL_MouseButtonEvent& event)
@@ -194,11 +224,11 @@ void InputReader::OnMouseButtonEvent(const SDL_MouseButtonEvent& event)
     // Update state from polling loop
     if (event.button == SDL_BUTTON_LEFT)
     {
-        mMouseButtonsPressed[0] = event.type == SDL_MOUSEBUTTONDOWN;
+        mMouseButtons[0].OnPressed(event.type == SDL_MOUSEBUTTONDOWN);
     }
     else if (event.button == SDL_BUTTON_RIGHT)
     {
-        mMouseButtonsPressed[1] = event.type == SDL_MOUSEBUTTONDOWN;
+        mMouseButtons[1].OnPressed(event.type == SDL_MOUSEBUTTONDOWN);
     }
 }
 
@@ -279,4 +309,10 @@ void InputReader::AddController(s32 index)
             LOG_ERROR("Failed to open game controller " << index << " due to error: " << SDL_GetError());
         }
     }
+}
+
+void InputReader::SetMousePos(s32 x, s32 y)
+{
+    mMousePosition.mX = x;
+    mMousePosition.mY = y;
 }

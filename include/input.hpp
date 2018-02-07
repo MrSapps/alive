@@ -111,6 +111,39 @@ private:
     SDL_Haptic* mHaptic = nullptr;
 };
 
+class ButtonState
+{
+public:
+    void OnPressed(bool bPressed)
+    {
+        mOldPressedState = mCurrentPressedState;
+        mCurrentPressedState = bPressed;
+//        mBufferedPressedState = bPressed;
+    }
+
+    void Update();
+    void Debug()
+    {
+        //LOG_INFO("Pressed: " << Pressed() << " Held: " << Held() << " Released: " << Released());
+    }
+
+    bool Pressed() const { return !mOldPressedState && mCurrentPressedState; }
+    bool Released() const { return mOldPressedState && !mCurrentPressedState; }
+    bool Held() const { return mOldPressedState && mCurrentPressedState; }
+
+private:
+    bool mOldPressedState = false;
+    bool mCurrentPressedState = false;
+    bool mBufferedPressedState = false;
+
+};
+
+enum class MouseButtons
+{
+    eLeft = 0,
+    eRight = 1,
+};
+
 class InputReader final
 {
 public:
@@ -127,21 +160,35 @@ public:
     void OnControllerAxis(const SDL_ControllerAxisEvent& event);
     const Controller* ActiveController() const;
 
+    const ButtonState& KeyboardKey(SDL_Scancode scanCode) const
+    {
+        return mKeyboardKeys[scanCode];
+    }
+
+    const ButtonState& MouseButton(MouseButtons button) const
+    {
+        return mMouseButtons[static_cast<u32>(button)];
+    }
+
     struct MousePosition
     {
         s32 mX = 0;
         s32 mY = 0;
     };
 
-    // Index into using SDL_SCANCODE_XYZ e.g SDL_SCANCODE_D etc
+    const MousePosition& MousePos() const
+    {
+        return mMousePosition;
+    }
 
-    // TODO: Pressed, Released, Held
-    bool mKeyboardKeysPressed[SDL_NUM_SCANCODES] = {}; 
-    bool mMouseButtonsPressed[2] = {};
-    MousePosition mMousePosition;
     const InputMapping& GameCommands() const { return mMapping; }
+    void SetMousePos(s32 x, s32 y);
 private:
     void AddController(s32 index);
+
+    ButtonState mKeyboardKeys[SDL_NUM_SCANCODES];
+    ButtonState mMouseButtons[2] = {};
+    MousePosition mMousePosition;
 
     // Currently connected controllers to query for reading.
     std::map<u32, std::unique_ptr<Controller>> mControllers;

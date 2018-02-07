@@ -67,7 +67,7 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
 
     if (mState == eRunning)
     {
-        if (input.mKeyboardKeysPressed[SDL_SCANCODE_ESCAPE])
+        if (input.KeyboardKey(SDL_SCANCODE_ESCAPE).Pressed())
         {
             // TODO: Stop or pause music? Check what real game does
             mState = ePaused;
@@ -75,13 +75,13 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
     }
     else if (mState == ePaused)
     {
-        if (input.mKeyboardKeysPressed[SDL_SCANCODE_ESCAPE])
+        if (input.KeyboardKey(SDL_SCANCODE_ESCAPE).Pressed())
         {
             mState = eRunning;
         }
     }
 
-    if (input.mKeyboardKeysPressed[SDL_SCANCODE_E] && mState != ePaused)
+    if (input.KeyboardKey(SDL_SCANCODE_E).Pressed() && mState != ePaused)
     {
         mWorldState.mState = WorldState::States::eToEditor;
         coords.mSmoothCameraPosition = true;

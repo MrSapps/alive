@@ -473,8 +473,7 @@ void Engine::Update()
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
 
-    mInputState.mMousePosition.mX = mouse_x;
-    mInputState.mMousePosition.mY = mouse_y;
+    mInputState.SetMousePos(mouse_x, mouse_y);
 
     ImGui::NewFrame();
 

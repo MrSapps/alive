@@ -27,7 +27,7 @@ Debug::Debug()
 
 void Debug::Update(const InputReader& input)
 {
-    if (input.mKeyboardKeysPressed[SDL_SCANCODE_F1])
+    if (input.KeyboardKey(SDL_SCANCODE_F1).Pressed())
     {
         mShowDebugUi = !mShowDebugUi;
     }

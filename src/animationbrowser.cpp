@@ -20,10 +20,10 @@ void AnimationBrowser::Update(const InputReader& input, CoordinateSpace& coords)
         anim->Update();
     }
 
-    const glm::vec2 mouseWorldPos = coords.ScreenToWorld(glm::vec2(input.mMousePosition.mX, input.mMousePosition.mY));
+    const glm::vec2 mouseWorldPos = coords.ScreenToWorld(glm::vec2(input.MousePos().mX, input.MousePos().mY));
 
     // Set the "selected" animation
-    if (!mSelected && input.mMouseButtonsPressed[0])
+    if (!mSelected && input.MouseButton(MouseButtons::eLeft).Pressed())
     {
         for (auto& anim : mLoadedAnims)
         {
@@ -38,20 +38,20 @@ void AnimationBrowser::Update(const InputReader& input, CoordinateSpace& coords)
     }
 
     // Move the "selected" animation
-    if (mSelected && input.mMouseButtonsPressed[0])
+    if (mSelected && input.MouseButton(MouseButtons::eLeft).Held())
     {
         LOG_INFO("Move selected to " << mouseWorldPos.x+ mXDelta << "," << mouseWorldPos.y+ mYDelta);
         mSelected->SetXPos(static_cast<s32>(mouseWorldPos.x+ mXDelta));
         mSelected->SetYPos(static_cast<s32>(mouseWorldPos.y+ mYDelta));
     }
 
-    if (!input.mMouseButtonsPressed[0])
+    if (input.MouseButton(MouseButtons::eLeft).Released())
     {
         mSelected = nullptr;
     }
 
     // When the right button is released delete the "selected" animation
-    if (input.mMouseButtonsPressed[1])
+    if (input.MouseButton(MouseButtons::eRight).Pressed())
     {
         for (auto it = mLoadedAnims.begin(); it != mLoadedAnims.end(); it++)
         {
