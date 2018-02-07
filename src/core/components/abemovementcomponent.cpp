@@ -593,25 +593,25 @@ void AbePlayerControllerComponent::OnResolveDependencies()
 
 void AbePlayerControllerComponent::Update()
 {
-    mAbeMovement->mData.mRunning = !!mGameCommands->Pressed(InputCommands::eRun);
-    mAbeMovement->mData.mSneaking = !!mGameCommands->Pressed(InputCommands::eSneak);
-    if (mGameCommands->Pressed(InputCommands::eLeft) && !mGameCommands->Pressed(InputCommands::eRight))
+    mAbeMovement->mData.mRunning = !!mGameCommands->PressedOrHeld(InputCommands::eRun);
+    mAbeMovement->mData.mSneaking = !!mGameCommands->PressedOrHeld(InputCommands::eSneak);
+    if (mGameCommands->PressedOrHeld(InputCommands::eLeft) && !mGameCommands->PressedOrHeld(InputCommands::eRight))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoLeft;
     }
-    else if (mGameCommands->Pressed(InputCommands::eRight) && !mGameCommands->Pressed(InputCommands::eLeft))
+    else if (mGameCommands->PressedOrHeld(InputCommands::eRight) && !mGameCommands->PressedOrHeld(InputCommands::eLeft))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoRight;
     }
-    else if (mGameCommands->Pressed(InputCommands::eDown) && !mGameCommands->Pressed(InputCommands::eUp))
+    else if (mGameCommands->PressedOrHeld(InputCommands::eDown) && !mGameCommands->PressedOrHeld(InputCommands::eUp))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoDown;
     }
-    else if (mGameCommands->Pressed(InputCommands::eUp) && !mGameCommands->Pressed(InputCommands::eDown))
+    else if (mGameCommands->PressedOrHeld(InputCommands::eUp) && !mGameCommands->PressedOrHeld(InputCommands::eDown))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eGoUp;
     }
-    else if (mGameCommands->Pressed(InputCommands::eChant))
+    else if (mGameCommands->PressedOrHeld(InputCommands::eChant))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eChant;
     }

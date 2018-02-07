@@ -440,18 +440,18 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
     }
 
     bool bGoFaster = false;
-    if (input.KeyboardKey(SDL_SCANCODE_LCTRL).Pressed())
+    if (input.KeyboardKey(SDL_SCANCODE_LCTRL).PressedOrHeld())
     {
-        if (input.KeyboardKey(SDL_SCANCODE_W).Pressed())
+        if (input.KeyboardKey(SDL_SCANCODE_W).PressedOrHeld())
         { mEditorCamZoom -= 0.1f; }
-        else if (input.KeyboardKey(SDL_SCANCODE_S).Pressed())
+        else if (input.KeyboardKey(SDL_SCANCODE_S).PressedOrHeld())
         { mEditorCamZoom += 0.1f; }
 
         mEditorCamZoom = glm::clamp(mEditorCamZoom, 0.1f, 3.0f);
     }
     else
     {
-        if (input.KeyboardKey(SDL_SCANCODE_LSHIFT).Pressed())
+        if (input.KeyboardKey(SDL_SCANCODE_LSHIFT).PressedOrHeld())
         { bGoFaster = true; }
 
         f32 editorCamSpeed = 10.0f * mEditorCamZoom;
@@ -460,14 +460,14 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
             editorCamSpeed *= 4.0f;
         }
 
-        if (input.KeyboardKey(SDL_SCANCODE_W).Pressed())
+        if (input.KeyboardKey(SDL_SCANCODE_W).PressedOrHeld())
         { cameraSystem->mCameraPosition.y -= editorCamSpeed; }
-        else if (input.KeyboardKey(SDL_SCANCODE_S).Pressed())
+        else if (input.KeyboardKey(SDL_SCANCODE_S).PressedOrHeld())
         { cameraSystem->mCameraPosition.y += editorCamSpeed; }
 
-        if (input.KeyboardKey(SDL_SCANCODE_A).Pressed())
+        if (input.KeyboardKey(SDL_SCANCODE_A).PressedOrHeld())
         { cameraSystem->mCameraPosition.x -= editorCamSpeed; }
-        else if (input.KeyboardKey(SDL_SCANCODE_D).Pressed())
+        else if (input.KeyboardKey(SDL_SCANCODE_D).PressedOrHeld())
         { cameraSystem->mCameraPosition.x += editorCamSpeed; }
     }
 
@@ -494,7 +494,7 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
         mSelectionState = eSelectionState::eNone;
     }
 
-    if (input.KeyboardKey(SDL_SCANCODE_LCTRL).Pressed())
+    if (input.KeyboardKey(SDL_SCANCODE_LCTRL).PressedOrHeld())
     {
         if (input.KeyboardKey(SDL_SCANCODE_Z).Pressed())
         {
@@ -506,7 +506,7 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
         }
     }
 
-    if (input.MouseButton(MouseButtons::eLeft).Pressed())
+    if (input.MouseButton(MouseButtons::eLeft).PressedOrHeld())
     {
         mMergeCommand = false; // New mouse press/selection, start a new undo command
         // TODO: Wire CollisionSystem here

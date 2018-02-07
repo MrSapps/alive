@@ -78,7 +78,6 @@ static void DoPressedKeysMatchCommand(FnIsKeyPressed isKeyPressed, u32& pressedC
     if (numDowns >= command.second.mNumberOfKeysRequired)
     {
         // Then the command is down
-        LOG_INFO("ON Cmd " << command.first);
         pressedCommands |= command.first;
     }
 }
@@ -90,7 +89,7 @@ u32 InputMapping::GetNewPressedState(const InputReader& input)
     {
         DoPressedKeysMatchCommand([&](SDL_Scancode key)
         { 
-            return input.KeyboardKey(key).Pressed();
+            return input.KeyboardKey(key).PressedOrHeld();
         }, pressedCommands, keyConfig);
     }
 
@@ -109,13 +108,10 @@ u32 InputMapping::GetNewPressedState(const InputReader& input)
 
 void InputMapping::Update(const InputReader& input)
 {
-    // This logic matches how the real game works
-    mPrevious = mPressed;
-    mPressed = GetNewPressedState(input);
-    mReleased = ~mPressed;
-    mHeld = ~mPrevious;
+    mOldPressedState = mCurrentPressedState;
+    mCurrentPressedState = GetNewPressedState(input);
 
-    /*
+/*
     LOG_INFO(
         "Pressed: "
         << Pressed(InputCommands::eLeft)
@@ -123,13 +119,7 @@ void InputMapping::Update(const InputReader& input)
         << Held(InputCommands::eLeft)
         << " Released: "
         << Released(InputCommands::eLeft));
-    */
-}
-
-void ButtonState::Update()
-{
-    //mOldPressedState = mCurrentPressedState;
-    //mCurrentPressedState = mBufferedPressedState;
+*/
 }
 
 Controller::Controller(SDL_GameController* controller, SDL_Joystick* joyStick) : mController(controller)
@@ -201,7 +191,7 @@ void InputReader::Update()
         button.Update();
     }
 
-    mKeyboardKeys[SDL_SCANCODE_W].Debug();
+//    mKeyboardKeys[SDL_SCANCODE_W].Debug();
 }
 
 InputReader::~InputReader()

@@ -67,14 +67,22 @@ public:
         std::vector<SDL_GameControllerButton> mButtonsRequired;
     };
 
-    u32 Pressed() const { return mPressed; }
-    u32 Released() const { return mReleased; }
-    u32 Held() const { return mHeld; }
+    u32 Pressed() const { return ~mOldPressedState & mCurrentPressedState; }
+    u32 Released() const { return mOldPressedState & ~mCurrentPressedState; }
+    u32 Held() const { return mOldPressedState & mCurrentPressedState; }
+    u32 PressedOrHeld() const { return Pressed() | Held(); }
 
-    u32 Pressed(u32 mask) const { return mPressed & mask; }
-    u32 Released(u32 mask) const { return mReleased & mask; }
-    u32 Held(u32 mask) const { return mHeld & mask; }
+    /*
+    bool Pressed() const { return !mOldPressedState && mCurrentPressedState; }
+    bool Released() const { return mOldPressedState && !mCurrentPressedState; }
+    bool Held() const { return mOldPressedState && mCurrentPressedState; }
+    bool PressedOrHeld() const { return Pressed() || Held(); }
+    */
 
+    u32 Pressed(u32 mask) const { return Pressed() & mask; }
+    u32 Released(u32 mask) const { return Released() & mask; }
+    u32 Held(u32 mask) const { return Held() & mask; }
+    u32 PressedOrHeld(u32 mask) const { return PressedOrHeld() & mask; }
 private:
 
 
@@ -83,10 +91,8 @@ private:
     std::map<InputCommands, KeyBoardInputConfig> mKeyBoardConfig;
     std::map<InputCommands, GamePadInputConfig> mGamePadConfig;
 
-    u32 mPrevious = 0;
-    u32 mPressed = 0;
-    u32 mReleased = 0;
-    u32 mHeld = 0;
+    u32 mOldPressedState = 0;
+    u32 mCurrentPressedState = 0;
 };
 
 class Controller
@@ -116,21 +122,19 @@ class ButtonState
 public:
     void OnPressed(bool bPressed)
     {
-        mOldPressedState = mCurrentPressedState;
-        mCurrentPressedState = bPressed;
-//        mBufferedPressedState = bPressed;
+        mBufferedPressedState = bPressed;
     }
 
-    void Update();
-    void Debug()
+    void Update()
     {
-        //LOG_INFO("Pressed: " << Pressed() << " Held: " << Held() << " Released: " << Released());
+        mOldPressedState = mCurrentPressedState;
+        mCurrentPressedState = mBufferedPressedState;
     }
 
     bool Pressed() const { return !mOldPressedState && mCurrentPressedState; }
     bool Released() const { return mOldPressedState && !mCurrentPressedState; }
     bool Held() const { return mOldPressedState && mCurrentPressedState; }
-
+    bool PressedOrHeld() const { return Pressed() || Held(); }
 private:
     bool mOldPressedState = false;
     bool mCurrentPressedState = false;

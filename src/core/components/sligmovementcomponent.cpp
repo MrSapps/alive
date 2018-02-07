@@ -182,15 +182,15 @@ void SligPlayerControllerComponent::OnResolveDependencies()
 
 void SligPlayerControllerComponent::Update()
 {
-    if (mGameCommands->Pressed(InputCommands::eLeft) && !mGameCommands->Pressed(InputCommands::eRight))
+    if (mGameCommands->PressedOrHeld(InputCommands::eLeft) && !mGameCommands->PressedOrHeld(InputCommands::eRight))
     {
         mSligMovement->mData.mGoal = SligMovementComponent::Goal::eGoLeft;
     }
-    else if (mGameCommands->Pressed(InputCommands::eRight) && !mGameCommands->Pressed(InputCommands::eLeft))
+    else if (mGameCommands->PressedOrHeld(InputCommands::eRight) && !mGameCommands->PressedOrHeld(InputCommands::eLeft))
     {
         mSligMovement->mData.mGoal = SligMovementComponent::Goal::eGoRight;
     }
-    else if (mGameCommands->Pressed(InputCommands::eChant))
+    else if (mGameCommands->PressedOrHeld(InputCommands::eChant))
     {
         mSligMovement->mData.mGoal = SligMovementComponent::Goal::eChant;
     }
