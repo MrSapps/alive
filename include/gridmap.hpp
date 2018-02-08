@@ -71,7 +71,7 @@ class GridMap
 public:
     GridMap(const GridMap&) = delete;
     GridMap& operator=(const GridMap&) = delete;
-    GridMap(CoordinateSpace& coords, WorldState& state, EntityManager &entityManager);
+    GridMap(CoordinateSpace& coords, WorldState& state, EntityManager& entityManager);
     ~GridMap();
 
 public:
@@ -79,7 +79,7 @@ public:
     void UnloadMap(AbstractRenderer& renderer);
 
 public:
-    EntityManager & mRoot;
+    EntityManager& mEntityManager;
 
 private:
     class Loader
@@ -108,7 +108,7 @@ private:
         void HandleLoadEntities(const Oddlib::Path& path);
 
     private:
-        GridMap & mGm;
+        GridMap& mGm;
         LoaderStates mState = LoaderStates::eInit;
         IterativeForLoopU32 mXForLoop;
         IterativeForLoopU32 mYForLoop;

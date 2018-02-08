@@ -96,9 +96,9 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
     }
 }
 
-GridMap::GridMap(CoordinateSpace& coords, WorldState& state, EntityManager &entityManager) : mRoot(entityManager), mLoader(*this), mWorldState(state)
+GridMap::GridMap(CoordinateSpace& coords, WorldState& state, EntityManager &entityManager) : mEntityManager(entityManager), mLoader(*this), mWorldState(state)
 {
-    auto cameraSystem = mRoot.GetSystem<CameraSystem>();
+    auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
 
     // Set up the screen size and camera pos so that the grid is drawn correctly during init
     cameraSystem->mVirtualScreenSize = glm::vec2(368.0f, 240.0f);
@@ -151,10 +151,10 @@ void GridMap::UnloadMap(AbstractRenderer& renderer)
             screen->UnLoadTextures(renderer);
         }
     }
-    auto collisionSystem = mRoot.GetSystem<CollisionSystem>();
+    auto collisionSystem = mEntityManager.GetSystem<CollisionSystem>();
     if (collisionSystem)
     {
-        mRoot.Clear();
+        mEntityManager.Clear();
         collisionSystem->Clear();
     }
     mWorldState.mScreens.clear();
@@ -168,8 +168,8 @@ GridMap::Loader::Loader(GridMap& gm)
 
 void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
 {
-    auto cameraSystem = mGm.mRoot.GetSystem<CameraSystem>();
-    auto collisionSystem = mGm.mRoot.GetSystem<CollisionSystem>();
+    auto cameraSystem = mGm.mEntityManager.GetSystem<CameraSystem>();
+    auto collisionSystem = mGm.mEntityManager.GetSystem<CollisionSystem>();
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
     cameraSystem->mCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
@@ -231,7 +231,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 {
                 case ObjectTypesAe::eContinuePoint:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); // scale
                     ReadU16(ms); // saveFileId
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
@@ -239,7 +239,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eHoist:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); // hoistType
                     ReadU16(ms); // edgeType
                     ReadU16(ms); // id
@@ -249,7 +249,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eDoor:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // level
                     ReadU16(ms); // path
                     ReadU16(ms); // camera
@@ -281,7 +281,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eShadow:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); // centerW
                     ReadU16(ms); // centerH
                     ReadU8(ms);  // r1
@@ -297,7 +297,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eLiftPoint:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); // id
                     ReadU16(ms); // isStartPosition
                     ReadU16(ms); // liftType
@@ -309,7 +309,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eWellLocal:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); // scale
                     ReadU16(ms); // triggerId
                     ReadU16(ms); // wellId
@@ -326,7 +326,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eDove:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // numberOfBirds
                     ReadU16(ms); // pixelPerfect
                     ReadU16(ms); // scale
@@ -336,7 +336,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eRockSack:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // side
                     ReadU16(ms); // xVelocity
                     ReadU16(ms); // yVelocity
@@ -348,7 +348,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eFallingItem:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // id
                     ReadU16(ms); // scale
                     ReadU16(ms); // delayTime
@@ -360,7 +360,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::ePullRingRope:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // id
                     ReadU16(ms); // targetAction
                     ReadU16(ms); // lengthOfRope
@@ -374,7 +374,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eBackgroundAnimation:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     auto animId = ReadU32(ms);
                     switch (animId)
@@ -393,7 +393,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eTimedMine:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // id
                     ReadU16(ms); // state
                     ReadU16(ms); // scale
@@ -405,7 +405,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSlig:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // scale
                     ReadU16(ms); // startState
                     ReadU16(ms); // pauseTime
@@ -443,7 +443,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSlog:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // scale
                     ReadU16(ms); // direction
                     ReadU16(ms); // asleep
@@ -460,7 +460,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSwitch:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU32(ms); // scale
                     ReadU16(ms); // onSound
                     ReadU16(ms); // offSound
@@ -472,7 +472,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSecurityEye:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU32(ms); // scale
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     entity.GetComponent<AnimationComponent>()->Change("MAIMORB.BAN_2006_AePc_0");
@@ -480,7 +480,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::ePulley:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU32(ms); // scale
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     entity.GetComponent<AnimationComponent>()->Change("BALIFT.BND_1001_AePc_0");
@@ -488,14 +488,14 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eAbeStart:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU32(ms); // scale
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
                 case ObjectTypesAe::eWellExpress:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); // scale
                     ReadU16(ms); // id
                     ReadU16(ms); // wellId
@@ -519,7 +519,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eMine:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU32(ms); // Skip unused "num patterns"
                     ReadU32(ms); // Skip unused "patterns"
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX) + 10, static_cast<float>(object.mRectTopLeft.mY) + 22);
@@ -528,7 +528,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eUxb:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // numberOfPatterns
                     ReadU16(ms); // pattern
                     ReadU16(ms); // scale
@@ -540,7 +540,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eParamite:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // scale
                     ReadU16(ms); // entrance
                     ReadU16(ms); // attackDelay
@@ -558,7 +558,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eMovieStone:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); // movieNumber
                     ReadU16(ms); // scale
                     ReadU16(ms); // id
@@ -567,7 +567,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eBirdPortal:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); // side
                     ReadU16(ms); // destinationLevel
                     ReadU16(ms); // destinationPath
@@ -583,7 +583,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::ePortalExit:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // side
                     ReadU16(ms); // scale
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
@@ -592,12 +592,12 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eTrapDoor:
                 {
-                    factory.Create(object, mGm.mRoot, ms);
+                    factory.Create(object, mGm.mEntityManager, ms);
                     break;
                 }
                 case ObjectTypesAe::eRollingBall:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); // scale
                     ReadU16(ms); // rollDirection
                     ReadU16(ms); // id
@@ -608,7 +608,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSligLeftBound:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); // sligId
                     ReadU16(ms); // disableResources
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
@@ -616,14 +616,14 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eInvisibleZone:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
 
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
                 case ObjectTypesAe::eFootSwitch:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // id
                     ReadU16(ms); // scale
                     ReadU16(ms); // action
@@ -634,14 +634,14 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSecurityOrb:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU32(ms); // scale
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
                 case ObjectTypesAe::eMotionDetector:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // scale
                     ReadU16(ms); // deviceX
                     ReadU16(ms); // deviceY
@@ -657,7 +657,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSligSpawner:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); // scale
                     ReadU16(ms); // startState
                     ReadU16(ms); // pauseLeftMin
@@ -694,7 +694,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eElectricWall:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // scale
                     ReadU16(ms); // id
                     ReadU16(ms); // enabled
@@ -704,7 +704,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eLiftMover:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // switchId
                     ReadU16(ms); // liftId
                     ReadU16(ms); // direction
@@ -714,7 +714,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eMeatSack:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // side
                     ReadU16(ms); // xVelocity
                     ReadU16(ms); // yVelocity
@@ -726,7 +726,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eScrab:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); // scale
                     ReadU16(ms); // attackDelay
                     ReadU16(ms); // patrolType
@@ -745,19 +745,19 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eScrabLeftBound:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
                 case ObjectTypesAe::eScrabRightBound:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
                 case ObjectTypesAe::eSligRightBound:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //SligId
                     ReadU16(ms); //Disableresources
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
@@ -765,7 +765,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSligPersist:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //SligId
                     ReadU16(ms); //Disableresources
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
@@ -773,7 +773,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eEnemyStopper:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Stopdirection
                     ReadU16(ms); //Id
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
@@ -781,7 +781,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eInvisibleSwitch:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Id
                     ReadU16(ms); //Idaction
                     ReadU16(ms); //Delay
@@ -792,7 +792,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eMud:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //State
                     ReadU16(ms); //Direction
@@ -814,13 +814,13 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eZSligCover:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
                 case ObjectTypesAe::eDoorFlame:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Id
                     ReadU16(ms); //Scale
                     ReadU32(ms); //Colour
@@ -830,7 +830,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eMovingBomb:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Speed
                     ReadU16(ms); //Id
                     ReadU16(ms); //Starttype
@@ -845,13 +845,13 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eMenuController:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
                 case ObjectTypesAe::eTimerTrigger:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Id
                     ReadU16(ms); //Delayticks
                     ReadU16(ms); //Id1
@@ -863,7 +863,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSecurityDoor:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Id
                     ReadU16(ms); //Code1
@@ -876,7 +876,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eGrenadeMachine:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Spoutside
                     ReadU16(ms); //Disabledresources
@@ -887,7 +887,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eLcdScreen:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Message1Id
                     ReadU16(ms); //Messagerandmin
                     ReadU16(ms); //Messagerandmax
@@ -898,7 +898,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eHandStone:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Camera1
                     ReadU16(ms); //Camera2
@@ -909,13 +909,13 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eCreditsController:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
                 case ObjectTypesAe::eLcdStatusBoard:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Numberofmuds
                     ReadU16(ms); //Zulagnumber
                     ReadU32(ms); //Hidden
@@ -924,7 +924,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eWheelSyncer:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Id1
                     ReadU16(ms); //Id2
                     ReadU16(ms); //TriggerId
@@ -938,7 +938,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eMusic:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Type
                     ReadU16(ms); //Start
                     ReadU32(ms); //Timeticks
@@ -947,7 +947,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eLightEffect:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Type
                     ReadU16(ms); //Size
                     ReadU16(ms); //Id
@@ -957,7 +957,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSlogSpawner:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Numberofslogs
                     ReadU16(ms); //Atatime
@@ -971,7 +971,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eDeathClock:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //StarttriggerId
                     ReadU16(ms); //Time
                     ReadU32(ms); //StoptriggerId
@@ -980,7 +980,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eGasEmitter:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //PortId
                     ReadU16(ms); //Gascolour
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
@@ -988,7 +988,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSlogHut:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Id
                     ReadU32(ms); //TicksbetweenZ's
@@ -997,7 +997,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eGlukkon:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Direction
                     ReadU16(ms); //Calmmotion
@@ -1017,20 +1017,20 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eKillUnsavedMuds:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
                 case ObjectTypesAe::eSoftLanding:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU32(ms); //Id
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
                 case ObjectTypesAe::eWater:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Maxdrops
                     ReadU16(ms); //Id
                     ReadU16(ms); //Splashtime
@@ -1042,7 +1042,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eWheel:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Id
                     ReadU16(ms); //Duration
@@ -1054,7 +1054,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eLaughingGas:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Islaughinggas
                     ReadU16(ms); //GasId
                     ReadU16(ms); //Redpercent
@@ -1065,7 +1065,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eFlyingSlig:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //State
                     ReadU16(ms); //Hipausetime
@@ -1088,7 +1088,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eFleech:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Direction
                     ReadU16(ms); //Asleep
@@ -1110,7 +1110,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSlurgs:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Pausedelay
                     ReadU16(ms); //Direction
                     ReadU16(ms); //Scale
@@ -1121,7 +1121,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSlamDoor:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX) + 13, static_cast<float>(object.mRectTopLeft.mY) + 18);
                     entity.GetComponent<AnimationComponent>()->Change("SLAM.BAN_2020_AePc_1");
                     ReadU16(ms); // closed
@@ -1133,7 +1133,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eLevelLoader:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Id
                     ReadU16(ms); //Destlevel
                     ReadU16(ms); //Destpath
@@ -1144,13 +1144,13 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eDemoSpawnPoint:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
                 case ObjectTypesAe::eTeleporter:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Id
                     ReadU16(ms); //TargetId
                     ReadU16(ms); //Camera
@@ -1167,7 +1167,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSlurgSpawner:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Pausedelay
                     ReadU16(ms); //Direction
                     ReadU16(ms); //Scale
@@ -1180,7 +1180,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eGrinder:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Minofftime
                     ReadU16(ms); //Maxofftime
@@ -1199,7 +1199,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eColorfulMeter:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Id
                     ReadU16(ms); //Numberofmeterbars
                     ReadU16(ms); //Timer
@@ -1209,7 +1209,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eFlyingSligSpawner:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //State
                     ReadU16(ms); //Hipausetime
@@ -1231,7 +1231,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eMineCar:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Maxdamage
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
@@ -1240,7 +1240,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSlogFoodSack:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Side
                     ReadU16(ms); //Xvel
                     ReadU16(ms); //Yvel
@@ -1252,7 +1252,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eExplosionSet:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Startinstantly
                     ReadU16(ms); //Id
                     ReadU16(ms); //Bigrocks
@@ -1266,13 +1266,13 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eMultiswitchController:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     break;
                 }
                 case ObjectTypesAe::eRedGreenStatusLight:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Id
                     ReadU16(ms); //Scale
                     ReadU16(ms); //OtherId1
@@ -1287,7 +1287,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eGhostTrap:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //TargettombId1
                     ReadU16(ms); //TargettombId2
@@ -1302,7 +1302,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eParamiteNet:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     entity.GetComponent<AnimationComponent>()->Change("WEB.BAN_2034_AePc_0");
@@ -1310,7 +1310,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eAlarm:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Id
                     ReadU16(ms); //Duration
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
@@ -1318,7 +1318,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eFartMachine:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Numberofbrews
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     entity.GetComponent<AnimationComponent>()->Change("BREWBTN.BAN_6016_AePc_0");
@@ -1326,7 +1326,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eScrabSpawner:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Attackdelay
                     ReadU16(ms); //Patroltype
@@ -1348,7 +1348,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eCrawlingSlig:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Direction
                     ReadU16(ms); //State
@@ -1361,14 +1361,14 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eSligGetPants:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     entity.GetComponent<AnimationComponent>()->Change("LOCKER.BAN_448_AePc_1");
                     break;
                 }
                 case ObjectTypesAe::eSligGetWings:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //State
                     ReadU16(ms); //Hipausetime
@@ -1391,7 +1391,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eGreeter:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Motiondetectorspeed
                     ReadU16(ms); //Direction
@@ -1401,7 +1401,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eCrawlingSligButton:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Id
                     ReadU16(ms); //Idaction
@@ -1414,7 +1414,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eGlukkonSecurityDoor:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //OkId
                     ReadU16(ms); //FailId
@@ -1426,7 +1426,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eDoorBlocker:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent>();
                     ReadU16(ms); //Scale
                     ReadU16(ms); //Id
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
@@ -1434,7 +1434,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eTorturedMudokon:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU16(ms); //SpeedId
                     ReadU16(ms); //ReleaseId
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
@@ -1443,7 +1443,7 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 }
                 case ObjectTypesAe::eTrainDoor:
                 {
-                    auto entity = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    auto entity = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
                     ReadU32(ms); //Xflip
                     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
                     entity.GetComponent<AnimationComponent>()->Change("TRAINDOR.BAN_2013_AePc_1");
@@ -1454,12 +1454,12 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
         });
     }))
     {
-        auto abe = mGm.mRoot.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent, CameraComponent>();
+        auto abe = mGm.mEntityManager.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent, CameraComponent>();
         auto pos = abe.GetComponent<TransformComponent>();
         pos->Set(125.0f, 380.0f + (80.0f));
         pos->SnapXToGrid();
 
-        auto slig = mGm.mRoot.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
+        auto slig = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
         auto pos2 = slig.GetComponent<TransformComponent>();
         pos2->Set(125.0f + (25.0f), 380.0f + (80.0f));
         pos2->SnapXToGrid();
