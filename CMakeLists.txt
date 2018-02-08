@@ -400,6 +400,8 @@ SET(alivelib_src
     src/gamedefinition.cpp
     include/filesystem.hpp
     src/filesystem.cpp
+    include/menu.hpp
+    src/menu.cpp
     include/gamefilesystem.hpp
     src/gamefilesystem.cpp
     include/audioconverter.hpp

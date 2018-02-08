@@ -9,6 +9,7 @@
 #include "editormode.hpp"
 #include "gamemode.hpp"
 #include "animationbrowser.hpp"
+#include "menu.hpp"
 
 #include "core/systems/debugsystem.hpp"
 #include "core/systems/inputsystem.hpp"
@@ -82,6 +83,7 @@ World::World(
     mFmvDebugUi = std::make_unique<FmvDebugUi>(locator);
     mGameMode = std::make_unique<GameMode>(mWorldState);
     mEditorMode = std::make_unique<EditorMode>(mWorldState);
+    mMenu = std::make_unique<Menu>(mEntityManager);
 
     Debugging().AddSection([&]()
     {
@@ -139,6 +141,7 @@ World::World(
     // TODO: Can be removed ?
     //const std::string gameScript = mResourceLocator.LocateScript(initScriptName).get();
 
+    //LoadMap("STPATH_1");
     LoadMap("BAPATH_1");
 }
 
@@ -194,6 +197,7 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
     case WorldState::States::eToEditor:
     case WorldState::States::eToGame:
     case WorldState::States::eInGame:
+    case WorldState::States::eFrontEndMenu:
     case WorldState::States::eInEditor:
     {
         mWorldState.mGlobalFrameCounter++;
@@ -223,6 +227,10 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
             else if (mWorldState.mState == WorldState::States::eInGame)
             {
                 mGameMode->Update(input, coords);
+            }
+            else if (mWorldState.mState == WorldState::States::eFrontEndMenu)
+            {
+                mMenu->Update();
             }
             else
             {
@@ -315,7 +323,12 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
             {
                 // TODO: Throw ?
                 LOG_ERROR("LVL or file in LVL not found");
+                
+                // HACK: Force to menu
+                //mWorldState.mState = WorldState::States::eFrontEndMenu;
+
                 mWorldState.mState = WorldState::States::eInGame;
+
                 mLoadingIcon.SetEnabled(false);
             }
         }
@@ -350,6 +363,7 @@ void World::Render(AbstractRenderer& /*rend*/)
     case WorldState::States::eInGame:
     case WorldState::States::eToEditor:
     case WorldState::States::eToGame:
+    case WorldState::States::eFrontEndMenu:
     case WorldState::States::eInEditor:
         mRenderer.Clear(0.4f, 0.4f, 0.4f);
 
@@ -370,6 +384,10 @@ void World::Render(AbstractRenderer& /*rend*/)
             else if (mWorldState.mState == WorldState::States::eInGame)
             {
                 mGameMode->Render(mRenderer);
+            }
+            else if (mWorldState.mState == WorldState::States::eFrontEndMenu)
+            {
+                mMenu->Render(mRenderer);
             }
             else
             {

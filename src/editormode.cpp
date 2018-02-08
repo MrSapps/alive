@@ -347,7 +347,12 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 
             ImGui::MenuItem("New map", nullptr);
             ImGui::MenuItem("Open map", nullptr);
-            ImGui::MenuItem("Save", nullptr);
+            
+            if (ImGui::MenuItem("Save", nullptr))
+            {
+                // TODO: Grid map system needs to recall where the Path res came from, also each entity needs its original TLV data
+            }
+
             ImGui::MenuItem("Save as", nullptr);
 
             if (ImGui::MenuItem("Exit", nullptr))

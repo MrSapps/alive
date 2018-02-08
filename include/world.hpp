@@ -36,6 +36,7 @@ public:
         eSoundsLoading,
         ePlayFmv,
         eInGame,
+        eFrontEndMenu,
         eToEditor,
         eInEditor,
         eToGame,
@@ -105,6 +106,7 @@ private:
     std::unique_ptr<class GameMode> mGameMode;
     std::unique_ptr<class EditorMode> mEditorMode;
     std::unique_ptr<class AnimationBrowser> mDebugAnimationBrowser;
+    std::unique_ptr<class Menu> mMenu;
     Oddlib::UP_Path mPathBeingLoaded;
     up_future_UP_Path mLocatePathFuture;
 
