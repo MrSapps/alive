@@ -72,13 +72,6 @@ public:
     u32 Held() const { return mOldPressedState & mCurrentPressedState; }
     u32 PressedOrHeld() const { return Pressed() | Held(); }
 
-    /*
-    bool Pressed() const { return !mOldPressedState && mCurrentPressedState; }
-    bool Released() const { return mOldPressedState && !mCurrentPressedState; }
-    bool Held() const { return mOldPressedState && mCurrentPressedState; }
-    bool PressedOrHeld() const { return Pressed() || Held(); }
-    */
-
     u32 Pressed(u32 mask) const { return Pressed() & mask; }
     u32 Released(u32 mask) const { return Released() & mask; }
     u32 Held(u32 mask) const { return Held() & mask; }
@@ -106,7 +99,6 @@ public:
     void OnControllerAxis(const SDL_ControllerAxisEvent& event);
     void Rumble(f32 strength);
 
-    // TODO: Pressed, Released, Held
     // Index into using SDL_CONTROLLER_*
     bool mGamePadButtonsPressed[SDL_CONTROLLER_BUTTON_MAX] = {};
     f32 mGamePadAxes[SDL_CONTROLLER_AXIS_MAX] = {};

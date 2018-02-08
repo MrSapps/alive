@@ -191,7 +191,8 @@ void InputReader::Update()
         button.Update();
     }
 
-//    mKeyboardKeys[SDL_SCANCODE_W].Debug();
+    mMouseButtons[0].Update();
+    mMouseButtons[1].Update();
 }
 
 InputReader::~InputReader()
