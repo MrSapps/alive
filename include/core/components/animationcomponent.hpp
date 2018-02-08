@@ -23,8 +23,10 @@ public:
     void Render(AbstractRenderer& rend) const;
 
 public:
-    void Load(const char* animationName);
-    void Change(const char* animationName);
+    void Load(const std::string& animationName);
+    void Load(const std::string& animationName, const std::string& dataSetName);
+    void Change(const std::string& animationName);
+    void Change(const std::string& animationName, const std::string& dataSetName);
     bool Complete() const;
 
 public:

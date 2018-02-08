@@ -14,6 +14,7 @@ public:
 public:
     void Update() final;
     const InputMapping& Mapping() const;
-private:
+
+public:
     InputReader& mInput;
 };

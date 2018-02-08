@@ -7,6 +7,13 @@
 #include "gridmap.hpp"
 #include "debug.hpp"
 #include "resourcemapper.hpp"
+#include "core/components/transformcomponent.hpp"
+#include "core/components/animationcomponent.hpp"
+
+AnimationBrowser::AnimationBrowser(EntityManager& entityManager, ResourceLocator& resMapper) : mEntityManager(entityManager), mResourceLocator(resMapper)
+{
+
+}
 
 void AnimationBrowser::Update(const InputReader& input, CoordinateSpace& coords)
 {
@@ -15,23 +22,19 @@ void AnimationBrowser::Update(const InputReader& input, CoordinateSpace& coords)
         RenderAnimationSelector(coords);
     }
 
-    for (auto& anim : mLoadedAnims)
-    {
-        anim->Update();
-    }
-
     const glm::vec2 mouseWorldPos = coords.ScreenToWorld(glm::vec2(input.MousePos().mX, input.MousePos().mY));
 
     // Set the "selected" animation
     if (!mSelected && input.MouseButton(MouseButtons::eLeft).Pressed())
     {
-        for (auto& anim : mLoadedAnims)
+        for (auto& entity : mLoadedAnims)
         {
-            if (anim->Collision(static_cast<s32>(mouseWorldPos.x), static_cast<s32>(mouseWorldPos.y)))
+            auto animation = entity.GetComponent<AnimationComponent>()->mAnimation;
+            if (animation && animation->Collision(static_cast<s32>(mouseWorldPos.x), static_cast<s32>(mouseWorldPos.y)))
             {
-                mSelected = anim.get();
-                mXDelta = (static_cast<s32>(anim->XPos()-mouseWorldPos.x));
-                mYDelta = (static_cast<s32>(anim->YPos()-mouseWorldPos.y));
+                mSelected = entity;
+                mXDelta = (static_cast<s32>(animation->XPos() - mouseWorldPos.x));
+                mYDelta = (static_cast<s32>(animation->YPos() - mouseWorldPos.y));
                 return;
             }
         }
@@ -40,10 +43,14 @@ void AnimationBrowser::Update(const InputReader& input, CoordinateSpace& coords)
     // Move the "selected" animation
     if (mSelected && input.MouseButton(MouseButtons::eLeft).Held())
     {
-        LOG_INFO("Move selected to " << mouseWorldPos.x+ mXDelta << "," << mouseWorldPos.y+ mYDelta);
-        mSelected->SetXPos(static_cast<s32>(mouseWorldPos.x+ mXDelta));
-        mSelected->SetYPos(static_cast<s32>(mouseWorldPos.y+ mYDelta));
-    }
+        LOG_INFO("Move selected to " << mouseWorldPos.x + mXDelta << "," << mouseWorldPos.y + mYDelta);
+        mSelected.With<TransformComponent, AnimationComponent>([&](auto transformComponent, auto animationComponent)
+        {
+            transformComponent->Set(mouseWorldPos.x + mXDelta, mouseWorldPos.y + mYDelta);
+            animationComponent->mAnimation->SetXPos(static_cast<s32>(mouseWorldPos.x + mXDelta)); // TODO: this is still used in collision checking for animations
+            animationComponent->mAnimation->SetYPos(static_cast<s32>(mouseWorldPos.y + mYDelta)); // TODO: this is still used in collision checking for animations
+        });
+    };
 
     if (input.MouseButton(MouseButtons::eLeft).Released())
     {
@@ -55,8 +62,10 @@ void AnimationBrowser::Update(const InputReader& input, CoordinateSpace& coords)
     {
         for (auto it = mLoadedAnims.begin(); it != mLoadedAnims.end(); it++)
         {
-            if ((*it)->Collision(static_cast<s32>(mouseWorldPos.x), static_cast<s32>(mouseWorldPos.y)))
+            auto animation = it->GetComponent<AnimationComponent>()->mAnimation;
+            if (animation->Collision(static_cast<s32>(mouseWorldPos.x), static_cast<s32>(mouseWorldPos.y)))
             {
+				it->Destroy();
                 mLoadedAnims.erase(it);
                 break;
             }
@@ -65,21 +74,19 @@ void AnimationBrowser::Update(const InputReader& input, CoordinateSpace& coords)
     }
 }
 
-AnimationBrowser::AnimationBrowser(ResourceLocator& resMapper) 
-    : mResourceLocator(resMapper)
-{
-
-}
-
 void AnimationBrowser::Render(AbstractRenderer& renderer)
 {
-    for (auto& anim : mLoadedAnims)
+    for (auto& entity : mLoadedAnims)
     {
-        if (mDebugResetAnimStates)
+        auto animation = entity.GetComponent<AnimationComponent>()->mAnimation;
+        if (animation)
         {
-            anim->Restart();
+            if (mDebugResetAnimStates)
+            {
+                animation->Restart();
+            }
+            animation->Render(renderer, false, AbstractRenderer::eEditor, AbstractRenderer::eWorld);
         }
-        anim->Render(renderer, false, AbstractRenderer::eEditor, AbstractRenderer::eWorld);
     }
 }
 
@@ -100,7 +107,7 @@ void AnimationBrowser::RenderAnimationSelector(CoordinateSpace& coords)
 
         static char datasetFilterString[64] = {};
         ImGui::InputText("Data set filter", datasetFilterString, sizeof(datasetFilterString));
-        
+
         static char nameFilterString[64] = {};
         ImGui::InputText("Name filter", nameFilterString, sizeof(nameFilterString));
 
@@ -114,13 +121,22 @@ void AnimationBrowser::RenderAnimationSelector(CoordinateSpace& coords)
                 bool load = std::get<2>(res);
                 if (load)
                 {
-                    auto anim = mResourceLocator.LocateAnimation(resourceName, dataSetName).get();
-                    if (anim)
+                    auto entity = mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
+                    entity.With<TransformComponent, AnimationComponent>([&](auto transformComponent, auto animationComponent)
                     {
-                        anim->SetXPos(static_cast<s32>(coords.CameraPosition().x));
-                        anim->SetYPos(static_cast<s32>(coords.CameraPosition().y));
-                        mLoadedAnims.push_back(std::move(anim));
-                    }
+                        transformComponent->Set(coords.CameraPosition().x, coords.CameraPosition().y);
+                        animationComponent->Change(resourceName, dataSetName);
+                        if (animationComponent->mAnimation)
+                        {
+                            animationComponent->mAnimation->SetXPos(static_cast<s32>(coords.CameraPosition().x)); // TODO: this is still used in collision checking for animations
+                            animationComponent->mAnimation->SetYPos(static_cast<s32>(coords.CameraPosition().y)); // TODO: this is still used in collision checking for animations
+                            mLoadedAnims.emplace_back(entity);
+                        }
+                        else
+                        {
+                            entity.Destroy();
+                        }
+                    });
                 }
             }
         }

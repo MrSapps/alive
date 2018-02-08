@@ -78,7 +78,7 @@ bool SligMovementComponent::TryMoveLeftOrRight() const
 
 void SligMovementComponent::SetAnimation(const std::string& anim)
 {
-    mAnimationComponent->Change(anim.c_str());
+    mAnimationComponent->Change(anim);
 }
 
 void SligMovementComponent::SetState(SligMovementComponent::States state)

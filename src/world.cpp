@@ -93,7 +93,7 @@ World::World(
         RenderDebugFmvSelection();
     });
 
-    mDebugAnimationBrowser = std::make_unique<AnimationBrowser>(locator);
+    mDebugAnimationBrowser = std::make_unique<AnimationBrowser>(mEntityManager, locator);
 
     // Debugging - reload path and load next path
     static std::string currentPathName;

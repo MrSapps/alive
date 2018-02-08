@@ -17,12 +17,17 @@ void AnimationComponent::OnResolveDependencies()
     mTransformComponent = mEntity.GetComponent<TransformComponent>();
 }
 
-void AnimationComponent::Load(const char* animationName)
+void AnimationComponent::Load(const std::string& animationName)
 {
     mCachedAnimations[animationName] = mResourceLocator->LocateAnimation(animationName).get();
 }
 
-void AnimationComponent::Change(const char* animationName)
+void AnimationComponent::Load(const std::string& animationName, const std::string& dataSetName)
+{
+    mCachedAnimations[dataSetName + animationName] = mResourceLocator->LocateAnimation(animationName, dataSetName).get();
+}
+
+void AnimationComponent::Change(const std::string& animationName)
 {
     auto found = mCachedAnimations.find(animationName);
     if (found != mCachedAnimations.end())
@@ -34,8 +39,30 @@ void AnimationComponent::Change(const char* animationName)
         Load(animationName);
         mAnimation = mCachedAnimations[animationName].get();
     }
-    mAnimation->SetFrame(0);
-    mLoaded = true;
+    if (mAnimation)
+    {
+        mAnimation->SetFrame(0);
+        mLoaded = true;
+    }
+}
+
+void AnimationComponent::Change(const std::string& animationName, const std::string& dataSetName)
+{
+    auto found = mCachedAnimations.find(dataSetName + animationName);
+    if (found != mCachedAnimations.end())
+    {
+        mAnimation = found->second.get();
+    }
+    else
+    {
+        Load(animationName, dataSetName);
+        mAnimation = mCachedAnimations[dataSetName + animationName].get();
+    }
+    if (mAnimation)
+    {
+        mAnimation->SetFrame(0);
+        mLoaded = true;
+    }
 }
 
 bool AnimationComponent::Complete() const

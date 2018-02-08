@@ -564,7 +564,7 @@ void AbeMovementComponent::SetState(AbeMovementComponent::States state)
 
 void AbeMovementComponent::SetAnimation(const std::string& anim)
 {
-    mAnimationComponent->Change(anim.c_str());
+    mAnimationComponent->Change(anim);
 }
 
 void AbeMovementComponent::PlaySoundEffect(const char* fxName)
