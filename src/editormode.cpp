@@ -482,7 +482,7 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
     // Find out what line is under the mouse pos, if any
     // TODO: Wire CollisionSystem here
     /*
-    const s32 lineIdx = CollisionLine::Pick(mWorldState.mCollisionItems, mousePosWorld, mWorldState.mState == World::States::eInGame ? 1.0f : mEditorCamZoom);
+    const s32 lineIdx = CollisionLine::Pick(mWorld.mCollisionItems, mousePosWorld, mWorld.mState == World::States::eInGame ? 1.0f : mEditorCamZoom);
 
     if (lineIdx >= 0)
     {
@@ -524,8 +524,8 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
             {
                 LOG_INFO("Toggle line selected status");
                 // Only change state if we select a new line, when we de-select there is no selection area to update
-                updateState = !mWorldState.mCollisionItems[lineIdx]->IsSelected();
-                mUndoStack.Push<CommandSelectOrDeselectLine>(mWorldState.mCollisionItems, mSelection, lineIdx, !mWorldState.mCollisionItems[lineIdx]->IsSelected());
+                updateState = !mWorld.mCollisionItems[lineIdx]->IsSelected();
+                mUndoStack.Push<CommandSelectOrDeselectLine>(mWorld.mCollisionItems, mSelection, lineIdx, !mWorld.mCollisionItems[lineIdx]->IsSelected());
                 if (!updateState)
                 {
                     mSelectionState = eSelectionState::eNone;
@@ -539,9 +539,9 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
                     LOG_INFO("Select single line");
                     if (mSelection.HasSelection())
                     {
-                        mUndoStack.Push<CommandClearSelection>(mWorldState.mCollisionItems, mSelection);
+                        mUndoStack.Push<CommandClearSelection>(mWorld.mCollisionItems, mSelection);
                     }
-                    mUndoStack.Push<CommandSelectOrDeselectLine>(mWorldState.mCollisionItems, mSelection, lineIdx, true);
+                    mUndoStack.Push<CommandSelectOrDeselectLine>(mWorld.mCollisionItems, mSelection, lineIdx, true);
                 }
                 else
                 {
@@ -557,9 +557,9 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
                 }
                 else if (mSelection.SelectedLines().size() == 1)
                 {
-                    const f32 lineLength = mWorldState.mCollisionItems[lineIdx]->mLine.Length();
-                    const f32 distToP1 = glm::distance(mWorldState.mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld) / lineLength;
-                    const f32 distToP2 = glm::distance(mWorldState.mCollisionItems[lineIdx]->mLine.mP2, mousePosWorld) / lineLength;
+                    const f32 lineLength = mWorld.mCollisionItems[lineIdx]->mLine.Length();
+                    const f32 distToP1 = glm::distance(mWorld.mCollisionItems[lineIdx]->mLine.mP1, mousePosWorld) / lineLength;
+                    const f32 distToP2 = glm::distance(mWorld.mCollisionItems[lineIdx]->mLine.mP2, mousePosWorld) / lineLength;
                     if (distToP1 < 0.2f)
                     {
                         mSelectionState = eSelectionState::eLineP1Selected;
@@ -585,7 +585,7 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
             if (mSelection.HasSelection())
             {
                 LOG_INFO("Nothing clicked, clear selected");
-                mUndoStack.Push<CommandClearSelection>(mWorldState.mCollisionItems, mSelection);
+                mUndoStack.Push<CommandClearSelection>(mWorld.mCollisionItems, mSelection);
             }
         }
         */
@@ -599,14 +599,14 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
         case eSelectionState::eLineP2Selected:
             // TODO: Handle dis/connect to other lines when moving end points
             // TODO: Wire CollisionSystem here
-            // mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mWorldState.mCollisionItems, mSelection, mousePosWorld, mSelectionState == eSelectionState::eLineP1Selected);
+            // mUndoStack.PushMerge<CommandMoveLinePoint>(mMergeCommand, mWorld.mCollisionItems, mSelection, mousePosWorld, mSelectionState == eSelectionState::eLineP1Selected);
             break;
 
         case eSelectionState::eMoveSelected:
         case eSelectionState::eLineMiddleSelected:
             // TODO: Disconnect from other lines if moved away
             // TODO: Wire CollisionSystem here
-            // mUndoStack.PushMerge<MoveSelection>(mMergeCommand, mWorldState.mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
+            // mUndoStack.PushMerge<MoveSelection>(mMergeCommand, mWorld.mCollisionItems, mSelection, mousePosWorld - mLastMousePos);
             break;
 
         case eSelectionState::eNone:
@@ -632,7 +632,7 @@ void EditorMode::Render(AbstractRenderer& rend) const
                 GridScreen* screen = mWorldState.mScreens[x][y].get();
                 if (screen)
                 {
-                    if (!screen->hasTexture())
+                    if (!screen->HasTexture())
                     {
                         continue;
                     }

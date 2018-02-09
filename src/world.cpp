@@ -48,7 +48,7 @@ World::World(
     LoadComponents();
 
     mPlayFmvState = std::make_unique<PlayFmvState>(audioController, locator);
-    mGridMap = std::make_unique<GridMap>(coords, *this, mEntityManager);
+    mGridMap = std::make_unique<GridMap>(coords, *this);
     mFmvDebugUi = std::make_unique<FmvDebugUi>(locator);
     mGameMode = std::make_unique<GameMode>(*this);
     mEditorMode = std::make_unique<EditorMode>(*this);

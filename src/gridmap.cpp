@@ -24,8 +24,8 @@ GridScreen::GridScreen(const Oddlib::Path::Camera& camera, ResourceLocator& loca
 
 GridScreen::~GridScreen()
 {
-    assert(mCameraTexture.IsValid() == false);
-    assert(mFG1Texture.IsValid() == false);
+    assert(!mCameraTexture.IsValid());
+    assert(!mFG1Texture.IsValid());
 }
 
 void GridScreen::LoadTextures(AbstractRenderer& rend)
@@ -36,7 +36,7 @@ void GridScreen::LoadTextures(AbstractRenderer& rend)
         if (mCam) // One path trys to load BRP08C10.CAM which exists in no data sets anywhere!
         {
             SDL_Surface* surf = mCam->GetSurface();
-            mCameraTexture = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGB, surf->w, surf->h, AbstractRenderer::eTextureFormats::eRGB, surf->pixels, true);
+            mCameraTexture = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGB, static_cast<u32>(surf->w), static_cast<u32>(surf->h), AbstractRenderer::eTextureFormats::eRGB, surf->pixels, true);
 
             if (!mFG1Texture.IsValid())
             {
@@ -45,7 +45,7 @@ void GridScreen::LoadTextures(AbstractRenderer& rend)
                     SDL_Surface* fg1Surf = mCam->GetFg1()->GetSurface();
                     if (fg1Surf)
                     {
-                        mFG1Texture = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->w, fg1Surf->h, AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->pixels, true);
+                        mFG1Texture = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, static_cast<u32>(fg1Surf->w), static_cast<u32>(fg1Surf->h), AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->pixels, true);
                     }
                 }
             }
@@ -67,12 +67,12 @@ void GridScreen::UnLoadTextures(AbstractRenderer& rend)
     }
 }
 
-bool GridScreen::hasTexture() const
+bool GridScreen::HasTexture() const
 {
     bool onlySpaces = true;
-    for (size_t i = 0; i < mFileName.size(); ++i)
+    for (auto c : mFileName)
     {
-        if (mFileName[i] != ' ' && mFileName[i] != '\0')
+        if (c != ' ' && c != '\0')
         {
             onlySpaces = false;
             break;
@@ -96,9 +96,9 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
     }
 }
 
-GridMap::GridMap(CoordinateSpace& coords, World& state, EntityManager &entityManager) : mEntityManager(entityManager), mLoader(*this), mWorldState(state)
+GridMap::GridMap(CoordinateSpace& coords, World& world) : mLoader(*this), mWorld(world)
 {
-    auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
+    auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
 
     // Set up the screen size and camera pos so that the grid is drawn correctly during init
     cameraSystem->mVirtualScreenSize = glm::vec2(368.0f, 240.0f);
@@ -139,11 +139,11 @@ bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator)
 
 void GridMap::UnloadMap(AbstractRenderer& renderer)
 {
-    for (auto x = 0u; x < mWorldState.mScreens.size(); x++)
+    for (auto x = 0u; x < mWorld.mScreens.size(); x++)
     {
-        for (auto y = 0u; y < mWorldState.mScreens[x].size(); y++)
+        for (auto y = 0u; y < mWorld.mScreens[x].size(); y++)
         {
-            GridScreen* screen = mWorldState.mScreens[x][y].get();
+            GridScreen* screen = mWorld.mScreens[x][y].get();
             if (!screen)
             {
                 continue;
@@ -151,13 +151,13 @@ void GridMap::UnloadMap(AbstractRenderer& renderer)
             screen->UnLoadTextures(renderer);
         }
     }
-    auto collisionSystem = mEntityManager.GetSystem<CollisionSystem>();
+    auto collisionSystem = mWorld.mEntityManager.GetSystem<CollisionSystem>();
     if (collisionSystem)
     {
-        mEntityManager.Clear();
+        mWorld.mEntityManager.Clear();
         collisionSystem->Clear();
     }
-    mWorldState.mScreens.clear();
+    mWorld.mScreens.clear();
 }
 
 GridMap::Loader::Loader(GridMap& gm)
@@ -168,8 +168,8 @@ GridMap::Loader::Loader(GridMap& gm)
 
 void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
 {
-    auto cameraSystem = mGm.mEntityManager.GetSystem<CameraSystem>();
-    auto collisionSystem = mGm.mEntityManager.GetSystem<CollisionSystem>();
+    auto cameraSystem = mGm.mWorld.mEntityManager.GetSystem<CameraSystem>();
+    auto collisionSystem = mGm.mWorld.mEntityManager.GetSystem<CollisionSystem>();
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
     cameraSystem->mCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
@@ -190,8 +190,8 @@ void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
 
 void GridMap::Loader::HandleAllocateCameraMemory(const Oddlib::Path& path)
 {
-    mGm.mWorldState.mScreens.resize(path.XSize());
-    for (auto& col : mGm.mWorldState.mScreens)
+    mGm.mWorld.mScreens.resize(path.XSize());
+    for (auto& col : mGm.mWorld.mScreens)
     {
         col.resize(path.YSize());
     }
@@ -204,7 +204,7 @@ void GridMap::Loader::HandleLoadCameras(const Oddlib::Path& path, ResourceLocato
     {
         return mYForLoop.Iterate(path.YSize(), [&]()
         {
-            mGm.mWorldState.mScreens[mXForLoop.Value()][mYForLoop.Value()] = std::make_unique<GridScreen>(path.CameraByPosition(mXForLoop.Value(), mYForLoop.Value()), locator);
+            mGm.mWorld.mScreens[mXForLoop.Value()][mYForLoop.Value()] = std::make_unique<GridScreen>(path.CameraByPosition(mXForLoop.Value(), mYForLoop.Value()), locator);
         });
     }))
     {
@@ -218,25 +218,25 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
     {
         return mYForLoop.IterateIf(path.YSize(), [&]()
         {
-            GridScreen* screen = mGm.mWorldState.mScreens[mXForLoop.Value()][mYForLoop.Value()].get();
+            GridScreen* screen = mGm.mWorld.mScreens[mXForLoop.Value()][mYForLoop.Value()].get();
             const Oddlib::Path::Camera& cam = screen->getCamera();
             return mIForLoop.Iterate(static_cast<u32>(cam.mObjects.size()), [&]()
             {
                 const auto& object = cam.mObjects[mIForLoop.Value()];
                 Oddlib::MemoryStream ms(std::vector<u8>(object.mData.data(), object.mData.data() + object.mData.size()));
-                
+
                 AeEntityFactory factory;
-                auto entity = factory.Create(object, mGm.mEntityManager, ms);
+                auto entity = factory.Create(object, mGm.mWorld.mEntityManager, ms);
             });
         });
     }))
     {
-        auto abe = mGm.mEntityManager.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent, CameraComponent>();
+        auto abe = mGm.mWorld.mEntityManager.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent, CameraComponent>();
         auto pos = abe.GetComponent<TransformComponent>();
         pos->Set(125.0f, 380.0f + (80.0f));
         pos->SnapXToGrid();
 
-        auto slig = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
+        auto slig = mGm.mWorld.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
         auto pos2 = slig.GetComponent<TransformComponent>();
         pos2->Set(125.0f + (25.0f), 380.0f + (80.0f));
         pos2->SnapXToGrid();
@@ -270,7 +270,13 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
         HandleLoadCameras(path, locator);
         break;
     case LoaderStates::eLoadEntities:
-        RunForAtLeast(kMaxExecutionTimeMs, [&]() { if (mState == LoaderStates::eLoadEntities) { HandleLoadEntities(path); } });
+        RunForAtLeast(kMaxExecutionTimeMs, [&]()
+        {
+            if (mState == LoaderStates::eLoadEntities)
+            {
+                HandleLoadEntities(path);
+            }
+        });
         break;
     }
     return mState == LoaderStates::eInit;

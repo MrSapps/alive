@@ -44,7 +44,7 @@ public:
     }
     void LoadTextures(AbstractRenderer& rend);
     void UnLoadTextures(AbstractRenderer& rend);
-    bool hasTexture() const;
+    bool HasTexture() const;
     const Oddlib::Path::Camera& getCamera() const
     {
         return mCamera;
@@ -71,15 +71,12 @@ class GridMap
 public:
     GridMap(const GridMap&) = delete;
     GridMap& operator=(const GridMap&) = delete;
-    GridMap(CoordinateSpace& coords, World& state, EntityManager& entityManager);
+    GridMap(CoordinateSpace& coords, World& world);
     ~GridMap();
 
 public:
     bool LoadMap(const Oddlib::Path& path, ResourceLocator& locator);
     void UnloadMap(AbstractRenderer& renderer);
-
-public:
-    EntityManager& mEntityManager;
 
 private:
     class Loader
@@ -116,6 +113,6 @@ private:
     };
 
 private:
+    World& mWorld;
     Loader mLoader;
-	World& mWorldState;
 };

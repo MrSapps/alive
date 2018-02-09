@@ -94,7 +94,7 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
     if (mState == eRunning)
     {
         /*
-        for (auto& obj : mWorldState.mObjs)
+        for (auto& obj : mWorld.mObjs)
         {
             obj->Update(input);
         }
@@ -140,7 +140,7 @@ void GameMode::Render(AbstractRenderer& rend) const
             GridScreen* screen = mWorldState.mScreens[camX][camY].get();
             if (screen)
             {
-                if (screen->hasTexture())
+                if (screen->HasTexture())
                 {
                     screen->Render(rend,
                         (camX * cameraSystem->mCameraBlockSize.x) + cameraSystem->mCameraBlockImageOffset.x,
