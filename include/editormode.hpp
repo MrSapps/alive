@@ -2,7 +2,7 @@
 
 #include "gridmap.hpp"
 
-class WorldState;
+class World;
 
 class ICommand
 {
@@ -125,7 +125,7 @@ class EditorMode
 {
 public:
     NO_MOVE_OR_MOVE_ASSIGN(EditorMode);
-    explicit EditorMode(WorldState& mapState);
+    explicit EditorMode(World& mapState);
 
 
     /* TODO: Set correct cursors
@@ -155,11 +155,11 @@ private:
     };
 
 private:
+    World& mWorldState;
     Selection mSelection;
     UndoStack mUndoStack;
-    bool mMergeCommand = false;
     glm::vec2 mLastMousePos;
     eSelectionState mSelectionState = eSelectionState::eNone;
-    WorldState& mWorldState;
     bool mShowAbout = false;
+    bool mMergeCommand = false;
 };

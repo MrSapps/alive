@@ -2,7 +2,7 @@
 
 #include "types.hpp"
 
-class WorldState;
+class World;
 class InputReader;
 class CoordinateSpace;
 class AbstractRenderer;
@@ -10,7 +10,7 @@ class AbstractRenderer;
 class GameMode
 {
 public:
-    GameMode(WorldState& mapState);
+    GameMode(World& mapState);
 
 public:
     enum GameModeStates
@@ -40,7 +40,7 @@ private:
     void UpdateMenu(const InputReader& input, CoordinateSpace& coords);
 
 private:
+    World& mWorldState;
     MenuStates mMenuState = MenuStates::eInit;
-    WorldState& mWorldState;
     GameModeStates mState = eRunning;
 };

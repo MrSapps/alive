@@ -329,7 +329,7 @@ void UndoStack::Redo()
     }
 }
 
-EditorMode::EditorMode(WorldState& mapState)
+EditorMode::EditorMode(World& mapState)
         : mWorldState(mapState)
 {
 
@@ -357,7 +357,7 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 
             if (ImGui::MenuItem("Exit", nullptr))
             {
-                mWorldState.mState = WorldState::States::eQuit;
+                mWorldState.mState = World::States::eQuit;
             }
             ImGui::EndMenu();
         }
@@ -428,7 +428,7 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 
     if (input.KeyboardKey(SDL_SCANCODE_E).Pressed())
     {
-        mWorldState.mState = WorldState::States::eToGame;
+        mWorldState.mState = World::States::eToGame;
         coords.mSmoothCameraPosition = true;
         mWorldState.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
 
@@ -482,7 +482,7 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
     // Find out what line is under the mouse pos, if any
     // TODO: Wire CollisionSystem here
     /*
-    const s32 lineIdx = CollisionLine::Pick(mWorldState.mCollisionItems, mousePosWorld, mWorldState.mState == WorldState::States::eInGame ? 1.0f : mEditorCamZoom);
+    const s32 lineIdx = CollisionLine::Pick(mWorldState.mCollisionItems, mousePosWorld, mWorldState.mState == World::States::eInGame ? 1.0f : mEditorCamZoom);
 
     if (lineIdx >= 0)
     {

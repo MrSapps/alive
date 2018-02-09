@@ -21,49 +21,6 @@ class FmvDebugUi;
 class Sound;
 class GridScreen;
 
-class WorldState
-{
-public:
-    WorldState(IAudioController& audioController, ResourceLocator& locator, EntityManager& entityManager);
-    WorldState(const WorldState&) = delete;
-    WorldState& operator=(const WorldState&) = delete;
-
-public:
-    enum class States
-    {
-        eNone,
-        eLoadingMap,
-        eSoundsLoading,
-        ePlayFmv,
-        eInGame,
-        eFrontEndMenu,
-        eToEditor,
-        eInEditor,
-        eToGame,
-        eQuit
-    };
-
-public:
-    u32 CurrentCameraX() const;
-    u32 CurrentCameraY() const;
-    void SetCurrentCamera(const char* cameraName);
-
-public:
-    States mState = States::eNone;
-    States mReturnToState = States::eNone;
-
-public:
-    u32 mModeSwitchTimeout = 0;
-    u32 mGlobalFrameCounter = 0;
-    EntityManager& mEntityManager;
-    std::unique_ptr<PlayFmvState> mPlayFmvState;
-    std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens;
-
-private:
-    u32 mCurrentCameraX = 0;
-    u32 mCurrentCameraY = 0;
-};
-
 class World
 {
 public:
@@ -81,8 +38,28 @@ public:
     ~World();
 
 public:
+    enum class States
+    {
+        eNone,
+        eLoadingMap,
+        eSoundsLoading,
+        ePlayFmv,
+        eInGame,
+        eFrontEndMenu,
+        eToEditor,
+        eInEditor,
+        eToGame,
+        eQuit
+    };
+
+public:
     EngineStates Update(const InputReader& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend);
+
+public:
+    void SetCurrentGridScreenFromCAM(const char* camFilename);
+    u32 CurrentGridScreenX() const;
+    u32 CurrentGridScreenY() const;
 
 private:
     void LoadSystems();
@@ -101,6 +78,10 @@ private:
     bool mQuickLoad = false;
 
 private:
+    u32 mCurrentGridScreenX = 0;
+    u32 mCurrentGridScreenY = 0;
+
+private:
     std::unique_ptr<GridMap> mGridMap;
     std::unique_ptr<FmvDebugUi> mFmvDebugUi;
     std::unique_ptr<class GameMode> mGameMode;
@@ -117,7 +98,12 @@ private:
     ResourceLocator& mLocator;
     AbstractRenderer& mRenderer;
 
-private:
-    WorldState mWorldState;
-    EntityManager mEntityManager;
+public:
+    std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens; // should be private
+    EntityManager mEntityManager; // should be private
+    u32 mModeSwitchTimeout = 0; // should be private
+    u32 mGlobalFrameCounter = 0; // should be private
+    std::unique_ptr<PlayFmvState> mPlayFmvState; // should be private
+    States mState = States::eNone;// should be private
+    States mReturnToState = States::eNone;// should be private
 };

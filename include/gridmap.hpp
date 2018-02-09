@@ -64,14 +64,14 @@ private:
 
 constexpr u32 kSwitchTimeMs = 300;
 
-class WorldState;
+class World;
 
 class GridMap
 {
 public:
     GridMap(const GridMap&) = delete;
     GridMap& operator=(const GridMap&) = delete;
-    GridMap(CoordinateSpace& coords, WorldState& state, EntityManager& entityManager);
+    GridMap(CoordinateSpace& coords, World& state, EntityManager& entityManager);
     ~GridMap();
 
 public:
@@ -117,5 +117,5 @@ private:
 
 private:
     Loader mLoader;
-    WorldState& mWorldState;
+	World& mWorldState;
 };

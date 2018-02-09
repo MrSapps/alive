@@ -14,8 +14,7 @@ static f32 Percent2(f32 max, f32 percent)
     return (max / 100.0f) * percent;
 }
 
-GameMode::GameMode(WorldState& mapState)
-    : mWorldState(mapState)
+GameMode::GameMode(World& mapState) : mWorldState(mapState)
 {
 
 }
@@ -27,8 +26,8 @@ void GameMode::UpdateMenu(const InputReader& /*input*/, CoordinateSpace& /*coord
     {
     case GameMode::MenuStates::eInit:
         mMenuState = MenuStates::eCameraRoll;
-        mWorldState.SetCurrentCamera("STP01C25.CAM");
-        cameraSystem->SetGameCameraToCameraAt(mWorldState.CurrentCameraX(), mWorldState.CurrentCameraY());
+        mWorldState.SetCurrentGridScreenFromCAM("STP01C25.CAM");
+        cameraSystem->SetGameCameraToCameraAt(mWorldState.CurrentGridScreenX(), mWorldState.CurrentGridScreenY());
         break;
 
     case GameMode::MenuStates::eCameraRoll:
@@ -36,7 +35,7 @@ void GameMode::UpdateMenu(const InputReader& /*input*/, CoordinateSpace& /*coord
         {
             mWorldState.mPlayFmvState->Play("AE_Intro");
             mWorldState.mReturnToState = mWorldState.mState;
-            mWorldState.mState = WorldState::States::ePlayFmv;
+            mWorldState.mState = World::States::ePlayFmv;
         }
         break;
 
@@ -54,7 +53,7 @@ void GameMode::UpdateMenu(const InputReader& /*input*/, CoordinateSpace& /*coord
 
 void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
 {
-	const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
+    const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
 
     coords.SetScreenSize(cameraSystem->mVirtualScreenSize);
 
@@ -83,7 +82,7 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
 
     if (input.KeyboardKey(SDL_SCANCODE_E).Pressed() && mState != ePaused)
     {
-        mWorldState.mState = WorldState::States::eToEditor;
+        mWorldState.mState = World::States::eToEditor;
         coords.mSmoothCameraPosition = true;
 
         mWorldState.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
@@ -131,8 +130,8 @@ void GameMode::Render(AbstractRenderer& rend) const
     {
         auto pos = cameraSystem->mTarget.GetComponent<TransformComponent>();
 
-        const s32 camX = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraX()) : static_cast<s32>(pos->GetX() / cameraSystem->mCameraBlockSize.x);
-        const s32 camY = mState == eMenu ? static_cast<s32>(mWorldState.CurrentCameraY()) : static_cast<s32>(pos->GetY() / cameraSystem->mCameraBlockSize.y);
+        const s32 camX = mState == eMenu ? static_cast<s32>(mWorldState.CurrentGridScreenX()) : static_cast<s32>(pos->GetX() / cameraSystem->mCameraBlockSize.x);
+        const s32 camY = mState == eMenu ? static_cast<s32>(mWorldState.CurrentGridScreenY()) : static_cast<s32>(pos->GetY() / cameraSystem->mCameraBlockSize.y);
 
         if (camX >= 0 && camY >= 0 &&
             camX < static_cast<s32>(mWorldState.mScreens.size()) &&

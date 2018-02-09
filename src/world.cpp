@@ -24,37 +24,6 @@
 #include "core/components/abemovementcomponent.hpp"
 #include "core/components/sligmovementcomponent.hpp"
 
-WorldState::WorldState(IAudioController& audioController, ResourceLocator& locator, EntityManager& entityManager) : mEntityManager(entityManager)
-{
-    mPlayFmvState = std::make_unique<PlayFmvState>(audioController, locator);
-}
-
-u32 WorldState::CurrentCameraX() const
-{
-    return mCurrentCameraX;
-}
-
-u32 WorldState::CurrentCameraY() const
-{
-    return mCurrentCameraY;
-}
-
-void WorldState::SetCurrentCamera(const char* cameraName)
-{
-    for (auto x = 0u; x < mScreens.size(); x++)
-    {
-        for (auto y = 0u; y < mScreens[x].size(); y++)
-        {
-            if (mScreens[x][y]->FileName() == cameraName)
-            {
-                mCurrentCameraX = x;
-                mCurrentCameraY = y;
-                return;
-            }
-        }
-    }
-}
-
 template<class T>
 static inline bool FutureIsDone(T& future)
 {
@@ -73,16 +42,16 @@ World::World(
                                           mInput(input),
                                           mLoadingIcon(loadingIcon),
                                           mLocator(locator),
-                                          mRenderer(renderer),
-                                          mWorldState(audioController, locator, mEntityManager)
+                                          mRenderer(renderer)
 {
     LoadSystems();
     LoadComponents();
 
-    mGridMap = std::make_unique<GridMap>(coords, mWorldState, mEntityManager);
+    mPlayFmvState = std::make_unique<PlayFmvState>(audioController, locator);
+    mGridMap = std::make_unique<GridMap>(coords, *this, mEntityManager);
     mFmvDebugUi = std::make_unique<FmvDebugUi>(locator);
-    mGameMode = std::make_unique<GameMode>(mWorldState);
-    mEditorMode = std::make_unique<EditorMode>(mWorldState);
+    mGameMode = std::make_unique<GameMode>(*this);
+    mEditorMode = std::make_unique<EditorMode>(*this);
     mMenu = std::make_unique<Menu>(mEntityManager);
 
     Debugging().AddSection([&]()
@@ -152,6 +121,32 @@ World::~World()
     UnloadMap(mRenderer);
 }
 
+void World::SetCurrentGridScreenFromCAM(const char* camFilename)
+{
+    for (auto x = 0u; x < mScreens.size(); x++)
+    {
+        for (auto y = 0u; y < mScreens[x].size(); y++)
+        {
+            if (mScreens[x][y]->FileName() == camFilename)
+            {
+                mCurrentGridScreenX = x;
+                mCurrentGridScreenY = y;
+                return;
+            }
+        }
+    }
+}
+
+u32 World::CurrentGridScreenX() const
+{
+    return mCurrentGridScreenX;
+}
+
+u32 World::CurrentGridScreenY() const
+{
+    return mCurrentGridScreenY;
+}
+
 void World::LoadSystems()
 {
     mEntityManager.AddSystem<DebugSystem>();
@@ -182,7 +177,7 @@ void World::LoadMap(const std::string& mapName)
     mEditorMode->ClearUndoStack();
     mSound.StopAllMusic();
     mLoadingIcon.SetEnabled(true);
-    mWorldState.mState = WorldState::States::eLoadingMap;
+    mState = States::eLoadingMap;
 }
 
 bool World::LoadMap(const Oddlib::Path& path)
@@ -192,19 +187,19 @@ bool World::LoadMap(const Oddlib::Path& path)
 
 EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
 {
-    switch (mWorldState.mState)
+    switch (mState)
     {
-    case WorldState::States::eToEditor:
-    case WorldState::States::eToGame:
-    case WorldState::States::eInGame:
-    case WorldState::States::eFrontEndMenu:
-    case WorldState::States::eInEditor:
+    case States::eToEditor:
+    case States::eToGame:
+    case States::eInGame:
+    case States::eFrontEndMenu:
+    case States::eInEditor:
     {
-        mWorldState.mGlobalFrameCounter++;
+        mGlobalFrameCounter++;
 
         // Don't show debug UI if we're in game and the game is paused
         bool hideDebug = false;
-        if (mWorldState.mState == WorldState::States::eInGame && mGameMode->State() == GameMode::ePaused)
+        if (mState == States::eInGame && mGameMode->State() == GameMode::ePaused)
         {
             hideDebug = true;
         }
@@ -220,35 +215,35 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
 
         if (mGridMap)
         {
-            if (mWorldState.mState == WorldState::States::eInEditor)
+            if (mState == States::eInEditor)
             {
                 mEditorMode->Update(input, coords);
             }
-            else if (mWorldState.mState == WorldState::States::eInGame)
+            else if (mState == States::eInGame)
             {
                 mGameMode->Update(input, coords);
             }
-            else if (mWorldState.mState == WorldState::States::eFrontEndMenu)
+            else if (mState == States::eFrontEndMenu)
             {
                 mMenu->Update();
             }
             else
             {
-                if (mWorldState.mState == WorldState::States::eToEditor)
+                if (mState == States::eToEditor)
                 {
                     coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorMode->mEditorCamZoom);
-                    if (SDL_TICKS_PASSED(SDL_GetTicks(), mWorldState.mModeSwitchTimeout))
+                    if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
                     {
-                        mWorldState.mState = WorldState::States::eInEditor;
+                        mState = States::eInEditor;
                     }
                 }
-                else if (mWorldState.mState == WorldState::States::eToGame)
+                else if (mState == States::eToGame)
                 {
                     const auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
                     coords.SetScreenSize(cameraSystem->mVirtualScreenSize);
-                    if (SDL_TICKS_PASSED(SDL_GetTicks(), mWorldState.mModeSwitchTimeout))
+                    if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
                     {
-                        mWorldState.mState = WorldState::States::eInGame;
+                        mState = States::eInGame;
                     }
                 }
                 coords.SetCameraPosition(mEntityManager.GetSystem<CameraSystem>()->mCameraPosition);
@@ -294,14 +289,14 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
     }
         break;
 
-    case WorldState::States::ePlayFmv:
-        if (!mWorldState.mPlayFmvState->Update(input))
+    case States::ePlayFmv:
+        if (!mPlayFmvState->Update(input))
         {
-            mWorldState.mState = mWorldState.mReturnToState;
+            mState = mReturnToState;
         }
         break;
 
-    case WorldState::States::eLoadingMap:
+    case States::eLoadingMap:
         if (mLocatePathFuture && FutureIsDone(mLocatePathFuture))
         {
             mPathBeingLoaded = mLocatePathFuture->get(); // Will re-throw anything that was thrown during the async processing
@@ -315,7 +310,7 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
                 // Note: This is iterative loading which happens in the main thread
                 if (LoadMap(*mPathBeingLoaded))
                 {
-                    mWorldState.mState = WorldState::States::eSoundsLoading;
+                    mState = States::eSoundsLoading;
                     mSound.SetMusicTheme(mPathBeingLoaded->MusicThemeName().c_str());
                 }
             }
@@ -325,29 +320,29 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
                 LOG_ERROR("LVL or file in LVL not found");
                 
                 // HACK: Force to menu
-                //mWorldState.mState = WorldState::States::eFrontEndMenu;
+                //mState = States::eFrontEndMenu;
 
-                mWorldState.mState = WorldState::States::eInGame;
+                mState = States::eInGame;
 
                 mLoadingIcon.SetEnabled(false);
             }
         }
         break;
 
-    case WorldState::States::eSoundsLoading:
+    case States::eSoundsLoading:
         // TODO: Construct sprite sheets for objects that exist in this map
         if (!mSound.IsLoading())
         {
-            mWorldState.mState = WorldState::States::eInGame;
+            mState = States::eInGame;
             mSound.HandleMusicEvent("BASE_LINE");
             mLoadingIcon.SetEnabled(false);
         }
         break;
 
-    case WorldState::States::eQuit:
+    case States::eQuit:
         return EngineStates::eQuit;
 
-    case WorldState::States::eNone:
+    case States::eNone:
         break;
     }
 
@@ -358,13 +353,13 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
 
 void World::Render(AbstractRenderer& /*rend*/)
 {
-    switch (mWorldState.mState)
+    switch (mState)
     {
-    case WorldState::States::eInGame:
-    case WorldState::States::eToEditor:
-    case WorldState::States::eToGame:
-    case WorldState::States::eFrontEndMenu:
-    case WorldState::States::eInEditor:
+    case States::eInGame:
+    case States::eToEditor:
+    case States::eToGame:
+    case States::eFrontEndMenu:
+    case States::eInEditor:
         mRenderer.Clear(0.4f, 0.4f, 0.4f);
 
         Debugging().Render(mRenderer);
@@ -373,19 +368,19 @@ void World::Render(AbstractRenderer& /*rend*/)
             mDebugAnimationBrowser->Render(mRenderer);
         }
 
-        mWorldState.mPlayFmvState->RenderDebugSubsAndFontAtlas(mRenderer);
+        mPlayFmvState->RenderDebugSubsAndFontAtlas(mRenderer);
 
         if (mGridMap)
         {
-            if (mWorldState.mState == WorldState::States::eInEditor)
+            if (mState == States::eInEditor)
             {
                 mEditorMode->Render(mRenderer);
             }
-            else if (mWorldState.mState == WorldState::States::eInGame)
+            else if (mState == States::eInGame)
             {
                 mGameMode->Render(mRenderer);
             }
-            else if (mWorldState.mState == WorldState::States::eFrontEndMenu)
+            else if (mState == States::eFrontEndMenu)
             {
                 mMenu->Render(mRenderer);
             }
@@ -402,24 +397,24 @@ void World::Render(AbstractRenderer& /*rend*/)
         }
         break;
 
-    case WorldState::States::ePlayFmv:
-        mWorldState.mPlayFmvState->Render(mRenderer);
+    case States::ePlayFmv:
+        mPlayFmvState->Render(mRenderer);
         break;
 
-    case WorldState::States::eQuit:
+    case States::eQuit:
         mRenderer.Clear(0.0f, 0.0f, 0.0f);
         break;
 
-    case WorldState::States::eLoadingMap:
+    case States::eLoadingMap:
         // TODO: Need to keep rendering the last camera/objects while loading
         // and then run the transition effect
         mRenderer.Clear(0.0f, 0.0f, 0.0f);
         break;
 
-    case WorldState::States::eSoundsLoading:
+    case States::eSoundsLoading:
         break;
 
-    case WorldState::States::eNone:
+    case States::eNone:
         break;
     }
 }
@@ -442,9 +437,9 @@ void World::RenderDebugFmvSelection()
 {
     if (mFmvDebugUi->Ui())
     {
-        mWorldState.mPlayFmvState->Play(mFmvDebugUi->FmvName().c_str(), mFmvDebugUi->FmvFileLocation());
-        mWorldState.mReturnToState = mWorldState.mState;
-        mWorldState.mState = WorldState::States::ePlayFmv;
+        mPlayFmvState->Play(mFmvDebugUi->FmvName().c_str(), mFmvDebugUi->FmvFileLocation());
+        mReturnToState = mState;
+        mState = States::ePlayFmv;
     }
 }
 
