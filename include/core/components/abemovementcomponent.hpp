@@ -47,14 +47,14 @@ public:
     };
     enum class States
     {
-        ePushingWall,
-        ePushingWallToStanding,
-
         eStanding,
         eStandingToWalking,
         eStandingToRunning,
         eStandingToCrouching,
         eStandingTurningAround,
+
+        ePushingWall,
+        ePushingWallToStanding,
 
         eWalking,
         eWalkingToRunning,
@@ -203,7 +203,7 @@ private:
 
 private:
     void SetState(States state);
-    void SetAnimation(const std::string& anim);
+    void SetAnimation(AbeAnimation abeAnimation, u32 animationFrame = 0);
     void PlaySoundEffect(const char* fxName);
     void SetCurrentAndNextState(States current, States next);
 
@@ -225,6 +225,8 @@ private:
         Goal mGoal;
         States mState;
         States mNextState;
+        AbeAnimation mAnimation;
+        s32 mAnimationFrame;
     } mData =
         {
             Direction::eRight,
@@ -232,7 +234,9 @@ private:
             false,
             Goal::eStand,
             States::eStanding,
-            States::eStanding
+            States::eStanding,
+            AbeAnimation::eAbeStandIdle,
+            0
         };
 };
 
