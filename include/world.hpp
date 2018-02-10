@@ -63,11 +63,10 @@ public:
 
 private:
     void LoadSystems();
-    void LoadComponents();
 
 private:
-    void LoadMap(const std::string& mapName);
     bool LoadMap(const Oddlib::Path& path);
+    void LoadMap(const std::string& mapName);
     void UnloadMap(AbstractRenderer& renderer);
 
 private:
@@ -82,21 +81,21 @@ private:
     u32 mCurrentGridScreenY = 0;
 
 private:
-    std::unique_ptr<GridMap> mGridMap;
-    std::unique_ptr<FmvDebugUi> mFmvDebugUi;
-    std::unique_ptr<class GameMode> mGameMode;
-    std::unique_ptr<class EditorMode> mEditorMode;
-    std::unique_ptr<class AnimationBrowser> mDebugAnimationBrowser;
-    std::unique_ptr<class Menu> mMenu;
-    Oddlib::UP_Path mPathBeingLoaded;
-    up_future_UP_Path mLocatePathFuture;
-
-private:
     Sound& mSound;
     InputReader& mInput;
     LoadingIcon& mLoadingIcon;
     ResourceLocator& mLocator;
     AbstractRenderer& mRenderer;
+
+private:
+    std::unique_ptr<class Menu> mMenu;
+    std::unique_ptr<class GridMap> mGridMap;
+    std::unique_ptr<class GameMode> mGameMode;
+    std::unique_ptr<class EditorMode> mEditorMode;
+    std::unique_ptr<class FmvDebugUi> mFmvDebugUi;
+    std::unique_ptr<class AnimationBrowser> mDebugAnimationBrowser;
+    Oddlib::UP_Path mPathBeingLoaded;
+    up_future_UP_Path mLocatePathFuture;
 
 public:
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens; // should be private

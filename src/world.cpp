@@ -45,14 +45,14 @@ World::World(
                                           mRenderer(renderer)
 {
     LoadSystems();
-    LoadComponents();
 
-    mPlayFmvState = std::make_unique<PlayFmvState>(audioController, locator);
+    mMenu = std::make_unique<Menu>(mEntityManager);
     mGridMap = std::make_unique<GridMap>(coords, *this);
-    mFmvDebugUi = std::make_unique<FmvDebugUi>(locator);
     mGameMode = std::make_unique<GameMode>(*this);
     mEditorMode = std::make_unique<EditorMode>(*this);
-    mMenu = std::make_unique<Menu>(mEntityManager);
+    mFmvDebugUi = std::make_unique<FmvDebugUi>(locator);
+    mPlayFmvState = std::make_unique<PlayFmvState>(audioController, locator);
+    mDebugAnimationBrowser = std::make_unique<AnimationBrowser>(mEntityManager, locator);
 
     Debugging().AddSection([&]()
     {
@@ -63,8 +63,6 @@ World::World(
     {
         RenderDebugFmvSelection();
     });
-
-    mDebugAnimationBrowser = std::make_unique<AnimationBrowser>(mEntityManager, locator);
 
     // Debugging - reload path and load next path
     static std::string currentPathName;
@@ -154,10 +152,7 @@ void World::LoadSystems()
     mEntityManager.AddSystem<CameraSystem>();
     mEntityManager.AddSystem<ResourceSystem>(mLocator);
     mEntityManager.AddSystem<CollisionSystem>();
-}
 
-void World::LoadComponents()
-{
     mEntityManager.RegisterComponent<CameraComponent>();
     mEntityManager.RegisterComponent<PhysicsComponent>();
     mEntityManager.RegisterComponent<TransformComponent>();
