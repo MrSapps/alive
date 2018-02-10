@@ -250,7 +250,7 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
             // Physics System
             mEntityManager.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform)
             {
-                transform->Add(physics->xSpeed, physics->ySpeed);
+                transform->Add(physics->GetXSpeed(), physics->GetYSpeed());
             });
             // Animation System
             mEntityManager.With<AnimationComponent>([](auto, auto animation)

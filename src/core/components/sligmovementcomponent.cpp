@@ -19,9 +19,9 @@ void SligMovementComponent::OnLoad()
 {
     Component::OnLoad(); // calls OnResolveDependencies
 
-    mStateFnMap[States::eStanding] =            { &SligMovementComponent::PreStanding,  &SligMovementComponent::Standing          };
-    mStateFnMap[States::eWalking] =             { &SligMovementComponent::PreWalking,   &SligMovementComponent::Walking           };
-    mStateFnMap[States::eStandTurningAround] =  { nullptr,                              &SligMovementComponent::StandTurnAround   };
+    mStateFnMap[States::eStanding] = { &SligMovementComponent::PreStanding, &SligMovementComponent::Standing };
+    mStateFnMap[States::eWalking] = { &SligMovementComponent::PreWalking, &SligMovementComponent::Walking };
+    mStateFnMap[States::eStandTurningAround] = { nullptr, &SligMovementComponent::StandTurnAround };
 
     SetAnimation(kSligStandIdle);
 }
@@ -46,16 +46,16 @@ void SligMovementComponent::Update()
     }
 }
 
-void SligMovementComponent::Serialize(std::ostream &os) const
+void SligMovementComponent::Serialize(std::ostream& os) const
 {
     static_assert(std::is_pod<decltype(mData)>::value, "SligMovementComponent::mData is not a POD type");
-	os.write(static_cast<const char*>(static_cast<const void*>(&mData)), sizeof(decltype(mData)));
+    os.write(static_cast<const char*>(static_cast<const void*>(&mData)), sizeof(decltype(mData)));
 }
 
-void SligMovementComponent::Deserialize(std::istream &is)
+void SligMovementComponent::Deserialize(std::istream& is)
 {
     static_assert(std::is_pod<decltype(mData)>::value, "SligMovementComponent::mData is not a POD type");
-	is.read(static_cast<char*>(static_cast<void*>(&mData)), sizeof(decltype(mData)));
+    is.read(static_cast<char*>(static_cast<void*>(&mData)), sizeof(decltype(mData)));
 }
 
 void SligMovementComponent::ASyncTransition()
@@ -98,8 +98,8 @@ void SligMovementComponent::SetState(SligMovementComponent::States state)
 void SligMovementComponent::PreStanding(SligMovementComponent::States /*previous*/)
 {
     SetAnimation(kSligStandIdle);
-    mPhysicsComponent->xSpeed = 0.0f;
-    mPhysicsComponent->ySpeed = 0.0f;
+    mPhysicsComponent->SetXSpeed(0.0f);
+    mPhysicsComponent->SetYSpeed(0.0f);
 }
 
 void SligMovementComponent::Standing()
@@ -162,14 +162,7 @@ void SligMovementComponent::StandTurnAround()
 
 void SligMovementComponent::SetXSpeed(f32 speed)
 {
-    if (mAnimationComponent->mFlipX)
-    {
-        mPhysicsComponent->xSpeed = -speed;
-    }
-    else
-    {
-        mPhysicsComponent->xSpeed = speed;
-    }
+    mPhysicsComponent->SetXSpeed(mAnimationComponent->mFlipX ? -speed : speed);
 }
 
 DEFINE_COMPONENT(SligPlayerControllerComponent);

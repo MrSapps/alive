@@ -160,8 +160,8 @@ void AbeMovementComponent::PushingWall()
 void AbeMovementComponent::PreStanding(AbeMovementComponent::States)
 {
     SetAnimation(AbeAnimation::eAbeStandIdle);
-    mPhysicsComponent->xSpeed = 0.0f;
-    mPhysicsComponent->ySpeed = 0.0f;
+    mPhysicsComponent->SetXSpeed(0.0f);
+    mPhysicsComponent->SetYSpeed(0.0f);
 }
 
 void AbeMovementComponent::Standing()
@@ -534,7 +534,7 @@ void AbeMovementComponent::SetFrame(u32 frame)
 
 void AbeMovementComponent::SetXSpeed(f32 speed)
 {
-    mPhysicsComponent->xSpeed = mData.mDirection * speed;
+    mPhysicsComponent->SetXSpeed(mData.mDirection * speed);
 }
 
 void AbeMovementComponent::SnapXToGrid()
