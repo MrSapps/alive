@@ -65,8 +65,41 @@ void PathsJson::PathMapping::DeSerialize(const rapidjson::Value& obj)
     }
 }
 
+void PathsJson::PathMapping::Serialize(jsonxx::Object& obj) const
+{
+    obj << "id" << mId;
+    obj << "collision_offset" << mCollisionOffset;
+    obj << "object_indextable_offset" << mIndexTableOffset;
+    obj << "object_offset" << mObjectOffset;
+    obj << "number_of_screens_x" << mNumberOfScreensX;
+    obj << "number_of_screens_y" << mNumberOfScreensY;
+
+    if (mSpawnXPos != -1 && mSpawnYPos != -1)
+    {
+        obj << "spawn_x" << mSpawnXPos;
+        obj << "spawn_y" << mSpawnYPos;
+    }
+
+    if (mTheme)
+    {
+        obj << "theme" << mTheme->mName;
+    }
+
+    jsonxx::Array locationsArray;
+    for (const auto& location : mLocations)
+    {
+        jsonxx::Object locationObject;
+        locationObject << "dataset" << location.mDataSetName;
+        locationObject << "file_name" << location.mDataSetFileName;
+        locationsArray << locationObject;
+    }
+
+    obj << "locations" << locationsArray;
+}
+
 void PathsJson::PathTheme::DeSerialize(const rapidjson::Value& obj)
 {
+    ReadStringIf(obj, "name", mName);
     ReadStringIf(obj, "music_theme", mMusicTheme);
     ReadStringIf(obj, "glukkon_skin", mGlukkonSkin);
     ReadStringIf(obj, "lift_skin", mLiftSkin);
@@ -74,54 +107,59 @@ void PathsJson::PathTheme::DeSerialize(const rapidjson::Value& obj)
     ReadStringIf(obj, "door_skin", mDoorSkin);
 }
 
-void PathsJson::PathRecordsToJson(const std::string& fileName)
+static inline void WriteStringIf(jsonxx::Object& obj, const std::string& keyName, const std::string& str)
 {
+    if (!str.empty())
+    {
+        obj << keyName << str;
+    }
+}
+
+void PathsJson::PathTheme::Serialize(jsonxx::Object& obj) const
+{
+    obj << "name" << mName;
+    WriteStringIf(obj, "music_theme", mMusicTheme);
+    WriteStringIf(obj, "glukkon_skin", mGlukkonSkin);
+    WriteStringIf(obj, "lift_skin", mLiftSkin);
+    WriteStringIf(obj, "slam_door_skin", mSlamDoorSkin);
+    WriteStringIf(obj, "door_skin", mDoorSkin);
+}
+
+void PathsJson::Serialize(const std::string& fileName)
+{
+    jsonxx::Object rootObject;
+
+    jsonxx::Array themesArray;
+    for (const auto& theme : mPathThemes)
+    {
+        jsonxx::Object themeObject;
+        theme.second->Serialize(themeObject);
+        themesArray << themeObject;
+    }
+    rootObject << "path_themes" << themesArray;
+
     jsonxx::Array pathsArray;
-
-    // TODO: Write themes back
-
     for (const auto& path : mPathMaps)
     {
         jsonxx::Object pathObject;
         pathObject << "resource_name" << path.first;
 
-        // TODO: Move to path mapping object
-        pathObject << "id" << path.second.mId;
-        pathObject << "collision_offset" << path.second.mCollisionOffset;
-        pathObject << "object_indextable_offset" << path.second.mIndexTableOffset;
-        pathObject << "object_offset" << path.second.mObjectOffset;
-        pathObject << "number_of_screens_x" << path.second.mNumberOfScreensX;
-        pathObject << "number_of_screens_y" << path.second.mNumberOfScreensY;
-        
-        if (path.second.mSpawnXPos != -1 && path.second.mSpawnYPos != -1)
-        {
-            pathObject << "spawn_x" << path.second.mSpawnXPos;
-            pathObject << "spawn_y" << path.second.mSpawnYPos;
-        }
-
-        jsonxx::Array locationsArray;
-        for (const auto& location : path.second.mLocations)
-        {
-            jsonxx::Object locationObject;
-            locationObject << "dataset" << location.mDataSetName;
-            locationObject << "file_name" << location.mDataSetFileName;
-            locationsArray << locationObject;
-        }
-
-        pathObject << "locations" << locationsArray;
+        path.second.Serialize(pathObject);
 
         pathsArray << pathObject;
     }
 
-    jsonxx::Object rootObject;
     rootObject << "paths" << pathsArray;
 
     Oddlib::FileStream fs(fileName, Oddlib::IStream::ReadMode::ReadWrite);
     fs.Write(rootObject.json());
 }
 
-void PathsJson::PathMappingFromJson(rapidjson::Document& doc)
+void PathsJson::DeSerialize(const std::string& json)
 {
+    rapidjson::Document doc;
+    doc.Parse(json.c_str());
+
     const auto& docRootArray = doc.GetArray();
     
     // Read the themes first

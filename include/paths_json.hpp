@@ -7,6 +7,11 @@
 #include "types.hpp"
 #include <rapidjson/fwd.h>
 
+namespace jsonxx 
+{ 
+    class Object;
+}
+
 class PathsJson
 {
 public:
@@ -18,14 +23,15 @@ public:
 
     struct PathTheme
     {
-        std::string mName; // name
-        std::string mMusicTheme; // music_theme
-        std::string mGlukkonSkin; // glukkon_skin
-        std::string mLiftSkin; // lift_skin
-        std::string mSlamDoorSkin; // slam_door_skin
-        std::string mDoorSkin; // door_skin
+        std::string mName;
+        std::string mMusicTheme;
+        std::string mGlukkonSkin;
+        std::string mLiftSkin;
+        std::string mSlamDoorSkin;
+        std::string mDoorSkin;
         using Ptr = std::unique_ptr<PathTheme>;
         void DeSerialize(const rapidjson::Value& obj);
+        void Serialize(jsonxx::Object& obj) const;
     };
     using NameToPathThemeTable = std::map<std::string, PathTheme::Ptr>; // Ptr so PathMapping's pointer won't dangle
 
@@ -43,6 +49,7 @@ public:
         PathTheme* mTheme = nullptr;
         const PathLocation* Find(const std::string& dataSetName) const;
         void DeSerialize(const rapidjson::Value& obj);
+        void Serialize(jsonxx::Object& obj) const;
     };
 
     using NameToPathMappingTable = std::map<std::string, PathMapping>;
@@ -50,8 +57,8 @@ public:
     // Given BAPATH_1 it will try to find the matching record
     const PathMapping* FindPath(const std::string& resourceName);
 
-    void PathMappingFromJson(rapidjson::Document& doc);
-    void PathRecordsToJson(const std::string& fileName);
+    void DeSerialize(const std::string& json);
+    void Serialize(const std::string& fileName);
 
     // For debug UI, hitting next path will keep calling this to loop the whole
     // collection of known paths.
@@ -60,7 +67,7 @@ public:
     // For debug UI, displays a list of paths to load
     NameToPathMappingTable Map() const;
 
-private:
+protected:
     NameToPathMappingTable mPathMaps;
     NameToPathThemeTable mPathThemes;
 };

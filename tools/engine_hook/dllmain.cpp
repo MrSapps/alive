@@ -418,7 +418,7 @@ struct PathData
 
     // TODO: This isn't the full story, to get the true x,y start pos some other value is subtracted
 
-    u16 mAbeXStartPos; // values offset for ao?
+    u16 mAbeStartXPos; // values offset for ao?
     u16 mAbeStartYPos; // part of the above for ao??
 
     void* (*mObjectFuncs[256])(void);
@@ -539,6 +539,145 @@ static int __fastcall sub_418930_hook(void* thisPtr, void*, const CollisionInfo*
     return Hooks::sub_418930.Real()(thisPtr, pCollisionInfo, pPathBlock);
 }
 
+class EditablePathsJson : public PathsJson
+{
+public:
+    using PathsJson::PathsJson;
+    using PathsJson::mPathMaps;
+    using PathsJson::mPathThemes;
+};
+struct PerLvlData
+{
+    const char* field_0_display_name;
+    WORD field_4_level;
+    WORD field_6_path;
+    WORD field_8_camera;
+    WORD field_A_scale;
+    WORD field_C_abe_x_off;
+    WORD field_E_abe_y_off;
+};
+
+const static PerLvlData gPerLvlData_561700[15] =
+{
+    { "Mines", 1, 1, 4, 65535u, 2712, 1300 },
+    { "Mines Ender", 1, 6, 10, 65535u, 2935, 2525 },
+    { "Necrum", 2, 2, 1, 65535u, 2885, 1388 },
+    { "Mudomo Vault", 3, 1, 1, 65535u, 110, 917 },
+    { "Mudomo Vault Ender", 11, 13, 1, 65535u, 437, 454 },
+    { "Mudanchee Vault", 4, 6, 3, 65535u, 836, 873 },
+    { "Mudanchee Vault Ender", 7, 9, 4, 65534u, 1600, 550 },
+    { "FeeCo Depot", 5, 1, 1, 65535u, 4563, 972 },
+    { "FeeCo Depot Ender", 12, 11, 5, 65535u, 1965, 1650 },
+    { "Barracks", 6, 1, 4, 65535u, 1562, 1651 },
+    { "Barracks Ender", 13, 11, 5, 65535u, 961, 1132 },
+    { "Bonewerkz", 8, 1, 1, 65535u, 813, 451 },
+    { "Bonewerkz Ender", 14, 14, 10, 65535u, 810, 710 },
+    { "Brewery", 9, 16, 6, 65535u, 1962, 1232 },
+    { "Game Ender", 10, 1, 1, 65535u, 460, 968 }
+};
+
+const static std::map<int, std::string> gPathThemeNames =
+{
+    { 0, "ST" },
+    { 1, "Mines" },
+    { 2, "Necrum" },
+    { 3, "ParamiteVaults" },
+    { 4, "ScrabVaults" },
+    { 5, "FecoDepot" },
+    { 6 , "Barracks" },
+    //{ 7 , "ScrabVaults_Ender" },
+    { 8 , "BoneWerkz" },
+    { 9 , "Brewery" },
+    { 10 , "Brewery_Ender" }, // BM
+    //{ 11 , "ParamiteVaults_Ender" },
+    //{ 12 , "FecoDepot_Ender" },
+    //{ 13 , "Barracks_Ender" }, // This completely duplicated all paths from 6 ... only way to split is to manually check them
+    //{ 14 , "BoneWerkz_Ender" },
+    { 15 , "TL" },
+    { 16 , "Credits" },
+};
+
+void UpdatePathsJson()
+{
+    Oddlib::FileStream jsonFile("../../data/paths.json", Oddlib::IStream::ReadMode::ReadOnly);
+    EditablePathsJson paths;
+    paths.DeSerialize(jsonFile.LoadAllToString());
+
+    // Create a theme for each LVL entry
+    PathsJson::PathTheme dummyTheme;
+    dummyTheme.mDoorSkin = "Mines";
+    dummyTheme.mGlukkonSkin = "GreenSuit";
+    dummyTheme.mLiftSkin = "Mines";
+    dummyTheme.mMusicTheme = "Barracks";
+    dummyTheme.mSlamDoorSkin = "Mines";
+
+    // Add the themes to the map
+    for (const auto& pathData : gPathThemeNames)
+    {
+        dummyTheme.mName = pathData.second;
+        paths.mPathThemes[pathData.second] = std::make_unique<PathsJson::PathTheme>(dummyTheme);
+    }
+
+    for (s32 i = 0; i < NumLevels(); i++)
+    {
+        PathRootData* ptr = Vars().gPathData.Get();
+        PathRoot& data = ptr->iLvls[i];
+        for (s32 j = 1; j < data.mNumPaths + 1; j++)
+        {
+            // Find matching PathsJson entry for this Bly
+            std::string generatedName = std::string(data.mName) + "PATH_" + std::to_string(j);  // e.g BAPATH_1
+            auto pathIt = paths.mPathMaps.find(generatedName);
+            if (pathIt == std::end(paths.mPathMaps))
+            {
+                /* TODO: Need to set the location for missing paths, AePc is a given, but need to select Cd1 or Cd2 for Psx
+                "locations": [
+                  {
+                    "dataset": "AePc",
+                    "file_name": "BAPATH.BND"
+                  },
+                  {
+                    "dataset": "AePsxCd2",
+                    "file_name": "BAPATH.BND"
+                  }
+                ],
+                */
+                PathsJson::PathMapping pathMapping;
+                pathMapping.mCollisionOffset = data.mBlyArrayPtr->iBlyRecs[j].mCollisionData->mCollisionOffset;
+                pathMapping.mId = j;
+                pathMapping.mNumberOfScreensX = data.mBlyArrayPtr->iBlyRecs[j].mCollisionData->mBRight / 375;
+                pathMapping.mNumberOfScreensY = data.mBlyArrayPtr->iBlyRecs[j].mCollisionData->mBBottom / 260;
+                pathMapping.mIndexTableOffset = data.mBlyArrayPtr->iBlyRecs[j].mPathData->object_indextable_offset;
+                pathMapping.mObjectOffset = data.mBlyArrayPtr->iBlyRecs[j].mPathData->object_offset;
+                paths.mPathMaps[generatedName] = pathMapping;
+                pathIt = paths.mPathMaps.find(generatedName);
+                // TODO: Add it
+                //abort();
+                continue;
+            }
+
+            // TODO: Need to add on the crazy per LVL offset
+            // don't know how to map gPerLvlData_561700 yet as the offsets between normal and ender differ
+            pathIt->second.mSpawnXPos = data.mBlyArrayPtr->iBlyRecs[j].mPathData->mAbeStartXPos;
+            pathIt->second.mSpawnYPos = data.mBlyArrayPtr->iBlyRecs[j].mPathData->mAbeStartYPos;
+
+            auto themeIt = gPathThemeNames.find(i);
+            // This might not exist because the _Enders' have been removed. This is because 
+            // normal Barracks and Barracks ender contain the same path list. So we let normal
+            // Barracks "win" in setting the theme. This is because there only tends to be a couple of
+            // ender paths to fix up by hand.
+            if (themeIt != std::end(gPathThemeNames))
+            {
+                auto themePtrIt = paths.mPathThemes.find(themeIt->second);
+                if (themePtrIt != std::end(paths.mPathThemes))
+                {
+                    pathIt->second.mTheme = themePtrIt->second.get();
+                }
+            }
+        }
+    }
+
+    paths.Serialize("../../data/paths_new.json");
+}
 
 void GetPathArray()
 {
@@ -554,6 +693,8 @@ void GetPathArray()
             }
         }
     }
+    //UpdatePathsJson();
+    //abort();
 }
 
 void GdiLoop(HDC hdc)

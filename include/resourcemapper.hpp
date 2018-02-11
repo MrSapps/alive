@@ -261,9 +261,7 @@ private:
     {
         TRACE_ENTRYEXIT;
 
-        rapidjson::Document document;
-        document.Parse(json.c_str());
-        mPathMaps.PathMappingFromJson(document);
+        mPathMaps.DeSerialize(json);
     }
 
     void ParseFmvResourceJson(const std::string& json)
