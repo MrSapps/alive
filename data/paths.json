@@ -1,5 +1,15 @@
 [
   {
+    "path_themes": [
+      {
+        "name": "Barracks",
+        "music_theme": "Barracks",
+        "glukkon_skin": "GreenSuite",
+        "lift_skin": "Barracks",
+        "slam_door_skin": "Barracks",
+        "door_skin" :  "Barracks"
+      }
+    ],
     "paths": [
       {
         "collision_offset": 400,
@@ -19,7 +29,9 @@
         "object_indextable_offset": 7628,
         "object_offset": 2460,
         "resource_name": "BAPATH_1",
-        "music_theme" :  "Barracks"
+        "theme": "Barracks",
+        "spawn_x": 500,
+        "spawn_y" : 460
       },
       {
         "collision_offset": 112,

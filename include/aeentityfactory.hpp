@@ -1,5 +1,7 @@
 #pragma once
 
+#include "paths_json.hpp"
+
 enum ObjectTypesAe : u8
 {
     eContinuePoint = 0,
@@ -114,5 +116,5 @@ class Entity;
 class AeEntityFactory
 {
 public:
-    Entity Create(const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms);
+    Entity Create(const PathsJson::PathTheme* pathTheme, const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms);
 };

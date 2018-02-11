@@ -75,29 +75,30 @@ namespace Oddlib
 
         Path(const Path&) = delete;
         Path& operator = (const Path&) = delete;
-        Path(const std::string& musicThemeName,
-             IStream& pathChunkStream,
+        Path(IStream& pathChunkStream,
              u32 collisionDataOffset,
-             u32 objectIndexTableOffset, 
+             u32 objectIndexTableOffset,
              u32 objectDataOffset,
-             u32 mapXSize, 
+             u32 mapXSize,
              u32 mapYSize,
+             s32 abeSpawnX,
+             s32 abeSpawnY,
              bool isAo);
 
         u32 XSize() const;
         u32 YSize() const;
+        s32 AbeSpawnX() const;
+        s32 AbeSpawnY() const;
+
         const Camera& CameraByPosition(u32 x, u32 y) const;
         const std::vector<CollisionItem>& CollisionItems() const { return mCollisionItems; }
         bool IsAo() const { return mIsAo; }
-        const std::string& MusicThemeName() const { return mMusicThemeName; }
     private:
         void ReadPath(IStream& stream, u32 collisionDataOffset, u32 objectIndexTableOffset, u32 objectDataOffset);
         void ReadCamera(IStream& stream);
         std::vector<u32> ReadOffsetsToPerCameraObjectLists(IStream& stream, u32 objectIndexTableOffset);
         void ReadMapObject(IStream& stream, Path::MapObject& mapObject);
         void ReadMapObjectsForCamera(IStream& stream, Camera& camera);
-
-        std::string mMusicThemeName;
 
         u32 mXSize = 0;
         u32 mYSize = 0;
@@ -110,6 +111,8 @@ namespace Oddlib
         std::vector<Camera> mCameras;
 
         std::vector<CollisionItem> mCollisionItems;
+        s32 mAbeSpawnX = -1;
+        s32 mAbeSpawnY = -1;
         bool mIsAo = false;
     };
 }

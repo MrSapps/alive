@@ -65,7 +65,7 @@ private:
     void LoadSystems();
 
 private:
-    bool LoadMap(const Oddlib::Path& path);
+    bool LoadMap(const PathInformation& pathInfo);
     void LoadMap(const std::string& mapName);
     void UnloadMap(AbstractRenderer& renderer);
 
@@ -94,8 +94,8 @@ private:
     std::unique_ptr<class EditorMode> mEditorMode;
     std::unique_ptr<class FmvDebugUi> mFmvDebugUi;
     std::unique_ptr<class AnimationBrowser> mDebugAnimationBrowser;
-    Oddlib::UP_Path mPathBeingLoaded;
-    up_future_UP_Path mLocatePathFuture;
+    std::unique_ptr<PathInformation> mPathBeingLoaded;
+    up_future_UP_PathInformation mLocatePathFuture;
 
 public:
     std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens; // should be private

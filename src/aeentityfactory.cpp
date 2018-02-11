@@ -3711,7 +3711,9 @@ static std::map<const u32, std::function<Entity(const Oddlib::Path::MapObject&, 
 
 
 
-Entity AeEntityFactory::Create(const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms)
+Entity AeEntityFactory::Create(const PathsJson::PathTheme* /*pathTheme*/, const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms)
 {
+    // TODO: Use pathTheme to set correct "skin" for various things
+
     return sEnumMap[object.mType](object, entityManager, ms);
 }

@@ -645,9 +645,9 @@ std::future<std::unique_ptr<ISound>> ResourceLocator::LocateSound(const std::str
     });
 }
 
-up_future_UP_Path ResourceLocator::LocatePath(const std::string& resourceName)
+up_future_UP_PathInformation ResourceLocator::LocatePath(const std::string& resourceName)
 {
-    return std::make_unique<future_UP_Path>(std::async(std::launch::async, [=]() -> Oddlib::UP_Path
+    return std::make_unique<future_UP_PathInformation>(std::async(std::launch::async, [=]() -> std::unique_ptr<PathInformation>
     {
         std::unique_lock<std::mutex> lock(mMutex);
         const auto mapping = mResMapper.PathMaps().FindPath(resourceName);
@@ -677,13 +677,16 @@ up_future_UP_Path ResourceLocator::LocatePath(const std::string& resourceName)
                                     {
                                         auto chunk = lvlFile->ChunkById(mapping->mId);
                                         auto stream = chunk->Stream();
-                                        return std::make_unique<Oddlib::Path>(mapping->mMusicTheme, *stream,
+                                        auto pathPtr = std::make_unique<Oddlib::Path>(*stream,
                                             mapping->mCollisionOffset,
                                             mapping->mIndexTableOffset,
                                             mapping->mObjectOffset,
                                             mapping->mNumberOfScreensX,
                                             mapping->mNumberOfScreensY,
+                                            mapping->mSpawnXPos,
+                                            mapping->mSpawnYPos,
                                             attributes.mIsAo);
+                                        return std::make_unique<PathInformation>(std::move(pathPtr), mapping->mTheme);
                                     }
                                 }
 

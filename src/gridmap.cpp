@@ -124,16 +124,16 @@ GridMap::~GridMap()
     TRACE_ENTRYEXIT;
 }
 
-bool GridMap::LoadMap(const Oddlib::Path& path, ResourceLocator& locator)
+bool GridMap::LoadMap(const PathInformation& pathInfo, ResourceLocator& locator)
 {
 #if defined(_DEBUG)
-    while (!mLoader.Load(path, locator))
+    while (!mLoader.Load(pathInfo, locator))
     {
 
     }
     return true;
 #else
-    return mLoader.Load(path, locator);
+    return mLoader.Load(pathInfo, locator);
 #endif
 }
 
@@ -212,11 +212,11 @@ void GridMap::Loader::HandleLoadCameras(const Oddlib::Path& path, ResourceLocato
     }
 }
 
-void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
+void GridMap::Loader::HandleLoadEntities(const PathInformation& pathInfo)
 {
-    if (mXForLoop.IterateIf(path.XSize(), [&]()
+    if (mXForLoop.IterateIf(pathInfo.mPath->XSize(), [&]()
     {
-        return mYForLoop.IterateIf(path.YSize(), [&]()
+        return mYForLoop.IterateIf(pathInfo.mPath->YSize(), [&]()
         {
             GridScreen* screen = mGm.mWorld.mScreens[mXForLoop.Value()][mYForLoop.Value()].get();
             const Oddlib::Path::Camera& cam = screen->getCamera();
@@ -226,19 +226,28 @@ void GridMap::Loader::HandleLoadEntities(const Oddlib::Path& path)
                 Oddlib::MemoryStream ms(std::vector<u8>(object.mData.data(), object.mData.data() + object.mData.size()));
 
                 AeEntityFactory factory;
-                auto entity = factory.Create(object, mGm.mWorld.mEntityManager, ms);
+                auto entity = factory.Create(pathInfo.mTheme, object, mGm.mWorld.mEntityManager, ms);
             });
         });
     }))
     {
         auto abe = mGm.mWorld.mEntityManager.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent, CameraComponent>();
         auto pos = abe.GetComponent<TransformComponent>();
-        pos->Set(125.0f, 380.0f + (80.0f));
+        
+        f32 xpos = 125.0f;
+        f32 ypos = 380.0f + (80.0f);
+        if (pathInfo.mPath->AbeSpawnX() != -1 && pathInfo.mPath->AbeSpawnY() != -1)
+        {
+            xpos = static_cast<f32>(pathInfo.mPath->AbeSpawnX());
+            ypos = static_cast<f32>(pathInfo.mPath->AbeSpawnY());
+        }
+
+        pos->Set(xpos, ypos);
         pos->SnapXToGrid();
 
         auto slig = mGm.mWorld.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
         auto pos2 = slig.GetComponent<TransformComponent>();
-        pos2->Set(125.0f + (25.0f), 380.0f + (80.0f));
+        pos2->Set(xpos + 25.0f, ypos);
         pos2->SnapXToGrid();
 
         SetState(LoaderStates::eInit);
@@ -253,7 +262,7 @@ void GridMap::Loader::SetState(GridMap::Loader::LoaderStates state)
     }
 }
 
-bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
+bool GridMap::Loader::Load(const PathInformation& pathInfo, ResourceLocator& locator)
 {
     switch (mState)
     {
@@ -261,20 +270,20 @@ bool GridMap::Loader::Load(const Oddlib::Path& path, ResourceLocator& locator)
         mState = LoaderStates::eSetupAndConvertCollisionItems;
         break;
     case LoaderStates::eSetupAndConvertCollisionItems:
-        SetupAndConvertCollisionItems(path);
+        SetupAndConvertCollisionItems(*pathInfo.mPath);
         break;
     case LoaderStates::eAllocateCameraMemory:
-        HandleAllocateCameraMemory(path);
+        HandleAllocateCameraMemory(*pathInfo.mPath);
         break;
     case LoaderStates::eLoadCameras:
-        HandleLoadCameras(path, locator);
+        HandleLoadCameras(*pathInfo.mPath, locator);
         break;
     case LoaderStates::eLoadEntities:
         RunForAtLeast(kMaxExecutionTimeMs, [&]()
         {
             if (mState == LoaderStates::eLoadEntities)
             {
-                HandleLoadEntities(path);
+                HandleLoadEntities(pathInfo);
             }
         });
         break;

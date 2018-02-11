@@ -175,9 +175,9 @@ void World::LoadMap(const std::string& mapName)
     mState = States::eLoadingMap;
 }
 
-bool World::LoadMap(const Oddlib::Path& path)
+bool World::LoadMap(const PathInformation& pathInfo)
 {
-    return mGridMap->LoadMap(path, mLocator);
+    return mGridMap->LoadMap(pathInfo, mLocator);
 }
 
 EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
@@ -300,13 +300,22 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
 
         if (!mLocatePathFuture)
         {
-            if (mPathBeingLoaded)
+            if (mPathBeingLoaded->mPath)
             {
                 // Note: This is iterative loading which happens in the main thread
                 if (LoadMap(*mPathBeingLoaded))
                 {
-                    mState = States::eSoundsLoading;
-                    mSound.SetMusicTheme(mPathBeingLoaded->MusicThemeName().c_str());
+                    if (mPathBeingLoaded->mTheme)
+                    {
+                        mState = States::eSoundsLoading;
+                        mSound.SetMusicTheme(mPathBeingLoaded->mTheme->mMusicTheme.c_str());
+                    }
+                    else
+                    {
+                        // No theme set for this path so can't load its music theme
+                        mLoadingIcon.SetEnabled(false);
+                        mState = States::eInGame;
+                    }
                 }
             }
             else

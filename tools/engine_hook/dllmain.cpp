@@ -493,13 +493,13 @@ static int __fastcall sub_418930_hook(void* thisPtr, void*, const CollisionInfo*
                     PathData& pathData = *data.mBlyArrayPtr->iBlyRecs[j].mPathData;
 
                     gPath = std::make_unique<Oddlib::Path>(
-                        "",
                         pathDataStream,
                         pCollisionInfo->mCollisionOffset + 16,
                         pathData.object_indextable_offset + 16,
                         pathData.object_offset + 16,
                         pathData.mBTop / pathData.mWidth,
                         pathData.mBBottom / pathData.mHeight,
+                        -1, -1,
                         false);
                 }
                 else
@@ -517,13 +517,14 @@ static int __fastcall sub_418930_hook(void* thisPtr, void*, const CollisionInfo*
                     const auto mapping = GetAnimLogger().LoadPath(resName);
 
                     gPath = std::make_unique<Oddlib::Path>(
-                        "",
                         pathDataStream,
                         mapping->mCollisionOffset,
                         mapping->mIndexTableOffset,
                         mapping->mObjectOffset,
                         mapping->mNumberOfScreensX,
                         mapping->mNumberOfScreensY,
+                        mapping->mSpawnXPos,
+                        mapping->mSpawnYPos,
                         false);
                 }
 

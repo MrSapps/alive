@@ -65,6 +65,7 @@ private:
 constexpr u32 kSwitchTimeMs = 300;
 
 class World;
+struct PathInformation;
 
 class GridMap
 {
@@ -75,7 +76,7 @@ public:
     ~GridMap();
 
 public:
-    bool LoadMap(const Oddlib::Path& path, ResourceLocator& locator);
+    bool LoadMap(const PathInformation& pathInfo, ResourceLocator& locator);
     void UnloadMap(AbstractRenderer& renderer);
 
 private:
@@ -85,7 +86,7 @@ private:
         explicit Loader(GridMap& gm);
 
     public:
-        bool Load(const Oddlib::Path& path, ResourceLocator& locator);
+        bool Load(const PathInformation& pathInfo, ResourceLocator& locator);
 
     private:
         enum class LoaderStates
@@ -102,8 +103,7 @@ private:
         void SetupAndConvertCollisionItems(const Oddlib::Path& path);
         void HandleAllocateCameraMemory(const Oddlib::Path& path);
         void HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& locator);
-        void HandleLoadEntities(const Oddlib::Path& path);
-
+        void HandleLoadEntities(const PathInformation& pathInfo);
     private:
         GridMap& mGm;
         LoaderStates mState = LoaderStates::eInit;

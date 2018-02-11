@@ -25,24 +25,78 @@ const PathsJson::PathMapping* PathsJson::FindPath(const std::string& resourceNam
     return nullptr;
 }
 
+static inline bool ReadStringIf(const rapidjson::Value& obj, const char* key, std::string& out)
+{
+    if (obj.HasMember(key))
+    {
+        out = obj[key].GetString();
+        return true;
+    }
+    return false;
+}
 
-void PathsJson::ToJson(const std::string& fileName)
+template<class T>
+static inline void ReadIntIf(const rapidjson::Value& obj, const char* key, T& out)
+{
+    if (obj.HasMember(key))
+    {
+        out = obj[key].GetInt();
+    }
+}
+
+void PathsJson::PathMapping::DeSerialize(const rapidjson::Value& obj)
+{
+    mId = obj["id"].GetInt();
+    mCollisionOffset = obj["collision_offset"].GetInt();
+    mIndexTableOffset = obj["object_indextable_offset"].GetInt();
+    mObjectOffset = obj["object_offset"].GetInt();
+    mNumberOfScreensX = obj["number_of_screens_x"].GetInt();
+    mNumberOfScreensY = obj["number_of_screens_y"].GetInt();
+
+    ReadIntIf(obj, "spawn_x", mSpawnXPos);
+    ReadIntIf(obj, "spawn_y", mSpawnYPos);
+
+    const auto& locations = obj["locations"].GetArray();
+    for (auto& locationRecord : locations)
+    {
+        const auto& dataSet = locationRecord["dataset"].GetString();
+        const auto& dataSetFileName = locationRecord["file_name"].GetString();
+        mLocations.push_back(PathLocation{ dataSet, dataSetFileName });
+    }
+}
+
+void PathsJson::PathTheme::DeSerialize(const rapidjson::Value& obj)
+{
+    ReadStringIf(obj, "music_theme", mMusicTheme);
+    ReadStringIf(obj, "glukkon_skin", mGlukkonSkin);
+    ReadStringIf(obj, "lift_skin", mLiftSkin);
+    ReadStringIf(obj, "slam_door_skin", mSlamDoorSkin);
+    ReadStringIf(obj, "door_skin", mDoorSkin);
+}
+
+void PathsJson::PathRecordsToJson(const std::string& fileName)
 {
     jsonxx::Array pathsArray;
+
+    // TODO: Write themes back
+
     for (const auto& path : mPathMaps)
     {
         jsonxx::Object pathObject;
         pathObject << "resource_name" << path.first;
+
+        // TODO: Move to path mapping object
         pathObject << "id" << path.second.mId;
         pathObject << "collision_offset" << path.second.mCollisionOffset;
         pathObject << "object_indextable_offset" << path.second.mIndexTableOffset;
         pathObject << "object_offset" << path.second.mObjectOffset;
         pathObject << "number_of_screens_x" << path.second.mNumberOfScreensX;
         pathObject << "number_of_screens_y" << path.second.mNumberOfScreensY;
-
-        if (!path.second.mMusicTheme.empty())
+        
+        if (path.second.mSpawnXPos != -1 && path.second.mSpawnYPos != -1)
         {
-            pathObject << "music_theme" << path.second.mMusicTheme;
+            pathObject << "spawn_x" << path.second.mSpawnXPos;
+            pathObject << "spawn_y" << path.second.mSpawnYPos;
         }
 
         jsonxx::Array locationsArray;
@@ -66,9 +120,28 @@ void PathsJson::ToJson(const std::string& fileName)
     fs.Write(rootObject.json());
 }
 
-void PathsJson::FromJson(rapidjson::Document& doc)
+void PathsJson::PathMappingFromJson(rapidjson::Document& doc)
 {
     const auto& docRootArray = doc.GetArray();
+    
+    // Read the themes first
+    for (auto& it : docRootArray)
+    {
+        if (it.HasMember("path_themes"))
+        {
+            const rapidjson::Value::Array& pathsArray = it["path_themes"].GetArray();
+            for (const rapidjson::Value& obj : pathsArray)
+            {
+                PathTheme::Ptr theme = std::make_unique<PathTheme>();
+                theme->DeSerialize(obj);
+
+                const auto& name = obj["name"].GetString();
+                mPathThemes[name] = std::move(theme);
+            }
+        }
+    }
+
+    // Now read the path records
     for (auto& it : docRootArray)
     {
         if (it.HasMember("paths"))
@@ -76,37 +149,28 @@ void PathsJson::FromJson(rapidjson::Document& doc)
             const rapidjson::Value::Array& pathsArray = it["paths"].GetArray();
             for (const rapidjson::Value& obj : pathsArray)
             {
-                FromJson(obj);
+                PathMapping mapping;
+                mapping.DeSerialize(obj);
+
+                const auto& name = obj["resource_name"].GetString();
+              
+                // If there is a theme set a pointer to the theme rather than just
+                // storing the theme name itself
+
+                std::string theme;
+                if (ReadStringIf(obj, "theme", theme))
+                {
+                    auto themeIt = mPathThemes.find(theme);
+                    if (themeIt != std::end(mPathThemes))
+                    {
+                        mapping.mTheme = themeIt->second.get();
+                    }
+                }
+
+                mPathMaps[name] = mapping;
             }
         }
     }
-}
-
-void PathsJson::FromJson(const rapidjson::Value& obj)
-{
-    PathMapping mapping;
-    mapping.mId = obj["id"].GetInt();
-    mapping.mCollisionOffset = obj["collision_offset"].GetInt();
-    mapping.mIndexTableOffset = obj["object_indextable_offset"].GetInt();
-    mapping.mObjectOffset = obj["object_offset"].GetInt();
-    mapping.mNumberOfScreensX = obj["number_of_screens_x"].GetInt();
-    mapping.mNumberOfScreensY = obj["number_of_screens_y"].GetInt();
-
-    if (obj.HasMember("music_theme"))
-    {
-        mapping.mMusicTheme = obj["music_theme"].GetString();
-    }
-
-    const auto& locations = obj["locations"].GetArray();
-    for (auto& locationRecord : locations)
-    {
-        const auto& dataSet = locationRecord["dataset"].GetString();
-        const auto& dataSetFileName = locationRecord["file_name"].GetString();
-        mapping.mLocations.push_back(PathLocation{ dataSet, dataSetFileName });
-    }
-
-    const auto& name = obj["resource_name"].GetString();
-    mPathMaps[name] = mapping;
 }
 
 std::string PathsJson::NextPathName(s32& idx)
@@ -134,7 +198,7 @@ std::string PathsJson::NextPathName(s32& idx)
     return "";
 }
 
-std::map<std::string, PathsJson::PathMapping> PathsJson::Map() const
+PathsJson::NameToPathMappingTable PathsJson::Map() const
 {
     return mPathMaps;
 }

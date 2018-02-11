@@ -29,14 +29,14 @@ namespace Oddlib
         stream.Read(mLineLength);
     }
 
-    Path::Path( const std::string& musicThemeName,
-                IStream& pathChunkStream,
+    Path::Path( IStream& pathChunkStream,
                 u32 collisionDataOffset,
                 u32 objectIndexTableOffset,
                 u32 objectDataOffset,
                 u32 mapXSize, u32 mapYSize,
+                s32 abeSpawnX,s32 abeSpawnY,
                 bool isAo)
-     : mMusicThemeName(musicThemeName), mXSize(mapXSize), mYSize(mapYSize), mIsAo(isAo)
+     : mXSize(mapXSize), mYSize(mapYSize), mAbeSpawnX(abeSpawnX), mAbeSpawnY(abeSpawnY), mIsAo(isAo)
     {
         TRACE_ENTRYEXIT;
         ReadPath(pathChunkStream, collisionDataOffset, objectIndexTableOffset, objectDataOffset);
@@ -73,6 +73,16 @@ namespace Oddlib
     u32 Path::YSize() const
     {
         return mYSize;
+    }
+
+    s32 Path::AbeSpawnX() const
+    {
+        return mAbeSpawnX;
+    }
+    
+    s32 Path::AbeSpawnY() const
+    {
+        return mAbeSpawnY;
     }
 
     const Path::Camera& Path::CameraByPosition(u32 x, u32 y) const

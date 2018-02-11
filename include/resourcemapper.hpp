@@ -263,7 +263,7 @@ private:
 
         rapidjson::Document document;
         document.Parse(json.c_str());
-        mPathMaps.FromJson(document);
+        mPathMaps.PathMappingFromJson(document);
     }
 
     void ParseFmvResourceJson(const std::string& json)
@@ -638,8 +638,17 @@ public:
     std::unique_ptr<Oddlib::IStream> mSeqData;
 };
 
-using future_UP_Path = std::future<Oddlib::UP_Path>;
-using up_future_UP_Path = std::unique_ptr<future_UP_Path>;
+struct PathInformation
+{
+    PathInformation(Oddlib::UP_Path path, PathsJson::PathTheme* theme)
+        : mPath(std::move(path)), mTheme(theme) { }
+
+    Oddlib::UP_Path mPath;
+    PathsJson::PathTheme* mTheme = nullptr;
+};
+
+using future_UP_PathInformation = std::future<std::unique_ptr<PathInformation>>;
+using up_future_UP_PathInformation = std::unique_ptr<future_UP_PathInformation>;
 
 class ResourceLocator
 {
@@ -665,7 +674,7 @@ public:
     std::future<const MusicTheme*> LocateSoundTheme(const std::string& themeName);
 
     // TODO: Should be returning higher level abstraction
-    up_future_UP_Path LocatePath(const std::string& resourceName);
+    up_future_UP_PathInformation LocatePath(const std::string& resourceName);
     std::future<std::unique_ptr<Oddlib::IBits>> LocateCamera(const std::string& resourceName);
     std::future<std::unique_ptr<class IMovie>> LocateFmv(class IAudioController& audioController, const std::string& resourceName, const ResourceMapper::FmvFileLocation* location);
     std::future<std::unique_ptr<Animation>> LocateAnimation(const std::string& resourceName);
