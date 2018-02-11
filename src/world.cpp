@@ -300,7 +300,7 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
 
         if (!mLocatePathFuture)
         {
-            if (mPathBeingLoaded->mPath)
+            if (mPathBeingLoaded && mPathBeingLoaded->mPath)
             {
                 // Note: This is iterative loading which happens in the main thread
                 if (LoadMap(*mPathBeingLoaded))

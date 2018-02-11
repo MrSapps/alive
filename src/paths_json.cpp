@@ -160,14 +160,14 @@ void PathsJson::DeSerialize(const std::string& json)
     rapidjson::Document doc;
     doc.Parse(json.c_str());
 
-    const auto& docRootArray = doc.GetArray();
+    const auto& docRootObj = doc.GetObject();
     
     // Read the themes first
-    for (auto& it : docRootArray)
+    for (auto& it : docRootObj)
     {
-        if (it.HasMember("path_themes"))
+        if (it.name == "path_themes")
         {
-            const rapidjson::Value::Array& pathsArray = it["path_themes"].GetArray();
+            const rapidjson::Value::Array& pathsArray = it.value.GetArray();
             for (const rapidjson::Value& obj : pathsArray)
             {
                 PathTheme::Ptr theme = std::make_unique<PathTheme>();
@@ -180,11 +180,11 @@ void PathsJson::DeSerialize(const std::string& json)
     }
 
     // Now read the path records
-    for (auto& it : docRootArray)
+    for (auto& it : docRootObj)
     {
-        if (it.HasMember("paths"))
+        if (it.name == "paths")
         {
-            const rapidjson::Value::Array& pathsArray = it["paths"].GetArray();
+            const rapidjson::Value::Array& pathsArray = it.value.GetArray();
             for (const rapidjson::Value& obj : pathsArray)
             {
                 PathMapping mapping;
