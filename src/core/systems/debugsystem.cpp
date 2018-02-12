@@ -14,14 +14,17 @@ void DebugSystem::Update()
 
 void DebugSystem::Render(AbstractRenderer& rend) const
 {
-    if (Debugging().mGrid) {
+    if (Debugging().mGrid)
+    {
         RenderGrid(rend);
     }
-    if (Debugging().mRayCasts) {
+    if (Debugging().mRayCasts)
+    {
         auto cameraTarget = mManager->GetSystem<CameraSystem>()->mTarget;
         if (cameraTarget)
         {
-            cameraTarget.With<TransformComponent, AnimationComponent>([this, &rend](auto transform, auto animation) {
+            cameraTarget.With<TransformComponent, AnimationComponent>([this, &rend](auto transform, auto animation)
+            {
                 RenderRaycast(rend,
                     glm::vec2(transform->GetX(), transform->GetY()),
                     glm::vec2(transform->GetX(), transform->GetY() + 500),
@@ -39,7 +42,7 @@ void DebugSystem::Render(AbstractRenderer& rend) const
                         glm::vec2(transform->GetX() - 25, transform->GetY() - 20), CollisionLine::eLineTypes::eWallLeft);
                     RenderRaycast(rend,
                         glm::vec2(transform->GetX(), transform->GetY() - 50),
-                        glm::vec2(transform->GetX() - 25, transform->GetY() - 50),CollisionLine::eLineTypes::eWallLeft);
+                        glm::vec2(transform->GetX() - 25, transform->GetY() - 50), CollisionLine::eLineTypes::eWallLeft);
                 }
                 else
                 {
@@ -52,6 +55,21 @@ void DebugSystem::Render(AbstractRenderer& rend) const
                 }
             });
         }
+    }
+    if (Debugging().mObjectBoundingBoxes)
+    {
+        mManager->With<TransformComponent>([&rend](auto, auto transformComponent)
+        {
+            glm::vec2 topLeft = glm::vec2(transformComponent->GetX(), transformComponent->GetY());
+            glm::vec2 bottomRight = glm::vec2(transformComponent->GetX() + transformComponent->GetWidth(), transformComponent->GetY() + transformComponent->GetHeight());
+            glm::vec2 objPos = rend.WorldToScreen(glm::vec2(topLeft.x, topLeft.y));
+            glm::vec2 objSize = rend.WorldToScreen(glm::vec2(bottomRight.x, bottomRight.y)) - objPos;
+
+            rend.Rect(
+                objPos.x, objPos.y,
+                objSize.x, objSize.y,
+                AbstractRenderer::eLayers::eEditor, ColourU8{ 255, 0, 255, 255 }, AbstractRenderer::eNormal, AbstractRenderer::eScreen);
+        });
     }
 }
 

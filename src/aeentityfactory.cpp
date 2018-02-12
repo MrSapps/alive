@@ -2366,7 +2366,7 @@ static Entity MakeContinuePoint(const Oddlib::Path::MapObject& object, EntityMan
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeContinuePoint continuePoint;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     continuePoint.Deserialize(ms);
 
     return entity;
@@ -2377,7 +2377,7 @@ static Entity MakePathTransition(const Oddlib::Path::MapObject& object, EntityMa
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AePathTransition pathTransition;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     pathTransition.Deserialize(ms);
 
     return entity;
@@ -2388,7 +2388,7 @@ static Entity MakeHoist(const Oddlib::Path::MapObject& object, EntityManager& en
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeHoist hoist;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     hoist.Deserialize(ms);
 
     return entity;
@@ -2399,7 +2399,7 @@ static Entity MakeEdge(const Oddlib::Path::MapObject& object, EntityManager& ent
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeEdge edge;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     edge.Deserialize(ms);
 
     return entity;
@@ -2410,7 +2410,7 @@ static Entity MakeDeathDrop(const Oddlib::Path::MapObject& object, EntityManager
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeDeathDrop deathDrop;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     deathDrop.Deserialize(ms);
 
     return entity;
@@ -2435,7 +2435,7 @@ static Entity MakeShadow(const Oddlib::Path::MapObject& object, EntityManager& e
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeShadow shadow;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     shadow.Deserialize(ms);
 
     return entity;
@@ -2446,7 +2446,7 @@ static Entity MakeLiftPoint(const Oddlib::Path::MapObject& object, EntityManager
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeLiftPoint liftPoint;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     liftPoint.Deserialize(ms);
 
     return entity;
@@ -2457,7 +2457,7 @@ static Entity MakeWellLocal(const Oddlib::Path::MapObject& object, EntityManager
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeWellLocal wellLocal;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     wellLocal.Deserialize(ms);
 
     return entity;
@@ -2468,7 +2468,7 @@ static Entity MakeDove(const Oddlib::Path::MapObject& object, EntityManager& ent
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeDove dove;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("DOVBASIC.BAN_60_AePc_2");
     dove.Deserialize(ms);
 
@@ -2480,7 +2480,7 @@ static Entity MakeRockSack(const Oddlib::Path::MapObject& object, EntityManager&
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeRockSack rockSack;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("MIP04C01.CAM_1002_AePc_2");
     rockSack.Deserialize(ms);
 
@@ -2492,7 +2492,7 @@ static Entity MakeFallingItem(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeFallingItem fallingItem;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("FALLBONZ.BAN_2007_AePc_0");
     fallingItem.Deserialize(ms);
 
@@ -2504,7 +2504,7 @@ static Entity MakePullRingRope(const Oddlib::Path::MapObject& object, EntityMana
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AePullRingRope pullRingRope;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("PULLRING.BAN_1014_AePc_1");
     pullRingRope.Deserialize(ms);
 
@@ -2516,7 +2516,7 @@ static Entity MakeBackgroundAnimation(const Oddlib::Path::MapObject& object, Ent
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeBackgroundAnimation backgroundAnimation;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
 
     backgroundAnimation.Deserialize(ms);
 
@@ -2541,7 +2541,7 @@ static Entity MakeTimedMine(const Oddlib::Path::MapObject& object, EntityManager
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeTimedMine timedMine;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("BOMB.BND_1005_AePc_1");
     timedMine.Deserialize(ms);
 
@@ -2553,7 +2553,7 @@ static Entity MakeSlig(const Oddlib::Path::MapObject& object, EntityManager& ent
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeSlig slig;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("SligStandIdle");
     slig.Deserialize(ms);
 
@@ -2565,7 +2565,7 @@ static Entity MakeSlog(const Oddlib::Path::MapObject& object, EntityManager& ent
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeSlog slog;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("SLOG.BND_570_AePc_3");
     slog.Deserialize(ms);
 
@@ -2589,7 +2589,7 @@ static Entity MakeSecurityEye(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeSecurityEye securityEye;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("MAIMORB.BAN_2006_AePc_0");
     securityEye.Deserialize(ms);
 
@@ -2601,7 +2601,7 @@ static Entity MakePulley(const Oddlib::Path::MapObject& object, EntityManager& e
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AePulley pulley;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("BALIFT.BND_1001_AePc_0");
     pulley.Deserialize(ms);
 
@@ -2613,7 +2613,7 @@ static Entity MakeAbeStart(const Oddlib::Path::MapObject& object, EntityManager&
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeAbeStart abeStart;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     abeStart.Deserialize(ms);
 
     return entity;
@@ -2624,7 +2624,7 @@ static Entity MakeWellExpress(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeWellExpress wellExpress;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     wellExpress.Deserialize(ms);
 
     return entity;
@@ -2635,7 +2635,7 @@ static Entity MakeMine(const Oddlib::Path::MapObject& object, EntityManager& ent
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeMine mine;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("LANDMINE.BAN_1036_AePc_0");
     mine.Deserialize(ms);
 
@@ -2649,7 +2649,7 @@ static Entity MakeUxb(const Oddlib::Path::MapObject& object, EntityManager& enti
 
     uxb.Deserialize(ms);
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     
     if (uxb.mState == 0) // On
     {
@@ -2668,7 +2668,7 @@ static Entity MakeParamite(const Oddlib::Path::MapObject& object, EntityManager&
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeParamite paramite;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("PARAMITE.BND_600_AePc_4");
     paramite.Deserialize(ms);
 
@@ -2680,7 +2680,7 @@ static Entity MakeMovieStone(const Oddlib::Path::MapObject& object, EntityManage
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeMovieStone movieStone;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     movieStone.Deserialize(ms);
 
     return entity;
@@ -2691,7 +2691,7 @@ static Entity MakeBirdPortal(const Oddlib::Path::MapObject& object, EntityManage
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeBirdPortal birdPortal;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     birdPortal.Deserialize(ms);
 
     return entity;
@@ -2702,7 +2702,7 @@ static Entity MakePortalExit(const Oddlib::Path::MapObject& object, EntityManage
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AePortalExit portalExit;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("PORTAL.BND_351_AePc_0");
     portalExit.Deserialize(ms);
 
@@ -2714,7 +2714,7 @@ static Entity MakeTrapDoor(const Oddlib::Path::MapObject& object, EntityManager&
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeTrapDoor trapDoor;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
 
     trapDoor.Deserialize(ms);
 
@@ -2735,7 +2735,7 @@ static Entity MakeRollingBall(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeRollingBall rollingBall;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     rollingBall.Deserialize(ms);
 
     return entity;
@@ -2746,7 +2746,7 @@ static Entity MakeSligLeftBound(const Oddlib::Path::MapObject& object, EntityMan
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeSligLeftBound sligLeftBound;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     sligLeftBound.Deserialize(ms);
 
     return entity;
@@ -2757,7 +2757,7 @@ static Entity MakeInvisibleZone(const Oddlib::Path::MapObject& object, EntityMan
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeInvisibleZone invisibleZone;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     invisibleZone.Deserialize(ms);
 
     return entity;
@@ -2768,7 +2768,7 @@ static Entity MakeFootSwitch(const Oddlib::Path::MapObject& object, EntityManage
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeFootSwitch footSwitch;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("TRIGGER.BAN_2010_AePc_0");
     footSwitch.Deserialize(ms);
 
@@ -2780,7 +2780,7 @@ static Entity MakeSecurityOrb(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeSecurityOrb securityOrb;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     securityOrb.Deserialize(ms);
 
     return entity;
@@ -2791,7 +2791,7 @@ static Entity MakeMotionDetector(const Oddlib::Path::MapObject& object, EntityMa
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeMotionDetector motionDetector;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("MOTION.BAN_6001_AePc_0");
     motionDetector.Deserialize(ms);
 
@@ -2803,7 +2803,7 @@ static Entity MakeSligSpawner(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeSligSpawner sligSpawner;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     sligSpawner.Deserialize(ms);
 
     return entity;
@@ -2814,7 +2814,7 @@ static Entity MakeElectricWall(const Oddlib::Path::MapObject& object, EntityMana
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeElectricWall electricWall;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("ELECWALL.BAN_6000_AePc_0");
     electricWall.Deserialize(ms);
 
@@ -2826,7 +2826,7 @@ static Entity MakeLiftMover(const Oddlib::Path::MapObject& object, EntityManager
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeLiftMover liftMover;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("BALIFT.BND_1001_AePc_1");
     liftMover.Deserialize(ms);
 
@@ -2838,7 +2838,7 @@ static Entity MakeMeatSack(const Oddlib::Path::MapObject& object, EntityManager&
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeMeatSack meatSack;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("BONEBAG.BAN_590_AePc_2");
     meatSack.Deserialize(ms);
 
@@ -2850,7 +2850,7 @@ static Entity MakeScrab(const Oddlib::Path::MapObject& object, EntityManager& en
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeScrab scrab;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("SCRAB.BND_700_AePc_2");
     scrab.Deserialize(ms);
 
@@ -2862,7 +2862,7 @@ static Entity MakeScrabLeftBound(const Oddlib::Path::MapObject& object, EntityMa
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeScrabLeftBound scrabLeftBound;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     scrabLeftBound.Deserialize(ms);
 
     return entity;
@@ -2873,7 +2873,7 @@ static Entity MakeScrabRightBound(const Oddlib::Path::MapObject& object, EntityM
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeScrabRightBound scrabRightBound;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     scrabRightBound.Deserialize(ms);
 
     return entity;
@@ -2884,7 +2884,7 @@ static Entity MakeSligRightBound(const Oddlib::Path::MapObject& object, EntityMa
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeSligRightBound sligRightBound;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     sligRightBound.Deserialize(ms);
 
     return entity;
@@ -2895,7 +2895,7 @@ static Entity MakeSligPersist(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeSligPersist sligPersist;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     sligPersist.Deserialize(ms);
 
     return entity;
@@ -2906,7 +2906,7 @@ static Entity MakeEnemyStopper(const Oddlib::Path::MapObject& object, EntityMana
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeEnemyStopper enemyStopper;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     enemyStopper.Deserialize(ms);
 
     return entity;
@@ -2917,7 +2917,7 @@ static Entity MakeInvisibleSwitch(const Oddlib::Path::MapObject& object, EntityM
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeInvisibleSwitch invisibleSwitch;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     invisibleSwitch.Deserialize(ms);
 
     return entity;
@@ -2928,7 +2928,7 @@ static Entity MakeMudokon(const Oddlib::Path::MapObject& object, EntityManager& 
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeMudokon mudokon;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("MUDCHSL.BAN_511_AePc_1");
     mudokon.Deserialize(ms);
 
@@ -2940,7 +2940,7 @@ static Entity MakeZSligCover(const Oddlib::Path::MapObject& object, EntityManage
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeZSligCover zSligCover;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     zSligCover.Deserialize(ms);
 
     return entity;
@@ -2951,7 +2951,7 @@ static Entity MakeDoorFlame(const Oddlib::Path::MapObject& object, EntityManager
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeDoorFlame doorFlame;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("FIRE.BAN_304_AePc_0");
     doorFlame.Deserialize(ms);
 
@@ -2963,7 +2963,7 @@ static Entity MakeMovingBomb(const Oddlib::Path::MapObject& object, EntityManage
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeMovingBomb movingBomb;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("MOVEBOMB.BAN_3006_AePc_0");
     movingBomb.Deserialize(ms);
 
@@ -2975,7 +2975,7 @@ static Entity MakeMenuController(const Oddlib::Path::MapObject& object, EntityMa
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeMenuController menuController;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     menuController.Deserialize(ms);
 
     return entity;
@@ -2986,7 +2986,7 @@ static Entity MakeTimerTrigger(const Oddlib::Path::MapObject& object, EntityMana
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeTimerTrigger timerTrigger;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     timerTrigger.Deserialize(ms);
 
     return entity;
@@ -2997,7 +2997,7 @@ static Entity MakeSligVoiceLock(const Oddlib::Path::MapObject& object, EntityMan
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeSligVoiceLock sligVoiceLock;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("SECDOOR.BAN_6027_AePc_1");
     sligVoiceLock.Deserialize(ms);
 
@@ -3009,7 +3009,7 @@ static Entity MakeGrenadeMachine(const Oddlib::Path::MapObject& object, EntityMa
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeGrenadeMachine grenadeMachine;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("BAP01C13.CAM_6008_AePc_1");
     grenadeMachine.Deserialize(ms);
 
@@ -3021,7 +3021,7 @@ static Entity MakeLcdScreen(const Oddlib::Path::MapObject& object, EntityManager
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeLcdScreen lcdScreen;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     lcdScreen.Deserialize(ms);
 
     return entity;
@@ -3032,7 +3032,7 @@ static Entity MakeHandStone(const Oddlib::Path::MapObject& object, EntityManager
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeHandStone handStone;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     handStone.Deserialize(ms);
 
     return entity;
@@ -3043,7 +3043,7 @@ static Entity MakeCreditsController(const Oddlib::Path::MapObject& object, Entit
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeCreditsController creditsController;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     creditsController.Deserialize(ms);
 
     return entity;
@@ -3054,7 +3054,7 @@ static Entity MakeNullObject1(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeNullObject1 nullObject;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     nullObject.Deserialize(ms);
 
     return entity;
@@ -3065,7 +3065,7 @@ static Entity MakeLcdStatusBoard(const Oddlib::Path::MapObject& object, EntityMa
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeLcdStatusBoard lcdStatusBoard;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     lcdStatusBoard.Deserialize(ms);
 
     return entity;
@@ -3076,7 +3076,7 @@ static Entity MakeWorkWheelSyncer(const Oddlib::Path::MapObject& object, EntityM
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeWorkWheelSyncer workWheelSyncer;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     workWheelSyncer.Deserialize(ms);
 
     return entity;
@@ -3087,7 +3087,7 @@ static Entity MakeMusic(const Oddlib::Path::MapObject& object, EntityManager& en
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeMusic music;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     music.Deserialize(ms);
 
     return entity;
@@ -3098,7 +3098,7 @@ static Entity MakeLightEffect(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeLightEffect lightEffect;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     lightEffect.Deserialize(ms);
 
     return entity;
@@ -3109,7 +3109,7 @@ static Entity MakeSlogSpawner(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeSlogSpawner slogSpawner;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     slogSpawner.Deserialize(ms);
 
     return entity;
@@ -3120,7 +3120,7 @@ static Entity MakeDeathClock(const Oddlib::Path::MapObject& object, EntityManage
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeDeathClock deathClock;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     deathClock.Deserialize(ms);
 
     return entity;
@@ -3131,7 +3131,7 @@ static Entity MakeGasEmitter(const Oddlib::Path::MapObject& object, EntityManage
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeGasEmitter gasEmitter;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     gasEmitter.Deserialize(ms);
 
     return entity;
@@ -3142,7 +3142,7 @@ static Entity MakeSlogHut(const Oddlib::Path::MapObject& object, EntityManager& 
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeSlogHut slogHut;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     slogHut.Deserialize(ms);
 
     return entity;
@@ -3153,7 +3153,7 @@ static Entity MakeGlukkon(const Oddlib::Path::MapObject& object, EntityManager& 
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeGlukkon glukkon;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("GLUKKON.BND_800_AePc_1");
     glukkon.Deserialize(ms);
 
@@ -3165,7 +3165,7 @@ static Entity MakeKillUnsavedMuds(const Oddlib::Path::MapObject& object, EntityM
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeKillUnsavedMuds killUnsavedMuds;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     killUnsavedMuds.Deserialize(ms);
 
     return entity;
@@ -3176,7 +3176,7 @@ static Entity MakeSoftLanding(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeSoftLanding softLanding;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     softLanding.Deserialize(ms);
 
     return entity;
@@ -3187,7 +3187,7 @@ static Entity MakeNullObject2(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeNullObject2 nullObject;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     nullObject.Deserialize(ms);
 
     return entity;
@@ -3198,7 +3198,7 @@ static Entity MakeWater(const Oddlib::Path::MapObject& object, EntityManager& en
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeWater water;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     water.Deserialize(ms);
 
     return entity;
@@ -3209,7 +3209,7 @@ static Entity MakeWorkWheel(const Oddlib::Path::MapObject& object, EntityManager
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeWorkWheel workWheel;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("WORKWHEL.BAN_320_AePc_1");
     workWheel.Deserialize(ms);
 
@@ -3221,7 +3221,7 @@ static Entity MakeLaughingGas(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeLaughingGas laughingGas;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     laughingGas.Deserialize(ms);
 
     return entity;
@@ -3232,7 +3232,7 @@ static Entity MakeFlyingSlig(const Oddlib::Path::MapObject& object, EntityManage
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeFlyingSlig flyingSlig;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("FLYSLIG.BND_450_AePc_1");
     flyingSlig.Deserialize(ms);
 
@@ -3244,7 +3244,7 @@ static Entity MakeFleech(const Oddlib::Path::MapObject& object, EntityManager& e
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeFleech fleech;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("FLEECH.BAN_900_AePc_1");
     fleech.Deserialize(ms);
 
@@ -3256,7 +3256,7 @@ static Entity MakeSlurgs(const Oddlib::Path::MapObject& object, EntityManager& e
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeSlurgs slurgs;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("SLURG.BAN_306_AePc_3");
     slurgs.Deserialize(ms);
 
@@ -3280,7 +3280,7 @@ static Entity MakeLevelLoader(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeLevelLoader levelLoader;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     levelLoader.Deserialize(ms);
 
     return entity;
@@ -3291,7 +3291,7 @@ static Entity MakeDemoSpawnPoint(const Oddlib::Path::MapObject& object, EntityMa
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeDemoSpawnPoint demoSpawnPoint;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     demoSpawnPoint.Deserialize(ms);
 
     return entity;
@@ -3302,7 +3302,7 @@ static Entity MakeTeleporter(const Oddlib::Path::MapObject& object, EntityManage
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeTeleporter teleporter;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     teleporter.Deserialize(ms);
 
     return entity;
@@ -3313,7 +3313,7 @@ static Entity MakeSlurgSpawner(const Oddlib::Path::MapObject& object, EntityMana
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeSlurgSpawner slurgSpawner;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     slurgSpawner.Deserialize(ms);
 
     return entity;
@@ -3326,7 +3326,7 @@ static Entity MakeMineDrill(const Oddlib::Path::MapObject& object, EntityManager
 
     mineDrill.Deserialize(ms);
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     
     if (mineDrill.mDirection == 0) // Down
     {
@@ -3360,7 +3360,7 @@ static Entity MakeColorfulMeter(const Oddlib::Path::MapObject& object, EntityMan
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeColorfulMeter colorfulMeter;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     colorfulMeter.Deserialize(ms);
 
     return entity;
@@ -3371,7 +3371,7 @@ static Entity MakeFlyingSligSpawner(const Oddlib::Path::MapObject& object, Entit
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeFlyingSligSpawner flyingSligSpawner;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     flyingSligSpawner.Deserialize(ms);
 
     return entity;
@@ -3382,7 +3382,7 @@ static Entity MakeMineCar(const Oddlib::Path::MapObject& object, EntityManager& 
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeMineCar mineCar;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("BAYROLL.BAN_6013_AePc_2");
     mineCar.Deserialize(ms);
 
@@ -3394,7 +3394,7 @@ static Entity MakeBoneBag(const Oddlib::Path::MapObject& object, EntityManager& 
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeBoneBag boneBag;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("BONEBAG.BAN_590_AePc_2");
     boneBag.Deserialize(ms);
 
@@ -3406,7 +3406,7 @@ static Entity MakeExplosionSet(const Oddlib::Path::MapObject& object, EntityMana
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeExplosionSet explosionSet;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     explosionSet.Deserialize(ms);
 
     return entity;
@@ -3417,7 +3417,7 @@ static Entity MakeMultiswitchController(const Oddlib::Path::MapObject& object, E
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeMultiswitchController multiswitchController;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     multiswitchController.Deserialize(ms);
 
     return entity;
@@ -3428,7 +3428,7 @@ static Entity MakeRedGreenStatusLight(const Oddlib::Path::MapObject& object, Ent
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeRedGreenStatusLight redGreenStatusLight;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("STATUSLT.BAN_373_AePc_1");
     redGreenStatusLight.Deserialize(ms);
 
@@ -3440,7 +3440,7 @@ static Entity MakeGhostLock(const Oddlib::Path::MapObject& object, EntityManager
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeGhostLock ghostLock;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("GHOSTTRP.BAN_1053_AePc_0");
     ghostLock.Deserialize(ms);
 
@@ -3452,7 +3452,7 @@ static Entity MakeParamiteNet(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeParamiteNet paramiteNet;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("WEB.BAN_2034_AePc_0");
     paramiteNet.Deserialize(ms);
 
@@ -3464,7 +3464,7 @@ static Entity MakeAlarm(const Oddlib::Path::MapObject& object, EntityManager& en
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeAlarm alarm;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     alarm.Deserialize(ms);
 
     return entity;
@@ -3475,7 +3475,7 @@ static Entity MakeFartMachine(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeFartMachine fartMachine;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("BREWBTN.BAN_6016_AePc_0");
     fartMachine.Deserialize(ms);
 
@@ -3487,7 +3487,7 @@ static Entity MakeScrabSpawner(const Oddlib::Path::MapObject& object, EntityMana
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeScrabSpawner scrabSpawner;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     scrabSpawner.Deserialize(ms);
 
     return entity;
@@ -3498,7 +3498,7 @@ static Entity MakeCrawlingSlig(const Oddlib::Path::MapObject& object, EntityMana
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeCrawlingSlig crawlingSlig;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("CRAWLSLG.BND_449_AePc_3");
     crawlingSlig.Deserialize(ms);
 
@@ -3510,7 +3510,7 @@ static Entity MakeSligGetPants(const Oddlib::Path::MapObject& object, EntityMana
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeSligGetPants sligGetPants;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("LOCKER.BAN_448_AePc_1");
     sligGetPants.Deserialize(ms);
 
@@ -3522,7 +3522,7 @@ static Entity MakeSligGetWings(const Oddlib::Path::MapObject& object, EntityMana
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeSligGetWings sligGetWings;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("LOCKER.BAN_448_AePc_1");
     sligGetWings.Deserialize(ms);
 
@@ -3534,7 +3534,7 @@ static Entity MakeGreeter(const Oddlib::Path::MapObject& object, EntityManager& 
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeGreeter greeter;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("GREETER.BAN_307_AePc_0");
     greeter.Deserialize(ms);
 
@@ -3546,7 +3546,7 @@ static Entity MakeCrawlingSligButton(const Oddlib::Path::MapObject& object, Enti
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeCrawlingSligButton crawlingSligButton;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("CSLGBUTN.BAN_1057_AePc_0");
     crawlingSligButton.Deserialize(ms);
 
@@ -3558,7 +3558,7 @@ static Entity MakeGlukkonSecurityFone(const Oddlib::Path::MapObject& object, Ent
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeGlukkonSecurityFone glukkonSecurityFone;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("SECDOOR.BAN_6027_AePc_1");
     glukkonSecurityFone.Deserialize(ms);
 
@@ -3570,7 +3570,7 @@ static Entity MakeDoorBlocker(const Oddlib::Path::MapObject& object, EntityManag
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeDoorBlocker doorBlocker;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     doorBlocker.Deserialize(ms);
 
     return entity;
@@ -3581,7 +3581,7 @@ static Entity MakeTorturedMudokon(const Oddlib::Path::MapObject& object, EntityM
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeTorturedMudokon torturedMudokon;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("MUDTORT.BAN_518_AePc_2");
     torturedMudokon.Deserialize(ms);
 
@@ -3593,7 +3593,7 @@ static Entity MakeTrainDoor(const Oddlib::Path::MapObject& object, EntityManager
     auto entity = entityManager.CreateEntityWith<TransformComponent, AnimationComponent>();
     AeTrainDoor trainDoor;
 
-    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY));
+    entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("TRAINDOR.BAN_2013_AePc_1");
     trainDoor.Deserialize(ms);
 

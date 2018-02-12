@@ -12,11 +12,17 @@ public:
     void Deserialize(std::istream &is) final;
 
 public:
-    void Set(float xPos, float yPos);
-    void SetX(float xPos);
-    void SetY(float yPos);
+    void Set(float x, float y);
+    void Set(float x, float y, float width, float height);
+    void SetX(float x);
+    void SetY(float y);
+    void SetWidth(float width);
+    void SetHeight(float height);
+
     float GetX() const;
     float GetY() const;
+    float GetWidth() const;
+    float GetHeight() const;
 
 public:
     void Add(float xAmount, float yAmount);
@@ -28,7 +34,14 @@ public:
 
 private:
     struct {
-        float mXPos;
-        float mYPos;
-    } mData = {};
+        float mX;
+        float mY;
+        float mWidth;
+        float mHeight;
+    } mData = {
+        0.0f,
+        0.0f,
+        0.0f,
+        0.0f
+    };
 };
