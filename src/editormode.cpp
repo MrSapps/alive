@@ -5,6 +5,7 @@
 #include "alive_version.h"
 #include "core/systems/camerasystem.hpp"
 #include "core/components/transformcomponent.hpp"
+#include "core/systems/collisionsystem.hpp"
 
 #include "CONTRIBUTORS.md.g.h"
 
@@ -643,6 +644,11 @@ void EditorMode::Render(AbstractRenderer& rend) const
                 }
             }
         }
+    }
+
+    if (Debugging().mCollisionLines)
+    {
+        CollisionLine::Render(rend, mWorldState.mEntityManager.GetSystem<CollisionSystem>()->mCollisionLines);
     }
 }
 
