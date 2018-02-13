@@ -667,7 +667,7 @@ class AePcSaveFile
 {
 public:
     const static u32 kObjectsOffset = 0x55C;
-    
+    const static int OffsetPATHWorldState = 0x244;
     // TODO: Other types as ripped by mlg
     /*
     2,16
@@ -722,15 +722,31 @@ public:
 
     void DeSerialize(Oddlib::IStream& stream)
     {
+        stream.Seek(OffsetPATHWorldState + 4);
+
+        mLevel = ReadU16(stream);
+        mPath = ReadU16(stream);
+        mCamera = ReadU16(stream);
+
+        
+        mAbeXPos = ReadU16(stream);
+        mAbeXPos = ReadU16(stream);
+        mAbeYPos = ReadU16(stream);
+        
+        /*
+
         const int OffsetPATHAbeState = 0x284;
-        stream.Seek(OffsetPATHAbeState + 8);
+        stream.Seek(0);
+        stream.Seek(OffsetPATHAbeState + 2); // 2 object id, 
 
-       HalfFloat xpos(ReadU32(stream));
-       HalfFloat ypos(ReadU32(stream));
+       // HalfFloat xpos(ReadU32(stream));
+       // HalfFloat ypos(ReadU32(stream));
 
-       mAbeXPos = (s32)xpos.AsDouble();
-       mAbeYPos = (s32)ypos.AsDouble();
-
+       // mAbeXPos = (s32)xpos.AsDouble();
+       // mAbeYPos = (s32)ypos.AsDouble();
+        mAbeXPos = ReadU32(stream);
+        mAbeYPos = ReadU32(stream);
+        */
 
         /*
         const u16 objectType = ReadU16(stream);
@@ -780,7 +796,25 @@ public:
         return mAbeYPos;
     }
 
+    int Level() const
+    {
+        return mLevel;
+    }
+
+    int Path() const
+    {
+        return mPath;
+    }
+
+    int Camera() const
+    {
+        return mCamera;
+    }
 private:
+    int mLevel = 0;
+    int mPath = 0;
+    int mCamera = 0;
+
     s32 mAbeXPos = 0;
     s32 mAbeYPos = 0;
 };
@@ -884,8 +918,67 @@ static int ToEnder(int lvl)
     return lvl;
 }
 
+struct LevelAndPathCamera
+{
+    int level;
+    int path;
+    int camera;
+
+    int abex;
+    int abey;
+};
+
+static bool operator < (const LevelAndPathCamera& lhs, const LevelAndPathCamera& rhs)
+{
+    return std::tie(lhs.level, lhs.path, lhs.camera) < std::tie(rhs.level, rhs.path, rhs.camera);
+}
+
+static std::map<LevelAndPathCamera, std::string> gSaveMap;
+
 void UpdatePathsJson()
 {
+    const std::vector<std::string> lvls =
+    { 
+        { "ba.lvl" },
+        { "bm.lvl" },
+        { "br.lvl" },
+        { "bw.lvl" },
+        { "cr.lvl" },
+        { "fd.lvl" },
+        { "mi.lvl" },
+        { "ne.lvl" },
+        { "pv.lvl" },
+        { "st.lvl" },
+        { "sv.lvl" }
+    };
+
+    for (const auto& lvlName : lvls)
+    {
+        Oddlib::LvlArchive lvlArchive(lvlName);
+        for (u32 i = 0; i < lvlArchive.FileCount(); i++)
+        {
+            const std::string fileName = lvlArchive.FileByIndex(i)->FileName();
+            auto chunk = lvlArchive.FileByIndex(i)->ChunkByType(Oddlib::MakeType("NxtP"));
+            if (chunk)
+            {
+                if (fileName.substr(0, 2) == "NX")
+                {
+                    auto chunkStream = chunk->Stream();
+                    AePcSaveFile saveFile;
+                    saveFile.DeSerialize(*chunkStream);
+
+                    LevelAndPathCamera levelPath = { saveFile.Level(), saveFile.Path(), saveFile.Camera(), saveFile.AbeXPos(), saveFile.AbeYPos() };
+                    auto it = gSaveMap.find(levelPath);
+                    if (it != std::end(gSaveMap))
+                    {
+                        //abort();
+                    }
+                    gSaveMap[levelPath] = fileName;
+                }
+            }
+        }
+    }
+
     std::vector<ScrapedPathData> scrapedData;
 
     for (const auto& lvlSkip : gDemoData_off_5617F0)
@@ -995,27 +1088,27 @@ void UpdatePathsJson()
         PathRootData* ptr = Vars().gPathData.Get();
         PathRoot& data = ptr->iLvls[(pSd && pSd->isEnder) ? ToEnder(levelId) : levelId];
         PathBlyRec& bly = data.mBlyArrayPtr->iBlyRecs[path.second.mId];
-        
-        // TODO: This only works for stuff that matches the level skip menu exactly
-        // if it don't match try to pull it from the path skip SAV file
-        char buffer[256] = {};
-        sprintf(buffer, "NXTP%02d%02d.SAV", (pSd && pSd->isEnder) ? ToEnder(levelId) : levelId, path.second.mId);
 
-        std::string lvlName = std::string(data.mName) + ".LVL";
-        Oddlib::LvlArchive lvlArchive(lvlName);
-        auto pSave = lvlArchive.FileByName(buffer);
-        if (pSave)
+        const LevelAndPathCamera* pSavData = nullptr;
+        for (const auto& savRec : gSaveMap)
         {
-            auto chunkStream = pSave->ChunkByIndex(0)->Stream();
-
-            AePcSaveFile saveFile;
-            saveFile.DeSerialize(*chunkStream);
-            path.second.mSpawnXPos = saveFile.AbeXPos();
-            path.second.mSpawnYPos = saveFile.AbeYPos();
+            if (savRec.first.level == levelId || (savRec.first.level == (pSd && pSd->isEnder) ? ToEnder(levelId) : levelId))
+            {
+                if ((u32)savRec.first.path == path.second.mId)
+                {
+                    pSavData = &savRec.first;
+                    break;
+                }
+            }
+        }
+        
+        if (pSavData)
+        {
+            path.second.mSpawnXPos = pSavData->abex;
+            path.second.mSpawnYPos = pSavData->abey;
         }
         else
         {
-            LOG_ERROR("NO SAVE FOUND FOR " << lvlArchive << " PATH NO " << path.second.mId);
             path.second.mSpawnXPos = pOffSet->field_C_abe_x_off - bly.mPathData->mAbeStartXPos;
             path.second.mSpawnYPos = pOffSet->field_E_abe_y_off - bly.mPathData->mAbeStartYPos;
         }
