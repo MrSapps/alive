@@ -1,12 +1,140 @@
 {
 	"path_themes": [
 		{
-			"door_skin": "Barracks",
-			"glukkon_skin": "GreenSuite",
-			"lift_skin": "Barracks",
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
 			"music_theme": "Barracks",
 			"name": "Barracks",
-			"slam_door_skin": "Barracks" 
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "Barracks_Ender",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "BoneWerkz",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "BoneWerkz_Ender",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "Brewery",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "Brewery_Ender",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "Credits",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "FecoDepot",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "FecoDepot_Ender",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "Menu",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Mines",
+			"name": "Mines",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "Necrum",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "ParamiteVaults",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "ParamiteVaults_Ender",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "ScrabVaults",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "ScrabVaults_Ender",
+			"slam_door_skin": "Mines" 
+		},
+		{
+			"door_skin": "Mines",
+			"glukkon_skin": "GreenSuit",
+			"lift_skin": "Mines",
+			"music_theme": "Barracks",
+			"name": "TL",
+			"slam_door_skin": "Mines" 
 		} 
 	],
 	"paths": [
@@ -28,8 +156,8 @@
 			"object_indextable_offset": 7628,
 			"object_offset": 2460,
 			"resource_name": "BAPATH_1",
-			"spawn_x": 500,
-			"spawn_y": 460,
+			"spawn_x": 212,
+			"spawn_y": 713,
 			"theme": "Barracks" 
 		},
 		{
@@ -49,7 +177,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 8640,
 			"object_offset": 3864,
-			"resource_name": "BAPATH_10" 
+			"resource_name": "BAPATH_10",
+			"spawn_x": 563,
+			"spawn_y": 598,
+			"theme": "Barracks" 
 		},
 		{
 			"collision_offset": 352,
@@ -68,7 +199,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 5152,
 			"object_offset": 1152,
-			"resource_name": "BAPATH_11" 
+			"resource_name": "BAPATH_11",
+			"spawn_x": 1558,
+			"spawn_y": 398,
+			"theme": "Barracks_Ender" 
 		},
 		{
 			"collision_offset": 64,
@@ -87,7 +221,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 1660,
 			"object_offset": 304,
-			"resource_name": "BAPATH_13" 
+			"resource_name": "BAPATH_13",
+			"spawn_x": 37,
+			"spawn_y": 96,
+			"theme": "Barracks" 
 		},
 		{
 			"collision_offset": 352,
@@ -106,7 +243,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 7496,
 			"object_offset": 4032,
-			"resource_name": "BAPATH_14" 
+			"resource_name": "BAPATH_14",
+			"spawn_x": 2037,
+			"spawn_y": 1237,
+			"theme": "Barracks" 
 		},
 		{
 			"collision_offset": 64,
@@ -125,7 +265,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 2980,
 			"object_offset": 384,
-			"resource_name": "BAPATH_15" 
+			"resource_name": "BAPATH_15",
+			"spawn_x": 1187,
+			"spawn_y": 1391,
+			"theme": "Barracks" 
 		},
 		{
 			"collision_offset": 32,
@@ -144,7 +287,10 @@
 			"number_of_screens_y": 1,
 			"object_indextable_offset": 952,
 			"object_offset": 172,
-			"resource_name": "BAPATH_16" 
+			"resource_name": "BAPATH_16",
+			"spawn_x": 837,
+			"spawn_y": 457,
+			"theme": "Barracks_Ender" 
 		},
 		{
 			"collision_offset": 112,
@@ -163,7 +309,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 1552,
 			"object_offset": 352,
-			"resource_name": "BAPATH_2" 
+			"resource_name": "BAPATH_2",
+			"spawn_x": 837,
+			"spawn_y": 1059,
+			"theme": "Barracks" 
 		},
 		{
 			"collision_offset": 176,
@@ -182,7 +331,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 4480,
 			"object_offset": 1836,
-			"resource_name": "BAPATH_3" 
+			"resource_name": "BAPATH_3",
+			"spawn_x": 501,
+			"spawn_y": 409,
+			"theme": "Barracks" 
 		},
 		{
 			"collision_offset": 88,
@@ -201,7 +353,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 5336,
 			"object_offset": 1788,
-			"resource_name": "BAPATH_4" 
+			"resource_name": "BAPATH_4",
+			"spawn_x": 812,
+			"spawn_y": 457,
+			"theme": "Barracks" 
 		},
 		{
 			"collision_offset": 1056,
@@ -220,7 +375,10 @@
 			"number_of_screens_y": 10,
 			"object_indextable_offset": 12236,
 			"object_offset": 5256,
-			"resource_name": "BAPATH_5" 
+			"resource_name": "BAPATH_5",
+			"spawn_x": 87,
+			"spawn_y": 457,
+			"theme": "Barracks" 
 		},
 		{
 			"collision_offset": 208,
@@ -239,7 +397,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 8240,
 			"object_offset": 2328,
-			"resource_name": "BAPATH_7" 
+			"resource_name": "BAPATH_7",
+			"spawn_x": 1187,
+			"spawn_y": 1397,
+			"theme": "Barracks" 
 		},
 		{
 			"collision_offset": 160,
@@ -258,7 +419,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 3024,
 			"object_offset": 980,
-			"resource_name": "BAPATH_9" 
+			"resource_name": "BAPATH_9",
+			"spawn_x": 1787,
+			"spawn_y": 457,
+			"theme": "Barracks" 
 		},
 		{
 			"collision_offset": 576,
@@ -277,7 +441,10 @@
 			"number_of_screens_y": 10,
 			"object_indextable_offset": 8504,
 			"object_offset": 2576,
-			"resource_name": "BMPATH_1" 
+			"resource_name": "BMPATH_1",
+			"spawn_x": 212,
+			"spawn_y": 713,
+			"theme": "Brewery_Ender" 
 		},
 		{
 			"collision_offset": 272,
@@ -296,7 +463,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 6288,
 			"object_offset": 1852,
-			"resource_name": "BRPATH_1" 
+			"resource_name": "BRPATH_1",
+			"spawn_x": 212,
+			"spawn_y": 713,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 576,
@@ -315,7 +485,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 7272,
 			"object_offset": 1876,
-			"resource_name": "BRPATH_10" 
+			"resource_name": "BRPATH_10",
+			"spawn_x": 563,
+			"spawn_y": 598,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 880,
@@ -334,7 +507,10 @@
 			"number_of_screens_y": 12,
 			"object_indextable_offset": 5344,
 			"object_offset": 2380,
-			"resource_name": "BRPATH_11" 
+			"resource_name": "BRPATH_11",
+			"spawn_x": 1558,
+			"spawn_y": 398,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 184,
@@ -353,7 +529,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 3360,
 			"object_offset": 784,
-			"resource_name": "BRPATH_12" 
+			"resource_name": "BRPATH_12",
+			"spawn_x": 487,
+			"spawn_y": 457,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 80,
@@ -372,7 +551,10 @@
 			"number_of_screens_y": 1,
 			"object_indextable_offset": 2584,
 			"object_offset": 700,
-			"resource_name": "BRPATH_13" 
+			"resource_name": "BRPATH_13",
+			"spawn_x": 37,
+			"spawn_y": 96,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 280,
@@ -391,7 +573,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 3944,
 			"object_offset": 1240,
-			"resource_name": "BRPATH_14" 
+			"resource_name": "BRPATH_14",
+			"spawn_x": 2037,
+			"spawn_y": 1237,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 184,
@@ -410,7 +595,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 3068,
 			"object_offset": 764,
-			"resource_name": "BRPATH_15" 
+			"resource_name": "BRPATH_15",
+			"spawn_x": 837,
+			"spawn_y": 712,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 256,
@@ -429,7 +617,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 2508,
 			"object_offset": 776,
-			"resource_name": "BRPATH_16" 
+			"resource_name": "BRPATH_16",
+			"spawn_x": 837,
+			"spawn_y": 457,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 496,
@@ -448,7 +639,10 @@
 			"number_of_screens_y": 10,
 			"object_indextable_offset": 10672,
 			"object_offset": 2836,
-			"resource_name": "BRPATH_17" 
+			"resource_name": "BRPATH_17",
+			"spawn_x": 662,
+			"spawn_y": 337,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 240,
@@ -467,7 +661,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 3792,
 			"object_offset": 840,
-			"resource_name": "BRPATH_18" 
+			"resource_name": "BRPATH_18",
+			"spawn_x": 1012,
+			"spawn_y": 157,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 208,
@@ -486,7 +683,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 5276,
 			"object_offset": 1728,
-			"resource_name": "BRPATH_19" 
+			"resource_name": "BRPATH_19",
+			"spawn_x": 1962,
+			"spawn_y": 712,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 688,
@@ -505,7 +705,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 5608,
 			"object_offset": 2528,
-			"resource_name": "BRPATH_2" 
+			"resource_name": "BRPATH_2",
+			"spawn_x": 837,
+			"spawn_y": 1059,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 400,
@@ -524,7 +727,10 @@
 			"number_of_screens_y": 6,
 			"object_indextable_offset": 4452,
 			"object_offset": 900,
-			"resource_name": "BRPATH_20" 
+			"resource_name": "BRPATH_20",
+			"spawn_x": 662,
+			"spawn_y": 877,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 80,
@@ -543,7 +749,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 1300,
 			"object_offset": 320,
-			"resource_name": "BRPATH_21" 
+			"resource_name": "BRPATH_21",
+			"spawn_x": 1962,
+			"spawn_y": 1232,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 112,
@@ -562,7 +771,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 1380,
 			"object_offset": 212,
-			"resource_name": "BRPATH_23" 
+			"resource_name": "BRPATH_23",
+			"spawn_x": 598,
+			"spawn_y": 403,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 112,
@@ -581,7 +793,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 1772,
 			"object_offset": 492,
-			"resource_name": "BRPATH_24" 
+			"resource_name": "BRPATH_24",
+			"spawn_x": 437,
+			"spawn_y": 477,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 112,
@@ -600,7 +815,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 1632,
 			"object_offset": 592,
-			"resource_name": "BRPATH_25" 
+			"resource_name": "BRPATH_25",
+			"spawn_x": 615,
+			"spawn_y": 388,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 208,
@@ -619,7 +837,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 3944,
 			"object_offset": 728,
-			"resource_name": "BRPATH_26" 
+			"resource_name": "BRPATH_26",
+			"spawn_x": 837,
+			"spawn_y": 1232,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 592,
@@ -638,7 +859,10 @@
 			"number_of_screens_y": 9,
 			"object_indextable_offset": 2660,
 			"object_offset": 1092,
-			"resource_name": "BRPATH_27" 
+			"resource_name": "BRPATH_27",
+			"spawn_x": 1212,
+			"spawn_y": 452,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 80,
@@ -657,7 +881,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 1980,
 			"object_offset": 400,
-			"resource_name": "BRPATH_28" 
+			"resource_name": "BRPATH_28",
+			"spawn_x": 1587,
+			"spawn_y": 452,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 208,
@@ -676,7 +903,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 3300,
 			"object_offset": 568,
-			"resource_name": "BRPATH_29" 
+			"resource_name": "BRPATH_29",
+			"spawn_x": 1962,
+			"spawn_y": 192,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 304,
@@ -695,7 +925,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 4300,
 			"object_offset": 1784,
-			"resource_name": "BRPATH_3" 
+			"resource_name": "BRPATH_3",
+			"spawn_x": 501,
+			"spawn_y": 409,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 576,
@@ -714,7 +947,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 5720,
 			"object_offset": 1396,
-			"resource_name": "BRPATH_4" 
+			"resource_name": "BRPATH_4",
+			"spawn_x": 812,
+			"spawn_y": 457,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 376,
@@ -733,7 +969,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 4288,
 			"object_offset": 1216,
-			"resource_name": "BRPATH_5" 
+			"resource_name": "BRPATH_5",
+			"spawn_x": 87,
+			"spawn_y": 457,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 408,
@@ -752,7 +991,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 5376,
 			"object_offset": 2568,
-			"resource_name": "BRPATH_6" 
+			"resource_name": "BRPATH_6",
+			"spawn_x": 2562,
+			"spawn_y": 1237,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 160,
@@ -771,7 +1013,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 4344,
 			"object_offset": 1360,
-			"resource_name": "BRPATH_7" 
+			"resource_name": "BRPATH_7",
+			"spawn_x": 1187,
+			"spawn_y": 1397,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 128,
@@ -790,7 +1035,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 2356,
 			"object_offset": 868,
-			"resource_name": "BRPATH_8" 
+			"resource_name": "BRPATH_8",
+			"spawn_x": 592,
+			"spawn_y": 438,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 464,
@@ -809,7 +1057,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 6288,
 			"object_offset": 3144,
-			"resource_name": "BRPATH_9" 
+			"resource_name": "BRPATH_9",
+			"spawn_x": 1787,
+			"spawn_y": 457,
+			"theme": "Brewery" 
 		},
 		{
 			"collision_offset": 576,
@@ -828,7 +1079,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 4428,
 			"object_offset": 1836,
-			"resource_name": "BWPATH_1" 
+			"resource_name": "BWPATH_1",
+			"spawn_x": 212,
+			"spawn_y": 713,
+			"theme": "BoneWerkz" 
 		},
 		{
 			"collision_offset": 96,
@@ -847,7 +1101,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 1412,
 			"object_offset": 316,
-			"resource_name": "BWPATH_11" 
+			"resource_name": "BWPATH_11",
+			"spawn_x": 1558,
+			"spawn_y": 398,
+			"theme": "BoneWerkz" 
 		},
 		{
 			"collision_offset": 80,
@@ -866,7 +1123,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 1120,
 			"object_offset": 260,
-			"resource_name": "BWPATH_12" 
+			"resource_name": "BWPATH_12",
+			"spawn_x": 487,
+			"spawn_y": 457,
+			"theme": "BoneWerkz" 
 		},
 		{
 			"collision_offset": 80,
@@ -885,7 +1145,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 2364,
 			"object_offset": 620,
-			"resource_name": "BWPATH_13" 
+			"resource_name": "BWPATH_13",
+			"spawn_x": 37,
+			"spawn_y": 96,
+			"theme": "BoneWerkz_Ender" 
 		},
 		{
 			"collision_offset": 208,
@@ -904,7 +1167,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 2196,
 			"object_offset": 848,
-			"resource_name": "BWPATH_14" 
+			"resource_name": "BWPATH_14",
+			"spawn_x": 2037,
+			"spawn_y": 1237,
+			"theme": "BoneWerkz_Ender" 
 		},
 		{
 			"collision_offset": 656,
@@ -923,7 +1189,10 @@
 			"number_of_screens_y": 8,
 			"object_indextable_offset": 9092,
 			"object_offset": 3176,
-			"resource_name": "BWPATH_2" 
+			"resource_name": "BWPATH_2",
+			"spawn_x": 837,
+			"spawn_y": 1059,
+			"theme": "BoneWerkz" 
 		},
 		{
 			"collision_offset": 416,
@@ -942,7 +1211,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 7740,
 			"object_offset": 2836,
-			"resource_name": "BWPATH_3" 
+			"resource_name": "BWPATH_3",
+			"spawn_x": 501,
+			"spawn_y": 409,
+			"theme": "BoneWerkz" 
 		},
 		{
 			"collision_offset": 592,
@@ -961,7 +1233,10 @@
 			"number_of_screens_y": 8,
 			"object_indextable_offset": 9748,
 			"object_offset": 2712,
-			"resource_name": "BWPATH_4" 
+			"resource_name": "BWPATH_4",
+			"spawn_x": 812,
+			"spawn_y": 457,
+			"theme": "BoneWerkz" 
 		},
 		{
 			"collision_offset": 448,
@@ -980,7 +1255,10 @@
 			"number_of_screens_y": 6,
 			"object_indextable_offset": 6200,
 			"object_offset": 1528,
-			"resource_name": "BWPATH_7" 
+			"resource_name": "BWPATH_7",
+			"spawn_x": 1187,
+			"spawn_y": 1397,
+			"theme": "BoneWerkz" 
 		},
 		{
 			"collision_offset": 240,
@@ -999,7 +1277,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 4996,
 			"object_offset": 1380,
-			"resource_name": "BWPATH_9" 
+			"resource_name": "BWPATH_9",
+			"spawn_x": 1787,
+			"spawn_y": 457,
+			"theme": "BoneWerkz_Ender" 
 		},
 		{
 			"collision_offset": 0,
@@ -1037,7 +1318,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 608,
 			"object_offset": 576,
-			"resource_name": "CRPATH_1" 
+			"resource_name": "CRPATH_1",
+			"spawn_x": 212,
+			"spawn_y": 713,
+			"theme": "Credits" 
 		},
 		{
 			"collision_offset": 0,
@@ -1056,7 +1340,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 432,
 			"object_offset": 416,
-			"resource_name": "CRPATH_2" 
+			"resource_name": "CRPATH_2",
+			"spawn_x": 837,
+			"spawn_y": 1059,
+			"theme": "Credits" 
 		},
 		{
 			"collision_offset": 176,
@@ -1892,7 +2179,10 @@
 			"number_of_screens_y": 6,
 			"object_indextable_offset": 4008,
 			"object_offset": 1140,
-			"resource_name": "FDPATH_1" 
+			"resource_name": "FDPATH_1",
+			"spawn_x": 212,
+			"spawn_y": 713,
+			"theme": "FecoDepot" 
 		},
 		{
 			"collision_offset": 176,
@@ -1911,7 +2201,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 2112,
 			"object_offset": 756,
-			"resource_name": "FDPATH_10" 
+			"resource_name": "FDPATH_10",
+			"spawn_x": 563,
+			"spawn_y": 598,
+			"theme": "FecoDepot" 
 		},
 		{
 			"collision_offset": 352,
@@ -1930,7 +2223,10 @@
 			"number_of_screens_y": 6,
 			"object_indextable_offset": 7164,
 			"object_offset": 2452,
-			"resource_name": "FDPATH_11" 
+			"resource_name": "FDPATH_11",
+			"spawn_x": 1558,
+			"spawn_y": 398,
+			"theme": "FecoDepot_Ender" 
 		},
 		{
 			"collision_offset": 136,
@@ -1949,7 +2245,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 3700,
 			"object_offset": 1556,
-			"resource_name": "FDPATH_12" 
+			"resource_name": "FDPATH_12",
+			"spawn_x": 487,
+			"spawn_y": 457,
+			"theme": "FecoDepot" 
 		},
 		{
 			"collision_offset": 48,
@@ -1968,7 +2267,10 @@
 			"number_of_screens_y": 1,
 			"object_indextable_offset": 4332,
 			"object_offset": 1748,
-			"resource_name": "FDPATH_13" 
+			"resource_name": "FDPATH_13",
+			"spawn_x": 37,
+			"spawn_y": 96,
+			"theme": "FecoDepot_Ender" 
 		},
 		{
 			"collision_offset": 112,
@@ -1987,7 +2289,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 1272,
 			"object_offset": 412,
-			"resource_name": "FDPATH_14" 
+			"resource_name": "FDPATH_14",
+			"spawn_x": 2037,
+			"spawn_y": 1237,
+			"theme": "FecoDepot_Ender" 
 		},
 		{
 			"collision_offset": 528,
@@ -2006,7 +2311,10 @@
 			"number_of_screens_y": 8,
 			"object_indextable_offset": 7200,
 			"object_offset": 2388,
-			"resource_name": "FDPATH_2" 
+			"resource_name": "FDPATH_2",
+			"spawn_x": 837,
+			"spawn_y": 1059,
+			"theme": "FecoDepot" 
 		},
 		{
 			"collision_offset": 736,
@@ -2025,7 +2333,10 @@
 			"number_of_screens_y": 10,
 			"object_indextable_offset": 7096,
 			"object_offset": 2936,
-			"resource_name": "FDPATH_3" 
+			"resource_name": "FDPATH_3",
+			"spawn_x": 501,
+			"spawn_y": 409,
+			"theme": "FecoDepot" 
 		},
 		{
 			"collision_offset": 576,
@@ -2044,7 +2355,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 8212,
 			"object_offset": 3216,
-			"resource_name": "FDPATH_4" 
+			"resource_name": "FDPATH_4",
+			"spawn_x": 812,
+			"spawn_y": 457,
+			"theme": "FecoDepot" 
 		},
 		{
 			"collision_offset": 464,
@@ -2063,7 +2377,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 5984,
 			"object_offset": 2324,
-			"resource_name": "FDPATH_5" 
+			"resource_name": "FDPATH_5",
+			"spawn_x": 87,
+			"spawn_y": 457,
+			"theme": "FecoDepot" 
 		},
 		{
 			"collision_offset": 80,
@@ -2082,7 +2399,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 1364,
 			"object_offset": 300,
-			"resource_name": "FDPATH_6" 
+			"resource_name": "FDPATH_6",
+			"spawn_x": 2562,
+			"spawn_y": 1237,
+			"theme": "FecoDepot" 
 		},
 		{
 			"collision_offset": 176,
@@ -2101,7 +2421,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 3696,
 			"object_offset": 1596,
-			"resource_name": "FDPATH_7" 
+			"resource_name": "FDPATH_7",
+			"spawn_x": 1187,
+			"spawn_y": 1397,
+			"theme": "FecoDepot" 
 		},
 		{
 			"collision_offset": 176,
@@ -2120,7 +2443,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 2956,
 			"object_offset": 976,
-			"resource_name": "FDPATH_8" 
+			"resource_name": "FDPATH_8",
+			"spawn_x": 592,
+			"spawn_y": 438,
+			"theme": "FecoDepot" 
 		},
 		{
 			"collision_offset": 256,
@@ -2139,7 +2465,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 3276,
 			"object_offset": 1256,
-			"resource_name": "FDPATH_9" 
+			"resource_name": "FDPATH_9",
+			"spawn_x": 1787,
+			"spawn_y": 457,
+			"theme": "FecoDepot" 
 		},
 		{
 			"collision_offset": 304,
@@ -2253,7 +2582,10 @@
 			"number_of_screens_y": 9,
 			"object_indextable_offset": 11812,
 			"object_offset": 2996,
-			"resource_name": "MIPATH_1" 
+			"resource_name": "MIPATH_1",
+			"spawn_x": 212,
+			"spawn_y": 713,
+			"theme": "Mines" 
 		},
 		{
 			"collision_offset": 304,
@@ -2272,7 +2604,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 4808,
 			"object_offset": 1604,
-			"resource_name": "MIPATH_10" 
+			"resource_name": "MIPATH_10",
+			"spawn_x": 563,
+			"spawn_y": 598,
+			"theme": "Mines" 
 		},
 		{
 			"collision_offset": 176,
@@ -2291,7 +2626,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 2176,
 			"object_offset": 476,
-			"resource_name": "MIPATH_11" 
+			"resource_name": "MIPATH_11",
+			"spawn_x": 1558,
+			"spawn_y": 398,
+			"theme": "Mines" 
 		},
 		{
 			"collision_offset": 256,
@@ -2310,7 +2648,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 4832,
 			"object_offset": 1176,
-			"resource_name": "MIPATH_12" 
+			"resource_name": "MIPATH_12",
+			"spawn_x": 487,
+			"spawn_y": 457,
+			"theme": "Mines" 
 		},
 		{
 			"collision_offset": 896,
@@ -2329,7 +2670,10 @@
 			"number_of_screens_y": 10,
 			"object_indextable_offset": 8788,
 			"object_offset": 3876,
-			"resource_name": "MIPATH_2" 
+			"resource_name": "MIPATH_2",
+			"spawn_x": 837,
+			"spawn_y": 1059,
+			"theme": "Mines" 
 		},
 		{
 			"collision_offset": 688,
@@ -2348,7 +2692,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 3668,
 			"object_offset": 1768,
-			"resource_name": "MIPATH_3" 
+			"resource_name": "MIPATH_3",
+			"spawn_x": 501,
+			"spawn_y": 409,
+			"theme": "Mines" 
 		},
 		{
 			"collision_offset": 1360,
@@ -2367,7 +2714,10 @@
 			"number_of_screens_y": 14,
 			"object_indextable_offset": 15440,
 			"object_offset": 4420,
-			"resource_name": "MIPATH_4" 
+			"resource_name": "MIPATH_4",
+			"spawn_x": 812,
+			"spawn_y": 457,
+			"theme": "Mines" 
 		},
 		{
 			"collision_offset": 400,
@@ -2386,7 +2736,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 5600,
 			"object_offset": 1400,
-			"resource_name": "MIPATH_5" 
+			"resource_name": "MIPATH_5",
+			"spawn_x": 87,
+			"spawn_y": 457,
+			"theme": "Mines" 
 		},
 		{
 			"collision_offset": 744,
@@ -2405,7 +2758,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 5228,
 			"object_offset": 2064,
-			"resource_name": "MIPATH_6" 
+			"resource_name": "MIPATH_6",
+			"spawn_x": 2562,
+			"spawn_y": 1237,
+			"theme": "Mines" 
 		},
 		{
 			"collision_offset": 256,
@@ -2424,7 +2780,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 3336,
 			"object_offset": 1336,
-			"resource_name": "MIPATH_7" 
+			"resource_name": "MIPATH_7",
+			"spawn_x": 1187,
+			"spawn_y": 1397,
+			"theme": "Mines" 
 		},
 		{
 			"collision_offset": 376,
@@ -2443,7 +2802,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 6596,
 			"object_offset": 1296,
-			"resource_name": "MIPATH_8" 
+			"resource_name": "MIPATH_8",
+			"spawn_x": 592,
+			"spawn_y": 438,
+			"theme": "Mines" 
 		},
 		{
 			"collision_offset": 352,
@@ -2462,7 +2824,10 @@
 			"number_of_screens_y": 6,
 			"object_indextable_offset": 3776,
 			"object_offset": 1552,
-			"resource_name": "MIPATH_9" 
+			"resource_name": "MIPATH_9",
+			"spawn_x": 1787,
+			"spawn_y": 457,
+			"theme": "Mines" 
 		},
 		{
 			"collision_offset": 216,
@@ -2481,7 +2846,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 2284,
 			"object_offset": 756,
-			"resource_name": "NEPATH_1" 
+			"resource_name": "NEPATH_1",
+			"spawn_x": 212,
+			"spawn_y": 713,
+			"theme": "Necrum" 
 		},
 		{
 			"collision_offset": 400,
@@ -2500,7 +2868,10 @@
 			"number_of_screens_y": 8,
 			"object_indextable_offset": 5512,
 			"object_offset": 2420,
-			"resource_name": "NEPATH_2" 
+			"resource_name": "NEPATH_2",
+			"spawn_x": 837,
+			"spawn_y": 1059,
+			"theme": "Necrum" 
 		},
 		{
 			"collision_offset": 976,
@@ -2519,7 +2890,10 @@
 			"number_of_screens_y": 10,
 			"object_indextable_offset": 4644,
 			"object_offset": 1716,
-			"resource_name": "NEPATH_3" 
+			"resource_name": "NEPATH_3",
+			"spawn_x": 501,
+			"spawn_y": 409,
+			"theme": "Necrum" 
 		},
 		{
 			"collision_offset": 336,
@@ -2538,7 +2912,10 @@
 			"number_of_screens_y": 8,
 			"object_indextable_offset": 3032,
 			"object_offset": 1036,
-			"resource_name": "NEPATH_4" 
+			"resource_name": "NEPATH_4",
+			"spawn_x": 812,
+			"spawn_y": 457,
+			"theme": "Necrum" 
 		},
 		{
 			"collision_offset": 520,
@@ -2557,7 +2934,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 3868,
 			"object_offset": 1460,
-			"resource_name": "NEPATH_5" 
+			"resource_name": "NEPATH_5",
+			"spawn_x": 87,
+			"spawn_y": 457,
+			"theme": "Necrum" 
 		},
 		{
 			"collision_offset": 272,
@@ -2576,7 +2956,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 3464,
 			"object_offset": 692,
-			"resource_name": "NEPATH_6" 
+			"resource_name": "NEPATH_6",
+			"spawn_x": 2562,
+			"spawn_y": 1237,
+			"theme": "Necrum" 
 		},
 		{
 			"collision_offset": 184,
@@ -2595,7 +2978,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 3372,
 			"object_offset": 604,
-			"resource_name": "NEPATH_7" 
+			"resource_name": "NEPATH_7",
+			"spawn_x": 1187,
+			"spawn_y": 1397,
+			"theme": "Necrum" 
 		},
 		{
 			"collision_offset": 688,
@@ -2614,7 +3000,10 @@
 			"number_of_screens_y": 6,
 			"object_indextable_offset": 6564,
 			"object_offset": 3208,
-			"resource_name": "PVPATH_1" 
+			"resource_name": "PVPATH_1",
+			"spawn_x": 212,
+			"spawn_y": 713,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 376,
@@ -2633,7 +3022,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 3424,
 			"object_offset": 1596,
-			"resource_name": "PVPATH_10" 
+			"resource_name": "PVPATH_10",
+			"spawn_x": 563,
+			"spawn_y": 598,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 112,
@@ -2652,7 +3044,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 2712,
 			"object_offset": 592,
-			"resource_name": "PVPATH_11" 
+			"resource_name": "PVPATH_11",
+			"spawn_x": 1558,
+			"spawn_y": 398,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 160,
@@ -2671,7 +3066,10 @@
 			"number_of_screens_y": 6,
 			"object_indextable_offset": 3460,
 			"object_offset": 1120,
-			"resource_name": "PVPATH_12" 
+			"resource_name": "PVPATH_12",
+			"spawn_x": 487,
+			"spawn_y": 457,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 976,
@@ -2690,7 +3088,10 @@
 			"number_of_screens_y": 10,
 			"object_indextable_offset": 6712,
 			"object_offset": 3076,
-			"resource_name": "PVPATH_13" 
+			"resource_name": "PVPATH_13",
+			"spawn_x": 37,
+			"spawn_y": 96,
+			"theme": "ParamiteVaults_Ender" 
 		},
 		{
 			"collision_offset": 112,
@@ -2709,7 +3110,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 3100,
 			"object_offset": 672,
-			"resource_name": "PVPATH_14" 
+			"resource_name": "PVPATH_14",
+			"spawn_x": 2037,
+			"spawn_y": 1237,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 144,
@@ -2728,7 +3132,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 2144,
 			"object_offset": 664,
-			"resource_name": "PVPATH_15" 
+			"resource_name": "PVPATH_15",
+			"spawn_x": -1015,
+			"spawn_y": 397,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 48,
@@ -2747,7 +3154,10 @@
 			"number_of_screens_y": 1,
 			"object_indextable_offset": 788,
 			"object_offset": 228,
-			"resource_name": "PVPATH_2" 
+			"resource_name": "PVPATH_2",
+			"spawn_x": 837,
+			"spawn_y": 1059,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 400,
@@ -2766,7 +3176,10 @@
 			"number_of_screens_y": 6,
 			"object_indextable_offset": 3508,
 			"object_offset": 1400,
-			"resource_name": "PVPATH_3" 
+			"resource_name": "PVPATH_3",
+			"spawn_x": 501,
+			"spawn_y": 409,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 176,
@@ -2785,7 +3198,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 3504,
 			"object_offset": 1556,
-			"resource_name": "PVPATH_4" 
+			"resource_name": "PVPATH_4",
+			"spawn_x": 812,
+			"spawn_y": 457,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 184,
@@ -2804,7 +3220,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 3392,
 			"object_offset": 1584,
-			"resource_name": "PVPATH_5" 
+			"resource_name": "PVPATH_5",
+			"spawn_x": 87,
+			"spawn_y": 457,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 96,
@@ -2823,7 +3242,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 2216,
 			"object_offset": 576,
-			"resource_name": "PVPATH_6" 
+			"resource_name": "PVPATH_6",
+			"spawn_x": 2562,
+			"spawn_y": 1237,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 304,
@@ -2842,7 +3264,10 @@
 			"number_of_screens_y": 6,
 			"object_indextable_offset": 3584,
 			"object_offset": 1124,
-			"resource_name": "PVPATH_7" 
+			"resource_name": "PVPATH_7",
+			"spawn_x": 1187,
+			"spawn_y": 1397,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 112,
@@ -2861,7 +3286,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 2048,
 			"object_offset": 752,
-			"resource_name": "PVPATH_8" 
+			"resource_name": "PVPATH_8",
+			"spawn_x": 592,
+			"spawn_y": 438,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 208,
@@ -2880,7 +3308,10 @@
 			"number_of_screens_y": 4,
 			"object_indextable_offset": 3272,
 			"object_offset": 948,
-			"resource_name": "PVPATH_9" 
+			"resource_name": "PVPATH_9",
+			"spawn_x": 1787,
+			"spawn_y": 457,
+			"theme": "ParamiteVaults" 
 		},
 		{
 			"collision_offset": 304,
@@ -3374,7 +3805,10 @@
 			"number_of_screens_y": 9,
 			"object_indextable_offset": 676,
 			"object_offset": 520,
-			"resource_name": "STPATH_1" 
+			"resource_name": "STPATH_1",
+			"spawn_x": -375,
+			"spawn_y": -260,
+			"theme": "Menu" 
 		},
 		{
 			"collision_offset": 144,
@@ -3393,7 +3827,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 3092,
 			"object_offset": 784,
-			"resource_name": "SVPATH_1" 
+			"resource_name": "SVPATH_1",
+			"spawn_x": 212,
+			"spawn_y": 713,
+			"theme": "ScrabVaults" 
 		},
 		{
 			"collision_offset": 136,
@@ -3412,7 +3849,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 3600,
 			"object_offset": 816,
-			"resource_name": "SVPATH_10" 
+			"resource_name": "SVPATH_10",
+			"spawn_x": 563,
+			"spawn_y": 598,
+			"theme": "ScrabVaults_Ender" 
 		},
 		{
 			"collision_offset": 32,
@@ -3431,7 +3871,10 @@
 			"number_of_screens_y": 1,
 			"object_indextable_offset": 1040,
 			"object_offset": 172,
-			"resource_name": "SVPATH_11" 
+			"resource_name": "SVPATH_11",
+			"spawn_x": 1558,
+			"spawn_y": 398,
+			"theme": "ScrabVaults_Ender" 
 		},
 		{
 			"collision_offset": 48,
@@ -3450,7 +3893,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 1340,
 			"object_offset": 348,
-			"resource_name": "SVPATH_12" 
+			"resource_name": "SVPATH_12",
+			"spawn_x": 487,
+			"spawn_y": 457,
+			"theme": "ScrabVaults" 
 		},
 		{
 			"collision_offset": 96,
@@ -3469,7 +3915,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 1716,
 			"object_offset": 536,
-			"resource_name": "SVPATH_13" 
+			"resource_name": "SVPATH_13",
+			"spawn_x": 37,
+			"spawn_y": 96,
+			"theme": "ScrabVaults" 
 		},
 		{
 			"collision_offset": 160,
@@ -3488,7 +3937,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 3040,
 			"object_offset": 1220,
-			"resource_name": "SVPATH_14" 
+			"resource_name": "SVPATH_14",
+			"spawn_x": 2037,
+			"spawn_y": 1237,
+			"theme": "ScrabVaults_Ender" 
 		},
 		{
 			"collision_offset": 208,
@@ -3507,7 +3959,10 @@
 			"number_of_screens_y": 6,
 			"object_indextable_offset": 5084,
 			"object_offset": 1888,
-			"resource_name": "SVPATH_2" 
+			"resource_name": "SVPATH_2",
+			"spawn_x": 837,
+			"spawn_y": 1059,
+			"theme": "ScrabVaults" 
 		},
 		{
 			"collision_offset": 136,
@@ -3526,7 +3981,10 @@
 			"number_of_screens_y": 3,
 			"object_indextable_offset": 3560,
 			"object_offset": 976,
-			"resource_name": "SVPATH_3" 
+			"resource_name": "SVPATH_3",
+			"spawn_x": 501,
+			"spawn_y": 409,
+			"theme": "ScrabVaults" 
 		},
 		{
 			"collision_offset": 112,
@@ -3545,7 +4003,10 @@
 			"number_of_screens_y": 2,
 			"object_indextable_offset": 3068,
 			"object_offset": 792,
-			"resource_name": "SVPATH_4" 
+			"resource_name": "SVPATH_4",
+			"spawn_x": 812,
+			"spawn_y": 457,
+			"theme": "ScrabVaults" 
 		},
 		{
 			"collision_offset": 176,
@@ -3564,7 +4025,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 5456,
 			"object_offset": 1736,
-			"resource_name": "SVPATH_5" 
+			"resource_name": "SVPATH_5",
+			"spawn_x": 87,
+			"spawn_y": 457,
+			"theme": "ScrabVaults" 
 		},
 		{
 			"collision_offset": 688,
@@ -3583,7 +4047,10 @@
 			"number_of_screens_y": 7,
 			"object_indextable_offset": 8408,
 			"object_offset": 2548,
-			"resource_name": "SVPATH_6" 
+			"resource_name": "SVPATH_6",
+			"spawn_x": 2562,
+			"spawn_y": 1237,
+			"theme": "ScrabVaults" 
 		},
 		{
 			"collision_offset": 256,
@@ -3602,7 +4069,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 4824,
 			"object_offset": 1216,
-			"resource_name": "SVPATH_7" 
+			"resource_name": "SVPATH_7",
+			"spawn_x": 1187,
+			"spawn_y": 1397,
+			"theme": "ScrabVaults" 
 		},
 		{
 			"collision_offset": 176,
@@ -3621,7 +4091,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 4332,
 			"object_offset": 1436,
-			"resource_name": "SVPATH_8" 
+			"resource_name": "SVPATH_8",
+			"spawn_x": 592,
+			"spawn_y": 438,
+			"theme": "ScrabVaults" 
 		},
 		{
 			"collision_offset": 256,
@@ -3640,7 +4113,10 @@
 			"number_of_screens_y": 5,
 			"object_indextable_offset": 3188,
 			"object_offset": 1316,
-			"resource_name": "SVPATH_9" 
+			"resource_name": "SVPATH_9",
+			"spawn_x": 1787,
+			"spawn_y": 457,
+			"theme": "ScrabVaults_Ender" 
 		} 
 	] 
 } 
