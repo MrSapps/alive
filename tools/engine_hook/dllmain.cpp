@@ -546,6 +546,7 @@ public:
     using PathsJson::mPathMaps;
     using PathsJson::mPathThemes;
 };
+
 struct PerLvlData
 {
     const char* field_0_display_name;
@@ -557,7 +558,68 @@ struct PerLvlData
     WORD field_E_abe_y_off;
 };
 
-const static PerLvlData gPerLvlData_561700[15] =
+const static PerLvlData gMovieMenuInfos_561540[28] =
+{
+    { "GT Logo", 0, 65535, 65535, 3u, 65535, 65535 },
+    { "Oddworld Intro", 0, 65535, 65535, 1u, 65535, 65535 },
+    { "Abe's Exoddus", 0, 65535, 65535, 5u, 65535, 65535 },
+    { "Backstory", 0, 65535, 65535, 4u, 65535, 65535 },
+    { "Prophecy", 1, 65535, 65535, 1u, 65535, 65535 },
+    { "Vision", 1, 65535, 65535, 24u, 65535, 65535 },
+    { "Game Opening", 1, 65535, 65535, 2u, 65535, 65535 },
+    { "Brew", 1, 65535, 65535, 26u, 65535, 65535 },
+    { "Brew Transition", 1, 65535, 65535, 31u, 65535, 65535 },
+    { "Escape", 1, 65535, 65535, 25u, 65535, 65535 },
+    { "Reward", 2, 65535, 65535, 22u, 65535, 65535 },
+    { "FeeCo", 5, 65535, 65535, 4u, 65535, 65535 },
+    { "Information Booth", 5, 65535, 65535, 3u, 65535, 65535 },
+    { "Train 1", 6, 65535, 65535, 5u, 65535, 65535 },
+    { "Train 2", 9, 65535, 65535, 15u, 65535, 65535 },
+    { "Train 3", 8, 65535, 65535, 6u, 65535, 65535 },
+    { "Aslik Info", 5, 65535, 65535, 2u, 65535, 65535 },
+    { "Aslik Explodes", 5, 65535, 65535, 1u, 65535, 65535 },
+    { "Dripek Info", 6, 65535, 65535, 4u, 65535, 65535 },
+    { "Dripek Explodes", 6, 65535, 65535, 3u, 65535, 65535 },
+    { "Phleg Info", 8, 65535, 65535, 4u, 65535, 65535 },
+    { "Phleg Explodes", 8, 65535, 65535, 5u, 65535, 65535 },
+    { "Soulstorm Info", 9, 65535, 65535, 14u, 65535, 65535 },
+    { "Ingredient", 9, 65535, 65535, 16u, 65535, 65535 },
+    { "Conference", 9, 65535, 65535, 13u, 65535, 65535 },
+    { "Happy Ending", 9, 65535, 65535, 17u, 65535, 65535 },
+    { "Sad Ending", 9, 65535, 65535, 18u, 65535, 65535 },
+    { "Credits", 16, 65535, 65535, 65535u, 65535, 65535 }
+};
+
+
+const static PerLvlData gDemoData_off_5617F0[23] =
+{
+    { "Mudokons 1", 1, 8, 5, 0u, 0, 0 },            // MI P8
+    { "Mudokons 2", 1, 8, 32, 1u, 0, 0 },           // MI P8
+    { "Mudokons 3", 1, 8, 21, 2u, 0, 0 },           // MI P8
+    { "Flying Slig", 1, 9, 18, 4u, 0, 0 },          // MI P9
+    { "Blind Mudokons 1", 1, 11, 27, 5u, 0, 0 },    // MI P11
+    { "Blind Mudokons 2", 1, 11, 22, 3u, 0, 0 },    // MI P11
+    { "Minecar", 1, 12, 2, 6u, 0, 0 },              // MI P12
+    { "Fleeches", 2, 7, 1, 7u, 0, 0 },              // NE P7
+    { "Paramite Chase", 3, 2, 13, 8u, 0, 0 },       // PV P2
+    { "Paramites Talk", 3, 6, 8, 27u, 0, 0 },       // PV P6
+    { "Scrab and Fleeches", 4, 12, 2, 9u, 0, 0 },   // SV P12
+    { "Invisibility", 4, 13, 5, 10u, 0, 0 },        // SV P13
+    { "Farts-a-poppin'", 5, 6, 3, 12u, 0, 0 },      // FD P6
+    { "Flying Sligs 2", 5, 12, 1, 14u, 0, 0 },      // FD P12
+    { "Baggage Claim", 12, 13, 1, 15u, 0, 0 },      // FD ENDER P13
+    { "Shrykull", 6, 3, 10, 16u, 0, 0 },            // BA P3
+    { "Crawling Sligs", 6, 4, 6, 17u, 0, 0 },       // BA P4
+    { "Slogs Attack", 8, 11, 7, 18u, 0, 0 },        // BW P11
+    { "Glukkon", 14, 13, 9, 19u, 0, 0 },            // BW ENDER P13
+    { "Angry Mudokons", 9, 13, 10, 22u, 0, 0 },     // BR P13
+    { "Sligs", 9, 26, 4, 23u, 0, 0 },               // BR P26
+    { "Tortured Mudokons", 9, 27, 7, 24u, 0, 0 },   // BR P27
+    { "Greeters Go Boom", 9, 28, 4, 25u, 0, 0 }     // BR P28
+};
+
+// Used by the level skip cheat/ui/menu
+const static PerLvlData gPerLvlData_561700[17] =
 {
     { "Mines", 1, 1, 4, 65535u, 2712, 1300 },
     { "Mines Ender", 1, 6, 10, 65535u, 2935, 2525 },
@@ -573,35 +635,298 @@ const static PerLvlData gPerLvlData_561700[15] =
     { "Bonewerkz", 8, 1, 1, 65535u, 813, 451 },
     { "Bonewerkz Ender", 14, 14, 10, 65535u, 810, 710 },
     { "Brewery", 9, 16, 6, 65535u, 1962, 1232 },
-    { "Game Ender", 10, 1, 1, 65535u, 460, 968 }
+    { "Game Ender", 10, 1, 1, 65535u, 460, 968 },
+    { "Credits", 16, 1, 1, 65535u, 0, 0 },
+    { "Menu", 0, 1, 1, 65535u, 0, 0 }
 };
 
 const static std::map<int, std::string> gPathThemeNames =
 {
-    { 0, "ST" },
+    { 0, "Menu" },
     { 1, "Mines" },
     { 2, "Necrum" },
     { 3, "ParamiteVaults" },
     { 4, "ScrabVaults" },
     { 5, "FecoDepot" },
     { 6 , "Barracks" },
-    //{ 7 , "ScrabVaults_Ender" },
     { 8 , "BoneWerkz" },
     { 9 , "Brewery" },
     { 10 , "Brewery_Ender" }, // BM
-    //{ 11 , "ParamiteVaults_Ender" },
-    //{ 12 , "FecoDepot_Ender" },
-    //{ 13 , "Barracks_Ender" }, // This completely duplicated all paths from 6 ... only way to split is to manually check them
-    //{ 14 , "BoneWerkz_Ender" },
+
+    { 7 , "ScrabVaults_Ender" },
+    { 11 , "ParamiteVaults_Ender" },
+    { 12 , "FecoDepot_Ender" },
+    { 13 , "Barracks_Ender" },
+    { 14 , "BoneWerkz_Ender" },
+
     { 15 , "TL" },
     { 16 , "Credits" },
 };
 
+class AePcSaveFile
+{
+public:
+    const static u32 kObjectsOffset = 0x55C;
+    
+    // TODO: Other types as ripped by mlg
+    /*
+    2,16
+    9,12
+    11,60
+    25,8
+    26,128
+    30,20
+    45,60
+    50,180
+    54,172
+    55,16
+    57,16
+    60,4
+    61,24
+    64,80
+    65,60
+    67,144
+    69,216
+    78,28
+    81,136
+    84,60
+    89,104
+    96,120
+    99,8
+    102,4
+    104,40
+    105,56
+    112,160
+    113,16
+    122,8
+    125,164
+    126,120
+    129,44
+    136,16
+    142,12
+    143,24
+    148,16
+    */
+    enum ObjectTypes : u16
+    {
+        eLandMine = 0x8F,
+        eMud = 0x51,
+        eAbe = 0x45,
+        eSlamDoor = 0x7A,
+        eWheel = 0x94,
+        ePlatform = 0x4E, // trap door ??
+        eFlyingSlig = 0x36,
+        eParamite = 0x60,
+        eBirdPortal = 0x63
+    };
+
+    void DeSerialize(Oddlib::IStream& stream)
+    {
+        const int OffsetPATHAbeState = 0x284;
+        stream.Seek(OffsetPATHAbeState + 8);
+
+       HalfFloat xpos(ReadU32(stream));
+       HalfFloat ypos(ReadU32(stream));
+
+       mAbeXPos = (s32)xpos.AsDouble();
+       mAbeYPos = (s32)ypos.AsDouble();
+
+
+        /*
+        const u16 objectType = ReadU16(stream);
+        switch (objectType)
+        {
+        case ObjectTypes::eLandMine:
+            stream.Seek(stream.Pos() + 24);
+            break;
+        case ObjectTypes::eMud:
+            stream.Seek(stream.Pos() + 136);
+            break;
+        case ObjectTypes::eAbe:
+            stream.Seek(stream.Pos() + 216);
+            break;
+        case ObjectTypes::eSlamDoor:
+            stream.Seek(stream.Pos() + 8);
+            break;
+        case ObjectTypes::eWheel:
+            stream.Seek(stream.Pos() + 16);
+            break;
+        case ObjectTypes::ePlatform:
+            stream.Seek(stream.Pos() + 28);
+            break;
+        case ObjectTypes::eFlyingSlig:
+            stream.Seek(stream.Pos() + 184);
+            break;
+        case ObjectTypes::eParamite:
+            stream.Seek(stream.Pos() + 128);
+            break;
+        case ObjectTypes::eBirdPortal:
+            stream.Seek(stream.Pos() + 8);
+            break;
+        default:
+            LOG_ERROR("Unknown type " << objectType);
+            abort();
+        }*/
+    }
+
+
+    s32 AbeXPos() const
+    {
+        return mAbeXPos;
+    }
+
+    s32 AbeYPos() const
+    {
+        return mAbeYPos;
+    }
+
+private:
+    s32 mAbeXPos = 0;
+    s32 mAbeYPos = 0;
+};
+
+struct ScrapedPathData
+{
+    int level;
+    int path;
+    bool isDemo;
+    bool isEnder;
+};
+
+int ToLevelId(const std::string& id, bool& valid)
+{
+    valid = true;
+    if (id == "ST")
+    {
+        return 0;
+    }
+    else if (id == "MI")
+    {
+        return 1;
+    }
+    else if (id == "NE")
+    {
+        return 2;
+    }
+    else if (id == "PV")
+    {
+        return 3;
+    }
+    else if (id == "SV")
+    {
+        return 4;
+    }
+    else if (id == "FD")
+    {
+        return 5;
+    }
+    else if (id == "BA")
+    {
+        return 6;
+    }
+    else if (id == "BW")
+    {
+        return 8;
+    }
+    else if (id == "BR")
+    {
+        return 9;
+    }
+    else if (id == "BM")
+    {
+        return 10;
+    }
+    else if (id == "CR")
+    {
+        return 16;
+    }
+
+    valid = false;
+    return 0;
+}
+
+static bool IsEnder(int lvl)
+{
+    switch (lvl)
+    {
+    case 11: return true; // PV
+    case 7:  return true; // SV
+    case 12: return true; // FD
+    case 13: return true; // BA
+    case 14: return true; // BW
+    }
+    return false;
+}
+
+static int DeEnder(int lvl)
+{
+    switch (lvl)
+    {
+    case 11: return 3; // PV
+    case 7:  return 4; // SV
+    case 12: return 5; // FD
+    case 13: return 6; // BA
+    case 14: return 8; // BW
+    }
+    return lvl;
+}
+
+static int ToEnder(int lvl)
+{
+    switch (lvl)
+    {
+    case 3: return 11; // PV
+    case 4:  return 7; // SV
+    case 5: return 12; // FD
+    case 6: return 13; // BA
+    case 8: return 14; // BW
+    }
+    return lvl;
+}
+
 void UpdatePathsJson()
 {
+    std::vector<ScrapedPathData> scrapedData;
+
+    for (const auto& lvlSkip : gDemoData_off_5617F0)
+    {
+        scrapedData.push_back({ DeEnder(lvlSkip.field_4_level), lvlSkip.field_6_path, true, IsEnder(lvlSkip.field_4_level) });
+    }
+
+    for (const auto& lvlSkip : gPerLvlData_561700)
+    {
+        scrapedData.push_back({ DeEnder(lvlSkip.field_4_level), lvlSkip.field_6_path, false, IsEnder(lvlSkip.field_4_level) });
+    }
+
+    // SV enders
+    scrapedData.push_back({ DeEnder(7), 9, false, true });
+    scrapedData.push_back({ DeEnder(7), 10, false, true });
+    scrapedData.push_back({ DeEnder(7), 11, false, true });
+    scrapedData.push_back({ DeEnder(7), 14, false, true });
+
+    // BW enders
+    scrapedData.push_back({ DeEnder(8), 14, false, true });
+    scrapedData.push_back({ DeEnder(8), 9, false, true });
+
+    // PV enders
+    scrapedData.push_back({ DeEnder(11), 13, false, true });
+
+    // FD enders
+    scrapedData.push_back({ DeEnder(12), 11, false, true });
+    scrapedData.push_back({ DeEnder(12), 14, false, true });
+
+    // BA enders
+    scrapedData.push_back({ DeEnder(13), 11, false, true });
+    scrapedData.push_back({ DeEnder(13), 16, false, true });
+
+    // BW enders
+    scrapedData.push_back({ DeEnder(14), 14, false, true });
+    scrapedData.push_back({ DeEnder(14), 9, false, true });
+
     Oddlib::FileStream jsonFile("../../data/paths.json", Oddlib::IStream::ReadMode::ReadOnly);
     EditablePathsJson paths;
     paths.DeSerialize(jsonFile.LoadAllToString());
+   // paths.Serialize("../../data/paths_new.json");
 
     // Create a theme for each LVL entry
     PathsJson::PathTheme dummyTheme;
@@ -618,10 +943,103 @@ void UpdatePathsJson()
         paths.mPathThemes[pathData.second] = std::make_unique<PathsJson::PathTheme>(dummyTheme);
     }
 
+    for (auto& path : paths.mPathMaps)
+    {
+        const std::string id = path.first.substr(0, 2);
+        bool valid = false;
+        int levelId = ToLevelId(id, valid);
+        if (!valid)
+        {
+            LOG_WARNING("SKIP: " << id);
+            continue;
+        }
+
+        const ScrapedPathData* pSd = nullptr;
+        for (const auto& sd : scrapedData)
+        {
+            if (sd.level == levelId && sd.path == (int)path.second.mId)
+            {
+                if (sd.isEnder)
+                {
+                    levelId = DeEnder(sd.level);
+                }
+                pSd = &sd;
+                break;
+            }
+        }
+
+        // Find spawn offset constant
+        const PerLvlData* pOffSet = nullptr;
+        for (const auto& lvlSkip : gPerLvlData_561700)
+        {
+            // Look for an exact match first
+            if (lvlSkip.field_4_level == levelId && lvlSkip.field_6_path == (int)path.second.mId)
+            {
+                pOffSet = &lvlSkip;
+                break;
+            }
+
+            if (lvlSkip.field_4_level == levelId)
+            {
+                pOffSet = &lvlSkip;
+                break;
+            }
+        }
+
+        if (!pOffSet)
+        {
+            abort();
+        }
+
+        // Find per path spawn offset
+        PathRootData* ptr = Vars().gPathData.Get();
+        PathRoot& data = ptr->iLvls[(pSd && pSd->isEnder) ? ToEnder(levelId) : levelId];
+        PathBlyRec& bly = data.mBlyArrayPtr->iBlyRecs[path.second.mId];
+        
+        // TODO: This only works for stuff that matches the level skip menu exactly
+        // if it don't match try to pull it from the path skip SAV file
+        char buffer[256] = {};
+        sprintf(buffer, "NXTP%02d%02d.SAV", (pSd && pSd->isEnder) ? ToEnder(levelId) : levelId, path.second.mId);
+
+        std::string lvlName = std::string(data.mName) + ".LVL";
+        Oddlib::LvlArchive lvlArchive(lvlName);
+        auto pSave = lvlArchive.FileByName(buffer);
+        if (pSave)
+        {
+            auto chunkStream = pSave->ChunkByIndex(0)->Stream();
+
+            AePcSaveFile saveFile;
+            saveFile.DeSerialize(*chunkStream);
+            path.second.mSpawnXPos = saveFile.AbeXPos();
+            path.second.mSpawnYPos = saveFile.AbeYPos();
+        }
+        else
+        {
+            LOG_ERROR("NO SAVE FOUND FOR " << lvlArchive << " PATH NO " << path.second.mId);
+            path.second.mSpawnXPos = pOffSet->field_C_abe_x_off - bly.mPathData->mAbeStartXPos;
+            path.second.mSpawnYPos = pOffSet->field_E_abe_y_off - bly.mPathData->mAbeStartYPos;
+        }
+        auto themeIt = gPathThemeNames.find((pSd && pSd->isEnder) ? ToEnder(levelId) : levelId);
+        auto themePtrIt = paths.mPathThemes.find(themeIt->second);
+        //if (themePtrIt != std::end(paths.mPathThemes))
+        {
+            path.second.mTheme = themePtrIt->second.get();
+        }
+    }
+
+    /*
     for (s32 i = 0; i < NumLevels(); i++)
     {
         PathRootData* ptr = Vars().gPathData.Get();
         PathRoot& data = ptr->iLvls[i];
+
+        if (std::string(data.mName) == "TL")
+        {
+            continue;
+        }
+
+        //Oddlib::LvlArchive lvl(std::string(data.mName) + ".LVL");
+        
         for (s32 j = 1; j < data.mNumPaths + 1; j++)
         {
             // Find matching PathsJson entry for this Bly
@@ -629,52 +1047,26 @@ void UpdatePathsJson()
             auto pathIt = paths.mPathMaps.find(generatedName);
             if (pathIt == std::end(paths.mPathMaps))
             {
-                /* TODO: Need to set the location for missing paths, AePc is a given, but need to select Cd1 or Cd2 for Psx
-                "locations": [
-                  {
-                    "dataset": "AePc",
-                    "file_name": "BAPATH.BND"
-                  },
-                  {
-                    "dataset": "AePsxCd2",
-                    "file_name": "BAPATH.BND"
-                  }
-                ],
-                */
-                PathsJson::PathMapping pathMapping;
-                pathMapping.mCollisionOffset = data.mBlyArrayPtr->iBlyRecs[j].mCollisionData->mCollisionOffset;
-                pathMapping.mId = j;
-                pathMapping.mNumberOfScreensX = data.mBlyArrayPtr->iBlyRecs[j].mCollisionData->mBRight / 375;
-                pathMapping.mNumberOfScreensY = data.mBlyArrayPtr->iBlyRecs[j].mCollisionData->mBBottom / 260;
-                pathMapping.mIndexTableOffset = data.mBlyArrayPtr->iBlyRecs[j].mPathData->object_indextable_offset;
-                pathMapping.mObjectOffset = data.mBlyArrayPtr->iBlyRecs[j].mPathData->object_offset;
-                paths.mPathMaps[generatedName] = pathMapping;
-                pathIt = paths.mPathMaps.find(generatedName);
-                // TODO: Add it
-                //abort();
+                LOG_INFO("MISSING PATH: " << generatedName);
+                // These missing paths seem to have been removed from the real game, for instance
+                // BAPATH_6 is in the table but there is no resource for it..
+
                 continue;
             }
 
-            // TODO: Need to add on the crazy per LVL offset
-            // don't know how to map gPerLvlData_561700 yet as the offsets between normal and ender differ
             pathIt->second.mSpawnXPos = data.mBlyArrayPtr->iBlyRecs[j].mPathData->mAbeStartXPos;
             pathIt->second.mSpawnYPos = data.mBlyArrayPtr->iBlyRecs[j].mPathData->mAbeStartYPos;
 
             auto themeIt = gPathThemeNames.find(i);
-            // This might not exist because the _Enders' have been removed. This is because 
-            // normal Barracks and Barracks ender contain the same path list. So we let normal
-            // Barracks "win" in setting the theme. This is because there only tends to be a couple of
-            // ender paths to fix up by hand.
-            if (themeIt != std::end(gPathThemeNames))
+            auto themePtrIt = paths.mPathThemes.find(themeIt->second);
+            if (themePtrIt != std::end(paths.mPathThemes))
             {
-                auto themePtrIt = paths.mPathThemes.find(themeIt->second);
-                if (themePtrIt != std::end(paths.mPathThemes))
-                {
-                    pathIt->second.mTheme = themePtrIt->second.get();
-                }
+                pathIt->second.mTheme = themePtrIt->second.get();
             }
+
         }
     }
+    */
 
     paths.Serialize("../../data/paths_new.json");
 }

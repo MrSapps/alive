@@ -427,11 +427,41 @@ void World::RenderDebugPathSelection()
 {
     if (ImGui::CollapsingHeader("Maps"))
     {
+        static int button = 0;
+        if (ImGui::RadioButton("No filter", button == 0))
+        {
+            button = 0;
+        }
+        else if (ImGui::RadioButton("AePc filter", button == 1))
+        {
+            button = 1;
+        }
+
         for (const auto& pathMap : mLocator.PathMaps().Map())
         {
-            if (ImGui::Button(pathMap.first.c_str()))
+            bool add = false;
+            if (button == 0)
             {
-                Debugging().mFnLoadPath(pathMap.first.c_str());
+                add = true;
+            }
+            else
+            {
+                for (const auto& loc : pathMap.second.mLocations)
+                {
+                    if (loc.mDataSetName == "AePc")
+                    {
+                        add = true;
+                        break;
+                    }
+                }
+            }
+
+            if (add)
+            {
+                if (ImGui::Selectable(pathMap.first.c_str()))
+                {
+                    Debugging().mFnLoadPath(pathMap.first.c_str());
+                }
             }
         }
     }
