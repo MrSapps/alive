@@ -39,7 +39,6 @@ void GameMode::UpdateMenu(const InputReader& /*input*/, CoordinateSpace& /*coord
         mWorld.SetCurrentGridScreenFromCAM("STP01C25.CAM");
         cameraSystem->SetGameCameraToCameraAt(mWorld.CurrentGridScreenX(), mWorld.CurrentGridScreenY());
         break;
-
     case GameMode::MenuStates::eCameraRoll:
         if ((mWorld.mGlobalFrameCounter % 100) == 0)
         {
@@ -48,14 +47,9 @@ void GameMode::UpdateMenu(const InputReader& /*input*/, CoordinateSpace& /*coord
             mWorld.mState = World::States::ePlayFmv;
         }
         break;
-
     case GameMode::MenuStates::eFmv:
         break;
-
     case GameMode::MenuStates::eUserMenu:
-        break;
-
-    default:
         break;
     }
 

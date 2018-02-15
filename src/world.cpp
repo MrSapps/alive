@@ -91,14 +91,17 @@ World::World(
     {
         std::filebuf f;
         std::ostream os(&f);
-        f.open("save.bin", std::ios::out | std::ios::binary);
+        f.open("quicksave.bin", std::ios::out | std::ios::binary);
         mEntityManager.Serialize(os);
     };
 
     // TODO: Implement
     Debugging().mFnQuickLoad = [&]()
     {
-        mQuickLoad = true;
+        std::filebuf f;
+        std::istream is(&f);
+        f.open("quicksave.bin", std::ios::in | std::ios::binary);
+        mEntityManager.Deserialize(is);
     };
 
     // TODO: Get the starting map from selectedGame
@@ -242,15 +245,6 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
                     }
                 }
                 coords.SetCameraPosition(mEntityManager.GetSystem<CameraSystem>()->mCameraPosition);
-            }
-
-            if (mQuickLoad)
-            {
-                std::filebuf f;
-                std::istream is(&f);
-                f.open("save.bin", std::ios::in | std::ios::binary);
-                mEntityManager.Deserialize(is);
-                mQuickLoad = false;
             }
         }
     }

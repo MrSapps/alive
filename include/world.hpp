@@ -74,9 +74,6 @@ private:
     void RenderDebugFmvSelection();
 
 private:
-    bool mQuickLoad = false;
-
-private:
     u32 mCurrentGridScreenX = 0;
     u32 mCurrentGridScreenY = 0;
 
