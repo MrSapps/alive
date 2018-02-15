@@ -330,15 +330,14 @@ void UndoStack::Redo()
     }
 }
 
-EditorMode::EditorMode(World& mapState)
-        : mWorldState(mapState)
+EditorMode::EditorMode(World& world) : mWorld(world)
 {
 
 }
 
 void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 {
-    const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
+    const auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
     bool menuItemHandled = false;
     if (ImGui::BeginMainMenuBar())
     {
@@ -358,7 +357,7 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 
             if (ImGui::MenuItem("Exit", nullptr))
             {
-                mWorldState.mState = World::States::eQuit;
+                mWorld.mState = World::States::eQuit;
             }
             ImGui::EndMenu();
         }
@@ -429,9 +428,9 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 
     if (input.KeyboardKey(SDL_SCANCODE_E).Pressed())
     {
-        mWorldState.mState = World::States::eToGame;
+        mWorld.mState = World::States::eToGame;
         coords.mSmoothCameraPosition = true;
-        mWorldState.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
+        mWorld.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
 
         const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / cameraSystem->mCameraBlockSize.x);
         const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / cameraSystem->mCameraBlockSize.y);
@@ -621,16 +620,16 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 
 void EditorMode::Render(AbstractRenderer& rend) const
 {
-    const auto cameraSystem = mWorldState.mEntityManager.GetSystem<CameraSystem>();
+    const auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
     if (Debugging().mDrawCameras)
     {
         // Draw every cam
-        for (auto x = 0u; x < mWorldState.mScreens.size(); x++)
+        for (auto x = 0u; x < mWorld.mScreens.size(); x++)
         {
-            for (auto y = 0u; y < mWorldState.mScreens[x].size(); y++)
+            for (auto y = 0u; y < mWorld.mScreens[x].size(); y++)
             {
                 // screen can be null while the array is being populated during loading
-                GridScreen* screen = mWorldState.mScreens[x][y].get();
+                GridScreen* screen = mWorld.mScreens[x][y].get();
                 if (screen)
                 {
                     if (!screen->HasTexture())
@@ -648,7 +647,7 @@ void EditorMode::Render(AbstractRenderer& rend) const
 
     if (Debugging().mCollisionLines)
     {
-        CollisionLine::Render(rend, mWorldState.mEntityManager.GetSystem<CollisionSystem>()->mCollisionLines);
+        CollisionLine::Render(rend, mWorld.mEntityManager.GetSystem<CollisionSystem>()->mCollisionLines);
     }
 }
 

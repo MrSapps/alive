@@ -125,7 +125,7 @@ class EditorMode
 {
 public:
     NO_MOVE_OR_MOVE_ASSIGN(EditorMode);
-    explicit EditorMode(World& mapState);
+    explicit EditorMode(World& world);
 
 
     /* TODO: Set correct cursors
@@ -155,7 +155,7 @@ private:
     };
 
 private:
-    World& mWorldState;
+    World& mWorld;
     Selection mSelection;
     UndoStack mUndoStack;
     glm::vec2 mLastMousePos;

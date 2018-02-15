@@ -244,34 +244,6 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
                 coords.SetCameraPosition(mEntityManager.GetSystem<CameraSystem>()->mCameraPosition);
             }
 
-            // TODO: This needs to be arranged to match the real game which has an ordering of:
-            // Update all -> Animate all -> Render all ->  LoadResources/SwitchMap -> ReadInput -> update gnFrame value
-
-            // Physics System
-            mEntityManager.With<PhysicsComponent, TransformComponent>([](auto, auto physics, auto transform)
-            {
-                transform->Add(physics->GetXSpeed(), physics->GetYSpeed());
-            });
-            // Animation System
-            mEntityManager.With<AnimationComponent>([](auto, auto animation)
-            {
-                animation->Update();
-            });
-            // Abe system
-            mEntityManager.With<AbePlayerControllerComponent, AbeMovementComponent>([](auto, auto controller, auto abe)
-            {
-                controller->Update();
-                abe->Update();
-            });
-            // Slig system
-            mEntityManager.With<SligPlayerControllerComponent, SligMovementComponent>([](auto, auto controller, auto slig)
-            {
-                controller->Update();
-                slig->Update();
-            });
-            // Input system
-            mEntityManager.GetSystem<InputSystem>()->Update();
-
             if (mQuickLoad)
             {
                 std::filebuf f;
@@ -392,12 +364,6 @@ void World::Render(AbstractRenderer& /*rend*/)
             {
                 mEditorMode->Render(mRenderer);
             }
-
-            mEntityManager.GetSystem<DebugSystem>()->Render(mRenderer);
-            mEntityManager.With<AnimationComponent>([this](auto, auto animation) // TODO: should be a system
-            {
-                animation->Render(mRenderer);
-            });
         }
         break;
 

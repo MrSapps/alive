@@ -40,7 +40,7 @@ private:
     void UpdateMenu(const InputReader& input, CoordinateSpace& coords);
 
 private:
-    World& mWorldState;
+    World& mWorld;
     MenuStates mMenuState = MenuStates::eInit;
     GameModeStates mState = eRunning;
 };

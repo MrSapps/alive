@@ -1,16 +1,13 @@
 #include <map>
 
-#include "core/entity.hpp"
-#include "core/components/animationcomponent.hpp"
-#include "core/components/transformcomponent.hpp"
+#include "gridmap.hpp"
+#include "aeentityfactory.hpp"
 
 #include "oddlib/stream.hpp"
 
-#include "aeentityfactory.hpp"
-#include "gridmap.hpp"
-
-
-
+#include "core/entity.hpp"
+#include "core/components/animationcomponent.hpp"
+#include "core/components/transformcomponent.hpp"
 
 struct AeContinuePoint
 {
@@ -18,7 +15,6 @@ struct AeContinuePoint
 
     u16 mScale;
     u16 mSaveFileId;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -37,7 +33,6 @@ struct AePathTransition
     u16 mMovie;
     u16 mWipe;
     u16 mScale;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -59,7 +54,6 @@ struct AeHoist
     u16 mId;
     u16 mScale;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mHoistType = ReadU16(s);
@@ -76,7 +70,6 @@ struct AeEdge
     u16 mType;
     u16 mCanGrab;
     u32 mScale;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -95,7 +88,6 @@ struct AeDeathDrop
     u16 mId;
     u16 mAction;
     u32 mValue;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -137,7 +129,6 @@ struct AeDoor
     u16 mAbeDirection;
     u16 mCloseAfterUse;
     u16 mCancelThrowables;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -185,7 +176,6 @@ struct AeShadow
     u16 mId;
     u32 mScale;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mCenterW = ReadU16(s);
@@ -211,7 +201,6 @@ struct AeLiftPoint
     u16 mLiftStopType;
     u16 mScale;
     u16 mIgnoreLiftMover;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -240,7 +229,6 @@ struct AeWellLocal
     u16 mLeafX;
     u32 mLeafY;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -265,7 +253,6 @@ struct AeDove
     u16 mPixelPerfect;
     u16 mScale;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mNumberOfBirds = ReadU16(s);
@@ -283,7 +270,6 @@ struct AeRockSack
     u16 mYVel;
     u16 mScale;
     u16 mNumberOfRocks;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -304,7 +290,6 @@ struct AeFallingItem
     u16 mDelayTime;
     u16 mNumberOfItems;
     u16 mResetId;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -327,7 +312,6 @@ struct AePullRingRope
     u16 mOnSound;
     u16 mOffSound;
     u32 mSoundDirection;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -352,7 +336,6 @@ struct AeBackgroundAnimation
     u16 mId;
     u16 mLayer;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mAnimationRes = ReadU16(s);
@@ -373,7 +356,6 @@ struct AeTimedMine
     u16 mScale;
     u16 mTicksBeforeExplode;
     u32 mDisableResources;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -420,7 +402,6 @@ struct AeSlig
     u16 mDisableResources;
     u16 mNoiseWakeUpDistance;
     u32 mId;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -473,7 +454,6 @@ struct AeSlog
     u16 mAngryId;
     u16 mBoneEatingTime;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -501,7 +481,6 @@ struct AeSwitch
     u16 mTriggerId;
     u32 mPersistOffscreen;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mTargetAction = ReadU16(s);
@@ -520,7 +499,6 @@ struct AeSecurityEye
 
     u32 mScale;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU32(s);
@@ -533,7 +511,6 @@ struct AePulley
 
     u32 mScale;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU32(s);
@@ -545,7 +522,6 @@ struct AeAbeStart
     const static u8 kSizeInBytes = 20;
 
     u32 mScale;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -575,7 +551,6 @@ struct AeWellExpress
     u16 mLeafX;
     u16 mLeafY;
     u16 mMovie;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -610,7 +585,6 @@ struct AeMine
     u16 mDisabledResources;
     u32 mPersistsOffscreen;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mNumPatterns = ReadU16(s);
@@ -630,7 +604,6 @@ struct AeUxb
     u16 mScale;
     u16 mState;
     u32 mDisabledResources;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -658,7 +631,6 @@ struct AeParamite
     u16 mDeleteWhenFarAway;
     u16 mDeadlyScratch;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -683,7 +655,6 @@ struct AeMovieStone
     u16 mScale;
     u16 mId;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mMovieNumber = ReadU16(s);
@@ -707,7 +678,6 @@ struct AeBirdPortal
     u16 mCreateId;
     u16 mDeleteId;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mSide = ReadU16(s);
@@ -730,7 +700,6 @@ struct AePortalExit
     u16 mSide;
     u16 mScale;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mSide = ReadU16(s);
@@ -750,7 +719,6 @@ struct AeTrapDoor
     u16 mDirection;
     u16 mAnimOffset;
     u16 mStayOpenTime;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -775,7 +743,6 @@ struct AeRollingBall
     u16 mSpeed;
     u32 mAcceleration;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -793,7 +760,6 @@ struct AeSligLeftBound
     u16 mSligId;
     u16 mDisableResources;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mSligId = ReadU16(s);
@@ -804,7 +770,6 @@ struct AeSligLeftBound
 struct AeInvisibleZone
 {
     const static u8 kSizeInBytes = 16;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -821,7 +786,6 @@ struct AeFootSwitch
     u16 mAction;
     u16 mTriggerBy;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mId = ReadU16(s);
@@ -836,7 +800,6 @@ struct AeSecurityOrb
     const static u8 kSizeInBytes = 24;
 
     u32 mScale;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -857,7 +820,6 @@ struct AeMotionDetector
     u16 mDisableId;
     u16 mAlarmId;
     u16 mAlarmTicks;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -910,7 +872,6 @@ struct AeSligSpawner
     u16 mId;
     u16 mSpawnMany;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -956,7 +917,6 @@ struct AeElectricWall
     u16 mId;
     u16 mStart;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -972,7 +932,6 @@ struct AeLiftMover
     u16 mSwitchId;
     u16 mLiftId;
     u16 mDirection;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -991,7 +950,6 @@ struct AeMeatSack
     u16 mYVel;
     u16 mScale;
     u16 mNumberOfItems;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1022,7 +980,6 @@ struct AeScrab
     u16 mWhirlAttackRecharge;
     u16 mKillCloseFleech;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -1045,7 +1002,6 @@ struct AeScrab
 struct AeScrabLeftBound
 {
     const static u8 kSizeInBytes = 16;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1070,7 +1026,6 @@ struct AeSligRightBound
     u16 mSligId;
     u16 mDisableResources;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mSligId = ReadU16(s);
@@ -1085,7 +1040,6 @@ struct AeSligPersist
     u16 mSligId;
     u16 mDisableResources;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mSligId = ReadU16(s);
@@ -1099,7 +1053,6 @@ struct AeEnemyStopper
 
     u16 mStopDirection;
     u16 mId;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1117,7 +1070,6 @@ struct AeInvisibleSwitch
     u16 mDelay;
     u16 mSetOffAlarm;
     u16 mScale;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1149,7 +1101,6 @@ struct AeMudokon
     u16 mRingTimeout;
     u32 mInstantPowerup;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -1174,7 +1125,6 @@ struct AeZSligCover
 {
     const static u8 kSizeInBytes = 16;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         std::ignore = s;
@@ -1188,7 +1138,6 @@ struct AeDoorFlame
     u16 mId;
     u16 mScale;
     u32 mColour;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1211,7 +1160,6 @@ struct AeMovingBomb
     u16 mStartSpeed;
     u16 mPersistOffscreen;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mSpeed = ReadU16(s);
@@ -1229,7 +1177,6 @@ struct AeMenuController
 {
     const static u8 kSizeInBytes = 16;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         std::ignore = s;
@@ -1246,7 +1193,6 @@ struct AeTimerTrigger
     u16 mId2;
     u16 mId3;
     u16 mId4;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1270,7 +1216,6 @@ struct AeSligVoiceLock
     u16 mXPos;
     u16 mYPos;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -1291,7 +1236,6 @@ struct AeGrenadeMachine
     u16 mDisabledResources;
     u16 mNumberOfGrenades;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -1310,7 +1254,6 @@ struct AeLcdScreen
     u16 mMessageRandMax;
     u16 mMessage2Id;
     u32 mIdToSwitchMessageSets;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1332,7 +1275,6 @@ struct AeHandStone
     u16 mCamera3;
     u32 mTriggerId;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -1347,7 +1289,6 @@ struct AeCreditsController
 {
     const static u8 kSizeInBytes = 16;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         std::ignore = s;
@@ -1357,7 +1298,6 @@ struct AeCreditsController
 struct AeNullObject1
 {
     const static u8 kSizeInBytes = 20;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1372,7 +1312,6 @@ struct AeLcdStatusBoard
     u16 mNumberOfMuds;
     u16 mZulagNumber;
     u32 mHidden;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1395,7 +1334,6 @@ struct AeWorkWheelSyncer
     u16 mId5;
     u16 mId6;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mId1 = ReadU16(s);
@@ -1417,7 +1355,6 @@ struct AeMusic
     u16 mStart;
     u32 mTimeTicks;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mType = ReadU16(s);
@@ -1434,7 +1371,6 @@ struct AeLightEffect
     u16 mSize;
     u16 mId;
     u16 mFlipX;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1458,7 +1394,6 @@ struct AeSlogSpawner
     u16 mListenToSligs;
     u16 mJumpAttackDelay;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -1480,7 +1415,6 @@ struct AeDeathClock
     u16 mTime;
     u32 mStopTriggerId;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mStartTriggerId = ReadU16(s);
@@ -1496,7 +1430,6 @@ struct AeGasEmitter
     u16 mPortId;
     u16 mGasColour;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mPortId = ReadU16(s);
@@ -1511,7 +1444,6 @@ struct AeSlogHut
     u16 mScale;
     u16 mId;
     u32 mTicksBetweenZs;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1538,7 +1470,6 @@ struct AeGlukkon
     u16 mPlayMovieId;
     u16 mMovieId;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -1560,7 +1491,6 @@ struct AeKillUnsavedMuds
 {
     const static u8 kSizeInBytes = 16;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         std::ignore = s;
@@ -1573,7 +1503,6 @@ struct AeSoftLanding
 
     u32 mId;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mId = ReadU32(s);
@@ -1583,7 +1512,6 @@ struct AeSoftLanding
 struct AeNullObject2
 {
     const static u8 kSizeInBytes = 32;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1601,7 +1529,6 @@ struct AeWater
     u16 mSplashXVelocity;
     u16 mSplashYVelocity;
     u16 mTimeout;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1624,7 +1551,6 @@ struct AeWorkWheel
     u16 mOffTime;
     u32 mOffWhenStopped;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -1644,7 +1570,6 @@ struct AeLaughingGas
     u16 mRedPercent;
     u16 mGreenPercent;
     u32 mBluePercent;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1676,7 +1601,6 @@ struct AeFlyingSlig
     u16 mMaxVelocity;
     u16 mLaunchId;
     u16 mPersistant;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1719,7 +1643,6 @@ struct AeFleech
     u16 mAllowWakeUpId;
     u16 mPersistant;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -1749,7 +1672,6 @@ struct AeSlurgs
     u16 mScale;
     u16 mId;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mPauseDelay = ReadU16(s);
@@ -1768,7 +1690,6 @@ struct AeSlamDoor
     u16 mId;
     u16 mInverted;
     u32 mDelete;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1790,7 +1711,6 @@ struct AeLevelLoader
     u16 mDestCamera;
     u32 mMovie;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mId = ReadU16(s);
@@ -1804,7 +1724,6 @@ struct AeLevelLoader
 struct AeDemoSpawnPoint
 {
     const static u8 kSizeInBytes = 16;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1827,7 +1746,6 @@ struct AeTeleporter
     u16 mMovieNumber;
     u16 mElectricX;
     u32 mElectricY;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1856,7 +1774,6 @@ struct AeSlurgSpawner
     u16 mDelayBetweenSlurgs;
     u16 mMaxSlurgs;
     u32 mSpawnerId;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1887,7 +1804,6 @@ struct AeMineDrill
     u16 mStartPosition;
     u16 mDirection;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -1913,7 +1829,6 @@ struct AeColorfulMeter
     u16 mNumberOfMeterBars;
     u16 mTimer;
     u16 mStartsFull;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -1945,7 +1860,6 @@ struct AeFlyingSligSpawner
     u16 mLaunchId;
     u16 mPersistant;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -1974,7 +1888,6 @@ struct AeMineCar
     u16 mScale;
     u16 mMaxDamage;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -1991,7 +1904,6 @@ struct AeBoneBag
     u16 mYVel;
     u16 mScale;
     u16 mNumberOfBones;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -2016,7 +1928,6 @@ struct AeExplosionSet
     u16 mSpacing;
     u16 mScale;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mStartInstantly = ReadU16(s);
@@ -2033,7 +1944,6 @@ struct AeExplosionSet
 struct AeMultiswitchController
 {
     const static u8 kSizeInBytes = 36;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -2053,7 +1963,6 @@ struct AeRedGreenStatusLight
     u16 mOtherId4;
     u16 mOtherId5;
     u16 mSnapToGrid;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -2081,7 +1990,6 @@ struct AeGhostLock
     u16 mPowerupId;
     u16 mOptionId;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -2101,7 +2009,6 @@ struct AeParamiteNet
 
     u16 mScale;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -2115,7 +2022,6 @@ struct AeAlarm
     u16 mId;
     u16 mDuration;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mId = ReadU16(s);
@@ -2128,7 +2034,6 @@ struct AeFartMachine
     const static u8 kSizeInBytes = 20;
 
     u16 mNumberOfBrews;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -2156,7 +2061,6 @@ struct AeScrabSpawner
     u16 mKillCloseFleech;
     u16 mId;
     u16 mAppearFrom;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -2190,7 +2094,6 @@ struct AeCrawlingSlig
     u16 mPanicId;
     u16 mResetOnDeath;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -2205,7 +2108,6 @@ struct AeCrawlingSlig
 struct AeSligGetPants
 {
     const static u8 kSizeInBytes = 80;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -2233,7 +2135,6 @@ struct AeSligGetWings
     u16 mMaxVelocity;
     u16 mLaunchId;
     u16 mPersistant;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -2264,7 +2165,6 @@ struct AeGreeter
     u16 mMotionDetectorSpeed;
     u16 mDirection;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -2283,7 +2183,6 @@ struct AeCrawlingSligButton
     u16 mOnSound;
     u16 mOffSound;
     u16 mSoundDirection;
-
 
     void Deserialize(Oddlib::IStream& s)
     {
@@ -2306,7 +2205,6 @@ struct AeGlukkonSecurityFone
     u16 mXPos;
     u32 mYPos;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -2324,7 +2222,6 @@ struct AeDoorBlocker
     u16 mScale;
     u16 mId;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mScale = ReadU16(s);
@@ -2339,7 +2236,6 @@ struct AeTorturedMudokon
     u16 mSpeedId;
     u16 mReleaseId;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mSpeedId = ReadU16(s);
@@ -2353,13 +2249,11 @@ struct AeTrainDoor
 
     u32 mXFlip;
 
-
     void Deserialize(Oddlib::IStream& s)
     {
         mXFlip = ReadU32(s);
     }
 };
-
 
 static Entity MakeContinuePoint(const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms)
 {
@@ -2425,7 +2319,6 @@ static Entity MakeDoor(const Oddlib::Path::MapObject& object, EntityManager& ent
 
     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX) + door.mXOffset + 5, static_cast<float>(object.mRectTopLeft.mY) + object.mRectBottomRight.mY - static_cast<float>(object.mRectTopLeft.mY) + door.mYOffset);
     entity.GetComponent<AnimationComponent>()->Change("DoorClosed_Barracks");
-    
 
     return entity;
 }
@@ -2650,7 +2543,7 @@ static Entity MakeUxb(const Oddlib::Path::MapObject& object, EntityManager& enti
     uxb.Deserialize(ms);
 
     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
-    
+
     if (uxb.mState == 0) // On
     {
         entity.GetComponent<AnimationComponent>()->Change("TBOMB.BAN_1037_AePc_1");
@@ -3327,7 +3220,7 @@ static Entity MakeMineDrill(const Oddlib::Path::MapObject& object, EntityManager
     mineDrill.Deserialize(ms);
 
     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
-    
+
     if (mineDrill.mDirection == 0) // Down
     {
         if (mineDrill.mStartState == 0) // Off
@@ -3350,7 +3243,6 @@ static Entity MakeMineDrill(const Oddlib::Path::MapObject& object, EntityManager
             entity.GetComponent<AnimationComponent>()->Change("DRILL.BAN_6004_AePc_4");
         }
     }
-    
 
     return entity;
 }
@@ -3600,116 +3492,112 @@ static Entity MakeTrainDoor(const Oddlib::Path::MapObject& object, EntityManager
     return entity;
 }
 
-
 static std::map<const u32, std::function<Entity(const Oddlib::Path::MapObject&, EntityManager&, Oddlib::MemoryStream&)>> sEnumMap =
-{
-    { ObjectTypesAe::eContinuePoint, MakeContinuePoint },
-    { ObjectTypesAe::ePathTransition, MakePathTransition },
-    { ObjectTypesAe::eHoist, MakeHoist },
-    { ObjectTypesAe::eEdge, MakeEdge },
-    { ObjectTypesAe::eDeathDrop, MakeDeathDrop },
-    { ObjectTypesAe::eDoor, MakeDoor },
-    { ObjectTypesAe::eShadow, MakeShadow },
-    { ObjectTypesAe::eLiftPoint, MakeLiftPoint },
-    { ObjectTypesAe::eWellLocal, MakeWellLocal },
-    { ObjectTypesAe::eDove, MakeDove },
-    { ObjectTypesAe::eRockSack, MakeRockSack },
-    { ObjectTypesAe::eFallingItem, MakeFallingItem },
-    { ObjectTypesAe::ePullRingRope, MakePullRingRope },
-    { ObjectTypesAe::eBackgroundAnimation, MakeBackgroundAnimation },
-    { ObjectTypesAe::eTimedMine, MakeTimedMine },
-    { ObjectTypesAe::eSlig, MakeSlig },
-    { ObjectTypesAe::eSlog, MakeSlog },
-    { ObjectTypesAe::eSwitch, MakeSwitch },
-    { ObjectTypesAe::eSecurityEye, MakeSecurityEye },
-    { ObjectTypesAe::ePulley, MakePulley },
-    { ObjectTypesAe::eAbeStart, MakeAbeStart },
-    { ObjectTypesAe::eWellExpress, MakeWellExpress },
-    { ObjectTypesAe::eMine, MakeMine },
-    { ObjectTypesAe::eUxb, MakeUxb },
-    { ObjectTypesAe::eParamite, MakeParamite },
-    { ObjectTypesAe::eMovieStone, MakeMovieStone },
-    { ObjectTypesAe::eBirdPortal, MakeBirdPortal },
-    { ObjectTypesAe::ePortalExit, MakePortalExit },
-    { ObjectTypesAe::eTrapDoor, MakeTrapDoor },
-    { ObjectTypesAe::eRollingBall, MakeRollingBall },
-    { ObjectTypesAe::eSligLeftBound, MakeSligLeftBound },
-    { ObjectTypesAe::eInvisibleZone, MakeInvisibleZone },
-    { ObjectTypesAe::eFootSwitch, MakeFootSwitch },
-    { ObjectTypesAe::eSecurityOrb, MakeSecurityOrb },
-    { ObjectTypesAe::eMotionDetector, MakeMotionDetector },
-    { ObjectTypesAe::eSligSpawner, MakeSligSpawner },
-    { ObjectTypesAe::eElectricWall, MakeElectricWall },
-    { ObjectTypesAe::eLiftMover, MakeLiftMover },
-    { ObjectTypesAe::eMeatSack, MakeMeatSack },
-    { ObjectTypesAe::eScrab, MakeScrab },
-    { ObjectTypesAe::eScrabLeftBound, MakeScrabLeftBound },
-    { ObjectTypesAe::eScrabRightBound, MakeScrabRightBound },
-    { ObjectTypesAe::eSligRightBound, MakeSligRightBound },
-    { ObjectTypesAe::eSligPersist, MakeSligPersist },
-    { ObjectTypesAe::eEnemyStopper, MakeEnemyStopper },
-    { ObjectTypesAe::eInvisibleSwitch, MakeInvisibleSwitch },
-    { ObjectTypesAe::eMudokon, MakeMudokon },
-    { ObjectTypesAe::eZSligCover, MakeZSligCover },
-    { ObjectTypesAe::eDoorFlame, MakeDoorFlame },
-    { ObjectTypesAe::eMovingBomb, MakeMovingBomb },
-    { ObjectTypesAe::eMenuController, MakeMenuController },
-    { ObjectTypesAe::eTimerTrigger, MakeTimerTrigger },
-    { ObjectTypesAe::eSligVoiceLock, MakeSligVoiceLock },
-    { ObjectTypesAe::eGrenadeMachine, MakeGrenadeMachine },
-    { ObjectTypesAe::eLcdScreen, MakeLcdScreen },
-    { ObjectTypesAe::eHandStone, MakeHandStone },
-    { ObjectTypesAe::eCreditsController, MakeCreditsController },
-    { ObjectTypesAe::eNullObject1, MakeNullObject1 },
-    { ObjectTypesAe::eLcdStatusBoard, MakeLcdStatusBoard },
-    { ObjectTypesAe::eWorkWheelSyncer, MakeWorkWheelSyncer },
-    { ObjectTypesAe::eMusic, MakeMusic },
-    { ObjectTypesAe::eLightEffect, MakeLightEffect },
-    { ObjectTypesAe::eSlogSpawner, MakeSlogSpawner },
-    { ObjectTypesAe::eDeathClock, MakeDeathClock },
-    { ObjectTypesAe::eGasEmitter, MakeGasEmitter },
-    { ObjectTypesAe::eSlogHut, MakeSlogHut },
-    { ObjectTypesAe::eGlukkon, MakeGlukkon },
-    { ObjectTypesAe::eKillUnsavedMuds, MakeKillUnsavedMuds },
-    { ObjectTypesAe::eSoftLanding, MakeSoftLanding },
-    { ObjectTypesAe::eNullObject2, MakeNullObject2 },
-    { ObjectTypesAe::eWater, MakeWater },
-    { ObjectTypesAe::eWorkWheel, MakeWorkWheel },
-    { ObjectTypesAe::eLaughingGas, MakeLaughingGas },
-    { ObjectTypesAe::eFlyingSlig, MakeFlyingSlig },
-    { ObjectTypesAe::eFleech, MakeFleech },
-    { ObjectTypesAe::eSlurgs, MakeSlurgs },
-    { ObjectTypesAe::eSlamDoor, MakeSlamDoor },
-    { ObjectTypesAe::eLevelLoader, MakeLevelLoader },
-    { ObjectTypesAe::eDemoSpawnPoint, MakeDemoSpawnPoint },
-    { ObjectTypesAe::eTeleporter, MakeTeleporter },
-    { ObjectTypesAe::eSlurgSpawner, MakeSlurgSpawner },
-    { ObjectTypesAe::eMineDrill, MakeMineDrill },
-    { ObjectTypesAe::eColorfulMeter, MakeColorfulMeter },
-    { ObjectTypesAe::eFlyingSligSpawner, MakeFlyingSligSpawner },
-    { ObjectTypesAe::eMineCar, MakeMineCar },
-    { ObjectTypesAe::eBoneBag, MakeBoneBag },
-    { ObjectTypesAe::eExplosionSet, MakeExplosionSet },
-    { ObjectTypesAe::eMultiswitchController, MakeMultiswitchController },
-    { ObjectTypesAe::eRedGreenStatusLight, MakeRedGreenStatusLight },
-    { ObjectTypesAe::eGhostLock, MakeGhostLock },
-    { ObjectTypesAe::eParamiteNet, MakeParamiteNet },
-    { ObjectTypesAe::eAlarm, MakeAlarm },
-    { ObjectTypesAe::eFartMachine, MakeFartMachine },
-    { ObjectTypesAe::eScrabSpawner, MakeScrabSpawner },
-    { ObjectTypesAe::eCrawlingSlig, MakeCrawlingSlig },
-    { ObjectTypesAe::eSligGetPants, MakeSligGetPants },
-    { ObjectTypesAe::eSligGetWings, MakeSligGetWings },
-    { ObjectTypesAe::eGreeter, MakeGreeter },
-    { ObjectTypesAe::eCrawlingSligButton, MakeCrawlingSligButton },
-    { ObjectTypesAe::eGlukkonSecurityFone, MakeGlukkonSecurityFone },
-    { ObjectTypesAe::eDoorBlocker, MakeDoorBlocker },
-    { ObjectTypesAe::eTorturedMudokon, MakeTorturedMudokon },
-    { ObjectTypesAe::eTrainDoor, MakeTrainDoor }
-};
-
-
-
+    {
+        { ObjectTypesAe::eContinuePoint, MakeContinuePoint },
+        { ObjectTypesAe::ePathTransition, MakePathTransition },
+        { ObjectTypesAe::eHoist, MakeHoist },
+        { ObjectTypesAe::eEdge, MakeEdge },
+        { ObjectTypesAe::eDeathDrop, MakeDeathDrop },
+        { ObjectTypesAe::eDoor, MakeDoor },
+        { ObjectTypesAe::eShadow, MakeShadow },
+        { ObjectTypesAe::eLiftPoint, MakeLiftPoint },
+        { ObjectTypesAe::eWellLocal, MakeWellLocal },
+        { ObjectTypesAe::eDove, MakeDove },
+        { ObjectTypesAe::eRockSack, MakeRockSack },
+        { ObjectTypesAe::eFallingItem, MakeFallingItem },
+        { ObjectTypesAe::ePullRingRope, MakePullRingRope },
+        { ObjectTypesAe::eBackgroundAnimation, MakeBackgroundAnimation },
+        { ObjectTypesAe::eTimedMine, MakeTimedMine },
+        { ObjectTypesAe::eSlig, MakeSlig },
+        { ObjectTypesAe::eSlog, MakeSlog },
+        { ObjectTypesAe::eSwitch, MakeSwitch },
+        { ObjectTypesAe::eSecurityEye, MakeSecurityEye },
+        { ObjectTypesAe::ePulley, MakePulley },
+        { ObjectTypesAe::eAbeStart, MakeAbeStart },
+        { ObjectTypesAe::eWellExpress, MakeWellExpress },
+        { ObjectTypesAe::eMine, MakeMine },
+        { ObjectTypesAe::eUxb, MakeUxb },
+        { ObjectTypesAe::eParamite, MakeParamite },
+        { ObjectTypesAe::eMovieStone, MakeMovieStone },
+        { ObjectTypesAe::eBirdPortal, MakeBirdPortal },
+        { ObjectTypesAe::ePortalExit, MakePortalExit },
+        { ObjectTypesAe::eTrapDoor, MakeTrapDoor },
+        { ObjectTypesAe::eRollingBall, MakeRollingBall },
+        { ObjectTypesAe::eSligLeftBound, MakeSligLeftBound },
+        { ObjectTypesAe::eInvisibleZone, MakeInvisibleZone },
+        { ObjectTypesAe::eFootSwitch, MakeFootSwitch },
+        { ObjectTypesAe::eSecurityOrb, MakeSecurityOrb },
+        { ObjectTypesAe::eMotionDetector, MakeMotionDetector },
+        { ObjectTypesAe::eSligSpawner, MakeSligSpawner },
+        { ObjectTypesAe::eElectricWall, MakeElectricWall },
+        { ObjectTypesAe::eLiftMover, MakeLiftMover },
+        { ObjectTypesAe::eMeatSack, MakeMeatSack },
+        { ObjectTypesAe::eScrab, MakeScrab },
+        { ObjectTypesAe::eScrabLeftBound, MakeScrabLeftBound },
+        { ObjectTypesAe::eScrabRightBound, MakeScrabRightBound },
+        { ObjectTypesAe::eSligRightBound, MakeSligRightBound },
+        { ObjectTypesAe::eSligPersist, MakeSligPersist },
+        { ObjectTypesAe::eEnemyStopper, MakeEnemyStopper },
+        { ObjectTypesAe::eInvisibleSwitch, MakeInvisibleSwitch },
+        { ObjectTypesAe::eMudokon, MakeMudokon },
+        { ObjectTypesAe::eZSligCover, MakeZSligCover },
+        { ObjectTypesAe::eDoorFlame, MakeDoorFlame },
+        { ObjectTypesAe::eMovingBomb, MakeMovingBomb },
+        { ObjectTypesAe::eMenuController, MakeMenuController },
+        { ObjectTypesAe::eTimerTrigger, MakeTimerTrigger },
+        { ObjectTypesAe::eSligVoiceLock, MakeSligVoiceLock },
+        { ObjectTypesAe::eGrenadeMachine, MakeGrenadeMachine },
+        { ObjectTypesAe::eLcdScreen, MakeLcdScreen },
+        { ObjectTypesAe::eHandStone, MakeHandStone },
+        { ObjectTypesAe::eCreditsController, MakeCreditsController },
+        { ObjectTypesAe::eNullObject1, MakeNullObject1 },
+        { ObjectTypesAe::eLcdStatusBoard, MakeLcdStatusBoard },
+        { ObjectTypesAe::eWorkWheelSyncer, MakeWorkWheelSyncer },
+        { ObjectTypesAe::eMusic, MakeMusic },
+        { ObjectTypesAe::eLightEffect, MakeLightEffect },
+        { ObjectTypesAe::eSlogSpawner, MakeSlogSpawner },
+        { ObjectTypesAe::eDeathClock, MakeDeathClock },
+        { ObjectTypesAe::eGasEmitter, MakeGasEmitter },
+        { ObjectTypesAe::eSlogHut, MakeSlogHut },
+        { ObjectTypesAe::eGlukkon, MakeGlukkon },
+        { ObjectTypesAe::eKillUnsavedMuds, MakeKillUnsavedMuds },
+        { ObjectTypesAe::eSoftLanding, MakeSoftLanding },
+        { ObjectTypesAe::eNullObject2, MakeNullObject2 },
+        { ObjectTypesAe::eWater, MakeWater },
+        { ObjectTypesAe::eWorkWheel, MakeWorkWheel },
+        { ObjectTypesAe::eLaughingGas, MakeLaughingGas },
+        { ObjectTypesAe::eFlyingSlig, MakeFlyingSlig },
+        { ObjectTypesAe::eFleech, MakeFleech },
+        { ObjectTypesAe::eSlurgs, MakeSlurgs },
+        { ObjectTypesAe::eSlamDoor, MakeSlamDoor },
+        { ObjectTypesAe::eLevelLoader, MakeLevelLoader },
+        { ObjectTypesAe::eDemoSpawnPoint, MakeDemoSpawnPoint },
+        { ObjectTypesAe::eTeleporter, MakeTeleporter },
+        { ObjectTypesAe::eSlurgSpawner, MakeSlurgSpawner },
+        { ObjectTypesAe::eMineDrill, MakeMineDrill },
+        { ObjectTypesAe::eColorfulMeter, MakeColorfulMeter },
+        { ObjectTypesAe::eFlyingSligSpawner, MakeFlyingSligSpawner },
+        { ObjectTypesAe::eMineCar, MakeMineCar },
+        { ObjectTypesAe::eBoneBag, MakeBoneBag },
+        { ObjectTypesAe::eExplosionSet, MakeExplosionSet },
+        { ObjectTypesAe::eMultiswitchController, MakeMultiswitchController },
+        { ObjectTypesAe::eRedGreenStatusLight, MakeRedGreenStatusLight },
+        { ObjectTypesAe::eGhostLock, MakeGhostLock },
+        { ObjectTypesAe::eParamiteNet, MakeParamiteNet },
+        { ObjectTypesAe::eAlarm, MakeAlarm },
+        { ObjectTypesAe::eFartMachine, MakeFartMachine },
+        { ObjectTypesAe::eScrabSpawner, MakeScrabSpawner },
+        { ObjectTypesAe::eCrawlingSlig, MakeCrawlingSlig },
+        { ObjectTypesAe::eSligGetPants, MakeSligGetPants },
+        { ObjectTypesAe::eSligGetWings, MakeSligGetWings },
+        { ObjectTypesAe::eGreeter, MakeGreeter },
+        { ObjectTypesAe::eCrawlingSligButton, MakeCrawlingSligButton },
+        { ObjectTypesAe::eGlukkonSecurityFone, MakeGlukkonSecurityFone },
+        { ObjectTypesAe::eDoorBlocker, MakeDoorBlocker },
+        { ObjectTypesAe::eTorturedMudokon, MakeTorturedMudokon },
+        { ObjectTypesAe::eTrainDoor, MakeTrainDoor }
+    };
 
 Entity AeEntityFactory::Create(const PathsJson::PathTheme* /*pathTheme*/, const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms)
 {
