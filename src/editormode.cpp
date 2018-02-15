@@ -3,9 +3,14 @@
 #include "debug.hpp"
 #include "world.hpp"
 #include "alive_version.h"
+
+#include "core/systems/inputsystem.hpp"
+#include "core/systems/debugsystem.hpp"
 #include "core/systems/camerasystem.hpp"
-#include "core/components/transformcomponent.hpp"
 #include "core/systems/collisionsystem.hpp"
+
+#include "core/components/transformcomponent.hpp"
+#include "core/components/animationcomponent.hpp"
 
 #include "CONTRIBUTORS.md.g.h"
 
@@ -432,8 +437,8 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
         coords.mSmoothCameraPosition = true;
         mWorld.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
 
-        const s32 mouseCamX = static_cast<s32>(mousePosWorld.x / cameraSystem->mCameraBlockSize.x);
-        const s32 mouseCamY = static_cast<s32>(mousePosWorld.y / cameraSystem->mCameraBlockSize.y);
+        const auto mouseCamX = static_cast<s32>(mousePosWorld.x / cameraSystem->mCameraBlockSize.x);
+        const auto mouseCamY = static_cast<s32>(mousePosWorld.y / cameraSystem->mCameraBlockSize.y);
 
         cameraSystem->mCameraPosition.x = (mouseCamX * cameraSystem->mCameraBlockSize.x) + (cameraSystem->mVirtualScreenSize.x / 2);
         cameraSystem->mCameraPosition.y = (mouseCamY * cameraSystem->mCameraBlockSize.y) + (cameraSystem->mVirtualScreenSize.y / 2);
@@ -616,6 +621,10 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
         mLastMousePos = mousePosWorld;
         mMergeCommand = true;
     }
+
+    // Input system
+    mWorld.mEntityManager.GetSystem<InputSystem>()->Update();
+
 }
 
 void EditorMode::Render(AbstractRenderer& rend) const
@@ -645,10 +654,13 @@ void EditorMode::Render(AbstractRenderer& rend) const
         }
     }
 
-    if (Debugging().mCollisionLines)
+    // Debug system render
+    mWorld.mEntityManager.GetSystem<DebugSystem>()->Render(rend);
+    // Animation system render
+    mWorld.mEntityManager.With<AnimationComponent>([&rend](auto, auto animation)
     {
-        CollisionLine::Render(rend, mWorld.mEntityManager.GetSystem<CollisionSystem>()->mCollisionLines);
-    }
+        animation->Render(rend);
+    });
 }
 
 void EditorMode::ClearUndoStack()

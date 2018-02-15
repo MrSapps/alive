@@ -86,22 +86,26 @@ World::World(
     };
 
 
-    // TODO: Implement
     Debugging().mFnQuickSave = [&]()
     {
         std::filebuf f;
         std::ostream os(&f);
         f.open("quicksave.bin", std::ios::out | std::ios::binary);
-        mEntityManager.Serialize(os);
+        if (os.good())
+        {
+            mEntityManager.Serialize(os);
+        }
     };
 
-    // TODO: Implement
     Debugging().mFnQuickLoad = [&]()
     {
         std::filebuf f;
         std::istream is(&f);
         f.open("quicksave.bin", std::ios::in | std::ios::binary);
-        mEntityManager.Deserialize(is);
+        if (is.good())
+        {
+            mEntityManager.Deserialize(is);
+        }
     };
 
     // TODO: Get the starting map from selectedGame

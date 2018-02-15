@@ -56,6 +56,11 @@ void DebugSystem::Render(AbstractRenderer& rend) const
             });
         }
     }
+    if (Debugging().mCollisionLines)
+    {
+        auto collisionSystem = mManager->GetSystem<CollisionSystem>();
+        CollisionLine::Render(rend, collisionSystem->mCollisionLines);
+    }
     if (Debugging().mObjectBoundingBoxes)
     {
         mManager->With<TransformComponent>([&rend](auto, auto transformComponent)
