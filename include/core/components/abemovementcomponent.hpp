@@ -148,7 +148,7 @@ public:
 
 public:
     void Update();
-
+    void ToggleCheatMode();
 private:
     void PrePushingWall(States previous);
     void PushingWall();
@@ -227,6 +227,7 @@ private:
         States mNextState;
         AbeAnimation mAnimation;
         s32 mAnimationFrame;
+        bool mCheatEnabled;
     } mData =
         {
             Direction::eRight,
@@ -236,7 +237,8 @@ private:
             States::eStanding,
             States::eStanding,
             AbeAnimation::eAbeStandIdle,
-            0
+            0,
+            false
         };
 };
 

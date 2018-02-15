@@ -131,14 +131,36 @@ void AbeMovementComponent::Deserialize(std::istream& is)
 
 void AbeMovementComponent::Update()
 {
-    auto it = mStateFnMap.find(mData.mState);
-    if (it != std::end(mStateFnMap) && it->second.mHandler)
+    if (mData.mCheatEnabled)
     {
-        it->second.mHandler(this);
+        if (mData.mGoal == Goal::eGoDown)
+        {
+            mTransformComponent->AddY(mData.mRunning ? kAbeRunSpeed : kAbeWalkSpeed);
+        }
+        else if (mData.mGoal == Goal::eGoUp)
+        {
+            mTransformComponent->AddY(mData.mRunning ? -kAbeRunSpeed : -kAbeWalkSpeed);
+        }
+        else if (mData.mGoal == Goal::eGoLeft)
+        {
+            mTransformComponent->AddX(mData.mRunning ? -kAbeRunSpeed : -kAbeWalkSpeed);
+        }
+        else if (mData.mGoal == Goal::eGoRight)
+        {
+            mTransformComponent->AddX(mData.mRunning ? kAbeRunSpeed : kAbeWalkSpeed);
+        }
     }
     else
     {
-        ASyncTransition();
+        auto it = mStateFnMap.find(mData.mState);
+        if (it != std::end(mStateFnMap) && it->second.mHandler)
+        {
+            it->second.mHandler(this);
+        }
+        else
+        {
+            ASyncTransition();
+        }
     }
     mData.mAnimationFrame = mAnimationComponent->FrameNumber();
 }
@@ -583,6 +605,11 @@ void AbeMovementComponent::SetCurrentAndNextState(AbeMovementComponent::States c
     mData.mNextState = next;
 }
 
+void AbeMovementComponent::ToggleCheatMode()
+{
+    mData.mCheatEnabled = !mData.mCheatEnabled;
+}
+
 /**
  * Abe Player Controller (TODO: move in own file)
  */
@@ -618,6 +645,10 @@ void AbePlayerControllerComponent::Update()
     else if (mGameCommands->PressedOrHeld(InputCommands::eChant))
     {
         mAbeMovement->mData.mGoal = AbeMovementComponent::Goal::eChant;
+    }
+    else if (mGameCommands->Pressed(InputCommands::eCheatMode))
+    {
+        mAbeMovement->ToggleCheatMode();
     }
     else
     {
