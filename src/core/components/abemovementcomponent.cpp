@@ -608,6 +608,7 @@ void AbeMovementComponent::SetCurrentAndNextState(AbeMovementComponent::States c
 void AbeMovementComponent::ToggleCheatMode()
 {
     mData.mCheatEnabled = !mData.mCheatEnabled;
+    mPhysicsComponent->SetSpeed(0.0f, 0.0f);
 }
 
 /**

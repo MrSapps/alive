@@ -16,6 +16,7 @@ public:
 public:
     float GetXSpeed() const;
     float GetYSpeed() const;
+    void SetSpeed(float xSpeed, float ySpeed);
     void SetXSpeed(float xSpeed);
     void SetYSpeed(float ySpeed);
 

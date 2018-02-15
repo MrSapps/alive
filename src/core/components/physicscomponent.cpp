@@ -24,6 +24,12 @@ float PhysicsComponent::GetYSpeed() const
     return mData.mYSpeed;
 }
 
+void PhysicsComponent::SetSpeed(float xSpeed, float ySpeed)
+{
+    mData.mXSpeed = xSpeed;
+    mData.mYSpeed = ySpeed;
+}
+
 void PhysicsComponent::SetXSpeed(float xSpeed)
 {
     mData.mXSpeed = xSpeed;
