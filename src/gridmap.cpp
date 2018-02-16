@@ -96,7 +96,8 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
     }
 }
 
-GridMap::GridMap(CoordinateSpace& coords, World& world) : mLoader(*this), mWorld(world)
+GridMap::GridMap(CoordinateSpace& coords, World& world) 
+    : mWorld(world), mLoader(*this)
 {
     auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
 
@@ -226,7 +227,7 @@ void GridMap::Loader::HandleLoadEntities(const PathInformation& pathInfo)
                 Oddlib::MemoryStream ms(std::vector<u8>(object.mData.data(), object.mData.data() + object.mData.size()));
 
                 AeEntityFactory factory;
-                auto entity = factory.Create(pathInfo.mTheme, object, mGm.mWorld.mEntityManager, ms);
+                factory.Create(pathInfo.mTheme, object, mGm.mWorld.mEntityManager, ms);
             });
         });
     }))
