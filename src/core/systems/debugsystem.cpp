@@ -25,31 +25,31 @@ void DebugSystem::Render(AbstractRenderer& rend) const
         {
             cameraTarget.With<TransformComponent, AnimationComponent>([this, &rend](auto transform, auto animation)
             {
-                RenderRaycast(rend,
+                this->RenderRaycast(rend,
                     glm::vec2(transform->GetX(), transform->GetY()),
                     glm::vec2(transform->GetX(), transform->GetY() + 500),
                     CollisionLine::eLineTypes::eFloor,
                     glm::vec2(0, -10)); // -10 so when we are *ON* a line you can see something
-                RenderRaycast(rend,
+                this->RenderRaycast(rend,
                     glm::vec2(transform->GetX(), transform->GetY() - 2),
                     glm::vec2(transform->GetX(), transform->GetY() - 60),
                     CollisionLine::eLineTypes::eCeiling,
                     glm::vec2(0, 0));
                 if (animation->mFlipX)
                 {
-                    RenderRaycast(rend,
+                    this->RenderRaycast(rend,
                         glm::vec2(transform->GetX(), transform->GetY() - 20),
                         glm::vec2(transform->GetX() - 25, transform->GetY() - 20), CollisionLine::eLineTypes::eWallLeft);
-                    RenderRaycast(rend,
+                    this->RenderRaycast(rend,
                         glm::vec2(transform->GetX(), transform->GetY() - 50),
                         glm::vec2(transform->GetX() - 25, transform->GetY() - 50), CollisionLine::eLineTypes::eWallLeft);
                 }
                 else
                 {
-                    RenderRaycast(rend,
+                    this->RenderRaycast(rend,
                         glm::vec2(transform->GetX(), transform->GetY() - 20),
                         glm::vec2(transform->GetX() + 25, transform->GetY() - 20), CollisionLine::eLineTypes::eWallRight);
-                    RenderRaycast(rend,
+                    this->RenderRaycast(rend,
                         glm::vec2(transform->GetX(), transform->GetY() - 50),
                         glm::vec2(transform->GetX() + 25, transform->GetY() - 50), CollisionLine::eLineTypes::eWallRight);
                 }
