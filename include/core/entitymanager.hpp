@@ -178,7 +178,7 @@ private:
 
 private:
     std::vector<std::unique_ptr<System>> mSystems = {};
-    std::unordered_map<std::string, std::function<std::unique_ptr<Component>()>> mRegisteredComponents = {};
+    std::unordered_map<std::string, std::function<std::unique_ptr<Component>()>> mRegisteredComponents;
 };
 
 template<typename C>
