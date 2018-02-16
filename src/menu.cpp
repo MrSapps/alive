@@ -2,7 +2,7 @@
 #include "core/entitymanager.hpp"
 #include "core/systems/camerasystem.hpp"
 
-Menu::Menu(EntityManager& em) : mEm(em)
+Menu::Menu(EntityManager& /*em*/)// : mEm(em)
 {
 
 }
