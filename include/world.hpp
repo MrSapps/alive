@@ -57,16 +57,16 @@ public:
     void Render(AbstractRenderer& rend);
 
 public:
+    u32 GetCurrentGridScreenX() const;
+    u32 GetCurrentGridScreenY() const;
     void SetCurrentGridScreenFromCAM(const char* camFilename);
-    u32 CurrentGridScreenX() const;
-    u32 CurrentGridScreenY() const;
 
 private:
     void LoadSystems();
 
 private:
-    bool LoadMap(const PathInformation& pathInfo);
     void LoadMap(const std::string& mapName);
+    bool LoadMap(const PathInformation& pathInfo);
     void UnloadMap(AbstractRenderer& renderer);
 
 private:
@@ -95,11 +95,11 @@ private:
     up_future_UP_PathInformation mLocatePathFuture;
 
 public:
-    std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens; // should be private
-    EntityManager mEntityManager; // should be private
     u32 mModeSwitchTimeout = 0; // should be private
     u32 mGlobalFrameCounter = 0; // should be private
-    std::unique_ptr<PlayFmvState> mPlayFmvState; // should be private
     States mState = States::eNone;// should be private
     States mReturnToState = States::eNone;// should be private
+    EntityManager mEntityManager; // should be private
+    std::unique_ptr<PlayFmvState> mPlayFmvState; // should be private
+    std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens; // should be private
 };

@@ -37,7 +37,7 @@ void GameMode::UpdateMenu(const InputReader& /*input*/, CoordinateSpace& /*coord
     case GameMode::MenuStates::eInit:
         mMenuState = MenuStates::eCameraRoll;
         mWorld.SetCurrentGridScreenFromCAM("STP01C25.CAM");
-        cameraSystem->SetGameCameraToCameraAt(mWorld.CurrentGridScreenX(), mWorld.CurrentGridScreenY());
+        cameraSystem->SetGameCameraToCameraAt(mWorld.GetCurrentGridScreenX(), mWorld.GetCurrentGridScreenY());
         break;
     case GameMode::MenuStates::eCameraRoll:
         if ((mWorld.mGlobalFrameCounter % 100) == 0)
@@ -156,8 +156,8 @@ void GameMode::Render(AbstractRenderer& rend) const
     {
         auto pos = cameraSystem->mTarget.GetComponent<TransformComponent>();
 
-        const s32 camX = mState == eMenu ? static_cast<s32>(mWorld.CurrentGridScreenX()) : static_cast<s32>(pos->GetX() / cameraSystem->mCameraBlockSize.x);
-        const s32 camY = mState == eMenu ? static_cast<s32>(mWorld.CurrentGridScreenY()) : static_cast<s32>(pos->GetY() / cameraSystem->mCameraBlockSize.y);
+        const s32 camX = mState == eMenu ? static_cast<s32>(mWorld.GetCurrentGridScreenX()) : static_cast<s32>(pos->GetX() / cameraSystem->mCameraBlockSize.x);
+        const s32 camY = mState == eMenu ? static_cast<s32>(mWorld.GetCurrentGridScreenY()) : static_cast<s32>(pos->GetY() / cameraSystem->mCameraBlockSize.y);
 
         if (camX >= 0 && camY >= 0 &&
             camX < static_cast<s32>(mWorld.mScreens.size()) &&

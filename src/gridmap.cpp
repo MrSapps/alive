@@ -144,7 +144,7 @@ void GridMap::UnloadMap(AbstractRenderer& renderer)
     {
         for (auto y = 0u; y < mWorld.mScreens[x].size(); y++)
         {
-            GridScreen* screen = mWorld.mScreens[x][y].get();
+            auto screen = mWorld.mScreens[x][y].get();
             if (!screen)
             {
                 continue;
@@ -152,13 +152,6 @@ void GridMap::UnloadMap(AbstractRenderer& renderer)
             screen->UnLoadTextures(renderer);
         }
     }
-    auto collisionSystem = mWorld.mEntityManager.GetSystem<CollisionSystem>();
-    if (collisionSystem)
-    {
-        mWorld.mEntityManager.Clear();
-        collisionSystem->Clear();
-    }
-    mWorld.mScreens.clear();
 }
 
 GridMap::Loader::Loader(GridMap& gm)
@@ -219,8 +212,8 @@ void GridMap::Loader::HandleLoadEntities(const PathInformation& pathInfo)
     {
         return mYForLoop.IterateIf(pathInfo.mPath->YSize(), [&]()
         {
-            GridScreen* screen = mGm.mWorld.mScreens[mXForLoop.Value()][mYForLoop.Value()].get();
-            const Oddlib::Path::Camera& cam = screen->getCamera();
+            auto screen = mGm.mWorld.mScreens[mXForLoop.Value()][mYForLoop.Value()].get();
+            auto cam = screen->getCamera();
             return mIForLoop.Iterate(static_cast<u32>(cam.mObjects.size()), [&]()
             {
                 const auto& object = cam.mObjects[mIForLoop.Value()];
@@ -228,6 +221,9 @@ void GridMap::Loader::HandleLoadEntities(const PathInformation& pathInfo)
 
                 AeEntityFactory factory;
                 factory.Create(pathInfo.mTheme, object, mGm.mWorld.mEntityManager, ms);
+
+                // TODO: add entity to list of path/screen/cam entities
+                // TODO: add entity screen component to know where it came from
             });
         });
     }))

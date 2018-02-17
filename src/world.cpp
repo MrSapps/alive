@@ -85,7 +85,6 @@ World::World(
         //LoadMap(mLevel->MapName());
     };
 
-
     Debugging().mFnQuickSave = [&]()
     {
         std::filebuf f;
@@ -142,12 +141,12 @@ void World::SetCurrentGridScreenFromCAM(const char* camFilename)
     }
 }
 
-u32 World::CurrentGridScreenX() const
+u32 World::GetCurrentGridScreenX() const
 {
     return mCurrentGridScreenX;
 }
 
-u32 World::CurrentGridScreenY() const
+u32 World::GetCurrentGridScreenY() const
 {
     return mCurrentGridScreenY;
 }
@@ -185,6 +184,18 @@ void World::LoadMap(const std::string& mapName)
 bool World::LoadMap(const PathInformation& pathInfo)
 {
     return mGridMap->LoadMap(pathInfo, mLocator);
+}
+
+void World::UnloadMap(AbstractRenderer& renderer)
+{
+    mGridMap->UnloadMap(renderer);
+    mEntityManager.Clear();
+    mScreens.clear();
+    auto collisionSystem = mEntityManager.GetSystem<CollisionSystem>();
+    if (collisionSystem)
+    {
+        collisionSystem->Clear();
+    }
 }
 
 EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
@@ -292,7 +303,7 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
             {
                 // TODO: Throw ?
                 LOG_ERROR("LVL or file in LVL not found");
-                
+
                 // HACK: Force to menu
                 //mState = States::eFrontEndMenu;
 
@@ -439,9 +450,4 @@ void World::RenderDebugFmvSelection()
         mReturnToState = mState;
         mState = States::ePlayFmv;
     }
-}
-
-void World::UnloadMap(AbstractRenderer& renderer)
-{
-    mGridMap->UnloadMap(renderer);
 }
