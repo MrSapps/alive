@@ -1,8 +1,9 @@
 #include "menu.hpp"
 #include "core/entitymanager.hpp"
 #include "core/systems/camerasystem.hpp"
+#include "core/systems/gridmapsystem.hpp"
 
-Menu::Menu(EntityManager& /*em*/)// : mEm(em)
+Menu::Menu(EntityManager& em) : mEm(em)
 {
 
 }
@@ -84,8 +85,9 @@ void Menu::ToQuit()
 
 void Menu::Update()
 {
+    mEm.GetSystem<GridmapSystem>()->MoveToCamera("STP01C25.CAM");
+
     //const auto cameraSystem = mEm.GetSystem<CameraSystem>();
-    //cameraSystem->SetCurrentCamera("STP01C25.CAM");
     //cameraSystem->SetGameCameraToCameraAt(cameraSystem->CurrentCameraX(), cameraSystem->CurrentCameraY());
 }
 

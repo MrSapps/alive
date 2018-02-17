@@ -427,6 +427,8 @@ SET(alivelib_src
     src/core/components/abemovementcomponent.cpp
     include/core/components/sligmovementcomponent.hpp
     src/core/components/sligmovementcomponent.cpp
+    include/core/systems/gridmapsystem.hpp
+    src/core/systems/gridmapsystem.cpp
     include/core/systems/collisionsystem.hpp
     src/core/systems/collisionsystem.cpp
     include/core/systems/inputsystem.hpp

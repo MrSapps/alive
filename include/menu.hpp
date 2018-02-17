@@ -32,5 +32,5 @@ public:
 
 private:
 
-    //EntityManager& mEm;
+    EntityManager& mEm;
 };

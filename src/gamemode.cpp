@@ -10,6 +10,7 @@
 #include "core/systems/camerasystem.hpp"
 #include "core/systems/resourcesystem.hpp"
 #include "core/systems/collisionsystem.hpp"
+#include "core/systems/gridmapsystem.hpp"
 
 #include "core/components/cameracomponent.hpp"
 #include "core/components/physicscomponent.hpp"
@@ -97,35 +98,39 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
         });
     }
 
-	if (mState == eRunning)
-	{
-		if (input.KeyboardKey(SDL_SCANCODE_ESCAPE).Pressed())
-		{
-			// TODO: Stop or pause music? Check what real game does
-			mState = ePaused;
-		}
-	}
-	else if (mState == ePaused)
-	{
-		if (input.KeyboardKey(SDL_SCANCODE_ESCAPE).Pressed())
-		{
-			mState = eRunning;
-		}
-	}
+    if (mState == eRunning)
+    {
+        if (input.KeyboardKey(SDL_SCANCODE_ESCAPE).Pressed())
+        {
+            // TODO: Stop or pause music? Check what real game does
+            mState = ePaused;
+        }
+    }
+    else if (mState == ePaused)
+    {
+        if (input.KeyboardKey(SDL_SCANCODE_ESCAPE).Pressed())
+        {
+            mState = eRunning;
+        }
+    }
 
-	if (input.KeyboardKey(SDL_SCANCODE_E).Pressed() && mState != ePaused)
-	{
-		mWorld.mState = World::States::eToEditor;
-		coords.mSmoothCameraPosition = true;
+    if (input.KeyboardKey(SDL_SCANCODE_E).Pressed() && mState != ePaused)
+    {
+        mWorld.mState = World::States::eToEditor;
+        coords.mSmoothCameraPosition = true;
 
-		mWorld.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
+        mWorld.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
 
-		//mCameraPosition.x = mPlayer.mXPos;
-		//mCameraPosition.y = mPlayer.mYPos;
-	}
+        //mCameraPosition.x = mPlayer.mXPos;
+        //mCameraPosition.y = mPlayer.mYPos;
+    }
 
-	// Input system
-	mWorld.mEntityManager.GetSystem<InputSystem>()->Update();
+    // Input system
+    mWorld.mEntityManager.GetSystem<InputSystem>()->Update();
+
+    // Grid map system
+    mWorld.mEntityManager.GetSystem<GridmapSystem>()->Update();
+
 
     if (cameraSystem->mTarget)
     {
