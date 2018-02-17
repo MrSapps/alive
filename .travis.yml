@@ -94,7 +94,7 @@ after_failure:
 after_success:
 - wget https://raw.githubusercontent.com/k3rn31p4nic/travis-ci-discord-webhook/master/send.sh
 - chmod +x send.sh
-- ./send.sh success $WEBHOOK_URL
+- if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 && "${COVERAGE}" == 1 ]]; then ./send.sh success $WEBHOOK_URL; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 && "${COVERAGE}" == 1 ]]; then lcov --directory . --capture --output-file coverage.info; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 && "${COVERAGE}" == 1 ]]; then lcov --remove coverage.info '*/3rdParty/*' '/usr/*' --output-file coverage.info; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" && "$CXX" == "g++" && "${COVERITY_SCAN_BRANCH}" != 1 && "${COVERAGE}" == 1 ]]; then lcov --list coverage.info; fi
