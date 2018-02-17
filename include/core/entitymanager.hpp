@@ -274,6 +274,7 @@ S* EntityManager::AddSystem(Args&& ... args)
     auto systemPtr = system.get();
     mSystems.emplace_back(std::move(system));
     systemPtr->mManager = this;
+    systemPtr->OnLoad();
     return systemPtr;
 }
 

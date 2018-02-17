@@ -29,7 +29,6 @@ public:
         InputReader& input,
         LoadingIcon& loadingIcon,
         ResourceLocator& locator,
-        CoordinateSpace& coords,
         AbstractRenderer& renderer,
         IAudioController& audioController,
         const GameDefinition& selectedGame);
@@ -86,7 +85,6 @@ private:
 
 private:
     std::unique_ptr<class Menu> mMenu;
-    std::unique_ptr<class GridMap> mGridMap;
     std::unique_ptr<class GameMode> mGameMode;
     std::unique_ptr<class EditorMode> mEditorMode;
     std::unique_ptr<class FmvDebugUi> mFmvDebugUi;
@@ -101,5 +99,7 @@ public:
     States mReturnToState = States::eNone;// should be private
     EntityManager mEntityManager; // should be private
     std::unique_ptr<PlayFmvState> mPlayFmvState; // should be private
-    std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens; // should be private
+
+    // TODO: Move to GridmapSystem
+    //std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens; // should be private
 };

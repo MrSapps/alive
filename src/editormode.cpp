@@ -620,9 +620,10 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 
 void EditorMode::Render(AbstractRenderer& rend) const
 {
-    const auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
+//    const auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
     if (Debugging().mDrawCameras)
     {
+        /* TODO: Grid map system
         // Draw every cam
         for (auto x = 0u; x < mWorld.mScreens.size(); x++)
         {
@@ -642,7 +643,7 @@ void EditorMode::Render(AbstractRenderer& rend) const
                                    cameraSystem->mVirtualScreenSize.x, cameraSystem->mVirtualScreenSize.y);
                 }
             }
-        }
+        }*/
     }
 
     // Debug system render

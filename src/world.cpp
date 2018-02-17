@@ -36,7 +36,6 @@ World::World(
     InputReader& input,
     LoadingIcon& loadingIcon,
     ResourceLocator& locator,
-    CoordinateSpace& coords,
     AbstractRenderer& renderer,
     IAudioController& audioController,
     const GameDefinition& selectedGame) : mSound(sound),
@@ -48,7 +47,7 @@ World::World(
     LoadSystems();
 
     mMenu = std::make_unique<Menu>(mEntityManager);
-    mGridMap = std::make_unique<GridMap>(coords, *this);
+
     mGameMode = std::make_unique<GameMode>(*this);
     mEditorMode = std::make_unique<EditorMode>(*this);
     mFmvDebugUi = std::make_unique<FmvDebugUi>(locator);
@@ -126,8 +125,9 @@ World::~World()
     UnloadMap(mRenderer);
 }
 
-void World::SetCurrentGridScreenFromCAM(const char* camFilename)
+void World::SetCurrentGridScreenFromCAM(const char* /*camFilename*/)
 {
+    /* TODO: Grid map system
     for (auto x = 0u; x < mScreens.size(); x++)
     {
         for (auto y = 0u; y < mScreens[x].size(); y++)
@@ -139,7 +139,7 @@ void World::SetCurrentGridScreenFromCAM(const char* camFilename)
                 return;
             }
         }
-    }
+    }*/
 }
 
 u32 World::GetCurrentGridScreenX() const
@@ -157,7 +157,7 @@ void World::LoadSystems()
     mEntityManager.AddSystem<DebugSystem>();
     mEntityManager.AddSystem<InputSystem>(mInput);
     mEntityManager.AddSystem<CameraSystem>();
-    mEntityManager.AddSystem<GridmapSystem>();
+    mEntityManager.AddSystem<GridmapSystem>(mRenderer);
     mEntityManager.AddSystem<ResourceSystem>(mLocator);
     mEntityManager.AddSystem<CollisionSystem>();
 
@@ -185,14 +185,15 @@ void World::LoadMap(const std::string& mapName)
 
 bool World::LoadMap(const PathInformation& pathInfo)
 {
-    return mGridMap->LoadMap(pathInfo, mLocator);
+    return mEntityManager.GetSystem<GridmapSystem>()->LoadMap(pathInfo, mLocator);
 }
 
 void World::UnloadMap(AbstractRenderer& renderer)
 {
-    mGridMap->UnloadMap(renderer);
+    mEntityManager.GetSystem<GridmapSystem>()->UnloadMap(renderer);
     mEntityManager.Clear();
-    mScreens.clear();
+    // TODO: Grid map system
+    //mScreens.clear();
     auto collisionSystem = mEntityManager.GetSystem<CollisionSystem>();
     if (collisionSystem)
     {
@@ -228,44 +229,41 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
             }
         }
 
-        if (mGridMap)
+        if (mState == States::eInEditor)
         {
-            if (mState == States::eInEditor)
+            mEditorMode->Update(input, coords);
+        }
+        else if (mState == States::eInGame)
+        {
+            mGameMode->Update(input, coords);
+        }
+        else if (mState == States::eFrontEndMenu)
+        {
+            mMenu->Update();
+        }
+        else
+        {
+            if (mState == States::eToEditor)
             {
-                mEditorMode->Update(input, coords);
-            }
-            else if (mState == States::eInGame)
-            {
-                mGameMode->Update(input, coords);
-            }
-            else if (mState == States::eFrontEndMenu)
-            {
-                mMenu->Update();
-            }
-            else
-            {
-                if (mState == States::eToEditor)
+                coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorMode->mEditorCamZoom);
+                if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
                 {
-                    coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorMode->mEditorCamZoom);
-                    if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
-                    {
-                        mState = States::eInEditor;
-                    }
+                    mState = States::eInEditor;
                 }
-                else if (mState == States::eToGame)
-                {
-                    const auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
-                    coords.SetScreenSize(cameraSystem->mVirtualScreenSize);
-                    if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
-                    {
-                        mState = States::eInGame;
-                    }
-                }
-                coords.SetCameraPosition(mEntityManager.GetSystem<CameraSystem>()->mCameraPosition);
             }
+            else if (mState == States::eToGame)
+            {
+                const auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
+                coords.SetScreenSize(cameraSystem->mVirtualScreenSize);
+                if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
+                {
+                    mState = States::eInGame;
+                }
+            }
+            coords.SetCameraPosition(mEntityManager.GetSystem<CameraSystem>()->mCameraPosition);
         }
     }
-        break;
+    break;
 
     case States::ePlayFmv:
         if (!mPlayFmvState->Update(input))
@@ -357,24 +355,21 @@ void World::Render(AbstractRenderer& /*rend*/)
 
         mPlayFmvState->RenderDebugSubsAndFontAtlas(mRenderer);
 
-        if (mGridMap)
+        if (mState == States::eInEditor)
         {
-            if (mState == States::eInEditor)
-            {
-                mEditorMode->Render(mRenderer);
-            }
-            else if (mState == States::eInGame)
-            {
-                mGameMode->Render(mRenderer);
-            }
-            else if (mState == States::eFrontEndMenu)
-            {
-                mMenu->Render(mRenderer);
-            }
-            else
-            {
-                mEditorMode->Render(mRenderer);
-            }
+            mEditorMode->Render(mRenderer);
+        }
+        else if (mState == States::eInGame)
+        {
+            mGameMode->Render(mRenderer);
+        }
+        else if (mState == States::eFrontEndMenu)
+        {
+            mMenu->Render(mRenderer);
+        }
+        else
+        {
+            mEditorMode->Render(mRenderer);
         }
         break;
 

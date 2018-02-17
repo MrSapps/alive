@@ -96,10 +96,10 @@ void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float
     }
 }
 
-GridMap::GridMap(CoordinateSpace& coords, World& world) 
-    : mWorld(world), mLoader(*this)
+GridMap::GridMap(CoordinateSpace& coords, EntityManager& em)
+    : mLoader(*this), mEntityManager(em)
 {
-    auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
+    auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
 
     // Set up the screen size and camera pos so that the grid is drawn correctly during init
     cameraSystem->mVirtualScreenSize = glm::vec2(368.0f, 240.0f);
@@ -138,8 +138,9 @@ bool GridMap::LoadMap(const PathInformation& pathInfo, ResourceLocator& locator)
 #endif
 }
 
-void GridMap::UnloadMap(AbstractRenderer& renderer)
+void GridMap::UnloadMap(AbstractRenderer& /*renderer*/)
 {
+    /* TODO: Screens move to components
     for (auto x = 0u; x < mWorld.mScreens.size(); x++)
     {
         for (auto y = 0u; y < mWorld.mScreens[x].size(); y++)
@@ -151,7 +152,7 @@ void GridMap::UnloadMap(AbstractRenderer& renderer)
             }
             screen->UnLoadTextures(renderer);
         }
-    }
+    }*/
 }
 
 GridMap::Loader::Loader(GridMap& gm)
@@ -162,8 +163,8 @@ GridMap::Loader::Loader(GridMap& gm)
 
 void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
 {
-    auto cameraSystem = mGm.mWorld.mEntityManager.GetSystem<CameraSystem>();
-    auto collisionSystem = mGm.mWorld.mEntityManager.GetSystem<CollisionSystem>();
+    auto cameraSystem = mGm.mEntityManager.GetSystem<CameraSystem>();
+    auto collisionSystem = mGm.mEntityManager.GetSystem<CollisionSystem>();
 
     // The "block" or grid square that a camera fits into, it never usually fills the grid
     cameraSystem->mCameraBlockSize = (path.IsAo()) ? glm::vec2(1024, 480) : glm::vec2(375, 260);
@@ -182,23 +183,25 @@ void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
     SetState(LoaderStates::eAllocateCameraMemory);
 }
 
-void GridMap::Loader::HandleAllocateCameraMemory(const Oddlib::Path& path)
+void GridMap::Loader::HandleAllocateCameraMemory(const Oddlib::Path& /*path*/)
 {
+    /* TODO: Screens move to components
     mGm.mWorld.mScreens.resize(path.XSize());
     for (auto& col : mGm.mWorld.mScreens)
     {
         col.resize(path.YSize());
-    }
+    }*/
     SetState(LoaderStates::eLoadCameras);
 }
 
-void GridMap::Loader::HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& locator)
+void GridMap::Loader::HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& /*locator*/)
 {
     if (mXForLoop.IterateTimeBoxedIf(kMaxExecutionTimeMs, path.XSize(), [&]()
     {
         return mYForLoop.Iterate(path.YSize(), [&]()
         {
-            mGm.mWorld.mScreens[mXForLoop.Value()][mYForLoop.Value()] = std::make_unique<GridScreen>(path.CameraByPosition(mXForLoop.Value(), mYForLoop.Value()), locator);
+            // TODO: Screens move to components
+            //mGm.mWorld.mScreens[mXForLoop.Value()][mYForLoop.Value()] = std::make_unique<GridScreen>(path.CameraByPosition(mXForLoop.Value(), mYForLoop.Value()), locator);
         });
     }))
     {
@@ -212,6 +215,7 @@ void GridMap::Loader::HandleLoadEntities(const PathInformation& pathInfo)
     {
         return mYForLoop.IterateIf(pathInfo.mPath->YSize(), [&]()
         {
+            /* TODO: Remove mWorld
             auto screen = mGm.mWorld.mScreens[mXForLoop.Value()][mYForLoop.Value()].get();
             auto cam = screen->getCamera();
             return mIForLoop.Iterate(static_cast<u32>(cam.mObjects.size()), [&]()
@@ -225,9 +229,12 @@ void GridMap::Loader::HandleLoadEntities(const PathInformation& pathInfo)
                 // TODO: add entity to list of path/screen/cam entities
                 // TODO: add entity screen component to know where it came from
             });
+            */
+            return true;
         });
     }))
     {
+        /* TODO: Remove mWorld
         auto abe = mGm.mWorld.mEntityManager.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent, CameraComponent>();
         auto pos = abe.GetComponent<TransformComponent>();
         
@@ -246,7 +253,7 @@ void GridMap::Loader::HandleLoadEntities(const PathInformation& pathInfo)
         auto pos2 = slig.GetComponent<TransformComponent>();
         pos2->Set(xpos + 25.0f, ypos);
         pos2->SnapXToGrid();
-
+        */
         SetState(LoaderStates::eInit);
     }
 }

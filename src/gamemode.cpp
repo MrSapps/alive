@@ -159,6 +159,7 @@ void GameMode::Render(AbstractRenderer& rend) const
     const auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
     if (cameraSystem->mTarget && Debugging().mDrawCameras)
     {
+        /* TODO: Grid map system
         auto pos = cameraSystem->mTarget.GetComponent<TransformComponent>();
 
         const s32 camX = mState == eMenu ? static_cast<s32>(mWorld.GetCurrentGridScreenX()) : static_cast<s32>(pos->GetX() / cameraSystem->mCameraBlockSize.x);
@@ -179,7 +180,7 @@ void GameMode::Render(AbstractRenderer& rend) const
                         cameraSystem->mVirtualScreenSize.x, cameraSystem->mVirtualScreenSize.y);
                 }
             }
-        }
+        }*/
     }
 
     if (mState == ePaused)

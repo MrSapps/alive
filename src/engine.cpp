@@ -493,7 +493,6 @@ void Engine::Update()
                                              *mLoadingIcon,
                                              *mResourceLocator,
                                              *mRenderer,
-                                             *mRenderer,
                                              mAudioHandler,
                                              mGameSelectionScreen->SelectedGame());
         }

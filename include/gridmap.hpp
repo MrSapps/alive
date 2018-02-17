@@ -64,7 +64,6 @@ private:
 
 constexpr u32 kSwitchTimeMs = 300;
 
-class World;
 struct PathInformation;
 
 class GridMap
@@ -72,7 +71,7 @@ class GridMap
 public:
     GridMap(const GridMap&) = delete;
     GridMap& operator=(const GridMap&) = delete;
-    GridMap(CoordinateSpace& coords, World& world);
+    GridMap(CoordinateSpace& coords, EntityManager& em);
     ~GridMap();
 
 public:
@@ -111,8 +110,7 @@ private:
         IterativeForLoopU32 mYForLoop;
         IterativeForLoopU32 mIForLoop;
     };
-
 private:
-    World& mWorld;
     Loader mLoader;
+    EntityManager& mEntityManager;
 };
