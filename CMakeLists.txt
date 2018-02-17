@@ -419,6 +419,8 @@ SET(alivelib_src
     src/core/component.cpp
     include/core/components/animationcomponent.hpp
     src/core/components/animationcomponent.cpp
+    include/core/components/liftcomponents.hpp
+    src/core/components/liftcomponents.cpp
     include/core/components/transformcomponent.hpp
     src/core/components/transformcomponent.cpp
     include/core/components/physicscomponent.hpp

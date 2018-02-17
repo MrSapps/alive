@@ -2336,6 +2336,7 @@ static Entity MakeShadow(const Oddlib::Path::MapObject& object, EntityManager& e
 
 static Entity MakeLiftPoint(const Oddlib::Path::MapObject& object, EntityManager& entityManager, Oddlib::MemoryStream& ms)
 {
+    // TODO: Also create LiftPointComponent here?
     auto entity = entityManager.CreateEntityWith<TransformComponent>();
     AeLiftPoint liftPoint;
 
@@ -2721,6 +2722,7 @@ static Entity MakeLiftMover(const Oddlib::Path::MapObject& object, EntityManager
 
     entity.GetComponent<TransformComponent>()->Set(static_cast<float>(object.mRectTopLeft.mX), static_cast<float>(object.mRectTopLeft.mY), static_cast<float>(object.mRectBottomRight.mX - object.mRectTopLeft.mX), static_cast<float>(object.mRectBottomRight.mY - object.mRectTopLeft.mY));
     entity.GetComponent<AnimationComponent>()->Change("BALIFT.BND_1001_AePc_1");
+    // TODO: Also create LiftMoverComponent here?
     liftMover.Deserialize(ms);
 
     return entity;
