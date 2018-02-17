@@ -23,6 +23,4 @@ class LiftSystem : public System
 {
 public:
     DECLARE_SYSTEM(LiftSystem);
-
-    void Update() override;
 };

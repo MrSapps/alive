@@ -1,10 +1,10 @@
-#include "core/systems/gridmapsystem.hpp"
 #include "gridmap.hpp"
+#include "core/entity.hpp"
+#include "core/systems/gridmapsystem.hpp"
 
 DEFINE_SYSTEM(GridmapSystem);
 
-GridmapSystem::GridmapSystem(CoordinateSpace& coords)
-    : mCoords(coords)
+GridmapSystem::GridmapSystem(CoordinateSpace& coords) : mCoords(coords)
 {
 
 }
