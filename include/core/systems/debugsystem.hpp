@@ -3,15 +3,13 @@
 #include <glm/glm/vec2.hpp>
 
 #include "core/system.hpp"
+#include "collisionline.hpp"
 #include "abstractrenderer.hpp"
 
 class DebugSystem final : public System
 {
 public:
     DECLARE_SYSTEM(DebugSystem);
-
-public:
-    void Update() final;
 
 public:
     void Render(AbstractRenderer& rend) const;

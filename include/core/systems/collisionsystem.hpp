@@ -13,9 +13,6 @@ public:
     DECLARE_SYSTEM(CollisionSystem);
 
 public:
-    void Update() final;
-
-public:
     void ConvertCollisionItems(const std::vector<Oddlib::Path::CollisionItem>& items);
     void Clear();
 

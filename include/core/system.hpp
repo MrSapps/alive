@@ -21,9 +21,6 @@ public:
 public:
     virtual ~System() = 0;
 
-public:
-    virtual void Update() = 0;
-
 protected:
     virtual void OnLoad();
     virtual void OnResolveDependencies();

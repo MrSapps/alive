@@ -1,4 +1,8 @@
+#include <ostream>
+#include <istream>
+
 #include "types.hpp"
+#include "core/entity.hpp"
 #include "core/components/transformcomponent.hpp"
 
 DEFINE_COMPONENT(TransformComponent);

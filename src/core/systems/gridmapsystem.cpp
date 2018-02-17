@@ -9,19 +9,14 @@ GridmapSystem::GridmapSystem(CoordinateSpace& coords)
 
 }
 
-void GridmapSystem::MoveToCamera(const char* /*cameraName*/)
-{
-    mManager->CreateEntityWith<GridMapScreenComponent>();
-}
-
 void GridmapSystem::OnLoad()
 {
     mGridMap = std::make_unique<GridMap>(mCoords, *mManager);
 }
 
-void GridmapSystem::Update()
+void GridmapSystem::MoveToCamera(const char* /*cameraName*/)
 {
-
+    mManager->CreateEntityWith<GridMapScreenComponent>();
 }
 
 bool GridmapSystem::LoadMap(const PathInformation& pathInfo, ResourceLocator& mLocator)

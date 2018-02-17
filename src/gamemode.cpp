@@ -129,7 +129,7 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
     mWorld.mEntityManager.GetSystem<InputSystem>()->Update();
 
     // Grid map system
-    mWorld.mEntityManager.GetSystem<GridmapSystem>()->Update();
+    // mWorld.mEntityManager.GetSystem<GridmapSystem>()->Update();
 
 
     if (cameraSystem->mTarget)

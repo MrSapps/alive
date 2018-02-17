@@ -1,3 +1,4 @@
+#include "core/entity.hpp"
 #include "core/entitymanager.hpp"
 #include "core/systems/resourcesystem.hpp"
 #include "core/components/transformcomponent.hpp"

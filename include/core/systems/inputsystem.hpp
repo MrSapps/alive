@@ -12,7 +12,7 @@ public:
     explicit InputSystem(InputReader& state);
 
 public:
-    void Update() final;
+    void Update();
     const InputMapping& Mapping() const;
 
 public:

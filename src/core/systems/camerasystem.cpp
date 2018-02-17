@@ -2,11 +2,6 @@
 
 DEFINE_SYSTEM(CameraSystem);
 
-void CameraSystem::Update()
-{
-
-}
-
 void CameraSystem::SetGameCameraToCameraAt(u32 x, u32 y)
 {
     mCameraPosition = glm::vec2(

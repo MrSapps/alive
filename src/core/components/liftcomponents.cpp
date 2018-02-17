@@ -1,3 +1,4 @@
+#include "core/entity.hpp"
 #include "core/components/liftcomponents.hpp"
 
 DEFINE_COMPONENT(LiftPointComponent);

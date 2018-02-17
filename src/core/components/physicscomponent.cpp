@@ -1,3 +1,7 @@
+#include <ostream>
+#include <istream>
+
+#include "core/entity.hpp"
 #include "core/components/physicscomponent.hpp"
 
 DEFINE_COMPONENT(PhysicsComponent);

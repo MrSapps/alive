@@ -1,16 +1,12 @@
+#include "core/entity.hpp"
+#include "core/entitymanager.hpp"
+#include "core/systems/debugsystem.hpp"
+#include "core/systems/camerasystem.hpp"
+#include "core/systems/collisionsystem.hpp"
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
-#include "core/systems/collisionsystem.hpp"
-#include "core/systems/camerasystem.hpp"
-#include "core/systems/debugsystem.hpp"
-#include "core/entitymanager.hpp"
 
 DEFINE_SYSTEM(DebugSystem);
-
-void DebugSystem::Update()
-{
-
-}
 
 void DebugSystem::Render(AbstractRenderer& rend) const
 {

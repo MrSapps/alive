@@ -1,3 +1,6 @@
+#include <ostream>
+#include <istream>
+
 #include "core/entity.hpp"
 #include "core/entitymanager.hpp"
 #include "core/systems/inputsystem.hpp"

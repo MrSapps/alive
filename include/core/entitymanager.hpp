@@ -3,8 +3,8 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include <ostream>
-#include <istream>
+#include <iosfwd>
+#include <utility>
 #include <stdexcept>
 #include <algorithm>
 #include <functional>
@@ -45,6 +45,12 @@ public:
     void RemoveSystem();
     template<typename S>
     bool HasSystem();
+
+private:
+    void ConstructSystem(System* component);
+
+public:
+    void ResolveSystemDependencies();
 
 public:
     template<typename C>
@@ -122,8 +128,8 @@ public:
 
     private:
         ManagerType& mManager;
-        Entity::PointerSize mIndex;
-        Entity::PointerSize mVersion;
+        Entity::PointerSize mIndex = 0;
+        Entity::PointerSize mVersion = 0;
     };
 
 public:
@@ -171,13 +177,11 @@ private:
     bool EntityWith(const Entity& entityPointer, typename std::common_type<std::function<void(C* ...)>>::type view);
 
 private:
-    Entity::PointerSize mNextIndex = {};
-    std::vector<Entity::PointerSize> mVersions = {};
-    std::vector<Entity::PointerSize> mFreeIndexes = {};
-    std::vector<std::vector<std::unique_ptr<Component>>> mEntityComponents = {};
-
-private:
-    std::vector<std::unique_ptr<System>> mSystems = {};
+    Entity::PointerSize mNextIndex = 0;
+    std::vector<Entity::PointerSize> mVersions;
+    std::vector<Entity::PointerSize> mFreeIndexes;
+    std::vector<std::unique_ptr<System>> mSystems;
+    std::vector<std::vector<std::unique_ptr<Component>>> mEntityComponents;
     std::unordered_map<std::string, std::function<std::unique_ptr<Component>()>> mRegisteredComponents;
 };
 
@@ -273,8 +277,7 @@ S* EntityManager::AddSystem(Args&& ... args)
     auto system = std::make_unique<S>(std::forward<Args>(args)...);
     auto systemPtr = system.get();
     mSystems.emplace_back(std::move(system));
-    systemPtr->mManager = this;
-    systemPtr->OnLoad();
+    ConstructSystem(systemPtr);
     return systemPtr;
 }
 

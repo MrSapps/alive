@@ -1,5 +1,8 @@
 #include <cstring>
+#include <ostream>
+#include <istream>
 #include <sstream>
+#include <algorithm>
 
 #include "core/entitymanager.hpp"
 
@@ -29,6 +32,20 @@ void EntityManager::DestroyEntity(Entity& entityPointer)
     mVersions[entityPointer.mIndex] += 1;
     mEntityComponents[entityPointer.mIndex].clear();
     mFreeIndexes.push_back(entityPointer.mIndex);
+}
+
+void EntityManager::ConstructSystem(System* system)
+{
+    system->mManager = this;
+    system->OnLoad();
+}
+
+void EntityManager::ResolveSystemDependencies()
+{
+    for (auto& system : mSystems)
+    {
+        system->OnResolveDependencies();
+    }
 }
 
 void EntityManager::Serialize(std::ostream& os) const

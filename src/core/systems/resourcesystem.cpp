@@ -7,11 +7,6 @@ ResourceSystem::ResourceSystem(ResourceLocator& resLoc) : mResourceLocator(&resL
 
 }
 
-void ResourceSystem::Update()
-{
-
-}
-
 ResourceLocator* ResourceSystem::GetResourceLocator() const
 {
     return mResourceLocator;

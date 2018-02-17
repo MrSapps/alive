@@ -1,3 +1,4 @@
+#include "core/entity.hpp"
 #include "core/entitymanager.hpp"
 #include "core/systems/camerasystem.hpp"
 #include "core/components/cameracomponent.hpp"

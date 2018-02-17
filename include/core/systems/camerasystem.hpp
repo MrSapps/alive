@@ -12,9 +12,6 @@ public:
     DECLARE_SYSTEM(CameraSystem);
 
 public:
-    void Update() final;
-
-public:
     void SetGameCameraToCameraAt(u32 x, u32 y);
 
 public:

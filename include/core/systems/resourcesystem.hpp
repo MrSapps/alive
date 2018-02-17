@@ -12,9 +12,6 @@ public:
     explicit ResourceSystem(ResourceLocator& state);
 
 public:
-    void Update() final;
-
-public:
     ResourceLocator* GetResourceLocator() const;
 
 private:

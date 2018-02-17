@@ -4,11 +4,6 @@
 
 DEFINE_SYSTEM(CollisionSystem);
 
-void CollisionSystem::Update()
-{
-
-}
-
 static CollisionLine* GetCollisionIndexByIndex(CollisionLines& lines, s16 index)
 {
     const s32 count = static_cast<s32>(lines.size());
