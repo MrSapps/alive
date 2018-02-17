@@ -175,10 +175,10 @@ TEST(ResourceLocator, DISABLED_ResourceGroup)
 
 TEST(ResourceLocator, ParseResourceMap)
 {
-    const std::string resourceMapsJson = 
+    const std::string pathsJson =
         R"(
-[{
-    "paths": [{
+{
+ "paths": [{
         "collision_offset": 400,
         "id": 88,
         "locations": [{
@@ -193,7 +193,13 @@ TEST(ResourceLocator, ParseResourceMap)
         "object_indextable_offset": 7628,
         "object_offset": 2460,
         "resource_name": "BAPATH_1"
-    }],
+    }]
+}
+)";
+
+    const std::string resourceMapsJson = 
+        R"(
+[{
     "animations": [{
         "blend_mode": "B100F100",
         "locations": [{
@@ -242,12 +248,13 @@ TEST(ResourceLocator, ParseResourceMap)
 
     InMemoryFileSystem fs;
     fs.AddFile("resource_maps.json", resourceMapsJson);
+    fs.AddFile("paths.json", pathsJson);
 
     ResourceMapper mapper(fs,
         "resource_maps.json",
         "resource_maps.json",
         "resource_maps.json",
-        "resource_maps.json",
+        "paths.json",
         "resource_maps.json");
 
     {
