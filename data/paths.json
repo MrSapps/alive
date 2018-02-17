@@ -156,8 +156,8 @@
 			"object_indextable_offset": 7628,
 			"object_offset": 2460,
 			"resource_name": "BAPATH_1",
-			"spawn_x": 212,
-			"spawn_y": 713,
+			"spawn_x": 712,
+			"spawn_y": 460,
 			"theme": "Barracks" 
 		},
 		{
@@ -178,8 +178,8 @@
 			"object_indextable_offset": 8640,
 			"object_offset": 3864,
 			"resource_name": "BAPATH_10",
-			"spawn_x": 563,
-			"spawn_y": 598,
+			"spawn_x": 2462,
+			"spawn_y": 479,
 			"theme": "Barracks" 
 		},
 		{
@@ -200,8 +200,8 @@
 			"object_indextable_offset": 5152,
 			"object_offset": 1152,
 			"resource_name": "BAPATH_11",
-			"spawn_x": 1558,
-			"spawn_y": 398,
+			"spawn_x": 962,
+			"spawn_y": 1139,
 			"theme": "Barracks_Ender" 
 		},
 		{
@@ -245,7 +245,7 @@
 			"object_offset": 4032,
 			"resource_name": "BAPATH_14",
 			"spawn_x": 2037,
-			"spawn_y": 1237,
+			"spawn_y": 1239,
 			"theme": "Barracks" 
 		},
 		{
@@ -310,8 +310,8 @@
 			"object_indextable_offset": 1552,
 			"object_offset": 352,
 			"resource_name": "BAPATH_2",
-			"spawn_x": 837,
-			"spawn_y": 1059,
+			"spawn_x": 562,
+			"spawn_y": 359,
 			"theme": "Barracks" 
 		},
 		{
@@ -354,8 +354,8 @@
 			"object_indextable_offset": 5336,
 			"object_offset": 1788,
 			"resource_name": "BAPATH_4",
-			"spawn_x": 812,
-			"spawn_y": 457,
+			"spawn_x": 662,
+			"spawn_y": 719,
 			"theme": "Barracks" 
 		},
 		{
@@ -376,8 +376,8 @@
 			"object_indextable_offset": 12236,
 			"object_offset": 5256,
 			"resource_name": "BAPATH_5",
-			"spawn_x": 87,
-			"spawn_y": 457,
+			"spawn_x": 4387,
+			"spawn_y": 339,
 			"theme": "Barracks" 
 		},
 		{
@@ -398,8 +398,8 @@
 			"object_indextable_offset": 8240,
 			"object_offset": 2328,
 			"resource_name": "BAPATH_7",
-			"spawn_x": 1187,
-			"spawn_y": 1397,
+			"spawn_x": 1037,
+			"spawn_y": 979,
 			"theme": "Barracks" 
 		},
 		{
@@ -420,8 +420,8 @@
 			"object_indextable_offset": 3024,
 			"object_offset": 980,
 			"resource_name": "BAPATH_9",
-			"spawn_x": 1787,
-			"spawn_y": 457,
+			"spawn_x": 1412,
+			"spawn_y": 459,
 			"theme": "Barracks" 
 		},
 		{
