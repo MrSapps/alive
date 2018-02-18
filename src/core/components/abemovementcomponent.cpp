@@ -73,7 +73,9 @@ static const std::map<AbeMovementComponent::AbeAnimation, std::string> kAbeAnima
     { AbeMovementComponent::AbeAnimation::eAbeRolling, std::string{ "AbeRolling" }},
     { AbeMovementComponent::AbeAnimation::eAbeStandToChant, std::string{ "AbeStandToChant" }},
     { AbeMovementComponent::AbeAnimation::eAbeChantToStand, std::string{ "AbeChantToStand" }},
-    { AbeMovementComponent::AbeAnimation::eAbeGassed, std::string{ "AbeGassed" }}
+    { AbeMovementComponent::AbeAnimation::eAbeGassed, std::string{ "AbeGassed" }},
+    { AbeMovementComponent::AbeAnimation::eAbeFallBackStanding, std::string{ "AbeFallBackStanding" }},
+    { AbeMovementComponent::AbeAnimation::eAbeFallBackToStand, std::string{ "AbeFallBackToStand" }},
 };
 
 void AbeMovementComponent::OnLoad()
@@ -99,6 +101,9 @@ void AbeMovementComponent::OnLoad()
 
     mStateFnMap[States::eRolling] = { &AbeMovementComponent::PreRolling, &AbeMovementComponent::Rolling };
     mStateFnMap[States::eRollingToWalkingOrRunning] = { nullptr, &AbeMovementComponent::RollingToWalkingOrRunning };
+
+    mStateFnMap[States::eFallingBackToStanding] = { &AbeMovementComponent::PreFallingBackToStanding, &AbeMovementComponent::FallingBackToStanding };
+    mStateFnMap[States::eFallingBackToStandingAngry] = { &AbeMovementComponent::PreFallingBackToStandingAngry, &AbeMovementComponent::FallingBackToStandingAngry };
 
     Component::OnLoad(); // calls OnResolveDependencies
 }
@@ -338,6 +343,11 @@ void AbeMovementComponent::PreRunning(AbeMovementComponent::States)
 
 void AbeMovementComponent::Running()
 {
+    if (IsMovingTowardsWall())
+    {
+        SnapXToGrid();
+        HitWallAndFallBack();
+    }
     if (FrameIs(0 + 1) || FrameIs(8 + 1))
     {
         SnapXToGrid();
@@ -504,6 +514,33 @@ void AbeMovementComponent::RollingToWalkingOrRunning()
     }
 }
 
+void AbeMovementComponent::PreFallingBackToStanding(States)
+{
+    SetAnimation(AbeAnimation::eAbeFallBackToStand);
+}
+
+void AbeMovementComponent::FallingBackToStanding()
+{
+    if (mAnimationComponent->Complete())
+    {
+        // TODO: play sound angry
+        SetState(States::eFallingBackToStandingAngry);
+    }
+}
+
+void AbeMovementComponent::PreFallingBackToStandingAngry(States)
+{
+    SetAnimation(AbeAnimation::eAbeStandSpeak5);
+}
+
+void AbeMovementComponent::FallingBackToStandingAngry()
+{
+    if (mAnimationComponent->Complete() || (FrameIs(1 + 1) && DirectionChanged()))
+    {
+        SetState(States::eStanding);
+    }
+}
+
 void AbeMovementComponent::PushWallOrCrouch()
 {
     if (mCollisionSystem->WallCollision(mAnimationComponent->mFlipX, mTransformComponent->GetX(), mTransformComponent->GetY(), 25.0f, -50.0f))
@@ -518,6 +555,13 @@ void AbeMovementComponent::PushWallOrCrouch()
             StandingToCrouching();
         }
     }
+}
+
+void AbeMovementComponent::HitWallAndFallBack()
+{
+    SetXSpeed(0.0f);
+    SetAnimation(AbeAnimation::eAbeFallBackStanding);
+    SetCurrentAndNextState(States::eFallingBack, States::eFallingBackToStanding);
 }
 
 /**

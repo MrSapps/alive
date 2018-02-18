@@ -77,6 +77,10 @@ public:
 
         eRolling,
         eRollingToWalkingOrRunning,
+
+        eFallingBack,
+        eFallingBackToStanding,
+        eFallingBackToStandingAngry
     };
     enum class AbeAnimation : u16
     {
@@ -138,6 +142,8 @@ public:
         eAbeStandToChant,
         eAbeChantToStand,
         eAbeGassed,
+        eAbeFallBackStanding,
+        eAbeFallBackToStand,
     };
 
     struct StateData
@@ -183,8 +189,15 @@ private:
     void Rolling();
     void RollingToWalkingOrRunning();
 
+    void PreFallingBackToStanding(States previous);
+    void FallingBackToStanding();
+
+    void PreFallingBackToStandingAngry(States previous);
+    void FallingBackToStandingAngry();
+
 private:
     void PushWallOrCrouch();
+    void HitWallAndFallBack();
 
 private:
     void ASyncTransition();
