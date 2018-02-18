@@ -11,6 +11,8 @@
 #include "animationbrowser.hpp"
 #include "menu.hpp"
 
+#include "oddlib/bits_factory.hpp"
+
 #include "core/systems/debugsystem.hpp"
 #include "core/systems/inputsystem.hpp"
 #include "core/systems/camerasystem.hpp"
