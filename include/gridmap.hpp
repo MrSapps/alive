@@ -45,17 +45,14 @@ public:
     void LoadTextures(AbstractRenderer& rend);
     void UnLoadTextures(AbstractRenderer& rend);
     bool HasTexture() const;
-    const Oddlib::Path::Camera& getCamera() const
-    {
-        return mCamera;
-    }
+
     void Render(AbstractRenderer& rend, float x, float y, float w, float h);
 
 private:
     std::string mFileName;
     TextureHandle mCameraTexture;
     TextureHandle mFG1Texture;
-    Oddlib::Path::Camera mCamera; // TODO: This is not the in-game format
+
     std::unique_ptr<Oddlib::IBits> mCam; // Temp hack to prevent constant reloading of LVLs
     ResourceLocator& mLocator;
 };
@@ -66,6 +63,50 @@ constexpr u32 kSwitchTimeMs = 300;
 
 struct PathInformation;
 
+class GridScreenData
+{
+public:
+    GridScreenData(const Oddlib::Path::Camera& data)
+        : mCameraAndObjects(data)
+    {
+
+    }
+
+    // The name of .CAM in the path and its vector of objects to spawn
+    Oddlib::Path::Camera mCameraAndObjects;
+};
+
+template<class T>
+class Vector2D
+{
+public:
+    void Resize(u32 x, u32 y)
+    {
+        mXSize = x;
+        mYSize = y;
+        mData.resize(mXSize*mYSize);
+    }
+
+    void Set(u32 x, u32 y, T&& data)
+    {
+        mData[x * mXSize + y] = std::move(data);
+    }
+
+    T Get(u32 x, u32 y)
+    {
+        return mData[x * mXSize + y];
+    }
+
+    const T& Get(u32 x, u32 y) const
+    {
+        return mData[x * mXSize + y];
+    }
+private:
+    u32 mXSize = 0;
+    u32 mYSize = 0;
+    std::vector<T> mData;
+};
+
 class GridMap
 {
 public:
@@ -74,8 +115,9 @@ public:
     GridMap(CoordinateSpace& coords, EntityManager& em);
     ~GridMap();
 
+    GridScreenData* GetGridScreen(u32 xIndex, u32 yIndex) const;
 public:
-    bool LoadMap(const PathInformation& pathInfo, ResourceLocator& locator);
+    bool LoadMap(const PathInformation& pathInfo);
     void UnloadMap(AbstractRenderer& renderer);
 
 private:
@@ -85,7 +127,7 @@ private:
         explicit Loader(GridMap& gm);
 
     public:
-        bool Load(const PathInformation& pathInfo, ResourceLocator& locator);
+        bool Load(const PathInformation& pathInfo);
 
     private:
         enum class LoaderStates
@@ -101,7 +143,7 @@ private:
         void SetState(LoaderStates state);
         void SetupAndConvertCollisionItems(const Oddlib::Path& path);
         void HandleAllocateCameraMemory(const Oddlib::Path& path);
-        void HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& locator);
+        void HandleLoadCameras(const Oddlib::Path& path);
         void HandleLoadEntities(const PathInformation& pathInfo);
     private:
         GridMap& mGm;
@@ -113,4 +155,6 @@ private:
 private:
     Loader mLoader;
     EntityManager& mEntityManager;
+
+    Vector2D<std::unique_ptr<GridScreenData>> mMapData;
 };

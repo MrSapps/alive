@@ -62,7 +62,7 @@ public:
 
 private:
     void LoadSystems();
-
+    void SetState(States state);
 private:
     void LoadMap(const std::string& mapName);
     bool LoadMap(const PathInformation& pathInfo);

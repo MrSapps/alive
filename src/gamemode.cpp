@@ -156,9 +156,16 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
 
 void GameMode::Render(AbstractRenderer& rend) const
 {
-    const auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
-    if (cameraSystem->mTarget && Debugging().mDrawCameras)
+    if (Debugging().mDrawCameras)
     {
+        const auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
+        mWorld.mEntityManager.With<GridMapScreenComponent, TransformComponent>([&](auto, GridMapScreenComponent* mapScreen, TransformComponent* transform)
+        {
+            mapScreen->Render(rend,
+                transform->GetX(), transform->GetY(),
+                cameraSystem->mVirtualScreenSize.x, cameraSystem->mVirtualScreenSize.y);
+        });
+
         /* TODO: Grid map system
         auto pos = cameraSystem->mTarget.GetComponent<TransformComponent>();
 

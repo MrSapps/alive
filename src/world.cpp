@@ -169,6 +169,24 @@ void World::LoadSystems()
     mEntityManager.RegisterComponent<SligMovementComponent>();
     mEntityManager.RegisterComponent<AbePlayerControllerComponent>();
     mEntityManager.RegisterComponent<SligPlayerControllerComponent>();
+    mEntityManager.RegisterComponent<GridMapScreenComponent>();
+}
+
+void World::SetState(World::States state)
+{
+    if (mState != state)
+    {
+        mState = state;
+        if (mState == States::eInGame)
+        {
+            CameraSystem* cameraSystem = mEntityManager.GetSystem<CameraSystem>();
+            mEntityManager.GetSystem<GridmapSystem>()->MoveToCamera(
+                static_cast<u32>(mPathBeingLoaded->mPath->AbeSpawnX() / cameraSystem->mVirtualScreenSize.x),
+                static_cast<u32>(mPathBeingLoaded->mPath->AbeSpawnY() / cameraSystem->mVirtualScreenSize.y));
+            mLoadingIcon.SetEnabled(false);
+            mSound.HandleMusicEvent("BASE_LINE");
+        }
+    }
 }
 
 void World::LoadMap(const std::string& mapName)
@@ -180,12 +198,12 @@ void World::LoadMap(const std::string& mapName)
     mEditorMode->ClearUndoStack();
     mSound.StopAllMusic();
     mLoadingIcon.SetEnabled(true);
-    mState = States::eLoadingMap;
+    SetState(States::eLoadingMap);
 }
 
 bool World::LoadMap(const PathInformation& pathInfo)
 {
-    return mEntityManager.GetSystem<GridmapSystem>()->LoadMap(pathInfo, mLocator);
+    return mEntityManager.GetSystem<GridmapSystem>()->LoadMap(pathInfo);
 }
 
 void World::UnloadMap(AbstractRenderer& renderer)
@@ -268,7 +286,7 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
     case States::ePlayFmv:
         if (!mPlayFmvState->Update(input))
         {
-            mState = mReturnToState;
+            SetState(mReturnToState);
         }
         break;
 
@@ -288,14 +306,13 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
                 {
                     if (mPathBeingLoaded->mTheme)
                     {
-                        mState = States::eSoundsLoading;
+                        SetState(States::eSoundsLoading);
                         mSound.SetMusicTheme(mPathBeingLoaded->mTheme->mMusicTheme.c_str());
                     }
                     else
                     {
                         // No theme set for this path so can't load its music theme
-                        mLoadingIcon.SetEnabled(false);
-                        mState = States::eInGame;
+                        SetState(States::eInGame);
                     }
                 }
             }
@@ -307,9 +324,7 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
                 // HACK: Force to menu
                 //mState = States::eFrontEndMenu;
 
-                mState = States::eInGame;
-
-                mLoadingIcon.SetEnabled(false);
+                SetState(States::eInGame);
             }
         }
         break;
@@ -318,9 +333,7 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
         // TODO: Construct sprite sheets for objects that exist in this map
         if (!mSound.IsLoading())
         {
-            mState = States::eInGame;
-            mSound.HandleMusicEvent("BASE_LINE");
-            mLoadingIcon.SetEnabled(false);
+            SetState(States::eInGame);
         }
         break;
 
@@ -445,6 +458,6 @@ void World::RenderDebugFmvSelection()
     {
         mPlayFmvState->Play(mFmvDebugUi->FmvName().c_str(), mFmvDebugUi->FmvFileLocation());
         mReturnToState = mState;
-        mState = States::ePlayFmv;
+        SetState(States::ePlayFmv);
     }
 }

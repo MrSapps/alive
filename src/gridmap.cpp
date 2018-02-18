@@ -17,7 +17,7 @@
 #include "fmv.hpp"
 
 GridScreen::GridScreen(const Oddlib::Path::Camera& camera, ResourceLocator& locator)
-    : mFileName(camera.mName), mCamera(camera), mLocator(locator)
+    : mFileName(camera.mName), mLocator(locator)
 {
 
 }
@@ -125,16 +125,21 @@ GridMap::~GridMap()
     TRACE_ENTRYEXIT;
 }
 
-bool GridMap::LoadMap(const PathInformation& pathInfo, ResourceLocator& locator)
+GridScreenData* GridMap::GetGridScreen(u32 xIndex, u32 yIndex) const
+{
+    return mMapData.Get(xIndex, yIndex).get();
+}
+
+bool GridMap::LoadMap(const PathInformation& pathInfo)
 {
 #if defined(_DEBUG)
-    while (!mLoader.Load(pathInfo, locator))
+    while (!mLoader.Load(pathInfo))
     {
 
     }
     return true;
 #else
-    return mLoader.Load(pathInfo, locator);
+    return mLoader.Load(pathInfo);
 #endif
 }
 
@@ -183,25 +188,20 @@ void GridMap::Loader::SetupAndConvertCollisionItems(const Oddlib::Path& path)
     SetState(LoaderStates::eAllocateCameraMemory);
 }
 
-void GridMap::Loader::HandleAllocateCameraMemory(const Oddlib::Path& /*path*/)
+void GridMap::Loader::HandleAllocateCameraMemory(const Oddlib::Path& path)
 {
-    /* TODO: Screens move to components
-    mGm.mWorld.mScreens.resize(path.XSize());
-    for (auto& col : mGm.mWorld.mScreens)
-    {
-        col.resize(path.YSize());
-    }*/
+    mGm.mMapData.Resize(path.XSize(), path.YSize());
     SetState(LoaderStates::eLoadCameras);
 }
 
-void GridMap::Loader::HandleLoadCameras(const Oddlib::Path& path, ResourceLocator& /*locator*/)
+void GridMap::Loader::HandleLoadCameras(const Oddlib::Path& path)
 {
     if (mXForLoop.IterateTimeBoxedIf(kMaxExecutionTimeMs, path.XSize(), [&]()
     {
         return mYForLoop.Iterate(path.YSize(), [&]()
         {
-            // TODO: Screens move to components
-            //mGm.mWorld.mScreens[mXForLoop.Value()][mYForLoop.Value()] = std::make_unique<GridScreen>(path.CameraByPosition(mXForLoop.Value(), mYForLoop.Value()), locator);
+            mGm.mMapData.Set(mXForLoop.Value(), mYForLoop.Value(),
+                std::make_unique<GridScreenData>(path.CameraByPosition(mXForLoop.Value(), mYForLoop.Value())));
         });
     }))
     {
@@ -266,7 +266,7 @@ void GridMap::Loader::SetState(GridMap::Loader::LoaderStates state)
     }
 }
 
-bool GridMap::Loader::Load(const PathInformation& pathInfo, ResourceLocator& locator)
+bool GridMap::Loader::Load(const PathInformation& pathInfo)
 {
     switch (mState)
     {
@@ -280,7 +280,7 @@ bool GridMap::Loader::Load(const PathInformation& pathInfo, ResourceLocator& loc
         HandleAllocateCameraMemory(*pathInfo.mPath);
         break;
     case LoaderStates::eLoadCameras:
-        HandleLoadCameras(*pathInfo.mPath, locator);
+        HandleLoadCameras(*pathInfo.mPath);
         break;
     case LoaderStates::eLoadEntities:
         RunForAtLeast(kMaxExecutionTimeMs, [&]()

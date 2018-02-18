@@ -1,10 +1,13 @@
 #include "gridmap.hpp"
-#include "core/entity.hpp"
 #include "core/systems/gridmapsystem.hpp"
+#include "core/systems/camerasystem.hpp"
+#include "core/entity.hpp"
+#include "core/components/transformcomponent.hpp"
 
 DEFINE_SYSTEM(GridmapSystem);
 
-GridmapSystem::GridmapSystem(CoordinateSpace& coords) : mCoords(coords)
+GridmapSystem::GridmapSystem(CoordinateSpace& coords) 
+    : mCoords(coords)
 {
 
 }
@@ -14,14 +17,27 @@ void GridmapSystem::OnLoad()
     mGridMap = std::make_unique<GridMap>(mCoords, *mManager);
 }
 
-void GridmapSystem::MoveToCamera(const char* /*cameraName*/)
+void GridmapSystem::MoveToCamera(u32 xIndex, u32 yIndex)
 {
-    mManager->CreateEntityWith<GridMapScreenComponent>();
+    CameraSystem* cameraSystem = mManager->GetSystem<CameraSystem>();
+
+    GridScreenData* pData = mGridMap->GetGridScreen(xIndex, yIndex);
+    assert(pData);
+
+    Entity entity = mManager->CreateEntityWith<GridMapScreenComponent, TransformComponent>();
+
+    TransformComponent* pTransform = entity.GetComponent<TransformComponent>();
+    pTransform->Set(xIndex * cameraSystem->mCameraBlockSize.x, yIndex * cameraSystem->mCameraBlockSize.y);
 }
 
-bool GridmapSystem::LoadMap(const PathInformation& pathInfo, ResourceLocator& mLocator)
+void GridmapSystem::MoveToCamera(const char* /*cameraName*/)
 {
-    return mGridMap->LoadMap(pathInfo, mLocator);
+    mManager->CreateEntityWith<GridMapScreenComponent, TransformComponent>();
+}
+
+bool GridmapSystem::LoadMap(const PathInformation& pathInfo)
+{
+    return mGridMap->LoadMap(pathInfo);
 }
 
 void GridmapSystem::UnloadMap(AbstractRenderer& renderer) const
@@ -31,7 +47,7 @@ void GridmapSystem::UnloadMap(AbstractRenderer& renderer) const
 
 DEFINE_COMPONENT(GridMapScreenComponent);
 
-void GridMapScreenComponent::Render(AbstractRenderer& /*rend*/) const
+void GridMapScreenComponent::Render(AbstractRenderer& rend, float x, float y, float w, float h) const
 {
-    //mScreen->Render(rend);
+    mScreen->Render(rend, x, y ,w ,h);
 }
