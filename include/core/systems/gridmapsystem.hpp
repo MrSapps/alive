@@ -24,7 +24,7 @@ public:
 
 public:
     void MoveToCamera(const char* cameraName);
-    void MoveToCamera(u32 xIndex, u32 yIndex);
+    void MoveToCamera(ResourceLocator& locator, u32 xIndex, u32 yIndex);
     bool LoadMap(const PathInformation& pathInfo);
     void UnloadMap(AbstractRenderer& renderer) const;
 
@@ -40,7 +40,7 @@ public:
 
 public:
     void Render(AbstractRenderer& rend, float x, float y, float w, float h) const;
-
+    void LoadCamera(ResourceLocator& locator, const std::string& name);
 private:
     std::unique_ptr<GridScreen> mScreen;
 };

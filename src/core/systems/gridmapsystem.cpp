@@ -17,7 +17,7 @@ void GridmapSystem::OnLoad()
     mGridMap = std::make_unique<GridMap>(mCoords, *mManager);
 }
 
-void GridmapSystem::MoveToCamera(u32 xIndex, u32 yIndex)
+void GridmapSystem::MoveToCamera(ResourceLocator& locator, u32 xIndex, u32 yIndex)
 {
     CameraSystem* cameraSystem = mManager->GetSystem<CameraSystem>();
 
@@ -25,6 +25,9 @@ void GridmapSystem::MoveToCamera(u32 xIndex, u32 yIndex)
     assert(pData);
 
     Entity entity = mManager->CreateEntityWith<GridMapScreenComponent, TransformComponent>();
+
+    GridMapScreenComponent* gridMapScreen = entity.GetComponent<GridMapScreenComponent>();
+    gridMapScreen->LoadCamera(locator, pData->mCameraAndObjects.mName);
 
     TransformComponent* pTransform = entity.GetComponent<TransformComponent>();
     pTransform->Set(xIndex * cameraSystem->mCameraBlockSize.x, yIndex * cameraSystem->mCameraBlockSize.y);
@@ -50,4 +53,10 @@ DEFINE_COMPONENT(GridMapScreenComponent);
 void GridMapScreenComponent::Render(AbstractRenderer& rend, float x, float y, float w, float h) const
 {
     mScreen->Render(rend, x, y ,w ,h);
+}
+
+void GridMapScreenComponent::LoadCamera(ResourceLocator& locator, const std::string& name)
+{
+    std::unique_ptr<Oddlib::IBits> mCamera = locator.LocateCamera(name).get();
+
 }
