@@ -170,6 +170,8 @@ void World::LoadSystems()
     mEntityManager.RegisterComponent<AbePlayerControllerComponent>();
     mEntityManager.RegisterComponent<SligPlayerControllerComponent>();
     mEntityManager.RegisterComponent<GridMapScreenComponent>();
+
+    mEntityManager.ResolveSystemDependencies();
 }
 
 void World::SetState(World::States state)
