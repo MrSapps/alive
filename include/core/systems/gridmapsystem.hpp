@@ -32,7 +32,7 @@ public:
     void UnLoadMap();
 
 public:
-    void MoveToCamera(ResourceLocator& locator, const char* cameraName);
+    std::pair<u32, u32> MoveToCamera(ResourceLocator& locator, const char* cameraName);
     void MoveToCamera(ResourceLocator& locator, u32 xIndex, u32 yIndex);
 
 public:
