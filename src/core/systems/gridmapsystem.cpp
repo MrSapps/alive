@@ -3,6 +3,8 @@
 #include "core/systems/camerasystem.hpp"
 #include "core/entity.hpp"
 #include "core/components/transformcomponent.hpp"
+#include "resourcemapper.hpp"
+#include "oddlib/bits_factory.hpp"
 
 DEFINE_SYSTEM(GridmapSystem);
 
@@ -50,13 +52,32 @@ void GridmapSystem::UnloadMap(AbstractRenderer& renderer) const
 
 DEFINE_COMPONENT(GridMapScreenComponent);
 
+GridMapScreenComponent::GridMapScreenComponent()
+{
+
+}
+
 void GridMapScreenComponent::Render(AbstractRenderer& rend, float x, float y, float w, float h) const
 {
-    mScreen->Render(rend, x, y ,w ,h);
+    if (mBits)
+    {
+        SDL_Surface* pBackgroundImage = mBits->GetSurface();
+        if (pBackgroundImage)
+        {
+            TextureHandle backgroundText = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGB, 
+                static_cast<u32>(pBackgroundImage->w),
+                static_cast<u32>(pBackgroundImage->h),
+                AbstractRenderer::eTextureFormats::eRGB,
+                pBackgroundImage->pixels, true);
+
+            rend.TexturedQuad(backgroundText, x, y, w, h, AbstractRenderer::eForegroundLayer0, ColourU8{ 255, 255, 255, 255 });
+        }
+    }
+
+    //mBits->Render(rend, x, y ,w ,h);
 }
 
 void GridMapScreenComponent::LoadCamera(ResourceLocator& locator, const std::string& name)
 {
-    std::unique_ptr<Oddlib::IBits> mCamera = locator.LocateCamera(name).get();
-
+    mBits = locator.LocateCamera(name).get();
 }

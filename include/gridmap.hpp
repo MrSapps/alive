@@ -92,7 +92,7 @@ public:
         mData[x * mXSize + y] = std::move(data);
     }
 
-    T Get(u32 x, u32 y)
+    T& Get(u32 x, u32 y)
     {
         return mData[x * mXSize + y];
     }

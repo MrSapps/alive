@@ -183,6 +183,7 @@ void World::SetState(World::States state)
         {
             CameraSystem* cameraSystem = mEntityManager.GetSystem<CameraSystem>();
             mEntityManager.GetSystem<GridmapSystem>()->MoveToCamera(
+                mLocator,
                 static_cast<u32>(mPathBeingLoaded->mPath->AbeSpawnX() / cameraSystem->mVirtualScreenSize.x),
                 static_cast<u32>(mPathBeingLoaded->mPath->AbeSpawnY() / cameraSystem->mVirtualScreenSize.y));
             mLoadingIcon.SetEnabled(false);

@@ -215,27 +215,22 @@ void GridMap::Loader::HandleLoadEntities(const PathInformation& pathInfo)
     {
         return mYForLoop.IterateIf(pathInfo.mPath->YSize(), [&]()
         {
-            /* TODO: Remove mWorld
-            auto screen = mGm.mWorld.mScreens[mXForLoop.Value()][mYForLoop.Value()].get();
-            auto cam = screen->getCamera();
-            return mIForLoop.Iterate(static_cast<u32>(cam.mObjects.size()), [&]()
+            auto screen = mGm.mMapData.Get(mXForLoop.Value(), mYForLoop.Value()).get();
+            return mIForLoop.Iterate(static_cast<u32>(screen->mCameraAndObjects.mObjects.size()), [&]()
             {
-                const auto& object = cam.mObjects[mIForLoop.Value()];
+                const auto& object = screen->mCameraAndObjects.mObjects[mIForLoop.Value()];
                 Oddlib::MemoryStream ms(std::vector<u8>(object.mData.data(), object.mData.data() + object.mData.size()));
 
                 AeEntityFactory factory;
-                factory.Create(pathInfo.mTheme, object, mGm.mWorld.mEntityManager, ms);
+                factory.Create(pathInfo.mTheme, object, mGm.mEntityManager, ms);
 
                 // TODO: add entity to list of path/screen/cam entities
                 // TODO: add entity screen component to know where it came from
             });
-            */
-            return true;
         });
     }))
     {
-        /* TODO: Remove mWorld
-        auto abe = mGm.mWorld.mEntityManager.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent, CameraComponent>();
+        auto abe = mGm.mEntityManager.CreateEntityWith<TransformComponent, PhysicsComponent, AnimationComponent, AbeMovementComponent, AbePlayerControllerComponent, CameraComponent>();
         auto pos = abe.GetComponent<TransformComponent>();
         
         f32 xpos = 125.0f;
@@ -249,11 +244,11 @@ void GridMap::Loader::HandleLoadEntities(const PathInformation& pathInfo)
         pos->Set(xpos, ypos);
         pos->SnapXToGrid();
 
-        auto slig = mGm.mWorld.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
+        auto slig = mGm.mEntityManager.CreateEntityWith<TransformComponent, AnimationComponent, PhysicsComponent, SligMovementComponent, SligPlayerControllerComponent>();
         auto pos2 = slig.GetComponent<TransformComponent>();
         pos2->Set(xpos + 25.0f, ypos);
         pos2->SnapXToGrid();
-        */
+
         SetState(LoaderStates::eInit);
     }
 }

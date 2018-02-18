@@ -5,11 +5,16 @@
 #include "core/system.hpp"
 #include "core/component.hpp"
 
-class GridScreen;
+
 class ResourceLocator;
 class CoordinateSpace;
 class AbstractRenderer;
 struct PathInformation;
+
+namespace Oddlib
+{
+    class IBits;
+}
 
 class GridmapSystem final : public System
 {
@@ -37,10 +42,10 @@ class GridMapScreenComponent : public Component
 {
 public:
     DECLARE_COMPONENT(GridMapScreenComponent);
-
+    GridMapScreenComponent();
 public:
     void Render(AbstractRenderer& rend, float x, float y, float w, float h) const;
     void LoadCamera(ResourceLocator& locator, const std::string& name);
 private:
-    std::unique_ptr<GridScreen> mScreen;
+    std::unique_ptr<Oddlib::IBits> mBits;
 };

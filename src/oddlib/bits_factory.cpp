@@ -182,4 +182,27 @@ namespace Oddlib
         }
         abort();
     }
+
+    IBits::~IBits()
+    {
+
+    }
+
+    void IBits::Save()
+    {
+        static int i = 1;
+        SDL_SaveBMP(GetSurface(), ("camera" + std::to_string(i++) + ".bmp").c_str());
+    }
+
+    IFg1::~IFg1()
+    {
+
+    }
+
+    void IFg1::Save(const std::string& baseName)
+    {
+        static int i = 1;
+        SDLHelpers::SaveSurfaceAsPng((baseName + "_camera_fg1" + std::to_string(i++) + ".png").c_str(), GetSurface());
+    }
+
 }

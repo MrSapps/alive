@@ -13,28 +13,19 @@ namespace Oddlib
     class IFg1
     {
     public:
-        virtual ~IFg1() = default;
+        virtual ~IFg1();
         virtual SDL_Surface* GetSurface() const = 0;
 
-        void Save(const std::string& baseName)
-        {
-            static int i = 1;
-            SDLHelpers::SaveSurfaceAsPng((baseName + "_camera_fg1" + std::to_string(i++) + ".png").c_str(), GetSurface());
-        }
+        void Save(const std::string& baseName);
     };
 
     class IBits
     {
     public:
-        virtual ~IBits() = default;
+        virtual ~IBits();
         virtual SDL_Surface* GetSurface() const = 0;
         virtual IFg1* GetFg1() const = 0;
-
-        void Save()
-        {
-            static int i = 1;
-            SDL_SaveBMP(GetSurface(), ("camera" + std::to_string(i++) + ".bmp").c_str());
-        }
+        void Save();
     };
 
     bool IsPsxCamera(IStream& stream);
