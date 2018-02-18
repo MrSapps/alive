@@ -10,24 +10,15 @@ class AbstractRenderer;
 class GameMode
 {
 public:
-    GameMode(World& mapState);
+    explicit GameMode(World& world);
 
 public:
-    enum GameModeStates
+    enum class States
     {
         eRunning,
         eMenu,
         ePaused
     };
-
-public:
-    void Update(const InputReader& input, CoordinateSpace& coords);
-    void Render(AbstractRenderer& rend) const;
-
-public:
-    GameModeStates State() const;
-
-private:
     enum class MenuStates
     {
         eInit,
@@ -36,11 +27,17 @@ private:
         eUserMenu,
     };
 
-private:
+public:
+    void Render(AbstractRenderer& rend) const;
+    void Update(const InputReader& input, CoordinateSpace& coords);
     void UpdateMenu(const InputReader& input, CoordinateSpace& coords);
+
+public:
+    States State() const;
+    MenuStates MenuState() const;
 
 private:
     World& mWorld;
+    States mState = States::eRunning;
     MenuStates mMenuState = MenuStates::eInit;
-    GameModeStates mState = eRunning;
 };

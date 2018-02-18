@@ -238,7 +238,7 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
 
         // Don't show debug UI if we're in game and the game is paused
         bool hideDebug = false;
-        if (mState == States::eInGame && mGameMode->State() == GameMode::ePaused)
+        if (mState == States::eInGame && mGameMode->State() == GameMode::States::ePaused)
         {
             hideDebug = true;
         }

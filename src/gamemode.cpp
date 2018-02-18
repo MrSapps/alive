@@ -25,7 +25,7 @@ static f32 Percent2(f32 max, f32 percent)
     return (max / 100.0f) * percent;
 }
 
-GameMode::GameMode(World& mapState) : mWorld(mapState)
+GameMode::GameMode(World& world) : mWorld(world)
 {
 
 }
@@ -62,14 +62,14 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
 
     coords.SetScreenSize(cameraSystem->mVirtualScreenSize);
 
-    if (mState == eMenu)
+    if (mState == States::eMenu)
     {
         UpdateMenu(input, coords);
         coords.SetCameraPosition(cameraSystem->mCameraPosition);
         return;
     }
 
-    if (mState == eRunning)
+    if (mState == States::eRunning)
     {
         // TODO: This needs to be arranged to match the real game which has an ordering of:
         // TODO: Update all -> Animate all -> Render all ->  LoadResources/SwitchMap -> ReadInput -> update gnFrame value
@@ -98,23 +98,23 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
         });
     }
 
-    if (mState == eRunning)
+    if (mState == States::eRunning)
     {
         if (input.KeyboardKey(SDL_SCANCODE_ESCAPE).Pressed())
         {
             // TODO: Stop or pause music? Check what real game does
-            mState = ePaused;
+            mState = States::ePaused;
         }
     }
-    else if (mState == ePaused)
+    else if (mState == States::ePaused)
     {
         if (input.KeyboardKey(SDL_SCANCODE_ESCAPE).Pressed())
         {
-            mState = eRunning;
+            mState = States::eRunning;
         }
     }
 
-    if (input.KeyboardKey(SDL_SCANCODE_E).Pressed() && mState != ePaused)
+    if (input.KeyboardKey(SDL_SCANCODE_E).Pressed() && mState != States::ePaused)
     {
         mWorld.mState = World::States::eToEditor;
         coords.mSmoothCameraPosition = true;
@@ -130,7 +130,6 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
 
     // Grid map system
     // mWorld.mEntityManager.GetSystem<GridmapSystem>()->Update();
-
 
     if (cameraSystem->mTarget)
     {
@@ -170,7 +169,7 @@ void GameMode::Render(AbstractRenderer& rend) const
         });
     }
 
-    if (mState == ePaused)
+    if (mState == States::ePaused)
     {
         rend.PathBegin();
         f32 w = static_cast<f32>(rend.Width());
@@ -200,7 +199,12 @@ void GameMode::Render(AbstractRenderer& rend) const
     });
 }
 
-GameMode::GameModeStates GameMode::State() const
+GameMode::States GameMode::State() const
 {
     return mState;
+}
+
+GameMode::MenuStates GameMode::MenuState() const
+{
+    return mMenuState;
 }
