@@ -3,7 +3,8 @@
 #include "core/systems/camerasystem.hpp"
 #include "core/systems/gridmapsystem.hpp"
 
-Menu::Menu(EntityManager& /*em*/) //: mEm(em)
+Menu::Menu(EntityManager& em, ResourceLocator& locator)
+    : mEm(em), mLocator(locator)
 {
 
 }
@@ -85,10 +86,16 @@ void Menu::ToQuit()
 
 void Menu::Update()
 {
-    //mEm.GetSystem<GridmapSystem>()->MoveToCamera( "STP01C25.CAM");
+    if (mState == States::eSetFirstScreen)
+    {
+        auto camPos = mEm.GetSystem<GridmapSystem>()->MoveToCamera(mLocator, "STP01C25.CAM");
 
-    //const auto cameraSystem = mEm.GetSystem<CameraSystem>();
-    //cameraSystem->SetGameCameraToCameraAt(cameraSystem->CurrentCameraX(), cameraSystem->CurrentCameraY());
+        const auto cameraSystem = mEm.GetSystem<CameraSystem>();
+        cameraSystem->SetGameCameraToCameraAt(camPos.first, camPos.second);
+
+        mState = States::eRunning;
+    }
+
 }
 
 void Menu::Render(AbstractRenderer& /*rend*/)

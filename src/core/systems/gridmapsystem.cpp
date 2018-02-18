@@ -18,11 +18,6 @@ void GridmapSystem::OnResolveDependencies()
     mGridMap = std::make_unique<GridMap>(mCoords, *mManager);
 }
 
-void GridmapSystem::MoveToCamera(ResourceLocator& locator, const char* cameraName)
-{
-
-void GridmapSystem::MoveToCamera(ResourceLocator& locator, const char* cameraName)
-{
 std::pair<u32, u32> GridmapSystem::MoveToCamera(ResourceLocator& locator, const char* cameraName)
 {
     for (u32 x = 0; x < mGridMap->XSize(); x++)
@@ -32,7 +27,7 @@ std::pair<u32, u32> GridmapSystem::MoveToCamera(ResourceLocator& locator, const 
             if (mGridMap->GetGridScreen(x, y)->mCameraAndObjects.mName == cameraName)
             {
                 MoveToCamera(locator, x, y);
-                return std::make_pair(x,y);
+                return std::make_pair(x, y);
             }
         }
     }
@@ -95,30 +90,9 @@ void GridmapSystem::UnloadAllGridScreens()
 
 u32 GridmapSystem::GetCurrentGridScreenX() const
 {
-    GridScreenData* pData = mGridMap->GetGridScreen(xIndex, yIndex);
-    assert(pData);
-    if (xIndex < mGridMap->XSize() && yIndex < mGridMap->YSize())
-    {
-        GridScreenData* pData = mGridMap->GetGridScreen(xIndex, yIndex);
-        assert(pData);
     return mCurrentGridScreenX;
 }
 
-    Entity entity = mManager->CreateEntityWith<GridMapScreenComponent, TransformComponent>();
-
-    GridMapScreenComponent* gridMapScreen = entity.GetComponent<GridMapScreenComponent>();
-    gridMapScreen->LoadCamera(locator, pData->mCameraAndObjects.mName);
-
-    TransformComponent* pTransform = entity.GetComponent<TransformComponent>();
-    pTransform->Set(xIndex * cameraSystem->mCameraBlockSize.x, yIndex * cameraSystem->mCameraBlockSize.y);
-        Entity entity = mManager->CreateEntityWith<GridMapScreenComponent, TransformComponent>();
-
-        GridMapScreenComponent* gridMapScreen = entity.GetComponent<GridMapScreenComponent>();
-        gridMapScreen->LoadCamera(locator, pData->mCameraAndObjects.mName);
-
-        TransformComponent* pTransform = entity.GetComponent<TransformComponent>();
-        pTransform->Set(xIndex * cameraSystem->mCameraBlockSize.x, yIndex * cameraSystem->mCameraBlockSize.y);
-    }
 u32 GridmapSystem::GetCurrentGridScreenY() const
 {
     return mCurrentGridScreenY;

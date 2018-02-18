@@ -48,7 +48,7 @@ World::World(
 {
     LoadSystems();
 
-    mMenu = std::make_unique<Menu>(mEntityManager);
+    mMenu = std::make_unique<Menu>(mEntityManager, locator);
 
     mGameMode = std::make_unique<GameMode>(*this);
     mEditorMode = std::make_unique<EditorMode>(*this);
@@ -163,6 +163,9 @@ void World::SetState(World::States state)
                 static_cast<u32>(mPathBeingLoaded->mPath->AbeSpawnY() / cameraSystem->mVirtualScreenSize.y));
             mLoadingIcon.SetEnabled(false);
             mSound.HandleMusicEvent("BASE_LINE");
+
+            // HACK: - to test menu
+            //mState = States::eFrontEndMenu;
         }
     }
 }
@@ -295,9 +298,6 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
             {
                 // TODO: Throw ?
                 LOG_ERROR("LVL or file in LVL not found");
-
-                // HACK: Force to menu
-                //mState = States::eFrontEndMenu;
 
                 SetState(States::eInGame);
             }

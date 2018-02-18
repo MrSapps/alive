@@ -2,11 +2,12 @@
 
 class AbstractRenderer;
 class EntityManager;
+class ResourceLocator;
 
 class Menu
 {
 public:
-    Menu(EntityManager& /*em*/);
+    Menu(EntityManager& em, ResourceLocator& locator);
 
     void ToBootSequnce();
     void ToIntroSequnce();
@@ -31,6 +32,12 @@ public:
     void Render(AbstractRenderer& rend);
 
 private:
-
-    //EntityManager& mEm;
+    enum class States
+    {
+        eSetFirstScreen,
+        eRunning
+    };
+    States mState = States::eSetFirstScreen;
+    EntityManager& mEm;
+    ResourceLocator& mLocator;
 };
