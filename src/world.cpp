@@ -282,8 +282,7 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
                 if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
                 {
                     mState = States::eInGame;
-                    mEntityManager.GetSystem<GridmapSystem>()->UnloadAllGridScreens();
-
+                    // mEntityManager.GetSystem<GridmapSystem>()->MoveToCamera(mLocator, mCurrentGridScreenX, mCurrentGridScreenY); // Done in EditorMode
                 }
             }
             coords.SetCameraPosition(mEntityManager.GetSystem<CameraSystem>()->mCameraPosition);

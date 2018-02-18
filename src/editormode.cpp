@@ -19,7 +19,7 @@ struct Contributor
 {
 public:
     Contributor(u32 flags, const std::string& name)
-            : mFlags(flags), mName(name)
+        : mFlags(flags), mName(name)
     {
 
     }
@@ -79,7 +79,7 @@ public:
     NO_MOVE_OR_MOVE_ASSIGN(CommandSelectOrDeselectLine);
 
     CommandSelectOrDeselectLine(CollisionLines& lines, Selection& selection, s32 idx, bool select)
-            : mLines(lines), mSelection(selection), mIdx(idx), mSelect(select)
+        : mLines(lines), mSelection(selection), mIdx(idx), mSelect(select)
     {}
 
     virtual void Redo() final
@@ -116,7 +116,7 @@ public:
     NO_MOVE_OR_MOVE_ASSIGN(CommandClearSelection);
 
     CommandClearSelection(CollisionLines& lines, Selection& selection)
-            : mLines(lines), mSelection(selection)
+        : mLines(lines), mSelection(selection)
     {}
 
     virtual void Redo() final
@@ -160,7 +160,7 @@ public:
     NO_MOVE_OR_MOVE_ASSIGN(CommandMoveLinePoint);
 
     CommandMoveLinePoint(CollisionLines& lines, Selection& selection, const glm::vec2& newPos, bool moveP1)
-            : mLines(lines), mSelection(selection), mNewPos(newPos), mApplyToP1(moveP1)
+        : mLines(lines), mSelection(selection), mNewPos(newPos), mApplyToP1(moveP1)
     {
         mOldPos = Point();
     }
@@ -207,7 +207,7 @@ public:
     NO_MOVE_OR_MOVE_ASSIGN(MoveSelection);
 
     MoveSelection(CollisionLines& lines, Selection& selection, const glm::vec2& delta)
-            : mLines(lines), mSelection(selection), mDelta(delta)
+        : mLines(lines), mSelection(selection), mDelta(delta)
     {
 
     }
@@ -280,12 +280,12 @@ void Selection::Select(CollisionLines& items, s32 idx, bool select)
 }
 
 UndoStack::UndoStack(s32 stackLimit /*= -1*/)
-        : mStackLimit(stackLimit)
+    : mStackLimit(stackLimit)
 {
     Debugging().AddSection([&]()
-                           {
-                               DebugRenderCommandList();
-                           });
+    {
+        DebugRenderCommandList();
+    });
 }
 
 void UndoStack::DebugRenderCommandList() const
@@ -353,7 +353,7 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 
             ImGui::MenuItem("New map", nullptr);
             ImGui::MenuItem("Open map", nullptr);
-            
+
             if (ImGui::MenuItem("Save", nullptr))
             {
                 // TODO: Grid map system needs to recall where the Path res came from, also each entity needs its original TLV data
@@ -444,6 +444,8 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
         cameraSystem->mCameraPosition.x = (mouseCamX * cameraSystem->mCameraBlockSize.x) + (cameraSystem->mVirtualScreenSize.x / 2);
         cameraSystem->mCameraPosition.y = (mouseCamY * cameraSystem->mCameraBlockSize.y) + (cameraSystem->mVirtualScreenSize.y / 2);
 
+        mWorld.mEntityManager.GetSystem<GridmapSystem>()->MoveToCamera(mWorld.mLocator, static_cast<u32>(mouseCamX), static_cast<u32>(mouseCamY));
+
         if (cameraSystem->mTarget)
         {
             cameraSystem->mTarget.GetComponent<TransformComponent>()->Set(cameraSystem->mCameraPosition.x, cameraSystem->mCameraPosition.y);
@@ -454,16 +456,22 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
     if (input.KeyboardKey(SDL_SCANCODE_LCTRL).PressedOrHeld())
     {
         if (input.KeyboardKey(SDL_SCANCODE_W).PressedOrHeld())
-        { mEditorCamZoom -= 0.1f; }
+        {
+            mEditorCamZoom -= 0.1f;
+        }
         else if (input.KeyboardKey(SDL_SCANCODE_S).PressedOrHeld())
-        { mEditorCamZoom += 0.1f; }
+        {
+            mEditorCamZoom += 0.1f;
+        }
 
         mEditorCamZoom = glm::clamp(mEditorCamZoom, 0.1f, 3.0f);
     }
     else
     {
         if (input.KeyboardKey(SDL_SCANCODE_LSHIFT).PressedOrHeld())
-        { bGoFaster = true; }
+        {
+            bGoFaster = true;
+        }
 
         f32 editorCamSpeed = 10.0f * mEditorCamZoom;
         if (bGoFaster)
@@ -472,14 +480,22 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
         }
 
         if (input.KeyboardKey(SDL_SCANCODE_W).PressedOrHeld())
-        { cameraSystem->mCameraPosition.y -= editorCamSpeed; }
+        {
+            cameraSystem->mCameraPosition.y -= editorCamSpeed;
+        }
         else if (input.KeyboardKey(SDL_SCANCODE_S).PressedOrHeld())
-        { cameraSystem->mCameraPosition.y += editorCamSpeed; }
+        {
+            cameraSystem->mCameraPosition.y += editorCamSpeed;
+        }
 
         if (input.KeyboardKey(SDL_SCANCODE_A).PressedOrHeld())
-        { cameraSystem->mCameraPosition.x -= editorCamSpeed; }
+        {
+            cameraSystem->mCameraPosition.x -= editorCamSpeed;
+        }
         else if (input.KeyboardKey(SDL_SCANCODE_D).PressedOrHeld())
-        { cameraSystem->mCameraPosition.x += editorCamSpeed; }
+        {
+            cameraSystem->mCameraPosition.x += editorCamSpeed;
+        }
     }
 
     coords.SetScreenSize(glm::vec2(coords.Width(), coords.Height()) * mEditorCamZoom);
