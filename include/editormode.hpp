@@ -127,7 +127,7 @@ public:
     NO_MOVE_OR_MOVE_ASSIGN(EditorMode);
     explicit EditorMode(World& world);
 
-
+public:
     /* TODO: Set correct cursors
     enum class eMouseCursor
     {
@@ -137,11 +137,16 @@ public:
     };
     eMouseCursor mMouseCursor = eMouseCursor::eArrow;
     */
+
+public:
+    void FromGameMode();
+
 public:
     void Update(const InputReader& input, CoordinateSpace& coords);
     void Render(AbstractRenderer& rend) const;
     void ClearUndoStack();
 
+public:
     f32 mEditorCamZoom = 1.0f;
 
 private:

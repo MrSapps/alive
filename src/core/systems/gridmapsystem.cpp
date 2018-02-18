@@ -8,15 +8,30 @@
 
 DEFINE_SYSTEM(GridmapSystem);
 
-GridmapSystem::GridmapSystem(CoordinateSpace& coords) 
-    : mCoords(coords)
+GridmapSystem::GridmapSystem(CoordinateSpace& coords) : mCoords(coords)
 {
 
 }
 
-void GridmapSystem::OnLoad()
+void GridmapSystem::OnResolveDependencies()
 {
     mGridMap = std::make_unique<GridMap>(mCoords, *mManager);
+}
+
+void GridmapSystem::MoveToCamera(ResourceLocator& locator, const char* cameraName)
+{
+
+    for (u32 x = 0; x < mGridMap->XSize(); x++)
+    {
+        for (u32 y = 0; y < mGridMap->YSize(); y++)
+        {
+            if (mGridMap->GetGridScreen(x, y)->mCameraAndObjects.mName == cameraName)
+            {
+                MoveToCamera(locator, x, y);
+                return;
+            }
+        }
+    }
 }
 
 void GridmapSystem::MoveToCamera(ResourceLocator& locator, u32 xIndex, u32 yIndex)
@@ -25,25 +40,8 @@ void GridmapSystem::MoveToCamera(ResourceLocator& locator, u32 xIndex, u32 yInde
     // during "game" mode.
     UnloadAllGridScreens();
 
-    CameraSystem* cameraSystem = mManager->GetSystem<CameraSystem>();
+    auto cameraSystem = mManager->GetSystem<CameraSystem>();
     AddGridScreen(cameraSystem, locator, xIndex, yIndex);
-}
-
-void GridmapSystem::MoveToCamera(ResourceLocator& locator, const char* cameraName)
-{
- 
-    for (u32 x = 0; x < mGridMap->XSize(); x++)
-    {
-        for (u32 y = 0; y < mGridMap->YSize(); y++)
-        {
-            if (mGridMap->GetGridScreen(x, y)->mCameraAndObjects.mName == cameraName)
-            {
-                CameraSystem* cameraSystem = mManager->GetSystem<CameraSystem>();
-                AddGridScreen(cameraSystem, locator, x, y);
-                return;
-            }
-        }
-    }
 }
 
 bool GridmapSystem::LoadMap(const PathInformation& pathInfo)
@@ -51,9 +49,28 @@ bool GridmapSystem::LoadMap(const PathInformation& pathInfo)
     return mGridMap->LoadMap(pathInfo);
 }
 
+void GridmapSystem::UnLoadMap()
+{
+    UnloadAllGridScreens();
+}
+
+void GridmapSystem::AddGridScreen(CameraSystem* cameraSystem, ResourceLocator& locator, u32 xIndex, u32 yIndex)
+{
+    GridScreenData* pData = mGridMap->GetGridScreen(xIndex, yIndex);
+    assert(pData);
+
+    auto entity = mManager->CreateEntityWith<GridMapScreenComponent, TransformComponent>();
+
+    auto gridMapScreen = entity.GetComponent<GridMapScreenComponent>();
+    gridMapScreen->LoadCamera(locator, pData->mCameraAndObjects.mName);
+
+    auto pTransform = entity.GetComponent<TransformComponent>();
+    pTransform->Set(xIndex * cameraSystem->mCameraBlockSize.x, yIndex * cameraSystem->mCameraBlockSize.y);
+}
+
 void GridmapSystem::LoadAllGridScreens(ResourceLocator& locator)
 {
-    CameraSystem* cameraSystem = mManager->GetSystem<CameraSystem>();
+    auto cameraSystem = mManager->GetSystem<CameraSystem>();
     for (u32 x = 0; x < mGridMap->XSize(); x++)
     {
         for (u32 y = 0; y < mGridMap->YSize(); y++)
@@ -71,18 +88,14 @@ void GridmapSystem::UnloadAllGridScreens()
     }
 }
 
-void GridmapSystem::AddGridScreen(CameraSystem* cameraSystem, ResourceLocator& locator, u32 xIndex, u32 yIndex)
+u32 GridmapSystem::GetCurrentGridScreenX() const
 {
-    GridScreenData* pData = mGridMap->GetGridScreen(xIndex, yIndex);
-    assert(pData);
+    return mCurrentGridScreenX;
+}
 
-    Entity entity = mManager->CreateEntityWith<GridMapScreenComponent, TransformComponent>();
-
-    GridMapScreenComponent* gridMapScreen = entity.GetComponent<GridMapScreenComponent>();
-    gridMapScreen->LoadCamera(locator, pData->mCameraAndObjects.mName);
-
-    TransformComponent* pTransform = entity.GetComponent<TransformComponent>();
-    pTransform->Set(xIndex * cameraSystem->mCameraBlockSize.x, yIndex * cameraSystem->mCameraBlockSize.y);
+u32 GridmapSystem::GetCurrentGridScreenY() const
+{
+    return mCurrentGridScreenY;
 }
 
 DEFINE_COMPONENT(GridMapScreenComponent);
@@ -112,7 +125,7 @@ void GridMapScreenComponent::Render(AbstractRenderer& rend, float x, float y, fl
                 SDL_Surface* fg1Surf = mBits->GetFg1()->GetSurface();
                 if (fg1Surf)
                 {
-                    TextureHandle fg1Texture = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, 
+                    TextureHandle fg1Texture = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA,
                         static_cast<u32>(fg1Surf->w),
                         static_cast<u32>(fg1Surf->h),
                         AbstractRenderer::eTextureFormats::eRGBA,

@@ -1,4 +1,5 @@
 #include "gamemode.hpp"
+#include "editormode.hpp"
 #include "engine.hpp"
 #include "debug.hpp"
 #include "world.hpp"
@@ -30,15 +31,21 @@ GameMode::GameMode(World& world) : mWorld(world)
 
 }
 
+void GameMode::FromEditorMode(u32 x, u32 y)
+{
+    mWorld.mEntityManager.GetSystem<GridmapSystem>()->MoveToCamera(mWorld.mLocator, x, y);
+}
+
 void GameMode::UpdateMenu(const InputReader& /*input*/, CoordinateSpace& /*coords*/)
 {
+    auto gridmapSystem = mWorld.mEntityManager.GetSystem<GridmapSystem>();
     const auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
     switch (mMenuState)
     {
     case GameMode::MenuStates::eInit:
         mMenuState = MenuStates::eCameraRoll;
-        mWorld.SetCurrentGridScreenFromCAM("STP01C25.CAM");
-        cameraSystem->SetGameCameraToCameraAt(mWorld.GetCurrentGridScreenX(), mWorld.GetCurrentGridScreenY());
+        gridmapSystem->MoveToCamera(mWorld.mLocator, "STP01C25.CAM");
+        cameraSystem->SetGameCameraToCameraAt(gridmapSystem->GetCurrentGridScreenX(), gridmapSystem->GetCurrentGridScreenY());
         break;
     case GameMode::MenuStates::eCameraRoll:
         if ((mWorld.mGlobalFrameCounter % 100) == 0)
@@ -118,18 +125,12 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
     {
         mWorld.mState = World::States::eToEditor;
         coords.mSmoothCameraPosition = true;
-
         mWorld.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
-
-        //mCameraPosition.x = mPlayer.mXPos;
-        //mCameraPosition.y = mPlayer.mYPos;
+        mWorld.mEditorMode->FromGameMode();
     }
 
     // Input system
     mWorld.mEntityManager.GetSystem<InputSystem>()->Update();
-
-    // Grid map system
-    // mWorld.mEntityManager.GetSystem<GridmapSystem>()->Update();
 
     if (cameraSystem->mTarget)
     {
@@ -145,11 +146,9 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
         if (cameraSystem->mCameraPosition != camPos)
         {
             LOG_INFO("TODO: Screen change");
-
-            mWorld.mEntityManager.GetSystem<GridmapSystem>()->MoveToCamera(mWorld.mLocator, camX, camY);
-
             coords.mSmoothCameraPosition = false;
             cameraSystem->mCameraPosition = camPos;
+            mWorld.mEntityManager.GetSystem<GridmapSystem>()->MoveToCamera(mWorld.mLocator, camX, camY);
         }
 
         coords.SetCameraPosition(camPos);

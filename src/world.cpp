@@ -127,33 +127,6 @@ World::~World()
     UnloadMap();
 }
 
-void World::SetCurrentGridScreenFromCAM(const char* /*camFilename*/)
-{
-    /* TODO: Grid map system
-    for (auto x = 0u; x < mScreens.size(); x++)
-    {
-        for (auto y = 0u; y < mScreens[x].size(); y++)
-        {
-            if (mScreens[x][y]->FileName() == camFilename)
-            {
-                mCurrentGridScreenX = x;
-                mCurrentGridScreenY = y;
-                return;
-            }
-        }
-    }*/
-}
-
-u32 World::GetCurrentGridScreenX() const
-{
-    return mCurrentGridScreenX;
-}
-
-u32 World::GetCurrentGridScreenY() const
-{
-    return mCurrentGridScreenY;
-}
-
 void World::LoadSystems()
 {
     mEntityManager.AddSystem<DebugSystem>();
@@ -213,10 +186,8 @@ bool World::LoadMap(const PathInformation& pathInfo)
 
 void World::UnloadMap()
 {
-    mEntityManager.GetSystem<GridmapSystem>()->UnloadAllGridScreens();
+    mEntityManager.GetSystem<GridmapSystem>()->UnLoadMap();
     mEntityManager.Clear();
-    // TODO: Grid map system
-    //mScreens.clear();
     auto collisionSystem = mEntityManager.GetSystem<CollisionSystem>();
     if (collisionSystem)
     {
@@ -272,17 +243,14 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
                 if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
                 {
                     mState = States::eInEditor;
-                    mEntityManager.GetSystem<GridmapSystem>()->LoadAllGridScreens(mLocator);
                 }
             }
             else if (mState == States::eToGame)
             {
-                const auto cameraSystem = mEntityManager.GetSystem<CameraSystem>();
-                coords.SetScreenSize(cameraSystem->mVirtualScreenSize);
+                coords.SetScreenSize(mEntityManager.GetSystem<CameraSystem>()->mVirtualScreenSize);
                 if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
                 {
                     mState = States::eInGame;
-                    // mEntityManager.GetSystem<GridmapSystem>()->MoveToCamera(mLocator, mCurrentGridScreenX, mCurrentGridScreenY); // Done in EditorMode
                 }
             }
             coords.SetCameraPosition(mEntityManager.GetSystem<CameraSystem>()->mCameraPosition);

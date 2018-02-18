@@ -28,6 +28,9 @@ public:
     };
 
 public:
+    void FromEditorMode(u32 x, u32 y);
+
+public:
     void Render(AbstractRenderer& rend) const;
     void Update(const InputReader& input, CoordinateSpace& coords);
     void UpdateMenu(const InputReader& input, CoordinateSpace& coords);

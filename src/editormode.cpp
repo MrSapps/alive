@@ -1,4 +1,5 @@
 #include "editormode.hpp"
+#include "gamemode.hpp"
 #include "engine.hpp"
 #include "debug.hpp"
 #include "world.hpp"
@@ -341,6 +342,11 @@ EditorMode::EditorMode(World& world) : mWorld(world)
 
 }
 
+void EditorMode::FromGameMode()
+{
+    mWorld.mEntityManager.GetSystem<GridmapSystem>()->LoadAllGridScreens(mWorld.mLocator);
+}
+
 void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 {
     const auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
@@ -434,17 +440,18 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 
     if (input.KeyboardKey(SDL_SCANCODE_E).Pressed())
     {
-        mWorld.mState = World::States::eToGame;
-        coords.mSmoothCameraPosition = true;
-        mWorld.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
-
         const auto mouseCamX = static_cast<s32>(mousePosWorld.x / cameraSystem->mCameraBlockSize.x);
         const auto mouseCamY = static_cast<s32>(mousePosWorld.y / cameraSystem->mCameraBlockSize.y);
+
+        mWorld.mState = World::States::eToGame;
+        mWorld.mModeSwitchTimeout = SDL_GetTicks() + kSwitchTimeMs;
 
         cameraSystem->mCameraPosition.x = (mouseCamX * cameraSystem->mCameraBlockSize.x) + (cameraSystem->mVirtualScreenSize.x / 2);
         cameraSystem->mCameraPosition.y = (mouseCamY * cameraSystem->mCameraBlockSize.y) + (cameraSystem->mVirtualScreenSize.y / 2);
 
-        mWorld.mEntityManager.GetSystem<GridmapSystem>()->MoveToCamera(mWorld.mLocator, static_cast<u32>(mouseCamX), static_cast<u32>(mouseCamY));
+        coords.mSmoothCameraPosition = true;
+
+        mWorld.mGameMode->FromEditorMode(mouseCamX, mouseCamY);
 
         if (cameraSystem->mTarget)
         {
