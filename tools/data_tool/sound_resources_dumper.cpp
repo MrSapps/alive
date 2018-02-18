@@ -2553,24 +2553,64 @@ void SoundResourcesDumper::GenerateThemes()
     }
 
     {
-        // Paramite vault
+        // TODO: PV_7_1
+        MusicTheme theme;
+        theme.mName = "Paramite vault";
+        theme.mEntries["AMBIANCE"] = { { "PARAMB", 1 } };
+        theme.mEntries["BASE_LINE"] = { { "PV_3_1", 1 },{ "PV_2_1", 1 },{ "PV_1_1", 1 } };
+        theme.mEntries["SLIG_PATROL"] = { { "PV_4_1", 1 } };
+        theme.mEntries["SLIG_POSSESSED"] = { { "PV_5_1", 1 } };
+        theme.mEntries["SLIG_ATTACK"] = { { "PV_6_1", 1 } };
+        theme.mEntries["CRITTER_PATROL"] = { { "PV_8_1", 1 } };
+        theme.mEntries["CRITTER_ATTACK"] = { { "PV_9_1", 1 } };
+        mFinalResources.mThemes.push_back(theme);
     }
 
     {
-        // Paramite vault ender
+        // TODO: PVEND_7
+        MusicTheme theme;
+        theme.mName = "Paramite vault ender";
+        theme.mEntries["AMBIANCE"] = { { "PARAMB", 1 } };
+        theme.mEntries["BASE_LINE"] = { { "PVEND_3", 1 } };
+        theme.mEntries["SLIG_PATROL"] = { { "PVEND_4", 1 } };
+        theme.mEntries["SLIG_POSSESSED"] = { { "PVEND_5", 1 } };
+        theme.mEntries["SLIG_ATTACK"] = { { "PVEND_6", 1 } };
+        theme.mEntries["CRITTER_PATROL"] = { { "PVEND_8", 1 } };
+        theme.mEntries["CRITTER_ATTACK"] = { { "PVEND_9", 1 } };
+        mFinalResources.mThemes.push_back(theme);
     }
 
     {
-        // Scrab vault
+        // TODO: SV_7_1
+        MusicTheme theme;
+        theme.mName = "Scrab vault";
+        theme.mEntries["AMBIANCE"] = { { "SCRAMB", 1 } };
+        theme.mEntries["BASE_LINE"] = { { "SV_3_1", 1 },{ "SV_2_1", 1 },{ "SV_1_1", 1 } };
+        theme.mEntries["SLIG_PATROL"] = { { "SV_4_1", 1 } };
+        theme.mEntries["SLIG_POSSESSED"] = { { "SV_5_1", 1 } };
+        theme.mEntries["SLIG_ATTACK"] = { { "SV_6_1", 1 } };
+        theme.mEntries["CRITTER_PATROL"] = { { "SV_8_1", 1 } };
+        theme.mEntries["CRITTER_ATTACK"] = { { "SV_9_1", 1 } };
+        mFinalResources.mThemes.push_back(theme);
     }
 
     {
-        // Scrab vault ender
+        // TODO: SVEND_7
+        MusicTheme theme;
+        theme.mName = "Scrab vault ender";
+        theme.mEntries["AMBIANCE"] = { { "SCRAMB", 1 } };
+        theme.mEntries["BASE_LINE"] = { { "SVEND_3", 1 } };
+        theme.mEntries["SLIG_PATROL"] = { { "SVEND_4", 1 } };
+        theme.mEntries["SLIG_POSSESSED"] = { { "SVEND_5", 1 } };
+        theme.mEntries["SLIG_ATTACK"] = { { "SVEND_6", 1 } };
+        theme.mEntries["CRITTER_PATROL"] = { { "SVEND_8", 1 } };
+        theme.mEntries["CRITTER_ATTACK"] = { { "SVEND_9", 1 } };
+        mFinalResources.mThemes.push_back(theme);
     }
 
     {
-		// TOOD: BR_10_1
-		MusicTheme theme;
+        // TOOD: BR_10_1
+        MusicTheme theme;
         theme.mName = "Brewery";
         theme.mEntries["AMBIANCE"] = { { "BREWAMB", 1 } };
         theme.mEntries["BASE_LINE"] = { { "BR_3_1", 1 },{ "BR_2_1", 1 },{ "BR_1_1", 1 } };
@@ -2583,7 +2623,7 @@ void SoundResourcesDumper::GenerateThemes()
     }
 	
     {
-		MusicTheme theme;
+        MusicTheme theme;
         theme.mName = "Brewery ender";
         theme.mEntries["AMBIANCE"] = { { "BREWAMB", 1 } };
         theme.mEntries["BASE_LINE"] = { { "BREND_3", 1 },{ "BREND_2", 1 },{ "BREND_1", 1 } };
@@ -2594,9 +2634,9 @@ void SoundResourcesDumper::GenerateThemes()
         //theme.mEntries["CRITTER_ATTACK"] = { { "BREND_9", 1 } };
         mFinalResources.mThemes.push_back(theme);
     }
-	
+
     {
-		MusicTheme theme;
+        MusicTheme theme;
         theme.mName = "Barracks";
         theme.mEntries["AMBIANCE"] = { { "BARRAMB", 1 } };
         theme.mEntries["BASE_LINE"] = { { "BA_3_1", 1 },{ "BA_2_1", 1 },{ "BA_1_1", 1 } };
@@ -2606,19 +2646,46 @@ void SoundResourcesDumper::GenerateThemes()
         //theme.mEntries["CRITTER_PATROL"] = { { "BA_8_1", 1 } };
         //theme.mEntries["CRITTER_ATTACK"] = { { "BA_9_1", 1 } };
         mFinalResources.mThemes.push_back(theme);	
-		
-    }
 
-	{
-		// Barracks ender
-	}
-
-    {
-        // Bonewerkz
     }
 
     {
-        // Bonewerkz ender
+        MusicTheme theme;
+        theme.mName = "Barracks ender";
+        theme.mEntries["AMBIANCE"] = { { "BARRAMB", 1 } };
+        theme.mEntries["BASE_LINE"] = { { "BAEND_3", 1 } };
+        theme.mEntries["SLIG_PATROL"] = { { "BAEND_4", 1 } };
+        theme.mEntries["SLIG_POSSESSED"] = { { "BAEND_5", 1 } };
+        theme.mEntries["SLIG_ATTACK"] = { { "BAEND_6", 1 } };
+        mFinalResources.mThemes.push_back(theme);
+    }
+
+    {
+        // TODO: BW_10_1
+        MusicTheme theme;
+        theme.mName = "Bonewerkz";
+        theme.mEntries["AMBIANCE"] = { { "BONEAMB", 1 } };
+        theme.mEntries["BASE_LINE"] = { { "BW_3_1", 1 },{ "BW_2_1", 1 },{ "BW_1_1", 1 } };
+        theme.mEntries["SLIG_PATROL"] = { { "BW_4_1", 1 } };
+        theme.mEntries["SLIG_POSSESSED"] = { { "BW_5_1", 1 } };
+        theme.mEntries["SLIG_ATTACK"] = { { "BW_6_1", 1 } };
+        theme.mEntries["CRITTER_PATROL"] = { { "BW_8_1", 1 } };
+        theme.mEntries["CRITTER_ATTACK"] = { { "BW_9_1", 1 } };
+        mFinalResources.mThemes.push_back(theme);
+    }
+
+    {
+        // TODO: BWEND_10
+        MusicTheme theme;
+        theme.mName = "Bonewerkz ender";
+        theme.mEntries["AMBIANCE"] = { { "BONEAMB", 1 } };
+        theme.mEntries["BASE_LINE"] = { { "BWEND_3", 1 } };
+        theme.mEntries["SLIG_PATROL"] = { { "BWEND_4", 1 } };
+        theme.mEntries["SLIG_POSSESSED"] = { { "BWEND_5", 1 } };
+        theme.mEntries["SLIG_ATTACK"] = { { "BWEND_6", 1 } };
+        theme.mEntries["CRITTER_PATROL"] = { { "BWEND_8", 1 } };
+        theme.mEntries["CRITTER_ATTACK"] = { { "BWEND_9", 1 } };
+        mFinalResources.mThemes.push_back(theme);
     }
 }
 

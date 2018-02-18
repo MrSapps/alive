@@ -7265,6 +7265,106 @@
 			},
 			{
 				"AMBIANCE": [
+					"PARAMB" 
+				],
+				"BASE_LINE": [
+					"PV_3_1",
+					"PV_2_1",
+					"PV_1_1" 
+				],
+				"CRITTER_ATTACK": [
+					"PV_9_1" 
+				],
+				"CRITTER_PATROL": [
+					"PV_8_1" 
+				],
+				"SLIG_ATTACK": [
+					"PV_6_1" 
+				],
+				"SLIG_PATROL": [
+					"PV_4_1" 
+				],
+				"SLIG_POSSESSED": [
+					"PV_5_1" 
+				],
+				"name": "Paramite vault" 
+			},
+			{
+				"AMBIANCE": [
+					"PARAMB" 
+				],
+				"BASE_LINE": [
+					"PVEND_3" 
+				],
+				"CRITTER_ATTACK": [
+					"PVEND_9" 
+				],
+				"CRITTER_PATROL": [
+					"PVEND_8" 
+				],
+				"SLIG_ATTACK": [
+					"PVEND_6" 
+				],
+				"SLIG_PATROL": [
+					"PVEND_4" 
+				],
+				"SLIG_POSSESSED": [
+					"PVEND_5" 
+				],
+				"name": "Paramite vault ender" 
+			},
+			{
+				"AMBIANCE": [
+					"SCRAMB" 
+				],
+				"BASE_LINE": [
+					"SV_3_1",
+					"SV_2_1",
+					"SV_1_1" 
+				],
+				"CRITTER_ATTACK": [
+					"SV_9_1" 
+				],
+				"CRITTER_PATROL": [
+					"SV_8_1" 
+				],
+				"SLIG_ATTACK": [
+					"SV_6_1" 
+				],
+				"SLIG_PATROL": [
+					"SV_4_1" 
+				],
+				"SLIG_POSSESSED": [
+					"SV_5_1" 
+				],
+				"name": "Scrab vault" 
+			},
+			{
+				"AMBIANCE": [
+					"SCRAMB" 
+				],
+				"BASE_LINE": [
+					"SVEND_3" 
+				],
+				"CRITTER_ATTACK": [
+					"SVEND_9" 
+				],
+				"CRITTER_PATROL": [
+					"SVEND_8" 
+				],
+				"SLIG_ATTACK": [
+					"SVEND_6" 
+				],
+				"SLIG_PATROL": [
+					"SVEND_4" 
+				],
+				"SLIG_POSSESSED": [
+					"SVEND_5" 
+				],
+				"name": "Scrab vault ender" 
+			},
+			{
+				"AMBIANCE": [
 					"BREWAMB" 
 				],
 				"BASE_LINE": [
@@ -7328,6 +7428,74 @@
 					"BA_5_1" 
 				],
 				"name": "Barracks" 
+			},
+			{
+				"AMBIANCE": [
+					"BARRAMB" 
+				],
+				"BASE_LINE": [
+					"BAEND_3" 
+				],
+				"SLIG_ATTACK": [
+					"BAEND_6" 
+				],
+				"SLIG_PATROL": [
+					"BAEND_4" 
+				],
+				"SLIG_POSSESSED": [
+					"BAEND_5" 
+				],
+				"name": "Barracks ender" 
+			},
+			{
+				"AMBIANCE": [
+					"BONEAMB" 
+				],
+				"BASE_LINE": [
+					"BW_3_1",
+					"BW_2_1",
+					"BW_1_1" 
+				],
+				"CRITTER_ATTACK": [
+					"BW_9_1" 
+				],
+				"CRITTER_PATROL": [
+					"BW_8_1" 
+				],
+				"SLIG_ATTACK": [
+					"BW_6_1" 
+				],
+				"SLIG_PATROL": [
+					"BW_4_1" 
+				],
+				"SLIG_POSSESSED": [
+					"BW_5_1" 
+				],
+				"name": "Bonewerkz" 
+			},
+			{
+				"AMBIANCE": [
+					"BONEAMB" 
+				],
+				"BASE_LINE": [
+					"BWEND_3" 
+				],
+				"CRITTER_ATTACK": [
+					"BWEND_9" 
+				],
+				"CRITTER_PATROL": [
+					"BWEND_8" 
+				],
+				"SLIG_ATTACK": [
+					"BWEND_6" 
+				],
+				"SLIG_PATROL": [
+					"BWEND_4" 
+				],
+				"SLIG_POSSESSED": [
+					"BWEND_5" 
+				],
+				"name": "Bonewerkz ender" 
 			} 
 		] 
 	} 

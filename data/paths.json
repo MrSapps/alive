@@ -12,7 +12,7 @@
 			"door_skin": "Mines",
 			"glukkon_skin": "GreenSuit",
 			"lift_skin": "Mines",
-			"music_theme": "Barracks",
+			"music_theme": "Barracks ender",
 			"name": "Barracks_Ender",
 			"slam_door_skin": "Mines" 
 		},
@@ -20,7 +20,7 @@
 			"door_skin": "Mines",
 			"glukkon_skin": "GreenSuit",
 			"lift_skin": "Mines",
-			"music_theme": "Barracks",
+			"music_theme": "Bonewerkz",
 			"name": "BoneWerkz",
 			"slam_door_skin": "Mines" 
 		},
@@ -28,7 +28,7 @@
 			"door_skin": "Mines",
 			"glukkon_skin": "GreenSuit",
 			"lift_skin": "Mines",
-			"music_theme": "Barracks",
+			"music_theme": "Bonewerkz ender",
 			"name": "BoneWerkz_Ender",
 			"slam_door_skin": "Mines" 
 		},
@@ -36,7 +36,7 @@
 			"door_skin": "Mines",
 			"glukkon_skin": "GreenSuit",
 			"lift_skin": "Mines",
-			"music_theme": "Barracks",
+			"music_theme": "Brewery",
 			"name": "Brewery",
 			"slam_door_skin": "Mines" 
 		},
@@ -44,7 +44,7 @@
 			"door_skin": "Mines",
 			"glukkon_skin": "GreenSuit",
 			"lift_skin": "Mines",
-			"music_theme": "Barracks",
+			"music_theme": "Brewery ender",
 			"name": "Brewery_Ender",
 			"slam_door_skin": "Mines" 
 		},
@@ -60,7 +60,7 @@
 			"door_skin": "Mines",
 			"glukkon_skin": "GreenSuit",
 			"lift_skin": "Mines",
-			"music_theme": "Barracks",
+			"music_theme": "Feeco",
 			"name": "FecoDepot",
 			"slam_door_skin": "Mines" 
 		},
@@ -92,7 +92,7 @@
 			"door_skin": "Mines",
 			"glukkon_skin": "GreenSuit",
 			"lift_skin": "Mines",
-			"music_theme": "Barracks",
+			"music_theme": "Necrum",
 			"name": "Necrum",
 			"slam_door_skin": "Mines" 
 		},
@@ -100,7 +100,7 @@
 			"door_skin": "Mines",
 			"glukkon_skin": "GreenSuit",
 			"lift_skin": "Mines",
-			"music_theme": "Barracks",
+			"music_theme": "Paramite vault",
 			"name": "ParamiteVaults",
 			"slam_door_skin": "Mines" 
 		},
@@ -108,7 +108,7 @@
 			"door_skin": "Mines",
 			"glukkon_skin": "GreenSuit",
 			"lift_skin": "Mines",
-			"music_theme": "Barracks",
+			"music_theme": "Paramite vault ender",
 			"name": "ParamiteVaults_Ender",
 			"slam_door_skin": "Mines" 
 		},
@@ -116,7 +116,7 @@
 			"door_skin": "Mines",
 			"glukkon_skin": "GreenSuit",
 			"lift_skin": "Mines",
-			"music_theme": "Barracks",
+			"music_theme": "Scrab vault",
 			"name": "ScrabVaults",
 			"slam_door_skin": "Mines" 
 		},
@@ -124,18 +124,10 @@
 			"door_skin": "Mines",
 			"glukkon_skin": "GreenSuit",
 			"lift_skin": "Mines",
-			"music_theme": "Barracks",
+			"music_theme": "Scrab vault ender",
 			"name": "ScrabVaults_Ender",
 			"slam_door_skin": "Mines" 
-		},
-		{
-			"door_skin": "Mines",
-			"glukkon_skin": "GreenSuit",
-			"lift_skin": "Mines",
-			"music_theme": "Barracks",
-			"name": "TL",
-			"slam_door_skin": "Mines" 
-		} 
+		}
 	],
 	"paths": [
 		{
