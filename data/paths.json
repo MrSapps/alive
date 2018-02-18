@@ -266,8 +266,8 @@
 			"object_indextable_offset": 2980,
 			"object_offset": 384,
 			"resource_name": "BAPATH_15",
-			"spawn_x": 1187,
-			"spawn_y": 1391,
+			"spawn_x": 439,
+			"spawn_y": 98,
 			"theme": "Barracks" 
 		},
 		{
@@ -288,8 +288,8 @@
 			"object_indextable_offset": 952,
 			"object_offset": 172,
 			"resource_name": "BAPATH_16",
-			"spawn_x": 837,
-			"spawn_y": 457,
+			"spawn_x": 636,
+			"spawn_y": 197,
 			"theme": "Barracks_Ender" 
 		},
 		{
@@ -332,8 +332,8 @@
 			"object_indextable_offset": 4480,
 			"object_offset": 1836,
 			"resource_name": "BAPATH_3",
-			"spawn_x": 501,
-			"spawn_y": 409,
+			"spawn_x": 686,
+			"spawn_y": 977,
 			"theme": "Barracks" 
 		},
 		{
@@ -442,8 +442,8 @@
 			"object_indextable_offset": 8504,
 			"object_offset": 2576,
 			"resource_name": "BMPATH_1",
-			"spawn_x": 212,
-			"spawn_y": 713,
+			"spawn_x": 89,
+			"spawn_y": 977,
 			"theme": "Brewery_Ender" 
 		},
 		{
