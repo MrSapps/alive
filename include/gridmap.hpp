@@ -56,27 +56,33 @@ public:
     {
         mXSize = x;
         mYSize = y;
+        mData.clear();
         mData.resize(mXSize*mYSize);
     }
 
     void Set(u32 x, u32 y, T&& data)
     {
-        mData[x * mXSize + y] = std::move(data);
+        mData[To1DIndex(x, y)] = std::move(data);
     }
 
     T& Get(u32 x, u32 y)
     {
-        return mData[x * mXSize + y];
+        return mData[To1DIndex(x, y)];
     }
 
     const T& Get(u32 x, u32 y) const
     {
-        return mData[x * mXSize + y];
+        return mData[To1DIndex(x, y)];
     }
 
     u32 XSize() const { return mXSize; }
     u32 YSize() const { return mYSize; }
 private:
+    u32 To1DIndex(u32 x, u32 y) const
+    {
+        return (y * mXSize) + x;
+    }
+
     u32 mXSize = 0;
     u32 mYSize = 0;
     std::vector<T> mData;
