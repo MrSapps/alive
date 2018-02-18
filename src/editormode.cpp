@@ -11,6 +11,7 @@
 
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
+#include "core/systems/gridmapsystem.hpp"
 
 #include "CONTRIBUTORS.md.g.h"
 
@@ -620,30 +621,15 @@ void EditorMode::Update(const InputReader& input, CoordinateSpace& coords)
 
 void EditorMode::Render(AbstractRenderer& rend) const
 {
-//    const auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
     if (Debugging().mDrawCameras)
     {
-        /* TODO: Grid map system
-        // Draw every cam
-        for (auto x = 0u; x < mWorld.mScreens.size(); x++)
+        const auto cameraSystem = mWorld.mEntityManager.GetSystem<CameraSystem>();
+        mWorld.mEntityManager.With<GridMapScreenComponent, TransformComponent>([&](auto, GridMapScreenComponent* mapScreen, TransformComponent* transform)
         {
-            for (auto y = 0u; y < mWorld.mScreens[x].size(); y++)
-            {
-                // screen can be null while the array is being populated during loading
-                GridScreen* screen = mWorld.mScreens[x][y].get();
-                if (screen)
-                {
-                    if (!screen->HasTexture())
-                    {
-                        continue;
-                    }
-
-                    screen->Render(rend, (x * cameraSystem->mCameraBlockSize.x) + cameraSystem->mCameraBlockImageOffset.x,
-                                   (y * cameraSystem->mCameraBlockSize.y) + cameraSystem->mCameraBlockImageOffset.y,
-                                   cameraSystem->mVirtualScreenSize.x, cameraSystem->mVirtualScreenSize.y);
-                }
-            }
-        }*/
+            mapScreen->Render(rend,
+                transform->GetX(), transform->GetY(),
+                cameraSystem->mVirtualScreenSize.x, cameraSystem->mVirtualScreenSize.y);
+        });
     }
 
     // Debug system render

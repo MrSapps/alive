@@ -66,7 +66,7 @@ private:
 private:
     void LoadMap(const std::string& mapName);
     bool LoadMap(const PathInformation& pathInfo);
-    void UnloadMap(AbstractRenderer& renderer);
+    void UnloadMap();
 
 private:
     void RenderDebugPathSelection();
@@ -80,7 +80,9 @@ private:
     Sound& mSound;
     InputReader& mInput;
     LoadingIcon& mLoadingIcon;
-    ResourceLocator& mLocator;
+public:
+    ResourceLocator& mLocator;  // should be private
+private:
     AbstractRenderer& mRenderer;
 
 private:
@@ -99,7 +101,4 @@ public:
     States mReturnToState = States::eNone;// should be private
     EntityManager mEntityManager; // should be private
     std::unique_ptr<PlayFmvState> mPlayFmvState; // should be private
-
-    // TODO: Move to GridmapSystem
-    //std::deque<std::deque<std::unique_ptr<GridScreen>>> mScreens; // should be private
 };

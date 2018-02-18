@@ -21,8 +21,58 @@ void GridmapSystem::OnLoad()
 
 void GridmapSystem::MoveToCamera(ResourceLocator& locator, u32 xIndex, u32 yIndex)
 {
-    CameraSystem* cameraSystem = mManager->GetSystem<CameraSystem>();
+    // Remove all existing grid map screens.. there can only be 1 rendered/active at a time
+    // during "game" mode.
+    UnloadAllGridScreens();
 
+    CameraSystem* cameraSystem = mManager->GetSystem<CameraSystem>();
+    AddGridScreen(cameraSystem, locator, xIndex, yIndex);
+}
+
+void GridmapSystem::MoveToCamera(ResourceLocator& locator, const char* cameraName)
+{
+ 
+    for (u32 x = 0; x < mGridMap->XSize(); x++)
+    {
+        for (u32 y = 0; y < mGridMap->YSize(); y++)
+        {
+            if (mGridMap->GetGridScreen(x, y)->mCameraAndObjects.mName == cameraName)
+            {
+                CameraSystem* cameraSystem = mManager->GetSystem<CameraSystem>();
+                AddGridScreen(cameraSystem, locator, x, y);
+                return;
+            }
+        }
+    }
+}
+
+bool GridmapSystem::LoadMap(const PathInformation& pathInfo)
+{
+    return mGridMap->LoadMap(pathInfo);
+}
+
+void GridmapSystem::LoadAllGridScreens(ResourceLocator& locator)
+{
+    CameraSystem* cameraSystem = mManager->GetSystem<CameraSystem>();
+    for (u32 x = 0; x < mGridMap->XSize(); x++)
+    {
+        for (u32 y = 0; y < mGridMap->YSize(); y++)
+        {
+            AddGridScreen(cameraSystem, locator, x, y);
+        }
+    }
+}
+
+void GridmapSystem::UnloadAllGridScreens()
+{
+    for (auto entity : mManager->With<GridMapScreenComponent>())
+    {
+        entity.Destroy();
+    }
+}
+
+void GridmapSystem::AddGridScreen(CameraSystem* cameraSystem, ResourceLocator& locator, u32 xIndex, u32 yIndex)
+{
     GridScreenData* pData = mGridMap->GetGridScreen(xIndex, yIndex);
     assert(pData);
 
@@ -33,21 +83,6 @@ void GridmapSystem::MoveToCamera(ResourceLocator& locator, u32 xIndex, u32 yInde
 
     TransformComponent* pTransform = entity.GetComponent<TransformComponent>();
     pTransform->Set(xIndex * cameraSystem->mCameraBlockSize.x, yIndex * cameraSystem->mCameraBlockSize.y);
-}
-
-void GridmapSystem::MoveToCamera(const char* /*cameraName*/)
-{
-    mManager->CreateEntityWith<GridMapScreenComponent, TransformComponent>();
-}
-
-bool GridmapSystem::LoadMap(const PathInformation& pathInfo)
-{
-    return mGridMap->LoadMap(pathInfo);
-}
-
-void GridmapSystem::UnloadMap(AbstractRenderer& renderer) const
-{
-    return mGridMap->UnloadMap(renderer);
 }
 
 DEFINE_COMPONENT(GridMapScreenComponent);
@@ -64,17 +99,30 @@ void GridMapScreenComponent::Render(AbstractRenderer& rend, float x, float y, fl
         SDL_Surface* pBackgroundImage = mBits->GetSurface();
         if (pBackgroundImage)
         {
-            TextureHandle backgroundText = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGB, 
+            TextureHandle backgroundText = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGB,
                 static_cast<u32>(pBackgroundImage->w),
                 static_cast<u32>(pBackgroundImage->h),
                 AbstractRenderer::eTextureFormats::eRGB,
                 pBackgroundImage->pixels, true);
-
             rend.TexturedQuad(backgroundText, x, y, w, h, AbstractRenderer::eForegroundLayer0, ColourU8{ 255, 255, 255, 255 });
+            rend.DestroyTexture(backgroundText);
+
+            if (mBits->GetFg1())
+            {
+                SDL_Surface* fg1Surf = mBits->GetFg1()->GetSurface();
+                if (fg1Surf)
+                {
+                    TextureHandle fg1Texture = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, 
+                        static_cast<u32>(fg1Surf->w),
+                        static_cast<u32>(fg1Surf->h),
+                        AbstractRenderer::eTextureFormats::eRGBA,
+                        fg1Surf->pixels, true);
+                    rend.TexturedQuad(fg1Texture, x, y, w, h, AbstractRenderer::eForegroundLayer1, ColourU8{ 255, 255, 255, 255 });
+                    rend.DestroyTexture(fg1Texture);
+                }
+            }
         }
     }
-
-    //mBits->Render(rend, x, y ,w ,h);
 }
 
 void GridMapScreenComponent::LoadCamera(ResourceLocator& locator, const std::string& name)

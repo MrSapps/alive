@@ -6,7 +6,7 @@ class EntityManager;
 class Menu
 {
 public:
-    Menu(EntityManager& em);
+    Menu(EntityManager& /*em*/);
 
     void ToBootSequnce();
     void ToIntroSequnce();
@@ -32,5 +32,5 @@ public:
 
 private:
 
-    EntityManager& mEm;
+    //EntityManager& mEm;
 };

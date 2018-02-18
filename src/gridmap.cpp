@@ -16,86 +16,6 @@
 #include "world.hpp"
 #include "fmv.hpp"
 
-GridScreen::GridScreen(const Oddlib::Path::Camera& camera, ResourceLocator& locator)
-    : mFileName(camera.mName), mLocator(locator)
-{
-
-}
-
-GridScreen::~GridScreen()
-{
-    assert(!mCameraTexture.IsValid());
-    assert(!mFG1Texture.IsValid());
-}
-
-void GridScreen::LoadTextures(AbstractRenderer& rend)
-{
-    if (!mCameraTexture.IsValid())
-    {
-        mCam = mLocator.LocateCamera(mFileName).get();
-        if (mCam) // One path trys to load BRP08C10.CAM which exists in no data sets anywhere!
-        {
-            SDL_Surface* surf = mCam->GetSurface();
-            mCameraTexture = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGB, static_cast<u32>(surf->w), static_cast<u32>(surf->h), AbstractRenderer::eTextureFormats::eRGB, surf->pixels, true);
-
-            if (!mFG1Texture.IsValid())
-            {
-                if (mCam->GetFg1())
-                {
-                    SDL_Surface* fg1Surf = mCam->GetFg1()->GetSurface();
-                    if (fg1Surf)
-                    {
-                        mFG1Texture = rend.CreateTexture(AbstractRenderer::eTextureFormats::eRGBA, static_cast<u32>(fg1Surf->w), static_cast<u32>(fg1Surf->h), AbstractRenderer::eTextureFormats::eRGBA, fg1Surf->pixels, true);
-                    }
-                }
-            }
-        }
-    }
-}
-
-void GridScreen::UnLoadTextures(AbstractRenderer& rend)
-{
-    if (mCameraTexture.IsValid())
-    {
-        rend.DestroyTexture(mCameraTexture);
-        mCameraTexture.mData = nullptr;
-    }
-    if (mFG1Texture.IsValid())
-    {
-        rend.DestroyTexture(mFG1Texture);
-        mFG1Texture.mData = nullptr;
-    }
-}
-
-bool GridScreen::HasTexture() const
-{
-    bool onlySpaces = true;
-    for (auto c : mFileName)
-    {
-        if (c != ' ' && c != '\0')
-        {
-            onlySpaces = false;
-            break;
-        }
-    }
-    return !onlySpaces;
-}
-
-void GridScreen::Render(AbstractRenderer& rend, float x, float y, float w, float h)
-{
-    LoadTextures(rend);
-
-    if (mCameraTexture.IsValid())
-    {
-        rend.TexturedQuad(mCameraTexture, x, y, w, h, AbstractRenderer::eForegroundLayer0, ColourU8{ 255, 255, 255, 255 });
-    }
-
-    if (mFG1Texture.IsValid())
-    {
-        rend.TexturedQuad(mFG1Texture, x, y, w, h, AbstractRenderer::eForegroundLayer1, ColourU8{ 255, 255, 255, 255 });
-    }
-}
-
 GridMap::GridMap(CoordinateSpace& coords, EntityManager& em)
     : mLoader(*this), mEntityManager(em)
 {
@@ -141,23 +61,6 @@ bool GridMap::LoadMap(const PathInformation& pathInfo)
 #else
     return mLoader.Load(pathInfo);
 #endif
-}
-
-void GridMap::UnloadMap(AbstractRenderer& /*renderer*/)
-{
-    /* TODO: Screens move to components
-    for (auto x = 0u; x < mWorld.mScreens.size(); x++)
-    {
-        for (auto y = 0u; y < mWorld.mScreens[x].size(); y++)
-        {
-            auto screen = mWorld.mScreens[x][y].get();
-            if (!screen)
-            {
-                continue;
-            }
-            screen->UnLoadTextures(renderer);
-        }
-    }*/
 }
 
 GridMap::Loader::Loader(GridMap& gm)

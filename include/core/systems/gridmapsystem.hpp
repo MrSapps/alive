@@ -9,6 +9,7 @@
 class ResourceLocator;
 class CoordinateSpace;
 class AbstractRenderer;
+class CameraSystem;
 struct PathInformation;
 
 namespace Oddlib
@@ -28,12 +29,17 @@ public:
     void OnLoad() final;
 
 public:
-    void MoveToCamera(const char* cameraName);
+    void MoveToCamera(ResourceLocator& locator, const char* cameraName);
     void MoveToCamera(ResourceLocator& locator, u32 xIndex, u32 yIndex);
+
+    void LoadAllGridScreens(ResourceLocator& locator);
+    void UnloadAllGridScreens();
+
     bool LoadMap(const PathInformation& pathInfo);
-    void UnloadMap(AbstractRenderer& renderer) const;
 
 private:
+    void AddGridScreen(CameraSystem* cameraSystem, ResourceLocator& locator, u32 xIndex, u32 yIndex);
+
     std::unique_ptr<class GridMap> mGridMap;
     CoordinateSpace& mCoords;
 };

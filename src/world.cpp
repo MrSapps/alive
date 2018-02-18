@@ -124,7 +124,7 @@ World::~World()
 {
     TRACE_ENTRYEXIT;
 
-    UnloadMap(mRenderer);
+    UnloadMap();
 }
 
 void World::SetCurrentGridScreenFromCAM(const char* /*camFilename*/)
@@ -196,7 +196,7 @@ void World::SetState(World::States state)
 
 void World::LoadMap(const std::string& mapName)
 {
-    UnloadMap(mRenderer);
+    UnloadMap();
 
     mLocatePathFuture = mLocator.LocatePath(mapName.c_str());
 
@@ -211,9 +211,9 @@ bool World::LoadMap(const PathInformation& pathInfo)
     return mEntityManager.GetSystem<GridmapSystem>()->LoadMap(pathInfo);
 }
 
-void World::UnloadMap(AbstractRenderer& renderer)
+void World::UnloadMap()
 {
-    mEntityManager.GetSystem<GridmapSystem>()->UnloadMap(renderer);
+    mEntityManager.GetSystem<GridmapSystem>()->UnloadAllGridScreens();
     mEntityManager.Clear();
     // TODO: Grid map system
     //mScreens.clear();
@@ -272,6 +272,7 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
                 if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
                 {
                     mState = States::eInEditor;
+                    mEntityManager.GetSystem<GridmapSystem>()->LoadAllGridScreens(mLocator);
                 }
             }
             else if (mState == States::eToGame)
@@ -281,6 +282,8 @@ EngineStates World::Update(const InputReader& input, CoordinateSpace& coords)
                 if (SDL_TICKS_PASSED(SDL_GetTicks(), mModeSwitchTimeout))
                 {
                     mState = States::eInGame;
+                    mEntityManager.GetSystem<GridmapSystem>()->UnloadAllGridScreens();
+
                 }
             }
             coords.SetCameraPosition(mEntityManager.GetSystem<CameraSystem>()->mCameraPosition);

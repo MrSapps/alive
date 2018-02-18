@@ -146,6 +146,9 @@ void GameMode::Update(const InputReader& input, CoordinateSpace& coords)
         if (cameraSystem->mCameraPosition != camPos)
         {
             LOG_INFO("TODO: Screen change");
+
+            mWorld.mEntityManager.GetSystem<GridmapSystem>()->MoveToCamera(mWorld.mLocator, camX, camY);
+
             coords.mSmoothCameraPosition = false;
             cameraSystem->mCameraPosition = camPos;
         }
@@ -165,29 +168,6 @@ void GameMode::Render(AbstractRenderer& rend) const
                 transform->GetX(), transform->GetY(),
                 cameraSystem->mVirtualScreenSize.x, cameraSystem->mVirtualScreenSize.y);
         });
-
-        /* TODO: Grid map system
-        auto pos = cameraSystem->mTarget.GetComponent<TransformComponent>();
-
-        const s32 camX = mState == eMenu ? static_cast<s32>(mWorld.GetCurrentGridScreenX()) : static_cast<s32>(pos->GetX() / cameraSystem->mCameraBlockSize.x);
-        const s32 camY = mState == eMenu ? static_cast<s32>(mWorld.GetCurrentGridScreenY()) : static_cast<s32>(pos->GetY() / cameraSystem->mCameraBlockSize.y);
-
-        if (camX >= 0 && camY >= 0 &&
-            camX < static_cast<s32>(mWorld.mScreens.size()) &&
-            camY < static_cast<s32>(mWorld.mScreens[camX].size()))
-        {
-            GridScreen* screen = mWorld.mScreens[camX][camY].get();
-            if (screen)
-            {
-                if (screen->HasTexture())
-                {
-                    screen->Render(rend,
-                        (camX * cameraSystem->mCameraBlockSize.x) + cameraSystem->mCameraBlockImageOffset.x,
-                        (camY * cameraSystem->mCameraBlockSize.y) + cameraSystem->mCameraBlockImageOffset.y,
-                        cameraSystem->mVirtualScreenSize.x, cameraSystem->mVirtualScreenSize.y);
-                }
-            }
-        }*/
     }
 
     if (mState == ePaused)

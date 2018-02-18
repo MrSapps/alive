@@ -29,34 +29,6 @@ class Animation;
 
 class Sound;
 
-class GridScreen
-{
-public:
-    GridScreen(const GridScreen&) = delete;
-    GridScreen& operator=(const GridScreen&) = delete;
-    GridScreen(const Oddlib::Path::Camera& camera, ResourceLocator& locator);
-    ~GridScreen();
-
-public:
-    const std::string& FileName() const
-    {
-        return mFileName;
-    }
-    void LoadTextures(AbstractRenderer& rend);
-    void UnLoadTextures(AbstractRenderer& rend);
-    bool HasTexture() const;
-
-    void Render(AbstractRenderer& rend, float x, float y, float w, float h);
-
-private:
-    std::string mFileName;
-    TextureHandle mCameraTexture;
-    TextureHandle mFG1Texture;
-
-    std::unique_ptr<Oddlib::IBits> mCam; // Temp hack to prevent constant reloading of LVLs
-    ResourceLocator& mLocator;
-};
-
 #define NO_MOVE_OR_MOVE_ASSIGN(x)  x(x&&) = delete; x& operator = (x&&) = delete // TODO: move this out
 
 constexpr u32 kSwitchTimeMs = 300;
@@ -101,6 +73,9 @@ public:
     {
         return mData[x * mXSize + y];
     }
+
+    u32 XSize() const { return mXSize; }
+    u32 YSize() const { return mYSize; }
 private:
     u32 mXSize = 0;
     u32 mYSize = 0;
@@ -116,10 +91,10 @@ public:
     ~GridMap();
 
     GridScreenData* GetGridScreen(u32 xIndex, u32 yIndex) const;
+    u32 XSize() const { return mMapData.XSize(); }
+    u32 YSize() const { return mMapData.YSize(); }
 public:
     bool LoadMap(const PathInformation& pathInfo);
-    void UnloadMap(AbstractRenderer& renderer);
-
 private:
     class Loader
     {
