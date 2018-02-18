@@ -56,16 +56,19 @@ void GridmapSystem::UnLoadMap()
 
 void GridmapSystem::AddGridScreen(CameraSystem* cameraSystem, ResourceLocator& locator, u32 xIndex, u32 yIndex)
 {
-    GridScreenData* pData = mGridMap->GetGridScreen(xIndex, yIndex);
-    assert(pData);
+    if (xIndex < mGridMap->XSize() && yIndex < mGridMap->YSize())
+    {
+        GridScreenData* pData = mGridMap->GetGridScreen(xIndex, yIndex);
+        assert(pData);
 
-    auto entity = mManager->CreateEntityWith<GridMapScreenComponent, TransformComponent>();
+        auto entity = mManager->CreateEntityWith<GridMapScreenComponent, TransformComponent>();
 
-    auto gridMapScreen = entity.GetComponent<GridMapScreenComponent>();
-    gridMapScreen->LoadCamera(locator, pData->mCameraAndObjects.mName);
+        auto gridMapScreen = entity.GetComponent<GridMapScreenComponent>();
+        gridMapScreen->LoadCamera(locator, pData->mCameraAndObjects.mName);
 
-    auto pTransform = entity.GetComponent<TransformComponent>();
-    pTransform->Set(xIndex * cameraSystem->mCameraBlockSize.x, yIndex * cameraSystem->mCameraBlockSize.y);
+        auto pTransform = entity.GetComponent<TransformComponent>();
+        pTransform->Set(xIndex * cameraSystem->mCameraBlockSize.x, yIndex * cameraSystem->mCameraBlockSize.y);
+    }
 }
 
 void GridmapSystem::LoadAllGridScreens(ResourceLocator& locator)
