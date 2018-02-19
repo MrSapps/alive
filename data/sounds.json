@@ -6108,6 +6108,37 @@
 					"min_pitch": 0,
 					"volume": 127 
 				} 
+			},
+			{
+				"comment": "",
+				"is_cache_resident": true,
+				"resource_name": "Abe_Step",
+				"sample": {
+					"locations": [
+						{
+							"program": 3,
+							"sound_banks": [
+								"AePc_B2SEQ_BAENDER",
+								"AePc_B2SEQ_BARRACKS",
+								"AePc_B3SEQ_BONEWERK",
+								"AePc_BASEQ_BAENDER",
+								"AePc_BASEQ_BARRACKS",
+								"AePc_BMSEQ_BRENDER",
+								"AePc_BRSEQ_BREWERY",
+								"AePc_BWSEQ_BONEWERK",
+								"AePc_FDSEQ_FEECO",
+								"AePc_FDSEQ_FEENDER",
+								"AePc_FESEQ_FEECO",
+								"AePc_FESEQ_FEENDER",
+								"AePc_MISEQ_MINES" 
+							],
+							"tone": 36 
+						} 
+					],
+					"max_pitch": 0,
+					"min_pitch": 0,
+					"volume": 127 
+				} 
 			} 
 		] 
 	},

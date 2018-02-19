@@ -19,6 +19,7 @@
 #include "core/systems/resourcesystem.hpp"
 #include "core/systems/collisionsystem.hpp"
 #include "core/systems/gridmapsystem.hpp"
+#include "core/systems/soundsystem.hpp"
 
 #include "core/components/cameracomponent.hpp"
 #include "core/components/physicscomponent.hpp"
@@ -135,6 +136,7 @@ void World::LoadSystems()
     mEntityManager.AddSystem<GridmapSystem>(mRenderer);
     mEntityManager.AddSystem<ResourceSystem>(mLocator);
     mEntityManager.AddSystem<CollisionSystem>();
+    mEntityManager.AddSystem<SoundSystem>(mSound);
 
     mEntityManager.RegisterComponent<CameraComponent>();
     mEntityManager.RegisterComponent<PhysicsComponent>();

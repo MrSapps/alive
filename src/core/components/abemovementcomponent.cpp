@@ -5,6 +5,7 @@
 #include "core/entitymanager.hpp"
 #include "core/systems/inputsystem.hpp"
 #include "core/systems/collisionsystem.hpp"
+#include "core/systems/soundsystem.hpp"
 #include "core/components/physicscomponent.hpp"
 #include "core/components/transformcomponent.hpp"
 #include "core/components/animationcomponent.hpp"
@@ -296,8 +297,10 @@ void AbeMovementComponent::PreWalking(AbeMovementComponent::States)
 
 void AbeMovementComponent::Walking()
 {
+   
     if (FrameIs(5 + 1) || FrameIs(14 + 1))
     {
+        PlaySoundEffect("Abe_Step");
         SnapXToGrid();
         if (IsMovingTowardsWall())
         {
@@ -328,7 +331,7 @@ void AbeMovementComponent::WalkingToStanding()
 {
     if (FrameIs(2))
     {
-        PlaySoundEffect("MOVEMENT_MUD_STEP");
+        PlaySoundEffect("Abe_Step");
     }
     if (mAnimationComponent->Complete())
     {
@@ -642,8 +645,8 @@ void AbeMovementComponent::SetAnimation(AbeAnimation abeAnimation, u32 animation
 
 void AbeMovementComponent::PlaySoundEffect(const char* fxName)
 {
-    // TODO
     LOG_WARNING("TODO: Play: " << fxName);
+    mEntity.GetManager()->GetSystem<SoundSystem>()->PlaySoundEffect(fxName);
 }
 
 void AbeMovementComponent::SetCurrentAndNextState(AbeMovementComponent::States current, AbeMovementComponent::States next)

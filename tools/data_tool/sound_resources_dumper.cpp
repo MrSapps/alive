@@ -1495,7 +1495,7 @@ static void InitGSounds()
     // Slig
     gSounds.emplace_back(TempSoundEffectResource("Slig_Hi", 127, 0, 0,
     {
-        //{ 62, 60, { "Ao" } },
+        //{ 62, 60, { "Ao" } }, // Prog, tone
         { 25, 60, { "AePc" } }
     }, "Slig saying hi"));
     gSounds.emplace_back(TempSoundEffectResource("Slig_HereBoy", 127, 0, 0, { { 25, 62,{ "AePc" } } }, "Slig saying here boy"));
@@ -1529,6 +1529,8 @@ static void InitGSounds()
     // Whistles - must match SEQ name, however seq name WHISTLE1/2 are renamed to match these
     gSounds.emplace_back(TempSoundEffectResource("Abe_Whistle1", 127, 0, 0, { { 58, 60,{ "AoPc" } } }, ""));
     gSounds.emplace_back(TempSoundEffectResource("Abe_Whistle2", 127, 0, 0, { { 58, 61,{ "AoPc" } } }, ""));
+
+    gSounds.emplace_back(TempSoundEffectResource("Abe_Step", 127, 0, 0, { { 3, 36,{ "AePc" } } }, ""));
 
     // TODO: Add to new format as above with similar naming convention, also rename in abe.nut where any are currently used
     /*
@@ -2063,14 +2065,6 @@ static void InitGSounds()
     },
     {
         "data_set": "AePc",
-        "note": 36,
-        "program": 3,
-        "resource_name": "MOVEMENT_MUD_STEP",
-        "sound_bank": "mi_MINES_AePc",
-        "pitch_range" : [ -1, 1 ]
-    },
-    {
-        "data_set": "AePc",
         "note": 61,
         "program": 3,
         "resource_name": "MOVEMENT_MUD_LAND",
@@ -2147,6 +2141,7 @@ static std::map<std::string, std::string> gPrimarySfxSoundBanks =
     { "Abe_Whistle1", "AoPc_D2SEQ_D2ENDER" },
     { "Abe_Whistle2", "AoPc_D2SEQ_D2ENDER" },
 
+    { "Abe_Step", "AePc_MISEQ_MINES" },
 };
 
 static std::map<std::string, std::set<std::string>> gBrokenSfxSoundBanks =

@@ -441,6 +441,8 @@ SET(alivelib_src
     src/core/components/cameracomponent.cpp
     include/core/systems/camerasystem.hpp
     src/core/systems/camerasystem.cpp
+    include/core/systems/soundsystem.hpp
+    src/core/systems/soundsystem.cpp
     include/core/systems/debugsystem.hpp
     src/core/systems/debugsystem.cpp)
 
