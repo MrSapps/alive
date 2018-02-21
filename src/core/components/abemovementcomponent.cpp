@@ -509,7 +509,10 @@ void AbeMovementComponent::PreCrouchingToRolling(AbeMovementComponent::States)
 
 void AbeMovementComponent::CrouchingToRolling()
 {
-    SetState(States::eRolling);
+    if (mAnimationComponent->Complete())
+    {
+        SetState(States::eRolling);
+    }
 }
 
 void AbeMovementComponent::PreCrouchingToStanding(AbeMovementComponent::States)
@@ -553,7 +556,6 @@ void AbeMovementComponent::Rolling()
         {
             SetState(States::eCrouching); // TODO: rolling to crouching
         }
-
     }
     else if (FrameIs(1 + 1) || FrameIs(5 + 1) || FrameIs(9 + 1))
     {
