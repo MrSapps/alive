@@ -133,6 +133,10 @@ SET(imgui_src
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/imgui/imgui_draw.cpp
 )
 
+if(LINUX)
+    set_source_files_properties(${imgui_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized")
+endif()
+
 add_library(imgui STATIC ${imgui_src})
 SET_PROPERTY(TARGET imgui PROPERTY FOLDER "3rdparty")
 
