@@ -51,10 +51,8 @@ public:
         eStandingToWalking,
         eStandingToRunning,
         eStandingToCrouching,
+        eStandingPushingWall,
         eStandingTurningAround,
-
-        ePushingWall,
-        ePushingWallToStanding,
 
         eWalking,
         eWalkingToRunning,
@@ -67,9 +65,6 @@ public:
         eRunningTurningAroundToWalking,
         eRunningTurningAroundToRunning,
 
-        eChanting,
-        eChantToStanding,
-
         eCrouching,
         eCrouchingToRolling,
         eCrouchingToStanding,
@@ -80,7 +75,10 @@ public:
 
         eFallingBack,
         eFallingBackToStanding,
-        eFallingBackToStandingAngry
+        eFallingBackToStandingAngry,
+
+        eChanting,
+        eChantingToStanding,
     };
     enum class AbeAnimation : u16
     {
@@ -155,52 +153,70 @@ public:
 public:
     void Update();
     void ToggleCheatMode();
+
 private:
-    void PrePushingWall(States previous);
-    void PushingWall();
 
     void PreStanding(States previous);
     void Standing();
+    void PreStandingToWalking(States previous);
     void StandingToWalking();
+    void PreStandingToRunning(States previous);
     void StandingToRunning();
+    void PreStandingToCrouching(States previous);
     void StandingToCrouching();
+    void PreStandingPushingWall(States previous);
+    void StandingPushingWall();
+    void PreStandingTurningAround(States previous);
     void StandingTurningAround();
-
-    void PreChanting(States previous);
-    void Chanting();
 
     void PreWalking(States previous);
     void Walking();
+    void PreWalkingToRunning(States previous);
+    void WalkingToRunning();
+    void PreWalkingToStanding(States previous);
     void WalkingToStanding();
 
     void PreRunning(States previous);
     void Running();
+    void PreRunningToWalking(States previous);
+    void RunningToWalking();
+    void PreRunningToStanding(States previous);
     void RunningToStanding();
+    void PreRunningTurningAround(States previous);
     void RunningTurningAround();
+    void PreRunningTurningAroundToWalking(States previous);
     void RunningTurningAroundToWalking();
+    void PreRunningTurningAroundToRunning(States previous);
     void RunningTurningAroundToRunning();
 
     void PreCrouching(States previous);
     void Crouching();
+    void PreCrouchingToRolling(States previous);
+    void CrouchingToRolling();
+    void PreCrouchingToStanding(States previous);
     void CrouchingToStanding();
+    void PreCrouchingTurningAround(States previous);
     void CrouchingTurningAround();
 
     void PreRolling(States previous);
     void Rolling();
+    void PreRollingToWalkingOrRunning(States previous);
     void RollingToWalkingOrRunning();
 
+    void PreFallingBack(States previous);
+    void FallingBack();
     void PreFallingBackToStanding(States previous);
     void FallingBackToStanding();
-
     void PreFallingBackToStandingAngry(States previous);
     void FallingBackToStandingAngry();
 
-private:
-    void PushWallOrCrouch();
-    void HitWallAndFallBack();
+    void PreChanting(States previous);
+    void Chanting();
+    void PreChantingToStanding(States previous);
+    void ChantingToStanding();
 
 private:
-    void ASyncTransition();
+    void PushWallOrCrouch();
 
 private:
     bool DirectionChanged() const;
@@ -218,7 +234,6 @@ private:
     void SetState(States state);
     void SetAnimation(AbeAnimation abeAnimation, u32 animationFrame = 0);
     void PlaySoundEffect(const char* fxName);
-    void SetCurrentAndNextState(States current, States next);
 
 private:
     std::map<States, StateData> mStateFnMap;
@@ -237,7 +252,6 @@ private:
         bool mSneaking;
         Goal mGoal;
         States mState;
-        States mNextState;
         AbeAnimation mAnimation;
         s32 mAnimationFrame;
         bool mCheatEnabled;
@@ -247,7 +261,6 @@ private:
             false,
             false,
             Goal::eStand,
-            States::eStanding,
             States::eStanding,
             AbeAnimation::eAbeStandIdle,
             0,

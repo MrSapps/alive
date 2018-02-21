@@ -81,28 +81,37 @@ static const std::map<AbeMovementComponent::AbeAnimation, std::string> kAbeAnima
 
 void AbeMovementComponent::OnLoad()
 {
-    mStateFnMap[States::ePushingWall] = { &AbeMovementComponent::PrePushingWall, &AbeMovementComponent::PushingWall };
 
     mStateFnMap[States::eStanding] = { &AbeMovementComponent::PreStanding, &AbeMovementComponent::Standing };
-    mStateFnMap[States::eStandingTurningAround] = { nullptr, &AbeMovementComponent::StandingTurningAround };
+    mStateFnMap[States::eStandingToWalking] = { &AbeMovementComponent::PreStandingToWalking, &AbeMovementComponent::StandingToWalking };
+    mStateFnMap[States::eStandingToRunning] = { &AbeMovementComponent::PreStandingToRunning, &AbeMovementComponent::StandingToRunning };
+    mStateFnMap[States::eStandingToCrouching] = { &AbeMovementComponent::PreStandingToCrouching, &AbeMovementComponent::StandingToCrouching };
+    mStateFnMap[States::eStandingPushingWall] = { &AbeMovementComponent::PreStandingPushingWall, &AbeMovementComponent::StandingPushingWall };
+    mStateFnMap[States::eStandingTurningAround] = { &AbeMovementComponent::PreStandingTurningAround, &AbeMovementComponent::StandingTurningAround };
 
     mStateFnMap[States::eRunning] = { &AbeMovementComponent::PreRunning, &AbeMovementComponent::Running };
-    mStateFnMap[States::eRunningToStanding] = { nullptr, &AbeMovementComponent::RunningToStanding };
-    mStateFnMap[States::eRunningTurningAround] = { nullptr, &AbeMovementComponent::RunningTurningAround };
-    mStateFnMap[States::eRunningTurningAroundToWalking] = { nullptr, &AbeMovementComponent::RunningTurningAroundToWalking };
-    mStateFnMap[States::eRunningTurningAroundToRunning] = { nullptr, &AbeMovementComponent::RunningTurningAroundToRunning };
+    mStateFnMap[States::eRunningToWalking] = { &AbeMovementComponent::PreRunningToWalking, &AbeMovementComponent::RunningToWalking };
+    mStateFnMap[States::eRunningToStanding] = { &AbeMovementComponent::PreRunningToStanding, &AbeMovementComponent::RunningToStanding };
+    mStateFnMap[States::eRunningTurningAround] = { &AbeMovementComponent::PreRunningTurningAround, &AbeMovementComponent::RunningTurningAround };
+    mStateFnMap[States::eRunningTurningAroundToWalking] = { &AbeMovementComponent::PreRunningTurningAroundToWalking, &AbeMovementComponent::RunningTurningAroundToWalking };
+    mStateFnMap[States::eRunningTurningAroundToRunning] = { &AbeMovementComponent::PreRunningTurningAroundToRunning, &AbeMovementComponent::RunningTurningAroundToRunning };
 
     mStateFnMap[States::eWalking] = { &AbeMovementComponent::PreWalking, &AbeMovementComponent::Walking };
-    mStateFnMap[States::eWalkingToStanding] = { nullptr, &AbeMovementComponent::WalkingToStanding };
+    mStateFnMap[States::eWalkingToRunning] = { &AbeMovementComponent::PreWalkingToRunning, &AbeMovementComponent::WalkingToRunning };
+    mStateFnMap[States::eWalkingToStanding] = { &AbeMovementComponent::PreWalkingToStanding, &AbeMovementComponent::WalkingToStanding };
 
     mStateFnMap[States::eChanting] = { &AbeMovementComponent::PreChanting, &AbeMovementComponent::Chanting };
+    mStateFnMap[States::eChantingToStanding] = { &AbeMovementComponent::PreChantingToStanding, &AbeMovementComponent::ChantingToStanding };
 
     mStateFnMap[States::eCrouching] = { &AbeMovementComponent::PreCrouching, &AbeMovementComponent::Crouching };
-    mStateFnMap[States::eCrouchingTurningAround] = { nullptr, &AbeMovementComponent::CrouchingTurningAround };
+    mStateFnMap[States::eCrouchingToRolling] = { &AbeMovementComponent::PreCrouchingToRolling, &AbeMovementComponent::CrouchingToRolling };
+    mStateFnMap[States::eCrouchingToStanding] = { &AbeMovementComponent::PreCrouchingToStanding, &AbeMovementComponent::CrouchingToStanding };
+    mStateFnMap[States::eCrouchingTurningAround] = { &AbeMovementComponent::PreCrouchingTurningAround, &AbeMovementComponent::CrouchingTurningAround };
 
     mStateFnMap[States::eRolling] = { &AbeMovementComponent::PreRolling, &AbeMovementComponent::Rolling };
-    mStateFnMap[States::eRollingToWalkingOrRunning] = { nullptr, &AbeMovementComponent::RollingToWalkingOrRunning };
+    mStateFnMap[States::eRollingToWalkingOrRunning] = { &AbeMovementComponent::PreRollingToWalkingOrRunning, &AbeMovementComponent::RollingToWalkingOrRunning };
 
+    mStateFnMap[States::eFallingBack] = { &AbeMovementComponent::PreFallingBack, &AbeMovementComponent::FallingBack };
     mStateFnMap[States::eFallingBackToStanding] = { &AbeMovementComponent::PreFallingBackToStanding, &AbeMovementComponent::FallingBackToStanding };
     mStateFnMap[States::eFallingBackToStandingAngry] = { &AbeMovementComponent::PreFallingBackToStandingAngry, &AbeMovementComponent::FallingBackToStandingAngry };
 
@@ -161,15 +170,7 @@ void AbeMovementComponent::Update()
     }
     else
     {
-        auto it = mStateFnMap.find(mData.mState);
-        if (it != std::end(mStateFnMap) && it->second.mHandler)
-        {
-            it->second.mHandler(this);
-        }
-        else
-        {
-            ASyncTransition();
-        }
+        mStateFnMap.find(mData.mState)->second.mHandler(this);
     }
     mData.mAnimationFrame = mAnimationComponent->FrameNumber();
 }
@@ -177,16 +178,6 @@ void AbeMovementComponent::Update()
 /**
  * Abe Movement Finite State Machine
  */
-
-void AbeMovementComponent::PrePushingWall(AbeMovementComponent::States)
-{
-    SetAnimation(AbeAnimation::eAbeStandPushWall);
-}
-
-void AbeMovementComponent::PushingWall()
-{
-    SetCurrentAndNextState(States::ePushingWallToStanding, States::eStanding);
-}
 
 void AbeMovementComponent::PreStanding(AbeMovementComponent::States)
 {
@@ -201,8 +192,7 @@ void AbeMovementComponent::Standing()
     {
         if (DirectionChanged())
         {
-            SetAnimation(AbeAnimation::eAbeStandTurnAround);
-            SetCurrentAndNextState(States::eStandingTurningAround, States::eStanding);
+            SetState(States::eStandingTurningAround);
         }
         else
         {
@@ -214,18 +204,18 @@ void AbeMovementComponent::Standing()
             {
                 if (mData.mRunning)
                 {
-                    StandingToRunning();
+                    SetState(States::eStandingToRunning);
                 }
                 else
                 {
-                    StandingToWalking();
+                    SetState(States::eStandingToWalking);
                 }
             }
         }
     }
     else if (mData.mGoal == Goal::eGoDown)
     {
-        StandingToCrouching();
+        SetState(States::eStandingToCrouching);
     }
     else if (mData.mGoal == Goal::eChant)
     {
@@ -233,24 +223,63 @@ void AbeMovementComponent::Standing()
     }
 }
 
-void AbeMovementComponent::StandingToWalking()
+void AbeMovementComponent::PreStandingToWalking(AbeMovementComponent::States)
 {
     SetXSpeed(kAbeWalkSpeed);
     SetAnimation(AbeAnimation::eAbeStandToWalk);
-    SetCurrentAndNextState(States::eStandingToWalking, States::eWalking);
+}
+
+void AbeMovementComponent::StandingToWalking()
+{
+    if (mAnimationComponent->Complete())
+    {
+        SetState(States::eWalking);
+    }
+}
+
+void AbeMovementComponent::PreStandingToRunning(AbeMovementComponent::States)
+{
+    SetXSpeed(kAbeRunSpeed);
+    SetAnimation(AbeAnimation::eAbeStandToRun);
 }
 
 void AbeMovementComponent::StandingToRunning()
 {
-    SetXSpeed(kAbeRunSpeed);
-    SetAnimation(AbeAnimation::eAbeStandToRun);
-    SetCurrentAndNextState(States::eStandingToRunning, States::eRunning);
+    if (mAnimationComponent->Complete())
+    {
+        SetState(States::eRunning);
+    }
+}
+
+void AbeMovementComponent::PreStandingToCrouching(AbeMovementComponent::States)
+{
+    SetAnimation(AbeAnimation::eAbeStandToCrouch);
 }
 
 void AbeMovementComponent::StandingToCrouching()
 {
-    SetAnimation(AbeAnimation::eAbeStandToCrouch);
-    SetCurrentAndNextState(States::eStandingToCrouching, States::eCrouching);
+    if (mAnimationComponent->Complete())
+    {
+        SetState(States::eCrouching);
+    }
+}
+
+void AbeMovementComponent::PreStandingPushingWall(AbeMovementComponent::States)
+{
+    SetAnimation(AbeAnimation::eAbeStandPushWall);
+}
+
+void AbeMovementComponent::StandingPushingWall()
+{
+    if (mAnimationComponent->Complete())
+    {
+        SetState(States::eStanding);
+    }
+}
+
+void AbeMovementComponent::PreStandingTurningAround(AbeMovementComponent::States)
+{
+    SetAnimation(AbeAnimation::eAbeStandTurnAround);
 }
 
 void AbeMovementComponent::StandingTurningAround()
@@ -258,34 +287,7 @@ void AbeMovementComponent::StandingTurningAround()
     if (mAnimationComponent->Complete())
     {
         FlipDirection();
-        SetState(mData.mNextState);
-    }
-}
-
-void AbeMovementComponent::PreChanting(AbeMovementComponent::States)
-{
-    SetAnimation(AbeAnimation::eAbeStandToChant);
-}
-
-void AbeMovementComponent::Chanting()
-{
-    if (mData.mGoal == Goal::eStand)
-    {
-        SetAnimation(AbeAnimation::eAbeChantToStand);
-        SetCurrentAndNextState(States::eChantToStanding, States::eStanding);
-    }
-        // Still chanting?
-    else if (mData.mGoal == Goal::eChant)
-    {
-        auto sligs = mEntity.GetManager()->With<SligMovementComponent>();
-        if (!sligs.empty())
-        {
-            for (auto& slig : sligs)
-            {
-                LOG_INFO("Found a Slig to possess");
-                slig.Destroy();
-            }
-        }
+        SetState(States::eStanding);
     }
 }
 
@@ -297,7 +299,7 @@ void AbeMovementComponent::PreWalking(AbeMovementComponent::States)
 
 void AbeMovementComponent::Walking()
 {
-   
+
     if (FrameIs(5 + 1) || FrameIs(14 + 1))
     {
         PlaySoundEffect("Abe_Step");
@@ -310,9 +312,7 @@ void AbeMovementComponent::Walking()
         {
             if (!DirectionChanged() && mData.mRunning && IsMovingLeftOrRight())
             {
-                SetXSpeed(kAbeRunSpeed);
-                SetAnimation(FrameIs(5 + 1) ? AbeAnimation::eAbeWalkingToRunning : AbeAnimation::eAbeWalkingToRunningMidGrid);
-                SetCurrentAndNextState(States::eWalkingToRunning, States::eRunning);
+                SetState(States::eWalkingToRunning);
             }
         }
     }
@@ -320,11 +320,29 @@ void AbeMovementComponent::Walking()
     {
         if (DirectionChanged() || !IsMovingLeftOrRight())
         {
-            SetXSpeed(kAbeWalkSpeed);
-            SetAnimation(FrameIs(2 + 1) ? AbeAnimation::eAbeWalkToStand : AbeAnimation::eAbeWalkToStandMidGrid);
-            SetCurrentAndNextState(States::eWalkingToStanding, States::eStanding);
+            SetState(States::eWalkingToStanding);
         }
     }
+}
+
+void AbeMovementComponent::PreWalkingToRunning(AbeMovementComponent::States)
+{
+    SetXSpeed(kAbeRunSpeed);
+    SetAnimation(FrameIs(5 + 1) ? AbeAnimation::eAbeWalkingToRunning : AbeAnimation::eAbeWalkingToRunningMidGrid);
+}
+
+void AbeMovementComponent::WalkingToRunning()
+{
+    if (mAnimationComponent->Complete())
+    {
+        SetState(States::eRunning);
+    }
+}
+
+void AbeMovementComponent::PreWalkingToStanding(AbeMovementComponent::States)
+{
+    SetXSpeed(kAbeWalkSpeed);
+    SetAnimation(FrameIs(2 + 1) ? AbeAnimation::eAbeWalkToStand : AbeAnimation::eAbeWalkToStandMidGrid);
 }
 
 void AbeMovementComponent::WalkingToStanding()
@@ -335,7 +353,7 @@ void AbeMovementComponent::WalkingToStanding()
     }
     if (mAnimationComponent->Complete())
     {
-        SetState(mData.mNextState);
+        SetState(States::eStanding);
     }
 }
 
@@ -349,7 +367,7 @@ void AbeMovementComponent::Running()
     if (IsMovingTowardsWall())
     {
         SnapXToGrid();
-        HitWallAndFallBack();
+        SetState(States::eFallingBack);
     }
     if (FrameIs(0 + 1) || FrameIs(8 + 1))
     {
@@ -363,24 +381,38 @@ void AbeMovementComponent::Running()
         {
             if (DirectionChanged())
             {
-                SetXSpeed(3.0f); // TODO: approximation, handle velocity SetXVelocity(0.375)
-                SetAnimation(AbeAnimation::eAbeRunningToSkidTurn);
-                SetCurrentAndNextState(States::eRunningTurningAround, States::eRunning);
+                SetState(States::eRunningTurningAround);
             }
             else if (!mData.mRunning)
             {
-                SetXSpeed(kAbeWalkSpeed);
-                SetAnimation(FrameIs(2 + 1) ? AbeAnimation::eAbeRunningToWalk : AbeAnimation::eAbeRunningToWalkingMidGrid);
-                SetCurrentAndNextState(States::eRunningToWalking, States::eWalking);
+                SetState(States::eRunningToWalking);
             }
         }
         else
         {
-            SetXSpeed(3.0f); // TODO: approximation, handle velocity SetXVelocity(0.375)
-            SetAnimation(AbeAnimation::eAbeRunningSkidStop);
-            SetCurrentAndNextState(States::eRunningToStanding, States::eStanding);
+            SetState(States::eRunningToStanding);
         }
     }
+}
+
+void AbeMovementComponent::PreRunningToWalking(AbeMovementComponent::States)
+{
+    SetXSpeed(kAbeWalkSpeed);
+    SetAnimation(FrameIs(2 + 1) ? AbeAnimation::eAbeRunningToWalk : AbeAnimation::eAbeRunningToWalkingMidGrid);
+}
+
+void AbeMovementComponent::RunningToWalking()
+{
+    if (mAnimationComponent->Complete())
+    {
+        SetState(States::eWalking);
+    }
+}
+
+void AbeMovementComponent::PreRunningToStanding(AbeMovementComponent::States)
+{
+    SetXSpeed(3.0f); // TODO: approximation, handle velocity SetXVelocity(0.375)
+    SetAnimation(AbeAnimation::eAbeRunningSkidStop);
 }
 
 void AbeMovementComponent::RunningToStanding()
@@ -388,8 +420,14 @@ void AbeMovementComponent::RunningToStanding()
     if (mAnimationComponent->Complete())
     {
         SnapXToGrid();
-        SetState(mData.mNextState);
+        SetState(States::eStanding);
     }
+}
+
+void AbeMovementComponent::PreRunningTurningAround(AbeMovementComponent::States)
+{
+    SetXSpeed(3.0f); // TODO: approximation, handle velocity SetXVelocity(0.375)
+    SetAnimation(AbeAnimation::eAbeRunningToSkidTurn);
 }
 
 void AbeMovementComponent::RunningTurningAround()
@@ -399,17 +437,19 @@ void AbeMovementComponent::RunningTurningAround()
         SnapXToGrid();
         if (mData.mRunning)
         {
-            SetXSpeed(-kAbeRunSpeed);
-            SetAnimation(AbeAnimation::eAbeRunningTurnAround);
-            SetCurrentAndNextState(States::eRunningTurningAroundToRunning, States::eRunning);
+            SetState(States::eRunningTurningAroundToRunning);
         }
         else
         {
-            SetXSpeed(-kAbeWalkSpeed);
-            SetAnimation(AbeAnimation::eAbeRunningTurnAroundToWalk);
-            SetCurrentAndNextState(States::eRunningTurningAroundToWalking, States::eWalking);
+            SetState(States::eRunningTurningAroundToWalking);
         }
     }
+}
+
+void AbeMovementComponent::PreRunningTurningAroundToWalking(AbeMovementComponent::States previous)
+{
+    SetXSpeed(-kAbeWalkSpeed);
+    SetAnimation(AbeAnimation::eAbeRunningTurnAroundToWalk);
 }
 
 void AbeMovementComponent::RunningTurningAroundToWalking()
@@ -417,8 +457,14 @@ void AbeMovementComponent::RunningTurningAroundToWalking()
     if (mAnimationComponent->Complete())
     {
         FlipDirection();
-        SetState(mData.mNextState);
+        SetState(States::eWalking);
     }
+}
+
+void AbeMovementComponent::PreRunningTurningAroundToRunning(AbeMovementComponent::States)
+{
+    SetXSpeed(-kAbeRunSpeed);
+    SetAnimation(AbeAnimation::eAbeRunningTurnAround);
 }
 
 void AbeMovementComponent::RunningTurningAroundToRunning()
@@ -426,7 +472,7 @@ void AbeMovementComponent::RunningTurningAroundToRunning()
     if (mAnimationComponent->Complete())
     {
         FlipDirection();
-        SetState(mData.mNextState);
+        SetState(States::eRunning);
     }
 }
 
@@ -441,26 +487,46 @@ void AbeMovementComponent::Crouching()
     {
         if (DirectionChanged())
         {
-            SetAnimation(AbeAnimation::eAbeCrouchTurnAround);
-            SetCurrentAndNextState(States::eCrouchingTurningAround, States::eCrouching);
+            SetState(States::eCrouchingTurningAround);
         }
         else
         {
-            SetXSpeed(kAbeRunSpeed);
-            SetAnimation(AbeAnimation::eAbeCrouchToRoll);
-            SetCurrentAndNextState(States::eCrouchingToRolling, States::eRolling);
+            SetState(States::eCrouchingToRolling);
         }
     }
     else if (mData.mGoal == Goal::eGoUp)
     {
-        CrouchingToStanding();
+        SetState(States::eCrouchingToStanding);
     }
+}
+
+void AbeMovementComponent::PreCrouchingToRolling(AbeMovementComponent::States)
+{
+    SetXSpeed(kAbeRunSpeed);
+    SetAnimation(AbeAnimation::eAbeCrouchToRoll);
+}
+
+void AbeMovementComponent::CrouchingToRolling()
+{
+    SetState(States::eRolling);
+}
+
+void AbeMovementComponent::PreCrouchingToStanding(AbeMovementComponent::States)
+{
+    SetAnimation(AbeAnimation::eAbeCrouchToStand);
 }
 
 void AbeMovementComponent::CrouchingToStanding()
 {
-    SetAnimation(AbeAnimation::eAbeCrouchToStand);
-    SetCurrentAndNextState(States::eCrouchingToStanding, States::eStanding);
+    if (mAnimationComponent->Complete())
+    {
+        SetState(States::eStanding);
+    }
+}
+
+void AbeMovementComponent::PreCrouchingTurningAround(AbeMovementComponent::States)
+{
+    SetAnimation(AbeAnimation::eAbeCrouchTurnAround);
 }
 
 void AbeMovementComponent::CrouchingTurningAround()
@@ -468,7 +534,7 @@ void AbeMovementComponent::CrouchingTurningAround()
     if (mAnimationComponent->Complete())
     {
         FlipDirection();
-        SetState(mData.mNextState);
+        SetState(States::eCrouching);
     }
 }
 
@@ -484,6 +550,7 @@ void AbeMovementComponent::Rolling()
         SnapXToGrid();
         if (!IsMovingLeftOrRight() || DirectionChanged())
         {
+            // TODO: rolling to crouching
             SetXSpeed(0.0f);
             SetAnimation(AbeAnimation::eAbeCrouchIdle);
             SetState(States::eCrouching);
@@ -494,11 +561,15 @@ void AbeMovementComponent::Rolling()
     {
         if (DirectionChanged() || mData.mRunning) // TODO: check if run input is maybe buffered -here-?
         {
-            SetXSpeed(kAbeRunSpeed);
-            SetAnimation(AbeAnimation::eAbeRunning); // TODO: get correct animation from hok
-            SetCurrentAndNextState(States::eRollingToWalkingOrRunning, States::eRunning);
+            SetState(States::eRollingToWalkingOrRunning);
         }
     }
+}
+
+void AbeMovementComponent::PreRollingToWalkingOrRunning(AbeMovementComponent::States previous)
+{
+    SetXSpeed(kAbeRunSpeed);
+    SetAnimation(AbeAnimation::eAbeRunning); // TODO: get correct animation from hok
 }
 
 void AbeMovementComponent::RollingToWalkingOrRunning()
@@ -507,13 +578,26 @@ void AbeMovementComponent::RollingToWalkingOrRunning()
     {
         if (!mData.mRunning)
         {
-
-            StandingToWalking();
+            SetState(States::eStandingToWalking);
         }
         else
         {
-            StandingToRunning();
+            SetState(States::eStandingToRunning);
         }
+    }
+}
+
+void AbeMovementComponent::PreFallingBack(AbeMovementComponent::States)
+{
+    SetXSpeed(0.0f);
+    SetAnimation(AbeAnimation::eAbeFallBackStanding);
+}
+
+void AbeMovementComponent::FallingBack()
+{
+    if (mAnimationComponent->Complete())
+    {
+        SetState(States::eFallingBackToStanding);
     }
 }
 
@@ -544,6 +628,41 @@ void AbeMovementComponent::FallingBackToStandingAngry()
     }
 }
 
+void AbeMovementComponent::PreChanting(AbeMovementComponent::States)
+{
+    SetAnimation(AbeAnimation::eAbeStandToChant);
+}
+
+void AbeMovementComponent::Chanting()
+{
+    if (mData.mGoal == Goal::eStand)
+    {
+        SetState(States::eChantingToStanding);
+    }
+    else if (mData.mGoal == Goal::eChant) // Still chanting?
+    {
+        auto sligs = mEntity.GetManager()->With<SligMovementComponent>();
+        if (!sligs.empty())
+        {
+            for (auto& slig : sligs)
+            {
+                LOG_INFO("Found a Slig to possess");
+                slig.Destroy();
+            }
+        }
+    }
+}
+
+void AbeMovementComponent::PreChantingToStanding(AbeMovementComponent::States)
+{
+    SetAnimation(AbeAnimation::eAbeChantToStand);
+}
+
+void AbeMovementComponent::ChantingToStanding()
+{
+    SetState(States::eStanding);
+}
+
 void AbeMovementComponent::PushWallOrCrouch()
 {
     if (mCollisionSystem->WallCollision(mAnimationComponent->mFlipX, mTransformComponent->GetX(), mTransformComponent->GetY(), 25.0f, -50.0f))
@@ -551,33 +670,18 @@ void AbeMovementComponent::PushWallOrCrouch()
         SetXSpeed(0.0f);
         if (mCollisionSystem->WallCollision(mAnimationComponent->mFlipX, mTransformComponent->GetX(), mTransformComponent->GetY(), 25.0f, -20.0f))
         {
-            SetState(States::ePushingWall);
+            SetState(States::eStandingPushingWall);
         }
         else
         {
-            StandingToCrouching();
+            SetState(States::eStandingToCrouching);
         }
     }
-}
-
-void AbeMovementComponent::HitWallAndFallBack()
-{
-    SetXSpeed(0.0f);
-    SetAnimation(AbeAnimation::eAbeFallBackStanding);
-    SetCurrentAndNextState(States::eFallingBack, States::eFallingBackToStanding);
 }
 
 /**
  * Abe Movement Finite State Machine helpers
  */
-
-void AbeMovementComponent::ASyncTransition()
-{
-    if (mAnimationComponent->Complete())
-    {
-        SetState(mData.mNextState);
-    }
-}
 
 bool AbeMovementComponent::DirectionChanged() const
 {
@@ -647,12 +751,6 @@ void AbeMovementComponent::PlaySoundEffect(const char* fxName)
 {
     LOG_WARNING("TODO: Play: " << fxName);
     mEntity.GetManager()->GetSystem<SoundSystem>()->PlaySoundEffect(fxName);
-}
-
-void AbeMovementComponent::SetCurrentAndNextState(AbeMovementComponent::States current, AbeMovementComponent::States next)
-{
-    SetState(current);
-    mData.mNextState = next;
 }
 
 void AbeMovementComponent::ToggleCheatMode()
