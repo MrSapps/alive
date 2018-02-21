@@ -219,6 +219,7 @@ private:
     void PushWallOrCrouch();
 
 private:
+    bool IsBelowCeiling() const;
     bool DirectionChanged() const;
     bool IsMovingLeftOrRight() const;
     bool IsMovingTowardsWall() const;

@@ -478,6 +478,7 @@ void AbeMovementComponent::RunningTurningAroundToRunning()
 
 void AbeMovementComponent::PreCrouching(AbeMovementComponent::States)
 {
+    SetXSpeed(0.0f);
     SetAnimation(AbeAnimation::eAbeCrouchIdle);
 }
 
@@ -494,7 +495,7 @@ void AbeMovementComponent::Crouching()
             SetState(States::eCrouchingToRolling);
         }
     }
-    else if (mData.mGoal == Goal::eGoUp)
+    else if (mData.mGoal == Goal::eGoUp && !IsBelowCeiling())
     {
         SetState(States::eCrouchingToStanding);
     }
@@ -550,16 +551,13 @@ void AbeMovementComponent::Rolling()
         SnapXToGrid();
         if (!IsMovingLeftOrRight() || DirectionChanged())
         {
-            // TODO: rolling to crouching
-            SetXSpeed(0.0f);
-            SetAnimation(AbeAnimation::eAbeCrouchIdle);
-            SetState(States::eCrouching);
+            SetState(States::eCrouching); // TODO: rolling to crouching
         }
 
     }
     else if (FrameIs(1 + 1) || FrameIs(5 + 1) || FrameIs(9 + 1))
     {
-        if (DirectionChanged() || mData.mRunning) // TODO: check if run input is maybe buffered -here-?
+        if (!IsBelowCeiling() && (DirectionChanged() || mData.mRunning)) // TODO: check if run input is maybe buffered -here-?
         {
             SetState(States::eRollingToWalkingOrRunning);
         }
@@ -683,6 +681,11 @@ void AbeMovementComponent::PushWallOrCrouch()
  * Abe Movement Finite State Machine helpers
  */
 
+bool AbeMovementComponent::IsBelowCeiling() const
+{
+    return static_cast<bool>(mCollisionSystem->CeilingCollision(mData.mDirection == Direction::eLeft, mTransformComponent->GetX(), mTransformComponent->GetY() - 2.0f, 0.0f, -60.0f));
+}
+
 bool AbeMovementComponent::DirectionChanged() const
 {
     return (mData.mGoal == Goal::eGoLeft && mData.mDirection == Direction::eRight) || (mData.mGoal == Goal::eGoRight && mData.mDirection == Direction::eLeft);
@@ -695,7 +698,7 @@ bool AbeMovementComponent::IsMovingLeftOrRight() const
 
 bool AbeMovementComponent::IsMovingTowardsWall() const
 {
-    return static_cast<bool>(mCollisionSystem->WallCollision(mData.mDirection == Direction::eLeft, mTransformComponent->GetX(), mTransformComponent->GetY(), 25, -50));
+    return static_cast<bool>(mCollisionSystem->WallCollision(mData.mDirection == Direction::eLeft, mTransformComponent->GetX(), mTransformComponent->GetY(), 25.0f, -50.0f));
 }
 
 bool AbeMovementComponent::FrameIs(u32 frame) const

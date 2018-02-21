@@ -157,7 +157,7 @@ CollisionSystem::RaycastHit CollisionSystem::WallCollision(bool mFlipX, f32 x, f
 
 CollisionSystem::RaycastHit CollisionSystem::CeilingCollision(bool mFlipX, f32 x, f32 y, f32 dx, f32 dy) const
 {
-    return Raycast(glm::vec2(x + (mFlipX ? -dx : dx), y - 2), glm::vec2(x + (mFlipX ? -dx : dx), y + dy), { CollisionLine::eLineTypes::eCeiling });
+    return Raycast(glm::vec2(x + (mFlipX ? -dx : dx), y), glm::vec2(x + (mFlipX ? -dx : dx), y + dy), { CollisionLine::eLineTypes::eCeiling });
 }
 
 CollisionSystem::RaycastHit CollisionSystem::FloorCollision(f32 x, f32 y) const
