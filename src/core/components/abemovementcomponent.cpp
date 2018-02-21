@@ -446,7 +446,7 @@ void AbeMovementComponent::RunningTurningAround()
     }
 }
 
-void AbeMovementComponent::PreRunningTurningAroundToWalking(AbeMovementComponent::States previous)
+void AbeMovementComponent::PreRunningTurningAroundToWalking(AbeMovementComponent::States)
 {
     SetXSpeed(-kAbeWalkSpeed);
     SetAnimation(AbeAnimation::eAbeRunningTurnAroundToWalk);
@@ -564,7 +564,7 @@ void AbeMovementComponent::Rolling()
     }
 }
 
-void AbeMovementComponent::PreRollingToWalkingOrRunning(AbeMovementComponent::States previous)
+void AbeMovementComponent::PreRollingToWalkingOrRunning(AbeMovementComponent::States)
 {
     SetXSpeed(kAbeRunSpeed);
     SetAnimation(AbeAnimation::eAbeRunning); // TODO: get correct animation from hok
@@ -658,7 +658,10 @@ void AbeMovementComponent::PreChantingToStanding(AbeMovementComponent::States)
 
 void AbeMovementComponent::ChantingToStanding()
 {
-    SetState(States::eStanding);
+    if (mAnimationComponent->Complete())
+    {
+        SetState(States::eStanding);
+    }
 }
 
 void AbeMovementComponent::GoToStandingPushingWallOrCrouching()
