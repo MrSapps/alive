@@ -198,7 +198,7 @@ void AbeMovementComponent::Standing()
         {
             if (IsMovingTowardsWall())
             {
-                PushWallOrCrouch();
+                GoToStandingPushingWallOrCrouching();
             }
             else
             {
@@ -306,7 +306,7 @@ void AbeMovementComponent::Walking()
         SnapXToGrid();
         if (IsMovingTowardsWall())
         {
-            PushWallOrCrouch();
+            GoToStandingPushingWallOrCrouching();
         }
         else
         {
@@ -661,7 +661,7 @@ void AbeMovementComponent::ChantingToStanding()
     SetState(States::eStanding);
 }
 
-void AbeMovementComponent::PushWallOrCrouch()
+void AbeMovementComponent::GoToStandingPushingWallOrCrouching()
 {
     if (mCollisionSystem->WallCollision(mAnimationComponent->mFlipX, mTransformComponent->GetX(), mTransformComponent->GetY(), 25.0f, -50.0f))
     {

@@ -155,7 +155,6 @@ public:
     void ToggleCheatMode();
 
 private:
-
     void PreStanding(States previous);
     void Standing();
     void PreStandingToWalking(States previous);
@@ -216,7 +215,7 @@ private:
     void ChantingToStanding();
 
 private:
-    void PushWallOrCrouch();
+    void GoToStandingPushingWallOrCrouching();
 
 private:
     bool IsBelowCeiling() const;
