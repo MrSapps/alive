@@ -134,7 +134,8 @@ SET(imgui_src
 )
 
 if(LINUX)
-    set_source_files_properties(${imgui_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized")
+    # TODO: Tie to version of the compiler that adds this warning, else older compiler warns about unknown option.
+    #set_source_files_properties(${imgui_src} PROPERTIES COMPILE_FLAGS "${OLD_CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized")
 endif()
 
 add_library(imgui STATIC ${imgui_src})
