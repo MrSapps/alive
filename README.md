@@ -10,14 +10,13 @@ Open source implementation of ALIVE engine that powers Oddworld: Abe's Oddysee a
 
 This engine will be designed to allow easier modding than the orignal engine and for more extensive and complex AI. For example it should be possible to allow Sligs to use lifts and have interaction between Scrabs and Paramites.
 
+UPDATE: Focus has shifted to reverse engineering Abe's Exoddus in order to replicate the AI/behaviour exactly, see the new repo here: https://github.com/AliveTeam/alive_reversing
+
 Youtube playlist here:
 https://www.youtube.com/playlist?list=PLZysgmpXqKgSCUuU9S2ccQq0Sdrai3UQY
 
 You can become a patreon here (donations to support development):
 https://www.patreon.com/alive
-
-IRC channel is #oddworld on irc.esper.net
-
 
 [![Alive Screenshot](https://raw.githubusercontent.com/paulsapps/alive/dev/doc/screenshots/alive1.png)]
 
