@@ -14,6 +14,7 @@ steps:
   displayName: 'Run a one-line script'
 
 - script: |
+    git submodule update --init
     cmake --version
     mkdir build
     cd build
